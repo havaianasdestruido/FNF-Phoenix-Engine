@@ -28,6 +28,10 @@ package utils;
 #include <mach-o/arch.h>
 #include <sys/utsname.h>
 ')
+#elseif android
+@:cppFileCode('
+#include <sys/utsname.h>
+')
 #end
 #end
 @:allow(utils.PlatformUtil)
