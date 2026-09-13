@@ -1,8 +1,8 @@
 <h1 align="center">
   <br>
-  <a href="https://github.com/havaianasdestruido/FNF-JS-Engine-Light"><img src="/art/iconOG.png" alt="JSengine" width="150"></a>
+  <a href="https://github.com/havaianasdestruido/FNF-JS-Engine-Light"><img src="/art/iconOG.png" alt="PHOENIXengine" width="150"></a>
   <br>
-  <b>Phoenix Engine</b>
+  <b>FNF Phoenix Engine</b>
   <br>
   <i>(Jordan Santiago Engine, with a bunch of new stuff)</i>
   <br>
