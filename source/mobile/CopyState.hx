@@ -98,7 +98,7 @@ class CopyState extends MusicBeatState
 		loadedText.setFormat(Paths.font("vcr.ttf"), 16, FlxColor.WHITE, CENTER);
 		add(loadedText);
 
-		thread = new ThreadPool(0, 4);
+		thread = new ThreadPool(0, CoolUtil.getCPUThreadsCount());
 		thread.doWork.add(function(poop)
 		{
 			for (file in locatedFiles)
