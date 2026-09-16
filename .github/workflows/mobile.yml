@@ -148,8 +148,8 @@ jobs:
         if: steps.target-selection.outputs.enabled == 'true' && matrix.target == 'android'
         uses: android-actions/setup-android@v4
         with:
-          api-level: 33
-          ndk: r27c
+          accept-android-sdk-licenses: true
+          packages: platform-tools platforms;android-33 build-tools;33.0.2 ndk;r27c
 
 
       # ==========================================
