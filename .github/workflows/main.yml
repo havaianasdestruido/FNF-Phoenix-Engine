@@ -395,7 +395,7 @@ jobs:
       # ==========================================
       - name: Setup Android SDK & NDK
         if: steps.target-selection.outputs.enabled == 'true' && matrix.target == 'android'
-        uses: android-actions/setup-android@v3
+        uses: android-actions/setup-android@v4.1.0
         with:
           api-level: 33
           ndk: r27c
