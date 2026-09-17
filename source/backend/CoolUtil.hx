@@ -17,22 +17,6 @@ import data.Section;
 
 class CoolUtil
 {
-	/**
-	 * Quantidade de threads worker pro ThreadPool do CopyState (cópia de assets mobile).
-	 * Android-only de propósito: consulta a contagem REAL de cores da CPU via libc++,
-	 * em vez de um numero m�gico fixo. Nos demais alvos retorna um valor seguro
-	 * (Flash/JS n�o expõem hardware concurrency de forma port�vel, e l� o 
-	 * CopyState nem � compilado).
-	 */
-	public static function getCPUThreadsCount():Int
-	{
-		#if (android && cpp)
-			return Math.max(1, untyped __cpp__('std::thread::hardware_concurrency()'));
-		#else
-			return 4;
-		#end
-	}
-
 	public static var defaultDifficulties:Array<String> = ['Easy', 'Normal', 'Hard'];
 
 	public static var defaultDifficultiesFull:Array<String> = ['Easy', 'Normal', 'Hard', 'Erect', 'Nightmare'];
