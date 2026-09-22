@@ -215,11 +215,11 @@ class GameplayChangersHelpers
 		if (state.curSelected >= state.optionsArray.length)
 			state.curSelected = 0;
 
-		var bullShit:Int = 0;
+		var selectionIndex:Int = 0;
 
 		for (item in state.grpOptions.members) {
-			item.targetY = bullShit - state.curSelected;
-			bullShit++;
+			item.targetY = selectionIndex - state.curSelected;
+			selectionIndex++;
 
 			item.alpha = 0.6;
 			if (item.targetY == 0) {

@@ -88,7 +88,7 @@ class ChartingState extends MusicBeatState
   public var showTheGrid = false;
   public var undos = [];
   public var redos = [];
-  var lastUndoShit:String = null;
+  var lastUndoData:String = null;
 
   var eventStuff:Array<Dynamic> = [
     ['', "Nothing. Yep, that's right."],
@@ -236,7 +236,7 @@ class ChartingState extends MusicBeatState
   var strumLineNotes:FlxTypedGroup<StrumNote>;
   var curSong:String = 'Test';
   var amountSteps:Int = 0;
-  var bullshitUI:FlxGroup;
+  var chartingUi:FlxGroup;
 
   var highlight:FlxSprite;
 
@@ -614,7 +614,7 @@ class ChartingState extends MusicBeatState
     songSlider.scrollFactor.set();
     songSlider.callback = function(fuck:Float) {
       vocals.time = opponentVocals.time = FlxG.sound.music.time;
-      var shit = Std.int(FlxG.sound.music.time / (Conductor.crochet * 4)); // TODO uhh make this work properly with bpm changes or somethin
+      var sectionIndex = Std.int(FlxG.sound.music.time / (Conductor.crochet * 4)); // TODO uhh make this work properly with bpm changes or somethin
 
       if (Conductor.bpmChangeMap.length > 0)
       {
@@ -626,11 +626,11 @@ class ChartingState extends MusicBeatState
           var secStartTime = sectionStartTime(sec);
           if (FlxG.sound.music.time >= lastSecStartTime && FlxG.sound.music.time <= secStartTime)
           {
-            shit = sec;
+            sectionIndex = sec;
             foundSection = true;
           } else if (secStartTime >= FlxG.sound.music.length)
           {
-            shit = 0;
+            sectionIndex = 0;
             foundSection = true;
           }
           sec++;
@@ -638,7 +638,7 @@ class ChartingState extends MusicBeatState
         }
       }
 
-      changeSection(shit);
+      changeSection(sectionIndex);
     };
 
     if (lastSong != currentSongName)
@@ -903,14 +903,14 @@ class ChartingState extends MusicBeatState
 
   function generateUI():Void
   {
-    while (bullshitUI.members.length > 0)
+    while (chartingUi.members.length > 0)
     {
-      bullshitUI.remove(bullshitUI.members[0], true);
+      chartingUi.remove(chartingUi.members[0], true);
     }
 
     // general shit
     var title:FlxText = new FlxText(UI_box.x + 20, UI_box.y + 20, 0);
-    bullshitUI.add(title);
+    chartingUi.add(title);
   }
 
   override function getEvent(id:String, sender:Dynamic, data:Dynamic, ?params:Array<Dynamic>)

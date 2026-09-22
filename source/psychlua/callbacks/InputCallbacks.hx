@@ -9,36 +9,36 @@ class InputCallbacks
 	public static function register(funk:FunkinLua):Void {
 		@:privateAccess {
 		FunkinLua.registerFunction("mouseClicked", function(button:String) {
-			var boobs = FlxG.mouse.justPressed;
+			var mouseState = FlxG.mouse.justPressed;
 			switch(button){
 				case 'middle':
-					boobs = FlxG.mouse.justPressedMiddle;
+					mouseState = FlxG.mouse.justPressedMiddle;
 				case 'right':
-					boobs = FlxG.mouse.justPressedRight;
+					mouseState = FlxG.mouse.justPressedRight;
 			}
 
 
-			return boobs;
+			return mouseState;
 		});
 		FunkinLua.registerFunction("mousePressed", function(button:String) {
-			var boobs = FlxG.mouse.pressed;
+			var mouseState = FlxG.mouse.pressed;
 			switch(button){
 				case 'middle':
-					boobs = FlxG.mouse.pressedMiddle;
+					mouseState = FlxG.mouse.pressedMiddle;
 				case 'right':
-					boobs = FlxG.mouse.pressedRight;
+					mouseState = FlxG.mouse.pressedRight;
 			}
-			return boobs;
+			return mouseState;
 		});
 		FunkinLua.registerFunction("mouseReleased", function(button:String) {
-			var boobs = FlxG.mouse.justReleased;
+			var mouseState = FlxG.mouse.justReleased;
 			switch(button){
 				case 'middle':
-					boobs = FlxG.mouse.justReleasedMiddle;
+					mouseState = FlxG.mouse.justReleasedMiddle;
 				case 'right':
-					boobs = FlxG.mouse.justReleasedRight;
+					mouseState = FlxG.mouse.justReleasedRight;
 			}
-			return boobs;
+			return mouseState;
 		});
 		FunkinLua.registerFunction("keyboardJustPressed", function(name:String)
 		{

@@ -92,13 +92,13 @@ class PlayStateCamera
 
 	public static function doTwist(state:PlayState)
 	{
-		state.twistShit = state.twistAmount * state.camTwistIntensity * (!state.twisted ? 1 : -1);
+		state.twistModifier = state.twistAmount * state.camTwistIntensity * (!state.twisted ? 1 : -1);
 		state.twisted = !state.twisted;
 
 		for (i in [state.camHUD, state.camGame])
 		{
 			FlxTween.cancelTweensOf(i);
-			i.angle = state.twistShit;
+			i.angle = state.twistModifier;
 			FlxTween.tween(i, {angle: 0}, 45 / Conductor.bpm * state.gfSpeed / state.playbackRate, {ease: FlxEase.circOut});
 		}
 	}

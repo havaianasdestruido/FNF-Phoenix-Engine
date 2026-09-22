@@ -167,11 +167,11 @@ class MasterEditorMenu extends MusicBeatState
 			FlxG.sound.play(Paths.sound('troll'));
 		}
 
-		var bullShit:Int = 0;
+		var selectionIndex:Int = 0;
 		for (item in grpTexts.members)
 		{
-			item.targetY = bullShit - curSelected;
-			bullShit++;
+			item.targetY = selectionIndex - curSelected;
+			selectionIndex++;
 
 			item.alpha = 0.6;
 

@@ -109,7 +109,7 @@ class GameplaySettingsSubState extends BaseOptionsMenu
 
 		var option:Option = new Option('Enable Miss Sound',
 			"If checked, re-enables the miss sound when you miss a note.",
-			'missSoundShit',
+			'missSoundEnabled',
 			'bool',
 			false);
 		addOption(option);

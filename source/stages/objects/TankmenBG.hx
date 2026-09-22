@@ -30,7 +30,7 @@ class TankmenBG extends FlxSprite
 		updateHitbox();
 	}
 
-	public function resetShit(x:Float, y:Float, goingRight:Bool):Void
+	public function reset(x:Float, y:Float, goingRight:Bool):Void
 	{
 		this.x = x;
 		this.y = y;

@@ -157,7 +157,7 @@ class PlayStateInput
 	}
 
 	// Hold notes
-	public static function keyShit(state:PlayState):Void
+	public static function handleKeyInput(state:PlayState):Void
 	{
 		// HOLDING
 		parseKeys(state, state.holdArray);

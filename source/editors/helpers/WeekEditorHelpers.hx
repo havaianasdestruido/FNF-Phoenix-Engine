@@ -127,7 +127,7 @@ class WeekEditorHelpers
 	}
 
 	//Used on onCreate and when you load a week
-	public static function reloadAllShit(state:WeekEditorState):Void
+	public static function reloadAll(state:WeekEditorState):Void
 	{
 		var weekString:String = state.weekFile.songs[0][0];
 		for (i in 1...state.weekFile.songs.length) {

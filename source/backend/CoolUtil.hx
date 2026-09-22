@@ -187,21 +187,21 @@ class CoolUtil
 		if (secs.length < 2)
 			secs = '0' + secs;
 
-		var shit:String = mins + ":" + secs;
+		var formattedTime:String = mins + ":" + secs;
 		if (hour != "0")
 		{
 			if (mins.length < 2)
 				mins = "0" + mins;
-			shit = hour + ":" + mins + ":" + secs;
+			formattedTime = hour + ":" + mins + ":" + secs;
 		}
 		if (precision > 0)
 		{
 			var secondsForMS:Float = ((musicLength - musicTime) / 1000) % 60;
 			var seconds:Int = Std.int((secondsForMS - Std.int(secondsForMS)) * Math.pow(10, precision));
-			shit += ".";
-			shit += seconds;
+			formattedTime += ".";
+			formattedTime += seconds;
 		}
-		return shit;
+		return formattedTime;
 	}
 
 	public static function formatTime(musicTime:Float, precision:Int = 0):String
@@ -215,35 +215,35 @@ class CoolUtil
 		if (secs.length < 2 && Math.floor((musicTime / 1000 / 86400)) == 0)
 			secs = '0' + secs;
 
-		var shit:String = mins + ":" + secs;
+		var formattedTime:String = mins + ":" + secs;
 		if (Math.floor((musicTime / 1000 / 3600)) != 0 && Math.floor((musicTime / 1000 / 86400)) == 0)
 		{
 			if (mins.length < 2)
 				mins = "0" + mins;
-			shit = hour + ":" + mins + ":" + secs;
+			formattedTime = hour + ":" + mins + ":" + secs;
 		}
 		if (Math.floor((musicTime / 1000 / 86400)) != 0 && Math.floor((musicTime / 1000 / (86400 * 7))) == 0)
 		{
-			shit = days + 'd ' + hour + 'h ' + mins + "m " + secs + 's';
+			formattedTime = days + 'd ' + hour + 'h ' + mins + "m " + secs + 's';
 		}
 		if (Math.floor((musicTime / 1000 / (86400 * 7))) != 0)
 		{
-			shit = weeks + 'w ' + days + 'd ' + hour + 'h ' + mins + "m " + secs + 's';
+			formattedTime = weeks + 'w ' + days + 'd ' + hour + 'h ' + mins + "m " + secs + 's';
 		}
 		if (precision > 0)
 		{
 			var secondsForMS:Float = (musicTime / 1000) % 60;
 			var seconds:Int = Std.int((secondsForMS - Std.int(secondsForMS)) * Math.pow(10, precision));
-			shit += ".";
+			formattedTime += ".";
 			if (precision > 1 && Std.string(seconds).length < precision)
 			{
 				var zerosToAdd:Int = precision - Std.string(seconds).length;
 				for (i in 0...zerosToAdd)
-					shit += '0';
+					formattedTime += '0';
 			}
-			shit += seconds;
+			formattedTime += seconds;
 		}
-		return shit;
+		return formattedTime;
 	}
 	
 	private static final SUFFIXES1:Array<String> = ['', 'mi', 'bi', 'tri', 'quadri', 'quinti', 'sexti', 'septi', 'octi', 'noni'];

@@ -219,7 +219,7 @@ class PlayState extends MusicBeatState
 	var camBopInterval:Float = 4;
 	var camBopIntensity:Float = 1;
 
-	var twistShit:Float = 1;
+	var twistModifier:Float = 1;
 	var twistAmount:Float = 1;
 	var camTwistIntensity:Float = 0;
 	var camTwistIntensity2:Float = 3;
@@ -241,7 +241,7 @@ class PlayState extends MusicBeatState
 	public var sicks:Int = 0;
 	public var goods:Int = 0;
 	public var bads:Int = 0;
-	public var shits:Int = 0;
+	public var poorRatings:Int = 0;
 	public var nps:Float = 0;
 	public var maxNPS:Float = 0;
 	public var oppNPS:Float = 0;
@@ -251,8 +251,8 @@ class PlayState extends MusicBeatState
 	public var polyphonyOppo:Float = 1;
 	public var polyphonyBF:Float = 1;
 
-	var pixelShitPart1:String = "";
-	var pixelShitPart2:String = '';
+	var pixelRatingPrefix:String = "";
+	var pixelRatingSuffix:String = '';
 
 	private var lerpingScore:Bool = false;
 
@@ -1861,9 +1861,9 @@ class PlayState extends MusicBeatState
 		return PlayStateEvents.sortByTime(this, Obj1, Obj2);
 	}
 
-	function sortByShit(Obj1:Note, Obj2:Note):Int {
+	function sortNotesByTime(Obj1:Note, Obj2:Note):Int {
 		// REFACTOR: delegated to play.helpers
-		return PlayStateEvents.sortByShit(this, Obj1, Obj2);
+		return PlayStateEvents.sortNotesByTime(this, Obj1, Obj2);
 	}
 
 	public var skipArrowStartTween:Bool = false; //for lua
@@ -2314,7 +2314,7 @@ class PlayState extends MusicBeatState
 			if(!inCutscene)
 			{
 				if(!cpuControlled) {
-					keyShit();
+					handleKeyInput();
 				}
 				else if (ClientPrefs.charsAndBG) playerDance();
 
@@ -2736,10 +2736,10 @@ class PlayState extends MusicBeatState
 	}
 
 	// Hold notes
-	private function keyShit():Void
+	private function handleKeyInput():Void
 	{
 		// REFACTOR: delegated to play.helpers
-		PlayStateInput.keyShit(this);
+		PlayStateInput.handleKeyInput(this);
 	}
 
 	public function parseKeys(ret:Array<Bool>, ?suffix:String = ''):Void
@@ -2921,8 +2921,8 @@ class PlayState extends MusicBeatState
 
 		if (curBeat % 32 == 0 && randomSpeedThing)
 		{
-			var randomShit = FlxMath.roundDecimal(FlxG.random.float(minSpeed, maxSpeed), 2);
-			lerpSongSpeed(randomShit, 1);
+			var randomSpeed = FlxMath.roundDecimal(FlxG.random.float(minSpeed, maxSpeed), 2);
+			lerpSongSpeed(randomSpeed, 1);
 		}
 		if (camZooming && !endingSong && !startingSong && camHUD.zoom < 1.35 && usingBopIntervalEvent && ClientPrefs.camZooms && (curBeat % camBopInterval == 0))
 		{

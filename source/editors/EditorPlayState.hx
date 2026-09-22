@@ -50,8 +50,8 @@ class EditorPlayState extends MusicBeatState
 	var startOffset:Float = 0;
 	var startPos:Float = 0;
 
-	var pixelShitPart1:String = "";
-	var pixelShitPart2:String = '';
+	var pixelRatingPrefix:String = "";
+	var pixelRatingSuffix:String = '';
 
 	public function new(startPos:Float) {
 		this.startPos = startPos;
@@ -202,7 +202,7 @@ class EditorPlayState extends MusicBeatState
 		opponentVocals.play();
 	}
 
-	function sortByShit(Obj1:Note, Obj2:Note):Int
+	function sortNotesByTime(Obj1:Note, Obj2:Note):Int
 	{
 		return FlxSort.byValues(FlxSort.ASCENDING, Obj1.strumTime, Obj2.strumTime);
 	}
@@ -271,7 +271,7 @@ class EditorPlayState extends MusicBeatState
 			if (Conductor.songPosition >= FlxG.sound.music.length) endSong();
 		}
 
-		if (!cpuControlled) keyShit();
+		if (!cpuControlled) handleKeyInput();
 		scoreTxt.text = 'Hits: ' + songHits + ' | Misses: ' + songMisses;
 		sectionTxt.text = 'Section: ' + curSection;
 		beatTxt.text = 'Beat: ' + curBeat;
@@ -363,10 +363,10 @@ class EditorPlayState extends MusicBeatState
 		return EditorPlayStateHelpers.getKeyFromEvent(this, key);
 	}
 
-	private function keyShit():Void
+	private function handleKeyInput():Void
 	{
 		// REFACTOR: delegated to editors.helpers.EditorPlayStateHelpers
-		EditorPlayStateHelpers.keyShit(this);
+		EditorPlayStateHelpers.handleKeyInput(this);
 	}
 
 	function updateNote(daNote:Note):Void

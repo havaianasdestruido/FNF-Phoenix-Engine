@@ -242,23 +242,23 @@ class LuaUtils {
 			return true;
 		}
 
-		var shit:Array<String> = variable.split('[');
-		if(shit.length > 1)
+		var pathParts:Array<String> = variable.split('[');
+		if(pathParts.length > 1)
 		{
 			var blah:Dynamic = null;
-			if(PlayState.instance.variables.exists(shit[0]))
+			if(PlayState.instance.variables.exists(pathParts[0]))
 			{
-				var retVal:Dynamic = PlayState.instance.variables.get(shit[0]);
+				var retVal:Dynamic = PlayState.instance.variables.get(pathParts[0]);
 				if(retVal != null)
 					blah = retVal;
 			}
 			else
-				blah = Reflect.getProperty(instance, shit[0]);
+				blah = Reflect.getProperty(instance, pathParts[0]);
 
-			for (i in 1...shit.length)
+			for (i in 1...pathParts.length)
 			{
-				var leNum:Dynamic = shit[i].substr(0, shit[i].length - 1);
-				if(i >= shit.length-1) //Last array
+				var leNum:Dynamic = pathParts[i].substr(0, pathParts[i].length - 1);
+				if(i >= pathParts.length-1) //Last array
 					blah[leNum] = value;
 				else //Anything else
 					blah = blah[leNum];
@@ -292,22 +292,22 @@ class LuaUtils {
 			return Reflect.getProperty(instance, variable);
 		}
 
-		var shit:Array<String> = variable.split('[');
-		if(shit.length > 1)
+		var pathParts:Array<String> = variable.split('[');
+		if(pathParts.length > 1)
 		{
 			var blah:Dynamic = null;
-			if(PlayState.instance.variables.exists(shit[0]))
+			if(PlayState.instance.variables.exists(pathParts[0]))
 			{
-				var retVal:Dynamic = PlayState.instance.variables.get(shit[0]);
+				var retVal:Dynamic = PlayState.instance.variables.get(pathParts[0]);
 				if(retVal != null)
 					blah = retVal;
 			}
 			else
-				blah = Reflect.getProperty(instance, shit[0]);
+				blah = Reflect.getProperty(instance, pathParts[0]);
 
-			for (i in 1...shit.length)
+			for (i in 1...pathParts.length)
 			{
-				var leNum:Dynamic = shit[i].substr(0, shit[i].length - 1);
+				var leNum:Dynamic = pathParts[i].substr(0, pathParts[i].length - 1);
 				blah = blah[leNum];
 			}
 			return blah;

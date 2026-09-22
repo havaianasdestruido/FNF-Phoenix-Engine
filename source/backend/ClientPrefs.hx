@@ -26,7 +26,7 @@ class ClientPrefs { //default settings if it can't find a save file containing y
 	public static var hitsoundType:String = 'osu!mania';
 	public static var voiidTrollMode:Bool = false;
 	public static var trollMaxSpeed:String = 'Medium';
-	public static var missSoundShit:Bool = false;
+	public static var missSoundEnabled:Bool = false;
 	public static var crossFadeLimit:Null<Int> = 4;
 	public static var boyfriendCrossFadeLimit:Null<Int> = 1;
 	public static var crossFadeMode:String = 'Mid-Fight Masses';

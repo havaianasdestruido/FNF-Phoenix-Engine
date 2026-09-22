@@ -303,7 +303,7 @@ class EditorPlayStateHelpers
 		return -1;
 	}
 
-	public static function keyShit(state:EditorPlayState):Void
+	public static function handleKeyInput(state:EditorPlayState):Void
 	{
 		// HOLDING
 		var up = state.controls.NOTE_UP;
@@ -380,22 +380,22 @@ class EditorPlayStateHelpers
 	{
 		if (PlayState.isPixelStage)
 		{
-			state.pixelShitPart1 = 'pixelUI/';
-			state.pixelShitPart2 = '-pixel';
+			state.pixelRatingPrefix = 'pixelUI/';
+			state.pixelRatingSuffix = '-pixel';
 		}
 
 		var normalRating:String = 'ratings/' + ClientPrefs.ratingType.toLowerCase().replace(' ', '-').trim() + '/';
 
-		state.pixelShitPart1 += normalRating;
+		state.pixelRatingPrefix += normalRating;
 
-		Paths.image(state.pixelShitPart1 + "perfect" + state.pixelShitPart2);
-		Paths.image(state.pixelShitPart1 + "sick" + state.pixelShitPart2);
-		Paths.image(state.pixelShitPart1 + "good" + state.pixelShitPart2);
-		Paths.image(state.pixelShitPart1 + "bad" + state.pixelShitPart2);
-		Paths.image(state.pixelShitPart1 + "shit" + state.pixelShitPart2);
-		Paths.image(state.pixelShitPart1 + "miss" + state.pixelShitPart2);
+		Paths.image(state.pixelRatingPrefix + "perfect" + state.pixelRatingSuffix);
+		Paths.image(state.pixelRatingPrefix + "sick" + state.pixelRatingSuffix);
+		Paths.image(state.pixelRatingPrefix + "good" + state.pixelRatingSuffix);
+		Paths.image(state.pixelRatingPrefix + "bad" + state.pixelRatingSuffix);
+		Paths.image(state.pixelRatingPrefix + "shit" + state.pixelRatingSuffix);
+		Paths.image(state.pixelRatingPrefix + "miss" + state.pixelRatingSuffix);
 
-		for (i in 0...10) Paths.image(state.pixelShitPart1 + 'num' + i + state.pixelShitPart2);
+		for (i in 0...10) Paths.image(state.pixelRatingPrefix + 'num' + i + state.pixelRatingSuffix);
 	}
 
 	public static function popUpScore(state:EditorPlayState, note:Note = null):Void
@@ -429,7 +429,7 @@ class EditorPlayStateHelpers
 			state.spawnNoteSplashOnNote(note);
 		}
 
-		rating.loadGraphic(Paths.image(state.pixelShitPart1 + daRating + state.pixelShitPart2));
+		rating.loadGraphic(Paths.image(state.pixelRatingPrefix + daRating + state.pixelRatingSuffix));
 		rating.screenCenter();
 		rating.x = state.COMBO_X - 40;
 		rating.y -= 60;
@@ -458,7 +458,7 @@ class EditorPlayStateHelpers
 		var daLoop:Int = 0;
 		for (i in seperatedScore)
 		{
-			var numScore:FlxSprite = new FlxSprite().loadGraphic(Paths.image(state.pixelShitPart1 + 'num' + i + state.pixelShitPart2));
+			var numScore:FlxSprite = new FlxSprite().loadGraphic(Paths.image(state.pixelRatingPrefix + 'num' + i + state.pixelRatingSuffix));
 			numScore.screenCenter();
 			numScore.x = state.COMBO_X + (43 * daLoop) - 90;
 			numScore.y += 80;

@@ -43,10 +43,10 @@ class VFDOverlay extends GraphicsShader
       float color_mix = mix(0.0, 0.3, outline); // Mix black outline with white fill
 
       float flicker = (sin(u_time) * 0.05) + 1.0;
-      float sinshit = smoothstep(-3.0, 1.0, sin(uv.y * 3.));
+      float sinValue = smoothstep(-3.0, 1.0, sin(uv.y * 3.));
 
       col = vec4(vec3(0.0), color_mix);
-      col = mix(col, vec4(0., 0., 0., sinshit), 0.5 * flicker);
+      col = mix(col, vec4(0., 0., 0., sinValue), 0.5 * flicker);
 
       float specs = rand(uv.xy);
       vec4 noise = vec4(0., 0., 0., specs);

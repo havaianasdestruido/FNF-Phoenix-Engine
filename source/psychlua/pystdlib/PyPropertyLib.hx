@@ -32,10 +32,10 @@ class PyPropertyLib
 			return true;
 		});
 		PythonScript.registerFunction("getPropertyFromGroup", function(obj:String, index:Int, variable:Dynamic) {
-			var shitMyPants:Array<String> = obj.split('.');
+			var objectPathParts:Array<String> = obj.split('.');
 			var realObject:Dynamic = Reflect.getProperty(py.getInstance(), obj);
-			if(shitMyPants.length>1)
-				realObject = FunkinLua.getPropertyLoopThingWhatever(shitMyPants, true, false);
+			if(objectPathParts.length>1)
+				realObject = FunkinLua.getPropertyLoopThingWhatever(objectPathParts, true, false);
 
 			if(Std.isOfType(realObject, FlxTypedGroup)) {
 				var result:Dynamic = py.getGroupStuff(realObject.members[index], variable);
@@ -55,10 +55,10 @@ class PyPropertyLib
 			return null;
 		});
 		PythonScript.registerFunction("setPropertyFromGroup", function(obj:String, index:Int, variable:Dynamic, value:Dynamic) {
-			var shitMyPants:Array<String> = obj.split('.');
+			var objectPathParts:Array<String> = obj.split('.');
 			var realObject:Dynamic = Reflect.getProperty(py.getInstance(), obj);
-			if(shitMyPants.length>1)
-				realObject = FunkinLua.getPropertyLoopThingWhatever(shitMyPants, true, false);
+			if(objectPathParts.length>1)
+				realObject = FunkinLua.getPropertyLoopThingWhatever(objectPathParts, true, false);
 
 			if(Std.isOfType(realObject, FlxTypedGroup)) {
 				py.setGroupStuff(realObject.members[index], variable, value);

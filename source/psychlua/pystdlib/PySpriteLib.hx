@@ -154,14 +154,14 @@ class PySpriteLib
 		});
 		PythonScript.registerFunction("addLuaSprite", function(tag:String, front:Bool = false) {
 			if(PlayState.instance.modchartSprites.exists(tag)) {
-				var shit:ModchartSprite = PlayState.instance.modchartSprites.get(tag);
-				if(!shit.wasAdded) {
+				var sprite:ModchartSprite = PlayState.instance.modchartSprites.get(tag);
+				if(!sprite.wasAdded) {
 					if(front) {
-						py.getInstance().add(shit);
+						py.getInstance().add(sprite);
 					}
 					else {
 						if(PlayState.instance.isDead) {
-							GameOverSubstate.instance.insert(GameOverSubstate.instance.members.indexOf(GameOverSubstate.instance.boyfriend), shit);
+							GameOverSubstate.instance.insert(GameOverSubstate.instance.members.indexOf(GameOverSubstate.instance.boyfriend), sprite);
 						}
 						else {
 							var position:Int = PlayState.instance.members.indexOf(PlayState.instance.gfGroup);
@@ -170,18 +170,18 @@ class PySpriteLib
 							} else if(PlayState.instance.members.indexOf(PlayState.instance.dadGroup) < position) {
 								position = PlayState.instance.members.indexOf(PlayState.instance.dadGroup);
 							}
-							PlayState.instance.insert(position, shit);
+							PlayState.instance.insert(position, sprite);
 						}
 					}
-					shit.wasAdded = true;
+					sprite.wasAdded = true;
 				}
 			}
 		});
 		PythonScript.registerFunction("setGraphicSize", function(obj:String, x:Int, y:Int = 0, updateHitbox:Bool = true) {
 			if(PlayState.instance.getLuaObject(obj) != null) {
-				var shit:FlxSprite = PlayState.instance.getLuaObject(obj);
-				shit.setGraphicSize(x, y);
-				if(updateHitbox) shit.updateHitbox();
+				var sprite:FlxSprite = PlayState.instance.getLuaObject(obj);
+				sprite.setGraphicSize(x, y);
+				if(updateHitbox) sprite.updateHitbox();
 				return;
 			}
 
@@ -200,9 +200,9 @@ class PySpriteLib
 		});
 		PythonScript.registerFunction("scaleObject", function(obj:String, x:Float, y:Float, updateHitbox:Bool = true) {
 			if(PlayState.instance.getLuaObject(obj) != null) {
-				var shit:FlxSprite = PlayState.instance.getLuaObject(obj);
-				shit.scale.set(x, y);
-				if(updateHitbox) shit.updateHitbox();
+				var sprite:FlxSprite = PlayState.instance.getLuaObject(obj);
+				sprite.scale.set(x, y);
+				if(updateHitbox) sprite.updateHitbox();
 				return;
 			}
 
@@ -221,8 +221,8 @@ class PySpriteLib
 		});
 		PythonScript.registerFunction("updateHitbox", function(obj:String) {
 			if(PlayState.instance.getLuaObject(obj) != null) {
-				var shit:FlxSprite = PlayState.instance.getLuaObject(obj);
-				shit.updateHitbox();
+				var sprite:FlxSprite = PlayState.instance.getLuaObject(obj);
+				sprite.updateHitbox();
 				return;
 			}
 

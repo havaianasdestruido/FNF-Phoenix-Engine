@@ -63,13 +63,13 @@ class ChartingSaveLoad
   {
     if (CoolUtil.getNoteAmount(songData) <= 50000 && FlxG.save.data.allowUndo)
     {
-      var shit = Json.stringify(
+      var serializedSong = Json.stringify(
         { // doin this so it doesnt act as a reference
           "song": songData
         });
-      if (state.lastUndoShit == shit) return;
-      state.lastUndoShit = shit;
-      var song:SwagSong = Song.parseJSON(shit);
+      if (state.lastUndoData == serializedSong) return;
+      state.lastUndoData = serializedSong;
+      var song:SwagSong = Song.parseJSON(serializedSong);
 
       state.undos.unshift(song.notes);
       state.redos = []; // Reset state.redos
@@ -85,7 +85,7 @@ class ChartingSaveLoad
       state._song.notes = state.undos[0];
       state.redos.unshift(state.undos[0]);
       state.undos.splice(0, 1);
-      state.lastUndoShit = null;
+      state.lastUndoData = null;
       trace("Performed an Undo! Undos remaining: " + state.undos.length);
       ChartingState.unsavedChanges = true;
       if (state.curSection > state._song.notes.length) state.changeSection(state._song.notes.length - 1);
