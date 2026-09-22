@@ -36,13 +36,7 @@ class TankmenBG extends FlxSprite
 		updateHitbox();
 	}
 
-	/**
-	 * Executes the `reset` operation.
-	 * @param x Input value for `x`.
-	 * @param y Input value for `y`.
-	 * @param goingRight Input value for `goingRight`.
-	 */
-	public function reset(x:Float, y:Float, goingRight:Bool):Void
+	public function resetTankman(x:Float, y:Float, goingRight:Bool):Void
 	{
 		this.x = x;
 		this.y = y;

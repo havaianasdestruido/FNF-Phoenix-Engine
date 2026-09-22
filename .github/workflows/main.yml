@@ -427,7 +427,7 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: ${{ env.HAXELIB_PATH }}
-          key: haxelib-${{ runner.os }}-haxe-4.3.7-${{ hashFiles('hmm.json', 'setup/unix.sh', 'setup/windows.bat') }}
+          key: haxelib-${{ runner.os }}-haxe-4.3.7-${{ hashFiles('hmm.json', 'setup/unix.sh', 'setup/windows.bat', 'setup/windows-msvc-fix.ps1') }}
 
       # ==========================================
       # Install Haxelib dependencies - Unix
@@ -534,7 +534,7 @@ jobs:
       # Save haxelib cache
       # ==========================================
       - name: Save haxelib and hxcpp tools
-        if: always() && steps.target-selection.outputs.enabled == 'true' && steps.haxelib-cache.outputs.cache-hit != 'true'
+        if: success() && steps.target-selection.outputs.enabled == 'true' && steps.haxelib-cache.outputs.cache-hit != 'true'
         uses: actions/cache/save@v4
         with:
           path: ${{ env.HAXELIB_PATH }}
@@ -578,8 +578,9 @@ jobs:
       - name: Compile (Windows)
         if: steps.target-selection.outputs.enabled == 'true' && matrix.setup == 'windows'
         shell: pwsh
+        # Limiting parallel C++ compilation keeps Windows runners below their memory limit.
         env:
-          HXCPP_COMPILE_THREADS: $env:NUMBER_OF_PROCESSORS
+          HXCPP_COMPILE_THREADS: 4
         run: |
           if (Test-Path $env:HXCPP_COMPILE_CACHE) {
             Remove-Item $env:HXCPP_COMPILE_CACHE -Recurse -Force
@@ -606,7 +607,7 @@ jobs:
       # Save generated C++ cache
       # ==========================================
       - name: Save generated C++ cache
-        if: always() && steps.target-selection.outputs.enabled == 'true' && steps.build-cache.outputs.cache-hit != 'true'
+        if: success() && steps.target-selection.outputs.enabled == 'true' && steps.build-cache.outputs.cache-hit != 'true'
         uses: actions/cache/save@v4
         with:
           path: |
