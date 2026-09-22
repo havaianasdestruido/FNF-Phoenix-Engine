@@ -55,11 +55,21 @@ class SpectralAnalyzer {
 
 	private static inline var LN10:Float = 2.302585092994046; // Natural logarithm of 10
 
+	/**
+	 * Executes the `changeSnd` operation.
+	 * @param audioSource Input value for `audioSource`.
+	 * @return Result produced by `changeSnd`, when applicable.
+	 */
 	public function changeSnd(audioSource:AudioSource) {
 		this.audioSource = audioSource;
 		this.audioClip = new LimeAudioClip(audioSource);
 	}
 
+	/**
+	 * Executes the `normalizedB` operation.
+	 * @param value Input value for `value`.
+	 * @return Result produced by `normalizedB`, when applicable.
+	 */
 	function normalizedB(value:Float) {
 		var maxValue = maxDb;
 		var minValue = minDb;
@@ -67,6 +77,12 @@ class SpectralAnalyzer {
 		return clamp((value - minValue) / (maxValue - minValue), 0, 1);
 	}
 
+	/**
+	 * Executes the `calcBars` operation.
+	 * @param barCount Input value for `barCount`.
+	 * @param peakHold Input value for `peakHold`.
+	 * @return Result produced by `calcBars`, when applicable.
+	 */
 	function calcBars(barCount:Int, peakHold:Int) {
 		#if web
 		bars = [];
@@ -117,6 +133,13 @@ class SpectralAnalyzer {
 		#end
 	}
 
+	/**
+	 * Executes the `new` operation.
+	 * @param audioSource Input value for `audioSource`.
+	 * @param barCount Input value for `barCount`.
+	 * @param smoothingTimeConstant Input value for `smoothingTimeConstant`.
+	 * @param peakHold Input value for `peakHold`.
+	 */
 	public function new(audioSource:AudioSource, barCount:Int, smoothingTimeConstant:Float = 0.8, peakHold:Int = 30) {
 		this.audioSource = audioSource;
 		this.audioClip = new LimeAudioClip(audioSource);
@@ -133,6 +156,12 @@ class SpectralAnalyzer {
 		calcBars(barCount, peakHold);
 	}
 
+	/**
+	 * Executes the `freqToBin` operation.
+	 * @param freq Input value for `freq`.
+	 * @param mathType Input value for `mathType`.
+	 * @return Result produced by `freqToBin`, when applicable.
+	 */
 	private function freqToBin(freq:Float, mathType:MathType = Round):Int {
 		var bin = freq * fftN2 / audioClip.audioBuffer.sampleRate;
 		return switch (mathType) {
@@ -143,6 +172,11 @@ class SpectralAnalyzer {
 		}
 	}
 
+	/**
+	 * Executes the `getLevels` operation.
+	 * @param levels Input value for `levels`.
+	 * @return Result produced by `getLevels`, when applicable.
+	 */
 	public function getLevels(?levels:Array<Bar>):Array<Bar> {
 		if (levels == null)
 			levels = new Array<Bar>();
@@ -275,6 +309,12 @@ class SpectralAnalyzer {
 	// Prevents a memory leak by reusing array
 	var _buffer:Array<Float> = [];
 
+	/**
+	 * Executes the `getSignal` operation.
+	 * @param data Input value for `data`.
+	 * @param bitsPerSample Input value for `bitsPerSample`.
+	 * @return Result produced by `getSignal`, when applicable.
+	 */
 	function getSignal(data:lime.utils.UInt8Array, bitsPerSample:Int):Array<Float> {
 		switch (bitsPerSample) {
 			case 8:
@@ -313,6 +353,11 @@ class SpectralAnalyzer {
 		return x > y ? y : x;
 	}
 
+	/**
+	 * Executes the `set_minDb` operation.
+	 * @param value Input value for `value`.
+	 * @return Result produced by `set_minDb`, when applicable.
+	 */
 	function set_minDb(value:Float):Float {
 		minDb = value;
 
@@ -323,6 +368,11 @@ class SpectralAnalyzer {
 		return value;
 	}
 
+	/**
+	 * Executes the `set_maxDb` operation.
+	 * @param value Input value for `value`.
+	 * @return Result produced by `set_maxDb`, when applicable.
+	 */
 	function set_maxDb(value:Float):Float {
 		maxDb = value;
 
@@ -333,6 +383,11 @@ class SpectralAnalyzer {
 		return value;
 	}
 
+	/**
+	 * Executes the `set_fftN` operation.
+	 * @param value Input value for `value`.
+	 * @return Result produced by `set_fftN`, when applicable.
+	 */
 	function set_fftN(value:Int):Int {
 		fftN = value;
 		var pow2 = FFT.nextPow2(value);

@@ -22,6 +22,11 @@ import objects.Note;
 @:access(backend.MusicBeatState)
 class PlayStateCountdown
 {
+	/**
+	 * Executes the `cacheCountdown` operation.
+	 * @param state Input value for `state`.
+	 * @return Result produced by `cacheCountdown`, when applicable.
+	 */
 	public static function cacheCountdown(state:PlayState)
 	{
 		var introAssets:Map<String, Array<String>> = new Map<String, Array<String>>();
@@ -40,6 +45,10 @@ class PlayStateCountdown
 		state.introGo = new FlxSound().loadEmbedded(Paths.sound('introGo' + state.introSoundsSuffix));
 	}
 
+	/**
+	 * Executes the `startCountdown` operation.
+	 * @param state Input value for `state`.
+	 */
 	public static function startCountdown(state:PlayState):Void
 	{
 		if(state.startedCountdown) {
@@ -205,6 +214,13 @@ class PlayStateCountdown
 		}
 	}
 
+	/**
+	 * Executes the `createCountdownSprite` operation.
+	 * @param state Input value for `state`.
+	 * @param image Input value for `image`.
+	 * @param antialias Input value for `antialias`.
+	 * @return Result produced by `createCountdownSprite`, when applicable.
+	 */
 	inline public static function createCountdownSprite(state:PlayState, image:String, antialias:Bool):FlxSprite
 	{
 		var spr:FlxSprite = new FlxSprite().loadGraphic(Paths.image(image));

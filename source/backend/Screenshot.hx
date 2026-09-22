@@ -16,6 +16,13 @@ class Screenshot {
 	var target:String = #if windows "assets\\gameRenders" #else "assets/gameRenders" #end;
 	public static var slash:String = #if windows "\\" #else "/" #end;
 
+	/**
+	 * Executes the `new` operation.
+	 * @param x Input value for `x`.
+	 * @param y Input value for `y`.
+	 * @param w Input value for `w`.
+	 * @param h Input value for `h`.
+	 */
 	public function new(x:Int = -1, y:Int = -1, w:Int = -1, h:Int = -1) {
 		if(x < 0) this.x = 0;
 		if(y < 0) this.y = 0;
@@ -25,6 +32,14 @@ class Screenshot {
 		image = new Image();
 	}
 
+	/**
+	 * Executes the `setRegion` operation.
+	 * @param x Input value for `x`.
+	 * @param y Input value for `y`.
+	 * @param w Input value for `w`.
+	 * @param h Input value for `h`.
+	 * @return Result produced by `setRegion`, when applicable.
+	 */
 	public function setRegion(x:Int, y:Int, w:Int, h:Int) {
 		this.x = x;
 		this.y = y;
@@ -37,6 +52,10 @@ class Screenshot {
 		if(h < 0) height = FlxG.height;
 	}
 
+	/**
+	 * Executes the `getScreen` operation.
+	 * @return Result produced by `getScreen`, when applicable.
+	 */
 	private function getScreen() {
 		#if sys
 		if(window == null)
@@ -46,6 +65,12 @@ class Screenshot {
 		#end
 	}
 
+	/**
+	 * Executes the `fixFilename` operation.
+	 * @param name Input value for `name`.
+	 * @param lossless Input value for `lossless`.
+	 * @return Result produced by `fixFilename`, when applicable.
+	 */
 	private function fixFilename(name:String, lossless:Bool = false):String
 	{
 		var type:String = lossless ? ".png" : ".jpg";
@@ -58,6 +83,12 @@ class Screenshot {
 
 	var byteData:Bytes;
 
+	/**
+	 * Executes the `save` operation.
+	 * @param path Input value for `path`.
+	 * @param name Input value for `name`.
+	 * @return Result produced by `save`, when applicable.
+	 */
 	public function save(path:String = "", name:String = '') {
 		#if sys
 		getScreen();
@@ -101,8 +132,29 @@ class Screenshot {
 #else
 class Screenshot {
 	public static var slash:String = "/";
+	/**
+	 * Executes the `new` operation.
+	 * @param x Input value for `x`.
+	 * @param y Input value for `y`.
+	 * @param w Input value for `w`.
+	 * @param h Input value for `h`.
+	 */
 	public function new(x:Int = -1, y:Int = -1, w:Int = -1, h:Int = -1) {}
+	/**
+	 * Executes the `setRegion` operation.
+	 * @param x Input value for `x`.
+	 * @param y Input value for `y`.
+	 * @param w Input value for `w`.
+	 * @param h Input value for `h`.
+	 * @return Result produced by `setRegion`, when applicable.
+	 */
 	public function setRegion(x:Int, y:Int, w:Int, h:Int) {}
+	/**
+	 * Executes the `save` operation.
+	 * @param path Input value for `path`.
+	 * @param name Input value for `name`.
+	 * @return Result produced by `save`, when applicable.
+	 */
 	public function save(path:String = "", name:String = ''):Bool {
 		trace('Cannot save on non-Sys platforms!');
 		return false;

@@ -22,6 +22,11 @@ class FlxUIInputText extends FlxInputText implements IResizable implements IFlxU
 	public static inline var PASTE_EVENT:String = "paste_input_text"; // paste text in this text field
 	public static inline var CUT_EVENT:String = "cut_input_text"; // cut text in this text field
 
+	/**
+	 * Executes the `resize` operation.
+	 * @param w Input value for `w`.
+	 * @param h Input value for `h`.
+	 */
 	public function resize(w:Float, h:Float):Void
 	{
 		width = w;
@@ -29,6 +34,10 @@ class FlxUIInputText extends FlxInputText implements IResizable implements IFlxU
 		calcFrame();
 	}
 
+	/**
+	 * Executes the `onChange` operation.
+	 * @param action Input value for `action`.
+	 */
 	private override function onChange(action:String):Void
 	{
 		super.onChange(action);

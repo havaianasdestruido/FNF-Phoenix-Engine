@@ -23,6 +23,11 @@ import play.helpers.PlayStateNotes;
 @:access(backend.MusicBeatState)
 class PlayStateInput
 {
+	/**
+	 * Executes the `onKeyPress` operation.
+	 * @param state Input value for `state`.
+	 * @param event Input value for `event`.
+	 */
 	public static function onKeyPress(state:PlayState, event:KeyboardEvent):Void
 	{
 		var eventKey:FlxKey = event.keyCode;
@@ -32,6 +37,11 @@ class PlayStateInput
 			keyPressed(state, key);
 	}
 
+	/**
+	 * Executes the `keyPressed` operation.
+	 * @param state Input value for `state`.
+	 * @param key Input value for `key`.
+	 */
 	public static function keyPressed(state:PlayState, key:Int):Void
 	{
 		if(state.cpuControlled || state.paused || key < 0) return;
@@ -107,6 +117,12 @@ class PlayStateInput
 		state.callOnLuas('onKeyPress', [key]);
 	}
 
+	/**
+	 * Executes the `sortHitNotes` operation.
+	 * @param a Input value for `a`.
+	 * @param b Input value for `b`.
+	 * @return Result produced by `sortHitNotes`, when applicable.
+	 */
 	public static function sortHitNotes(a:Dynamic, b:Dynamic):Int
 	{
 		if (a.lowPriority && !b.lowPriority)
@@ -117,6 +133,11 @@ class PlayStateInput
 		return FlxSort.byValues(FlxSort.ASCENDING, a.strumTime, b.strumTime);
 	}
 
+	/**
+	 * Executes the `onKeyRelease` operation.
+	 * @param state Input value for `state`.
+	 * @param event Input value for `event`.
+	 */
 	public static function onKeyRelease(state:PlayState, event:KeyboardEvent):Void
 	{
 		var eventKey:FlxKey = event.keyCode;
@@ -127,6 +148,12 @@ class PlayStateInput
 			keyReleased(state, key);
 	}
 
+	/**
+	 * Executes the `keyReleased` operation.
+	 * @param state Input value for `state`.
+	 * @param key Input value for `key`.
+	 * @return Result produced by `keyReleased`, when applicable.
+	 */
 	public static function keyReleased(state:PlayState, key:Int)
 	{
 		if (state.cpuControlled || !state.startedCountdown || state.paused)
@@ -141,6 +168,12 @@ class PlayStateInput
 		state.callOnLuas('onKeyRelease', [key]);
 	}
 
+	/**
+	 * Executes the `getKeyFromEvent` operation.
+	 * @param state Input value for `state`.
+	 * @param key Input value for `key`.
+	 * @return Result produced by `getKeyFromEvent`, when applicable.
+	 */
 	public static function getKeyFromEvent(state:PlayState, key:FlxKey):Int
 	{
 		if (key != NONE)
@@ -157,6 +190,10 @@ class PlayStateInput
 	}
 
 	// Hold notes
+	/**
+	 * Executes the `handleKeyInput` operation.
+	 * @param state Input value for `state`.
+	 */
 	public static function handleKeyInput(state:PlayState):Void
 	{
 		// HOLDING
@@ -242,6 +279,12 @@ class PlayStateInput
 		}
 	}
 
+	/**
+	 * Executes the `parseKeys` operation.
+	 * @param state Input value for `state`.
+	 * @param ret Input value for `ret`.
+	 * @param suffix Input value for `suffix`.
+	 */
 	public static function parseKeys(state:PlayState, ret:Array<Bool>, ?suffix:String = ''):Void
 	{
 		switch (suffix)

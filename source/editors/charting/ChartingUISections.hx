@@ -27,6 +27,10 @@ import objects.Note;
 @:access(backend.MusicBeatState)
 class ChartingUISections
 {
+  /**
+   * Executes the `addSongUI` operation.
+   * @param state Input value for `state`.
+   */
   public static function addSongUI(state:ChartingState):Void
   {
     state.UI_songTitle = new FlxUIInputText(10, 10, 70, state._song.song, 8);
@@ -313,6 +317,10 @@ class ChartingUISections
     state.initPsychCamera().follow(state.camPos, null, 999);
   }
 
+  /**
+   * Executes the `addSongDataUI` operation.
+   * @param state Input value for `state`.
+   */
   public static function addSongDataUI(state:ChartingState):Void // therell be more added here later
   {
     var tab_group_songdata = new FlxUI(null, state.UI_box);
@@ -380,6 +388,10 @@ class ChartingUISections
     state.UI_box.addGroup(tab_group_songdata);
   }
 
+  /**
+   * Executes the `addSectionUI` operation.
+   * @param state Input value for `state`.
+   */
   public static function addSectionUI(state:ChartingState):Void
   {
     var tab_group_section = new FlxUI(null, state.UI_box);
@@ -899,6 +911,10 @@ class ChartingUISections
     state.UI_box.addGroup(tab_group_section);
   }
 
+  /**
+   * Executes the `addNoteUI` operation.
+   * @param state Input value for `state`.
+   */
   public static function addNoteUI(state:ChartingState):Void
   {
     var tab_group_note = new FlxUI(null, state.UI_box);
@@ -1024,6 +1040,10 @@ class ChartingUISections
     state.UI_box.addGroup(tab_group_note);
   }
 
+  /**
+   * Executes the `addNoteStackingUI` operation.
+   * @param state Input value for `state`.
+   */
   public static function addNoteStackingUI(state:ChartingState):Void
   {
     var tab_group_stacking = new FlxUI(null, state.UI_box);
@@ -1177,6 +1197,10 @@ class ChartingUISections
     state.UI_box.addGroup(tab_group_stacking);
   }
 
+  /**
+   * Executes the `addEventsUI` operation.
+   * @param state Input value for `state`.
+   */
   public static function addEventsUI(state:ChartingState):Void
   {
     var tab_group_event = new FlxUI(null, state.UI_box);
@@ -1351,6 +1375,11 @@ class ChartingUISections
     state.UI_box.addGroup(tab_group_event);
   }
 
+  /**
+   * Executes the `addChartingUI` operation.
+   * @param state Input value for `state`.
+   * @return Result produced by `addChartingUI`, when applicable.
+   */
   public static function addChartingUI(state:ChartingState)
   {
     var tab_group_chart = new FlxUI(null, state.UI_box);

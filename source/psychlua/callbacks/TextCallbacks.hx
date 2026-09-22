@@ -8,6 +8,10 @@ import headers.PsychLua;
 // REFACTOR: extracted from psychlua.FunkinLua (text object API)
 class TextCallbacks
 {
+	/**
+	 * Executes the `register` operation.
+	 * @param funk Input value for `funk`.
+	 */
 	public static function register(funk:FunkinLua):Void {
 		@:privateAccess {
 		// LUA TEXTS

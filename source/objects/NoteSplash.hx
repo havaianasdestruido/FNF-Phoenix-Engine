@@ -25,6 +25,12 @@ class NoteSplash extends FlxSprite
 
 	public static var defaultNoteSplash(default, never):String = 'noteSplashes/noteSplashes';
 
+	/**
+	 * Executes the `new` operation.
+	 * @param x Input value for `x`.
+	 * @param y Input value for `y`.
+	 * @param note Input value for `note`.
+	 */
 	public function new(x:Float = 0, y:Float = 0, ?note:Int = 0) {
 		super(x, y);
 
@@ -43,6 +49,14 @@ class NoteSplash extends FlxSprite
 
 	var maxAnims:Int = 2;
 	var config:NoteSplashConfig = null;
+	/**
+	 * Executes the `setupNoteSplash` operation.
+	 * @param x Input value for `x`.
+	 * @param y Input value for `y`.
+	 * @param direction Input value for `direction`.
+	 * @param note Input value for `note`.
+	 * @return Result produced by `setupNoteSplash`, when applicable.
+	 */
 	public function setupNoteSplash(x:Float, y:Float, direction:Int = 0, ?note:Note = null) {
 		setPosition(x - Note.swagWidth * 0.95, y - Note.swagWidth);
 		alpha = 0.6;
@@ -94,6 +108,10 @@ class NoteSplash extends FlxSprite
 		if(animation.curAnim != null)animation.curAnim.frameRate = FlxG.random.int(config.minFps, config.maxFps);
 	}
 
+	/**
+	 * Executes the `getSplashSkinPostfix` operation.
+	 * @return Result produced by `getSplashSkinPostfix`, when applicable.
+	 */
 	public static function getSplashSkinPostfix()
 	{
 		var skin:String = '';
@@ -102,6 +120,11 @@ class NoteSplash extends FlxSprite
 		return skin;
 	}
 
+	/**
+	 * Executes the `loadAnims` operation.
+	 * @param skin Input value for `skin`.
+	 * @return Result produced by `loadAnims`, when applicable.
+	 */
 	function loadAnims(skin:String) {
 		maxAnims = 0;
 		if (!Paths.splashSkinFramesMap.exists(skin)) Paths.initSplash(skin);
@@ -111,6 +134,11 @@ class NoteSplash extends FlxSprite
 
 	static var aliveTime:Float = 0;
 	static var buggedKillTime:Float = 0.5; //automatically kills note splashes if they break to prevent it from flooding your HUD
+	/**
+	 * Executes the `update` operation.
+	 * @param elapsed Input value for `elapsed`.
+	 * @return Result produced by `update`, when applicable.
+	 */
 	override function update(elapsed:Float) {
 		aliveTime += elapsed;
 		if((animation.curAnim != null && animation.curAnim.finished) ||
@@ -123,6 +151,11 @@ class NoteSplash extends FlxSprite
 class PixelSplashShaderRef {
 	public var shader:PixelSplashShader = new PixelSplashShader();
 
+	/**
+	 * Executes the `copyValues` operation.
+	 * @param tempShader Input value for `tempShader`.
+	 * @return Result produced by `copyValues`, when applicable.
+	 */
 	public function copyValues(tempShader:RGBPalette)
 	{
 		var enabled:Bool = false;
@@ -142,6 +175,9 @@ class PixelSplashShaderRef {
 		else shader.mult.value[0] = 0.0;
 	}
 
+	/**
+	 * Executes the `new` operation.
+	 */
 	public function new()
 	{
 		shader.r.value = [0, 0, 0];
@@ -205,6 +241,9 @@ class PixelSplashShader extends FlxFixedShader
 			gl_FragColor = flixel_texture2DCustom(bitmap, openfl_TextureCoordv);
 		}')
 
+	/**
+	 * Executes the `new` operation.
+	 */
 	public function new()
 	{
 		super();

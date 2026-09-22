@@ -29,9 +29,18 @@ class PhillyBlazin extends BaseStage
 
 	var abot:ABotSpeaker;
 
+	/**
+	 * Executes the `create` operation.
+	 * @return Result produced by `create`, when applicable.
+	 */
 	override function create()
 	{
 		FlxTransitionableState.skipNextTransOut = true; //skip the original transition fade
+		/**
+		 * Executes the `setupScale` operation.
+		 * @param spr Input value for `spr`.
+		 * @return Result produced by `setupScale`, when applicable.
+		 */
 		function setupScale(spr:BGSprite)
 		{
 			spr.scale.set(1.75, 1.75);
@@ -114,6 +123,10 @@ class PhillyBlazin extends BaseStage
 		}
 	}
 
+	/**
+	 * Executes the `createPost` operation.
+	 * @return Result produced by `createPost`, when applicable.
+	 */
 	override function createPost()
 	{
 		FlxG.camera.focusOn(camFollowPos.getPosition());
@@ -149,11 +162,19 @@ class PhillyBlazin extends BaseStage
 		addBehindBF(dadGroup);
 	}
 
+	/**
+	 * Executes the `startSong` operation.
+	 * @return Result produced by `startSong`, when applicable.
+	 */
 	override function startSong()
 	{
 		abot.snd = FlxG.sound.music;
 	}
 
+	/**
+	 * Executes the `setupRainShader` operation.
+	 * @return Result produced by `setupRainShader`, when applicable.
+	 */
 	function setupRainShader()
 	{
 		rainShader = new RainShader();
@@ -162,6 +183,10 @@ class PhillyBlazin extends BaseStage
 		FlxG.camera.filters = [new ShaderFilter(rainShader)];
 	}
 
+	/**
+	 * Executes the `precache` operation.
+	 * @return Result produced by `precache`, when applicable.
+	 */
 	function precache()
 	{
 		for (i in 1...4)
@@ -170,6 +195,11 @@ class PhillyBlazin extends BaseStage
 		}
 	}
 
+	/**
+	 * Executes the `update` operation.
+	 * @param elapsed Input value for `elapsed`.
+	 * @return Result produced by `update`, when applicable.
+	 */
 	override function update(elapsed:Float)
 	{
 		if(scrollingSky != null) scrollingSky.scrollX -= elapsed * 35;
@@ -189,6 +219,9 @@ class PhillyBlazin extends BaseStage
 		}
 	}
 
+	/**
+	 * Executes the `applyLightning` operation.
+	 */
 	function applyLightning():Void
 	{
 		if(ClientPrefs.lowQuality || game.endingSong) return;
@@ -235,6 +268,11 @@ class PhillyBlazin extends BaseStage
 	// Note functions
 	var picoFight:PicoBlazinHandler = new PicoBlazinHandler();
 	var darnellFight:DarnellBlazinHandler = new DarnellBlazinHandler();
+	/**
+	 * Executes the `goodNoteHit` operation.
+	 * @param note Input value for `note`.
+	 * @return Result produced by `goodNoteHit`, when applicable.
+	 */
 	override function goodNoteHit(note:Note)
 	{
 		//trace('hit note! ${note.noteType}');
@@ -242,6 +280,11 @@ class PhillyBlazin extends BaseStage
 		picoFight.noteHit(note);
 		darnellFight.noteHit(note);
 	}
+	/**
+	 * Executes the `noteMiss` operation.
+	 * @param note Input value for `note`.
+	 * @return Result produced by `noteMiss`, when applicable.
+	 */
 	override function noteMiss(note:Note)
 	{
 		//trace('missed note!');
@@ -249,6 +292,11 @@ class PhillyBlazin extends BaseStage
 		darnellFight.noteMiss(note);
 	}
 
+	/**
+	 * Executes the `noteMissPress` operation.
+	 * @param direction Input value for `direction`.
+	 * @return Result produced by `noteMissPress`, when applicable.
+	 */
 	override function noteMissPress(direction:Int)
 	{
 		//trace('misinput!');
@@ -257,6 +305,11 @@ class PhillyBlazin extends BaseStage
 	}
 
 	// Darnell Note functions
+	/**
+	 * Executes the `opponentNoteHit` operation.
+	 * @param note Input value for `note`.
+	 * @return Result produced by `opponentNoteHit`, when applicable.
+	 */
 	override function opponentNoteHit(note:Note)
 	{
 		//trace('opponent hit!');

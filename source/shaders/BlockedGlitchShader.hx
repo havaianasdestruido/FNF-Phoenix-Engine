@@ -34,6 +34,9 @@ class BlockedGlitchShader extends FlxShader
       gl_FragColor.b = flixel_texture2D(bitmap, uv + vec2(offset(64.0, uv) * 0.03, 0.0)).b;
     }
     ')
+  /**
+   * Executes the `new` operation.
+*/
   public function new()
   {
     super();

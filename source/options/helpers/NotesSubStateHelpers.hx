@@ -26,6 +26,11 @@ import play.PlayState;
 @:access(backend.MusicBeatState)
 class NotesSubStateHelpers
 {
+	/**
+	 * Executes the `centerHexTypeLine` operation.
+	 * @param state Input value for `state`.
+	 * @return Result produced by `centerHexTypeLine`, when applicable.
+	 */
 	public static function centerHexTypeLine(state:NotesSubState)
 	{
 		//trace(hexTypeNum);
@@ -43,6 +48,12 @@ class NotesSubStateHelpers
 		state.hexTypeVisibleTimer = 0;
 	}
 
+	/**
+	 * Executes the `changeSelectionMode` operation.
+	 * @param state Input value for `state`.
+	 * @param change Input value for `change`.
+	 * @return Result produced by `changeSelectionMode`, when applicable.
+	 */
 	public static function changeSelectionMode(state:NotesSubState, change:Int = 0) {
 		state.curSelectedMode += change;
 		if (state.curSelectedMode < 0)
@@ -56,6 +67,12 @@ class NotesSubStateHelpers
 		FlxG.sound.play(Paths.sound('scrollMenu'));
 	}
 
+	/**
+	 * Executes the `changeSelectionNote` operation.
+	 * @param state Input value for `state`.
+	 * @param change Input value for `change`.
+	 * @return Result produced by `changeSelectionNote`, when applicable.
+	 */
 	public static function changeSelectionNote(state:NotesSubState, change:Int = 0) {
 		state.curSelectedNote += change;
 		if (state.curSelectedNote < 0)
@@ -72,6 +89,13 @@ class NotesSubStateHelpers
 	}
 
 	// alphabets
+	/**
+	 * Executes the `makeColorAlphabet` operation.
+	 * @param state Input value for `state`.
+	 * @param x Input value for `x`.
+	 * @param y Input value for `y`.
+	 * @return Result produced by `makeColorAlphabet`, when applicable.
+	 */
 	public static function makeColorAlphabet(state:NotesSubState, x:Float = 0, y:Float = 0):Alphabet
 	{
 		var text:Alphabet = new Alphabet(x, y, '', true);
@@ -82,6 +106,11 @@ class NotesSubStateHelpers
 	}
 
 	// notes sprites functions
+	/**
+	 * Executes the `spawnNotes` operation.
+	 * @param state Input value for `state`.
+	 * @return Result produced by `spawnNotes`, when applicable.
+	 */
 	public static function spawnNotes(state:NotesSubState)
 	{
 		Paths.initDefaultSkin(Note.defaultNoteSkin + NoteHelpers.getNoteSkinPostfix());
@@ -199,6 +228,12 @@ class NotesSubStateHelpers
 		PlayState.stageUI = "normal";
 	}
 
+	/**
+	 * Executes the `updateNotes` operation.
+	 * @param state Input value for `state`.
+	 * @param instant Input value for `instant`.
+	 * @return Result produced by `updateNotes`, when applicable.
+	 */
 	public static function updateNotes(state:NotesSubState, ?instant:Bool = false)
 	{
 		for (note in state.modeNotes)
@@ -215,6 +250,12 @@ class NotesSubStateHelpers
 		updateColors(state);
 	}
 
+	/**
+	 * Executes the `updateColors` operation.
+	 * @param state Input value for `state`.
+	 * @param specific Input value for `specific`.
+	 * @return Result produced by `updateColors`, when applicable.
+	 */
 	public static function updateColors(state:NotesSubState, specific:Null<FlxColor> = null)
 	{
 		var color:FlxColor = getShaderColor(state);
@@ -247,7 +288,23 @@ class NotesSubStateHelpers
 		}
 	}
 
+	/**
+	 * Executes the `setShaderColor` operation.
+	 * @param state Input value for `state`.
+	 * @param value Input value for `value`.
+	 * @return Result produced by `setShaderColor`, when applicable.
+	 */
 	public static function setShaderColor(state:NotesSubState, value:FlxColor) state.dataArray[state.curSelectedNote][state.curSelectedMode] = value;
+	/**
+	 * Executes the `getShaderColor` operation.
+	 * @param state Input value for `state`.
+	 * @return Result produced by `getShaderColor`, when applicable.
+	 */
 	public static function getShaderColor(state:NotesSubState):FlxColor return state.dataArray[state.curSelectedNote][state.curSelectedMode];
+	/**
+	 * Executes the `getShader` operation.
+	 * @param state Input value for `state`.
+	 * @return Result produced by `getShader`, when applicable.
+	 */
 	public static function getShader(state:NotesSubState):RGBPalette return Note.globalRgbShaders[state.curSelectedNote];
 }

@@ -52,6 +52,9 @@ class ControlsSubState extends MusicBeatSubstate {
 	var rebindingKey:Bool = false;
 	var nextAccept:Int = 5;
 
+	/**
+	 * Executes the `new` operation.
+*/
 	public function new() {
 		super();
 
@@ -101,6 +104,11 @@ class ControlsSubState extends MusicBeatSubstate {
 
 	var leaving:Bool = false;
 	var bindingTime:Float = 0;
+	/**
+	 * Executes the `update` operation.
+	 * @param elapsed Input value for `elapsed`.
+	 * @return Result produced by `update`, when applicable.
+	 */
 	override function update(elapsed:Float) {
 		if(!rebindingKey) {
 			if (controls.UI_UP_P) {
@@ -172,6 +180,10 @@ class ControlsSubState extends MusicBeatSubstate {
 		super.update(elapsed);
 	}
 
+	/**
+	 * Executes the `getInputTextNum` operation.
+	 * @return Result produced by `getInputTextNum`, when applicable.
+	 */
 	function getInputTextNum() {
 		var num:Int = 0;
 		for (i in 0...curSelected) {
@@ -182,6 +194,11 @@ class ControlsSubState extends MusicBeatSubstate {
 		return num;
 	}
 
+	/**
+	 * Executes the `changeSelection` operation.
+	 * @param change Input value for `change`.
+	 * @return Result produced by `changeSelection`, when applicable.
+	 */
 	function changeSelection(change:Int = 0) {
 		do {
 			curSelected += change;
@@ -229,6 +246,10 @@ class ControlsSubState extends MusicBeatSubstate {
 		FlxG.sound.play(Paths.sound('scrollMenu'));
 	}
 
+	/**
+	 * Executes the `changeAlt` operation.
+	 * @return Result produced by `changeAlt`, when applicable.
+	 */
 	function changeAlt() {
 		curAlt = !curAlt;
 		for (i in 0...grpInputs.length) {
@@ -252,6 +273,12 @@ class ControlsSubState extends MusicBeatSubstate {
 		FlxG.sound.play(Paths.sound('scrollMenu'));
 	}
 
+	/**
+	 * Executes the `unselectableCheck` operation.
+	 * @param num Input value for `num`.
+	 * @param checkDefaultKey Input value for `checkDefaultKey`.
+	 * @return Result produced by `unselectableCheck`, when applicable.
+	 */
 	private function unselectableCheck(num:Int, ?checkDefaultKey:Bool = false):Bool {
 		if(menuOptions[num][0] == defaultKey) {
 			return checkDefaultKey;
@@ -259,6 +286,12 @@ class ControlsSubState extends MusicBeatSubstate {
 		return menuOptions[num].length < 2 && menuOptions[num][0] != defaultKey;
 	}
 
+	/**
+	 * Executes the `addBindTexts` operation.
+	 * @param optionText Input value for `optionText`.
+	 * @param num Input value for `num`.
+	 * @return Result produced by `addBindTexts`, when applicable.
+	 */
 	private function addBindTexts(optionText:Alphabet, num:Int) {
 		var keys:Array<Dynamic> = ClientPrefs.keyBinds.get(menuOptions[num][1]);
 		var text1 = new AttachedText(InputFormatter.getKeyName(keys[0]), 400, -55);
@@ -274,6 +307,10 @@ class ControlsSubState extends MusicBeatSubstate {
 		add(text2);
 	}
 
+	/**
+	 * Executes the `reloadKeys` operation.
+	 * @return Result produced by `reloadKeys`, when applicable.
+	 */
 	function reloadKeys() {
 		while(grpInputs.length > 0) {
 			var item:AttachedText = grpInputs[0];

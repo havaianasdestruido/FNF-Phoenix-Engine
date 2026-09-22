@@ -21,6 +21,11 @@ class CharacterEditorHelpers
 {
 	// ===== characterList group =====
 
+	/**
+	 * Executes the `reloadCharacterDropDown` operation.
+	 * @param state Input value for `state`.
+	 * @return Result produced by `reloadCharacterDropDown`, when applicable.
+	 */
 	public static function reloadCharacterDropDown(state:CharacterEditorState)
 	{
 		state.characterList = Mods.mergeAllTextsNamed('data/characterList.txt', Paths.getSharedPath());
@@ -41,18 +46,34 @@ class CharacterEditorHelpers
 		state.charDropDown.selectedLabel = state._char;
 	}
 
+	/**
+	 * Executes the `predictCharacterIsNotPlayer` operation.
+	 * @param state Input value for `state`.
+	 * @param name Input value for `name`.
+	 * @return Result produced by `predictCharacterIsNotPlayer`, when applicable.
+	 */
 	public static function predictCharacterIsNotPlayer(state:CharacterEditorState, name:String)
 	{
 		return (name != 'bf' && !name.startsWith('bf-') && !name.endsWith('-player') && !name.endsWith('-playable') && !name.endsWith('-dead')) ||
 				name.endsWith('-opponent') || name.startsWith('gf-') || name.endsWith('-gf') || name == 'gf';
 	}
 
+	/**
+	 * Executes the `updateCharacterPositions` operation.
+	 * @param state Input value for `state`.
+	 * @return Result produced by `updateCharacterPositions`, when applicable.
+	 */
 	public static function updateCharacterPositions(state:CharacterEditorState)
 	{
 		state.char.setPosition(state.char.positionArray[0] + state.OFFSET_X + 100, state.char.positionArray[1]);
 		updatePointerPos(state);
 	}
 
+	/**
+	 * Executes the `resetHealthBarColor` operation.
+	 * @param state Input value for `state`.
+	 * @return Result produced by `resetHealthBarColor`, when applicable.
+	 */
 	public static function resetHealthBarColor(state:CharacterEditorState)
 	{
 		state.healthColorStepperR.value = state.char.healthColorArray[0];
@@ -64,6 +85,11 @@ class CharacterEditorHelpers
 
 	// ===== characterPreview group =====
 
+	/**
+	 * Executes the `reloadCharacterImage` operation.
+	 * @param state Input value for `state`.
+	 * @return Result produced by `reloadCharacterImage`, when applicable.
+	 */
 	public static function reloadCharacterImage(state:CharacterEditorState)
 	{
 		var lastAnim:String = state.char.getAnimationName();
@@ -132,6 +158,11 @@ class CharacterEditorHelpers
 		}
 	}
 
+	/**
+	 * Executes the `reloadAnimList` operation.
+	 * @param state Input value for `state`.
+	 * @return Result produced by `reloadAnimList`, when applicable.
+	 */
 	public static function reloadAnimList(state:CharacterEditorState)
 	{
 		state.animList = state.char.animationsArray;
@@ -142,6 +173,11 @@ class CharacterEditorHelpers
 		if(state.animationDropDown != null) reloadAnimationDropDown(state);
 	}
 
+	/**
+	 * Executes the `reloadAnimationDropDown` operation.
+	 * @param state Input value for `state`.
+	 * @return Result produced by `reloadAnimationDropDown`, when applicable.
+	 */
 	public static function reloadAnimationDropDown(state:CharacterEditorState)
 	{
 		var animationList:Array<String> = [];
@@ -151,6 +187,11 @@ class CharacterEditorHelpers
 		state.animationDropDown.setData(FlxUIDropDownMenuCustom.makeStrIdLabelArray(animationList, true));
 	}
 
+	/**
+	 * Executes the `updateText` operation.
+	 * @param state Input value for `state`.
+	 * @return Result produced by `updateText`, when applicable.
+	 */
 	public static function updateText(state:CharacterEditorState)
 	{
 		state.animsTxt.removeFormat(state.selectedFormat);
@@ -171,6 +212,16 @@ class CharacterEditorHelpers
 		state.animsTxt.text = intendText;
 	}
 
+	/**
+	 * Executes the `addAnimation` operation.
+	 * @param state Input value for `state`.
+	 * @param anim Input value for `anim`.
+	 * @param name Input value for `name`.
+	 * @param fps Input value for `fps`.
+	 * @param loop Input value for `loop`.
+	 * @param indices Input value for `indices`.
+	 * @return Result produced by `addAnimation`, when applicable.
+	 */
 	public static function addAnimation(state:CharacterEditorState, anim:String, name:String, fps:Float, loop:Bool, indices:Array<Int>)
 	{
 		if(!state.char.isAnimateAtlas)
@@ -194,6 +245,13 @@ class CharacterEditorHelpers
 			state.char.addOffset(anim, 0, 0);
 	}
 
+	/**
+	 * Executes the `newAnim` operation.
+	 * @param state Input value for `state`.
+	 * @param anim Input value for `anim`.
+	 * @param name Input value for `name`.
+	 * @return Result produced by `newAnim`, when applicable.
+	 */
 	public static function newAnim(state:CharacterEditorState, anim:String, name:String):AnimArray
 	{
 		return {
@@ -206,6 +264,12 @@ class CharacterEditorHelpers
 		};
 	}
 
+	/**
+	 * Executes the `findAnimationByName` operation.
+	 * @param state Input value for `state`.
+	 * @param name Input value for `name`.
+	 * @return Result produced by `findAnimationByName`, when applicable.
+	 */
 	public static function findAnimationByName(state:CharacterEditorState, name:String):AnimArray
 	{
 		for (anim in state.char.animationsArray) {
@@ -216,6 +280,11 @@ class CharacterEditorHelpers
 		return null;
 	}
 
+	/**
+	 * Executes the `updatePointerPos` operation.
+	 * @param state Input value for `state`.
+	 * @return Result produced by `updatePointerPos`, when applicable.
+	 */
 	public static function updatePointerPos(state:CharacterEditorState)
 	{
 		if(state.char == null || state.cameraFollowPointer == null) return;

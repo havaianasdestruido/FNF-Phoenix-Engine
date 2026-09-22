@@ -11,6 +11,10 @@ class Spooky extends BaseStage
 {
 	var halloweenBG:BGSprite;
 	var halloweenWhite:BGSprite;
+	/**
+	 * Executes the `create` operation.
+	 * @return Result produced by `create`, when applicable.
+	 */
 	override function create()
 	{
 		if(!ClientPrefs.lowQuality) {
@@ -34,6 +38,10 @@ class Spooky extends BaseStage
 			}
 		}
 	}
+	/**
+	 * Executes the `createPost` operation.
+	 * @return Result produced by `createPost`, when applicable.
+	 */
 	override function createPost()
 	{
 		halloweenWhite = new BGSprite(null, -800, -400, 0, 0);
@@ -45,6 +53,10 @@ class Spooky extends BaseStage
 
 	var lightningStrikeBeat:Int = 0;
 	var lightningOffset:Int = 8;
+	/**
+	 * Executes the `beatHit` operation.
+	 * @return Result produced by `beatHit`, when applicable.
+	 */
 	override function beatHit()
 	{
 		if (FlxG.random.bool(10) && curBeat > lightningStrikeBeat + lightningOffset)
@@ -53,6 +65,9 @@ class Spooky extends BaseStage
 		}
 	}
 
+	/**
+	 * Executes the `lightningStrike` operation.
+	 */
 	function lightningStrike():Void
 	{
 		FlxG.sound.play(Paths.soundRandom('thunder_', 1, 2));
@@ -90,6 +105,10 @@ class Spooky extends BaseStage
 		}
 	}
 
+	/**
+	 * Executes the `monsterCutscene` operation.
+	 * @return Result produced by `monsterCutscene`, when applicable.
+	 */
 	function monsterCutscene()
 	{
 		inCutscene = true;

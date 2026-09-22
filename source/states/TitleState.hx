@@ -61,6 +61,9 @@ class TitleState extends MusicBeatState
 
   public static var updateVersion:String = '';
 
+  /**
+   * Executes the `create` operation.
+*/
   override public function create():Void
   {
     Paths.clearStoredMemory();
@@ -162,6 +165,10 @@ class TitleState extends MusicBeatState
   var titleText:FlxSprite;
   var swagShader:ColorSwap = null;
 
+  /**
+   * Executes the `startIntro` operation.
+   * @return Result produced by `startIntro`, when applicable.
+   */
   function startIntro()
   {
     if (!initialized)
@@ -276,6 +283,10 @@ class TitleState extends MusicBeatState
       initialized = true;
   }
 
+  /**
+   * Executes the `getIntroText` operation.
+   * @return Result produced by `getIntroText`, when applicable.
+   */
   function getIntroText():Array<Array<String>>
   {
     var fullText:String = Assets.getText(Paths.txt('introText'));
@@ -296,6 +307,11 @@ class TitleState extends MusicBeatState
   var newTitle:Bool = false;
   var titleTimer:Float = 0;
 
+  /**
+   * Executes the `update` operation.
+   * @param elapsed Input value for `elapsed`.
+   * @return Result produced by `update`, when applicable.
+   */
   override function update(elapsed:Float)
   {
     if (FlxG.sound.music != null) Conductor.songPosition = FlxG.sound.music.time;
@@ -368,6 +384,12 @@ class TitleState extends MusicBeatState
     super.update(elapsed);
   }
 
+  /**
+   * Executes the `createCoolText` operation.
+   * @param textArray Input value for `textArray`.
+   * @param offset Input value for `offset`.
+   * @return Result produced by `createCoolText`, when applicable.
+   */
   function createCoolText(textArray:Array<String>, ?offset:Float = 0)
   {
     for (i in 0...textArray.length)
@@ -383,6 +405,12 @@ class TitleState extends MusicBeatState
     }
   }
 
+  /**
+   * Executes the `addMoreText` operation.
+   * @param text Input value for `text`.
+   * @param offset Input value for `offset`.
+   * @return Result produced by `addMoreText`, when applicable.
+   */
   function addMoreText(text:String, ?offset:Float = 0)
   {
     if (textGroup != null && credGroup != null)
@@ -395,6 +423,10 @@ class TitleState extends MusicBeatState
     }
   }
 
+  /**
+   * Executes the `deleteCoolText` operation.
+   * @return Result produced by `deleteCoolText`, when applicable.
+   */
   function deleteCoolText()
   {
     while (textGroup.members.length > 0)
@@ -408,6 +440,10 @@ class TitleState extends MusicBeatState
 
   public static var closedState:Bool = false;
 
+  /**
+   * Executes the `beatHit` operation.
+   * @return Result produced by `beatHit`, when applicable.
+   */
   override function beatHit()
   {
     super.beatHit();
@@ -470,6 +506,9 @@ class TitleState extends MusicBeatState
   var skippedIntro:Bool = false;
   var increaseVolume:Bool = false;
 
+  /**
+   * Executes the `skipIntro` operation.
+*/
   function skipIntro():Void
   {
     if (!skippedIntro)

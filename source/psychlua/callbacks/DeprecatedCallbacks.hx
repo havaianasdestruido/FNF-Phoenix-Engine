@@ -10,6 +10,10 @@ import objects.Character;
 // REFACTOR: extracted from psychlua.FunkinLua (deprecated backward-compat functions)
 class DeprecatedCallbacks
 {
+	/**
+	 * Executes the `register` operation.
+	 * @param funk Input value for `funk`.
+	 */
 	public static function register(funk:FunkinLua):Void {
 		@:privateAccess {
 		// DEPRECATED, DONT MESS WITH THESE SHITS, ITS JUST THERE FOR BACKWARD COMPATIBILITY

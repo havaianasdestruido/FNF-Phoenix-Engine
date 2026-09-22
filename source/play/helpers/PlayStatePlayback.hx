@@ -35,6 +35,12 @@ import objects.Note;
 @:access(backend.MusicBeatState)
 class PlayStatePlayback
 {
+	/**
+	 * Executes the `setSongTime` operation.
+	 * @param state Input value for `state`.
+	 * @param time Input value for `time`.
+	 * @return Result produced by `setSongTime`, when applicable.
+	 */
 	public static function setSongTime(state:PlayState, time:Float)
 	{
 		if(time < 0) time = 0;
@@ -62,6 +68,10 @@ class PlayStatePlayback
 		if (time > 0) PlayStateNoteHelpers.clearNotesBefore(state, time);
 	}
 
+	/**
+	 * Executes the `startSong` operation.
+	 * @param state Input value for `state`.
+	 */
 	public static function startSong(state:PlayState):Void
 	{
 		state.startingSong = false;
@@ -147,6 +157,12 @@ class PlayStatePlayback
 		state.callOnLuas('onSongStart');
 	}
 
+	/**
+	 * Executes the `lerpSongSpeed` operation.
+	 * @param state Input value for `state`.
+	 * @param num Input value for `num`.
+	 * @param time Input value for `time`.
+	 */
 	public static function lerpSongSpeed(state:PlayState, num:Float, time:Float):Void
 	{
 		FlxTween.num(state.playbackRate, num, time, {onUpdate: function(tween:FlxTween){
@@ -163,6 +179,11 @@ class PlayStatePlayback
 		}});
 	}
 
+	/**
+	 * Executes the `changeTheSettingsBitch` operation.
+	 * @param state Input value for `state`.
+	 * @return Result produced by `changeTheSettingsBitch`, when applicable.
+	 */
 	public static function changeTheSettingsBitch(state:PlayState) {
 		state.healthGain = ClientPrefs.getGameplaySetting('healthgain', 1);
 		state.healthLoss = ClientPrefs.getGameplaySetting('healthloss', 1);
@@ -199,6 +220,10 @@ class PlayStatePlayback
 		if (!state.opponentDrain && !Math.isNaN((PlayState.opponentChart ? state.boyfriend : state.dad).drainFloor)) state.healthDrainFloor = PlayState.opponentChart ? state.boyfriend.drainFloor : state.dad.drainFloor;
 	}
 
+	/**
+	 * Executes the `resyncVocals` operation.
+	 * @param state Input value for `state`.
+	 */
 	public static function resyncVocals(state:PlayState):Void
 	{
 		if(state.finishTimer != null || state.ffmpegMode) return;
@@ -235,18 +260,34 @@ class PlayStatePlayback
 		}
 	}
 
+	/**
+	 * Executes the `unpauseVocals` operation.
+	 * @param state Input value for `state`.
+	 * @return Result produced by `unpauseVocals`, when applicable.
+	 */
 	public static function unpauseVocals(state:PlayState)
 	{
 		for (i in [state.vocals, state.opponentVocals])
 			if (i != null && i.time <= FlxG.sound.music.length)
 				i.resume();
 	}
+	/**
+	 * Executes the `pauseVocals` operation.
+	 * @param state Input value for `state`.
+	 * @return Result produced by `pauseVocals`, when applicable.
+	 */
 	public static function pauseVocals(state:PlayState)
 	{
 		for (i in [state.vocals, state.opponentVocals])
 			if (i != null && i.time <= FlxG.sound.music.length)
 				i.pause();
 	}
+	/**
+	 * Executes the `setVocalsTime` operation.
+	 * @param state Input value for `state`.
+	 * @param time Input value for `time`.
+	 * @return Result produced by `setVocalsTime`, when applicable.
+	 */
 	public static function setVocalsTime(state:PlayState, time:Float)
 	{
 		for (i in [state.vocals, state.opponentVocals])
@@ -254,6 +295,11 @@ class PlayStatePlayback
 				i.time = time;
 	}
 
+	/**
+	 * Executes the `finishSong` operation.
+	 * @param state Input value for `state`.
+	 * @param ignoreNoteOffset Input value for `ignoreNoteOffset`.
+	 */
 	public static function finishSong(state:PlayState, ?ignoreNoteOffset:Bool = false):Void
 	{
 		if (!state.trollingMode && PlayState.SONG.song.toLowerCase() != 'anti-cheat-song') {
@@ -274,6 +320,11 @@ class PlayStatePlayback
 		}
 	}
 
+	/**
+	 * Executes the `loopSongLol` operation.
+	 * @param state Input value for `state`.
+	 * @return Result produced by `loopSongLol`, when applicable.
+	 */
 	public static function loopSongLol(state:PlayState)
 	{
 		state.stepsToDo = /* You need stepsToDo to change, otherwise the sections break. */ state.curStep = state.curBeat = state.curSection = 0; // Wow.
@@ -309,6 +360,12 @@ class PlayStatePlayback
 		}
 	}
 
+	/**
+	 * Executes the `calculateTrollModeStuff` operation.
+	 * @param state Input value for `state`.
+	 * @param pb Input value for `pb`.
+	 * @return Result produced by `calculateTrollModeStuff`, when applicable.
+	 */
 	public static function calculateTrollModeStuff(state:PlayState, pb:Float):Float {
 		// Peak Code 2
 		if (pb >= 2 && pb < 4) return 0.1;
@@ -323,11 +380,22 @@ class PlayStatePlayback
 		return 0.05;
 	}
 
+	/**
+	 * Executes the `calculateResetTime` operation.
+	 * @param state Input value for `state`.
+	 * @return Result produced by `calculateResetTime`, when applicable.
+	 */
 	public static function calculateResetTime(state:PlayState):Float {
 		if (ClientPrefs.strumLitStyle == 'BPM Based') return (Conductor.stepCrochet * 1.5 / 1000) / state.playbackRate;
 		return 0.15 / state.playbackRate;
 	}
 
+	/**
+	 * Executes the `loopCallback` operation.
+	 * @param state Input value for `state`.
+	 * @param startingPoint Input value for `startingPoint`.
+	 * @return Result produced by `loopCallback`, when applicable.
+	 */
 	public static function loopCallback(state:PlayState, startingPoint:Float = 0)
 	{
 		PlayStateNoteHelpers.KillNotes(state); //kill any existing notes
@@ -356,6 +424,10 @@ class PlayStatePlayback
 		}
 	}
 
+	/**
+	 * Executes the `endSong` operation.
+	 * @param state Input value for `state`.
+	 */
 	public static function endSong(state:PlayState):Void
 	{
 		if (state.mobileControls != null) state.mobileControls.visible = false;
@@ -470,6 +542,12 @@ class PlayStatePlayback
 		}
 	}
 
+	/**
+	 * Executes the `restartSong` operation.
+	 * @param state Input value for `state`.
+	 * @param noTrans Input value for `noTrans`.
+	 * @return Result produced by `restartSong`, when applicable.
+	 */
 	public static function restartSong(state:PlayState, noTrans:Bool = true)
 	{
 		PlayState.instance.paused = true; // For lua

@@ -4,6 +4,11 @@ import backend.Paths;
 
 class BackgroundDancer extends FlxSprite
 {
+	/**
+	 * Executes the `new` operation.
+	 * @param x Input value for `x`.
+	 * @param y Input value for `y`.
+	 */
 	public function new(x:Float, y:Float)
 	{
 		super(x, y);
@@ -17,6 +22,9 @@ class BackgroundDancer extends FlxSprite
 
 	var danceDir:Bool = false;
 
+	/**
+	 * Executes the `dance` operation.
+	 */
 	public function dance():Void
 	{
 		danceDir = !danceDir;

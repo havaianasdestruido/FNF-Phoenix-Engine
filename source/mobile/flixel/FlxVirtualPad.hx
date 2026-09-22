@@ -264,7 +264,7 @@ class FlxVirtualPad extends FlxTypedSpriteGroup<FlxButton>
 
 	/**
 	 * Clean up memory.
-	 */
+*/
 	override public function destroy():Void
 	{
 		super.destroy();
@@ -273,6 +273,14 @@ class FlxVirtualPad extends FlxTypedSpriteGroup<FlxButton>
 				Reflect.setField(this, field, FlxDestroyUtil.destroy(Reflect.field(this, field)));
 	}
 
+	/**
+	 * Executes the `createButton` operation.
+	 * @param X Input value for `X`.
+	 * @param Y Input value for `Y`.
+	 * @param Graphic Input value for `Graphic`.
+	 * @param Color Input value for `Color`.
+	 * @return Result produced by `createButton`, when applicable.
+	 */
 	private function createButton(X:Float, Y:Float, Graphic:String, Color:Int = 0xFFFFFF):FlxButton
 	{
 		var graphic:FlxGraphic;

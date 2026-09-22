@@ -11,6 +11,11 @@ class CustomSubstate extends MusicBeatSubstate
 	public static var instance:CustomSubstate;
 
 	#if LUA_ALLOWED
+	/**
+	 * Executes the `implement` operation.
+	 * @param funk Input value for `funk`.
+	 * @return Result produced by `implement`, when applicable.
+	 */
 	public static function implement(funk:FunkinLua)
 	{
 		var lua = funk.lua;
@@ -21,6 +26,11 @@ class CustomSubstate extends MusicBeatSubstate
 	#end
 
 	#if PYTHON_ALLOWED
+	/**
+	 * Executes the `implementPython` operation.
+	 * @param python Input value for `python`.
+	 * @return Result produced by `implementPython`, when applicable.
+	 */
 	public static function implementPython(python:PythonScript)
 	{
 		python.set("openCustomSubstate", openCustomSubstate);
@@ -29,6 +39,12 @@ class CustomSubstate extends MusicBeatSubstate
 	}
 	#end
 	
+	/**
+	 * Executes the `openCustomSubstate` operation.
+	 * @param name Input value for `name`.
+	 * @param pauseGame Input value for `pauseGame`.
+	 * @return Result produced by `openCustomSubstate`, when applicable.
+	 */
 	public static function openCustomSubstate(name:String, ?pauseGame:Bool = false)
 	{
 		if(pauseGame)
@@ -45,6 +61,10 @@ class CustomSubstate extends MusicBeatSubstate
 		PlayState.instance.openSubState(new CustomSubstate(name));
 	}
 
+	/**
+	 * Executes the `closeCustomSubstate` operation.
+	 * @return Result produced by `closeCustomSubstate`, when applicable.
+	 */
 	public static function closeCustomSubstate()
 	{
 		if(instance != null)
@@ -55,6 +75,12 @@ class CustomSubstate extends MusicBeatSubstate
 		return false;
 	}
 
+	/**
+	 * Executes the `insertToCustomSubstate` operation.
+	 * @param tag Input value for `tag`.
+	 * @param pos Input value for `pos`.
+	 * @return Result produced by `insertToCustomSubstate`, when applicable.
+	 */
 	public static function insertToCustomSubstate(tag:String, ?pos:Int = -1)
 	{
 		if(instance != null)
@@ -71,6 +97,10 @@ class CustomSubstate extends MusicBeatSubstate
 		return false;
 	}
 
+	/**
+	 * Executes the `create` operation.
+	 * @return Result produced by `create`, when applicable.
+	 */
 	override function create()
 	{
 		instance = this;
@@ -83,6 +113,10 @@ class CustomSubstate extends MusicBeatSubstate
 		PlayState.instance.callOnLuas('onCustomSubstateCreatePost', [name]);
 	}
 	
+	/**
+	 * Executes the `new` operation.
+	 * @param name Input value for `name`.
+	 */
 	public function new(name:String)
 	{
 		CustomSubstate.name = name;
@@ -91,6 +125,11 @@ class CustomSubstate extends MusicBeatSubstate
 		cameras = [FlxG.cameras.list[FlxG.cameras.list.length - 1]];
 	}
 	
+	/**
+	 * Executes the `update` operation.
+	 * @param elapsed Input value for `elapsed`.
+	 * @return Result produced by `update`, when applicable.
+	 */
 	override function update(elapsed:Float)
 	{
 		// PlayState.instance.callOnScripts('onCustomSubstateUpdate', [name, elapsed]);
@@ -100,6 +139,10 @@ class CustomSubstate extends MusicBeatSubstate
 		PlayState.instance.callOnLuas('onCustomSubstateUpdatePost', [name, elapsed]);
 	}
 
+	/**
+	 * Executes the `destroy` operation.
+	 * @return Result produced by `destroy`, when applicable.
+	 */
 	override function destroy()
 	{
 		// PlayState.instance.callOnScripts('onCustomSubstateDestroy', [name]);

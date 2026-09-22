@@ -7,6 +7,13 @@ import flxanimate.frames.FlxAnimateFrames;
 
 class PsychFlxAnimate extends OriginalFlxAnimate
 {
+	/**
+	 * Executes the `loadAtlasEx` operation.
+	 * @param img Input value for `img`.
+	 * @param pathOrStr Input value for `pathOrStr`.
+	 * @param myJson Input value for `myJson`.
+	 * @return Result produced by `loadAtlasEx`, when applicable.
+	 */
 	public function loadAtlasEx(img:FlxGraphicAsset, pathOrStr:String = null, myJson:Dynamic = null)
 	{
 		var animJson:AnimAtlas = null;
@@ -76,12 +83,20 @@ class PsychFlxAnimate extends OriginalFlxAnimate
 		origin = anim.curInstance.symbol.transformationPoint;
 	}
 
+	/**
+	 * Executes the `draw` operation.
+	 * @return Result produced by `draw`, when applicable.
+	 */
 	override function draw()
 	{
 		if(anim.curInstance == null || anim.curSymbol == null) return;
 		super.draw();
 	}
 
+	/**
+	 * Executes the `destroy` operation.
+	 * @return Result produced by `destroy`, when applicable.
+	 */
 	override function destroy()
 	{
 		try
@@ -98,17 +113,30 @@ class PsychFlxAnimate extends OriginalFlxAnimate
 		}
 	}
 
+	/**
+	 * Executes the `_removeBOM` operation.
+	 * @param str Input value for `str`.
+	 * @return Result produced by `_removeBOM`, when applicable.
+	 */
 	function _removeBOM(str:String) //Removes BOM byte order indicator
 	{
 		if (str.charCodeAt(0) == 0xFEFF) str = str.substr(1); //myData = myData.substr(2);
 		return str;
 	}
 
+	/**
+	 * Executes the `pauseAnimation` operation.
+	 * @return Result produced by `pauseAnimation`, when applicable.
+	 */
 	public function pauseAnimation()
 	{
 		if(anim.curInstance == null || anim.curSymbol == null) return;
 		anim.pause();
 	}
+	/**
+	 * Executes the `resumeAnimation` operation.
+	 * @return Result produced by `resumeAnimation`, when applicable.
+	 */
 	public function resumeAnimation()
 	{
 		if(anim.curInstance == null || anim.curSymbol == null) return;

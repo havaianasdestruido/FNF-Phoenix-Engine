@@ -30,18 +30,33 @@ class PlayerSettings
 	// public var avatar:Player;
 	// public var camera(get, never):PlayCamera;
 
+	/**
+	 * Executes the `new` operation.
+	 * @param id Input value for `id`.
+	 * @param scheme Input value for `scheme`.
+	 */
 	function new(id, scheme)
 	{
 		this.id = id;
 		this.controls = new Controls('player$id', scheme);
 	}
 
+	/**
+	 * Executes the `setKeyboardScheme` operation.
+	 * @param scheme Input value for `scheme`.
+	 * @return Result produced by `setKeyboardScheme`, when applicable.
+	 */
 	public function setKeyboardScheme(scheme)
 	{
 		controls.setKeyboardScheme(scheme);
 	}
 
 	/*
+		/**
+		 * Executes the `addAvatar` operation.
+		 * @param avatar Input value for `avatar`.
+		 * @return Result produced by `addAvatar`, when applicable.
+		 */
 		static public function addAvatar(avatar:Player):PlayerSettings
 		{
 			var settings:PlayerSettings;
@@ -81,6 +96,10 @@ class PlayerSettings
 			return settings;
 		}
 
+		/**
+		 * Executes the `removeAvatar` operation.
+		 * @param avatar Input value for `avatar`.
+		 */
 		static public function removeAvatar(avatar:Player):Void
 		{
 			var settings:PlayerSettings;
@@ -111,6 +130,9 @@ class PlayerSettings
 			onAvatarRemove.dispatch(avatar.settings);
 		}
 
+	 */
+	/**
+	 * Executes the `init` operation.
 	 */
 	static public function init():Void
 	{
@@ -148,6 +170,10 @@ class PlayerSettings
 		// DeviceManager.init();
 	}
 
+	/**
+	 * Executes the `reset` operation.
+	 * @return Result produced by `reset`, when applicable.
+	 */
 	static public function reset()
 	{
 		player1 = null;

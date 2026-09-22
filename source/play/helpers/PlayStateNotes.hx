@@ -22,6 +22,12 @@ import shaders.CrossFade;
 @:access(backend.MusicBeatState)
 class PlayStateNotes
 {
+	/**
+	 * Executes the `noteMiss` operation.
+	 * @param state Input value for `state`.
+	 * @param daNote Input value for `daNote`.
+	 * @param daNoteAlt Input value for `daNoteAlt`.
+	 */
 	public static function noteMiss(state:PlayState, daNote:Note = null, daNoteAlt:PreloadedChartNote = null):Void { //You didn't hit the key and let it go offscreen, also used by Hurt Notes
 		if (daNote != null)
 		{
@@ -116,6 +122,11 @@ class PlayStateNotes
 		}
 	}
 
+	/**
+	 * Executes the `noteMissPress` operation.
+	 * @param state Input value for `state`.
+	 * @param direction Input value for `direction`.
+	 */
 	public static function noteMissPress(state:PlayState, direction:Int = 1):Void //You pressed a key when there was no notes to press for this key
 	{
 		if(ClientPrefs.ghostTapping) return; //fuck it
@@ -157,6 +168,11 @@ class PlayStateNotes
 		state.callOnLuas('noteMissPress', [direction]);
 	}
 
+	/**
+	 * Executes the `spawnNotes` operation.
+	 * @param state Input value for `state`.
+	 * @return Result produced by `spawnNotes`, when applicable.
+	 */
 	public static function spawnNotes(state:PlayState)
 	{
 		if (state.unspawnNotes[state.notesAddedCount] != null)
@@ -193,6 +209,11 @@ class PlayStateNotes
 		}
 	}
 
+	/**
+	 * Executes the `updateNote` operation.
+	 * @param state Input value for `state`.
+	 * @param daNote Input value for `daNote`.
+	 */
 	public static function updateNote(state:PlayState, daNote:Note):Void
 	{
 		if (daNote != null && daNote.exists)
@@ -230,6 +251,12 @@ class PlayStateNotes
 		}
 	}
 
+	/**
+	 * Executes the `goodNoteHit` operation.
+	 * @param state Input value for `state`.
+	 * @param note Input value for `note`.
+	 * @param noteAlt Input value for `noteAlt`.
+	 */
 	public static function goodNoteHit(state:PlayState, note:Note, noteAlt:PreloadedChartNote = null):Void
 	{
 		if (note != null)
@@ -465,6 +492,12 @@ class PlayStateNotes
 		return;
 	}
 
+	/**
+	 * Executes the `opponentNoteHit` operation.
+	 * @param state Input value for `state`.
+	 * @param daNote Input value for `daNote`.
+	 * @param noteAlt Input value for `noteAlt`.
+	 */
 	public static function opponentNoteHit(state:PlayState, daNote:Note, noteAlt:PreloadedChartNote = null):Void
 	{
 		if (daNote != null)

@@ -11,6 +11,10 @@ import Type.ValueType;
 // REFACTOR: extracted from psychlua.PythonScript (getProperty / setProperty family)
 class PyPropertyLib
 {
+	/**
+	 * Executes the `register` operation.
+	 * @param py Input value for `py`.
+	 */
 	public static function register(py:PythonScript):Void {
 		@:privateAccess {
 		PythonScript.registerFunction("getProperty", function(variable:String) {

@@ -8,24 +8,42 @@ class ColorSwap {
 	public var saturation(default, set):Float = 0;
 	public var brightness(default, set):Float = 0;
 
+	/**
+	 * Executes the `set_hue` operation.
+	 * @param value Input value for `value`.
+	 * @return Result produced by `set_hue`, when applicable.
+	 */
 	private function set_hue(value:Float) {
 		hue = value;
 		shader.uTime.value[0] = hue;
 		return hue;
 	}
 
+	/**
+	 * Executes the `set_saturation` operation.
+	 * @param value Input value for `value`.
+	 * @return Result produced by `set_saturation`, when applicable.
+	 */
 	private function set_saturation(value:Float) {
 		saturation = value;
 		shader.uTime.value[1] = saturation;
 		return saturation;
 	}
 
+	/**
+	 * Executes the `set_brightness` operation.
+	 * @param value Input value for `value`.
+	 * @return Result produced by `set_brightness`, when applicable.
+	 */
 	private function set_brightness(value:Float) {
 		brightness = value;
 		shader.uTime.value[2] = brightness;
 		return brightness;
 	}
 
+	/**
+	 * Executes the `new` operation.
+	 */
 	public function new()
 	{
 		shader.uTime.value = [0, 0, 0];
@@ -221,6 +239,9 @@ class ColorSwapShader extends FlxFixedShader {
 			}
 		}')
 
+	/**
+	 * Executes the `new` operation.
+*/
 	public function new()
 	{
 		super();

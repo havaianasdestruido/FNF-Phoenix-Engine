@@ -25,6 +25,10 @@ class Section
 	public var mustHitSection:Bool = true;
 	public var crossFade:Bool = false;
 
+	/**
+	 * Executes the `new` operation.
+	 * @param sectionBeats Input value for `sectionBeats`.
+	 */
 	public function new(sectionBeats:Float = 4)
 	{
 		this.sectionBeats = sectionBeats;

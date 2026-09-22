@@ -94,6 +94,9 @@ class CrashHandler
 
 	public static var extraLines:Array<String> = ['\n\n'];
 
+	/**
+	 * Executes the `init` operation.
+*/
 	public static function init():Void
 	{
 		Lib.current.loaderInfo.uncaughtErrorEvents.addEventListener(UncaughtErrorEvent.UNCAUGHT_ERROR, onUncaughtError);
@@ -102,6 +105,10 @@ class CrashHandler
 		#end
 	}
 
+	/**
+	 * Executes the `onUncaughtError` operation.
+	 * @param e Input value for `e`.
+	 */
 	private static function onUncaughtError(e:UncaughtErrorEvent):Void
 	{
 		try
@@ -212,6 +219,10 @@ class CrashHandler
 			FlxG.switchState(Crash.new);
 	}
 
+	/**
+	 * Executes the `onError` operation.
+	 * @param message Input value for `message`.
+	 */
 	private static function onError(message:Dynamic):Void
 		throw Std.string(message);
 }
@@ -219,6 +230,10 @@ class CrashHandler
 @:access(CrashHandler)
 class Crash extends MusicBeatState
 {
+	/**
+	 * Executes the `create` operation.
+	 * @return Result produced by `create`, when applicable.
+	 */
 	override public function create()
 	{
 		if (FlxG.sound.music != null)
@@ -302,6 +317,11 @@ class Crash extends MusicBeatState
 	var countDown:Int = 10;
 	var clicked:Bool = false;
 
+	/**
+	 * Executes the `update` operation.
+	 * @param elapsed Input value for `elapsed`.
+	 * @return Result produced by `update`, when applicable.
+	 */
 	override public function update(elapsed:Float)
 		if (FlxG.keys.justPressed.ANY && !clicked)
 		{

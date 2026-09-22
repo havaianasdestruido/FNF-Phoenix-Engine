@@ -136,6 +136,10 @@ class PlayState extends MusicBeatState
 	public static var isPixelStage:Bool = false;
 
 	@:noCompletion
+	/**
+	 * Executes the `get_isPixelStage` operation.
+	 * @return Result produced by `get_isPixelStage`, when applicable.
+	 */
 	static function get_isPixelStage():Bool
 		return stageUI == "pixel" || stageUI.endsWith("-pixel");
 
@@ -284,6 +288,11 @@ class PlayState extends MusicBeatState
 	public var instakillOnMiss:Bool = false;
 	public var sickOnly:Bool = false;
 	public var cpuControlled(default, set):Bool = false;
+	/**
+	 * Executes the `set_cpuControlled` operation.
+	 * @param value Input value for `value`.
+	 * @return Result produced by `set_cpuControlled`, when applicable.
+	 */
 	inline function set_cpuControlled(value:Bool){
 		cpuControlled = value;
 		if (botplayTxt != null) // this assures it'll always show up
@@ -457,6 +466,10 @@ class PlayState extends MusicBeatState
 	public var startCallback:Void->Void = null;
 	public var endCallback:Void->Void = null;
 
+	/**
+	 * Executes the `create` operation.
+	 * @return Result produced by `create`, when applicable.
+	 */
 	override public function create()
 	{
 		FlxG.mouse.visible = false;
@@ -1573,12 +1586,22 @@ class PlayState extends MusicBeatState
 
 	#if SHADERS_ALLOWED
 	public var runtimeShaders:Map<String, Array<String>> = new Map<String, Array<String>>();
+	/**
+	 * Executes the `createRuntimeShader` operation.
+	 * @param shaderName Input value for `shaderName`.
+	 * @return Result produced by `createRuntimeShader`, when applicable.
+	 */
 	public function createRuntimeShader(shaderName:String):ErrorHandledRuntimeShader
 	{
 		// REFACTOR: delegated to play.helpers
 		return PlayStateScripts.createRuntimeShader(this, shaderName);
 	}
 
+	/**
+	 * Executes the `initLuaShader` operation.
+	 * @param name Input value for `name`.
+	 * @return Result produced by `initLuaShader`, when applicable.
+	 */
 	public function initLuaShader(name:String)
 	{
 		// REFACTOR: delegated to play.helpers
@@ -1586,6 +1609,11 @@ class PlayState extends MusicBeatState
 	}
 	#end
 
+	/**
+	 * Executes the `set_songSpeed` operation.
+	 * @param value Input value for `value`.
+	 * @return Result produced by `set_songSpeed`, when applicable.
+	 */
 	inline function set_songSpeed(value:Float):Float
 	{
 		songSpeed = value;
@@ -1593,6 +1621,11 @@ class PlayState extends MusicBeatState
 		return value;
 	}
 
+	/**
+	 * Executes the `set_playbackRate` operation.
+	 * @param value Input value for `value`.
+	 * @return Result produced by `set_playbackRate`, when applicable.
+	 */
 	inline function set_playbackRate(value:Float):Float
 	{
 		#if FLX_PITCH
@@ -1614,6 +1647,12 @@ class PlayState extends MusicBeatState
 		return playbackRate;
 	}
 
+	/**
+	 * Executes the `set_polyphony` operation.
+	 * @param value Input value for `value`.
+	 * @param which Input value for `which`.
+	 * @return Result produced by `set_polyphony`, when applicable.
+	 */
 	inline function set_polyphony(value:Float, which:Int):Float
 	{
 		switch (which) {
@@ -1632,11 +1671,20 @@ class PlayState extends MusicBeatState
 		return value;
 	}
 
+	/**
+	 * Executes the `get_defaultCamZoom` operation.
+	 * @return Result produced by `get_defaultCamZoom`, when applicable.
+	 */
 	inline function get_defaultCamZoom():Float
 	{
 		return _defaultCamZoom;
 	}
 
+	/**
+	 * Executes the `set_defaultCamZoom` operation.
+	 * @param value Input value for `value`.
+	 * @return Result produced by `set_defaultCamZoom`, when applicable.
+	 */
 	inline function set_defaultCamZoom(value:Float):Float
 	{
 		cameraTwn?.cancel();
@@ -1658,11 +1706,23 @@ class PlayState extends MusicBeatState
 		return value;
 	}
 
+	/**
+	 * Executes the `addTextToDebug` operation.
+	 * @param text Input value for `text`.
+	 * @param color Input value for `color`.
+	 * @return Result produced by `addTextToDebug`, when applicable.
+	 */
 	public function addTextToDebug(text:String, color:FlxColor) {
 		// REFACTOR: delegated to play.helpers
 		PlayStateScripts.addTextToDebug(this, text, color);
 	}
 
+	/**
+	 * Executes the `reloadHealthBarColors` operation.
+	 * @param leftColorArray Input value for `leftColorArray`.
+	 * @param rightColorArray Input value for `rightColorArray`.
+	 * @return Result produced by `reloadHealthBarColors`, when applicable.
+	 */
 	public function reloadHealthBarColors(leftColorArray:Array<Int>, rightColorArray:Array<Int>) {
 		healthBar.createFilledBar(FlxColor.fromRGB(leftColorArray[0], leftColorArray[1], leftColorArray[2]),
 		FlxColor.fromRGB(rightColorArray[0], rightColorArray[1], rightColorArray[2]));
@@ -1670,37 +1730,77 @@ class PlayState extends MusicBeatState
 		healthBar.updateBar();
 	}
 
+	/**
+	 * Executes the `addCharacterToList` operation.
+	 * @param newCharacter Input value for `newCharacter`.
+	 * @param type Input value for `type`.
+	 * @return Result produced by `addCharacterToList`, when applicable.
+	 */
 	public function addCharacterToList(newCharacter:String, type:Int) {
 		// REFACTOR: delegated to play.helpers
 		PlayStateCharacters.addCharacterToList(this, newCharacter, type);
 	}
 
+	/**
+	 * Executes the `startCharacterLua` operation.
+	 * @param name Input value for `name`.
+	 * @return Result produced by `startCharacterLua`, when applicable.
+	 */
 	function startCharacterLua(name:String)
 	{
 		// REFACTOR: delegated to play.helpers
 		PlayStateCharacters.startCharacterLua(this, name);
 	}
 
+	/**
+	 * Executes the `addShaderToCamera` operation.
+	 * @param cam Input value for `cam`.
+	 * @param effect Input value for `effect`.
+	 * @return Result produced by `addShaderToCamera`, when applicable.
+	 */
 	public function addShaderToCamera(cam:String,effect:Dynamic){//STOLE FROM ANDROMEDA	// actually i got it from old psych engine
 		// REFACTOR: delegated to play.helpers
 		PlayStateScripts.addShaderToCamera(this, cam, effect);
 	}
 
+	/**
+	 * Executes the `removeShaderFromCamera` operation.
+	 * @param cam Input value for `cam`.
+	 * @param effect Input value for `effect`.
+	 * @return Result produced by `removeShaderFromCamera`, when applicable.
+	 */
 	public function removeShaderFromCamera(cam:String,effect:Dynamic){
 		// REFACTOR: delegated to play.helpers
 		PlayStateScripts.removeShaderFromCamera(this, cam, effect);
 	}
 
+	/**
+	 * Executes the `clearShaderFromCamera` operation.
+	 * @param cam Input value for `cam`.
+	 * @return Result produced by `clearShaderFromCamera`, when applicable.
+	 */
 	public function clearShaderFromCamera(cam:String){
 		// REFACTOR: delegated to play.helpers
 		PlayStateScripts.clearShaderFromCamera(this, cam);
 	}
 
+	/**
+	 * Executes the `getLuaObject` operation.
+	 * @param tag Input value for `tag`.
+	 * @param text Input value for `text`.
+	 * @return Result produced by `getLuaObject`, when applicable.
+	 */
 	public function getLuaObject(tag:String, text:Bool=true):FlxSprite {
 		// REFACTOR: delegated to play.helpers
 		return PlayStateScripts.getLuaObject(this, tag, text);
 	}
 
+	/**
+	 * Executes the `startCharacterPos` operation.
+	 * @param char Input value for `char`.
+	 * @param gfCheck Input value for `gfCheck`.
+	 * @return Result produced by `startCharacterPos`, when applicable.
+	 */
 	function startCharacterPos(char:Character, ?gfCheck:Bool = false) {
 		// REFACTOR: delegated to play.helpers
 		PlayStateCharacters.startCharacterPos(this, char, gfCheck);
@@ -1710,12 +1810,22 @@ class PlayState extends MusicBeatState
 	/*    VIDEO    */
 	/***************/
 	public var videoCutscene:VideoSprite = null;
+	/**
+	 * Executes the `startVideo` operation.
+	 * @param name Input value for `name`.
+	 * @param library Input value for `library`.
+	 * @return Result produced by `startVideo`, when applicable.
+	 */
 	public function startVideo(name:String, ?library:String = null, ?callback:Void->Void = null, forMidSong:Bool = false, canSkip:Bool = true, loop:Bool = false, playOnLoad:Bool = true)
 	{
 		// REFACTOR: delegated to play.helpers
 		return PlayStateCutscenes.startVideo(this, name, library, callback, forMidSong, canSkip, loop, playOnLoad);
 	}
 
+	/**
+	 * Executes the `startAndEnd` operation.
+	 * @return Result produced by `startAndEnd`, when applicable.
+	 */
 	public function startAndEnd()
 	{
 		// REFACTOR: delegated to play.helpers
@@ -1725,12 +1835,21 @@ class PlayState extends MusicBeatState
 	var dialogueCount:Int = 0;
 	public var psychDialogue:DialogueBoxPsych;
 	//You don't have to add a song, just saying. You can just do "startDialogue(dialogueJson);" and it should work
+	/**
+	 * Executes the `startDialogue` operation.
+	 * @param dialogueFile Input value for `dialogueFile`.
+	 * @param song Input value for `song`.
+	 */
 	public function startDialogue(dialogueFile:DialogueFile, ?song:String = null):Void
 	{
 		// REFACTOR: delegated to play.helpers
 		PlayStateCutscenes.startDialogue(this, dialogueFile, song);
 	}
 
+	/**
+	 * Executes the `changeTheSettingsBitch` operation.
+	 * @return Result produced by `changeTheSettingsBitch`, when applicable.
+	 */
 	public function changeTheSettingsBitch() {
 		// REFACTOR: delegated to play.helpers
 		PlayStatePlayback.changeTheSettingsBitch(this);
@@ -1745,45 +1864,84 @@ class PlayState extends MusicBeatState
 	public var countdownGo:FlxSprite;
 	public static var startOnTime:Float = 0;
 
+	/**
+	 * Executes the `cacheCountdown` operation.
+	 * @return Result produced by `cacheCountdown`, when applicable.
+	 */
 	function cacheCountdown()
 	{
 		// REFACTOR: delegated to play.helpers
 		PlayStateCountdown.cacheCountdown(this);
 	}
 
+	/**
+	 * Executes the `formatNumber` operation.
+	 * @param number Input value for `number`.
+	 * @param decimals Input value for `decimals`.
+	 * @return Result produced by `formatNumber`, when applicable.
+	 */
 	public static function formatNumber(number:Float, ?decimals:Bool = false):String //simplified number formatting
 	{
 		return (number < 10e11 ? FlxStringUtil.formatMoney(number, false) : CoolUtil.formatCompactNumber(number));
 	}
 
+	/**
+	 * Executes the `startCountdown` operation.
+	 */
 	public function startCountdown():Void
 	{
 		// REFACTOR: delegated to play.helpers
 		PlayStateCountdown.startCountdown(this);
 	}
 
+	/**
+	 * Executes the `createCountdownSprite` operation.
+	 * @param image Input value for `image`.
+	 * @param antialias Input value for `antialias`.
+	 * @return Result produced by `createCountdownSprite`, when applicable.
+	 */
 	inline private function createCountdownSprite(image:String, antialias:Bool):FlxSprite
 	{
 		// REFACTOR: delegated to play.helpers
 		return PlayStateCountdown.createCountdownSprite(this, image, antialias);
 	}
 
+	/**
+	 * Executes the `addBehindGF` operation.
+	 * @param obj Input value for `obj`.
+	 * @return Result produced by `addBehindGF`, when applicable.
+	 */
 	public function addBehindGF(obj:FlxObject)
 	{
 		// REFACTOR: delegated to play.helpers
 		PlayStateNoteHelpers.addBehindGF(this, obj);
 	}
+	/**
+	 * Executes the `addBehindBF` operation.
+	 * @param obj Input value for `obj`.
+	 * @return Result produced by `addBehindBF`, when applicable.
+	 */
 	public function addBehindBF(obj:FlxObject)
 	{
 		// REFACTOR: delegated to play.helpers
 		PlayStateNoteHelpers.addBehindBF(this, obj);
 	}
+	/**
+	 * Executes the `addBehindDad` operation.
+	 * @param obj Input value for `obj`.
+	 * @return Result produced by `addBehindDad`, when applicable.
+	 */
 	public function addBehindDad (obj:FlxObject)
 	{
 		// REFACTOR: delegated to play.helpers
 		PlayStateNoteHelpers.addBehindDad(this, obj);
 	}
 
+	/**
+	 * Executes the `clearNotesBefore` operation.
+	 * @param time Input value for `time`.
+	 * @return Result produced by `clearNotesBefore`, when applicable.
+	 */
 	public function clearNotesBefore(time:Float)
 	{
 		// REFACTOR: delegated to play.helpers
@@ -1793,28 +1951,49 @@ class PlayState extends MusicBeatState
 	var comboInfo = ClientPrefs.showComboInfo;
 	var showNPS = ClientPrefs.showNPS;
 	var missString:String = '';
+	/**
+	 * Executes the `updateScore` operation.
+	 * @param miss Input value for `miss`.
+	 * @return Result produced by `updateScore`, when applicable.
+	 */
 	public dynamic function updateScore(miss:Bool = false)
 	{
 		// REFACTOR: delegated to play.helpers
 		PlayStateRating.updateScore(this, miss);
 	}
 
+	/**
+	 * Executes the `setSongTime` operation.
+	 * @param time Input value for `time`.
+	 * @return Result produced by `setSongTime`, when applicable.
+	 */
 	public function setSongTime(time:Float)
 	{
 		// REFACTOR: delegated to play.helpers
 		PlayStatePlayback.setSongTime(this, time);
 	}
 
+	/**
+	 * Executes the `startNextDialogue` operation.
+	 * @return Result produced by `startNextDialogue`, when applicable.
+	 */
 	public function startNextDialogue() {
 		// REFACTOR: delegated to play.helpers
 		PlayStateCutscenes.startNextDialogue(this);
 	}
 
+	/**
+	 * Executes the `skipDialogue` operation.
+	 * @return Result produced by `skipDialogue`, when applicable.
+	 */
 	public function skipDialogue() {
 		// REFACTOR: delegated to play.helpers
 		PlayStateCutscenes.skipDialogue(this);
 	}
 
+	/**
+	 * Executes the `startSong` operation.
+	 */
 	function startSong():Void
 	{
 		// REFACTOR: delegated to play.helpers
@@ -1822,6 +2001,11 @@ class PlayState extends MusicBeatState
 	}
 
 	var ogSongSpeed:Float = 0;
+	/**
+	 * Executes the `lerpSongSpeed` operation.
+	 * @param num Input value for `num`.
+	 * @param time Input value for `time`.
+	 */
 	public function lerpSongSpeed(num:Float, time:Float):Void
 	{
 		// REFACTOR: delegated to play.helpers
@@ -1833,6 +2017,10 @@ class PlayState extends MusicBeatState
 	var assignedFirstData:Bool = false;
 	private var noteTypeMap:Map<String, Bool> = new Map<String, Bool>();
 	private var eventPushedMap:Map<String, Bool> = new Map<String, Bool>();
+	/**
+	 * Executes the `generateSong` operation.
+	 * @param startingPoint Input value for `startingPoint`.
+	 */
 	private function generateSong(?startingPoint:Float = 0):Void
 	{
 		// REFACTOR: delegated to play.helpers
@@ -1840,39 +2028,75 @@ class PlayState extends MusicBeatState
 	}
 
 	// called only once per different event (Used for precaching)
+	/**
+	 * Executes the `eventPushed` operation.
+	 * @param event Input value for `event`.
+	 * @return Result produced by `eventPushed`, when applicable.
+	 */
 	function eventPushed(event:EventNote) {
 		// REFACTOR: delegated to play.helpers
 		PlayStateEvents.eventPushed(this, event);
 	}
 
+	/**
+	 * Executes the `eventPushedUnique` operation.
+	 * @param event Input value for `event`.
+	 * @return Result produced by `eventPushedUnique`, when applicable.
+	 */
 	function eventPushedUnique(event:EventNote) {
 		// REFACTOR: delegated to play.helpers
 		PlayStateEvents.eventPushedUnique(this, event);
 	}
 
+	/**
+	 * Executes the `eventNoteEarlyTrigger` operation.
+	 * @param event Input value for `event`.
+	 * @return Result produced by `eventNoteEarlyTrigger`, when applicable.
+	 */
 	function eventNoteEarlyTrigger(event:EventNote):Float {
 		// REFACTOR: delegated to play.helpers
 		return PlayStateEvents.eventNoteEarlyTrigger(this, event);
 	}
 
+	/**
+	 * Executes the `sortByTime` operation.
+	 * @param Obj1 Input value for `Obj1`.
+	 * @param Obj2 Input value for `Obj2`.
+	 * @return Result produced by `sortByTime`, when applicable.
+	 */
 	function sortByTime(Obj1:Dynamic, Obj2:Dynamic):Int
 	{
 		// REFACTOR: delegated to play.helpers
 		return PlayStateEvents.sortByTime(this, Obj1, Obj2);
 	}
 
+	/**
+	 * Executes the `sortNotesByTime` operation.
+	 * @param Obj1 Input value for `Obj1`.
+	 * @param Obj2 Input value for `Obj2`.
+	 * @return Result produced by `sortNotesByTime`, when applicable.
+	 */
 	function sortNotesByTime(Obj1:Note, Obj2:Note):Int {
 		// REFACTOR: delegated to play.helpers
 		return PlayStateEvents.sortNotesByTime(this, Obj1, Obj2);
 	}
 
 	public var skipArrowStartTween:Bool = false; //for lua
+	/**
+	 * Executes the `generateStaticArrows` operation.
+	 * @param player Input value for `player`.
+	 */
 	private function generateStaticArrows(player:Int):Void
 	{
 		// REFACTOR: delegated to play.helpers
 		PlayStateNoteHelpers.generateStaticArrows(this, player);
 	}
 
+	/**
+	 * Executes the `openSubState` operation.
+	 * @param SubState Input value for `SubState`.
+	 * @return Result produced by `openSubState`, when applicable.
+	 */
 	override function openSubState(SubState:flixel.FlxSubState)
 	{
 		stagesFunc(function(stage:BaseStage) stage.openSubState(SubState));
@@ -1891,6 +2115,10 @@ class PlayState extends MusicBeatState
 	}
 
 	public var canResync:Bool = true;
+	/**
+	 * Executes the `closeSubState` operation.
+	 * @return Result produced by `closeSubState`, when applicable.
+	 */
 	override function closeSubState()
 	{
 		stagesFunc(function(stage:BaseStage) stage.closeSubState());
@@ -1911,6 +2139,9 @@ class PlayState extends MusicBeatState
 		super.closeSubState();
 	}
 
+	/**
+	 * Executes the `onFocus` operation.
+	 */
 	override public function onFocus():Void
 	{
 		try {if (health > 0 && !paused) resetRPC(Conductor.songPosition > 0.0);}
@@ -1918,6 +2149,9 @@ class PlayState extends MusicBeatState
 		super.onFocus();
 	}
 
+	/**
+	 * Executes the `onFocusLost` operation.
+	 */
 	override public function onFocusLost():Void
 	{
 		#if DISCORD_ALLOWED
@@ -1930,6 +2164,11 @@ class PlayState extends MusicBeatState
 
 	// Updating Discord Rich Presence.
 	public var autoUpdateRPC:Bool = true; //performance setting for custom RPC things
+	/**
+	 * Executes the `resetRPC` operation.
+	 * @param showTime Input value for `showTime`.
+	 * @return Result produced by `resetRPC`, when applicable.
+	 */
 	function resetRPC(?showTime:Bool = false)
 	{
 		#if DISCORD_ALLOWED
@@ -1942,6 +2181,9 @@ class PlayState extends MusicBeatState
 		#end
 	}
 
+	/**
+	 * Executes the `resyncVocals` operation.
+	 */
 	function resyncVocals():Void
 	{
 		// REFACTOR: delegated to play.helpers
@@ -1980,6 +2222,11 @@ class PlayState extends MusicBeatState
 	var energyDrainSpeed:Float = 1;
 	var energyRefillSpeed:Float = 1;
 
+	/**
+	 * Executes the `update` operation.
+	 * @param elapsed Input value for `elapsed`.
+	 * @return Result produced by `update`, when applicable.
+	 */
 	override public function update(elapsed:Float)
 	{
 		grpCrossFade.update(elapsed);
@@ -2424,6 +2671,11 @@ class PlayState extends MusicBeatState
 	// Health icon updaters
 	// This variable tracks the reset time for the Dave & Bambi/Strident Crisis icons.
 	var iconSizeResetTime:Float = 0;
+	/**
+	 * Executes the `updateIconsScale` operation.
+	 * @param elapsed Input value for `elapsed`.
+	 * @return Result produced by `updateIconsScale`, when applicable.
+	 */
 	public dynamic function updateIconsScale(elapsed:Float)
 	{
 		// REFACTOR: delegated to play.helpers
@@ -2432,12 +2684,20 @@ class PlayState extends MusicBeatState
 
 	var percent:Float = 0;
 	var center:Float = 0;
+	/**
+	 * Executes the `updateIconsPosition` operation.
+	 * @return Result produced by `updateIconsPosition`, when applicable.
+	 */
 	public dynamic function updateIconsPosition()
 	{
 		// REFACTOR: delegated to play.helpers
 		PlayStateCamera.updateIconsPosition(this);
 	}
 
+	/**
+	 * Executes the `openPauseMenu` operation.
+	 * @return Result produced by `openPauseMenu`, when applicable.
+	 */
 	function openPauseMenu()
 	{
 		persistentUpdate = false;
@@ -2455,6 +2715,10 @@ class PlayState extends MusicBeatState
 		#end
 	}
 
+	/**
+	 * Executes the `openChartEditor` operation.
+	 * @return Result produced by `openChartEditor`, when applicable.
+	 */
 	function openChartEditor()
 	{
 		canResync = false;
@@ -2469,6 +2733,11 @@ class PlayState extends MusicBeatState
 		FlxG.switchState(new ChartingState());
 	}
 
+	/**
+	 * Executes the `loopCallback` operation.
+	 * @param startingPoint Input value for `startingPoint`.
+	 * @return Result produced by `loopCallback`, when applicable.
+	 */
 	public function loopCallback(startingPoint:Float = 0)
 	{
 		// REFACTOR: delegated to play.helpers
@@ -2477,6 +2746,11 @@ class PlayState extends MusicBeatState
 
 	public var isDead:Bool = false; //Don't mess with this on Lua!!!
 	public var gameOverTimer:FlxTimer;
+	/**
+	 * Executes the `doDeathCheck` operation.
+	 * @param skipHealthCheck Input value for `skipHealthCheck`.
+	 * @return Result produced by `doDeathCheck`, when applicable.
+	 */
 	function doDeathCheck(?skipHealthCheck:Bool = false) {
 		if ((skipHealthCheck || health <= 0) && !practiceMode && !isDead)
 		{
@@ -2576,89 +2850,165 @@ class PlayState extends MusicBeatState
 		return false;
 	}
 
+	/**
+	 * Executes the `getControl` operation.
+	 * @param key Input value for `key`.
+	 * @return Result produced by `getControl`, when applicable.
+	 */
 	public function getControl(key:String) {
 		var pressed:Bool = Reflect.getProperty(controls, key);
 		//trace('Control result: ' + pressed);
 		return pressed;
 	}
 
+	/**
+	 * Executes the `triggerEventNote` operation.
+	 * @param eventName Input value for `eventName`.
+	 * @param value1 Input value for `value1`.
+	 * @param value2 Input value for `value2`.
+	 * @param strumTime Input value for `strumTime`.
+	 * @return Result produced by `triggerEventNote`, when applicable.
+	 */
 	public function triggerEventNote(eventName:String, value1:String, value2:String, strumTime:Float) {
 		// REFACTOR: delegated to play.helpers
 		PlayStateEvents.triggerEventNote(this, eventName, value1, value2, strumTime);
 	}
 
+	/**
+	 * Executes the `sendWindowsNotification` operation.
+	 * @param title Input value for `title`.
+	 * @param desc Input value for `desc`.
+	 * @param isEvent Input value for `isEvent`.
+	 * @return Result produced by `sendWindowsNotification`, when applicable.
+	 */
 	function sendWindowsNotification(title:String, desc:String, isEvent:Bool = false) {
 		// REFACTOR: delegated to play.helpers
 		PlayStateEvents.sendWindowsNotification(this, title, desc, isEvent);
 	}
 
+	/**
+	 * Executes the `moveCameraSection` operation.
+	 */
 	public function moveCameraSection():Void {
 		// REFACTOR: delegated to play.helpers
 		PlayStateCamera.moveCameraSection(this);
 	}
 
 	var cameraTwn:FlxTween;
+	/**
+	 * Executes the `moveCamera` operation.
+	 * @param focus Input value for `focus`.
+	 * @return Result produced by `moveCamera`, when applicable.
+	 */
 	public function moveCamera(focus:String = "bf")
 	{
 		// REFACTOR: delegated to play.helpers
 		PlayStateCamera.moveCamera(this, focus);
 	}
 
+	/**
+	 * Executes the `snapCamFollowToPos` operation.
+	 * @param x Input value for `x`.
+	 * @param y Input value for `y`.
+	 * @return Result produced by `snapCamFollowToPos`, when applicable.
+	 */
 	function snapCamFollowToPos(x:Float, y:Float) {
 		// REFACTOR: delegated to play.helpers
 		PlayStateCamera.snapCamFollowToPos(this, x, y);
 	}
 
+	/**
+	 * Executes the `unpauseVocals` operation.
+	 * @return Result produced by `unpauseVocals`, when applicable.
+	 */
 	public function unpauseVocals()
 	{
 		// REFACTOR: delegated to play.helpers
 		PlayStatePlayback.unpauseVocals(this);
 	}
+	/**
+	 * Executes the `pauseVocals` operation.
+	 * @return Result produced by `pauseVocals`, when applicable.
+	 */
 	public function pauseVocals()
 	{
 		// REFACTOR: delegated to play.helpers
 		PlayStatePlayback.pauseVocals(this);
 	}
+	/**
+	 * Executes the `setVocalsTime` operation.
+	 * @param time Input value for `time`.
+	 * @return Result produced by `setVocalsTime`, when applicable.
+	 */
 	public function setVocalsTime(time:Float)
 	{
 		// REFACTOR: delegated to play.helpers
 		PlayStatePlayback.setVocalsTime(this, time);
 	}
 
+	/**
+	 * Executes the `finishSong` operation.
+	 * @param ignoreNoteOffset Input value for `ignoreNoteOffset`.
+	 */
 	public function finishSong(?ignoreNoteOffset:Bool = false):Void
 	{
 		// REFACTOR: delegated to play.helpers
 		PlayStatePlayback.finishSong(this, ignoreNoteOffset);
 	}
 
+	/**
+	 * Executes the `loopSongLol` operation.
+	 * @return Result produced by `loopSongLol`, when applicable.
+	 */
 	public function loopSongLol()
 	{
 		// REFACTOR: delegated to play.helpers
 		PlayStatePlayback.loopSongLol(this);
 	}
 
+	/**
+	 * Executes the `calculateTrollModeStuff` operation.
+	 * @param pb Input value for `pb`.
+	 * @return Result produced by `calculateTrollModeStuff`, when applicable.
+	 */
 	function calculateTrollModeStuff(pb:Float):Float {
 		// REFACTOR: delegated to play.helpers
 		return PlayStatePlayback.calculateTrollModeStuff(this, pb);
 	}
 
+	/**
+	 * Executes the `calculateResetTime` operation.
+	 * @return Result produced by `calculateResetTime`, when applicable.
+	 */
 	function calculateResetTime():Float {
 		// REFACTOR: delegated to play.helpers
 		return PlayStatePlayback.calculateResetTime(this);
 	}
 
 	public var transitioning = false;
+	/**
+	 * Executes the `endSong` operation.
+	 */
 	public function endSong():Void
 	{
 		// REFACTOR: delegated to play.helpers
 		PlayStatePlayback.endSong(this);
 	}
 
+	/**
+	 * Executes the `KillNotes` operation.
+	 * @return Result produced by `KillNotes`, when applicable.
+	 */
 	public function KillNotes() {
 		// REFACTOR: delegated to play.helpers
 		PlayStateNoteHelpers.KillNotes(this);
 	}
 
+	/**
+	 * Executes the `restartSong` operation.
+	 * @param noTrans Input value for `noTrans`.
+	 * @return Result produced by `restartSong`, when applicable.
+	 */
 	public function restartSong(noTrans:Bool = true)
 	{
 		// REFACTOR: delegated to play.helpers
@@ -2674,6 +3024,10 @@ class PlayState extends MusicBeatState
 	// Stores Ratings and Combo Sprites in a group
 	public var popUpGroup:FlxTypedSpriteGroup<Popup>;
 
+	/**
+	 * Executes the `cachePopUpScore` operation.
+	 * @return Result produced by `cachePopUpScore`, when applicable.
+	 */
 	private function cachePopUpScore()
 	{
 		// REFACTOR: delegated to play.helpers
@@ -2685,6 +3039,12 @@ class PlayState extends MusicBeatState
 	var daRating:Rating = null;
 	var noteDiff = 0.0;
 
+	/**
+	 * Executes the `judgeNote` operation.
+	 * @param note Input value for `note`.
+	 * @param miss Input value for `miss`.
+	 * @return Result produced by `judgeNote`, when applicable.
+	 */
 	function judgeNote(note:Note = null, ?miss:Bool = false)
 	{
 		// REFACTOR: delegated to play.helpers
@@ -2692,12 +3052,21 @@ class PlayState extends MusicBeatState
 	}
 
 	var separatedScore:Array<Dynamic> = [];
+	/**
+	 * Executes the `popUpScore` operation.
+	 * @param note Input value for `note`.
+	 * @param miss Input value for `miss`.
+	 */
 	private function popUpScore(note:Note = null, ?miss:Bool = false):Void
 	{
 		// REFACTOR: delegated to play.helpers
 		PlayStateRating.popUpScore(this, note, miss);
 	}
 
+	/**
+	 * Executes the `onKeyPress` operation.
+	 * @param event Input value for `event`.
+	 */
 	private function onKeyPress(event:KeyboardEvent):Void
 	{
 		// REFACTOR: delegated to play.helpers
@@ -2705,30 +3074,54 @@ class PlayState extends MusicBeatState
 	}
 
 	public var strumsBlocked:Array<Bool> = [];
+	/**
+	 * Executes the `keyPressed` operation.
+	 * @param key Input value for `key`.
+	 */
 	private function keyPressed(key:Int):Void
 	{
 		// REFACTOR: delegated to play.helpers
 		PlayStateInput.keyPressed(this, key);
 	}
 
+	/**
+	 * Executes the `sortHitNotes` operation.
+	 * @param a Input value for `a`.
+	 * @param b Input value for `b`.
+	 * @return Result produced by `sortHitNotes`, when applicable.
+	 */
 	function sortHitNotes(a:Dynamic, b:Dynamic):Int
 	{
 		// REFACTOR: delegated to play.helpers
 		return PlayStateInput.sortHitNotes(a, b);
 	}
 
+	/**
+	 * Executes the `onKeyRelease` operation.
+	 * @param event Input value for `event`.
+	 */
 	private function onKeyRelease(event:KeyboardEvent):Void
 	{
 		// REFACTOR: delegated to play.helpers
 		PlayStateInput.onKeyRelease(this, event);
 	}
 
+	/**
+	 * Executes the `keyReleased` operation.
+	 * @param key Input value for `key`.
+	 * @return Result produced by `keyReleased`, when applicable.
+	 */
 	private function keyReleased(key:Int)
 	{
 		// REFACTOR: delegated to play.helpers
 		PlayStateInput.keyReleased(this, key);
 	}
 
+	/**
+	 * Executes the `getKeyFromEvent` operation.
+	 * @param key Input value for `key`.
+	 * @return Result produced by `getKeyFromEvent`, when applicable.
+	 */
 	public function getKeyFromEvent(key:FlxKey):Int
 	{
 		// REFACTOR: delegated to play.helpers
@@ -2736,18 +3129,31 @@ class PlayState extends MusicBeatState
 	}
 
 	// Hold notes
+	/**
+	 * Executes the `handleKeyInput` operation.
+	 */
 	private function handleKeyInput():Void
 	{
 		// REFACTOR: delegated to play.helpers
 		PlayStateInput.handleKeyInput(this);
 	}
 
+	/**
+	 * Executes the `parseKeys` operation.
+	 * @param ret Input value for `ret`.
+	 * @param suffix Input value for `suffix`.
+	 */
 	public function parseKeys(ret:Array<Bool>, ?suffix:String = ''):Void
 	{
 		// REFACTOR: delegated to play.helpers
 		PlayStateInput.parseKeys(this, ret, suffix);
 	}
 
+	/**
+	 * Executes the `noteMiss` operation.
+	 * @param daNote Input value for `daNote`.
+	 * @param daNoteAlt Input value for `daNoteAlt`.
+	 */
 	function noteMiss(daNote:Note = null, daNoteAlt:PreloadedChartNote = null):Void { //You didn't hit the key and let it go offscreen, also used by Hurt Notes
 		if (daNote != null)
 		{
@@ -2756,6 +3162,10 @@ class PlayState extends MusicBeatState
 		}
 	}
 
+	/**
+	 * Executes the `noteMissPress` operation.
+	 * @param direction Input value for `direction`.
+	 */
 	function noteMissPress(direction:Int = 1):Void //You pressed a key when there was no notes to press for this key
 	{
 		// REFACTOR: delegated to play.helpers
@@ -2766,12 +3176,20 @@ class PlayState extends MusicBeatState
 	var NOTE_SPAWN_TIME:Float = 0;
 	var targetNote:PreloadedChartNote = null;
 	var spawnedNote:Note;
+	/**
+	 * Executes the `spawnNotes` operation.
+	 * @return Result produced by `spawnNotes`, when applicable.
+	 */
 	function spawnNotes()
 	{
 		// REFACTOR: delegated to play.helpers
 		PlayStateNotes.spawnNotes(this);
 	}
 
+	/**
+	 * Executes the `updateNote` operation.
+	 * @param daNote Input value for `daNote`.
+	 */
 	function updateNote(daNote:Note):Void
 	{
 		// REFACTOR: delegated to play.helpers
@@ -2785,6 +3203,11 @@ class PlayState extends MusicBeatState
 	var holdAnim:String = '';
 	var animToPlay:String = 'singLEFT';
 	var animCheck:String = 'hey';
+	/**
+	 * Executes the `goodNoteHit` operation.
+	 * @param note Input value for `note`.
+	 * @param noteAlt Input value for `noteAlt`.
+	 */
 	function goodNoteHit(note:Note, noteAlt:PreloadedChartNote = null):Void
 	{
 		// REFACTOR: delegated to play.helpers
@@ -2793,44 +3216,85 @@ class PlayState extends MusicBeatState
 
 	var oppChar = null;
 	var gfTrigger:Bool = false;
+	/**
+	 * Executes the `opponentNoteHit` operation.
+	 * @param daNote Input value for `daNote`.
+	 * @param noteAlt Input value for `noteAlt`.
+	 */
 	function opponentNoteHit(daNote:Note, noteAlt:PreloadedChartNote = null):Void
 	{
 		// REFACTOR: delegated to play.helpers
 		PlayStateNotes.opponentNoteHit(this, daNote, noteAlt);
 	}
 
+	/**
+	 * Executes the `invalidateNote` operation.
+	 * @param note Input value for `note`.
+	 */
 	public function invalidateNote(note:Note):Void {
 		// REFACTOR: delegated to play.helpers
 		PlayStateNoteHelpers.invalidateNote(this, note);
 	}
 
 	var noteKill:Note = null;
+	/**
+	 * Executes the `destroyNotes` operation.
+	 */
 	public function destroyNotes():Void
 	{
 		// REFACTOR: delegated to play.helpers
 		PlayStateNoteHelpers.destroyNotes(this);
 	}
 
+	/**
+	 * Executes the `spawnHoldSplashOnNote` operation.
+	 * @param note Input value for `note`.
+	 * @param isDad Input value for `isDad`.
+	 * @return Result produced by `spawnHoldSplashOnNote`, when applicable.
+	 */
 	public function spawnHoldSplashOnNote(note:Note, ?isDad:Bool = false) {
 		// REFACTOR: delegated to play.helpers
 		PlayStateNoteHelpers.spawnHoldSplashOnNote(this, note, isDad);
 	}
 
+	/**
+	 * Executes the `spawnHoldSplash` operation.
+	 * @param note Input value for `note`.
+	 * @return Result produced by `spawnHoldSplash`, when applicable.
+	 */
 	public function spawnHoldSplash(note:Note) {
 		// REFACTOR: delegated to play.helpers
 		PlayStateNoteHelpers.spawnHoldSplash(this, note);
 	}
 
+	/**
+	 * Executes the `spawnNoteSplashOnNote` operation.
+	 * @param isDad Input value for `isDad`.
+	 * @param note Input value for `note`.
+	 * @return Result produced by `spawnNoteSplashOnNote`, when applicable.
+	 */
 	public function spawnNoteSplashOnNote(isDad:Bool, note:Note) {
 		// REFACTOR: delegated to play.helpers
 		PlayStateNoteHelpers.spawnNoteSplashOnNote(this, isDad, note);
 	}
 
+	/**
+	 * Executes the `spawnNoteSplash` operation.
+	 * @param x Input value for `x`.
+	 * @param y Input value for `y`.
+	 * @param data Input value for `data`.
+	 * @param note Input value for `note`.
+	 * @return Result produced by `spawnNoteSplash`, when applicable.
+	 */
 	public function spawnNoteSplash(x:Float, y:Float, data:Int, ?note:Note = null) {
 		// REFACTOR: delegated to play.helpers
 		PlayStateNoteHelpers.spawnNoteSplash(this, x, y, data, note);
 	}
 
+	/**
+	 * Executes the `destroy` operation.
+	 * @return Result produced by `destroy`, when applicable.
+	 */
 	override function destroy() {
 		#if LUA_ALLOWED
 		for (lua in luaArray) {
@@ -2899,6 +3363,10 @@ class PlayState extends MusicBeatState
 		super.destroy();
 	}
 
+	/**
+	 * Executes the `stepHit` operation.
+	 * @return Result produced by `stepHit`, when applicable.
+	 */
 	override function stepHit()
 	{
 		super.stepHit();
@@ -2913,6 +3381,10 @@ class PlayState extends MusicBeatState
 	var lastBeatHit:Int = -1;
 	var twisted = false;
 
+	/**
+	 * Executes the `beatHit` operation.
+	 * @return Result produced by `beatHit`, when applicable.
+	 */
 	override function beatHit()
 	{
 		super.beatHit();
@@ -2944,18 +3416,29 @@ class PlayState extends MusicBeatState
 		setOnLuas('curBeat', curBeat); //DAWGG?????
 		callOnLuas('onBeatHit');
 	}
+	/**
+	 * Executes the `characterBopper` operation.
+	 * @param beat Input value for `beat`.
+	 */
 	public function characterBopper(beat:Int):Void
 	{
 		// REFACTOR: delegated to play.helpers
 		PlayStateCamera.characterBopper(this, beat);
 	}
 
+	/**
+	 * Executes the `playerDance` operation.
+	 */
 	public function playerDance():Void
 	{
 		// REFACTOR: delegated to play.helpers
 		PlayStateCamera.playerDance(this);
 	}
 
+	/**
+	 * Executes the `doTwist` operation.
+	 * @return Result produced by `doTwist`, when applicable.
+	 */
 	public function doTwist()
 	{
 		// REFACTOR: delegated to play.helpers
@@ -2963,6 +3446,10 @@ class PlayState extends MusicBeatState
 	}
 
 	var usingBopIntervalEvent = false;
+	/**
+	 * Executes the `sectionHit` operation.
+	 * @return Result produced by `sectionHit`, when applicable.
+	 */
 	override function sectionHit()
 	{
 		super.sectionHit();
@@ -3001,6 +3488,11 @@ class PlayState extends MusicBeatState
 		callOnLuas('onSectionHit');
 	}
 
+	/**
+	 * Executes the `bopIcons` operation.
+	 * @param bopBF Input value for `bopBF`.
+	 * @return Result produced by `bopIcons`, when applicable.
+	 */
 	public function bopIcons(?bopBF:Bool = false)
 	{
 		// REFACTOR: delegated to play.helpers
@@ -3008,6 +3500,11 @@ class PlayState extends MusicBeatState
 	}
 
 	#if LUA_ALLOWED
+	/**
+	 * Executes the `startLuasOnFolder` operation.
+	 * @param luaFile Input value for `luaFile`.
+	 * @return Result produced by `startLuasOnFolder`, when applicable.
+	 */
 	public function startLuasOnFolder(luaFile:String)
 	{
 		for (script in luaArray)
@@ -3044,6 +3541,11 @@ class PlayState extends MusicBeatState
 	#end
 
 	#if PYTHON_ALLOWED
+	/**
+	 * Executes the `startPythonScriptOnFolder` operation.
+	 * @param pyFile Input value for `pyFile`.
+	 * @return Result produced by `startPythonScriptOnFolder`, when applicable.
+	 */
 	public function startPythonScriptOnFolder(pyFile:String)
 	{
 		for (script in pythonArray)
@@ -3134,10 +3636,25 @@ class PlayState extends MusicBeatState
 	}
 
 	// Kept for compatibility: dispatches to both Lua and Python scripts.
+	/**
+	 * Executes the `callOnLuas` operation.
+	 * @param event Input value for `event`.
+	 * @param args Input value for `args`.
+	 * @param ignoreStops Input value for `ignoreStops`.
+	 * @param exclusions Input value for `exclusions`.
+	 * @param excludeValues Input value for `excludeValues`.
+	 * @return Result produced by `callOnLuas`, when applicable.
+	 */
 	public function callOnLuas(event:String, args:Array<Dynamic> = null, ignoreStops = true, exclusions:Array<String> = null, excludeValues:Array<Dynamic> = null):Dynamic {
 		return callOnScripts(event, args, ignoreStops, exclusions, excludeValues);
 	}
 
+	/**
+	 * Executes the `setOnScripts` operation.
+	 * @param variable Input value for `variable`.
+	 * @param arg Input value for `arg`.
+	 * @return Result produced by `setOnScripts`, when applicable.
+	 */
 	public function setOnScripts(variable:String, arg:Dynamic) {
 		#if LUA_ALLOWED
 		for (i in 0...luaArray.length) {
@@ -3153,10 +3670,23 @@ class PlayState extends MusicBeatState
 	}
 
 	// Kept for compatibility: dispatches to both Lua and Python scripts.
+	/**
+	 * Executes the `setOnLuas` operation.
+	 * @param variable Input value for `variable`.
+	 * @param arg Input value for `arg`.
+	 * @return Result produced by `setOnLuas`, when applicable.
+	 */
 	public function setOnLuas(variable:String, arg:Dynamic) {
 		setOnScripts(variable, arg);
 	}
 
+	/**
+	 * Executes the `StrumPlayAnim` operation.
+	 * @param isDad Input value for `isDad`.
+	 * @param id Input value for `id`.
+	 * @param time Input value for `time`.
+	 * @return Result produced by `StrumPlayAnim`, when applicable.
+	 */
 	function StrumPlayAnim(isDad:Bool, id:Int, time:Float) {
 		var spr:StrumNote = isDad ? opponentStrums.members[id] : playerStrums.members[id];
 
@@ -3170,12 +3700,22 @@ class PlayState extends MusicBeatState
 	public var ratingString:String;
 	public var ratingPercent:Float;
 	public var ratingFC:String;
+	/**
+	 * Executes the `RecalculateRating` operation.
+	 * @param badHit Input value for `badHit`.
+	 * @return Result produced by `RecalculateRating`, when applicable.
+	 */
 	public function RecalculateRating(badHit:Bool = false) {
 		// REFACTOR: delegated to play.helpers
 		PlayStateRating.RecalculateRating(this, badHit);
 	}
 
 	#if ACHIEVEMENTS_ALLOWED
+	/**
+	 * Executes the `checkForAchievement` operation.
+	 * @param achievesToCheck Input value for `achievesToCheck`.
+	 * @return Result produced by `checkForAchievement`, when applicable.
+	 */
 	private function checkForAchievement(achievesToCheck:Array<String> = null)
 	{
 		// REFACTOR: delegated to play.helpers
@@ -3191,6 +3731,11 @@ class PlayState extends MusicBeatState
 	var ffmpegExists:Bool = false;
 	#end
 
+	/**
+	 * Executes the `initRender` operation.
+	 * @param renderPath Input value for `renderPath`.
+	 * @param prefixName Input value for `prefixName`.
+	 */
 	private function initRender(renderPath:String = "assets/gameRenders/", ?prefixName:String = null):Void
 	{
 		// REFACTOR: delegated to play.helpers
@@ -3199,12 +3744,18 @@ class PlayState extends MusicBeatState
 
 	var img = null;
 	var bytes = null;
+	/**
+	 * Executes the `pipeFrame` operation.
+	 */
 	private function pipeFrame():Void
 	{
 		// REFACTOR: delegated to play.helpers
 		PlayStateRender.pipeFrame(this);
 	}
 
+	/**
+	 * Executes the `stopRender` operation.
+	 */
 	public static function stopRender():Void
 	{
 		// REFACTOR: delegated to play.helpers

@@ -16,6 +16,10 @@ import openfl.filters.ShaderFilter;
 // REFACTOR: extracted from psychlua.FunkinLua (initLuaShader / sprite and camera runtime shader API)
 class ShaderCallbacks
 {
+	/**
+	 * Executes the `register` operation.
+	 * @param funk Input value for `funk`.
+	 */
 	public static function register(funk:FunkinLua):Void {
 		final game:PlayState = PlayState.instance;
 		@:privateAccess {

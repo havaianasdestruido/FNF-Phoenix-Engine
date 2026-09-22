@@ -18,6 +18,10 @@ class Tank extends BaseStage
 	var tankmanRun:FlxTypedGroup<TankmenBG>;
 	var foregroundSprites:FlxTypedGroup<BGSprite>;
 
+	/**
+	 * Executes the `create` operation.
+	 * @return Result produced by `create`, when applicable.
+	 */
 	override function create()
 	{
 		var sky:BGSprite = new BGSprite('tankSky', -400, -400, 0, 0);
@@ -93,6 +97,10 @@ class Tank extends BaseStage
 			}
 		}
 	}
+	/**
+	 * Executes the `createPost` operation.
+	 * @return Result produced by `createPost`, when applicable.
+	 */
 	override function createPost()
 	{
 		add(foregroundSprites);
@@ -125,8 +133,22 @@ class Tank extends BaseStage
 		}
 	}
 
+	/**
+	 * Executes the `countdownTick` operation.
+	 * @param count Input value for `count`.
+	 * @param num Input value for `num`.
+	 * @return Result produced by `countdownTick`, when applicable.
+	 */
 	override function countdownTick(count:Countdown, num:Int) if(num % 2 == 0) everyoneDance();
+	/**
+	 * Executes the `beatHit` operation.
+	 * @return Result produced by `beatHit`, when applicable.
+	 */
 	override function beatHit() everyoneDance();
+	/**
+	 * Executes the `everyoneDance` operation.
+	 * @return Result produced by `everyoneDance`, when applicable.
+	 */
 	function everyoneDance()
 	{
 		if(!ClientPrefs.lowQuality) tankWatchtower.dance();
@@ -147,6 +169,10 @@ class Tank extends BaseStage
 	#end
 	var boyfriendCutscene:FlxSprite;
 	var audioPlaying:FlxSound;
+	/**
+	 * Executes the `prepareCutscene` operation.
+	 * @return Result produced by `prepareCutscene`, when applicable.
+	 */
 	function prepareCutscene()
 	{
 		cutsceneHandler = new CutsceneHandler();
@@ -204,6 +230,10 @@ class Tank extends BaseStage
 		camFollow.set(dad.x + 280, dad.y + 170);
 	}
 
+	/**
+	 * Executes the `ughIntro` operation.
+	 * @return Result produced by `ughIntro`, when applicable.
+	 */
 	function ughIntro()
 	{
 		prepareCutscene();
@@ -261,6 +291,10 @@ class Tank extends BaseStage
 			audioPlaying = killYou;
 		});
 	}
+	/**
+	 * Executes the `gunsIntro` operation.
+	 * @return Result produced by `gunsIntro`, when applicable.
+	 */
 	function gunsIntro()
 	{
 		prepareCutscene();
@@ -296,6 +330,10 @@ class Tank extends BaseStage
 		});
 	}
 	var dualWieldAnimPlayed = 0;
+	/**
+	 * Executes the `stressIntro` operation.
+	 * @return Result produced by `stressIntro`, when applicable.
+	 */
 	function stressIntro()
 	{
 		prepareCutscene();
@@ -327,6 +365,10 @@ class Tank extends BaseStage
 
 		// prepare pico animation cycle
 		#if flxanimate
+		/**
+		 * Executes the `picoStressCycle` operation.
+		 * @return Result produced by `picoStressCycle`, when applicable.
+		 */
 		function picoStressCycle() {
 			switch (pico.anim.curInstance.symbol.name) {
 				case "dieBitch", "GF Time to Die sequence":
@@ -428,6 +470,10 @@ class Tank extends BaseStage
 		});
 	}
 
+	/**
+	 * Executes the `zoomBack` operation.
+	 * @return Result produced by `zoomBack`, when applicable.
+	 */
 	function zoomBack()
 	{
 		var calledTimes:Int = 0;

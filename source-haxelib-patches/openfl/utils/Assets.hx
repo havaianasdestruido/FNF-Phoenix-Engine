@@ -49,6 +49,14 @@ class Assets
 	@:noCompletion private static var dispatcher:EventDispatcher #if !macro = new EventDispatcher() #end;
 	private static var libraryBindings:Map<String, AssetLibrary> = new Map();
 
+	/**
+	 * Executes the `addEventListener` operation.
+	 * @param type Input value for `type`.
+	 * @param listener Input value for `listener`.
+	 * @param useCapture Input value for `useCapture`.
+	 * @param priority Input value for `priority`.
+	 * @param useWeakReference Input value for `useWeakReference`.
+	 */
 	public static function addEventListener(type:String, listener:Dynamic, useCapture:Bool = false, priority:Int = 0, useWeakReference:Bool = false):Void
 	{
 		#if lime
@@ -61,6 +69,11 @@ class Assets
 		dispatcher.addEventListener(type, listener, useCapture, priority, useWeakReference);
 	}
 
+	/**
+	 * Executes the `dispatchEvent` operation.
+	 * @param event Input value for `event`.
+	 * @return Result produced by `dispatchEvent`, when applicable.
+	 */
 	public static function dispatchEvent(event:Event):Bool
 	{
 		return dispatcher.dispatchEvent(event);
@@ -209,6 +222,11 @@ class Assets
 		return new Font();
 	}
 
+	/**
+	 * Executes the `getLibrary` operation.
+	 * @param name Input value for `name`.
+	 * @return Result produced by `getLibrary`, when applicable.
+	 */
 	public static function getLibrary(name:String):#if lime LimeAssetLibrary #else AssetLibrary #end
 	{
 		#if lime
@@ -262,6 +280,12 @@ class Assets
 		return null;
 	}
 
+	/**
+	 * Executes the `getMusic` operation.
+	 * @param id Input value for `id`.
+	 * @param useCache Input value for `useCache`.
+	 * @return Result produced by `getMusic`, when applicable.
+	 */
 	public static function getMusic(id:String, useCache:Bool = true):Sound
 	{
 		#if (lime_vorbis && lime > "7.9.0")
@@ -348,11 +372,21 @@ class Assets
 		#end
 	}
 
+	/**
+	 * Executes the `hasEventListener` operation.
+	 * @param type Input value for `type`.
+	 * @return Result produced by `hasEventListener`, when applicable.
+	 */
 	public static function hasEventListener(type:String):Bool
 	{
 		return dispatcher.hasEventListener(type);
 	}
 
+	/**
+	 * Executes the `hasLibrary` operation.
+	 * @param name Input value for `name`.
+	 * @return Result produced by `hasLibrary`, when applicable.
+	 */
 	public static function hasLibrary(name:String):Bool
 	{
 		#if lime
@@ -829,6 +863,12 @@ class Assets
 		#end
 	}
 
+	/**
+	 * Executes the `removeEventListener` operation.
+	 * @param type Input value for `type`.
+	 * @param listener Input value for `listener`.
+	 * @param capture Input value for `capture`.
+	 */
 	public static function removeEventListener(type:String, listener:Dynamic, capture:Bool = false):Void
 	{
 		dispatcher.removeEventListener(type, listener, capture);
@@ -853,6 +893,10 @@ class Assets
 		return value;
 	}
 
+	/**
+	 * Executes the `unloadLibrary` operation.
+	 * @param name Input value for `name`.
+	 */
 	public static function unloadLibrary(name:String):Void
 	{
 		#if lime

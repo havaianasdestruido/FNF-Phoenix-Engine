@@ -5,6 +5,10 @@ package backend;
 
 class PsychCamera extends FlxCamera
 {
+	/**
+	 * Executes the `update` operation.
+	 * @param elapsed Input value for `elapsed`.
+	 */
 	override public function update(elapsed:Float):Void
 	{
 		// follow the target, if there is one
@@ -23,6 +27,10 @@ class PsychCamera extends FlxCamera
 		updateShake(elapsed);
 	}
 
+	/**
+	 * Executes the `updateFollowDelta` operation.
+	 * @param elapsed Input value for `elapsed`.
+	 */
 	public function updateFollowDelta(?elapsed:Float = 0):Void
 	{
 		// Either follow the object closely,
@@ -107,6 +115,11 @@ class PsychCamera extends FlxCamera
 		//trace('lerp on this frame: $mult');
 	}
 
+	/**
+	 * Executes the `set_followLerp` operation.
+	 * @param value Input value for `value`.
+	 * @return Result produced by `set_followLerp`, when applicable.
+	 */
 	override function set_followLerp(value:Float)
 	{
 		return followLerp = value;

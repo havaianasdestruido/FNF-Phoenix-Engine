@@ -52,6 +52,12 @@ class Paths
   public static var defaultSkin = 'noteskins/NOTE_assets' + NoteHelpers.getNoteSkinPostfix();
 
   // Function that initializes the first note. This way, we can recycle the notes
+  /**
+   * Executes the `initDefaultSkin` operation.
+   * @param noteSkin Input value for `noteSkin`.
+   * @param inEditor Input value for `inEditor`.
+   * @return Result produced by `initDefaultSkin`, when applicable.
+   */
   public static function initDefaultSkin(?noteSkin:String, ?inEditor:Bool = false)
   {
     if (noteSkin.length > 0) defaultSkin = noteSkin;
@@ -61,6 +67,11 @@ class Paths
     trace(defaultSkin);
   }
 
+  /**
+   * Executes the `initNote` operation.
+   * @param noteSkin Input value for `noteSkin`.
+   * @return Result produced by `initNote`, when applicable.
+   */
   public static function initNote(?noteSkin:String)
   {
     // Do this to be able to just copy over the note animations and not reallocate it
@@ -81,6 +92,11 @@ class Paths
   }
 
   // Note Splash initialization
+  /**
+   * Executes the `initSplash` operation.
+   * @param splashSkin Input value for `splashSkin`.
+   * @return Result produced by `initSplash`, when applicable.
+   */
   public static function initSplash(?splashSkin:String)
   {
     var skin:String = (splashSkin != null && splashSkin.length > 0) ? splashSkin : 'noteSplashes/noteSplashes' + NoteSplash.getSplashSkinPostfix();
@@ -123,6 +139,14 @@ class Paths
     splashAnimCountMap.set(splashSkin, maxAnims);
   }
 
+  /**
+   * Executes the `addAnimAndCheck` operation.
+   * @param name Input value for `name`.
+   * @param anim Input value for `anim`.
+   * @param framerate Input value for `framerate`.
+   * @param loop Input value for `loop`.
+   * @return Result produced by `addAnimAndCheck`, when applicable.
+   */
   public static function addAnimAndCheck(name:String, anim:String, ?framerate:Int = 24, ?loop:Bool = false)
   {
     var animFrames = [];
@@ -135,6 +159,11 @@ class Paths
     return true;
   }
 
+  /**
+   * Executes the `initSplashConfig` operation.
+   * @param skin Input value for `skin`.
+   * @return Result produced by `initSplashConfig`, when applicable.
+   */
   public static function initSplashConfig(skin:String)
   {
     var path:String = Paths.getSharedPath('images/' + skin + '.txt');
@@ -165,6 +194,11 @@ class Paths
     return config;
   }
 
+  /**
+   * Executes the `excludeAsset` operation.
+   * @param key Input value for `key`.
+   * @return Result produced by `excludeAsset`, when applicable.
+   */
   public static function excludeAsset(key:String)
   {
     if (!dumpExclusions.contains(key)) dumpExclusions.push(key);
@@ -194,6 +228,12 @@ class Paths
     #end
   }
 
+  /**
+   * Executes the `gc` operation.
+   * @param major Input value for `major`.
+   * @param repeat Input value for `repeat`.
+   * @return Result produced by `gc`, when applicable.
+   */
   public inline static function gc(major:Bool = false, repeat:Int = 1)
   {
     while (repeat-- > 0)
@@ -201,6 +241,10 @@ class Paths
   }
 
   /// haya I love you for the base cache dump I took to the max
+  /**
+   * Executes the `clearUnusedMemory` operation.
+   * @return Result produced by `clearUnusedMemory`, when applicable.
+   */
   public static function clearUnusedMemory()
   {
     // clear non local assets in the tracked assets list
@@ -222,6 +266,11 @@ class Paths
   public static var localTrackedAssets:Array<String> = [];
 
   @:access(flixel.system.frontEnds.BitmapFrontEnd._cache)
+  /**
+   * Executes the `clearStoredMemory` operation.
+   * @param cleanUnused Input value for `cleanUnused`.
+   * @return Result produced by `clearStoredMemory`, when applicable.
+   */
   public static function clearStoredMemory(?cleanUnused:Bool = false)
   {
     // clear anything not in the tracked assets list
@@ -246,6 +295,11 @@ class Paths
     compress();
   }
 
+  /**
+   * Executes the `destroyGraphic` operation.
+   * @param graphic Input value for `graphic`.
+   * @return Result produced by `destroyGraphic`, when applicable.
+   */
   inline static function destroyGraphic(graphic:FlxGraphic)
   {
     // free some gpu memory
@@ -257,11 +311,24 @@ class Paths
 
   static public var currentLevel:String;
 
+  /**
+   * Executes the `setCurrentLevel` operation.
+   * @param name Input value for `name`.
+   * @return Result produced by `setCurrentLevel`, when applicable.
+   */
   static public function setCurrentLevel(name:String)
   {
     currentLevel = name.toLowerCase();
   }
 
+  /**
+   * Executes the `getPath` operation.
+   * @param file Input value for `file`.
+   * @param type Input value for `type`.
+   * @param library Input value for `library`.
+   * @param modsAllowed Input value for `modsAllowed`.
+   * @return Result produced by `getPath`, when applicable.
+   */
   public static function getPath(file:String, ?type:AssetType = TEXT, ?library:Null<String> = null, ?modsAllowed:Bool = false):String
   {
     #if MODS_ALLOWED
@@ -305,6 +372,11 @@ class Paths
     return getPreloadPath(file);
   }
 
+  /**
+   * Executes the `readDirectory` operation.
+   * @param path Input value for `path`.
+   * @return Result produced by `readDirectory`, when applicable.
+   */
   public static inline function readDirectory(path:String):Array<String>
   {
     #if sys
@@ -331,11 +403,24 @@ class Paths
     #end
   }
 
+  /**
+   * Executes the `getLibraryPath` operation.
+   * @param file Input value for `file`.
+   * @param library Input value for `library`.
+   * @return Result produced by `getLibraryPath`, when applicable.
+   */
   static public function getLibraryPath(file:String, library = "preload")
   {
     return if (library == "preload" || library == "default") getPreloadPath(file); else getLibraryPathForce(file, library);
   }
 
+  /**
+   * Executes the `getLibraryPathForce` operation.
+   * @param file Input value for `file`.
+   * @param library Input value for `library`.
+   * @param level Input value for `level`.
+   * @return Result produced by `getLibraryPathForce`, when applicable.
+   */
   inline static function getLibraryPathForce(file:String, library:String, ?level:String)
   {
     if (level == null) level = library;
@@ -349,52 +434,111 @@ class Paths
     }
   }
 
+  /**
+   * Executes the `getPreloadPath` operation.
+   * @param file Input value for `file`.
+   * @return Result produced by `getPreloadPath`, when applicable.
+   */
   inline public static function getPreloadPath(file:String = '')
   {
     return 'assets/$file';
   }
 
+  /**
+   * Executes the `getSharedPath` operation.
+   * @param file Input value for `file`.
+   * @return Result produced by `getSharedPath`, when applicable.
+   */
   inline public static function getSharedPath(file:String = '')
   {
     return 'assets/shared/$file';
   }
 
+  /**
+   * Executes the `file` operation.
+   * @param file Input value for `file`.
+   * @param type Input value for `type`.
+   * @param library Input value for `library`.
+   * @return Result produced by `file`, when applicable.
+   */
   inline static public function file(file:String, type:AssetType = TEXT, ?library:String)
   {
     return getPath(file, type, library);
   }
 
+  /**
+   * Executes the `txt` operation.
+   * @param key Input value for `key`.
+   * @param library Input value for `library`.
+   * @return Result produced by `txt`, when applicable.
+   */
   inline static public function txt(key:String, ?library:String)
   {
     return getPath('data/$key.txt', TEXT, library);
   }
 
+  /**
+   * Executes the `xml` operation.
+   * @param key Input value for `key`.
+   * @param library Input value for `library`.
+   * @return Result produced by `xml`, when applicable.
+   */
   inline static public function xml(key:String, ?library:String)
   {
     return getPath('data/$key.xml', TEXT, library);
   }
 
+  /**
+   * Executes the `json` operation.
+   * @param key Input value for `key`.
+   * @param library Input value for `library`.
+   * @return Result produced by `json`, when applicable.
+   */
   inline static public function json(key:String, ?library:String)
   {
     return getPath('data/' + key + '.json', TEXT, library);
   }
 
+  /**
+   * Executes the `shaderFragment` operation.
+   * @param key Input value for `key`.
+   * @param library Input value for `library`.
+   * @return Result produced by `shaderFragment`, when applicable.
+   */
   inline static public function shaderFragment(key:String, ?library:String)
   {
     return getPath('shaders/$key.frag', TEXT, library);
   }
 
+  /**
+   * Executes the `shaderVertex` operation.
+   * @param key Input value for `key`.
+   * @param library Input value for `library`.
+   * @return Result produced by `shaderVertex`, when applicable.
+   */
   inline static public function shaderVertex(key:String, ?library:String)
   {
     return getPath('shaders/$key.vert', TEXT, library);
   }
 
+  /**
+   * Executes the `lua` operation.
+   * @param key Input value for `key`.
+   * @param library Input value for `library`.
+   * @return Result produced by `lua`, when applicable.
+   */
   inline static public function lua(key:String, ?library:String)
   {
     return getPath('$key.lua', TEXT, library);
   }
 
   // Video loading (part of it)
+  /**
+   * Executes the `video` operation.
+   * @param key Input value for `key`.
+   * @param library Input value for `library`.
+   * @return Result produced by `video`, when applicable.
+   */
   static public function video(key:String, ?library:String = null)
   {
     #if MODS_ALLOWED
@@ -410,6 +554,12 @@ class Paths
   }
 
   // Sound loading.
+  /**
+   * Executes the `sound` operation.
+   * @param key Input value for `key`.
+   * @param library Input value for `library`.
+   * @return Result produced by `sound`, when applicable.
+   */
   static public function sound(key:String, ?library:String):Sound
   {
     var sound:Sound = returnSound('sounds', key, library);
@@ -417,12 +567,26 @@ class Paths
   }
 
   // Random sound loading.
+  /**
+   * Executes the `soundRandom` operation.
+   * @param key Input value for `key`.
+   * @param min Input value for `min`.
+   * @param max Input value for `max`.
+   * @param library Input value for `library`.
+   * @return Result produced by `soundRandom`, when applicable.
+   */
   inline static public function soundRandom(key:String, min:Int, max:Int, ?library:String)
   {
     return sound(key + FlxG.random.int(min, max), library);
   }
 
   // Music loading. Loads anything in assets/data/music, OR mods/data/music (if mods are allowed)
+  /**
+   * Executes the `music` operation.
+   * @param key Input value for `key`.
+   * @param library Input value for `library`.
+   * @return Result produced by `music`, when applicable.
+   */
   inline static public function music(key:String, ?library:String):Sound
   {
     var file:Sound = returnSound('music', key, library);
@@ -430,6 +594,13 @@ class Paths
   }
 
   // Loads the Voices. Crucial for generateSong
+  /**
+   * Executes the `voices` operation.
+   * @param song Input value for `song`.
+   * @param difficulty Input value for `difficulty`.
+   * @param postfix Input value for `postfix`.
+   * @return Result produced by `voices`, when applicable.
+   */
   static public function voices(song:String, ?difficulty:String = '', ?postfix:String = null):Any
   {
     var formattedDifficulty:String = formatToSongPath(difficulty);
@@ -457,6 +628,12 @@ class Paths
   }
 
   // Loads the instrumental. Crucial for generateSong
+  /**
+   * Executes the `inst` operation.
+   * @param song Input value for `song`.
+   * @param difficulty Input value for `difficulty`.
+   * @return Result produced by `inst`, when applicable.
+   */
   static public function inst(song:String, ?difficulty:String = ''):Any
   {
     var formattedDifficulty:String = formatToSongPath(difficulty);
@@ -480,6 +657,11 @@ class Paths
     #end
   }
 
+  /**
+   * Executes the `playMenuMusic` operation.
+   * @param force Input value for `force`.
+   * @param volume Input value for `volume`.
+   */
   static public function playMenuMusic(force:Bool = false, volume:Float = 1):Void
   {
     if (FlxG.sound.music == null || force)
@@ -505,6 +687,13 @@ class Paths
   }
 
   // For song events.
+  /**
+   * Executes the `songEvents` operation.
+   * @param song Input value for `song`.
+   * @param difficulty Input value for `difficulty`.
+   * @param onlyEventsString Input value for `onlyEventsString`.
+   * @return Result produced by `songEvents`, when applicable.
+   */
   static public function songEvents(song:String, ?difficulty:String, ?onlyEventsString:Bool = false):String
   {
     if (difficulty != null)
@@ -524,9 +713,21 @@ class Paths
     return (!onlyEventsString ? eventsKey : 'events');
   }
 
+  /**
+   * Executes the `imagePath` operation.
+   * @param key Input value for `key`.
+   * @param folder Input value for `folder`.
+   * @return Result produced by `imagePath`, when applicable.
+   */
   inline public static function imagePath(key:String, ?folder:String):String
     return getPath('images/$key.$IMAGE_EXT', IMAGE, folder);
 
+  /**
+   * Executes the `imageExists` operation.
+   * @param key Input value for `key`.
+   * @param folder Input value for `folder`.
+   * @return Result produced by `imageExists`, when applicable.
+   */
   inline public static function imageExists(key:String, ?folder:String):Bool
     return Paths.exists(imagePath(key, folder));
 
@@ -535,6 +736,12 @@ class Paths
   // because the trace is so damn annoying sometimes
   public static var warnedMissingAssets:Map<String, Bool> = [];
 
+  /**
+   * Executes the `image` operation.
+   * @param key Input value for `key`.
+   * @param parentFolder Input value for `parentFolder`.
+   * @return Result produced by `image`, when applicable.
+   */
   static public function image(key:String, ?parentFolder:String = null):FlxGraphic
   {
     key = 'images/$key' + '.png';
@@ -547,6 +754,13 @@ class Paths
     return cacheBitmap(key, parentFolder, bitmap);
   }
 
+  /**
+   * Executes the `cacheBitmap` operation.
+   * @param key Input value for `key`.
+   * @param parentFolder Input value for `parentFolder`.
+   * @param bitmap Input value for `bitmap`.
+   * @return Result produced by `cacheBitmap`, when applicable.
+   */
   public static function cacheBitmap(key:String, ?parentFolder:String = null, ?bitmap:BitmapData):FlxGraphic
   {
     if (bitmap == null)
@@ -592,6 +806,12 @@ class Paths
     return graph;
   }
 
+  /**
+   * Executes the `getTextFromFile` operation.
+   * @param key Input value for `key`.
+   * @param ignoreMods Input value for `ignoreMods`.
+   * @return Result produced by `getTextFromFile`, when applicable.
+   */
   static public function getTextFromFile(key:String, ?ignoreMods:Bool = false):String
   {
     var text:String = null;
@@ -624,6 +844,11 @@ class Paths
     return text;
   }
 
+  /**
+   * Executes the `font` operation.
+   * @param key Input value for `key`.
+   * @return Result produced by `font`, when applicable.
+   */
   inline static public function font(key:String)
   {
     #if MODS_ALLOWED
@@ -636,6 +861,13 @@ class Paths
     return 'assets/fonts/$key';
   }
 
+  /**
+   * Executes the `fileExists` operation.
+   * @param key Input value for `key`.
+   * @param type Input value for `type`.
+   * @param ignoreMods Input value for `ignoreMods`.
+   * @return Result produced by `fileExists`, when applicable.
+   */
   public static function fileExists(key:String, type:AssetType, ?ignoreMods:Bool = false)
   {
     #if MODS_ALLOWED
@@ -658,6 +890,13 @@ class Paths
   }
 
   // temp shit lol
+  /**
+   * Executes the `exists` operation.
+   * @param key Input value for `key`.
+   * @param type Input value for `type`.
+   * @param library Input value for `library`.
+   * @return Result produced by `exists`, when applicable.
+   */
   inline static public function exists(key:String, type:AssetType = null, ?library:String)
   {
     #if sys
@@ -674,6 +913,13 @@ class Paths
     return false;
   }
 
+  /**
+   * Executes the `existsPath` operation.
+   * @param key Input value for `key`.
+   * @param type Input value for `type`.
+   * @param library Input value for `library`.
+   * @return Result produced by `existsPath`, when applicable.
+   */
   inline static public function existsPath(key:String, type:AssetType = null, ?library:String)
   {
     #if sys
@@ -690,6 +936,11 @@ class Paths
     return false;
   }
 
+  /**
+   * Executes the `getContent` operation.
+   * @param path Input value for `path`.
+   * @return Result produced by `getContent`, when applicable.
+   */
   inline public static function getContent(path:String)
   {
     #if sys
@@ -701,6 +952,12 @@ class Paths
     #end
   }
 
+  /**
+   * Executes the `getAtlas` operation.
+   * @param key Input value for `key`.
+   * @param parentFolder Input value for `parentFolder`.
+   * @return Result produced by `getAtlas`, when applicable.
+   */
   static public function getAtlas(key:String, ?parentFolder:String = null):FlxAtlasFrames
   {
     var useMod = false;
@@ -729,6 +986,12 @@ class Paths
     return getPackerAtlas(key, parentFolder);
   }
 
+  /**
+   * Executes the `getMultiAtlas` operation.
+   * @param keys Input value for `keys`.
+   * @param parentFolder Input value for `parentFolder`.
+   * @return Result produced by `getMultiAtlas`, when applicable.
+   */
   static public function getMultiAtlas(keys:Array<String>, ?parentFolder:String = null):FlxAtlasFrames
   {
     var parentFrames:FlxAtlasFrames = Paths.getAtlas(keys[0].trim());
@@ -746,6 +1009,12 @@ class Paths
     return parentFrames;
   }
 
+  /**
+   * Executes the `getSparrowAtlas` operation.
+   * @param key Input value for `key`.
+   * @param parentFolder Input value for `parentFolder`.
+   * @return Result produced by `getSparrowAtlas`, when applicable.
+   */
   inline static public function getSparrowAtlas(key:String, ?parentFolder:String = null):FlxAtlasFrames
   {
     var imageLoaded:FlxGraphic = image(key, parentFolder);
@@ -761,6 +1030,12 @@ class Paths
     #end
   }
 
+  /**
+   * Executes the `getPackerAtlas` operation.
+   * @param key Input value for `key`.
+   * @param parentFolder Input value for `parentFolder`.
+   * @return Result produced by `getPackerAtlas`, when applicable.
+   */
   inline static public function getPackerAtlas(key:String, ?parentFolder:String = null):FlxAtlasFrames
   {
     var imageLoaded:FlxGraphic = image(key, parentFolder);
@@ -776,6 +1051,13 @@ class Paths
     #end
   }
 
+  /**
+   * Executes the `getAsepriteAtlas` operation.
+   * @param key Input value for `key`.
+   * @param parentFolder Input value for `parentFolder`.
+   * @param allowGPU Input value for `allowGPU`.
+   * @return Result produced by `getAsepriteAtlas`, when applicable.
+   */
   inline static public function getAsepriteAtlas(key:String, ?parentFolder:String = null, ?allowGPU:Bool = true):FlxAtlasFrames
   {
     var imageLoaded:FlxGraphic = image(key, parentFolder);
@@ -791,6 +1073,11 @@ class Paths
     #end
   }
 
+  /**
+   * Executes the `formatToSongPath` operation.
+   * @param path Input value for `path`.
+   * @return Result produced by `formatToSongPath`, when applicable.
+   */
   inline static public function formatToSongPath(path:String)
   {
     var invalidChars = ~/[~&\\;:<>#]/;
@@ -804,6 +1091,14 @@ class Paths
   public static var currentTrackedSounds:Map<String, Sound> = [];
 
   // Returns sounds which is useful for all the sfx
+  /**
+   * Executes the `returnSound` operation.
+   * @param path Input value for `path`.
+   * @param key Input value for `key`.
+   * @param library Input value for `library`.
+   * @param stream Input value for `stream`.
+   * @return Result produced by `returnSound`, when applicable.
+   */
   public static function returnSound(path:String, key:String, ?library:String, stream:Bool = false)
   {
     var sound:Sound = null;
@@ -869,56 +1164,108 @@ class Paths
 
   #if MODS_ALLOWED
   // Loads mods.
+  /**
+   * Executes the `mods` operation.
+   * @param key Input value for `key`.
+   * @return Result produced by `mods`, when applicable.
+   */
   inline static public function mods(key:String = '')
   {
     return 'mods/' + key;
   }
 
   // Loads fonts in mods/fonts.
+  /**
+   * Executes the `modsFont` operation.
+   * @param key Input value for `key`.
+   * @return Result produced by `modsFont`, when applicable.
+   */
   inline static public function modsFont(key:String)
   {
     return modFolders('fonts/' + key);
   }
 
   // Loads jsons in mods/data.
+  /**
+   * Executes the `modsJson` operation.
+   * @param key Input value for `key`.
+   * @return Result produced by `modsJson`, when applicable.
+   */
   inline static public function modsJson(key:String)
   {
     return modFolders('data/' + key + '.json');
   }
 
   // Loads videos in mods/videos.
+  /**
+   * Executes the `modsVideo` operation.
+   * @param key Input value for `key`.
+   * @return Result produced by `modsVideo`, when applicable.
+   */
   inline static public function modsVideo(key:String)
   {
     return modFolders('videos/' + key + '.' + VIDEO_EXT);
   }
 
   // Loads sounds in mods/sounds.
+  /**
+   * Executes the `modsSounds` operation.
+   * @param path Input value for `path`.
+   * @param key Input value for `key`.
+   * @return Result produced by `modsSounds`, when applicable.
+   */
   inline static public function modsSounds(path:String, key:String)
   {
     return modFolders(path + '/' + key + '.' + SOUND_EXT);
   }
 
   // Loads images in mods/images.
+  /**
+   * Executes the `modsImages` operation.
+   * @param key Input value for `key`.
+   * @return Result produced by `modsImages`, when applicable.
+   */
   inline static public function modsImages(key:String)
   {
     return modFolders('images/' + key + '.png');
   }
 
   // Loads xml files in mods/images.
+  /**
+   * Executes the `modsXml` operation.
+   * @param key Input value for `key`.
+   * @return Result produced by `modsXml`, when applicable.
+   */
   inline static public function modsXml(key:String)
   {
     return modFolders('images/' + key + '.xml');
   }
 
   // Loads txt files in mods/images.
+  /**
+   * Executes the `modsTxt` operation.
+   * @param key Input value for `key`.
+   * @return Result produced by `modsTxt`, when applicable.
+   */
   inline static public function modsTxt(key:String)
   {
     return modFolders('images/' + key + '.txt');
   }
 
+  /**
+   * Executes the `modsImagesJson` operation.
+   * @param key Input value for `key`.
+   * @return Result produced by `modsImagesJson`, when applicable.
+   */
   inline static public function modsImagesJson(key:String)
     return modFolders('images/' + key + '.json');
 
+  /**
+   * Executes the `playModMusic` operation.
+   * @param file Input value for `file`.
+   * @param fallback Input value for `fallback`.
+   * @param volume Input value for `volume`.
+   */
   public static function playModMusic(file:String, fallback:String, volume:Float = 1):Void
   {
     final moddedNew = Paths.modFolders('music/' + file + '.ogg');
@@ -945,6 +1292,11 @@ class Paths
     }
   }
 
+  /**
+   * Executes the `modFolders` operation.
+   * @param key Input value for `key`.
+   * @return Result produced by `modFolders`, when applicable.
+   */
   static public function modFolders(key:String)
   {
     if (Mods.currentModDirectory != null && Mods.currentModDirectory.length > 0)
@@ -964,6 +1316,12 @@ class Paths
     return 'mods/' + key;
   }
 
+  /**
+   * Executes the `getBackupFilePath` operation.
+   * @param songPath Input value for `songPath`.
+   * @param diff Input value for `diff`.
+   * @return Result produced by `getBackupFilePath`, when applicable.
+   */
   public static function getBackupFilePath(songPath:String, diff:String):String
   {
     final fileName = songPath + "-" + diff + ".json";
@@ -972,6 +1330,14 @@ class Paths
   #end
 
   #if flxanimate
+  /**
+   * Executes the `loadAnimateAtlas` operation.
+   * @param spr Input value for `spr`.
+   * @param folderOrImg Input value for `folderOrImg`.
+   * @param spriteJson Input value for `spriteJson`.
+   * @param animationJson Input value for `animationJson`.
+   * @return Result produced by `loadAnimateAtlas`, when applicable.
+   */
   public static function loadAnimateAtlas(spr:FlxAnimate, folderOrImg:Dynamic, spriteJson:Dynamic = null, animationJson:Dynamic = null)
   {
     var changedAnimJson = false;

@@ -25,6 +25,10 @@ class OutdatedState extends MusicBeatState
 	var updateText:FlxText;
 	var checker:FlxBackdrop;
 	var bg:FlxSprite;
+	/**
+	 * Executes the `create` operation.
+	 * @return Result produced by `create`, when applicable.
+	 */
 	override function create()
 	{
 		Paths.clearStoredMemory();
@@ -70,6 +74,11 @@ class OutdatedState extends MusicBeatState
 		add(updateText);
 	}
 
+	/**
+	 * Executes the `update` operation.
+	 * @param elapsed Input value for `elapsed`.
+	 * @return Result produced by `update`, when applicable.
+	 */
 	override function update(elapsed:Float)
 	{
 		checker.x += 0.45 / (ClientPrefs.framerate / 60);

@@ -7,6 +7,10 @@ import psychlua.FunkinLua;
 // REFACTOR: extracted from psychlua.FunkinLua (sound/music API)
 class SoundCallbacks
 {
+	/**
+	 * Executes the `register` operation.
+	 * @param funk Input value for `funk`.
+	 */
 	public static function register(funk:FunkinLua):Void {
 		@:privateAccess {
 		FunkinLua.registerFunction("playMusic", function(sound:String, volume:Float = 1, loop:Bool = false) {

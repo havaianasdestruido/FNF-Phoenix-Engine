@@ -47,6 +47,10 @@ typedef EventNote = {
 	public var blockHit:Bool = false;
 	public var lowPriority:Bool = false;
 
+	/**
+	 * Executes the `dispose` operation.
+	 * @return Result produced by `dispose`, when applicable.
+	 */
 	public function dispose() {
 		// will be cleared by the GC later
 		for (field in Reflect.fields(this)) {
@@ -169,6 +173,11 @@ class Note extends FlxSprite
 	public var pixelNote:Bool = false;
 	public var useRGBShader(default, set):Bool = true;
 
+	/**
+	 * Executes the `set_useRGBShader` operation.
+	 * @param value Input value for `value`.
+	 * @return Result produced by `set_useRGBShader`, when applicable.
+	 */
 	private function set_useRGBShader(value:Bool):Bool {
 		if (useRGBShader != value)
 		{
@@ -180,6 +189,11 @@ class Note extends FlxSprite
 
 	var changeSize:Bool = false;
 
+	/**
+	 * Executes the `set_texture` operation.
+	 * @param value Input value for `value`.
+	 * @return Result produced by `set_texture`, when applicable.
+	 */
 	private function set_texture(value:String):String {
 		if (value.length == 0) value = Paths.defaultSkin;
 		if (!pixelNote && texture != value)
@@ -206,6 +220,10 @@ class Note extends FlxSprite
 	}
 
 	var noteColor:Array<FlxColor>;
+	/**
+	 * Executes the `defaultRGB` operation.
+	 * @return Result produced by `defaultRGB`, when applicable.
+	 */
 	public function defaultRGB()
 	{
 		noteColor = !PlayState.isPixelStage ? ClientPrefs.arrowRGB[noteData] : ClientPrefs.arrowRGBPixel[noteData];
@@ -218,6 +236,11 @@ class Note extends FlxSprite
 		}
 	}
 
+	/**
+	 * Executes the `set_noteType` operation.
+	 * @param value Input value for `value`.
+	 * @return Result produced by `set_noteType`, when applicable.
+	 */
 	private function set_noteType(value:String):String {
 		noteSplashData.texture = PlayState.SONG != null ? PlayState.SONG.splashSkin : 'noteSplashes';
 		if (ClientPrefs.noteColorStyle == 'Normal' && rgbShader != null && useRGBShader) defaultRGB();
@@ -229,6 +252,10 @@ class Note extends FlxSprite
 		return value;
 	}
 
+	/**
+	 * Executes the `toJson` operation.
+	 * @return Result produced by `toJson`, when applicable.
+	 */
 	public function toJson(){
 		return Json.stringify({
 			type:"Note",
@@ -238,6 +265,10 @@ class Note extends FlxSprite
 			mustPress:mustPress
 		});
 	}
+	/**
+	 * Executes the `toString` operation.
+	 * @return Result produced by `toString`, when applicable.
+	 */
 	public override function toString(){
 		return Std.string({
 			type:"Note",
@@ -248,6 +279,11 @@ class Note extends FlxSprite
 		});
 	}
 
+	/**
+	 * Executes the `new` operation.
+	 * @param newStrumTime Input value for `newStrumTime`.
+	 * @param newNoteData Input value for `newNoteData`.
+	 */
 	public function new(?newStrumTime:Float, ?newNoteData:Int)
 	{
 		super();
@@ -278,6 +314,12 @@ class Note extends FlxSprite
 	var _lastNoteOffX:Float = 0;
 	static var _lastValidChecked:String; //optimization
 	public var originalHeight:Float = 6;
+	/**
+	 * Executes the `reloadNote` operation.
+	 * @param texture Input value for `texture`.
+	 * @param postfix Input value for `postfix`.
+	 * @return Result produced by `reloadNote`, when applicable.
+	 */
 	private function reloadNote(?texture:String = '', ?postfix:String = '') {
 		if(texture == null) texture = '';
 		if(postfix == null) postfix = '';
@@ -361,6 +403,11 @@ class Note extends FlxSprite
 
 	// REFACTOR: getNoteSkinPostfix moved to objects.NoteHelpers
 
+	/**
+	 * Executes the `update` operation.
+	 * @param elapsed Input value for `elapsed`.
+	 * @return Result produced by `update`, when applicable.
+	 */
 	override function update(elapsed:Float)
 	{
 		if (Main.isPlayState() && PlayState.instance.cpuControlled) return;
@@ -394,6 +441,11 @@ class Note extends FlxSprite
 		}
 	}
 
+	/**
+	 * Executes the `followStrum` operation.
+	 * @param strum Input value for `strum`.
+	 * @param songSpeed Input value for `songSpeed`.
+	 */
 	inline public function followStrum(strum:StrumNote, songSpeed:Float = 1):Void
 	{
 		if (isSustainNote)
@@ -445,6 +497,11 @@ class Note extends FlxSprite
 		}
 	}
 
+	/**
+	 * Executes the `clipToStrumNote` operation.
+	 * @param myStrum Input value for `myStrum`.
+	 * @return Result produced by `clipToStrumNote`, when applicable.
+	 */
 	public function clipToStrumNote(myStrum:StrumNote)
 	{
 		final center:Float = myStrum.y + offsetY + Note.swagWidth / 2;
@@ -478,6 +535,11 @@ class Note extends FlxSprite
 	}
 
 	@:noCompletion
+	/**
+	 * Executes the `set_clipRect` operation.
+	 * @param rect Input value for `rect`.
+	 * @return Result produced by `set_clipRect`, when applicable.
+	 */
 	override function set_clipRect(rect:FlxRect):FlxRect {
 		@:bypassAccessor clipRect = rect;
 
@@ -492,6 +554,10 @@ class Note extends FlxSprite
 		return rect;
 	}
 
+	/**
+	 * Executes the `destroy` operation.
+	 * @return Result produced by `destroy`, when applicable.
+	 */
 	public override function destroy()
 	{
 		super.destroy();
@@ -501,6 +567,10 @@ class Note extends FlxSprite
 	var superCoolColor = null;
 	var arr:Array<Int> = [255, 255, 255];
 	var rainbowTime = 0.0;
+	/**
+	 * Executes the `updateRGBColors` operation.
+	 * @return Result produced by `updateRGBColors`, when applicable.
+	 */
 	public function updateRGBColors()
 	{
 		if (!useRGBShader) return;
@@ -561,6 +631,10 @@ class Note extends FlxSprite
 	// or was before I removed the option, now it's just kept for reasons
 	var firstOffX = false;
 	var shouldCenterOffsets:Bool = true;
+	/**
+	 * Executes the `setupNoteData` operation.
+	 * @param chartNoteData Input value for `chartNoteData`.
+	 */
 	public function setupNoteData(chartNoteData:PreloadedChartNote):Void
 	{
 		var ns = chartNoteData.noteskin ?? "";

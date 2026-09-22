@@ -45,6 +45,10 @@ class WeekData
 
   public var fileName:String;
 
+  /**
+   * Executes the `createWeekFile` operation.
+   * @return Result produced by `createWeekFile`, when applicable.
+   */
   public static function createWeekFile():WeekFile
   {
     var weekFile:WeekFile =
@@ -69,6 +73,11 @@ class WeekData
     return weekFile;
   }
 
+  /**
+   * Executes the `new` operation.
+   * @param weekFile Input value for `weekFile`.
+   * @param fileName Input value for `fileName`.
+   */
   public function new(weekFile:WeekFile, fileName:String)
   {
     var template = createWeekFile();
@@ -88,6 +97,11 @@ class WeekData
     this.fileName = fileName;
   }
 
+  /**
+   * Executes the `reloadWeekFiles` operation.
+   * @param isStoryMode Input value for `isStoryMode`.
+   * @return Result produced by `reloadWeekFiles`, when applicable.
+   */
   public static function reloadWeekFiles(isStoryMode:Null<Bool> = false)
   {
     weeksList = [];
@@ -163,6 +177,11 @@ class WeekData
     #end
   }
 
+  /**
+   * Executes the `isValidWeekJson` operation.
+   * @param data Input value for `data`.
+   * @return Result produced by `isValidWeekJson`, when applicable.
+   */
   private static function isValidWeekJson(data:Dynamic):Bool
   {
     if (data == null) return false;
@@ -181,6 +200,15 @@ class WeekData
     return true;
   }
 
+  /**
+   * Executes the `addWeek` operation.
+   * @param weekToCheck Input value for `weekToCheck`.
+   * @param path Input value for `path`.
+   * @param directory Input value for `directory`.
+   * @param i Input value for `i`.
+   * @param originalLength Input value for `originalLength`.
+   * @return Result produced by `addWeek`, when applicable.
+   */
   private static function addWeek(weekToCheck:String, path:String, directory:String, i:Int, originalLength:Int)
   {
     if (!weeksLoaded.exists(weekToCheck))
@@ -204,6 +232,11 @@ class WeekData
     }
   }
 
+  /**
+   * Executes the `getWeekFile` operation.
+   * @param path Input value for `path`.
+   * @return Result produced by `getWeekFile`, when applicable.
+   */
   private static function getWeekFile(path:String):WeekFile
   {
     var rawJson:String = null;
@@ -231,17 +264,30 @@ class WeekData
 
   //   FUNCTIONS YOU WILL PROBABLY NEVER NEED TO USE
   // To use on PlayState.hx or Highscore stuff
+  /**
+   * Executes the `getWeekFileName` operation.
+   * @return Result produced by `getWeekFileName`, when applicable.
+   */
   public static function getWeekFileName():String
   {
     return weeksList[PlayState.storyWeek];
   }
 
   // Used on LoadingState, nothing really too relevant
+  /**
+   * Executes the `getCurrentWeek` operation.
+   * @return Result produced by `getCurrentWeek`, when applicable.
+   */
   public static function getCurrentWeek():WeekData
   {
     return weeksLoaded.get(weeksList[PlayState.storyWeek]);
   }
 
+  /**
+   * Executes the `setDirectoryFromWeek` operation.
+   * @param data Input value for `data`.
+   * @return Result produced by `setDirectoryFromWeek`, when applicable.
+   */
   public static function setDirectoryFromWeek(?data:WeekData = null)
   {
     Mods.currentModDirectory = '';

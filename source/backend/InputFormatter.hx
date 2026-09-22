@@ -4,6 +4,11 @@ import flixel.FlxG;
 import flixel.input.keyboard.FlxKey;
 
 class InputFormatter {
+	/**
+	 * Executes the `getKeyName` operation.
+	 * @param key Input value for `key`.
+	 * @return Result produced by `getKeyName`, when applicable.
+	 */
 	public static function getKeyName(key:FlxKey):String {
 		switch (key) {
 			case BACKSPACE:

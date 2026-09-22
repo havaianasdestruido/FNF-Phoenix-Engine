@@ -95,6 +95,11 @@ class FunkinLua {
 	private var _missingCalls:Map<String, Bool> = new Map();
 	#end
 
+	/**
+	 * Executes the `new` operation.
+	 * @param scriptName Input value for `scriptName`.
+	 * @param scriptCode Input value for `scriptCode`.
+	 */
 	public function new(scriptName:String, ?scriptCode:String) {
 		#if LUA_ALLOWED
 		lua = LuaL.newstate();
@@ -339,6 +344,12 @@ class FunkinLua {
 		#end
 	}
 
+	/**
+	 * Executes the `addLocalCallback` operation.
+	 * @param name Input value for `name`.
+	 * @param myFunction Input value for `myFunction`.
+	 * @return Result produced by `addLocalCallback`, when applicable.
+	 */
 	public function addLocalCallback(name:String, myFunction:Dynamic)
 	{
 		#if LUA_ALLOWED
@@ -348,22 +359,50 @@ class FunkinLua {
 		Convert.addCallback(lua, name, null); // just so that it gets called
 	}
 
+	/**
+	 * Executes the `registerFunction` operation.
+	 * @param name Input value for `name`.
+	 * @param func Input value for `func`.
+	 */
 	public static function registerFunction(name:String, func:Dynamic):Void
 		registeredFunctions.set(name, func);
 
 	// REFACTOR: stateless helpers moved to LuaUtils; kept as forwarding statics for external callers
+	/**
+	 * Executes the `setVarInArray` operation.
+	 * @param instance Input value for `instance`.
+	 * @param variable Input value for `variable`.
+	 * @param value Input value for `value`.
+	 * @return Result produced by `setVarInArray`, when applicable.
+	 */
 	public static function setVarInArray(instance:Dynamic, variable:String, value:Dynamic):Any
 		return LuaUtils.setVarInArray(instance, variable, value);
 
+	/**
+	 * Executes the `getVarInArray` operation.
+	 * @param instance Input value for `instance`.
+	 * @param variable Input value for `variable`.
+	 * @return Result produced by `getVarInArray`, when applicable.
+	 */
 	public static function getVarInArray(instance:Dynamic, variable:String):Any
 		return LuaUtils.getVarInArray(instance, variable);
 
+	/**
+	 * Executes the `getTextObject` operation.
+	 * @param name Input value for `name`.
+	 * @return Result produced by `getTextObject`, when applicable.
+	 */
 	inline static function getTextObject(name:String):FlxText
 	{
 		return PlayState.instance.modchartTexts.exists(name) ? PlayState.instance.modchartTexts.get(name) : Reflect.getProperty(PlayState.instance, name);
 	}
 
 	#if (SHADERS_ALLOWED)
+	/**
+	 * Executes the `getShader` operation.
+	 * @param obj Input value for `obj`.
+	 * @return Result produced by `getShader`, when applicable.
+	 */
 	public function getShader(obj:String):FlxRuntimeShader
 	{
 		var killMe:Array<String> = obj.split('.');
@@ -381,6 +420,12 @@ class FunkinLua {
 	}
 	#end
 
+	/**
+	 * Executes the `initLuaShader` operation.
+	 * @param name Input value for `name`.
+	 * @param glslVersion Input value for `glslVersion`.
+	 * @return Result produced by `initLuaShader`, when applicable.
+	 */
 	function initLuaShader(name:String, ?glslVersion:Int = 120)
 	{
 		if(!ClientPrefs.shaders) return false;
@@ -435,6 +480,12 @@ class FunkinLua {
 		return false;
 	}
 
+	/**
+	 * Executes the `getGroupStuff` operation.
+	 * @param leArray Input value for `leArray`.
+	 * @param variable Input value for `variable`.
+	 * @return Result produced by `getGroupStuff`, when applicable.
+	 */
 	function getGroupStuff(leArray:Dynamic, variable:String) {
 		var killMe:Array<String> = variable.split('.');
 		if(killMe.length > 1) {
@@ -457,6 +508,13 @@ class FunkinLua {
 		};
 	}
 
+	/**
+	 * Executes the `loadFrames` operation.
+	 * @param spr Input value for `spr`.
+	 * @param image Input value for `image`.
+	 * @param spriteType Input value for `spriteType`.
+	 * @return Result produced by `loadFrames`, when applicable.
+	 */
 	function loadFrames(spr:FlxSprite, image:String, spriteType:String)
 	{
 		switch(spriteType.toLowerCase().trim())
@@ -486,6 +544,13 @@ class FunkinLua {
 		}
 	}
 
+	/**
+	 * Executes the `setGroupStuff` operation.
+	 * @param leArray Input value for `leArray`.
+	 * @param variable Input value for `variable`.
+	 * @param value Input value for `value`.
+	 * @return Result produced by `setGroupStuff`, when applicable.
+	 */
 	function setGroupStuff(leArray:Dynamic, variable:String, value:Dynamic) {
 		var killMe:Array<String> = variable.split('.');
 		if(killMe.length > 1) {
@@ -499,6 +564,11 @@ class FunkinLua {
 		Reflect.setProperty(leArray, variable, value);
 	}
 
+	/**
+	 * Executes the `resetTextTag` operation.
+	 * @param tag Input value for `tag`.
+	 * @return Result produced by `resetTextTag`, when applicable.
+	 */
 	function resetTextTag(tag:String) {
 		if(!PlayState.instance.modchartTexts.exists(tag)) {
 			return;
@@ -512,6 +582,11 @@ class FunkinLua {
 		PlayState.instance.modchartTexts.remove(tag);
 	}
 
+	/**
+	 * Executes the `resetSpriteTag` operation.
+	 * @param tag Input value for `tag`.
+	 * @return Result produced by `resetSpriteTag`, when applicable.
+	 */
 	function resetSpriteTag(tag:String) {
 		if(!PlayState.instance.modchartSprites.exists(tag)) {
 			return;
@@ -526,6 +601,11 @@ class FunkinLua {
 		PlayState.instance.modchartSprites.remove(tag);
 	}
 
+	/**
+	 * Executes the `cancelTween` operation.
+	 * @param tag Input value for `tag`.
+	 * @return Result produced by `cancelTween`, when applicable.
+	 */
 	function cancelTween(tag:String) {
 		if(PlayState.instance.modchartTweens.exists(tag)) {
 			PlayState.instance.modchartTweens.get(tag).cancel();
@@ -534,6 +614,12 @@ class FunkinLua {
 		}
 	}
 
+	/**
+	 * Executes the `tweenPrepare` operation.
+	 * @param tag Input value for `tag`.
+	 * @param vars Input value for `vars`.
+	 * @return Result produced by `tweenPrepare`, when applicable.
+	 */
 	function tweenPrepare(tag:String, vars:String) {
 		if (tag != null) cancelTween(tag);
 		var variables:Array<String> = vars.split('.');
@@ -544,6 +630,11 @@ class FunkinLua {
 		return sexyProp;
 	}
 
+	/**
+	 * Executes the `cancelTimer` operation.
+	 * @param tag Input value for `tag`.
+	 * @return Result produced by `cancelTimer`, when applicable.
+	 */
 	function cancelTimer(tag:String) {
 		if(PlayState.instance.modchartTimers.exists(tag)) {
 			var theTimer:FlxTimer = PlayState.instance.modchartTimers.get(tag);
@@ -555,6 +646,12 @@ class FunkinLua {
 
 	public var lastCalledFunction:String = '';
 	public static var lastCalledScript:FunkinLua = null;
+	/**
+	 * Executes the `call` operation.
+	 * @param func Input value for `func`.
+	 * @param args Input value for `args`.
+	 * @return Result produced by `call`, when applicable.
+	 */
 	public function call(func:String, args:Array<Dynamic>):Dynamic {
 		#if LUA_ALLOWED
 		if(closed) return Function_Continue;
@@ -604,17 +701,46 @@ class FunkinLua {
 	}
 
 	// REFACTOR: body moved to LuaUtils; kept as forwarding static for external callers
+	/**
+	 * Executes the `addAnimByIndices` operation.
+	 * @param obj Input value for `obj`.
+	 * @param name Input value for `name`.
+	 * @param prefix Input value for `prefix`.
+	 * @param indices Input value for `indices`.
+	 * @param framerate Input value for `framerate`.
+	 * @param loop Input value for `loop`.
+	 * @return Result produced by `addAnimByIndices`, when applicable.
+	 */
 	static function addAnimByIndices(obj:String, name:String, prefix:String, indices:String, framerate:Int = 24, loop:Bool = false)
 	{
 		return LuaUtils.addAnimByIndices(obj, name, prefix, indices, framerate, loop);
 	}
 
+	/**
+	 * Executes the `getPropertyLoopThingWhatever` operation.
+	 * @param killMe Input value for `killMe`.
+	 * @param checkForTextsToo Input value for `checkForTextsToo`.
+	 * @param getProperty Input value for `getProperty`.
+	 * @return Result produced by `getPropertyLoopThingWhatever`, when applicable.
+	 */
 	public static function getPropertyLoopThingWhatever(killMe:Array<String>, ?checkForTextsToo:Bool = true, ?getProperty:Bool=true):Dynamic
 		return LuaUtils.getPropertyLoopThingWhatever(killMe, checkForTextsToo, getProperty);
 
+	/**
+	 * Executes the `getObjectDirectly` operation.
+	 * @param objectName Input value for `objectName`.
+	 * @param checkForTextsToo Input value for `checkForTextsToo`.
+	 * @return Result produced by `getObjectDirectly`, when applicable.
+	 */
 	public static function getObjectDirectly(objectName:String, ?checkForTextsToo:Bool = true):Dynamic
 		return LuaUtils.getObjectDirectly(objectName, checkForTextsToo);
 
+	/**
+	 * Executes the `set` operation.
+	 * @param variable Input value for `variable`.
+	 * @param data Input value for `data`.
+	 * @return Result produced by `set`, when applicable.
+	 */
 	public function set(variable:String, data:Dynamic) {
 		#if LUA_ALLOWED
 		if (lua == null)
@@ -634,6 +760,10 @@ class FunkinLua {
 		#end
 	}
 
+	/**
+	 * Executes the `stop` operation.
+	 * @return Result produced by `stop`, when applicable.
+	 */
 	public function stop() {
 		#if LUA_ALLOWED
 		closed = true;
@@ -651,6 +781,10 @@ class FunkinLua {
 	}
 
 	// REFACTOR: body moved to LuaUtils; kept as forwarding static for external callers
+	/**
+	 * Executes the `getInstance` operation.
+	 * @return Result produced by `getInstance`, when applicable.
+	 */
 	public static inline function getInstance()
 	{
 		return LuaUtils.getInstance();

@@ -7,6 +7,11 @@ class VFDOverlay extends GraphicsShader
 {
   public var elapsedTime(default, set):Float = 0;
 
+  /**
+   * Executes the `set_elapsedTime` operation.
+   * @param value Input value for `value`.
+   * @return Result produced by `set_elapsedTime`, when applicable.
+   */
   function set_elapsedTime(value:Float):Float
   {
     u_time.value = [value];
@@ -55,6 +60,9 @@ class VFDOverlay extends GraphicsShader
       gl_FragColor = col;
 		}
   ')
+  /**
+   * Executes the `new` operation.
+*/
   public function new()
   {
     super();
@@ -62,6 +70,10 @@ class VFDOverlay extends GraphicsShader
     this.elapsedTime = 0;
   }
 
+  /**
+   * Executes the `update` operation.
+   * @param elapsed Input value for `elapsed`.
+   */
   public function update(elapsed:Float):Void
   {
     this.elapsedTime += elapsed;

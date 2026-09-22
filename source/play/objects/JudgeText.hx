@@ -17,6 +17,10 @@ class JudgeText extends FlxText
 
   private var camHUD:FlxCamera = null;
 
+  /**
+   * Executes the `new` operation.
+   * @param camHUD Input value for `camHUD`.
+   */
   public function new(camHUD:FlxCamera)
   {
     super(0, 0, 0, "");
@@ -36,6 +40,10 @@ class JudgeText extends FlxText
     applyPosition();
   }
 
+  /**
+   * Executes the `applyStyle` operation.
+   * @return Result produced by `applyStyle`, when applicable.
+   */
   function applyStyle()
   {
     final font = switch (ClientPrefs.scoreStyle)
@@ -49,6 +57,10 @@ class JudgeText extends FlxText
     setFormat(font, 20, FlxColor.WHITE, CENTER, OUTLINE, FlxColor.BLACK);
   }
 
+  /**
+   * Executes the `applyPosition` operation.
+   * @return Result produced by `applyPosition`, when applicable.
+   */
   function applyPosition()
   {
     x = 408 + 250;
@@ -64,6 +76,11 @@ class JudgeText extends FlxText
     y -= ClientPrefs.comboOffset[1];
   }
 
+  /**
+   * Executes the `showHit` operation.
+   * @param p Input value for `p`.
+   * @return Result produced by `showHit`, when applicable.
+   */
   public function showHit(p:Null<JudgeTextProperties>)
   {
     if (!ClientPrefs.ratingPopups || !ClientPrefs.simplePopups || ClientPrefs.hideHud)
@@ -93,6 +110,13 @@ class JudgeText extends FlxText
     });
   }
 
+  /**
+   * Executes the `applyRatingText` operation.
+   * @param rating Input value for `rating`.
+   * @param combo Input value for `combo`.
+   * @param miss Input value for `miss`.
+   * @return Result produced by `applyRatingText`, when applicable.
+   */
   function applyRatingText(rating:String, combo:Float, miss:Bool)
   {
     if (miss)
@@ -124,6 +148,10 @@ class JudgeText extends FlxText
     }
   }
 
+  /**
+   * Executes the `destroy` operation.
+   * @return Result produced by `destroy`, when applicable.
+   */
   override function destroy()
   {
     super.destroy();

@@ -61,6 +61,10 @@ class DialogueCharacterEditorState extends MusicBeatState
 
 	var curAnim:Int = 0;
 
+	/**
+	 * Executes the `create` operation.
+	 * @return Result produced by `create`, when applicable.
+	 */
 	override function create() {
 		persistentUpdate = persistentDraw = true;
 		camGame = initPsychCamera();
@@ -154,6 +158,10 @@ class DialogueCharacterEditorState extends MusicBeatState
 
 	var UI_typebox:FlxUITabMenu;
 	var UI_mainbox:FlxUITabMenu;
+	/**
+	 * Executes the `addEditorBox` operation.
+	 * @return Result produced by `addEditorBox`, when applicable.
+	 */
 	function addEditorBox() {
 		var tabs = [
 			{name: 'Character Type', label: 'Character Type'},
@@ -187,6 +195,10 @@ class DialogueCharacterEditorState extends MusicBeatState
 	var leftCheckbox:FlxUICheckBox;
 	var centerCheckbox:FlxUICheckBox;
 	var rightCheckbox:FlxUICheckBox;
+	/**
+	 * Executes the `addTypeUI` operation.
+	 * @return Result produced by `addTypeUI`, when applicable.
+	 */
 	function addTypeUI() {
 		var tab_group = new FlxUI(null, UI_typebox);
 		tab_group.name = "Character Type";
@@ -224,6 +236,10 @@ class DialogueCharacterEditorState extends MusicBeatState
 	var animationInputText:FlxUIInputText;
 	var loopInputText:FlxUIInputText;
 	var idleInputText:FlxUIInputText;
+	/**
+	 * Executes the `addAnimationsUI` operation.
+	 * @return Result produced by `addAnimationsUI`, when applicable.
+	 */
 	function addAnimationsUI() {
 		var tab_group = new FlxUI(null, UI_mainbox);
 		tab_group.name = "Animations";
@@ -334,6 +350,10 @@ class DialogueCharacterEditorState extends MusicBeatState
 		reloadAnimationsDropDown();
 	}
 
+	/**
+	 * Executes the `reloadAnimationsDropDown` operation.
+	 * @return Result produced by `reloadAnimationsDropDown`, when applicable.
+	 */
 	function reloadAnimationsDropDown() {
 		animationArray = [];
 		for (anim in character.jsonFile.animations) {
@@ -349,6 +369,10 @@ class DialogueCharacterEditorState extends MusicBeatState
 	var xStepper:FlxUINumericStepper;
 	var yStepper:FlxUINumericStepper;
 	var blockPressWhileTypingOn:Array<FlxUIInputText> = [];
+	/**
+	 * Executes the `addCharacterUI` operation.
+	 * @return Result produced by `addCharacterUI`, when applicable.
+	 */
 	function addCharacterUI() {
 		var tab_group = new FlxUI(null, UI_mainbox);
 		tab_group.name = "Character";
@@ -393,6 +417,10 @@ class DialogueCharacterEditorState extends MusicBeatState
 		UI_mainbox.addGroup(tab_group);
 	}
 
+	/**
+	 * Executes the `updateCharTypeBox` operation.
+	 * @return Result produced by `updateCharTypeBox`, when applicable.
+	 */
 	function updateCharTypeBox() {
 		leftCheckbox.checked = false;
 		centerCheckbox.checked = false;
@@ -412,6 +440,10 @@ class DialogueCharacterEditorState extends MusicBeatState
 
 	private static var DEFAULT_TEXT:String = 'Lorem ipsum dolor sit amet';
 
+	/**
+	 * Executes the `reloadCharacter` operation.
+	 * @return Result produced by `reloadCharacter`, when applicable.
+	 */
 	function reloadCharacter() {
 		var charsArray:Array<DialogueCharacter> = [character, ghostLoop, ghostIdle];
 		for (char in charsArray) {
@@ -453,6 +485,10 @@ class DialogueCharacterEditorState extends MusicBeatState
 		#end
 	}
 
+	/**
+	 * Executes the `updateTextBox` operation.
+	 * @return Result produced by `updateTextBox`, when applicable.
+	 */
 	function updateTextBox() {
 		box.flipX = false;
 		var anim:String = 'normal';
@@ -466,6 +502,14 @@ class DialogueCharacterEditorState extends MusicBeatState
 		DialogueBoxPsych.updateBoxOffsets(box);
 	}
 
+	/**
+	 * Executes the `getEvent` operation.
+	 * @param id Input value for `id`.
+	 * @param sender Input value for `sender`.
+	 * @param data Input value for `data`.
+	 * @param params Input value for `params`.
+	 * @return Result produced by `getEvent`, when applicable.
+	 */
 	override function getEvent(id:String, sender:Dynamic, data:Dynamic, ?params:Array<Dynamic>) {
 		if(id == FlxUIInputText.CHANGE_EVENT && sender == imageInputText) {
 			character.jsonFile.image = imageInputText.text;
@@ -486,6 +530,11 @@ class DialogueCharacterEditorState extends MusicBeatState
 	var currentGhosts:Int = 0;
 	var lastTab:String = 'Character';
 	var transitioning:Bool = false;
+	/**
+	 * Executes the `update` operation.
+	 * @param elapsed Input value for `elapsed`.
+	 * @return Result produced by `update`, when applicable.
+	 */
 	override function update(elapsed:Float) {
 		MusicBeatState.camBeat = FlxG.camera;
 		if(transitioning) {
@@ -694,11 +743,19 @@ class DialogueCharacterEditorState extends MusicBeatState
 	}
 
 	var _file:FileReference = null;
+	/**
+	 * Executes the `loadCharacter` operation.
+	 * @return Result produced by `loadCharacter`, when applicable.
+	 */
 	function loadCharacter() {
 		_file = new FileReference();
 		DialogueEditorHelpers.browseForJsonFile(_file, onLoadComplete, onLoadCancel, onLoadError);
 	}
 
+	/**
+	 * Executes the `onLoadComplete` operation.
+	 * @param _ Input value for `_`.
+	 */
 	function onLoadComplete(_):Void
 	{
 		DialogueEditorHelpers.onLoadCompleteCharacter(this);
@@ -722,6 +779,10 @@ class DialogueCharacterEditorState extends MusicBeatState
 		_file = null;
 	}
 
+	/**
+	 * Executes the `saveCharacter` operation.
+	 * @return Result produced by `saveCharacter`, when applicable.
+	 */
 	function saveCharacter() {
 		var data:String = DialogueEditorHelpers.jsonStringify(character.jsonFile);
 		if (data.length > 0)
@@ -734,6 +795,10 @@ class DialogueCharacterEditorState extends MusicBeatState
 		}
 	}
 
+	/**
+	 * Executes the `onSaveComplete` operation.
+	 * @param _ Input value for `_`.
+	 */
 	function onSaveComplete(_):Void
 	{
 		DialogueEditorHelpers.completeSaveFile(_file, onSaveComplete, onSaveCancel, onSaveError);
@@ -758,6 +823,11 @@ class DialogueCharacterEditorState extends MusicBeatState
 		_file = null;
 	}
 
+	/**
+	 * Executes the `ClipboardAdd` operation.
+	 * @param prefix Input value for `prefix`.
+	 * @return Result produced by `ClipboardAdd`, when applicable.
+	 */
 	function ClipboardAdd(prefix:String = ''):String {
 		if(prefix.toLowerCase().endsWith('v')) //probably copy paste attempt
 		{
@@ -767,12 +837,18 @@ class DialogueCharacterEditorState extends MusicBeatState
 		var text:String = prefix + Clipboard.text.replace('\n', '');
 		return text;
 	}
+	/**
+	 * Executes the `onFocusLost` operation.
+	 */
 	override public function onFocusLost():Void
 	    {
 		    if (music != null && music.music != null) music.pauseMusic();
 
 		    super.onFocusLost();
 	    }
+	/**
+	 * Executes the `onFocus` operation.
+	 */
 	override public function onFocus():Void
 	    {
 		    if (music != null && music.music != null) music.unpauseMusic();

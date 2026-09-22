@@ -19,6 +19,12 @@ import shaders.CrossFade;
 @:access(backend.MusicBeatState)
 class ChartingUIGrid
 {
+  /**
+   * Executes the `sectionStartTime` operation.
+   * @param state Input value for `state`.
+   * @param add Input value for `add`.
+   * @return Result produced by `sectionStartTime`, when applicable.
+   */
   public static function sectionStartTime(state:ChartingState, add:Int = 0):Float
   {
     var daBPM:Float = state._song.bpm;
@@ -37,6 +43,12 @@ class ChartingUIGrid
     return daPos;
   }
 
+  /**
+   * Executes the `getSectionBeats` operation.
+   * @param state Input value for `state`.
+   * @param section Input value for `section`.
+   * @return Result produced by `getSectionBeats`, when applicable.
+   */
   public static function getSectionBeats(state:ChartingState, ?section:Null<Int> = null)
   {
     if (section == null) section = ChartingState.curSec;
@@ -46,6 +58,11 @@ class ChartingUIGrid
     return val != null ? val : 4;
   }
 
+  /**
+   * Executes the `addSection` operation.
+   * @param state Input value for `state`.
+   * @param sectionBeats Input value for `sectionBeats`.
+   */
   public static function addSection(state:ChartingState, sectionBeats:Float = 4):Void
   {
     var sec:SwagSection =
@@ -64,6 +81,13 @@ class ChartingUIGrid
     state._song.notes.push(sec);
   }
 
+  /**
+   * Executes the `getStrumTime` operation.
+   * @param state Input value for `state`.
+   * @param yPos Input value for `yPos`.
+   * @param doZoomCalc Input value for `doZoomCalc`.
+   * @return Result produced by `getStrumTime`, when applicable.
+   */
   public static function getStrumTime(state:ChartingState, yPos:Float, doZoomCalc:Bool = true):Float
   {
     var leZoom:Float = state.zoomList[state.curZoom];
@@ -71,6 +95,13 @@ class ChartingUIGrid
     return FlxMath.remapToRange(yPos, state.gridBG.y, state.gridBG.y + state.gridBG.height * leZoom, 0, 16 * Conductor.stepCrochet);
   }
 
+  /**
+   * Executes the `getYfromStrum` operation.
+   * @param state Input value for `state`.
+   * @param strumTime Input value for `strumTime`.
+   * @param doZoomCalc Input value for `doZoomCalc`.
+   * @return Result produced by `getYfromStrum`, when applicable.
+   */
   public static function getYfromStrum(state:ChartingState, strumTime:Float, doZoomCalc:Bool = true):Float
   {
     var leZoom:Float = state.zoomList[state.curZoom];
@@ -78,17 +109,34 @@ class ChartingUIGrid
     return FlxMath.remapToRange(strumTime, 0, 16 * Conductor.stepCrochet, state.gridBG.y, state.gridBG.y + state.gridBG.height * leZoom);
   }
 
+  /**
+   * Executes the `getYfromStrumNotes` operation.
+   * @param state Input value for `state`.
+   * @param strumTime Input value for `strumTime`.
+   * @param beats Input value for `beats`.
+   * @return Result produced by `getYfromStrumNotes`, when applicable.
+   */
   public static function getYfromStrumNotes(state:ChartingState, strumTime:Float, beats:Float):Float
   {
     var value:Float = strumTime / (beats * 4 * Conductor.stepCrochet);
     return ChartingState.GRID_SIZE * beats * 4 * state.zoomList[state.curZoom] * value + state.gridBG.y;
   }
 
+  /**
+   * Executes the `strumLineUpdateY` operation.
+   * @param state Input value for `state`.
+   * @return Result produced by `strumLineUpdateY`, when applicable.
+   */
   public static function strumLineUpdateY(state:ChartingState)
   {
     state.strumLine.y = state.getYfromStrum((Conductor.songPosition - state.sectionStartTime()) / state.zoomList[state.curZoom] % (Conductor.stepCrochet * 16)) / (state.getSectionBeats() / 4);
   }
 
+  /**
+   * Executes the `updateZoom` operation.
+   * @param state Input value for `state`.
+   * @return Result produced by `updateZoom`, when applicable.
+   */
   public static function updateZoom(state:ChartingState)
   {
     var daZoom:Float = state.zoomList[state.curZoom];
@@ -98,6 +146,11 @@ class ChartingUIGrid
     state.reloadGridLayer();
   }
 
+  /**
+   * Executes the `reloadGridLayer` operation.
+   * @param state Input value for `state`.
+   * @return Result produced by `reloadGridLayer`, when applicable.
+   */
   public static function reloadGridLayer(state:ChartingState)
   {
     var curBeats:Float = state.getSectionBeats();
@@ -185,6 +238,13 @@ class ChartingUIGrid
     state.lastGridBGHeight = Std.int(state.gridBG.height);
   }
 
+  /**
+   * Executes the `setupNoteData` operation.
+   * @param state Input value for `state`.
+   * @param i Input value for `i`.
+   * @param isNextSection Input value for `isNextSection`.
+   * @return Result produced by `setupNoteData`, when applicable.
+   */
   public static function setupNoteData(state:ChartingState, i:Array<Dynamic>, isNextSection:Bool):Note
   {
     var daNoteInfo = i[1];
@@ -244,6 +304,11 @@ class ChartingUIGrid
     return note;
   }
 
+  /**
+   * Executes the `getEventName` operation.
+   * @param names Input value for `names`.
+   * @return Result produced by `getEventName`, when applicable.
+   */
   public static function getEventName(names:Array<Dynamic>):String
   {
     var retStr:String = '';
@@ -257,6 +322,13 @@ class ChartingUIGrid
     return retStr;
   }
 
+  /**
+   * Executes the `setupSusNote` operation.
+   * @param state Input value for `state`.
+   * @param note Input value for `note`.
+   * @param beats Input value for `beats`.
+   * @return Result produced by `setupSusNote`, when applicable.
+   */
   public static function setupSusNote(state:ChartingState, note:Note, beats:Float):FlxSprite
   {
     var height:Int = Math.floor(FlxMath.remapToRange(note.sustainLength, 0, Conductor.stepCrochet * 16, 0, ChartingState.GRID_SIZE * 16 * state.zoomList[state.curZoom])
@@ -278,6 +350,12 @@ class ChartingUIGrid
     return spr;
   }
 
+  /**
+   * Executes the `updateGrid` operation.
+   * @param state Input value for `state`.
+   * @param andNext Input value for `andNext`.
+   * @param onlyEvents Input value for `onlyEvents`.
+   */
   public static function updateGrid(state:ChartingState, ?andNext:Bool = true, ?onlyEvents:Bool = false):Void
   {
     state.curRenderedEventText.forEach(txt -> {
@@ -445,6 +523,10 @@ class ChartingUIGrid
     #end
   }
 
+  /**
+   * Executes the `updateNoteUI` operation.
+   * @param state Input value for `state`.
+   */
   public static function updateNoteUI(state:ChartingState):Void
   {
     if (state.curSelectedNote != null)

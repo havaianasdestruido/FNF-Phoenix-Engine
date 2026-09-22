@@ -10,6 +10,11 @@ class EtternaFunctions
     public static var a5 =  1.061405429;
     public static var p  =  0.3275911;
 
+    /**
+     * Executes the `erf` operation.
+     * @param x Input value for `x`.
+     * @return Result produced by `erf`, when applicable.
+     */
     public static function erf(x:Float):Float
     {
         // Save the sign of x
@@ -25,6 +30,12 @@ class EtternaFunctions
         return sign*y;
     }
 
+    /**
+     * Executes the `wife3` operation.
+     * @param maxms Input value for `maxms`.
+     * @param ts Input value for `ts`.
+     * @return Result produced by `wife3`, when applicable.
+     */
     public static function wife3(maxms:Float, ts:Float)
     {
         var max_points = 1.0;

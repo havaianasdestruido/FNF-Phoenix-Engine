@@ -83,6 +83,15 @@ class FlxHitbox extends FlxSpriteGroup
 		hints.splice(0, hints.length);
 	}
 
+	/**
+	 * Executes the `createHint` operation.
+	 * @param X Input value for `X`.
+	 * @param Y Input value for `Y`.
+	 * @param Width Input value for `Width`.
+	 * @param Height Input value for `Height`.
+	 * @param Color Input value for `Color`.
+	 * @return Result produced by `createHint`, when applicable.
+	 */
 	private function createHint(X:Float, Y:Float, Width:Int, Height:Int, Color:Int = 0xFFFFFF):FlxButton
 	{
 		final guh2:Float = 0.00001;
@@ -120,6 +129,13 @@ class FlxHitbox extends FlxSpriteGroup
 		return hint;
 	}
 
+	/**
+	 * Executes the `createHintGraphic` operation.
+	 * @param Width Input value for `Width`.
+	 * @param Height Input value for `Height`.
+	 * @param Color Input value for `Color`.
+	 * @return Result produced by `createHintGraphic`, when applicable.
+	 */
 	private function createHintGraphic(Width:Int, Height:Int, Color:Int = 0xFFFFFF):BitmapData
 	{
 		var guh:Float = ClientPrefs.mobileCAlpha;

@@ -25,6 +25,14 @@ class VideoSprite extends FlxSpriteGroup
 
   public var waiting:Bool = false;
 
+  /**
+   * Executes the `new` operation.
+   * @param videoName Input value for `videoName`.
+   * @param isWaiting Input value for `isWaiting`.
+   * @param canSkip Input value for `canSkip`.
+   * @param shouldLoop Input value for `shouldLoop`.
+   * @param autoPause Input value for `autoPause`.
+   */
   public function new(videoName:String, isWaiting:Bool, canSkip:Bool = false, shouldLoop:Dynamic = false, autoPause:Bool = true)
   {
     super();
@@ -73,6 +81,10 @@ class VideoSprite extends FlxSpriteGroup
 
   var alreadyDestroyed:Bool = false;
 
+  /**
+   * Executes the `destroy` operation.
+   * @return Result produced by `destroy`, when applicable.
+   */
   override function destroy()
   {
     if (alreadyDestroyed) return;
@@ -97,6 +109,11 @@ class VideoSprite extends FlxSpriteGroup
     alreadyDestroyed = true;
   }
 
+  /**
+   * Executes the `update` operation.
+   * @param elapsed Input value for `elapsed`.
+   * @return Result produced by `update`, when applicable.
+   */
   override function update(elapsed:Float)
   {
     if (canSkip)
@@ -123,6 +140,11 @@ class VideoSprite extends FlxSpriteGroup
     super.update(elapsed);
   }
 
+  /**
+   * Executes the `set_canSkip` operation.
+   * @param newValue Input value for `newValue`.
+   * @return Result produced by `set_canSkip`, when applicable.
+   */
   function set_canSkip(newValue:Bool)
   {
     canSkip = newValue;
@@ -147,6 +169,10 @@ class VideoSprite extends FlxSpriteGroup
     return canSkip;
   }
 
+  /**
+   * Executes the `updateSkipAlpha` operation.
+   * @return Result produced by `updateSkipAlpha`, when applicable.
+   */
   function updateSkipAlpha()
   {
     if (skipSprite == null) return;
@@ -155,12 +181,24 @@ class VideoSprite extends FlxSpriteGroup
     skipSprite.alpha = FlxMath.remapToRange(skipSprite.amount, 0.025, 1, 0, 1);
   }
 
+  /**
+   * Executes the `play` operation.
+   * @return Result produced by `play`, when applicable.
+   */
   public function play()
     videoSprite?.play();
 
+  /**
+   * Executes the `resume` operation.
+   * @return Result produced by `resume`, when applicable.
+   */
   public function resume()
     videoSprite?.resume();
 
+  /**
+   * Executes the `pause` operation.
+   * @return Result produced by `pause`, when applicable.
+   */
   public function pause()
     videoSprite?.pause();
   #end

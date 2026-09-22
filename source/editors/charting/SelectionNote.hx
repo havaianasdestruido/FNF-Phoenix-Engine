@@ -19,6 +19,11 @@ class SelectionNote extends FlxSprite
 
 	public var texture(default, set):String = null;
 
+	/**
+	 * Executes the `set_texture` operation.
+	 * @param value Input value for `value`.
+	 * @return Result produced by `set_texture`, when applicable.
+	 */
 	private function set_texture(value:String):String
 	{
 		if (texture != value)
@@ -29,6 +34,12 @@ class SelectionNote extends FlxSprite
 		return value;
 	}
 
+	/**
+	 * Executes the `new` operation.
+	 * @param x Input value for `x`.
+	 * @param y Input value for `y`.
+	 * @param leData Input value for `leData`.
+	 */
 	public function new(x:Float, y:Float, leData:Int)
 	{
 		rgbShader = new RGBShaderReference(this, NoteHelpers.initializeGlobalRGBShader(leData));
@@ -51,6 +62,10 @@ class SelectionNote extends FlxSprite
 		scrollFactor.set(1, 1);
 	}
 
+	/**
+	 * Executes the `reloadNote` operation.
+	 * @return Result produced by `reloadNote`, when applicable.
+	 */
 	public function reloadNote()
 	{
 		var lastAnim:String = null;
@@ -110,6 +125,11 @@ class SelectionNote extends FlxSprite
 		}
 	}
 
+	/**
+	 * Executes the `update` operation.
+	 * @param elapsed Input value for `elapsed`.
+	 * @return Result produced by `update`, when applicable.
+	 */
 	override function update(elapsed:Float)
 	{
 		if (ClientPrefs.ffmpegMode) elapsed = 1 / ClientPrefs.targetFPS;
@@ -125,6 +145,12 @@ class SelectionNote extends FlxSprite
 		super.update(elapsed);
 	}
 
+	/**
+	 * Executes the `playAnim` operation.
+	 * @param anim Input value for `anim`.
+	 * @param force Input value for `force`.
+	 * @return Result produced by `playAnim`, when applicable.
+	 */
 	public function playAnim(anim:String, ?force:Bool = false)
 	{
 		animation.play(anim, force);
@@ -141,6 +167,10 @@ class SelectionNote extends FlxSprite
 		}
 	}
 
+	/**
+	 * Executes the `updateRGBColors` operation.
+	 * @return Result produced by `updateRGBColors`, when applicable.
+	 */
 	public function updateRGBColors()
 	{
 		if (rgbShader == null || rgbShader != null && !rgbShader.enabled) return;

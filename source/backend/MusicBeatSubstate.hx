@@ -7,6 +7,9 @@ import flixel.util.FlxDestroyUtil;
 
 class MusicBeatSubstate extends FlxSubState
 {
+	/**
+	 * Executes the `new` operation.
+*/
 	public function new()
 	{
 		super();
@@ -24,12 +27,21 @@ class MusicBeatSubstate extends FlxSubState
 	private var curDecBeat:Float = 0;
 	private var controls(get, never):Controls;
 
+	/**
+	 * Executes the `get_controls` operation.
+	 * @return Result produced by `get_controls`, when applicable.
+	 */
 	inline function get_controls():Controls
 		return PlayerSettings.player1.controls;
 
 	public var virtualPad:FlxVirtualPad;
 	var trackedInputsVirtualPad:Array<FlxActionInput> = [];
 
+	/**
+	 * Executes the `addVirtualPad` operation.
+	 * @param DPad Input value for `DPad`.
+	 * @param Action Input value for `Action`.
+	 */
 	public function addVirtualPad(DPad:FlxDPadMode, Action:FlxActionMode):Void
 	{
 		if (virtualPad != null)
@@ -43,6 +55,9 @@ class MusicBeatSubstate extends FlxSubState
 		controls.trackedInputsUI = [];
 	}
 
+	/**
+	 * Executes the `removeVirtualPad` operation.
+	 */
 	public function removeVirtualPad():Void
 	{
 		if (trackedInputsVirtualPad.length > 0)
@@ -52,6 +67,10 @@ class MusicBeatSubstate extends FlxSubState
 			remove(virtualPad);
 	}
 
+	/**
+	 * Executes the `addVirtualPadCamera` operation.
+	 * @param DefaultDrawTarget Input value for `DefaultDrawTarget`.
+	 */
 	public function addVirtualPadCamera(DefaultDrawTarget:Bool = false):Void
 	{
 		if (virtualPad != null)
@@ -63,6 +82,9 @@ class MusicBeatSubstate extends FlxSubState
 		}
 	}
 
+	/**
+	 * Executes the `destroy` operation.
+	 */
 	override function destroy():Void
 	{
 		if (trackedInputsVirtualPad.length > 0)
@@ -74,6 +96,11 @@ class MusicBeatSubstate extends FlxSubState
 			virtualPad = FlxDestroyUtil.destroy(virtualPad);
 	}
 
+	/**
+	 * Executes the `update` operation.
+	 * @param elapsed Input value for `elapsed`.
+	 * @return Result produced by `update`, when applicable.
+	 */
 	override function update(elapsed:Float)
 	{
 		if (oldStep != curStep) oldStep = curStep;
@@ -87,12 +114,18 @@ class MusicBeatSubstate extends FlxSubState
 		super.update(elapsed);
 	}
 
+	/**
+	 * Executes the `updateBeat` operation.
+	 */
 	private function updateBeat():Void
 	{
 		curBeat = Math.floor(curStep / 4);
 		curDecBeat = curDecStep/4;
 	}
 
+	/**
+	 * Executes the `updateCurStep` operation.
+	 */
 	private function updateCurStep():Void
 	{
 		var lastChange = Conductor.getBPMFromSeconds(Conductor.songPosition);
@@ -102,12 +135,18 @@ class MusicBeatSubstate extends FlxSubState
 		curStep = lastChange.stepTime + Math.floor(decimalStep);
 	}
 
+	/**
+	 * Executes the `stepHit` operation.
+	 */
 	public function stepHit():Void
 	{
 		if (curStep % 4 == 0)
 			beatHit();
 	}
 
+	/**
+	 * Executes the `beatHit` operation.
+	 */
 	public function beatHit():Void
 	{
 		//do literally nothing dumbass

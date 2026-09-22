@@ -10,6 +10,9 @@ class PulseShader extends ErrorHandledRuntimeShader
   public var time(default, set):Float = 0;
   public var enabled(default, set):Bool = false;
 
+  /**
+   * Executes the `new` operation.
+*/
   public function new()
   {
     super('Pulse Effect', shaders.RuntimeShaders.pulseEffect);
@@ -25,6 +28,11 @@ class PulseShader extends ErrorHandledRuntimeShader
   }
 
   // Setters to automatically update shader uniforms when properties change
+  /**
+   * Executes the `set_waveAmplitude` operation.
+   * @param value Input value for `value`.
+   * @return Result produced by `set_waveAmplitude`, when applicable.
+   */
   function set_waveAmplitude(value:Float):Float
   {
     waveAmplitude = value;
@@ -32,6 +40,11 @@ class PulseShader extends ErrorHandledRuntimeShader
     return value;
   }
 
+  /**
+   * Executes the `set_frequency` operation.
+   * @param value Input value for `value`.
+   * @return Result produced by `set_frequency`, when applicable.
+   */
   function set_frequency(value:Float):Float
   {
     frequency = value;
@@ -39,6 +52,11 @@ class PulseShader extends ErrorHandledRuntimeShader
     return value;
   }
 
+  /**
+   * Executes the `set_speed` operation.
+   * @param value Input value for `value`.
+   * @return Result produced by `set_speed`, when applicable.
+   */
   function set_speed(value:Float):Float
   {
     speed = value;
@@ -46,6 +64,11 @@ class PulseShader extends ErrorHandledRuntimeShader
     return value;
   }
 
+  /**
+   * Executes the `set_time` operation.
+   * @param value Input value for `value`.
+   * @return Result produced by `set_time`, when applicable.
+   */
   function set_time(value:Float):Float
   {
     time = value;
@@ -53,6 +76,11 @@ class PulseShader extends ErrorHandledRuntimeShader
     return value;
   }
 
+  /**
+   * Executes the `set_enabled` operation.
+   * @param value Input value for `value`.
+   * @return Result produced by `set_enabled`, when applicable.
+   */
   function set_enabled(value:Bool):Bool
   {
     enabled = value;
@@ -60,6 +88,10 @@ class PulseShader extends ErrorHandledRuntimeShader
     return value;
   }
 
+  /**
+   * Executes the `update` operation.
+   * @param elapsed Input value for `elapsed`.
+   */
   public function update(elapsed:Float):Void
   {
     if (enabled) time += elapsed * speed;

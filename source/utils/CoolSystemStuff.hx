@@ -9,6 +9,10 @@ package utils;
 #if sys
 class CoolSystemStuff
 {
+	/**
+	 * Executes the `getUsername` operation.
+	 * @return Result produced by `getUsername`, when applicable.
+	 */
 	public static function getUsername():String
 	{
 		// uhh this one is self explanatory
@@ -19,6 +23,10 @@ class CoolSystemStuff
 		#end
 	}
 
+	/**
+	 * Executes the `getUserPath` operation.
+	 * @return Result produced by `getUserPath`, when applicable.
+	 */
 	public static function getUserPath():String
 	{
 		// this one is also self explantory
@@ -29,6 +37,10 @@ class CoolSystemStuff
 		#end
 	}
 
+	/**
+	 * Executes the `getTempPath` operation.
+	 * @return Result produced by `getTempPath`, when applicable.
+	 */
 	public static function getTempPath():String
 	{
 		// gets appdata temp folder lol
@@ -39,6 +51,10 @@ class CoolSystemStuff
 		return Sys.getEnv("HOME");
 		#end
 	}
+	/**
+	 * Executes the `executableFileName` operation.
+	 * @return Result produced by `executableFileName`, when applicable.
+	 */
 	public static function executableFileName()
 	{
 		#if windows
@@ -52,9 +68,25 @@ class CoolSystemStuff
 #else
 class CoolSystemStuff
 {
+	/**
+	 * Executes the `getUsername` operation.
+	 * @return Result produced by `getUsername`, when applicable.
+	 */
 	public static function getUsername():String { return "unknown"; }
+	/**
+	 * Executes the `getUserPath` operation.
+	 * @return Result produced by `getUserPath`, when applicable.
+	 */
 	public static function getUserPath():String { return ""; }
+	/**
+	 * Executes the `getTempPath` operation.
+	 * @return Result produced by `getTempPath`, when applicable.
+	 */
 	public static function getTempPath():String { return ""; }
+	/**
+	 * Executes the `executableFileName` operation.
+	 * @return Result produced by `executableFileName`, when applicable.
+	 */
 	public static function executableFileName():String { return ""; }
 }
 #end

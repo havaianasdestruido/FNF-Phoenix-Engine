@@ -41,6 +41,9 @@ class MobileControls extends FlxSpriteGroup
 	public var virtualPad:FlxVirtualPad;
 	public var hitbox:FlxHitbox;
 
+	/**
+	 * Executes the `new` operation.
+*/
 	public function new()
 	{
 		super();
@@ -62,6 +65,9 @@ class MobileControls extends FlxSpriteGroup
 		}
 	}
 
+	/**
+	 * Executes the `destroy` operation.
+*/
 	override public function destroy():Void
 	{
 		super.destroy();
@@ -73,6 +79,10 @@ class MobileControls extends FlxSpriteGroup
 			hitbox = FlxDestroyUtil.destroy(hitbox);
 	}
 
+	/**
+	 * Executes the `get_mode` operation.
+	 * @return Result produced by `get_mode`, when applicable.
+	 */
 	private static function get_mode():String
 	{
 		if (FlxG.save.data.mobileCMode == null)
@@ -84,6 +94,11 @@ class MobileControls extends FlxSpriteGroup
 		return FlxG.save.data.mobileCMode;
 	}
 
+	/**
+	 * Executes the `set_mode` operation.
+	 * @param mode Input value for `mode`.
+	 * @return Result produced by `set_mode`, when applicable.
+	 */
 	private static function set_mode(mode:String = 'Hitbox'):String
 	{
 		FlxG.save.data.mobileCMode = mode;
@@ -92,6 +107,10 @@ class MobileControls extends FlxSpriteGroup
 		return mode;
 	}
 
+	/**
+	 * Executes the `get_customVirtualPad` operation.
+	 * @return Result produced by `get_customVirtualPad`, when applicable.
+	 */
 	private static function get_customVirtualPad():FlxVirtualPad
 	{
 		var virtualPad:FlxVirtualPad = new FlxVirtualPad(RIGHT_FULL, NONE, ClientPrefs.mobileCEx);
@@ -109,6 +128,11 @@ class MobileControls extends FlxSpriteGroup
 		return virtualPad;
 	}
 
+	/**
+	 * Executes the `set_customVirtualPad` operation.
+	 * @param virtualPad Input value for `virtualPad`.
+	 * @return Result produced by `set_customVirtualPad`, when applicable.
+	 */
 	private static function set_customVirtualPad(virtualPad:FlxVirtualPad):FlxVirtualPad
 	{
 		if (FlxG.save.data.buttons == null)
@@ -134,6 +158,10 @@ class MobileControls extends FlxSpriteGroup
 		return virtualPad;
 	}
 
+	/**
+	 * Executes the `get_enabled` operation.
+	 * @return Result produced by `get_enabled`, when applicable.
+	 */
 	private static function get_enabled():Bool
 		return ClientPrefs.mobileCAlpha >= 0.1;
 }

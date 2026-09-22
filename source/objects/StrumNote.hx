@@ -22,6 +22,11 @@ class StrumNote extends FlxSprite
 	public var ogNoteskin:String = null;
 
 	public var texture(default, set):String = null;
+	/**
+	 * Executes the `set_texture` operation.
+	 * @param value Input value for `value`.
+	 * @return Result produced by `set_texture`, when applicable.
+	 */
 	private function set_texture(value:String):String {
 		if(texture != value) {
 			texture = (value != null ? value : "noteskins/NOTE_assets" + NoteHelpers.getNoteSkinPostfix());
@@ -31,10 +36,22 @@ class StrumNote extends FlxSprite
 	}
 	public var useRGBShader:Bool = true;
 
+	/**
+	 * Executes the `getAngle` operation.
+	 * @return Result produced by `getAngle`, when applicable.
+	 */
 	public function getAngle() {
 		return (notes_angle == null ? angle : notes_angle);
 	}
 
+	/**
+	 * Executes the `new` operation.
+	 * @param x Input value for `x`.
+	 * @param y Input value for `y`.
+	 * @param leData Input value for `leData`.
+	 * @param player Input value for `player`.
+	 * @param inEditor Input value for `inEditor`.
+	 */
 	public function new(x:Float, y:Float, leData:Int, player:Int, ?inEditor:Bool = false) {
 		rgbShader = new RGBShaderReference(this, NoteHelpers.initializeGlobalRGBShader(leData));
 		rgbShader.enabled = false;
@@ -69,6 +86,10 @@ class StrumNote extends FlxSprite
 		scrollFactor.set();
 	}
 
+	/**
+	 * Executes the `reloadNote` operation.
+	 * @return Result produced by `reloadNote`, when applicable.
+	 */
 	public function reloadNote()
 	{
 		var lastAnim:String = null;
@@ -147,6 +168,10 @@ class StrumNote extends FlxSprite
 		}
 	}
 
+	/**
+	 * Executes the `postAddedToGroup` operation.
+	 * @return Result produced by `postAddedToGroup`, when applicable.
+	 */
 	public function postAddedToGroup() {
 		playAnim('static');
 		x += Note.swagWidth * noteData;
@@ -155,6 +180,11 @@ class StrumNote extends FlxSprite
 		ID = noteData;
 	}
 
+	/**
+	 * Executes the `update` operation.
+	 * @param elapsed Input value for `elapsed`.
+	 * @return Result produced by `update`, when applicable.
+	 */
 	override function update(elapsed:Float) {
 		if (ClientPrefs.ffmpegMode) elapsed = 1 / ClientPrefs.targetFPS;
 		if(resetAnim > 0) {
@@ -167,6 +197,15 @@ class StrumNote extends FlxSprite
 		super.update(elapsed);
 	}
 
+	/**
+	 * Executes the `playAnim` operation.
+	 * @param anim Input value for `anim`.
+	 * @param force Input value for `force`.
+	 * @param r Input value for `r`.
+	 * @param g Input value for `g`.
+	 * @param b Input value for `b`.
+	 * @return Result produced by `playAnim`, when applicable.
+	 */
 	public function playAnim(anim:String, ?force:Bool = false, ?r:FlxColor, ?g:FlxColor, ?b:FlxColor) {
 		animation.play(anim, force);
 		if(animation.curAnim != null)
@@ -180,12 +219,24 @@ class StrumNote extends FlxSprite
 			if (r != null && g != null && b != null) updateRGBColors(r, g, b);
 		} else if (!useRGBShader && rgbShader != null) rgbShader.enabled = false;
 	}
+	/**
+	 * Executes the `updateNoteSkin` operation.
+	 * @param noteskin Input value for `noteskin`.
+	 * @return Result produced by `updateNoteSkin`, when applicable.
+	 */
 	public function updateNoteSkin(noteskin:String) {
 			if (texture == "noteskins/" + noteskin || noteskin == ogNoteskin || texture == noteskin) return; //if the noteskin to change to is the same as before then don't update it
 			if (noteskin != null && noteskin.length > 0) texture = "noteskins/" + noteskin;
 			else texture = "noteskins/NOTE_assets" + NoteHelpers.getNoteSkinPostfix();
 	}
 
+	/**
+	 * Executes the `updateRGBColors` operation.
+	 * @param r Input value for `r`.
+	 * @param g Input value for `g`.
+	 * @param b Input value for `b`.
+	 * @return Result produced by `updateRGBColors`, when applicable.
+	 */
 	public function updateRGBColors(?r:FlxColor, ?g:FlxColor, ?b:FlxColor) {
         if (rgbShader != null && useRGBShader)
 		{
@@ -194,6 +245,10 @@ class StrumNote extends FlxSprite
 			rgbShader.b = b;
 		}
 	}
+	/**
+	 * Executes the `resetRGB` operation.
+	 * @return Result produced by `resetRGB`, when applicable.
+	 */
 	public function resetRGB()
 	{
 		if (rgbShader != null && animation.curAnim != null && animation.curAnim.name == 'static')

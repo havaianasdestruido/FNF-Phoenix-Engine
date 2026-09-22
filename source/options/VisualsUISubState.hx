@@ -21,6 +21,9 @@ class VisualsUISubState extends BaseOptionsMenu
 	var notes:FlxTypedGroup<StrumNote>;
 	var notesTween:Array<FlxTween> = [];
 	var noteY:Float = 90;
+	/**
+	 * Executes the `new` operation.
+*/
 	public function new()
 	{
 		title = 'Visuals and UI';
@@ -447,6 +450,11 @@ class VisualsUISubState extends BaseOptionsMenu
 		add(notes);
 	}
 
+	/**
+	 * Executes the `changeSelection` operation.
+	 * @param change Input value for `change`.
+	 * @return Result produced by `changeSelection`, when applicable.
+	 */
 	override function changeSelection(change:Int = 0)
 	{
 		super.changeSelection(change);
@@ -464,6 +472,10 @@ class VisualsUISubState extends BaseOptionsMenu
 		}
 	}
 
+	/**
+	 * Executes the `onChangeNoteSkin` operation.
+	 * @return Result produced by `onChangeNoteSkin`, when applicable.
+	 */
 	function onChangeNoteSkin()
 	{
 		notes.forEachAlive(function(note:StrumNote) {
@@ -473,6 +485,11 @@ class VisualsUISubState extends BaseOptionsMenu
 		});
 	}
 
+	/**
+	 * Executes the `changeNoteSkin` operation.
+	 * @param note Input value for `note`.
+	 * @return Result produced by `changeNoteSkin`, when applicable.
+	 */
 	function changeNoteSkin(note:StrumNote)
 	{
 		var skin:String = Note.defaultNoteSkin;
@@ -485,6 +502,10 @@ class VisualsUISubState extends BaseOptionsMenu
 	}
 
 	var changedMusic:Bool = false;
+	/**
+	 * Executes the `onChangePauseMusic` operation.
+	 * @return Result produced by `onChangePauseMusic`, when applicable.
+	 */
 	function onChangePauseMusic()
 	{
 		if(ClientPrefs.pauseMusic == 'None')
@@ -496,6 +517,10 @@ class VisualsUISubState extends BaseOptionsMenu
 	}
 
 	var menuMusicChanged:Bool = false;
+	/**
+	 * Executes the `onChangeMenuMusic` operation.
+	 * @return Result produced by `onChangeMenuMusic`, when applicable.
+	 */
 	function onChangeMenuMusic()
 	{
 			if (ClientPrefs.daMenuMusic != 'Default') FlxG.sound.playMusic(Paths.music('freakyMenu-' + ClientPrefs.daMenuMusic));
@@ -503,18 +528,30 @@ class VisualsUISubState extends BaseOptionsMenu
 		menuMusicChanged = true;
 	}
 
+	/**
+	 * Executes the `destroy` operation.
+	 * @return Result produced by `destroy`, when applicable.
+	 */
 	override function destroy()
 	{
 		if(changedMusic) FlxG.sound.playMusic(Paths.music('freakyMenu-' + ClientPrefs.daMenuMusic));
 		super.destroy();
 	}
 
+	/**
+	 * Executes the `onChangeFPSCounter` operation.
+	 * @return Result produced by `onChangeFPSCounter`, when applicable.
+	 */
 	function onChangeFPSCounter()
 	{
 		if(Main.fpsVar != null)
 			Main.fpsVar.visible = ClientPrefs.showFPS;
 	}
 	
+	/**
+	 * Executes the `updateFPSText` operation.
+	 * @return Result produced by `updateFPSText`, when applicable.
+	 */
 	function updateFPSText()
 	{
 		if(Main.fpsVar != null)

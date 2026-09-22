@@ -36,9 +36,17 @@ class Mods
 
 	private static var globalMods:Array<String> = [];
 
+	/**
+	 * Executes the `getGlobalMods` operation.
+	 * @return Result produced by `getGlobalMods`, when applicable.
+	 */
 	inline public static function getGlobalMods()
 		return globalMods;
 
+	/**
+	 * Executes the `pushGlobalMods` operation.
+	 * @return Result produced by `pushGlobalMods`, when applicable.
+	 */
 	inline public static function pushGlobalMods() // prob a better way to do this but idc
 	{
 		globalMods = [];
@@ -50,6 +58,10 @@ class Mods
 		return globalMods;
 	}
 
+	/**
+	 * Executes the `getModDirectories` operation.
+	 * @return Result produced by `getModDirectories`, when applicable.
+	 */
 	inline public static function getModDirectories():Array<String>
 	{
 		var list:Array<String> = [];
@@ -67,6 +79,13 @@ class Mods
 		return list;
 	}
 	
+	/**
+	 * Executes the `mergeAllTextsNamed` operation.
+	 * @param path Input value for `path`.
+	 * @param defaultDirectory Input value for `defaultDirectory`.
+	 * @param allowDuplicates Input value for `allowDuplicates`.
+	 * @return Result produced by `mergeAllTextsNamed`, when applicable.
+	 */
 	inline public static function mergeAllTextsNamed(path:String, defaultDirectory:String = null, allowDuplicates:Bool = false)
 	{
 		if(defaultDirectory == null) defaultDirectory = Paths.getSharedPath();
@@ -94,6 +113,13 @@ class Mods
 		return mergedList;
 	}
 
+	/**
+	 * Executes the `directoriesWithFile` operation.
+	 * @param path Input value for `path`.
+	 * @param fileToFind Input value for `fileToFind`.
+	 * @param mods Input value for `mods`.
+	 * @return Result produced by `directoriesWithFile`, when applicable.
+	 */
 	inline public static function directoriesWithFile(path:String, fileToFind:String, mods:Bool = true)
 	{
 		var foldersToCheck:Array<String> = [];
@@ -127,6 +153,11 @@ class Mods
 		return foldersToCheck;
 	}
 
+	/**
+	 * Executes the `getPack` operation.
+	 * @param folder Input value for `folder`.
+	 * @return Result produced by `getPack`, when applicable.
+	 */
 	public static function getPack(?folder:String = null):Dynamic
 	{
 		#if MODS_ALLOWED
@@ -150,6 +181,10 @@ class Mods
 	}
 
 	public static var updatedOnState:Bool = false;
+	/**
+	 * Executes the `parseList` operation.
+	 * @return Result produced by `parseList`, when applicable.
+	 */
 	inline public static function parseList():ModsList {
 		if(!updatedOnState) updateModList();
 		var list:ModsList = {enabled: [], disabled: [], all: []};
@@ -175,6 +210,10 @@ class Mods
 		return list;
 	}
 	
+	/**
+	 * Executes the `updateModList` operation.
+	 * @return Result produced by `updateModList`, when applicable.
+	 */
 	private static function updateModList()
 	{
 		#if MODS_ALLOWED
@@ -222,6 +261,10 @@ class Mods
 		#end
 	}
 
+	/**
+	 * Executes the `loadTopMod` operation.
+	 * @return Result produced by `loadTopMod`, when applicable.
+	 */
 	public static function loadTopMod()
 	{
 		Mods.currentModDirectory = '';

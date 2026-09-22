@@ -86,6 +86,9 @@ void main() {
 
 
 	')
+  /**
+   * Executes the `new` operation.
+*/
   public function new()
   {
     super();

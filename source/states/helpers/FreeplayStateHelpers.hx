@@ -44,6 +44,12 @@ class FreeplayStateHelpers
 {
 	// Song list generation/search
 
+	/**
+	 * Executes the `regenerateSongs` operation.
+	 * @param state Input value for `state`.
+	 * @param start Input value for `start`.
+	 * @return Result produced by `regenerateSongs`, when applicable.
+	 */
 	public static function regenerateSongs(state:FreeplayState, ?start:String = '') {
 		for (funnyIcon in state.grpIcons.members)
 			funnyIcon.canBounce = false;
@@ -80,6 +86,12 @@ class FreeplayStateHelpers
 		regenList(state);
 	}
 
+	/**
+	 * Executes the `checkForSongsThatMatch` operation.
+	 * @param state Input value for `state`.
+	 * @param start Input value for `start`.
+	 * @return Result produced by `checkForSongsThatMatch`, when applicable.
+	 */
 	public static function checkForSongsThatMatch(state:FreeplayState, ?start:String = '')
 	{
 		if (state.player.playingMusic) return;
@@ -117,16 +129,36 @@ class FreeplayStateHelpers
 		}
 	}
 
+	/**
+	 * Executes the `addSong` operation.
+	 * @param state Input value for `state`.
+	 * @param songName Input value for `songName`.
+	 * @param weekNum Input value for `weekNum`.
+	 * @param songCharacter Input value for `songCharacter`.
+	 * @param color Input value for `color`.
+	 * @return Result produced by `addSong`, when applicable.
+	 */
 	public static function addSong(state:FreeplayState, songName:String, weekNum:Int, songCharacter:String, color:Int)
 	{
 		state.songs.push(new SongMetadata(songName, weekNum, songCharacter, color));
 	}
 
+	/**
+	 * Executes the `weekIsLocked` operation.
+	 * @param state Input value for `state`.
+	 * @param name Input value for `name`.
+	 * @return Result produced by `weekIsLocked`, when applicable.
+	 */
 	public static function weekIsLocked(state:FreeplayState, name:String):Bool {
 		var leWeek:WeekData = WeekData.weeksLoaded.get(name);
 		return (!leWeek.startUnlocked && leWeek.weekBefore.length > 0 && (!StoryMenuState.weekCompleted.exists(leWeek.weekBefore) || !StoryMenuState.weekCompleted.get(leWeek.weekBefore)));
 	}
 
+	/**
+	 * Executes the `regenList` operation.
+	 * @param state Input value for `state`.
+	 * @return Result produced by `regenList`, when applicable.
+	 */
 	public static function regenList(state:FreeplayState) {
 			state.grpSongs.forEach(song -> {
 				state.grpSongs.remove(song, true);
@@ -169,6 +201,13 @@ class FreeplayStateHelpers
 
 	// Selection/difficulty
 
+	/**
+	 * Executes the `changeSelection` operation.
+	 * @param state Input value for `state`.
+	 * @param change Input value for `change`.
+	 * @param playSound Input value for `playSound`.
+	 * @return Result produced by `changeSelection`, when applicable.
+	 */
 	public static function changeSelection(state:FreeplayState, change:Int = 0, playSound:Bool = true)
 	{
 		if (state.player.playingMusic) return;
@@ -282,6 +321,12 @@ class FreeplayStateHelpers
 		}
 	}
 
+	/**
+	 * Executes the `changeDiff` operation.
+	 * @param state Input value for `state`.
+	 * @param change Input value for `change`.
+	 * @return Result produced by `changeDiff`, when applicable.
+	 */
 	public static function changeDiff(state:FreeplayState, change:Int = 0)
 	{
 		if (state.player.playingMusic) return;
@@ -305,6 +350,11 @@ class FreeplayStateHelpers
 		positionHighscore(state);
 	}
 
+	/**
+	 * Executes the `positionHighscore` operation.
+	 * @param state Input value for `state`.
+	 * @return Result produced by `positionHighscore`, when applicable.
+	 */
 	public static function positionHighscore(state:FreeplayState) {
 		try {
 			state.scoreText.x = FlxG.width - state.scoreText.width - 6;
@@ -317,6 +367,12 @@ class FreeplayStateHelpers
 		catch(e){}
 	}
 
+	/**
+	 * Executes the `updateTexts` operation.
+	 * @param state Input value for `state`.
+	 * @param elapsed Input value for `elapsed`.
+	 * @return Result produced by `updateTexts`, when applicable.
+	 */
 	public static function updateTexts(state:FreeplayState, elapsed:Float = 0.0)
 	{
 		state.lerpSelected = FlxMath.lerp(state.lerpSelected, FreeplayState.curSelected, FlxMath.bound(elapsed * 9.6, 0, 1));
@@ -344,6 +400,11 @@ class FreeplayStateHelpers
 
 	// Playback
 
+	/**
+	 * Executes the `playSong` operation.
+	 * @param state Input value for `state`.
+	 * @return Result produced by `playSong`, when applicable.
+	 */
 	public static function playSong(state:FreeplayState) {
 		#if PRELOAD_ALL
 		destroyFreeplayVocals();
@@ -433,6 +494,11 @@ class FreeplayStateHelpers
 		state.player.pauseOrResume(true);
 	}
 
+	/**
+	 * Executes the `songJsonPopup` operation.
+	 * @param state Input value for `state`.
+	 * @return Result produced by `songJsonPopup`, when applicable.
+	 */
 	public static function songJsonPopup(state:FreeplayState) { //you pressed space, but the song's ogg files don't exist
 		var poop:String = Highscore.formatSong(state.songs[FreeplayState.curSelected].songName.toLowerCase(), state.curDifficulty);
 		trace(poop + '\'s .ogg does not exist!');
@@ -453,6 +519,12 @@ class FreeplayStateHelpers
 		});
 	}
 
+	/**
+	 * Executes the `getVocalFromCharacter` operation.
+	 * @param state Input value for `state`.
+	 * @param char Input value for `char`.
+	 * @return Result produced by `getVocalFromCharacter`, when applicable.
+	 */
 	public static function getVocalFromCharacter(state:FreeplayState, char:String)
 	{
 		try
@@ -469,6 +541,10 @@ class FreeplayStateHelpers
 		return null;
 	}
 
+	/**
+	 * Executes the `destroyFreeplayVocals` operation.
+	 * @return Result produced by `destroyFreeplayVocals`, when applicable.
+	 */
 	public static function destroyFreeplayVocals() {
 		if(FreeplayState.vocals != null) FreeplayState.vocals.stop();
 		FreeplayState.vocals = FlxDestroyUtil.destroy(FreeplayState.vocals);

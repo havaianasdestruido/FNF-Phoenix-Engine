@@ -26,6 +26,10 @@ typedef Achievement =
 }
 
 class Achievements {
+	/**
+	 * Executes the `init` operation.
+	 * @return Result produced by `init`, when applicable.
+	 */
 	public static function init()
 	{
 		createAchievement('friday_night_play',		{name: "Freaky on a Friday Night", description: "Play on a Friday... Night.", hidden: true});
@@ -54,11 +58,24 @@ class Achievements {
 	public static var achievementsUnlocked:Array<String> = [];
 	private static var _firstLoad:Bool = true;
 
+	/**
+	 * Executes the `get` operation.
+	 * @param name Input value for `name`.
+	 * @return Result produced by `get`, when applicable.
+	 */
 	public static function get(name:String):Achievement
 		return achievements.get(name);
+	/**
+	 * Executes the `exists` operation.
+	 * @param name Input value for `name`.
+	 * @return Result produced by `exists`, when applicable.
+	 */
 	public static function exists(name:String):Bool
 		return achievements.exists(name);
 
+	/**
+	 * Executes the `load` operation.
+	 */
 	public static function load():Void
 	{
 		if(!_firstLoad) return;
@@ -81,22 +98,52 @@ class Achievements {
 		}
 	}
 
+	/**
+	 * Executes the `save` operation.
+	 */
 	public static function save():Void
 	{
 		FlxG.save.data.achievementsUnlocked = achievementsUnlocked;
 		FlxG.save.data.achievementsVariables = variables;
 	}
 
+	/**
+	 * Executes the `getScore` operation.
+	 * @param name Input value for `name`.
+	 * @return Result produced by `getScore`, when applicable.
+	 */
 	public static function getScore(name:String):Float
 		return _scoreFunc(name, 0);
 
+	/**
+	 * Executes the `setScore` operation.
+	 * @param name Input value for `name`.
+	 * @param value Input value for `value`.
+	 * @param saveIfNotUnlocked Input value for `saveIfNotUnlocked`.
+	 * @return Result produced by `setScore`, when applicable.
+	 */
 	public static function setScore(name:String, value:Float, saveIfNotUnlocked:Bool = true):Float
 		return _scoreFunc(name, 1, value, saveIfNotUnlocked);
 
+	/**
+	 * Executes the `addScore` operation.
+	 * @param name Input value for `name`.
+	 * @param value Input value for `value`.
+	 * @param saveIfNotUnlocked Input value for `saveIfNotUnlocked`.
+	 * @return Result produced by `addScore`, when applicable.
+	 */
 	public static function addScore(name:String, value:Float = 1, saveIfNotUnlocked:Bool = true):Float
 		return _scoreFunc(name, 2, value, saveIfNotUnlocked);
 
 	//mode 0 = get, 1 = set, 2 = add
+	/**
+	 * Executes the `_scoreFunc` operation.
+	 * @param name Input value for `name`.
+	 * @param mode Input value for `mode`.
+	 * @param addOrSet Input value for `addOrSet`.
+	 * @param saveIfNotUnlocked Input value for `saveIfNotUnlocked`.
+	 * @return Result produced by `_scoreFunc`, when applicable.
+	 */
 	static function _scoreFunc(name:String, mode:Int = 0, addOrSet:Float = 1, saveIfNotUnlocked:Bool = true):Float
 	{
 		if(!variables.exists(name))
@@ -131,6 +178,12 @@ class Achievements {
 	}
 
 	static var _lastUnlock:Int = -999;
+	/**
+	 * Executes the `unlock` operation.
+	 * @param name Input value for `name`.
+	 * @param autoStartPopup Input value for `autoStartPopup`.
+	 * @return Result produced by `unlock`, when applicable.
+	 */
 	public static function unlock(name:String, autoStartPopup:Bool = true):String {
 		if(!achievements.exists(name))
 		{
@@ -158,6 +211,11 @@ class Achievements {
 		if(autoStartPopup) startPopup(name);
 		return name;
 	}
+	/**
+	 * Executes the `isUnlocked` operation.
+	 * @param name Input value for `name`.
+	 * @return Result produced by `isUnlocked`, when applicable.
+	 */
 	inline public static function isUnlocked(name:String)
 		return achievementsUnlocked.contains(name);
 
@@ -165,9 +223,18 @@ class Achievements {
 	private static var _popups:Array<AchievementPopup> = [];
 
 	public static var showingPopups(get, never):Bool;
+	/**
+	 * Executes the `get_showingPopups` operation.
+	 * @return Result produced by `get_showingPopups`, when applicable.
+	 */
 	public static function get_showingPopups()
 		return _popups.length > 0;
 
+	/**
+	 * Executes the `startPopup` operation.
+	 * @param achieve Input value for `achieve`.
+	 * @return Result produced by `startPopup`, when applicable.
+	 */
 	public static function startPopup(achieve:String, endFunc:Void->Void = null) {
 		for (popup in _popups)
 		{
@@ -183,6 +250,13 @@ class Achievements {
 	// Map sorting cuz haxe is physically incapable of doing that by itself
 	static var _sortID = 0;
 	static var _originalLength = -1;
+	/**
+	 * Executes the `createAchievement` operation.
+	 * @param name Input value for `name`.
+	 * @param data Input value for `data`.
+	 * @param mod Input value for `mod`.
+	 * @return Result produced by `createAchievement`, when applicable.
+	 */
 	public static function createAchievement(name:String, data:Achievement, ?mod:String = null)
 	{
 		data.ID = _sortID;
@@ -192,6 +266,10 @@ class Achievements {
 	}
 
 	#if MODS_ALLOWED
+	/**
+	 * Executes the `reloadList` operation.
+	 * @return Result produced by `reloadList`, when applicable.
+	 */
 	public static function reloadList()
 	{
 		// remove modded achievements
@@ -213,6 +291,12 @@ class Achievements {
 		Mods.currentModDirectory = modLoaded;
 	}
 
+	/**
+	 * Executes the `loadAchievementJson` operation.
+	 * @param path Input value for `path`.
+	 * @param addMods Input value for `addMods`.
+	 * @return Result produced by `loadAchievementJson`, when applicable.
+	 */
 	inline static function loadAchievementJson(path:String, addMods:Bool = true)
 	{
 		var retVal:Array<Dynamic> = null;
@@ -267,6 +351,11 @@ class Achievements {
 	}
 
 	#if LUA_ALLOWED
+	/**
+	 * Executes the `addLuaCallbacks` operation.
+	 * @param lua Input value for `lua`.
+	 * @return Result produced by `addLuaCallbacks`, when applicable.
+	 */
 	public static function addLuaCallbacks(lua:State)
 	{
 		Convert.addCallback(lua, "getAchievementScore", function(name:String):Float
@@ -319,6 +408,11 @@ class Achievements {
 	#end
 
 	#if PYTHON_ALLOWED
+	/**
+	 * Executes the `addPythonCallbacks` operation.
+	 * @param python Input value for `python`.
+	 * @return Result produced by `addPythonCallbacks`, when applicable.
+	 */
 	public static function addPythonCallbacks(python:PythonScript)
 	{
 		python.set("getAchievementScore", function(name:String):Float

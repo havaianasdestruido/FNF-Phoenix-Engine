@@ -34,6 +34,10 @@ class PhillyStreetsBF extends BaseStage
 
 	var darkenable:Array<FlxSprite> = [];
 	var abot:ABotSpeaker;
+	/**
+	 * Executes the `create` operation.
+	 * @return Result produced by `create`, when applicable.
+	 */
 	override function create()
 	{
 		if(!ClientPrefs.lowQuality)
@@ -103,6 +107,10 @@ class PhillyStreetsBF extends BaseStage
 			setupRainShader();
 	}
 
+	/**
+	 * Executes the `setupRainShader` operation.
+	 * @return Result produced by `setupRainShader`, when applicable.
+	 */
 	function setupRainShader()
 	{
 		rainShader = new RainShader();
@@ -123,6 +131,11 @@ class PhillyStreetsBF extends BaseStage
 		FlxG.camera.filters = [new ShaderFilter(rainShader)];
 	}
 
+	/**
+	 * Executes the `update` operation.
+	 * @param elapsed Input value for `elapsed`.
+	 * @return Result produced by `update`, when applicable.
+	 */
 	override function update(elapsed:Float)
 	{
 		if(scrollingSky != null) scrollingSky.scrollX -= elapsed * 22;
@@ -144,6 +157,10 @@ class PhillyStreetsBF extends BaseStage
 	var carInterruptable:Bool = true;
 	var car2Interruptable:Bool = true;
 
+	/**
+	 * Executes the `beatHit` operation.
+	 * @return Result produced by `beatHit`, when applicable.
+	 */
 	override function beatHit()
 	{
 		if(ClientPrefs.lowQuality) return;
@@ -162,6 +179,10 @@ class PhillyStreetsBF extends BaseStage
 		if (curBeat == (lastChange + changeInterval)) changeLights(curBeat);
 	}
 
+	/**
+	 * Executes the `changeLights` operation.
+	 * @param beat Input value for `beat`.
+	 */
 	function changeLights(beat:Int):Void
 	{
 		lastChange = beat;
@@ -181,6 +202,10 @@ class PhillyStreetsBF extends BaseStage
 		}
 	}
 
+	/**
+	 * Executes the `finishCarLights` operation.
+	 * @param sprite Input value for `sprite`.
+	 */
 	function finishCarLights(sprite:BGSprite):Void
 	{
 		carWaiting = false;
@@ -199,6 +224,10 @@ class PhillyStreetsBF extends BaseStage
 		FlxTween.quadPath(sprite, path, duration, true, {ease: FlxEase.sineIn, startDelay: startdelay, onComplete: function(_) carInterruptable = true});
 	}
 
+	/**
+	 * Executes the `driveCarLights` operation.
+	 * @param sprite Input value for `sprite`.
+	 */
 	function driveCarLights(sprite:BGSprite):Void
 	{
 		carInterruptable = false;
@@ -240,6 +269,10 @@ class PhillyStreetsBF extends BaseStage
 		}});
 	}
 
+	/**
+	 * Executes the `driveCar` operation.
+	 * @param sprite Input value for `sprite`.
+	 */
 	function driveCar(sprite:BGSprite):Void
 	{
 		carInterruptable = false;
@@ -278,6 +311,10 @@ class PhillyStreetsBF extends BaseStage
 		FlxTween.quadPath(sprite, path, duration, true, {onComplete: function(_) carInterruptable = true});
 	}
 
+	/**
+	 * Executes the `driveCarBack` operation.
+	 * @param sprite Input value for `sprite`.
+	 */
 	function driveCarBack(sprite:FlxSprite):Void
 	{
 		car2Interruptable = false;
@@ -316,6 +353,10 @@ class PhillyStreetsBF extends BaseStage
 		FlxTween.quadPath(sprite, path, duration, true, {onComplete: function(_) car2Interruptable = true});
 	}
 
+	/**
+	 * Executes the `onGameOver` operation.
+	 * @return Result produced by `onGameOver`, when applicable.
+	 */
 	override function onGameOver()
 	{
 		if (rainShader != null) rainShader = null;

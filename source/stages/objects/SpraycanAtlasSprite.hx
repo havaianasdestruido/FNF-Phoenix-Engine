@@ -20,6 +20,11 @@ class SpraycanAtlasSprite extends FlxSpriteGroup
 	public var canAtlas:FlxSprite;
 	#end
 	public var explosion:FlxSprite;
+	/**
+	 * Executes the `new` operation.
+	 * @param x Input value for `x`.
+	 * @param y Input value for `y`.
+	 */
 	public function new(x:Float = 0, y:Float = 0)
 	{
 		super();
@@ -46,6 +51,10 @@ class SpraycanAtlasSprite extends FlxSpriteGroup
 	}
 
 	public var cutscene:Bool = false;
+	/**
+	 * Executes the `finishCanAnimation` operation.
+	 * @return Result produced by `finishCanAnimation`, when applicable.
+	 */
 	public function finishCanAnimation()
 	{
 		switch(playingAnim)
@@ -62,12 +71,18 @@ class SpraycanAtlasSprite extends FlxSpriteGroup
 		}
 	}
 
+	/**
+	 * Executes the `playHitExplosion` operation.
+	 */
 	public function playHitExplosion():Void
 	{
 		explosion.visible = explosion.active = true;
 		explosion.animation.play('idle', true);
 	}
 
+	/**
+	 * Executes the `playCanStart` operation.
+	 */
 	public function playCanStart():Void
 	{
 		playAnimation('Can Start');
@@ -75,12 +90,18 @@ class SpraycanAtlasSprite extends FlxSpriteGroup
 		currentState = ARCING;
 	}
 
+	/**
+	 * Executes the `playCanShot` operation.
+	 */
 	public function playCanShot():Void
 	{
 		playAnimation('Can Shot');
 		currentState = SHOT;
 	}
 
+	/**
+	 * Executes the `playHitPico` operation.
+	 */
 	public function playHitPico():Void
 	{
 		playAnimation('Hit Pico');
@@ -88,6 +109,11 @@ class SpraycanAtlasSprite extends FlxSpriteGroup
 	}
 
 	var playingAnim:String;
+	/**
+	 * Executes the `playAnimation` operation.
+	 * @param name Input value for `name`.
+	 * @return Result produced by `playAnimation`, when applicable.
+	 */
 	public function playAnimation(name:String)
 	{
 		#if flxanimate

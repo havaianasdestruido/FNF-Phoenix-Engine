@@ -236,6 +236,16 @@ class FlxGame extends Sprite
 	 *
 	 * @see [scale modes](https://api.haxeflixel.com/flixel/system/scaleModes/index.html)
 	 */
+	/**
+	 * Executes the `new` operation.
+	 * @param gameWidth Input value for `gameWidth`.
+	 * @param gameHeight Input value for `gameHeight`.
+	 * @param initialState Input value for `initialState`.
+	 * @param updateFramerate Input value for `updateFramerate`.
+	 * @param drawFramerate Input value for `drawFramerate`.
+	 * @param skipSplash Input value for `skipSplash`.
+	 * @param startFullscreen Input value for `startFullscreen`.
+	 */
 	public function new(gameWidth = 0, gameHeight = 0, ?initialState:InitialState, updateFramerate = 60, drawFramerate = 60, skipSplash = false,
 			startFullscreen = false)
 	{
@@ -278,7 +288,7 @@ class FlxGame extends Sprite
 
 	/**
 	 * Used to instantiate the guts of the flixel game object once we have a valid reference to the root.
-	 */
+*/
 	function create(_):Void
 	{
 		if (stage == null)
@@ -357,6 +367,10 @@ class FlxGame extends Sprite
 		Assets.addEventListener(Event.CHANGE, FlxG.bitmap.onAssetsReload);
 	}
 
+	/**
+	 * Executes the `onFocus` operation.
+	 * @param _ Input value for `_`.
+	 */
 	function onFocus(_):Void
 	{
 		#if flash
@@ -401,6 +415,10 @@ class FlxGame extends Sprite
 		FlxG.inputs.onFocus();
 	}
 
+	/**
+	 * Executes the `onFocusLost` operation.
+	 * @param event Input value for `event`.
+	 */
 	function onFocusLost(event:Event):Void
 	{
 		#if next
@@ -437,6 +455,10 @@ class FlxGame extends Sprite
 	}
 
 	@:allow(flixel.FlxG)
+	/**
+	 * Executes the `onResize` operation.
+	 * @param _ Input value for `_`.
+	 */
 	function onResize(_):Void
 	{
 		var width:Int = FlxG.stage.stageWidth;
@@ -447,6 +469,11 @@ class FlxGame extends Sprite
 		resizeGame(width, height);
 	}
 
+	/**
+	 * Executes the `resizeGame` operation.
+	 * @param width Input value for `width`.
+	 * @param height Input value for `height`.
+	 */
 	function resizeGame(width:Int, height:Int):Void
 	{
 		FlxG.resizeGame(width, height);
@@ -525,7 +552,7 @@ class FlxGame extends Sprite
 	/**
 	 * Internal method to create a new instance of `_initialState` and reset the game.
 	 * This gets called when the game is created, as well as when a new state is requested.
-	 */
+*/
 	inline function resetGame():Void
 	{
 		FlxG.signals.preGameReset.dispatch();
@@ -554,7 +581,7 @@ class FlxGame extends Sprite
 	 * If there is a state change requested during the update loop,
 	 * this function handles actual destroying the old state and related processes,
 	 * and calls creates on the new state and plugs it into the game object.
-	 */
+*/
 	function switchState():Void
 	{
 		// Basic reset stuff
@@ -596,6 +623,9 @@ class FlxGame extends Sprite
 		FlxG.signals.postStateSwitch.dispatch();
 	}
 
+	/**
+	 * Executes the `gameStart` operation.
+*/
 	function gameStart():Void
 	{
 		FlxG.signals.postGameStart.dispatch();
@@ -607,7 +637,7 @@ class FlxGame extends Sprite
 	 * The `onEnterFrame()` handler is in charge of calling this
 	 * the appropriate number of times each frame.
 	 * This block handles state changes, replays, all that good stuff.
-	 */
+*/
 	function step():Void
 	{
 		// Handle game reset request
@@ -632,7 +662,7 @@ class FlxGame extends Sprite
 	/**
 	 * This function is called by `step()` and updates the actual game state.
 	 * May be called multiple times per "frame" or draw call.
-	 */
+*/
 	function update():Void
 	{
 		if (!_state.active || !_state.exists)
@@ -678,6 +708,9 @@ class FlxGame extends Sprite
 		filters = filtersEnabled ? _filters : null;
 	}
 
+	/**
+	 * Executes the `updateElapsed` operation.
+*/
 	function updateElapsed():Void
 	{
 		if (FlxG.fixedTimestep)
@@ -695,6 +728,9 @@ class FlxGame extends Sprite
 		if (_isPlayState && ClientPrefs.ffmpegMode) FlxG.elapsed = 1 / ClientPrefs.targetFPS;
 	}
 
+	/**
+	 * Executes the `updateInput` operation.
+*/
 	function updateInput():Void
 	{
 		FlxG.inputs.update();
@@ -702,7 +738,7 @@ class FlxGame extends Sprite
 
 	/**
 	 * Goes through the game state and draws all the game objects and special effects.
-	 */
+*/
 	function draw():Void
 	{
 		if (!_state.visible || !_state.exists)
@@ -747,11 +783,19 @@ class FlxGame extends Sprite
 		#end
 	}
 
+	/**
+	 * Executes the `getTicks` operation.
+	 * @return Result produced by `getTicks`, when applicable.
+	 */
 	inline function getTicks()
 	{
 		return getTimer() - _startTime;
 	}
 
+	/**
+	 * Executes the `getTimer` operation.
+	 * @return Result produced by `getTimer`, when applicable.
+	 */
 	dynamic function getTimer():Float
 	{
 		return ((System.getPerformanceCounter() - _startCounter) / System.getPerformanceFrequency()) * 1000;
@@ -760,6 +804,10 @@ class FlxGame extends Sprite
 
 private class FlxIntroSplash extends FlxSplash
 {
+	/**
+	 * Executes the `startOutro` operation.
+	 * @return Result produced by `startOutro`, when applicable.
+	 */
 	override function startOutro(onOutroComplete:() -> Void)
 	{
 		FlxG.game._gameJustStarted = true;

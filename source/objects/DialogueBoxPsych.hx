@@ -54,6 +54,12 @@ class DialogueCharacter extends FlxSprite
 	public var curCharacter:String = 'bf';
 	public var skiptimer = 0;
 	public var skipping = 0;
+	/**
+	 * Executes the `new` operation.
+	 * @param x Input value for `x`.
+	 * @param y Input value for `y`.
+	 * @param character Input value for `character`.
+	 */
 	public function new(x:Float = 0, y:Float = 0, character:String = null)
 	{
 		super(x, y);
@@ -73,6 +79,11 @@ class DialogueCharacter extends FlxSprite
 		if(jsonFile.no_antialiasing == true) antialiasing = false;
 	}
 
+	/**
+	 * Executes the `reloadCharacterJson` operation.
+	 * @param character Input value for `character`.
+	 * @return Result produced by `reloadCharacterJson`, when applicable.
+	 */
 	public function reloadCharacterJson(character:String) {
 		var characterPath:String = 'images/dialogue/' + character + '.json';
 		var rawJson = null;
@@ -96,6 +107,10 @@ class DialogueCharacter extends FlxSprite
 		jsonFile = cast Json.parse(rawJson);
 	}
 
+	/**
+	 * Executes the `reloadAnimations` operation.
+	 * @return Result produced by `reloadAnimations`, when applicable.
+	 */
 	public function reloadAnimations() {
 		dialogueAnimations.clear();
 		if(jsonFile.animations != null && jsonFile.animations.length > 0) {
@@ -107,6 +122,12 @@ class DialogueCharacter extends FlxSprite
 		}
 	}
 
+	/**
+	 * Executes the `playAnim` operation.
+	 * @param animName Input value for `animName`.
+	 * @param playIdle Input value for `playIdle`.
+	 * @return Result produced by `playAnim`, when applicable.
+	 */
 	public function playAnim(animName:String = null, playIdle:Bool = false) {
 		var leAnim:String = animName;
 		if(animName == null || !dialogueAnimations.exists(animName)) { //Anim is null, get a random animation
@@ -142,6 +163,10 @@ class DialogueCharacter extends FlxSprite
 		}
 	}
 
+	/**
+	 * Executes the `animationIsLoop` operation.
+	 * @return Result produced by `animationIsLoop`, when applicable.
+	 */
 	public function animationIsLoop():Bool {
 		if(animation.curAnim == null) return false;
 		return !animation.curAnim.name.endsWith(IDLE_SUFFIX);
@@ -171,6 +196,11 @@ class DialogueBoxPsych extends FlxSpriteGroup
 	var curCharacter:String = "";
 	//var charPositionList:Array<String> = ['left', 'center', 'right'];
 
+	/**
+	 * Executes the `new` operation.
+	 * @param dialogueList Input value for `dialogueList`.
+	 * @param song Input value for `song`.
+	 */
 	public function new(dialogueList:DialogueFile, ?song:String = null)
 	{
 		super();
@@ -222,6 +252,10 @@ class DialogueBoxPsych extends FlxSpriteGroup
 	public static var RIGHT_CHAR_X:Float = -100;
 	public static var DEFAULT_CHAR_Y:Float = 60;
 
+	/**
+	 * Executes the `spawnCharacters` operation.
+	 * @return Result produced by `spawnCharacters`, when applicable.
+	 */
 	function spawnCharacters() {
 		var charsMap:Map<String, Bool> = new Map();
 		for (i in 0...dialogueList.dialogue.length) {
@@ -273,6 +307,11 @@ class DialogueBoxPsych extends FlxSpriteGroup
 
 	public var closeSound:String = 'dialogueClose';
 	public var closeVolume:Float = 1;
+	/**
+	 * Executes the `update` operation.
+	 * @param elapsed Input value for `elapsed`.
+	 * @return Result produced by `update`, when applicable.
+	 */
 	override function update(elapsed:Float)
 	{
 		if(ignoreThisFrame) {
@@ -430,6 +469,9 @@ class DialogueBoxPsych extends FlxSpriteGroup
 
 	var lastCharacter:Int = -1;
 	var lastBoxType:String = '';
+	/**
+	 * Executes the `startNextDialog` operation.
+*/
 	function startNextDialog():Void
 	{
 		var curDialogue:DialogueLine = null;
@@ -496,6 +538,11 @@ class DialogueBoxPsych extends FlxSpriteGroup
 		}
 	}
 
+	/**
+	 * Executes the `parseDialogue` operation.
+	 * @param path Input value for `path`.
+	 * @return Result produced by `parseDialogue`, when applicable.
+	 */
 	inline public static function parseDialogue(path:String):DialogueFile {
 		#if MODS_ALLOWED
 		return cast (FileSystem.exists(path)) ? Json.parse(File.getContent(path)) : dummy();
@@ -504,6 +551,10 @@ class DialogueBoxPsych extends FlxSpriteGroup
 		#end
 	}
 
+	/**
+	 * Executes the `dummy` operation.
+	 * @return Result produced by `dummy`, when applicable.
+	 */
 	inline public static function dummy():DialogueFile {
 	    return {
 	        dialogue: [
@@ -519,6 +570,11 @@ class DialogueBoxPsych extends FlxSpriteGroup
 	    };
 	}
 
+	/**
+	 * Executes the `updateBoxOffsets` operation.
+	 * @param box Input value for `box`.
+	 * @return Result produced by `updateBoxOffsets`, when applicable.
+	 */
 	public static function updateBoxOffsets(box:FlxSprite) { //Had to make it static because of the editors
 		box.centerOffsets();
 		box.updateHitbox();

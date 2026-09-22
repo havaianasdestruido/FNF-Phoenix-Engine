@@ -9,6 +9,10 @@ import headers.PsychLua;
 // REFACTOR: extracted from psychlua.FunkinLua (script loading / inter-script calls)
 class ScriptCallbacks
 {
+	/**
+	 * Executes the `register` operation.
+	 * @param funk Input value for `funk`.
+	 */
 	public static function register(funk:FunkinLua):Void {
 		@:privateAccess {
 		FunkinLua.registerFunction("getRunningScripts", function(){

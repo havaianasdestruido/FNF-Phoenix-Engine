@@ -10,6 +10,10 @@ import headers.PsychLua;
 // REFACTOR: extracted from psychlua.PythonScript (sound/music API)
 class PySoundLib
 {
+	/**
+	 * Executes the `register` operation.
+	 * @param py Input value for `py`.
+	 */
 	public static function register(py:PythonScript):Void {
 		@:privateAccess {
 		// ---------------------------------------------------------------- //

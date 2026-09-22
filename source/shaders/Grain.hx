@@ -149,6 +149,9 @@ class Grain extends FlxShader
 				if (lockAlpha) bitch = texColor.a;
 			gl_FragColor =  vec4(col,bitch);
 		}')
+  /**
+   * Executes the `new` operation.
+*/
   public function new()
   {
     super();

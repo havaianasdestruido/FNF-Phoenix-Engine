@@ -10,6 +10,9 @@ import objects.Note;
 
 class MiscSettingsSubState extends BaseOptionsMenu
 {
+	/**
+	 * Executes the `new` operation.
+*/
 	public function new()
 	{
 		title = 'Misc';

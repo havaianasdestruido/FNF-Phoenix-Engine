@@ -10,6 +10,12 @@ class MenuItem extends FlxSprite
 {
 	public var targetY:Float = 0;
 
+	/**
+	 * Executes the `new` operation.
+	 * @param x Input value for `x`.
+	 * @param y Input value for `y`.
+	 * @param weekName Input value for `weekName`.
+	 */
 	public function new(x:Float, y:Float, weekName:String = '')
 	{
 		super(x, y);
@@ -20,6 +26,9 @@ class MenuItem extends FlxSprite
 
 	private var isFlashing:Bool = false;
 
+	/**
+	 * Executes the `startFlashing` operation.
+	 */
 	public function startFlashing():Void
 	{
 		isFlashing = true;
@@ -27,6 +36,11 @@ class MenuItem extends FlxSprite
 
 	var time:Float = 0;
 
+	/**
+	 * Executes the `update` operation.
+	 * @param elapsed Input value for `elapsed`.
+	 * @return Result produced by `update`, when applicable.
+	 */
 	override function update(elapsed:Float)
 	{
 		super.update(elapsed);

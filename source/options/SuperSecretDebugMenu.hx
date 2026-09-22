@@ -13,6 +13,9 @@ import states.TitleState;
 
 class SuperSecretDebugMenu extends BaseOptionsMenu
 {
+	/**
+	 * Executes the `new` operation.
+*/
 	public function new()
 	{
 		cameras = [FlxG.cameras.list[FlxG.cameras.list.length-1]];
@@ -67,6 +70,9 @@ class SuperSecretDebugMenu extends BaseOptionsMenu
 
 		super();
 	}
+	/**
+	 * Executes the `crashDaEngine` operation.
+*/
 	function crashDaEngine():Void {
 		var i:Int = -1;
 		var messages = [
@@ -107,6 +113,9 @@ class SuperSecretDebugMenu extends BaseOptionsMenu
 
     nextMessage();
 	}
+	/**
+	 * Executes the `doDaUpdate` operation.
+*/
 	function doDaUpdate():Void {
 		if(ClientPrefs.checkForUpdates) {
 			trace('checking for update');

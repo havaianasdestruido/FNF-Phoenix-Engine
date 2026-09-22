@@ -13,10 +13,18 @@ class ErrorHandledShader extends FlxShader implements IErrorHandler
 {
 	public var shaderName:String = '';
 
+	/**
+	 * Executes the `onError` operation.
+	 * @param error Input value for `error`.
+	 */
 	public dynamic function onError(error:Dynamic):Void
 	{
 	}
 
+	/**
+	 * Executes the `new` operation.
+	 * @param shaderName Input value for `shaderName`.
+	 */
 	public function new(?shaderName:String)
 	{
 		this.shaderName = shaderName;
@@ -24,6 +32,12 @@ class ErrorHandledShader extends FlxShader implements IErrorHandler
 	}
 
 #if !flash
+	/**
+	 * Executes the `__createGLProgram` operation.
+	 * @param vertexSource Input value for `vertexSource`.
+	 * @param fragmentSource Input value for `fragmentSource`.
+	 * @return Result produced by `__createGLProgram`, when applicable.
+	 */
 	override function __createGLProgram(vertexSource:String, fragmentSource:String):GLProgram
 	{
 		try
@@ -39,6 +53,13 @@ class ErrorHandledShader extends FlxShader implements IErrorHandler
 	}
 	#end
 
+	/**
+	 * Executes the `crashSave` operation.
+	 * @param shaderName Input value for `shaderName`.
+	 * @param error Input value for `error`.
+	 * @param onError Input value for `onError`.
+	 * @return Result produced by `crashSave`, when applicable.
+	 */
 	public static function crashSave(shaderName:String, error:Dynamic, onError:Dynamic) // prevent the app from dying immediately
 	{
 		if (shaderName == null)
@@ -73,16 +94,32 @@ class ErrorHandledRuntimeShader extends FlxRuntimeShader implements IErrorHandle
 {
 	public var shaderName:String = '';
 
+	/**
+	 * Executes the `onError` operation.
+	 * @param error Input value for `error`.
+	 */
 	public dynamic function onError(error:Dynamic):Void
 	{
 	}
 
+	/**
+	 * Executes the `new` operation.
+	 * @param shaderName Input value for `shaderName`.
+	 * @param fragmentSource Input value for `fragmentSource`.
+	 * @param vertexSource Input value for `vertexSource`.
+	 */
 	public function new(?shaderName:String, ?fragmentSource:String, ?vertexSource:String)
 	{
 		this.shaderName = shaderName;
 		super(fragmentSource, vertexSource);
 	}
 
+	/**
+	 * Executes the `__createGLProgram` operation.
+	 * @param vertexSource Input value for `vertexSource`.
+	 * @param fragmentSource Input value for `fragmentSource`.
+	 * @return Result produced by `__createGLProgram`, when applicable.
+	 */
 	override function __createGLProgram(vertexSource:String, fragmentSource:String):GLProgram
 	{
 		try
@@ -102,19 +139,39 @@ class ErrorHandledRuntimeShader implements IErrorHandler
 {
 	public var shaderName:String = '';
 
+	/**
+	 * Executes the `onError` operation.
+	 * @param error Input value for `error`.
+	 */
 	public dynamic function onError(error:Dynamic):Void
 	{
 	}
 
+	/**
+	 * Executes the `new` operation.
+	 * @param shaderName Input value for `shaderName`.
+	 * @param fragmentSource Input value for `fragmentSource`.
+	 * @param vertexSource Input value for `vertexSource`.
+	 */
 	public function new(?shaderName:String, ?fragmentSource:String, ?vertexSource:String)
 	{
 		this.shaderName = shaderName;
 	}
 
+	/**
+	 * Executes the `setFloat` operation.
+	 * @param name Input value for `name`.
+	 * @param value Input value for `value`.
+	 */
 	public function setFloat(name:String, value:Float):Void
 	{
 	}
 
+	/**
+	 * Executes the `setBool` operation.
+	 * @param name Input value for `name`.
+	 * @param value Input value for `value`.
+	 */
 	public function setBool(name:String, value:Bool):Void
 	{
 	}
@@ -124,5 +181,9 @@ class ErrorHandledRuntimeShader implements IErrorHandler
 interface IErrorHandler
 {
 	public var shaderName:String;
+	/**
+	 * Executes the `onError` operation.
+	 * @param error Input value for `error`.
+	 */
 	public dynamic function onError(error:Dynamic):Void;
 }

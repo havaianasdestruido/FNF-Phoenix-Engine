@@ -5,6 +5,14 @@ import objects.BGSprite;
 class MallCrowd extends BGSprite
 {
 	public var heyTimer:Float = 0;
+	/**
+	 * Executes the `new` operation.
+	 * @param x Input value for `x`.
+	 * @param y Input value for `y`.
+	 * @param sprite Input value for `sprite`.
+	 * @param idle Input value for `idle`.
+	 * @param hey Input value for `hey`.
+	 */
 	public function new(x:Float = 0, y:Float = 0, sprite:String = 'christmas/bottomBop', idle:String = 'Bottom Level Boppers Idle', hey:String = 'Bottom Level Boppers HEY')
 	{
 		super(sprite, x, y, 0.9, 0.9, [idle]);
@@ -12,6 +20,11 @@ class MallCrowd extends BGSprite
 		antialiasing = ClientPrefs.globalAntialiasing;
 	}
 
+	/**
+	 * Executes the `update` operation.
+	 * @param elapsed Input value for `elapsed`.
+	 * @return Result produced by `update`, when applicable.
+	 */
 	override function update(elapsed:Float)
 	{
 		super.update(elapsed);
@@ -25,6 +38,11 @@ class MallCrowd extends BGSprite
 		}
 	}
 
+	/**
+	 * Executes the `dance` operation.
+	 * @param forceplay Input value for `forceplay`.
+	 * @return Result produced by `dance`, when applicable.
+	 */
 	override function dance(?forceplay:Bool = false)
 	{
 		if(heyTimer > 0) return;

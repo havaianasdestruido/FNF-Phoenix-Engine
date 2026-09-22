@@ -9,10 +9,20 @@ import headers.PsychLua;
 // REFACTOR: extracted from psychlua.FunkinLua (createCamera/addCamera/removeCamera)
 class CameraCallbacks
 {
+	/**
+	 * Executes the `register` operation.
+	 * @param funk Input value for `funk`.
+	 */
 	public static function register(funk:FunkinLua):Void {
 		final game:PlayState = PlayState.instance;
 		@:privateAccess {
 		// Helper to generate a unique key name if conflicts exist
+		/**
+		 * Executes the `getUniqueName` operation.
+		 * @param base Input value for `base`.
+		 * @param variables Input value for `variables`.
+		 * @return Result produced by `getUniqueName`, when applicable.
+		 */
 		function getUniqueName(base:String, variables:Map<String, Dynamic>):String {
 			var candidate = base;
 			var counter = 1;

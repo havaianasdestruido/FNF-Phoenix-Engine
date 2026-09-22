@@ -19,6 +19,10 @@ import objects.Character;
 // REFACTOR: extracted from psychlua.FunkinLua (song flow / score / characters / gameplay events)
 class GameCallbacks
 {
+	/**
+	 * Executes the `register` operation.
+	 * @param funk Input value for `funk`.
+	 */
 	public static function register(funk:FunkinLua):Void {
 		final game:PlayState = PlayState.instance;
 		@:privateAccess {

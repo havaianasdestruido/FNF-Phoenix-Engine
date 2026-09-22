@@ -15,6 +15,10 @@ import backend.DiscordClient;
 // REFACTOR: extracted from psychlua.PythonScript (misc/debug/print utils)
 class PyMiscLib
 {
+	/**
+	 * Executes the `register` operation.
+	 * @param py Input value for `py`.
+	 */
 	public static function register(py:PythonScript):Void {
 		@:privateAccess {
 		// ---------------------------------------------------------------- //

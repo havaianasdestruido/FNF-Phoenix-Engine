@@ -12,6 +12,10 @@ class AchievementPopup extends openfl.display.Sprite {
 	public var onFinish:Void->Void = null;
 	var alphaTween:FlxTween;
 	var lastScale:Float = 1;
+	/**
+	 * Executes the `new` operation.
+	 * @param achieve Input value for `achieve`.
+	 */
 	public function new(achieve:String, onFinish:Void->Void)
 	{
 		super();
@@ -93,6 +97,14 @@ class AchievementPopup extends openfl.display.Sprite {
 	}
 
 	var bitmaps:Array<BitmapData> = [];
+	/**
+	 * Executes the `drawTextAt` operation.
+	 * @param text Input value for `text`.
+	 * @param str Input value for `str`.
+	 * @param textX Input value for `textX`.
+	 * @param textY Input value for `textY`.
+	 * @return Result produced by `drawTextAt`, when applicable.
+	 */
 	function drawTextAt(text:FlxText, str:String, textX:Float, textY:Float)
 	{
 		text.text = str;
@@ -109,6 +121,11 @@ class AchievementPopup extends openfl.display.Sprite {
 	var timePassed:Float = -1;
 	public var intendedY:Float = 0;
 
+	/**
+	 * Executes the `update` operation.
+	 * @param e Input value for `e`.
+	 * @return Result produced by `update`, when applicable.
+	 */
 	function update(e:Event)
 	{
 		if(timePassed < 0)
@@ -138,6 +155,11 @@ class AchievementPopup extends openfl.display.Sprite {
 		}
 	}
 
+	/**
+	 * Executes the `onResize` operation.
+	 * @param e Input value for `e`.
+	 * @return Result produced by `onResize`, when applicable.
+	 */
 	private function onResize(e:Event)
 	{
 		var mult = (FlxG.stage.stageHeight / FlxG.height);
@@ -149,6 +171,10 @@ class AchievementPopup extends openfl.display.Sprite {
 		lastScale = mult;
 	}
 
+	/**
+	 * Executes the `destroy` operation.
+	 * @return Result produced by `destroy`, when applicable.
+	 */
 	public function destroy()
 	{
 		Achievements._popups.remove(this);
@@ -163,6 +189,10 @@ class AchievementPopup extends openfl.display.Sprite {
 		deleteClonedBitmaps();
 	}
 
+	/**
+	 * Executes the `deleteClonedBitmaps` operation.
+	 * @return Result produced by `deleteClonedBitmaps`, when applicable.
+	 */
 	function deleteClonedBitmaps()
 	{
 		for (clonedBitmap in bitmaps)

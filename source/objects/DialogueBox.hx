@@ -29,6 +29,11 @@ class DialogueBox extends FlxSpriteGroup
 	var handSelect:FlxSprite;
 	var bgFade:FlxSprite;
 
+	/**
+	 * Executes the `new` operation.
+	 * @param talkingRight Input value for `talkingRight`.
+	 * @param dialogueList Input value for `dialogueList`.
+	 */
 	public function new(talkingRight:Bool = true, ?dialogueList:Array<String>)
 	{
 		super();
@@ -142,6 +147,11 @@ class DialogueBox extends FlxSpriteGroup
 	var dialogueStarted:Bool = false;
 	var dialogueEnded:Bool = false;
 
+	/**
+	 * Executes the `update` operation.
+	 * @param elapsed Input value for `elapsed`.
+	 * @return Result produced by `update`, when applicable.
+	 */
 	override function update(elapsed:Float)
 	{
 		// HARD CODING CUZ IM STUPDI
@@ -226,6 +236,9 @@ class DialogueBox extends FlxSpriteGroup
 
 	var isEnding:Bool = false;
 
+	/**
+	 * Executes the `startDialogue` operation.
+*/
 	function startDialogue():Void
 	{
 		cleanDialog();
@@ -265,6 +278,9 @@ class DialogueBox extends FlxSpriteGroup
 		}
 	}
 
+	/**
+	 * Executes the `cleanDialog` operation.
+*/
 	function cleanDialog():Void
 	{
 		var splitName:Array<String> = dialogueList[0].split(":");

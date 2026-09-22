@@ -100,6 +100,10 @@ class FlxButton extends FlxTypedButton<FlxText>
 		}
 	}
 
+	/**
+	 * Executes the `initLabel` operation.
+	 * @param Text Input value for `Text`.
+	 */
 	inline function initLabel(Text:String):Void
 	{
 		if (Text != null)
@@ -111,11 +115,20 @@ class FlxButton extends FlxTypedButton<FlxText>
 		}
 	}
 
+	/**
+	 * Executes the `get_text` operation.
+	 * @return Result produced by `get_text`, when applicable.
+	 */
 	inline function get_text():String
 	{
 		return (label != null) ? label.text : null;
 	}
 
+	/**
+	 * Executes the `set_text` operation.
+	 * @param Text Input value for `Text`.
+	 * @return Result produced by `set_text`, when applicable.
+	 */
 	inline function set_text(Text:String):String
 	{
 		if (label == null)
@@ -125,11 +138,19 @@ class FlxButton extends FlxTypedButton<FlxText>
 		return Text;
 	}
 
+	/**
+	 * Executes the `centerInBounds` operation.
+	 * @return Result produced by `centerInBounds`, when applicable.
+	 */
 	public inline function centerInBounds()
 	{
 		setPosition(bounds.x + ((100 - frameWidth) / 2), bounds.y + ((55 - frameHeight) / 2));
 	}
 
+	/**
+	 * Executes the `centerBounds` operation.
+	 * @return Result produced by `centerBounds`, when applicable.
+	 */
 	public inline function centerBounds()
 	{
 		bounds.setPosition(x + ((frameWidth - 100) / 2), y + ((frameHeight - 55) / 2));
@@ -261,6 +282,9 @@ class FlxTypedButton<T:FlxSprite> extends FlxSprite implements IFlxInput
 		input = new FlxInput(0);
 	}
 
+	/**
+	 * Executes the `graphicLoaded` operation.
+	 */
 	override public function graphicLoaded():Void
 	{
 		super.graphicLoaded();
@@ -269,9 +293,17 @@ class FlxTypedButton<T:FlxSprite> extends FlxSprite implements IFlxInput
 		setupAnimation('pressed', FlxButton.PRESSED);
 	}
 
+	/**
+	 * Executes the `loadDefaultGraphic` operation.
+	 */
 	function loadDefaultGraphic():Void
 		loadGraphic('flixel/images/ui/button.png', true, 80, 20);
 
+	/**
+	 * Executes the `setupAnimation` operation.
+	 * @param animationName Input value for `animationName`.
+	 * @param frameIndex Input value for `frameIndex`.
+	 */
 	function setupAnimation(animationName:String, frameIndex:Int):Void
 	{
 		// make sure the animation doesn't contain an invalid frame
@@ -326,12 +358,15 @@ class FlxTypedButton<T:FlxSprite> extends FlxSprite implements IFlxInput
 		input.update();
 	}
 
+	/**
+	 * Executes the `updateStatusAnimation` operation.
+	 */
 	function updateStatusAnimation():Void
 		animation.play(statusAnimations[status]);
 
 	/**
 	 * Just draws the button graphic and text label to the screen.
-	 */
+*/
 	override public function draw():Void
 	{
 		super.draw();
@@ -346,7 +381,7 @@ class FlxTypedButton<T:FlxSprite> extends FlxSprite implements IFlxInput
 	#if FLX_DEBUG
 	/**
 	 * Helper function to draw the debug graphic for the label as well.
-	 */
+*/
 	override public function drawDebug():Void
 	{
 		super.drawDebug();
@@ -404,6 +439,10 @@ class FlxTypedButton<T:FlxSprite> extends FlxSprite implements IFlxInput
 			onOutHandler();
 	}
 
+	/**
+	 * Executes the `checkTouchOverlap` operation.
+	 * @return Result produced by `checkTouchOverlap`, when applicable.
+	 */
 	function checkTouchOverlap():Bool
 	{
 		var overlap = false;
@@ -416,6 +455,14 @@ class FlxTypedButton<T:FlxSprite> extends FlxSprite implements IFlxInput
 		return overlap;
 	}
 
+	/**
+	 * Executes the `checkInput` operation.
+	 * @param pointer Input value for `pointer`.
+	 * @param input Input value for `input`.
+	 * @param justPressedPosition Input value for `justPressedPosition`.
+	 * @param camera Input value for `camera`.
+	 * @return Result produced by `checkInput`, when applicable.
+	 */
 	function checkInput(pointer:FlxPointer, input:IFlxInput, justPressedPosition:FlxPoint, camera:FlxCamera):Bool
 	{
 		if (maxInputMovement != Math.POSITIVE_INFINITY
@@ -453,6 +500,10 @@ class FlxTypedButton<T:FlxSprite> extends FlxSprite implements IFlxInput
 		}
 	}
 
+	/**
+	 * Executes the `updateLabelPosition` operation.
+	 * @return Result produced by `updateLabelPosition`, when applicable.
+	 */
 	function updateLabelPosition()
 	{
 		if (_spriteLabel != null) // Label positioning
@@ -462,6 +513,10 @@ class FlxTypedButton<T:FlxSprite> extends FlxSprite implements IFlxInput
 		}
 	}
 
+	/**
+	 * Executes the `updateLabelAlpha` operation.
+	 * @return Result produced by `updateLabelAlpha`, when applicable.
+	 */
 	function updateLabelAlpha()
 	{
 		if (_spriteLabel != null && labelAlphas.length > status)
@@ -508,6 +563,11 @@ class FlxTypedButton<T:FlxSprite> extends FlxSprite implements IFlxInput
 		onOut.fire(); // Order matters here, because onOut.fire() could cause a state change and destroy this object.
 	}
 
+	/**
+	 * Executes the `set_label` operation.
+	 * @param Value Input value for `Value`.
+	 * @return Result produced by `set_label`, when applicable.
+	 */
 	function set_label(Value:T):T
 	{
 		if (Value != null)
@@ -525,6 +585,11 @@ class FlxTypedButton<T:FlxSprite> extends FlxSprite implements IFlxInput
 		return Value;
 	}
 
+	/**
+	 * Executes the `set_status` operation.
+	 * @param Value Input value for `Value`.
+	 * @return Result produced by `set_status`, when applicable.
+	 */
 	function set_status(Value:Int):Int
 	{
 		status = Value;
@@ -532,6 +597,11 @@ class FlxTypedButton<T:FlxSprite> extends FlxSprite implements IFlxInput
 		return status;
 	}
 
+	/**
+	 * Executes the `set_alpha` operation.
+	 * @param Value Input value for `Value`.
+	 * @return Result produced by `set_alpha`, when applicable.
+	 */
 	override function set_alpha(Value:Float):Float
 	{
 		super.set_alpha(Value);
@@ -539,6 +609,11 @@ class FlxTypedButton<T:FlxSprite> extends FlxSprite implements IFlxInput
 		return alpha;
 	}
 
+	/**
+	 * Executes the `set_x` operation.
+	 * @param Value Input value for `Value`.
+	 * @return Result produced by `set_x`, when applicable.
+	 */
 	override function set_x(Value:Float):Float
 	{
 		super.set_x(Value);
@@ -546,6 +621,11 @@ class FlxTypedButton<T:FlxSprite> extends FlxSprite implements IFlxInput
 		return x;
 	}
 
+	/**
+	 * Executes the `set_y` operation.
+	 * @param Value Input value for `Value`.
+	 * @return Result produced by `set_y`, when applicable.
+	 */
 	override function set_y(Value:Float):Float
 	{
 		super.set_y(Value);
@@ -553,15 +633,31 @@ class FlxTypedButton<T:FlxSprite> extends FlxSprite implements IFlxInput
 		return y;
 	}
 
+	/**
+	 * Executes the `get_justReleased` operation.
+	 * @return Result produced by `get_justReleased`, when applicable.
+	 */
 	inline function get_justReleased():Bool
 		return input.justReleased;
 
+	/**
+	 * Executes the `get_released` operation.
+	 * @return Result produced by `get_released`, when applicable.
+	 */
 	inline function get_released():Bool
 		return input.released;
 
+	/**
+	 * Executes the `get_pressed` operation.
+	 * @return Result produced by `get_pressed`, when applicable.
+	 */
 	inline function get_pressed():Bool
 		return input.pressed;
 
+	/**
+	 * Executes the `get_justPressed` operation.
+	 * @return Result produced by `get_justPressed`, when applicable.
+	 */
 	inline function get_justPressed():Bool
 		return input.justPressed;
 }

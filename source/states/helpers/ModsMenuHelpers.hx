@@ -18,6 +18,12 @@ import sys.io.File;
 @:access(states.ModsMenuState)
 class ModsMenuHelpers
 {
+	/**
+	 * Executes the `changeSelectedButton` operation.
+	 * @param state Input value for `state`.
+	 * @param add Input value for `add`.
+	 * @return Result produced by `changeSelectedButton`, when applicable.
+	 */
 	public static function changeSelectedButton(state:ModsMenuState, add:Int = 0)
 	{
 		var max = state.buttons.length - 1;
@@ -50,6 +56,11 @@ class ModsMenuHelpers
 		FlxG.sound.play(Paths.sound('scrollMenu'), 0.6);
 	}
 
+	/**
+	 * Executes the `getButton` operation.
+	 * @param state Input value for `state`.
+	 * @return Result produced by `getButton`, when applicable.
+	 */
 	public static function getButton(state:ModsMenuState)
 	{
 		switch(state.curSelectedButton)
@@ -62,6 +73,13 @@ class ModsMenuHelpers
 		return state.buttons[Std.int(Math.max(0, Math.min(state.buttons.length-1, state.curSelectedButton)))];
 	}
 
+	/**
+	 * Executes the `changeSelectedMod` operation.
+	 * @param state Input value for `state`.
+	 * @param add Input value for `add`.
+	 * @param isMouseWheel Input value for `isMouseWheel`.
+	 * @return Result produced by `changeSelectedMod`, when applicable.
+	 */
 	public static function changeSelectedMod(state:ModsMenuState, add:Int = 0, isMouseWheel:Bool = false)
 	{
 		var max = state.modsList.all.length - 1;
@@ -123,6 +141,11 @@ class ModsMenuHelpers
 		}
 	}
 
+	/**
+	 * Executes the `updateModDisplayData` operation.
+	 * @param state Input value for `state`.
+	 * @return Result produced by `updateModDisplayData`, when applicable.
+	 */
 	public static function updateModDisplayData(state:ModsMenuState)
 	{
 		var curMod:ModItem = state.modsGroup.members[state.curSelectedMod];
@@ -164,6 +187,11 @@ class ModsMenuHelpers
 		for (button in state.buttons) if(button.focusChangeCallback != null) button.focusChangeCallback(button.onFocus);
 	}
 
+	/**
+	 * Executes the `updateItemPositions` operation.
+	 * @param state Input value for `state`.
+	 * @return Result produced by `updateItemPositions`, when applicable.
+	 */
 	public static function updateItemPositions(state:ModsMenuState)
 	{
 		var maxVisible = Math.max(4, state.centerMod + 2);
@@ -186,6 +214,13 @@ class ModsMenuHelpers
 		}
 	}
 
+	/**
+	 * Executes the `moveModToPosition` operation.
+	 * @param state Input value for `state`.
+	 * @param mod Input value for `mod`.
+	 * @param position Input value for `position`.
+	 * @return Result produced by `moveModToPosition`, when applicable.
+	 */
 	public static function moveModToPosition(state:ModsMenuState, ?mod:String = null, position:Int = 0)
 	{
 		if(mod == null) mod = state.modsList.all[state.curSelectedMod];
@@ -218,12 +253,22 @@ class ModsMenuHelpers
 		FlxG.sound.play(Paths.sound('scrollMenu'), 0.6);
 	}
 
+	/**
+	 * Executes the `checkToggleButtons` operation.
+	 * @param state Input value for `state`.
+	 * @return Result produced by `checkToggleButtons`, when applicable.
+	 */
 	public static function checkToggleButtons(state:ModsMenuState)
 	{
 		state.buttonEnableAll.visible = state.buttonEnableAll.enabled = state.modsList.disabled.length > 0;
 		state.buttonDisableAll.visible = state.buttonDisableAll.enabled = !state.buttonEnableAll.visible;
 	}
 
+	/**
+	 * Executes the `reload` operation.
+	 * @param state Input value for `state`.
+	 * @return Result produced by `reload`, when applicable.
+	 */
 	public static function reload(state:ModsMenuState)
 	{
 		ModsMenuHelpers.saveTxt(state);
@@ -234,6 +279,11 @@ class ModsMenuHelpers
 		LoadingState.loadAndSwitchState(() -> new ModsMenuState(curMod != null ? curMod.folder : null), false);
 	}
 
+	/**
+	 * Executes the `saveTxt` operation.
+	 * @param state Input value for `state`.
+	 * @return Result produced by `saveTxt`, when applicable.
+	 */
 	public static function saveTxt(state:ModsMenuState)
 	{
 		#if sys

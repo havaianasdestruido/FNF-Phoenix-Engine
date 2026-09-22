@@ -22,6 +22,10 @@ typedef StageFile = {
 }
 
 class StageData {
+	/**
+	 * Executes the `dummy` operation.
+	 * @return Result produced by `dummy`, when applicable.
+	 */
 	public static function dummy():StageFile
 	{
 		return {
@@ -42,6 +46,11 @@ class StageData {
 	}
 
 	public static var forceNextDirectory:String = null;
+	/**
+	 * Executes the `loadDirectory` operation.
+	 * @param SONG Input value for `SONG`.
+	 * @return Result produced by `loadDirectory`, when applicable.
+	 */
 	public static function loadDirectory(SONG:SwagSong) {
 		var stage:String = '';
 		if(SONG.stage != null)
@@ -55,6 +64,11 @@ class StageData {
 		forceNextDirectory = (stageFile != null) ? stageFile.directory : ''; //preventing crashes
 	}
 
+	/**
+	 * Executes the `vanillaSongStage` operation.
+	 * @param songName Input value for `songName`.
+	 * @return Result produced by `vanillaSongStage`, when applicable.
+	 */
 	public static function vanillaSongStage(songName):String
 	{
 		// trace(songName);
@@ -81,6 +95,11 @@ class StageData {
 		}
 	}
 
+	/**
+	 * Executes the `getStageFile` operation.
+	 * @param stage Input value for `stage`.
+	 * @return Result produced by `getStageFile`, when applicable.
+	 */
 	public static function getStageFile(stage:String):StageFile {
 		var rawJson:String = null;
 		var relativePath:String = 'stages/' + stage + '.json';

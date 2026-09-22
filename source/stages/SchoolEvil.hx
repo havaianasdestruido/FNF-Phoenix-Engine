@@ -15,6 +15,10 @@ import stages.objects.*;
 
 class SchoolEvil extends BaseStage
 {
+	/**
+	 * Executes the `create` operation.
+	 * @return Result produced by `create`, when applicable.
+	 */
 	override function create()
 	{
 		var _song = PlayState.SONG;
@@ -45,6 +49,10 @@ class SchoolEvil extends BaseStage
 			setStartCallback(schoolIntro);
 		}
 	}
+	/**
+	 * Executes the `createPost` operation.
+	 * @return Result produced by `createPost`, when applicable.
+	 */
 	override function createPost()
 	{
 		var trail:FlxTrail = new FlxTrail(dad, null, 4, 24, 0.3, 0.069);
@@ -53,6 +61,16 @@ class SchoolEvil extends BaseStage
 
 	// Ghouls event
 	var bgGhouls:BGSprite;
+	/**
+	 * Executes the `eventCalled` operation.
+	 * @param eventName Input value for `eventName`.
+	 * @param value1 Input value for `value1`.
+	 * @param value2 Input value for `value2`.
+	 * @param flValue1 Input value for `flValue1`.
+	 * @param flValue2 Input value for `flValue2`.
+	 * @param strumTime Input value for `strumTime`.
+	 * @return Result produced by `eventCalled`, when applicable.
+	 */
 	override function eventCalled(eventName:String, value1:String, value2:String, flValue1:Null<Float>, flValue2:Null<Float>, strumTime:Float)
 	{
 		switch(eventName)
@@ -65,6 +83,11 @@ class SchoolEvil extends BaseStage
 				}
 		}
 	}
+	/**
+	 * Executes the `eventPushed` operation.
+	 * @param event Input value for `event`.
+	 * @return Result produced by `eventPushed`, when applicable.
+	 */
 	override function eventPushed(event:EventNote)
 	{
 		// used for preloading assets used on events
@@ -89,6 +112,10 @@ class SchoolEvil extends BaseStage
 	}
 
 	var doof:DialogueBox = null;
+	/**
+	 * Executes the `initDoof` operation.
+	 * @return Result produced by `initDoof`, when applicable.
+	 */
 	function initDoof()
 	{
 		var file:String = Paths.txt(songName + '/' + songName + 'Dialogue'); //Checks for vanilla/Senpai dialogue
@@ -110,6 +137,9 @@ class SchoolEvil extends BaseStage
 		doof.skipDialogueThing = PlayState.instance.skipDialogue;
 	}
 
+	/**
+	 * Executes the `schoolIntro` operation.
+	 */
 	function schoolIntro():Void
 	{
 		inCutscene = true;

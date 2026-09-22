@@ -13,6 +13,10 @@ import play.PlayState;
 @:access(backend.MusicBeatState)
 class PlayStateCamera
 {
+	/**
+	 * Executes the `moveCameraSection` operation.
+	 * @param state Input value for `state`.
+	 */
 	public static function moveCameraSection(state:PlayState):Void {
 		if(PlayState.SONG.notes[state.curSection] == null) return;
 
@@ -35,6 +39,12 @@ class PlayStateCamera
 		}
 	}
 
+	/**
+	 * Executes the `moveCamera` operation.
+	 * @param state Input value for `state`.
+	 * @param focus Input value for `focus`.
+	 * @return Result produced by `moveCamera`, when applicable.
+	 */
 	public static function moveCamera(state:PlayState, focus:String = "bf")
 	{
 		var char:Character = null;
@@ -67,11 +77,23 @@ class PlayStateCamera
 		}
 	}
 
+	/**
+	 * Executes the `snapCamFollowToPos` operation.
+	 * @param state Input value for `state`.
+	 * @param x Input value for `x`.
+	 * @param y Input value for `y`.
+	 * @return Result produced by `snapCamFollowToPos`, when applicable.
+	 */
 	public static function snapCamFollowToPos(state:PlayState, x:Float, y:Float) {
 		state.camFollow.set(x, y);
 		state.camFollowPos.setPosition(x, y);
 	}
 
+	/**
+	 * Executes the `characterBopper` operation.
+	 * @param state Input value for `state`.
+	 * @param beat Input value for `beat`.
+	 */
 	public static function characterBopper(state:PlayState, beat:Int):Void
 	{
 		if (state.gf != null && beat % Math.round(state.gfSpeed * state.gf.danceEveryNumBeats) == 0 && !state.gf.getAnimationName().startsWith('sing') && !state.gf.stunned)
@@ -82,6 +104,10 @@ class PlayStateCamera
 			state.dad.dance();
 	}
 
+	/**
+	 * Executes the `playerDance` operation.
+	 * @param state Input value for `state`.
+	 */
 	public static function playerDance(state:PlayState):Void
 	{
 		var char = (PlayState.opponentChart ? state.dad : state.boyfriend);
@@ -90,6 +116,11 @@ class PlayStateCamera
 			char.dance();
 	}
 
+	/**
+	 * Executes the `doTwist` operation.
+	 * @param state Input value for `state`.
+	 * @return Result produced by `doTwist`, when applicable.
+	 */
 	public static function doTwist(state:PlayState)
 	{
 		state.twistModifier = state.twistAmount * state.camTwistIntensity * (!state.twisted ? 1 : -1);
@@ -103,6 +134,12 @@ class PlayStateCamera
 		}
 	}
 
+	/**
+	 * Executes the `updateIconsScale` operation.
+	 * @param state Input value for `state`.
+	 * @param elapsed Input value for `elapsed`.
+	 * @return Result produced by `updateIconsScale`, when applicable.
+	 */
 	public static function updateIconsScale(state:PlayState, elapsed:Float)
 	{
 		switch (ClientPrefs.iconBounceType) {
@@ -146,6 +183,11 @@ class PlayStateCamera
 		}
 	}
 
+	/**
+	 * Executes the `updateIconsPosition` operation.
+	 * @param state Input value for `state`.
+	 * @return Result produced by `updateIconsPosition`, when applicable.
+	 */
 	public static function updateIconsPosition(state:PlayState)
 	{
 		if (ClientPrefs.smoothHealth)
@@ -163,6 +205,12 @@ class PlayStateCamera
 		}
 	}
 
+	/**
+	 * Executes the `bopIcons` operation.
+	 * @param state Input value for `state`.
+	 * @param bopBF Input value for `bopBF`.
+	 * @return Result produced by `bopIcons`, when applicable.
+	 */
 	public static function bopIcons(state:PlayState, ?bopBF:Bool = false)
 	{
 		switch(ClientPrefs.iconBounceType) {
@@ -258,6 +306,11 @@ class PlayStateCamera
 	}
 
 	// REFACTOR: tankman ascend sequence extracted from PlayState.stepHit
+	/**
+	 * Executes the `tankmanStep` operation.
+	 * @param state Input value for `state`.
+	 * @return Result produced by `tankmanStep`, when applicable.
+	 */
 	public static function tankmanStep(state:PlayState)
 	{
 		if (state.curStep >= 896 && state.curStep <= 1152) moveCameraSection(state);

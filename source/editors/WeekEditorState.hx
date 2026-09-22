@@ -43,6 +43,10 @@ class WeekEditorState extends MusicBeatState
 	var music:EditingMusic;
 
 	var weekFile:WeekFile = null;
+	/**
+	 * Executes the `new` operation.
+	 * @param weekFile Input value for `weekFile`.
+	 */
 	public function new(weekFile:WeekFile = null)
 	{
 		super();
@@ -51,6 +55,10 @@ class WeekEditorState extends MusicBeatState
 		else weekFileName = 'week1';
 	}
 
+	/**
+	 * Executes the `create` operation.
+	 * @return Result produced by `create`, when applicable.
+	 */
 	override function create() {
 		music = new EditingMusic();
 		txtWeekTitle = new FlxText(FlxG.width * 0.7, 10, 0, "", 32);
@@ -118,6 +126,10 @@ class WeekEditorState extends MusicBeatState
 
 	var UI_box:FlxUITabMenu;
 	var blockPressWhileTypingOn:Array<FlxUIInputText> = [];
+	/**
+	 * Executes the `addEditorBox` operation.
+	 * @return Result produced by `addEditorBox`, when applicable.
+	 */
 	function addEditorBox() {
 		var tabs = [
 			{name: 'Week', label: 'Week'},
@@ -171,6 +183,10 @@ class WeekEditorState extends MusicBeatState
 
 	public static var weekFileName:String = 'week1';
 
+	/**
+	 * Executes the `addWeekUI` operation.
+	 * @return Result produced by `addWeekUI`, when applicable.
+	 */
 	function addWeekUI() {
 		WeekEditorHelpers.addWeekUI(this);
 	}
@@ -180,28 +196,56 @@ class WeekEditorState extends MusicBeatState
 	var lockedCheckbox:FlxUICheckBox;
 	var hiddenUntilUnlockCheckbox:FlxUICheckBox;
 
+	/**
+	 * Executes the `addOtherUI` operation.
+	 * @return Result produced by `addOtherUI`, when applicable.
+	 */
 	function addOtherUI() {
 		WeekEditorHelpers.addOtherUI(this);
 	}
 
 	//Used on onCreate and when you load a week
+	/**
+	 * Executes the `reloadAll` operation.
+	 * @return Result produced by `reloadAll`, when applicable.
+	 */
 	function reloadAll() {
 		WeekEditorHelpers.reloadAll(this);
 	}
 
+	/**
+	 * Executes the `updateText` operation.
+	 * @return Result produced by `updateText`, when applicable.
+	 */
 	function updateText()
 	{
 		WeekEditorHelpers.updateText(this);
 	}
 
+	/**
+	 * Executes the `reloadBG` operation.
+	 * @return Result produced by `reloadBG`, when applicable.
+	 */
 	function reloadBG() {
 		WeekEditorHelpers.reloadBG(this);
 	}
 
+	/**
+	 * Executes the `reloadWeekThing` operation.
+	 * @return Result produced by `reloadWeekThing`, when applicable.
+	 */
 	function reloadWeekThing() {
 		WeekEditorHelpers.reloadWeekThing(this);
 	}
 
+	/**
+	 * Executes the `getEvent` operation.
+	 * @param id Input value for `id`.
+	 * @param sender Input value for `sender`.
+	 * @param data Input value for `data`.
+	 * @param params Input value for `params`.
+	 * @return Result produced by `getEvent`, when applicable.
+	 */
 	override function getEvent(id:String, sender:Dynamic, data:Dynamic, ?params:Array<Dynamic>) {
 		if(id == FlxUIInputText.CHANGE_EVENT && (sender is FlxUIInputText)) {
 			if(sender == weekFileInputText) {
@@ -250,6 +294,11 @@ class WeekEditorState extends MusicBeatState
 		}
 	}
 
+	/**
+	 * Executes the `update` operation.
+	 * @param elapsed Input value for `elapsed`.
+	 * @return Result produced by `update`, when applicable.
+	 */
 	override function update(elapsed:Float)
 	{
 		if (FlxG.mouse.justPressed) FlxG.sound.play(Paths.sound('click'));
@@ -291,17 +340,29 @@ class WeekEditorState extends MusicBeatState
 		missingFileText.y = weekThing.y + 36;
 	}
 
+	/**
+	 * Executes the `recalculateStuffPosition` operation.
+	 * @return Result produced by `recalculateStuffPosition`, when applicable.
+	 */
 	function recalculateStuffPosition() {
 		WeekEditorHelpers.recalculateStuffPosition(this);
 	}
 
 	private static var _file:FileReference;
+	/**
+	 * Executes the `loadWeek` operation.
+	 * @return Result produced by `loadWeek`, when applicable.
+	 */
 	public static function loadWeek() {
 		WeekEditorHelpers.loadWeek();
 	}
 
 	public static var loadedWeek:WeekFile = null;
 	public static var loadError:Bool = false;
+	/**
+	 * Executes the `onLoadComplete` operation.
+	 * @param _ Input value for `_`.
+	 */
 	private static function onLoadComplete(_):Void
 	{
 		WeekEditorHelpers.onLoadComplete(_);
@@ -323,10 +384,19 @@ class WeekEditorState extends MusicBeatState
 		WeekEditorHelpers.onLoadError(_);
 	}
 
+	/**
+	 * Executes the `saveWeek` operation.
+	 * @param weekFile Input value for `weekFile`.
+	 * @return Result produced by `saveWeek`, when applicable.
+	 */
 	public static function saveWeek(weekFile:WeekFile) {
 		WeekEditorHelpers.saveWeek(weekFile);
 	}
 
+	/**
+	 * Executes the `onSaveComplete` operation.
+	 * @param _ Input value for `_`.
+	 */
 	private static function onSaveComplete(_):Void
 	{
 		WeekEditorHelpers.onSaveComplete(_);
@@ -347,12 +417,18 @@ class WeekEditorState extends MusicBeatState
 	{
 		WeekEditorHelpers.onSaveError(_);
 	}
+	/**
+	 * Executes the `onFocusLost` operation.
+	 */
 	override public function onFocusLost():Void
 	    {
 		    if (music != null && music.music != null) music.pauseMusic();
 
 		    super.onFocusLost();
 	    }
+	/**
+	 * Executes the `onFocus` operation.
+	 */
 	override public function onFocus():Void
 	    {
 		    if (music != null && music.music != null) music.unpauseMusic();
@@ -364,6 +440,10 @@ class WeekEditorState extends MusicBeatState
 class WeekEditorFreeplayState extends MusicBeatState
 {
 	var weekFile:WeekFile = null;
+	/**
+	 * Executes the `new` operation.
+	 * @param weekFile Input value for `weekFile`.
+	 */
 	public function new(weekFile:WeekFile = null)
 	{
 		super();
@@ -378,6 +458,10 @@ class WeekEditorFreeplayState extends MusicBeatState
 
 	var curSelected = 0;
 
+	/**
+	 * Executes the `create` operation.
+	 * @return Result produced by `create`, when applicable.
+	 */
 	override function create() {
 		music = new EditingMusic();
 		bg = new FlxSprite().loadGraphic(Paths.image('menuDesat'));
@@ -417,6 +501,10 @@ class WeekEditorFreeplayState extends MusicBeatState
 
 	var UI_box:FlxUITabMenu;
 	var blockPressWhileTypingOn:Array<FlxUIInputText> = [];
+	/**
+	 * Executes the `addEditorBox` operation.
+	 * @return Result produced by `addEditorBox`, when applicable.
+	 */
 	function addEditorBox() {
 		var tabs = [
 			{name: 'Freeplay', label: 'Freeplay'},
@@ -457,6 +545,14 @@ class WeekEditorFreeplayState extends MusicBeatState
 		add(saveWeekButton);
 	}
 
+	/**
+	 * Executes the `getEvent` operation.
+	 * @param id Input value for `id`.
+	 * @param sender Input value for `sender`.
+	 * @param data Input value for `data`.
+	 * @param params Input value for `params`.
+	 * @return Result produced by `getEvent`, when applicable.
+	 */
 	override function getEvent(id:String, sender:Dynamic, data:Dynamic, ?params:Array<Dynamic>) {
 		if(id == FlxUIInputText.CHANGE_EVENT && (sender is FlxUIInputText)) {
 			weekFile.songs[curSelected][1] = iconInputText.text;
@@ -472,6 +568,10 @@ class WeekEditorFreeplayState extends MusicBeatState
 	var bgColorStepperG:FlxUINumericStepper;
 	var bgColorStepperB:FlxUINumericStepper;
 	var iconInputText:FlxUIInputText;
+	/**
+	 * Executes the `addFreeplayUI` operation.
+	 * @return Result produced by `addFreeplayUI`, when applicable.
+	 */
 	function addFreeplayUI() {
 		var tab_group = new FlxUI(null, UI_box);
 		tab_group.name = "Freeplay";
@@ -527,6 +627,10 @@ class WeekEditorFreeplayState extends MusicBeatState
 		UI_box.addGroup(tab_group);
 	}
 
+	/**
+	 * Executes the `updateBG` operation.
+	 * @return Result produced by `updateBG`, when applicable.
+	 */
 	function updateBG() {
 		weekFile.songs[curSelected][2][0] = Math.round(bgColorStepperR.value);
 		weekFile.songs[curSelected][2][1] = Math.round(bgColorStepperG.value);
@@ -534,6 +638,11 @@ class WeekEditorFreeplayState extends MusicBeatState
 		bg.color = FlxColor.fromRGB(weekFile.songs[curSelected][2][0], weekFile.songs[curSelected][2][1], weekFile.songs[curSelected][2][2]);
 	}
 
+	/**
+	 * Executes the `changeSelection` operation.
+	 * @param change Input value for `change`.
+	 * @return Result produced by `changeSelection`, when applicable.
+	 */
 	function changeSelection(change:Int = 0) {
 		FlxG.sound.play(Paths.sound('scrollMenu'), 0.4);
 
@@ -574,6 +683,11 @@ class WeekEditorFreeplayState extends MusicBeatState
 		updateBG();
 	}
 
+	/**
+	 * Executes the `update` operation.
+	 * @param elapsed Input value for `elapsed`.
+	 * @return Result produced by `update`, when applicable.
+	 */
 	override function update(elapsed:Float) {
 		if (FlxG.mouse.justPressed) FlxG.sound.play(Paths.sound('click'));
 		if(WeekEditorState.loadedWeek != null) {
@@ -608,12 +722,18 @@ class WeekEditorFreeplayState extends MusicBeatState
 		}
 		super.update(elapsed);
 	}
+	/**
+	 * Executes the `onFocusLost` operation.
+	 */
 	override public function onFocusLost():Void
 	    {
 		    if (music != null && music.music != null) music.pauseMusic();
 
 		    super.onFocusLost();
 	    }
+	/**
+	 * Executes the `onFocus` operation.
+*/
 	override public function onFocus():Void
 	    {
 		    if (music != null && music.music != null) music.unpauseMusic();

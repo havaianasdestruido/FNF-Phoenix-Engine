@@ -24,11 +24,19 @@ class FPSCounter extends TextField
    */
   public var memory(get, never):Float;
 
+  /**
+   * Executes the `get_memory` operation.
+   * @return Result produced by `get_memory`, when applicable.
+   */
   inline function get_memory():Float
     return GetTotalMemory.getCurrentRSS();
 
   var mempeak(get, never):Float;
 
+  /**
+   * Executes the `get_mempeak` operation.
+   * @return Result produced by `get_mempeak`, when applicable.
+   */
   inline function get_mempeak():Float
     return GetTotalMemory.getPeakRSS();
 
@@ -38,6 +46,12 @@ class FPSCounter extends TextField
 
   public var align(default, set):TextFormatAlign;
 
+  /**
+   * Executes the `new` operation.
+   * @param x Input value for `x`.
+   * @param y Input value for `y`.
+   * @param color Input value for `color`.
+   */
   public function new(x:Float = 10, y:Float = 10, color:Int = 0x00000000)
   {
     super();
@@ -77,6 +91,10 @@ class FPSCounter extends TextField
   var now:Float = 0;
 
   // Event Handlers
+  /**
+   * Executes the `onEnterFrame` operation.
+   * @param e Input value for `e`.
+   */
   private function onEnterFrame(e:Event):Void
   {
     if (!ClientPrefs.showFPS) return;
@@ -114,6 +132,9 @@ class FPSCounter extends TextField
     updateColors();
   }
 
+  /**
+   * Executes the `updateColors` operation.
+   */
   public dynamic function updateColors():Void
   {
     if (ClientPrefs.ffmpegMode) return;
@@ -149,6 +170,9 @@ class FPSCounter extends TextField
     }
   }
 
+  /**
+   * Executes the `updateText` operation.
+*/
   public dynamic function updateText():Void // so people can override it in hscript
   {
     text = "FPS: " + (ClientPrefs.ffmpegMode ? ClientPrefs.targetFPS : Math.round(currentFPS));
@@ -171,6 +195,11 @@ class FPSCounter extends TextField
   }
 
   @:noCompletion
+  /**
+   * Executes the `set_align` operation.
+   * @param val Input value for `val`.
+   * @return Result produced by `set_align`, when applicable.
+   */
   private function set_align(val)
   {
     return align = defaultTextFormat.align = switch (val)

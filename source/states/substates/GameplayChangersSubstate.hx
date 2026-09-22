@@ -25,16 +25,29 @@ class GameplayChangersSubstate extends MusicBeatSubstate
 	public static var inThePauseMenu:Bool = false;
 	public var pauseState:PauseSubState;
 
+	/**
+	 * Executes the `getOptions` operation.
+	 * @return Result produced by `getOptions`, when applicable.
+	 */
 	function getOptions()
 	{
 		GameplayChangersHelpers.getOptions(this);
 	}
 
+	/**
+	 * Executes the `getOptionByName` operation.
+	 * @param name Input value for `name`.
+	 * @return Result produced by `getOptionByName`, when applicable.
+	 */
 	public function getOptionByName(name:String)
 	{
 		return GameplayChangersHelpers.getOptionByName(this, name);
 	}
 
+	/**
+	 * Executes the `new` operation.
+	 * @param pause Input value for `pause`.
+	 */
 	public function new(?pause:MusicBeatSubstate = null)
 	{
 		super();
@@ -91,6 +104,10 @@ class GameplayChangersSubstate extends MusicBeatSubstate
 		cameras = [FlxG.cameras.list[FlxG.cameras.list.length - 1]];
 	}
 
+	/**
+	 * Executes the `destroy` operation.
+	 * @return Result produced by `destroy`, when applicable.
+	 */
 	override function destroy() {
 		if (inThePauseMenu)  {
 			PlayState.instance.changeTheSettingsBitch();
@@ -102,6 +119,11 @@ class GameplayChangersSubstate extends MusicBeatSubstate
 	var nextAccept:Int = 5;
 	var holdTime:Float = 0;
 	var holdValue:Float = 0;
+	/**
+	 * Executes the `update` operation.
+	 * @param elapsed Input value for `elapsed`.
+	 * @return Result produced by `update`, when applicable.
+	 */
 	override function update(elapsed:Float)
 	{
 		if (controls.UI_UP_P)
@@ -305,29 +327,55 @@ class GameplayChangersSubstate extends MusicBeatSubstate
 		super.update(elapsed);
 	}
 
+	/**
+	 * Executes the `updateTextFrom` operation.
+	 * @param option Input value for `option`.
+	 * @return Result produced by `updateTextFrom`, when applicable.
+	 */
 	function updateTextFrom(option:GameplayOption) {
 		GameplayChangersHelpers.updateTextFrom(option);
 	}
 
+	/**
+	 * Executes the `clearHold` operation.
+	 * @return Result produced by `clearHold`, when applicable.
+	 */
 	function clearHold()
 	{
 		GameplayChangersHelpers.clearHold(this);
 	}
 
+	/**
+	 * Executes the `onChangeChartOption` operation.
+	 * @return Result produced by `onChangeChartOption`, when applicable.
+	 */
 	function onChangeChartOption()
 	{
 		GameplayChangersHelpers.onChangeChartOption(this);
 	}
+	/**
+	 * Executes the `onChangeCheat` operation.
+	 * @return Result produced by `onChangeCheat`, when applicable.
+	 */
 	function onChangeCheat()
 	{
 		GameplayChangersHelpers.onChangeCheat(this);
 	}
 
+	/**
+	 * Executes the `changeSelection` operation.
+	 * @param change Input value for `change`.
+	 * @return Result produced by `changeSelection`, when applicable.
+	 */
 	function changeSelection(change:Int = 0)
 	{
 		GameplayChangersHelpers.changeSelection(this, change);
 	}
 
+	/**
+	 * Executes the `reloadCheckboxes` operation.
+	 * @return Result produced by `reloadCheckboxes`, when applicable.
+	 */
 	function reloadCheckboxes() {
 		GameplayChangersHelpers.reloadCheckboxes(this);
 	}
@@ -360,6 +408,14 @@ class GameplayOption
 	public var displayFormat:String = '%v'; //How String/Float/Percent/Int values are shown, %v = Current value, %d = Default value
 	public var name:String = 'Unknown';
 
+	/**
+	 * Executes the `new` operation.
+	 * @param name Input value for `name`.
+	 * @param variable Input value for `variable`.
+	 * @param type Input value for `type`.
+	 * @param defaultValue Input value for `defaultValue`.
+	 * @param options Input value for `options`.
+	 */
 	public function new(name:String, variable:String, type:String = 'bool', defaultValue:Dynamic = 'null variable value', ?options:Array<String> = null)
 	{
 		this.name = name;
@@ -408,6 +464,10 @@ class GameplayOption
 		}
 	}
 
+	/**
+	 * Executes the `change` operation.
+	 * @return Result produced by `change`, when applicable.
+	 */
 	public function change()
 	{
 		//nothing lol
@@ -416,20 +476,38 @@ class GameplayOption
 		}
 	}
 
+	/**
+	 * Executes the `getValue` operation.
+	 * @return Result produced by `getValue`, when applicable.
+	 */
 	public function getValue():Dynamic
 	{
 		return ClientPrefs.gameplaySettings.get(variable);
 	}
+	/**
+	 * Executes the `setValue` operation.
+	 * @param value Input value for `value`.
+	 * @return Result produced by `setValue`, when applicable.
+	 */
 	public function setValue(value:Dynamic)
 	{
 		ClientPrefs.gameplaySettings.set(variable, value);
 	}
 
+	/**
+	 * Executes the `setChild` operation.
+	 * @param child Input value for `child`.
+	 * @return Result produced by `setChild`, when applicable.
+	 */
 	public function setChild(child:Alphabet)
 	{
 		this.child = child;
 	}
 
+	/**
+	 * Executes the `get_text` operation.
+	 * @return Result produced by `get_text`, when applicable.
+	 */
 	private function get_text()
 	{
 		if(child != null) {
@@ -437,6 +515,11 @@ class GameplayOption
 		}
 		return null;
 	}
+	/**
+	 * Executes the `set_text` operation.
+	 * @param newValue Input value for `newValue`.
+	 * @return Result produced by `set_text`, when applicable.
+	 */
 	private function set_text(newValue:String = '')
 	{
 		if(child != null) {
@@ -445,6 +528,10 @@ class GameplayOption
 		return null;
 	}
 
+	/**
+	 * Executes the `get_type` operation.
+	 * @return Result produced by `get_type`, when applicable.
+	 */
 	private function get_type()
 	{
 		var newValue:String = 'bool';

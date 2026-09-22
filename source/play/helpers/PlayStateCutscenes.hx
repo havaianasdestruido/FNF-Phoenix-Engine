@@ -20,6 +20,13 @@ import data.Song;
 @:access(backend.MusicBeatState)
 class PlayStateCutscenes
 {
+	/**
+	 * Executes the `startVideo` operation.
+	 * @param state Input value for `state`.
+	 * @param name Input value for `name`.
+	 * @param library Input value for `library`.
+	 * @return Result produced by `startVideo`, when applicable.
+	 */
 	public static function startVideo(state:PlayState, name:String, ?library:String = null, ?callback:Void->Void = null, forMidSong:Bool = false, canSkip:Bool = true, loop:Bool = false, playOnLoad:Bool = true)
 	{
 		#if VIDEOS_ALLOWED
@@ -43,6 +50,10 @@ class PlayStateCutscenes
 			// Finish callback
 			if (!forMidSong)
 			{
+				/**
+				 * Executes the `onVideoEnd` operation.
+				 * @return Result produced by `onVideoEnd`, when applicable.
+				 */
 				function onVideoEnd()
 				{
 					if (state.generatedMusic && PlayState.SONG.notes[Std.int(state.curStep / 16)] != null && !state.endingSong && !state.isCameraOnForcedPos)
@@ -75,6 +86,11 @@ class PlayStateCutscenes
 		return null;
 	}
 
+	/**
+	 * Executes the `startAndEnd` operation.
+	 * @param state Input value for `state`.
+	 * @return Result produced by `startAndEnd`, when applicable.
+	 */
 	public static function startAndEnd(state:PlayState)
 	{
 		if(state.endingSong)
@@ -83,6 +99,12 @@ class PlayStateCutscenes
 			PlayStateCountdown.startCountdown(state);
 	}
 
+	/**
+	 * Executes the `startDialogue` operation.
+	 * @param state Input value for `state`.
+	 * @param dialogueFile Input value for `dialogueFile`.
+	 * @param song Input value for `song`.
+	 */
 	public static function startDialogue(state:PlayState, dialogueFile:DialogueFile, ?song:String = null):Void
 	{
 		// TO DO: Make this more flexible, maybe?
@@ -113,11 +135,21 @@ class PlayStateCutscenes
 		}
 	}
 
+	/**
+	 * Executes the `startNextDialogue` operation.
+	 * @param state Input value for `state`.
+	 * @return Result produced by `startNextDialogue`, when applicable.
+	 */
 	public static function startNextDialogue(state:PlayState) {
 		state.dialogueCount++;
 		state.callOnLuas('onNextDialogue', [state.dialogueCount]);
 	}
 
+	/**
+	 * Executes the `skipDialogue` operation.
+	 * @param state Input value for `state`.
+	 * @return Result produced by `skipDialogue`, when applicable.
+	 */
 	public static function skipDialogue(state:PlayState) {
 		state.callOnLuas('onSkipDialogue', [state.dialogueCount]);
 	}

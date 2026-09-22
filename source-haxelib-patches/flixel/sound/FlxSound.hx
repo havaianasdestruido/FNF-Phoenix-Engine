@@ -49,6 +49,11 @@ class FlxSound extends FlxBasic
 	 */
 	public var filter(default, set):ALFilter;
 	
+	/**
+	 * Executes the `set_filter` operation.
+	 * @param v Input value for `v`.
+	 * @return Result produced by `set_filter`, when applicable.
+	 */
 	function set_filter(v:ALFilter)
 	{
 		filter = v;
@@ -61,6 +66,11 @@ class FlxSound extends FlxBasic
 	 */
 	public var effect(default, set):Null<ALEffect>;
 	
+	/**
+	 * Executes the `set_effect` operation.
+	 * @param v Input value for `v`.
+	 * @return Result produced by `set_effect`, when applicable.
+	 */
 	function set_effect(v:ALEffect)
 	{
 		effect = v;
@@ -265,7 +275,7 @@ class FlxSound extends FlxBasic
 	
 	/**
 	 * An internal function for clearing all the variables used by sounds.
-	 */
+*/
 	function reset():Void
 	{
 		destroy();
@@ -297,6 +307,9 @@ class FlxSound extends FlxBasic
 		_transform.pan = 0;
 	}
 	
+	/**
+	 * Executes the `destroy` operation.
+*/
 	override public function destroy():Void
 	{
 		if (group != null)
@@ -329,7 +342,7 @@ class FlxSound extends FlxBasic
 	
 	/**
 	 * Handles fade out, fade in, panning, proximity, and amplitude operations each frame.
-	 */
+*/
 	override public function update(elapsed:Float):Void
 	{
 		if (!playing)
@@ -374,6 +387,9 @@ class FlxSound extends FlxBasic
 			stopped();
 	}
 	
+	/**
+	 * Executes the `kill` operation.
+*/
 	override public function kill():Void
 	{
 		super.kill();
@@ -389,6 +405,13 @@ class FlxSound extends FlxBasic
 	 * 							Default value is false, but `FlxG.sound.play()` and `FlxG.sound.stream()` will set it to true by default.
 	 * @param	OnComplete		Called when the sound finished playing
 	 * @return	This FlxSound instance (nice for chaining stuff together, if you're into that).
+	 */
+	/**
+	 * Executes the `loadEmbedded` operation.
+	 * @param EmbeddedSound Input value for `EmbeddedSound`.
+	 * @param Looped Input value for `Looped`.
+	 * @param AutoDestroy Input value for `AutoDestroy`.
+	 * @return Result produced by `loadEmbedded`, when applicable.
 	 */
 	public function loadEmbedded(EmbeddedSound:FlxSoundAsset, Looped:Bool = false, AutoDestroy:Bool = false, ?OnComplete:Void->Void):FlxSound
 	{
@@ -428,6 +451,13 @@ class FlxSound extends FlxBasic
 	 * @param	OnLoad			Called when the sound finished loading.
 	 * @return	This FlxSound instance (nice for chaining stuff together, if you're into that).
 	 */
+	/**
+	 * Executes the `loadStream` operation.
+	 * @param SoundURL Input value for `SoundURL`.
+	 * @param Looped Input value for `Looped`.
+	 * @param AutoDestroy Input value for `AutoDestroy`.
+	 * @return Result produced by `loadStream`, when applicable.
+	 */
 	public function loadStream(SoundURL:String, Looped:Bool = false, AutoDestroy:Bool = false, ?OnComplete:Void->Void, ?OnLoad:Void->Void):FlxSound
 	{
 		cleanup(true);
@@ -453,6 +483,12 @@ class FlxSound extends FlxBasic
 		return init(Looped, AutoDestroy, OnComplete);
 	}
 	
+	/**
+	 * Executes the `init` operation.
+	 * @param Looped Input value for `Looped`.
+	 * @param AutoDestroy Input value for `AutoDestroy`.
+	 * @return Result produced by `init`, when applicable.
+	 */
 	function init(Looped:Bool = false, AutoDestroy:Bool = false, ?OnComplete:Void->Void):FlxSound
 	{
 		looped = Looped;
@@ -499,6 +535,13 @@ class FlxSound extends FlxBasic
 	 * @param   StartTime      At which point to start playing the sound, in milliseconds.
 	 * @param   EndTime        At which point to stop playing the sound, in milliseconds.
 	 *                         If not set / `null`, the sound completes normally.
+	 */
+	/**
+	 * Executes the `play` operation.
+	 * @param ForceRestart Input value for `ForceRestart`.
+	 * @param StartTime Input value for `StartTime`.
+	 * @param EndTime Input value for `EndTime`.
+	 * @return Result produced by `play`, when applicable.
 	 */
 	public function play(ForceRestart:Bool = false, StartTime:Float = 0.0, ?EndTime:Float):FlxSound
 	{
@@ -586,6 +629,10 @@ class FlxSound extends FlxBasic
 		return this;
 	}
 	
+	/**
+	 * Executes the `volumeTween` operation.
+	 * @param f Input value for `f`.
+	 */
 	function volumeTween(f:Float):Void
 	{
 		volume = f;
@@ -618,6 +665,9 @@ class FlxSound extends FlxBasic
 	 * Call after adjusting the volume to update the sound channel's settings.
 	 */
 	@:allow(flixel.sound.FlxSoundGroup)
+	/**
+	 * Executes the `updateTransform` operation.
+	 */
 	function updateTransform():Void
 	{
 		if (_transform != null)
@@ -684,7 +734,7 @@ class FlxSound extends FlxBasic
 	/**
 	 * An internal helper function used to help Flash
 	 * clean up finished sounds or restart looped sounds.
-	 */
+*/
 	function stopped(?_):Void
 	{
 		if (onComplete != null)
@@ -744,6 +794,9 @@ class FlxSound extends FlxBasic
 	
 	#if FLX_SOUND_SYSTEM
 	@:allow(flixel.system.frontEnds.SoundFrontEnd)
+	/**
+	 * Executes the `onFocus` operation.
+	 */
 	function onFocus():Void
 	{
 		if (!_alreadyPaused)
@@ -751,6 +804,9 @@ class FlxSound extends FlxBasic
 	}
 	
 	@:allow(flixel.system.frontEnds.SoundFrontEnd)
+	/**
+	 * Executes the `onFocusLost` operation.
+	 */
 	function onFocusLost():Void
 	{
 		_alreadyPaused = _paused;
@@ -759,6 +815,11 @@ class FlxSound extends FlxBasic
 	#end
 
 	@:deprecated("sound.group = myGroup is deprecated, use myGroup.add(sound)") // 5.7.0
+	/**
+	 * Executes the `set_group` operation.
+	 * @param value Input value for `value`.
+	 * @return Result produced by `set_group`, when applicable.
+	 */
 	function set_group(value:FlxSoundGroup):FlxSoundGroup
 	{
 		if (value != null)
@@ -774,16 +835,29 @@ class FlxSound extends FlxBasic
 		return value;
 	}
 	
+	/**
+	 * Executes the `get_playing` operation.
+	 * @return Result produced by `get_playing`, when applicable.
+	 */
 	inline function get_playing():Bool
 	{
 		return _channel != null;
 	}
 	
+	/**
+	 * Executes the `get_volume` operation.
+	 * @return Result produced by `get_volume`, when applicable.
+	 */
 	inline function get_volume():Float
 	{
 		return _volume;
 	}
 	
+	/**
+	 * Executes the `set_volume` operation.
+	 * @param Volume Input value for `Volume`.
+	 * @return Result produced by `set_volume`, when applicable.
+	 */
 	function set_volume(Volume:Float):Float
 	{
 		_volume = FlxMath.bound(Volume, 0, 1);
@@ -792,11 +866,20 @@ class FlxSound extends FlxBasic
 	}
 	
 	#if FLX_PITCH
+	/**
+	 * Executes the `get_pitch` operation.
+	 * @return Result produced by `get_pitch`, when applicable.
+	 */
 	inline function get_pitch():Float
 	{
 		return _pitch;
 	}
 	
+	/**
+	 * Executes the `set_pitch` operation.
+	 * @param v Input value for `v`.
+	 * @return Result produced by `set_pitch`, when applicable.
+	 */
 	function set_pitch(v:Float):Float
 	{
 		if (_channel != null)
@@ -824,31 +907,58 @@ class FlxSound extends FlxBasic
 	 */
 	public var pitch(get, set):Float;
 	var _pitch:Float = 1.0;
+	/**
+	 * Executes the `get_pitch` operation.
+	 * @return Result produced by `get_pitch`, when applicable.
+	 */
 	inline function get_pitch():Float
 	{
 		return _pitch;
 	}
+	/**
+	 * Executes the `set_pitch` operation.
+	 * @param v Input value for `v`.
+	 * @return Result produced by `set_pitch`, when applicable.
+	 */
 	inline function set_pitch(v:Float):Float
 	{
 		return _pitch = v;
 	}
 	#end
 	
+	/**
+	 * Executes the `get_pan` operation.
+	 * @return Result produced by `get_pan`, when applicable.
+	 */
 	inline function get_pan():Float
 	{
 		return _transform.pan;
 	}
 	
+	/**
+	 * Executes the `set_pan` operation.
+	 * @param pan Input value for `pan`.
+	 * @return Result produced by `set_pan`, when applicable.
+	 */
 	inline function set_pan(pan:Float):Float
 	{
 		return _transform.pan = pan;
 	}
 	
+	/**
+	 * Executes the `get_time` operation.
+	 * @return Result produced by `get_time`, when applicable.
+	 */
 	inline function get_time():Float
 	{
 		return _time;
 	}
 	
+	/**
+	 * Executes the `set_time` operation.
+	 * @param time Input value for `time`.
+	 * @return Result produced by `set_time`, when applicable.
+	 */
 	function set_time(time:Float):Float
 	{
 		if (playing)
@@ -859,11 +969,19 @@ class FlxSound extends FlxBasic
 		return _time = time;
 	}
 	
+	/**
+	 * Executes the `get_length` operation.
+	 * @return Result produced by `get_length`, when applicable.
+	 */
 	inline function get_length():Float
 	{
 		return _length;
 	}
 	
+	/**
+	 * Executes the `toString` operation.
+	 * @return Result produced by `toString`, when applicable.
+	 */
 	override public function toString():String
 	{
 		return FlxStringUtil.getDebugString([

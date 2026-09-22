@@ -29,6 +29,11 @@ class ABotSpeaker extends FlxSpriteGroup
 	var volumes:Array<Float> = [];
 
 	public var snd(default, set):FlxSound;
+	/**
+	 * Executes the `set_snd` operation.
+	 * @param changed Input value for `changed`.
+	 * @return Result produced by `set_snd`, when applicable.
+	 */
 	function set_snd(changed:FlxSound)
 	{
 		snd = changed;
@@ -38,6 +43,11 @@ class ABotSpeaker extends FlxSpriteGroup
 		return snd;
 	}
 
+	/**
+	 * Executes the `new` operation.
+	 * @param x Input value for `x`.
+	 * @param y Input value for `y`.
+	 */
 	public function new(x:Float = 0, y:Float = 0)
 	{
 		super(x, y);
@@ -95,6 +105,10 @@ class ABotSpeaker extends FlxSpriteGroup
 	#if funkin.vis
 	var levels:Array<Bar>;
 	var levelMax:Int = 0;
+	/**
+	 * Executes the `update` operation.
+	 * @param elapsed Input value for `elapsed`.
+	 */
 	override function update(elapsed:Float):Void
 	{
 		super.update(elapsed);
@@ -121,6 +135,10 @@ class ABotSpeaker extends FlxSpriteGroup
 	}
 	#end
 
+	/**
+	 * Executes the `beatHit` operation.
+	 * @return Result produced by `beatHit`, when applicable.
+	 */
 	public function beatHit()
 	{
 		#if flxanimate
@@ -129,6 +147,10 @@ class ABotSpeaker extends FlxSpriteGroup
 	}
 
 	#if funkin.vis
+	/**
+	 * Executes the `initAnalyzer` operation.
+	 * @return Result produced by `initAnalyzer`, when applicable.
+	 */
 	public function initAnalyzer()
 	{
 		#if !flash
@@ -149,6 +171,10 @@ class ABotSpeaker extends FlxSpriteGroup
 	#end
 
 	var lookingAtRight:Bool = true;
+	/**
+	 * Executes the `lookLeft` operation.
+	 * @return Result produced by `lookLeft`, when applicable.
+	 */
 	public function lookLeft()
 	{
 		#if flxanimate
@@ -156,6 +182,10 @@ class ABotSpeaker extends FlxSpriteGroup
 		#end
 		lookingAtRight = false;
 	}
+	/**
+	 * Executes the `lookRight` operation.
+	 * @return Result produced by `lookRight`, when applicable.
+	 */
 	public function lookRight()
 	{
 		#if flxanimate

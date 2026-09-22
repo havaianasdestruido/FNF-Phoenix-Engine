@@ -11,6 +11,10 @@ import backend.DiscordClient;
 // REFACTOR: extracted from psychlua.FunkinLua (random/debug/print/cursor/string utils)
 class MiscCallbacks
 {
+	/**
+	 * Executes the `register` operation.
+	 * @param funk Input value for `funk`.
+	 */
 	public static function register(funk:FunkinLua):Void {
 		@:privateAccess {
 		FunkinLua.registerFunction("getRandomInt", function(min:Int, max:Int = FlxMath.MAX_VALUE_INT, exclude:String = '') {

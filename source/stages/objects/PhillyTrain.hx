@@ -7,6 +7,13 @@ import play.PlayState;
 class PhillyTrain extends BGSprite
 {
 	public var sound:FlxSound;
+	/**
+	 * Executes the `new` operation.
+	 * @param x Input value for `x`.
+	 * @param y Input value for `y`.
+	 * @param image Input value for `image`.
+	 * @param sound Input value for `sound`.
+	 */
 	public function new(x:Float = 0, y:Float = 0, image:String = 'philly/train', sound:String = 'train_passes')
 	{
 		super(image, x, y);
@@ -25,6 +32,11 @@ class PhillyTrain extends BGSprite
 	public var cars:Int = 8;
 	public var cooldown:Int = 0;
 
+	/**
+	 * Executes the `update` operation.
+	 * @param elapsed Input value for `elapsed`.
+	 * @return Result produced by `update`, when applicable.
+	 */
 	override function update(elapsed:Float)
 	{
 		if (moving)
@@ -63,6 +75,10 @@ class PhillyTrain extends BGSprite
 		super.update(elapsed);
 	}
 
+	/**
+	 * Executes the `beatHit` operation.
+	 * @param curBeat Input value for `curBeat`.
+	 */
 	public function beatHit(curBeat:Int):Void
 	{
 		if (!moving)
@@ -75,6 +91,9 @@ class PhillyTrain extends BGSprite
 		}
 	}
 	
+	/**
+	 * Executes the `start` operation.
+	 */
 	public function start():Void
 	{
 		moving = true;
@@ -82,6 +101,9 @@ class PhillyTrain extends BGSprite
 			sound.play(true);
 	}
 
+	/**
+	 * Executes the `restart` operation.
+	 */
 	public function restart():Void
 	{
 		if(PlayState.instance.gf != null)

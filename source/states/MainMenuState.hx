@@ -64,6 +64,10 @@ class MainMenuState extends MusicBeatState
 
   var funnycatperson:FlxSprite;
 
+  /**
+   * Executes the `create` operation.
+   * @return Result produced by `create`, when applicable.
+   */
   override function create()
   {
     MusicBeatState.windowNameSuffix = " - Main Menu";
@@ -231,6 +235,10 @@ class MainMenuState extends MusicBeatState
   var selectedSomethin:Bool = false;
 
   // credit to stefan2008 and sb engine for this code
+  /**
+   * Executes the `tipTextStartScrolling` operation.
+   * @return Result produced by `tipTextStartScrolling`, when applicable.
+   */
   function tipTextStartScrolling()
   {
     if (!canDoTips) return;
@@ -246,6 +254,10 @@ class MainMenuState extends MusicBeatState
     });
   }
 
+  /**
+   * Executes the `beatHit` operation.
+   * @return Result produced by `beatHit`, when applicable.
+   */
   override function beatHit()
   {
     if (curBeat % 2 == 0)
@@ -259,6 +271,10 @@ class MainMenuState extends MusicBeatState
     }
   }
 
+  /**
+   * Executes the `changeTipText` operation.
+   * @return Result produced by `changeTipText`, when applicable.
+   */
   function changeTipText()
   {
     if (!canDoTips) return;
@@ -291,6 +307,11 @@ class MainMenuState extends MusicBeatState
       });
   }
 
+  /**
+   * Executes the `update` operation.
+   * @param elapsed Input value for `elapsed`.
+   * @return Result produced by `update`, when applicable.
+   */
   override function update(elapsed:Float)
   {
     FlxG.camera.followLerp = 7.5;
@@ -421,6 +442,11 @@ class MainMenuState extends MusicBeatState
     });
   }
 
+  /**
+   * Executes the `changeItem` operation.
+   * @param huh Input value for `huh`.
+   * @return Result produced by `changeItem`, when applicable.
+   */
   function changeItem(huh:Int = 0)
   {
     curSelected += huh;

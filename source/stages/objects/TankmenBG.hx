@@ -11,6 +11,12 @@ class TankmenBG extends FlxSprite
 	private var goingRight:Bool;
 	public var strumTime:Float;
 
+	/**
+	 * Executes the `new` operation.
+	 * @param x Input value for `x`.
+	 * @param y Input value for `y`.
+	 * @param facingRight Input value for `facingRight`.
+	 */
 	public function new(x:Float, y:Float, facingRight:Bool)
 	{
 		tankSpeed = 0.7;
@@ -30,6 +36,12 @@ class TankmenBG extends FlxSprite
 		updateHitbox();
 	}
 
+	/**
+	 * Executes the `reset` operation.
+	 * @param x Input value for `x`.
+	 * @param y Input value for `y`.
+	 * @param goingRight Input value for `goingRight`.
+	 */
 	public function reset(x:Float, y:Float, goingRight:Bool):Void
 	{
 		this.x = x;
@@ -40,6 +52,11 @@ class TankmenBG extends FlxSprite
 		flipX = goingRight;
 	}
 
+	/**
+	 * Executes the `update` operation.
+	 * @param elapsed Input value for `elapsed`.
+	 * @return Result produced by `update`, when applicable.
+	 */
 	override function update(elapsed:Float)
 	{
 		super.update(elapsed);

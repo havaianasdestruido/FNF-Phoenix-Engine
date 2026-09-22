@@ -14,6 +14,10 @@ import stages.objects.*;
 class School extends BaseStage
 {
 	var bgGirls:BackgroundGirls;
+	/**
+	 * Executes the `create` operation.
+	 * @return Result produced by `create`, when applicable.
+	 */
 	override function create()
 	{
 		var _song = PlayState.SONG;
@@ -93,12 +97,26 @@ class School extends BaseStage
 		}
 	}
 
+	/**
+	 * Executes the `beatHit` operation.
+	 * @return Result produced by `beatHit`, when applicable.
+	 */
 	override function beatHit()
 	{
 		if(bgGirls != null) bgGirls.dance();
 	}
 
 	// For events
+	/**
+	 * Executes the `eventCalled` operation.
+	 * @param eventName Input value for `eventName`.
+	 * @param value1 Input value for `value1`.
+	 * @param value2 Input value for `value2`.
+	 * @param flValue1 Input value for `flValue1`.
+	 * @param flValue2 Input value for `flValue2`.
+	 * @param strumTime Input value for `strumTime`.
+	 * @return Result produced by `eventCalled`, when applicable.
+	 */
 	override function eventCalled(eventName:String, value1:String, value2:String, flValue1:Null<Float>, flValue2:Null<Float>, strumTime:Float)
 	{
 		switch(eventName)
@@ -109,6 +127,10 @@ class School extends BaseStage
 	}
 
 	var doof:DialogueBox = null;
+	/**
+	 * Executes the `initDoof` operation.
+	 * @return Result produced by `initDoof`, when applicable.
+	 */
 	function initDoof()
 	{
 		var file:String = Paths.txt(songName + '/' + songName + 'Dialogue'); //Checks for vanilla/Senpai dialogue
@@ -131,6 +153,9 @@ class School extends BaseStage
 		doof.skipDialogueThing = PlayState.instance.skipDialogue;
 	}
 
+	/**
+	 * Executes the `schoolIntro` operation.
+	 */
 	function schoolIntro():Void
 	{
 		inCutscene = true;

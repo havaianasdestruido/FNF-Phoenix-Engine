@@ -24,6 +24,9 @@ g_lastShown = -1
 # ---------------------------------------------------------------- //
 #                              HELPERS                              //
 # ---------------------------------------------------------------- //
+# Executes the `hideIfExists` operation.
+# @param target: Input value for `target`.
+# @note Callback documentation.
 def hideIfExists(target):
 	# target is a dot-path like 'scoreTxt.visible'
 	if getProperty(target) != None:
@@ -33,6 +36,8 @@ def hideIfExists(target):
 # ---------------------------------------------------------------- //
 #                              SETUP                              //
 # ---------------------------------------------------------------- //
+# Executes the `onCreatePost` operation.
+# @note Callback documentation.
 def onCreatePost():
 	# hide the rhythm-game opponents
 	setProperty('dad.visible', False)
@@ -112,6 +117,9 @@ def onCreatePost():
 # ---------------------------------------------------------------- //
 #                              FRAME                               //
 # ---------------------------------------------------------------- //
+# Executes the `onUpdate` operation.
+# @param elapsed: Input value for `elapsed`.
+# @note Callback documentation.
 def onUpdate(elapsed):
 	if g_finished:
 		return
@@ -194,6 +202,8 @@ def onUpdate(elapsed):
 # ---------------------------------------------------------------- //
 #                             CLEANUP                              //
 # ---------------------------------------------------------------- //
+# Executes the `onDestroy` operation.
+# @note Callback documentation.
 def onDestroy():
 	# keep the best score even if the player leaves mid-round
 	if g_clicks > g_best:

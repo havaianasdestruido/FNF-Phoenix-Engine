@@ -66,6 +66,11 @@ class PlatformUtilNative
     ')
    */
   #end
+  /**
+   * Executes the `getWindowsTransparentNative` operation.
+   * @param res Input value for `res`.
+   * @return Result produced by `getWindowsTransparentNative`, when applicable.
+   */
   static function getWindowsTransparentNative(res:Int = 0) // Only works on windows, otherwise returns 0!
   {
     return res;
@@ -83,6 +88,12 @@ class PlatformUtilNative
         );
     ')
   #end
+  /**
+   * Executes the `sendFakeMsgBoxNative` operation.
+   * @param desc Input value for `desc`.
+   * @param res Input value for `res`.
+   * @return Result produced by `sendFakeMsgBoxNative`, when applicable.
+   */
   static function sendFakeMsgBoxNative(desc:String = "", res:Int = 0) // TODO: Linux and macOS (will do soon)
   {
     return res;
@@ -98,6 +109,11 @@ class PlatformUtilNative
         }
     ')
   #end
+  /**
+   * Executes the `getWindowsBackwardNative` operation.
+   * @param res Input value for `res`.
+   * @return Result produced by `getWindowsBackwardNative`, when applicable.
+   */
   static function getWindowsBackwardNative(res:Int = 0) // Only works on windows, otherwise returns 0!
   {
     return res;
@@ -111,6 +127,10 @@ class PlatformUtilNative
         SystemParametersInfo(SPI_SETDESKWALLPAPER, 0, (PVOID)p.c_str(), SPIF_UPDATEINIFILE);
     ')
   #end
+  /**
+   * Executes the `updateWallpaperNative` operation.
+   * @return Result produced by `updateWallpaperNative`, when applicable.
+   */
   static function updateWallpaperNative()
   { // Only works on windows, otherwise returns 0!
     return null;
@@ -126,6 +146,10 @@ class PlatformUtilNative
 		return false;
 	')
   #end
+  /**
+   * Executes the `detectWineNative` operation.
+   * @return Result produced by `detectWineNative`, when applicable.
+   */
   static function detectWineNative():Bool
   {
     return false;
@@ -166,6 +190,10 @@ class PlatformUtilNative
 	')
   #end
   @:noCompletion
+  /**
+   * Executes the `getArchNative` operation.
+   * @return Result produced by `getArchNative`, when applicable.
+   */
   static function getArchNative():String
   {
     return null;

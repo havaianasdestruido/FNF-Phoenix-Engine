@@ -8,6 +8,13 @@ import play.PlayState;
 // REFACTOR: character list/pos/lua logic extracted from play.PlayState
 class PlayStateCharacters
 {
+	/**
+	 * Executes the `addCharacterToList` operation.
+	 * @param state Input value for `state`.
+	 * @param newCharacter Input value for `newCharacter`.
+	 * @param type Input value for `type`.
+	 * @return Result produced by `addCharacterToList`, when applicable.
+	 */
 	public static function addCharacterToList(state:PlayState, newCharacter:String, type:Int) {
 		switch(type) {
 			case 0:
@@ -43,6 +50,12 @@ class PlayStateCharacters
 		}
 	}
 
+	/**
+	 * Executes the `startCharacterLua` operation.
+	 * @param state Input value for `state`.
+	 * @param name Input value for `name`.
+	 * @return Result produced by `startCharacterLua`, when applicable.
+	 */
 	public static function startCharacterLua(state:PlayState, name:String)
 	{
 		#if LUA_ALLOWED
@@ -78,6 +91,13 @@ if(doPush)
 			#end
 	}
 
+	/**
+	 * Executes the `startCharacterPos` operation.
+	 * @param state Input value for `state`.
+	 * @param char Input value for `char`.
+	 * @param gfCheck Input value for `gfCheck`.
+	 * @return Result produced by `startCharacterPos`, when applicable.
+	 */
 	public static function startCharacterPos(state:PlayState, char:Character, ?gfCheck:Bool = false) {
 		if(gfCheck && char.curCharacter.startsWith('gf')) { //IF DAD IS GIRLFRIEND, HE GOES TO HER POSITION
 			char.setPosition(state.GF_X, state.GF_Y);

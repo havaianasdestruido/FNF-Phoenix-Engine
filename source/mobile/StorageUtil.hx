@@ -46,9 +46,19 @@ using StringTools;
 class StorageUtil
 {
 	#if sys
+	/**
+	 * Executes the `getStorageDirectory` operation.
+	 * @return Result produced by `getStorageDirectory`, when applicable.
+	 */
 	public static function getStorageDirectory():String
 		return #if android haxe.io.Path.addTrailingSlash(AndroidContext.getExternalFilesDir()) #elseif ios lime.system.System.documentsDirectory #else Sys.getCwd() #end;
 
+	/**
+	 * Executes the `saveContent` operation.
+	 * @param fileName Input value for `fileName`.
+	 * @param fileData Input value for `fileData`.
+	 * @param alert Input value for `alert`.
+	 */
 	public static function saveContent(fileName:String, fileData:String, ?alert:Bool = true):Void
 	{
 		try
@@ -68,6 +78,9 @@ class StorageUtil
 	}
 
 	#if android
+	/**
+	 * Executes the `requestPermissions` operation.
+	 */
 	public static function requestPermissions():Void
 	{
 		if (AndroidVersion.SDK_INT >= AndroidVersionCode.TIRAMISU)

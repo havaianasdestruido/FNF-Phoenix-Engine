@@ -12,6 +12,12 @@ import objects.Note;
 @:access(backend.MusicBeatState)
 class ChartingEvents
 {
+  /**
+   * Executes the `changeEventSelected` operation.
+   * @param state Input value for `state`.
+   * @param change Input value for `change`.
+   * @return Result produced by `changeEventSelected`, when applicable.
+   */
   public static function changeEventSelected(state:ChartingState, change:Int = 0)
   {
     if (state.curSelectedNote != null && state.curSelectedNote[2] == null) // Is event note
@@ -28,6 +34,13 @@ class ChartingEvents
     state.updateNoteUI();
   }
 
+  /**
+   * Executes the `setAllLabelsOffset` operation.
+   * @param button Input value for `button`.
+   * @param x Input value for `x`.
+   * @param y Input value for `y`.
+   * @return Result produced by `setAllLabelsOffset`, when applicable.
+   */
   public static function setAllLabelsOffset(button:FlxButton, x:Float, y:Float)
   {
     for (point in button.labelOffsets)
@@ -36,6 +49,12 @@ class ChartingEvents
     }
   }
 
+  /**
+   * Executes the `selectNote` operation.
+   * @param state Input value for `state`.
+   * @param note Input value for `note`.
+   * @param updateTheGrid Input value for `updateTheGrid`.
+   */
   public static function selectNote(state:ChartingState, note:Note, ?updateTheGrid:Bool = true):Void
   {
     var noteDataToCheck:Int = note.noteData;
@@ -72,6 +91,12 @@ class ChartingEvents
     }
   }
 
+  /**
+   * Executes the `deleteNote` operation.
+   * @param state Input value for `state`.
+   * @param note Input value for `note`.
+   * @param usingVortex Input value for `usingVortex`.
+   */
   public static function deleteNote(state:ChartingState, note:Note, ?usingVortex:Bool = false):Void
   {
     var noteDataToCheck:Int = note.noteData;
@@ -131,6 +156,14 @@ class ChartingEvents
     ChartingState.unsavedChanges = true;
   }
 
+  /**
+   * Executes the `doANoteThing` operation.
+   * @param state Input value for `state`.
+   * @param cs Input value for `cs`.
+   * @param d Input value for `d`.
+   * @param style Input value for `style`.
+   * @return Result produced by `doANoteThing`, when applicable.
+   */
   public static function doANoteThing(state:ChartingState, cs, d, style)
   {
     var delnote = false;
@@ -154,6 +187,10 @@ class ChartingEvents
     }
   }
 
+  /**
+   * Executes the `clearSong` operation.
+   * @param state Input value for `state`.
+   */
   public static function clearSong(state:ChartingState):Void
   {
     for (daSection in 0...state._song.notes.length)
@@ -165,6 +202,14 @@ class ChartingEvents
     state.updateGrid();
   }
 
+  /**
+   * Executes the `addNote` operation.
+   * @param state Input value for `state`.
+   * @param strum Input value for `strum`.
+   * @param data Input value for `data`.
+   * @param type Input value for `type`.
+   * @param gridUpdate Input value for `gridUpdate`.
+   */
   public static function addNote(state:ChartingState, strum:Null<Float> = null, data:Null<Int> = null, type:Null<Int> = null, ?gridUpdate:Bool = true):Void
   {
     var noteStrum = state.getStrumTime(state.selectionNote.y * (state.getSectionBeats() / 4), false) + state.sectionStartTime();
@@ -251,6 +296,11 @@ class ChartingEvents
     ChartingState.unsavedChanges = true;
   }
 
+  /**
+   * Executes the `changeNoteSustain` operation.
+   * @param state Input value for `state`.
+   * @param value Input value for `value`.
+   */
   public static function changeNoteSustain(state:ChartingState, value:Float):Void
   {
     if (state.curSelectedNote != null)
@@ -270,6 +320,11 @@ class ChartingEvents
   }
 
   // will figure this out l8r
+  /**
+   * Executes the `redo` operation.
+   * @param state Input value for `state`.
+   * @return Result produced by `redo`, when applicable.
+   */
   public static function redo(state:ChartingState)
   {
     // state._song = state.redos[state.curRedoIndex];

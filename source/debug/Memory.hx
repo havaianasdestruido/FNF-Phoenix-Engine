@@ -4,6 +4,10 @@ package debug;
  * Utility class with the ability to return the program's memory usage.
  */
 class Memory {
+    /**
+     * Executes the `gay` operation.
+     * @return Result produced by `gay`, when applicable.
+     */
     inline public static function gay():Float {
         #if cpp
 		return cpp.vm.Gc.memInfo64(cpp.vm.Gc.MEM_INFO_USAGE);

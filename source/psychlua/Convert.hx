@@ -16,6 +16,13 @@ import play.PlayState;
  */
 class Convert
 {
+	/**
+	 * Executes the `addCallback` operation.
+	 * @param l Input value for `l`.
+	 * @param name Input value for `name`.
+	 * @param func Input value for `func`.
+	 * @return Result produced by `addCallback`, when applicable.
+	 */
 	public static function addCallback(l:State, name:String, func:Dynamic)
 	{
 	    // PsychLua expects the function to be null for local callbacks so if func is not TFunction we don't add the callback here
@@ -27,6 +34,12 @@ class Convert
         Lua.setglobal(l, name);
 	}
 
+	/**
+	 * Executes the `removeCallback` operation.
+	 * @param l Input value for `l`.
+	 * @param name Input value for `name`.
+	 * @return Result produced by `removeCallback`, when applicable.
+	 */
 	public static function removeCallback(l:State, name:String)
 	{
 		if (!callbacks.exists(name))
@@ -38,6 +51,12 @@ class Convert
         Lua.setglobal(l, name);
 	}
 
+	/**
+	 * Executes the `toLua` operation.
+	 * @param l Input value for `l`.
+	 * @param v Input value for `v`.
+	 * @return Result produced by `toLua`, when applicable.
+	 */
 	public static function toLua(l:State, v:Dynamic):Bool
 	{
 		switch (Type.typeof(v))
@@ -92,6 +111,12 @@ class Convert
 		return true;
 	}
 
+	/**
+	 * Executes the `fromLua` operation.
+	 * @param l Input value for `l`.
+	 * @param idx Input value for `idx`.
+	 * @return Result produced by `fromLua`, when applicable.
+	 */
 	public static function fromLua(l:State, idx:Int):Dynamic
 	{
 		var ret:Dynamic = null;
@@ -117,6 +142,12 @@ class Convert
 		return ret;
 	}
 
+	/**
+	 * Executes the `callFunctionWithoutName` operation.
+	 * @param l Input value for `l`.
+	 * @param args Input value for `args`.
+	 * @return Result produced by `callFunctionWithoutName`, when applicable.
+	 */
 	public static function callFunctionWithoutName(l:State, args:Array<Dynamic>):Array<Dynamic>
 	{
 		for (arg in args)
@@ -148,6 +179,12 @@ class Convert
 	}
 
 	@:noCompletion
+	/**
+	 * Executes the `convertTable` operation.
+	 * @param l Input value for `l`.
+	 * @param idx Input value for `idx`.
+	 * @return Result produced by `convertTable`, when applicable.
+	 */
 	private static function convertTable(l:State, idx:Int):Dynamic
 	{
 		var isArray:Bool = true;
@@ -200,6 +237,11 @@ class Convert
 	}
 
 	@:noCompletion
+	/**
+	 * Executes the `iterateTable` operation.
+	 * @param l Input value for `l`.
+	 * @param idx Input value for `idx`.
+	 */
 	private static function iterateTable(l:State, idx:Int, fn:Void->Void):Void
 	{
 		Lua.pushnil(l);
@@ -216,6 +258,11 @@ class Convert
 	private static var funcs = [];
 
 	@:noCompletion
+	/**
+	 * Executes the `handleMethod` operation.
+	 * @param l Input value for `l`.
+	 * @return Result produced by `handleMethod`, when applicable.
+	 */
 	private static function handleMethod(l:State):Int
 	{
 		var argsLength:Int = Lua.gettop(l);
@@ -244,6 +291,11 @@ class Convert
 	private static var callbacks:Map<String, Dynamic> = new Map();
 
 	@:noCompletion
+	/**
+	 * Executes the `handleCallback` operation.
+	 * @param l Input value for `l`.
+	 * @return Result produced by `handleCallback`, when applicable.
+	 */
 	private static function handleCallback(l:State):Int
 	{
 		try

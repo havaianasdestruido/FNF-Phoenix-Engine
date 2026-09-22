@@ -49,6 +49,11 @@ class SSPlugin extends flixel.FlxBasic
 	 */
 	public static var JPEGQuality(default, set):Int = 80;
 
+	/**
+	 * Executes the `set_saveFormat` operation.
+	 * @param v Input value for `v`.
+	 * @return Result produced by `set_saveFormat`, when applicable.
+	 */
 	inline public static function set_saveFormat(v:FileFormatOption)
 	{
 		if (v != JPEG && v != PNG)
@@ -59,6 +64,11 @@ class SSPlugin extends flixel.FlxBasic
 		return saveFormat = v;
 	}
 
+	/**
+	 * Executes the `set_flashColor` operation.
+	 * @param v Input value for `v`.
+	 * @return Result produced by `set_flashColor`, when applicable.
+	 */
 	inline public static function set_flashColor(v:Int):Int
 	{
 		flashColor = v;
@@ -67,6 +77,11 @@ class SSPlugin extends flixel.FlxBasic
 		return flashColor;
 	}
 
+	/**
+	 * Executes the `set_outlineColor` operation.
+	 * @param v Input value for `v`.
+	 * @return Result produced by `set_outlineColor`, when applicable.
+	 */
 	inline public static function set_outlineColor(v:Int):Int
 	{
 		outlineColor = v;
@@ -75,6 +90,11 @@ class SSPlugin extends flixel.FlxBasic
 		return outlineColor;
 	}
 
+	/**
+	 * Executes the `set_JPEGQuality` operation.
+	 * @param v Input value for `v`.
+	 * @return Result produced by `set_JPEGQuality`, when applicable.
+	 */
 	inline public static function set_JPEGQuality(v:Int):Int
 		return JPEGQuality = Std.int(Math.max(0, Math.min(100, v)));
 
@@ -126,6 +146,10 @@ class SSPlugin extends flixel.FlxBasic
 
 	var buggedKillTime:Float = 1.5;
 	var aliveTime:Float = 0;
+	/**
+	 * Executes the `update` operation.
+	 * @param elapsed Input value for `elapsed`.
+	 */
 	override public function update(elapsed:Float):Void
 	{
 		if (FlxG.keys.checkStatus(screenshotKey, JUST_PRESSED) && enabled)
@@ -142,6 +166,9 @@ class SSPlugin extends flixel.FlxBasic
 		}
 	}
 
+	/**
+	 * Executes the `screenshot` operation.
+	 */
 	private function screenshot():Void
 	{
 		FlxTween.cancelTweensOf(flashSprite);
@@ -197,6 +224,12 @@ class SSPlugin extends flixel.FlxBasic
 		});
 	}
 
+	/**
+	 * Executes the `resizeBitmap` operation.
+	 * @param width Input value for `width`.
+	 * @param height Input value for `height`.
+	 * @return Result produced by `resizeBitmap`, when applicable.
+	 */
 	inline private function resizeBitmap(width:Int, height:Int)
 	{
 		lastWidth = width;
@@ -205,6 +238,9 @@ class SSPlugin extends flixel.FlxBasic
 		outlineBitmap.bitmapData = new BitmapData(Std.int(lastWidth / 5) + 10, Std.int(lastHeight / 5) + 10, true, outlineColor);
 	}
 
+	/**
+	 * Executes the `destroy` operation.
+	 */
 	override public function destroy():Void
 	{
 		if (current == this)
@@ -242,6 +278,10 @@ enum abstract FileFormatOption(String) from String
 	var JPEG = ".jpg";
 	var PNG = ".png";
 
+	/**
+	 * Executes the `returnEncoder` operation.
+	 * @return Result produced by `returnEncoder`, when applicable.
+	 */
 	public function returnEncoder():Any
 	{
 		return switch (this : FileFormatOption)

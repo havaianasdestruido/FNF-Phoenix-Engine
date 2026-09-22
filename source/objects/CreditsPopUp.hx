@@ -20,6 +20,13 @@ class CreditsPopUp extends FlxSpriteGroup
 	public var funnyIcon:FlxSprite;
 	var curHeading:SongHeading;
 
+	/**
+	 * Executes the `new` operation.
+	 * @param x Input value for `x`.
+	 * @param y Input value for `y`.
+	 * @param title Input value for `title`.
+	 * @param songCreator Input value for `songCreator`.
+	 */
 	public function new(x:Float, y:Float, title:String = '', songCreator:String = '')
 	{
 		super(x, y);
@@ -59,6 +66,11 @@ class CreditsPopUp extends FlxSpriteGroup
 		var yValues = CoolUtil.getMinAndMax(bg.height, funnyText.height);
 		funnyText.y = funnyText.y + ((yValues[0] - yValues[1]) / 2);
 	}
+	/**
+	 * Executes the `switchHeading` operation.
+	 * @param newHeading Input value for `newHeading`.
+	 * @return Result produced by `switchHeading`, when applicable.
+	 */
 	public function switchHeading(newHeading:SongHeading)
 	{
 		if (bg != null)
@@ -76,6 +88,13 @@ class CreditsPopUp extends FlxSpriteGroup
 
 		rescaleBG();
 	}
+	/**
+	 * Executes the `changeText` operation.
+	 * @param newText Input value for `newText`.
+	 * @param newIcon Input value for `newIcon`.
+	 * @param rescaleHeading Input value for `rescaleHeading`.
+	 * @return Result produced by `changeText`, when applicable.
+	 */
 	public function changeText(newText:String, newIcon:String, rescaleHeading:Bool = true)
 	{
 		createHeadingText(newText);
@@ -92,6 +111,10 @@ class CreditsPopUp extends FlxSpriteGroup
 			rescaleBG();
 		}
 	}
+	/**
+	 * Executes the `rescaleIcon` operation.
+	 * @return Result produced by `rescaleIcon`, when applicable.
+	 */
 	public function rescaleIcon()
 	{
 		var offset = (curHeading == null ? 0 : curHeading.iconOffset);
@@ -103,6 +126,11 @@ class CreditsPopUp extends FlxSpriteGroup
 		var heightValues = CoolUtil.getMinAndMax(funnyIcon.height, funnyText.height);
 		funnyIcon.setPosition(funnyText.textField.textWidth + offset, (heightValues[0] - heightValues[1]) / 2);
 	}
+	/**
+	 * Executes the `createHeadingText` operation.
+	 * @param text Input value for `text`.
+	 * @return Result produced by `createHeadingText`, when applicable.
+	 */
 	function createHeadingText(text:String)
 	{
 		if (funnyText != null)
@@ -115,6 +143,10 @@ class CreditsPopUp extends FlxSpriteGroup
 		funnyText.antialiasing = true;
 		add(funnyText);
 	}
+	/**
+	 * Executes the `rescaleBG` operation.
+	 * @return Result produced by `rescaleBG`, when applicable.
+	 */
 	function rescaleBG()
 	{
 		bg.setGraphicSize(Std.int((funnyText.textField.textWidth + 0.5)), Std.int(funnyText.height + 0.5));

@@ -21,6 +21,9 @@ class FlxDrawQuadsItem extends FlxDrawBaseItem<FlxDrawQuadsItem>
 	var colorMultipliers:Array<Float>;
 	var colorOffsets:Array<Float>;
 
+	/**
+	 * Executes the `new` operation.
+*/
 	public function new()
 	{
 		super();
@@ -30,6 +33,9 @@ class FlxDrawQuadsItem extends FlxDrawBaseItem<FlxDrawQuadsItem>
 		alphas = [];
 	}
 
+	/**
+	 * Executes the `reset` operation.
+*/
 	override public function reset():Void
 	{
 		super.reset();
@@ -42,6 +48,9 @@ class FlxDrawQuadsItem extends FlxDrawBaseItem<FlxDrawQuadsItem>
 			colorOffsets.splice(0, colorOffsets.length);
 	}
 
+	/**
+	 * Executes the `dispose` operation.
+*/
 	override public function dispose():Void
 	{
 		super.dispose();
@@ -52,6 +61,12 @@ class FlxDrawQuadsItem extends FlxDrawBaseItem<FlxDrawQuadsItem>
 		colorOffsets = null;
 	}
 
+	/**
+	 * Executes the `addQuad` operation.
+	 * @param frame Input value for `frame`.
+	 * @param matrix Input value for `matrix`.
+	 * @param transform Input value for `transform`.
+	 */
 	override public function addQuad(frame:FlxFrame, matrix:FlxMatrix, ?transform:ColorTransform):Void
 	{
 		var rect = frame.frame;
@@ -109,6 +124,10 @@ class FlxDrawQuadsItem extends FlxDrawBaseItem<FlxDrawQuadsItem>
 		}
 	}
 
+	/**
+	 * Executes the `render` operation.
+	 * @param camera Input value for `camera`.
+	 */
 	override public function render(camera:FlxCamera):Void
 	{
 		if (rects.length == 0)
@@ -146,6 +165,11 @@ class FlxDrawQuadsItem extends FlxDrawBaseItem<FlxDrawQuadsItem>
 		#end
 	}
 
+	/**
+	 * Executes the `setParameterValue` operation.
+	 * @param parameter Input value for `parameter`.
+	 * @param value Input value for `value`.
+	 */
 	inline function setParameterValue(parameter:ShaderParameter<Bool>, value:Bool):Void
 	{
 		if (parameter.value == null)

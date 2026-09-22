@@ -8,6 +8,10 @@ import headers.PsychLua;
 // REFACTOR: extracted from psychlua.PythonScript (key/control API)
 class PyKeyLib
 {
+	/**
+	 * Executes the `register` operation.
+	 * @param py Input value for `py`.
+	 */
 	public static function register(py:PythonScript):Void {
 		@:privateAccess {
 		PythonScript.registerFunction("keyJustPressed", function(name:String) {

@@ -11,9 +11,18 @@ typedef NoteTypeProperty = {
 class NoteTypesConfig
 {
 	private static var noteTypesData:Map<String, Array<NoteTypeProperty>> = new Map<String, Array<NoteTypeProperty>>();
+	/**
+	 * Executes the `clearNoteTypesData` operation.
+	 * @return Result produced by `clearNoteTypesData`, when applicable.
+	 */
 	public static function clearNoteTypesData()
 		noteTypesData.clear();
 
+	/**
+	 * Executes the `loadNoteTypeData` operation.
+	 * @param name Input value for `name`.
+	 * @return Result produced by `loadNoteTypeData`, when applicable.
+	 */
 	public static function loadNoteTypeData(name:String)
 	{
 		if(noteTypesData.exists(name)) return noteTypesData.get(name);
@@ -50,6 +59,12 @@ class NoteTypesConfig
 		return parsed;
 	}
 
+	/**
+	 * Executes the `applyNoteTypeData` operation.
+	 * @param note Input value for `note`.
+	 * @param name Input value for `name`.
+	 * @return Result produced by `applyNoteTypeData`, when applicable.
+	 */
 	public static function applyNoteTypeData(note:Note, name:String)
 	{
 		var data:Array<NoteTypeProperty> = loadNoteTypeData(name);
@@ -87,6 +102,14 @@ class NoteTypesConfig
 		}
 	}
 
+	/**
+	 * Executes the `_propCheckArray` operation.
+	 * @param obj Input value for `obj`.
+	 * @param slice Input value for `slice`.
+	 * @param setProp Input value for `setProp`.
+	 * @param valueToSet Input value for `valueToSet`.
+	 * @return Result produced by `_propCheckArray`, when applicable.
+	 */
 	private static function _propCheckArray(obj:Dynamic, slice:String, setProp:Bool = false, valueToSet:Dynamic = null)
 	{
 		var propArray:Array<String> = slice.split('[');
@@ -111,6 +134,11 @@ class NoteTypesConfig
 		return Reflect.getProperty(obj, slice);
 	}
 
+	/**
+	 * Executes the `_interpretValue` operation.
+	 * @param value Input value for `value`.
+	 * @return Result produced by `_interpretValue`, when applicable.
+	 */
 	private static function _interpretValue(value:String):Any
 	{
 		if(value.charAt(0) == "'" || value.charAt(0) == '"')

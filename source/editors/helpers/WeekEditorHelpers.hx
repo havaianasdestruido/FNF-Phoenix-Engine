@@ -26,6 +26,10 @@ import sys.io.File;
 @:access(editors.WeekEditorState)
 class WeekEditorHelpers
 {
+	/**
+	 * Executes the `addWeekUI` operation.
+	 * @param state Input value for `state`.
+	 */
 	public static function addWeekUI(state:WeekEditorState):Void
 	{
 		var tab_group = new FlxUI(null, state.UI_box);
@@ -88,6 +92,10 @@ class WeekEditorHelpers
 		state.UI_box.addGroup(tab_group);
 	}
 
+	/**
+	 * Executes the `addOtherUI` operation.
+	 * @param state Input value for `state`.
+	 */
 	public static function addOtherUI(state:WeekEditorState):Void
 	{
 		var tab_group = new FlxUI(null, state.UI_box);
@@ -127,6 +135,10 @@ class WeekEditorHelpers
 	}
 
 	//Used on onCreate and when you load a week
+	/**
+	 * Executes the `reloadAll` operation.
+	 * @param state Input value for `state`.
+	 */
 	public static function reloadAll(state:WeekEditorState):Void
 	{
 		var weekString:String = state.weekFile.songs[0][0];
@@ -161,6 +173,10 @@ class WeekEditorHelpers
 		updateText(state);
 	}
 
+	/**
+	 * Executes the `updateText` operation.
+	 * @param state Input value for `state`.
+	 */
 	public static function updateText(state:WeekEditorState):Void
 	{
 		for (i in 0...state.grpWeekCharacters.length) {
@@ -187,6 +203,10 @@ class WeekEditorHelpers
 		state.txtWeekTitle.x = FlxG.width - (state.txtWeekTitle.width + 10);
 	}
 
+	/**
+	 * Executes the `reloadBG` operation.
+	 * @param state Input value for `state`.
+	 */
 	public static function reloadBG(state:WeekEditorState):Void
 	{
 		state.bgSprite.visible = true;
@@ -206,6 +226,10 @@ class WeekEditorHelpers
 		}
 	}
 
+	/**
+	 * Executes the `reloadWeekThing` operation.
+	 * @param state Input value for `state`.
+	 */
 	public static function reloadWeekThing(state:WeekEditorState):Void
 	{
 		state.weekThing.visible = true;
@@ -234,12 +258,19 @@ class WeekEditorHelpers
 		#end
 	}
 
+	/**
+	 * Executes the `recalculateStuffPosition` operation.
+	 * @param state Input value for `state`.
+	 */
 	public static function recalculateStuffPosition(state:WeekEditorState):Void
 	{
 		state.weekThing.screenCenter(X);
 		state.lock.x = state.weekThing.width + 10 + state.weekThing.x;
 	}
 
+	/**
+	 * Executes the `loadWeek` operation.
+	 */
 	public static function loadWeek():Void
 	{
 		var jsonFilter:FileFilter = new FileFilter('JSON', 'json');
@@ -250,6 +281,10 @@ class WeekEditorHelpers
 		WeekEditorState._file.browse([jsonFilter]);
 	}
 
+	/**
+	 * Executes the `onLoadComplete` operation.
+	 * @param _ Input value for `_`.
+	 */
 	public static function onLoadComplete(_):Void
 	{
 		WeekEditorState._file.removeEventListener(Event.SELECT, onLoadComplete);
@@ -299,7 +334,7 @@ class WeekEditorHelpers
 
 	/**
 		* Called if there is an error while saving the gameplay recording.
-		*/
+*/
 	public static function onLoadError(_):Void
 	{
 		WeekEditorState._file.removeEventListener(Event.SELECT, onLoadComplete);
@@ -309,6 +344,10 @@ class WeekEditorHelpers
 		trace("Problem loading file");
 	}
 
+	/**
+	 * Executes the `saveWeek` operation.
+	 * @param weekFile Input value for `weekFile`.
+	 */
 	public static function saveWeek(weekFile:WeekFile):Void
 	{
 		var data:String = Json.stringify(weekFile, "\t");
@@ -322,6 +361,10 @@ class WeekEditorHelpers
 		}
 	}
 
+	/**
+	 * Executes the `onSaveComplete` operation.
+	 * @param _ Input value for `_`.
+	 */
 	public static function onSaveComplete(_):Void
 	{
 		WeekEditorState._file.removeEventListener(Event.COMPLETE, onSaveComplete);

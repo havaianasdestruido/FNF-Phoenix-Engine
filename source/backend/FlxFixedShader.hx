@@ -13,6 +13,10 @@ class FlxFixedShader extends OriginalFlxShader
 	public var custom:Bool = false;
 	public var save:Bool = true;
 
+	/**
+	 * Executes the `new` operation.
+	 * @param save Input value for `save`.
+	 */
 	public override function new(?save:Bool)
 	{
 		if (save != null)
@@ -43,12 +47,22 @@ class FlxFixedShader extends OriginalFlxShader
 			initGLforce();
 	}
 
+	/**
+	 * Executes the `initGLforce` operation.
+	 * @return Result produced by `initGLforce`, when applicable.
+	 */
 	public function initGLforce()
 	{
 		if (!custom)
 			initGood(glFragmentSource, glVertexSource);
 	}
 
+	/**
+	 * Executes the `initGood` operation.
+	 * @param glFragmentSource Input value for `glFragmentSource`.
+	 * @param glVertexSource Input value for `glVertexSource`.
+	 * @return Result produced by `initGood`, when applicable.
+	 */
 	public function initGood(glFragmentSource:String, glVertexSource:String)
 	{
 		@:privateAccess

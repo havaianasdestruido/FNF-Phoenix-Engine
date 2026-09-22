@@ -79,6 +79,12 @@ class CoolUtil
 		'tankman-player'
 	];
 
+	/**
+	 * Executes the `quantize` operation.
+	 * @param f Input value for `f`.
+	 * @param snap Input value for `snap`.
+	 * @return Result produced by `quantize`, when applicable.
+	 */
 	inline public static function quantize(f:Float, snap:Float)
 	{
 		// changed so this actually works lol
@@ -87,6 +93,12 @@ class CoolUtil
 		return (m / snap);
 	}
 
+	/**
+	 * Executes the `isVersionNewer` operation.
+	 * @param versionA Input value for `versionA`.
+	 * @param versionB Input value for `versionB`.
+	 * @return Result produced by `isVersionNewer`, when applicable.
+	 */
 	public static function isVersionNewer(versionA:String, versionB:String):Bool {
 		var partsA = versionA.split(".").map(Std.parseInt);
 		var partsB = versionB.split(".").map(Std.parseInt);
@@ -119,6 +131,12 @@ class CoolUtil
 	public static var baseW:Float = 1;
 	public static var baseH:Float = 1;
 
+	/**
+	 * Executes the `resetResScale` operation.
+	 * @param wid Input value for `wid`.
+	 * @param height Input value for `height`.
+	 * @return Result produced by `resetResScale`, when applicable.
+	 */
 	inline public static function resetResScale(wid:Int = 1280, height:Int = 720)
 	{
 		resW = wid / baseW;
@@ -130,6 +148,9 @@ class CoolUtil
 	public static var getUserPath = CoolSystemStuff.getUserPath;
 	public static var getTempPath = CoolSystemStuff.getTempPath;
 
+	/**
+	 * Executes the `selfDestruct` operation.
+	 */
 	public static function selfDestruct():Void // this function instantly deletes your JS Engine build. i stole this from vs marcello source so if this gets used for malicious purposes im removing it
 	{
 		#if sys
@@ -144,6 +165,10 @@ class CoolUtil
 		#end
 	}
 
+	/**
+	 * Executes the `checkForOBS` operation.
+	 * @return Result produced by `checkForOBS`, when applicable.
+	 */
 	public static function checkForOBS():Bool
 	{
 		#if sys
@@ -177,6 +202,13 @@ class CoolUtil
 		#end
 	}
 
+	/**
+	 * Executes the `getSongDuration` operation.
+	 * @param musicTime Input value for `musicTime`.
+	 * @param musicLength Input value for `musicLength`.
+	 * @param precision Input value for `precision`.
+	 * @return Result produced by `getSongDuration`, when applicable.
+	 */
 	public static function getSongDuration(musicTime:Float, musicLength:Float, precision:Int = 0):String
 	{
 		final secondsMax:Int = Math.floor((musicLength - musicTime) / 1000); // 1 second = 1000 miliseconds
@@ -204,6 +236,12 @@ class CoolUtil
 		return formattedTime;
 	}
 
+	/**
+	 * Executes the `formatTime` operation.
+	 * @param musicTime Input value for `musicTime`.
+	 * @param precision Input value for `precision`.
+	 * @return Result produced by `formatTime`, when applicable.
+	 */
 	public static function formatTime(musicTime:Float, precision:Int = 0):String
 	{
 		var secs:String = '' + Math.floor(musicTime / 1000) % 60;
@@ -251,6 +289,11 @@ class CoolUtil
 	private static final DEC_SUFFIXES:Array<Array<Dynamic>> = [['', false], ['un', false], ['duo', false], ['tre', true], ['quattuor', false], ['quin', false], ['se', true], ['septe', true], ['octo', false], ['nove', true]];
 	private static final CENTI_SUFFIXES:Array<Array<String>> = [['', '', ''], ['centi', 'n', 'x'], ['ducenti', 'n', ''], ['trecenti', 'n', 's'], ['quadringenti', 'n', 's'], ['quingenti', 'n', 's'], ['sescenti', 'n', ''], ['septingenti', 'n', ''], ['octingenti', 'm', 'x'], ['nongenti', '', '']];
 	
+	/**
+	 * Executes the `formatCompactNumber` operation.
+	 * @param number Input value for `number`.
+	 * @return Result produced by `formatCompactNumber`, when applicable.
+	 */
 	public static function formatCompactNumber(number:Float):String
 	{
 		var magnitude:Int = -1;
@@ -294,6 +337,12 @@ class CoolUtil
 		}
 	}
 
+	/**
+	 * Executes the `zeroFill` operation.
+	 * @param value Input value for `value`.
+	 * @param digits Input value for `digits`.
+	 * @return Result produced by `zeroFill`, when applicable.
+	 */
 	public static function zeroFill(value:Int, digits:Int)
 	{
 		var length:Int = Std.string(value).length;
@@ -309,6 +358,11 @@ class CoolUtil
 		return format;
 	}
 
+	/**
+	 * Executes the `getHealthColors` operation.
+	 * @param char Input value for `char`.
+	 * @return Result produced by `getHealthColors`, when applicable.
+	 */
 	public static function getHealthColors(char:Character):Array<Int>
 	{
 		if (char != null)
@@ -327,6 +381,13 @@ class CoolUtil
 	static var latestBpmChangeIndex = 0;
 	static var latestBpmChange = null;
 
+	/**
+	 * Executes the `checkNoteQuant` operation.
+	 * @param note Input value for `note`.
+	 * @param timeToCheck Input value for `timeToCheck`.
+	 * @param rgbShader Input value for `rgbShader`.
+	 * @return Result produced by `checkNoteQuant`, when applicable.
+	 */
 	public static function checkNoteQuant(note:Note, timeToCheck:Float, ?rgbShader:RGBShaderReference)
 	{
 		if (ClientPrefs.noteColorStyle == 'Quant-Based' && (ClientPrefs.showNotes && ClientPrefs.enableColorShader))
@@ -372,6 +433,11 @@ class CoolUtil
 		}
 	}
 
+	/**
+	 * Executes the `getDifficultyFilePath` operation.
+	 * @param num Input value for `num`.
+	 * @return Result produced by `getDifficultyFilePath`, when applicable.
+	 */
 	public static function getDifficultyFilePath(num:Null<Int> = null)
 	{
 		if (num == null)
@@ -389,11 +455,21 @@ class CoolUtil
 		return Paths.formatToSongPath(fileSuffix);
 	}
 
+	/**
+	 * Executes the `difficultyString` operation.
+	 * @return Result produced by `difficultyString`, when applicable.
+	 */
 	public static function difficultyString():String
 	{
 		return difficulties[PlayState.storyDifficulty].toUpperCase();
 	}
 
+	/**
+	 * Executes the `getMinAndMax` operation.
+	 * @param value1 Input value for `value1`.
+	 * @param value2 Input value for `value2`.
+	 * @return Result produced by `getMinAndMax`, when applicable.
+	 */
 	public static function getMinAndMax(value1:Float, value2:Float):Array<Float>
 	{
 		var minAndMaxs = new Array<Float>();
@@ -407,16 +483,35 @@ class CoolUtil
 		return minAndMaxs;
 	}
 
+	/**
+	 * Executes the `boundTo` operation.
+	 * @param value Input value for `value`.
+	 * @param min Input value for `min`.
+	 * @param max Input value for `max`.
+	 * @return Result produced by `boundTo`, when applicable.
+	 */
 	inline public static function boundTo(value:Float, min:Float, max:Float):Float
 	{
 		return clamp(value, min, max);
 	}
 
+	/**
+	 * Executes the `clamp` operation.
+	 * @param value Input value for `value`.
+	 * @param min Input value for `min`.
+	 * @param max Input value for `max`.
+	 * @return Result produced by `clamp`, when applicable.
+	 */
 	inline public static function clamp(value:Float, min:Float, max:Float):Float
 	{
 		return Math.max(min, Math.min(max, value));
 	}
 
+	/**
+	 * Executes the `coolTextFile` operation.
+	 * @param path Input value for `path`.
+	 * @return Result produced by `coolTextFile`, when applicable.
+	 */
 	inline public static function coolTextFile(path:String):Array<String>
 	{
 		var daList:String = null;
@@ -430,6 +525,11 @@ class CoolUtil
 		return daList != null ? listFromString(daList) : [];
 	}
 
+	/**
+	 * Executes the `colorFromString` operation.
+	 * @param color Input value for `color`.
+	 * @return Result produced by `colorFromString`, when applicable.
+	 */
 	inline public static function colorFromString(color:String):FlxColor
 	{
 		var hideChars:EReg = ~/[\t\n\r]/;
@@ -443,12 +543,23 @@ class CoolUtil
 		return colorNum != null ? colorNum : FlxColor.WHITE;
 	}
 
+	/**
+	 * Executes the `listFromString` operation.
+	 * @param string Input value for `string`.
+	 * @return Result produced by `listFromString`, when applicable.
+	 */
 	inline public static function listFromString(string:String):Array<String>
 	{
 		final daList:Array<String> = string.trim().split('\n');
 		return [for (i in 0...daList.length) daList[i].trim()];
 	}
 
+	/**
+	 * Executes the `floorDecimal` operation.
+	 * @param value Input value for `value`.
+	 * @param decimals Input value for `decimals`.
+	 * @return Result produced by `floorDecimal`, when applicable.
+	 */
 	public static function floorDecimal(value:Float, decimals:Int):Float
 	{
 		if (decimals < 1)
@@ -462,6 +573,11 @@ class CoolUtil
 		return newValue / tempMult;
 	}
 
+	/**
+	 * Executes the `dominantColor` operation.
+	 * @param sprite Input value for `sprite`.
+	 * @return Result produced by `dominantColor`, when applicable.
+	 */
 	public static function dominantColor(sprite:flixel.FlxSprite):Int
 	{
 		var countByColor:Map<Int, Int> = [];
@@ -533,11 +649,22 @@ class CoolUtil
 		#end
 	}
 
+	/**
+	 * Executes the `numberArray` operation.
+	 * @param max Input value for `max`.
+	 * @param min Input value for `min`.
+	 * @return Result produced by `numberArray`, when applicable.
+	 */
 	public static function numberArray(max:Int, ?min = 0):Array<Int>
 	{
 		return [for (i in min...max) i];
 	}
 
+	/**
+	 * Executes the `browserLoad` operation.
+	 * @param site Input value for `site`.
+	 * @return Result produced by `browserLoad`, when applicable.
+	 */
 	public static function browserLoad(site:String)
 	{
 		#if linux
@@ -547,6 +674,13 @@ class CoolUtil
 		#end
 	}
 
+	/**
+	 * Executes the `getNoteAmount` operation.
+	 * @param song Input value for `song`.
+	 * @param bothSides Input value for `bothSides`.
+	 * @param oppNotes Input value for `oppNotes`.
+	 * @return Result produced by `getNoteAmount`, when applicable.
+	 */
 	public static function getNoteAmount(song:SwagSong, ?bothSides:Bool = true, ?oppNotes:Bool = false):Int
 	{
 		var total:Int = 0;
@@ -574,12 +708,22 @@ class CoolUtil
 		@BeastlyGabi
 	**/
 	@:access(flixel.util.FlxSave.validate)
+	/**
+	 * Executes the `getSavePath` operation.
+	 * @return Result produced by `getSavePath`, when applicable.
+	 */
 	inline public static function getSavePath():String
 	{
 		final company:String = FlxG.stage.application.meta.get('company');
 		return '$company/${flixel.util.FlxSave.validate(FlxG.stage.application.meta.get('file'))}';
 	}
 
+	/**
+	 * Executes the `setTextBorderFromString` operation.
+	 * @param text Input value for `text`.
+	 * @param border Input value for `border`.
+	 * @return Result produced by `setTextBorderFromString`, when applicable.
+	 */
 	public static function setTextBorderFromString(text:FlxText, border:String)
 	{
 		switch (border.toLowerCase().trim())
@@ -595,6 +739,11 @@ class CoolUtil
 		}
 	}
 
+	/**
+	 * Executes the `showPopUp` operation.
+	 * @param message Input value for `message`.
+	 * @param title Input value for `title`.
+	 */
 	public static function showPopUp(message:String, title:String):Void
 	{
 		#if ((!ios || !iphonesim) && !flash)
