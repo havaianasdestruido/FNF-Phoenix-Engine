@@ -58,10 +58,10 @@ class PropertyCallbacks
 			return true;
 		});
 		FunkinLua.registerFunction("getPropertyFromGroup", function(obj:String, index:Int, variable:Dynamic) {
-			var shitMyPants:Array<String> = obj.split('.');
+			var objectPathParts:Array<String> = obj.split('.');
 			var realObject:Dynamic = Reflect.getProperty(FunkinLua.getInstance(), obj);
-			if(shitMyPants.length>1)
-				realObject = FunkinLua.getPropertyLoopThingWhatever(shitMyPants, true, false);
+			if(objectPathParts.length>1)
+				realObject = FunkinLua.getPropertyLoopThingWhatever(objectPathParts, true, false);
 
 			if(Std.isOfType(realObject, FlxTypedGroup))
 			{
@@ -83,10 +83,10 @@ class PropertyCallbacks
 			return null;
 		});
 		FunkinLua.registerFunction("setPropertyFromGroup", function(obj:String, index:Int, variable:Dynamic, value:Dynamic) {
-			var shitMyPants:Array<String> = obj.split('.');
+			var objectPathParts:Array<String> = obj.split('.');
 			var realObject:Dynamic = Reflect.getProperty(FunkinLua.getInstance(), obj);
-			if(shitMyPants.length>1)
-				realObject = FunkinLua.getPropertyLoopThingWhatever(shitMyPants, true, false);
+			if(objectPathParts.length>1)
+				realObject = FunkinLua.getPropertyLoopThingWhatever(objectPathParts, true, false);
 
 			if(Std.isOfType(realObject, FlxTypedGroup)) {
 				funk.setGroupStuff(realObject.members[index], variable, value);

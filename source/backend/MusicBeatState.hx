@@ -257,9 +257,9 @@ class MusicBeatState extends FlxUIState
 	{
 		final lastChange = Conductor.getBPMFromSeconds(Conductor.songPosition);
 
-		final shit = ((Conductor.songPosition - ClientPrefs.noteOffset) - lastChange.songTime) / lastChange.stepCrochet;
-		curDecStep = lastChange.stepTime + shit;
-		curStep = lastChange.stepTime + Math.floor(shit);
+		final decimalStep = ((Conductor.songPosition - ClientPrefs.noteOffset) - lastChange.songTime) / lastChange.stepCrochet;
+		curDecStep = lastChange.stepTime + decimalStep;
+		curStep = lastChange.stepTime + Math.floor(decimalStep);
 		updateBeat();
 	}
 

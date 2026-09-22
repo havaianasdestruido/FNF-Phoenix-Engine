@@ -46,7 +46,7 @@ class TitleState extends MusicBeatState
 
   var blackScreen:FlxSprite;
   var credGroup:FlxGroup;
-  var credTextShit:Alphabet;
+  var creditText:Alphabet;
   var textGroup:FlxGroup;
   var ngSpr:FlxSprite;
 
@@ -70,7 +70,7 @@ class TitleState extends MusicBeatState
 
     MusicBeatState.windowNamePrefix = Assets.getText(Paths.txt("windowTitleBase", "preload"));
 
-    curWacky = FlxG.random.getObject(getIntroTextShit());
+    curWacky = FlxG.random.getObject(getIntroText());
 
     // DEBUG BULLSHIT
 
@@ -256,10 +256,10 @@ class TitleState extends MusicBeatState
     blackScreen = new FlxSprite().makeGraphic(FlxG.width, FlxG.height, FlxColor.BLACK);
     credGroup.add(blackScreen);
 
-    credTextShit = new Alphabet(0, 0, "", true);
-    credTextShit.screenCenter();
+    creditText = new Alphabet(0, 0, "", true);
+    creditText.screenCenter();
 
-    credTextShit.visible = false;
+    creditText.visible = false;
 
     ngSpr = new FlxSprite(0, FlxG.height * 0.52).loadGraphic(Paths.image('newgrounds_logo'));
     add(ngSpr);
@@ -269,14 +269,14 @@ class TitleState extends MusicBeatState
     ngSpr.screenCenter(X);
     ngSpr.antialiasing = ClientPrefs.globalAntialiasing;
 
-    FlxTween.tween(credTextShit, {y: credTextShit.y + 20}, 2.9, {ease: FlxEase.quadInOut, type: PINGPONG});
+    FlxTween.tween(creditText, {y: creditText.y + 20}, 2.9, {ease: FlxEase.quadInOut, type: PINGPONG});
 
     if (initialized) skipIntro();
     else
       initialized = true;
   }
 
-  function getIntroTextShit():Array<Array<String>>
+  function getIntroText():Array<Array<String>>
   {
     var fullText:String = Assets.getText(Paths.txt('introText'));
 

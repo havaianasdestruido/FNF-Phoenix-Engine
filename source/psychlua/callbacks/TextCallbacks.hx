@@ -154,8 +154,8 @@ class TextCallbacks
 
 		FunkinLua.registerFunction("addLuaText", function(tag:String) {
 			if(PlayState.instance.modchartTexts.exists(tag)) {
-				var shit:FlxText = PlayState.instance.modchartTexts.get(tag);
-				if(shit != null) FunkinLua.getInstance().add(shit);
+				var textObject:FlxText = PlayState.instance.modchartTexts.get(tag);
+				if(textObject != null) FunkinLua.getInstance().add(textObject);
 			}
 		});
 		FunkinLua.registerFunction("removeLuaText", function(tag:String, destroy:Bool = true) {

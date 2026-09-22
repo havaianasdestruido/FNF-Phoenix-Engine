@@ -101,9 +101,9 @@ class DeprecatedCallbacks
 		FunkinLua.registerFunction("scaleLuaSprite", function(tag:String, x:Float, y:Float) {
 			LuaUtils.luaTrace(funk.lua, "scaleLuaSprite is deprecated! Use scaleObject instead", false, true);
 			if(PlayState.instance.modchartSprites.exists(tag)) {
-				var shit:ModchartSprite = PlayState.instance.modchartSprites.get(tag);
-				shit.scale.set(x, y);
-				shit.updateHitbox();
+				var sprite:ModchartSprite = PlayState.instance.modchartSprites.get(tag);
+				sprite.scale.set(x, y);
+				sprite.updateHitbox();
 				return true;
 			}
 			return false;

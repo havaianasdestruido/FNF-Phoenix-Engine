@@ -285,9 +285,9 @@ class GameCallbacks
 			if(Assets.exists(path))
 			#end
 			{
-				var shit:DialogueFile = DialogueBoxPsych.parseDialogue(path);
-				if(shit.dialogue.length > 0) {
-					PlayState.instance.startDialogue(shit, music);
+				var dialogueData:DialogueFile = DialogueBoxPsych.parseDialogue(path);
+				if(dialogueData.dialogue.length > 0) {
+					PlayState.instance.startDialogue(dialogueData, music);
 					LuaUtils.luaTrace(funk.lua, 'startDialogue | Successfully loaded dialogue', false, false, FlxColor.GREEN);
 					return true;
 				} else {

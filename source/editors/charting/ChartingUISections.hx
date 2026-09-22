@@ -1258,8 +1258,8 @@ class ChartingUISections
     state.event7DropDown = new FlxUIDropDownMenuCustom(160, 300, FlxUIDropDownMenuCustom.makeStrIdLabelArray(pressing7Events, true), function(pressed:String) {
       trace('event pressed 1');
       var whatIsIt:Int = Std.parseInt(pressed);
-      var arraySelectedShit:String = pressing7Events[whatIsIt];
-      state._song.event7 = arraySelectedShit;
+      var selectedEvent:String = pressing7Events[whatIsIt];
+      state._song.event7 = selectedEvent;
     });
     state.event7DropDown.selectedLabel = state._song.event7;
     var text:FlxText = new FlxText(160, 280, 0, "7 Event:");

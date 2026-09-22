@@ -49,11 +49,11 @@ class Spooky extends BaseStage
 	{
 		if (FlxG.random.bool(10) && curBeat > lightningStrikeBeat + lightningOffset)
 		{
-			lightningStrikeShit();
+			lightningStrike();
 		}
 	}
 
-	function lightningStrikeShit():Void
+	function lightningStrike():Void
 	{
 		FlxG.sound.play(Paths.soundRandom('thunder_', 1, 2));
 		if(!ClientPrefs.lowQuality) halloweenBG.animation.play('halloweem bg lightning strike');

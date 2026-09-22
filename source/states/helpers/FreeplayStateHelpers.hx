@@ -198,7 +198,7 @@ class FreeplayStateHelpers
 		state.intendedScore = Highscore.getScore(state.songs[FreeplayState.curSelected].songName, state.curDifficulty);
 		state.intendedRating = Highscore.getRating(state.songs[FreeplayState.curSelected].songName, state.curDifficulty);
 
-		var bullShit:Int = 0;
+		var selectionIndex:Int = 0;
 
 		for (i in state.grpIcons.members) i.alpha = (i.ID == FreeplayState.curSelected ? 1 : 0.6);
 
@@ -211,8 +211,8 @@ class FreeplayStateHelpers
 
 		for (item in state.grpSongs.members)
 		{
-			item.targetY = bullShit - FreeplayState.curSelected;
-			bullShit++;
+			item.targetY = selectionIndex - FreeplayState.curSelected;
+			selectionIndex++;
 
 			item.alpha = 0.6;
 

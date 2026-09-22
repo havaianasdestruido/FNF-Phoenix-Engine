@@ -6,17 +6,17 @@ class BuildingEffect
 
   public function new()
   {
-    shader.alphaShit.value = [0.0];
+    shader.alphaValue.value = [0.0];
   }
 
   public function addAlpha(alpha:Float)
   {
-    trace(shader.alphaShit.value[0]);
-    shader.alphaShit.value[0] += alpha;
+    trace(shader.alphaValue.value[0]);
+    shader.alphaValue.value[0] += alpha;
   }
 
   public function setAlpha(alpha:Float)
   {
-    shader.alphaShit.value[0] = alpha;
+    shader.alphaValue.value[0] = alpha;
   }
 }

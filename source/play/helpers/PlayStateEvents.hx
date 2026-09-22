@@ -104,7 +104,7 @@ class PlayStateEvents
 		return FlxSort.byValues(FlxSort.ASCENDING, Obj1.strumTime, Obj2.strumTime);
 	}
 
-	public static function sortByShit(state:PlayState, Obj1:Note, Obj2:Note):Int {
+	public static function sortNotesByTime(state:PlayState, Obj1:Note, Obj2:Note):Int {
 		return FlxSort.byValues(FlxSort.ASCENDING, Obj1.strumTime, Obj2.strumTime);
 	}
 

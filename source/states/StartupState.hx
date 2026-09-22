@@ -118,9 +118,9 @@ class StartupState extends MusicBeatState
 		#if debug // for testing purposes
 			startVideo('broCopiedDenpa', 'splash');
 		#else
-		final debugShit = false;
+		final debugEnabled = false;
 		final theIntro:Int = FlxG.random.int(0, maxIntros);
-		if (debugShit)
+		if (debugEnabled)
 			startVideo('bambiStartup', 'splash'); // shit was crashing & I don't feel like making debug builds :P
 		else
 		{

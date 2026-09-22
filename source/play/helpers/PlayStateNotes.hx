@@ -220,7 +220,7 @@ class PlayStateNotes
 			{
 				if (daNote.mustPress && (!(state.cpuControlled || state.usingBotEnergy && state.strumsHeld[daNote.noteData]) || state.cpuControlled) && !daNote.ignoreNote && !state.endingSong && !daNote.wasGoodHit) {
 					noteMiss(state, daNote);
-					if (ClientPrefs.missSoundShit)
+					if (ClientPrefs.missSoundEnabled)
 					{
 						FlxG.sound.play(Paths.soundRandom('missnote', 1, 3), FlxG.random.float(0.1, 0.2));
 					}

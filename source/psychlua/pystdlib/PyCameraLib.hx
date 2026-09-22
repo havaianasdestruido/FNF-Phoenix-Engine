@@ -47,28 +47,28 @@ class PyCameraLib
 			return FlxG.mouse.getScreenPosition(cam).y;
 		});
 		PythonScript.registerFunction("mouseClicked", function(button:String) {
-			var boobs = FlxG.mouse.justPressed;
+			var mouseState = FlxG.mouse.justPressed;
 			switch(button) {
-				case 'middle': boobs = FlxG.mouse.justPressedMiddle;
-				case 'right': boobs = FlxG.mouse.justPressedRight;
+				case 'middle': mouseState = FlxG.mouse.justPressedMiddle;
+				case 'right': mouseState = FlxG.mouse.justPressedRight;
 			}
-			return boobs;
+			return mouseState;
 		});
 		PythonScript.registerFunction("mousePressed", function(button:String) {
-			var boobs = FlxG.mouse.pressed;
+			var mouseState = FlxG.mouse.pressed;
 			switch(button) {
-				case 'middle': boobs = FlxG.mouse.pressedMiddle;
-				case 'right': boobs = FlxG.mouse.pressedRight;
+				case 'middle': mouseState = FlxG.mouse.pressedMiddle;
+				case 'right': mouseState = FlxG.mouse.pressedRight;
 			}
-			return boobs;
+			return mouseState;
 		});
 		PythonScript.registerFunction("mouseReleased", function(button:String) {
-			var boobs = FlxG.mouse.justReleased;
+			var mouseState = FlxG.mouse.justReleased;
 			switch(button) {
-				case 'middle': boobs = FlxG.mouse.justReleasedMiddle;
-				case 'right': boobs = FlxG.mouse.justReleasedRight;
+				case 'middle': mouseState = FlxG.mouse.justReleasedMiddle;
+				case 'right': mouseState = FlxG.mouse.justReleasedRight;
 			}
-			return boobs;
+			return mouseState;
 		});
 		}
 	}

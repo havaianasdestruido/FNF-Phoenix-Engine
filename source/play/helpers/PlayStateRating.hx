@@ -29,22 +29,22 @@ class PlayStateRating
 	{
 		if (PlayState.isPixelStage)
 		{
-			state.pixelShitPart1 = 'pixelUI/';
-			state.pixelShitPart2 = '-pixel';
+			state.pixelRatingPrefix = 'pixelUI/';
+			state.pixelRatingSuffix = '-pixel';
 		}
 
 		var normalRating:String = 'ratings/' + ClientPrefs.ratingType.toLowerCase().replace(' ', '-').trim() + '/';
 
-		state.pixelShitPart1 += normalRating;
+		state.pixelRatingPrefix += normalRating;
 
-		Paths.image(state.pixelShitPart1 + "perfect" + state.pixelShitPart2);
-		Paths.image(state.pixelShitPart1 + "sick" + state.pixelShitPart2);
-		Paths.image(state.pixelShitPart1 + "good" + state.pixelShitPart2);
-		Paths.image(state.pixelShitPart1 + "bad" + state.pixelShitPart2);
-		Paths.image(state.pixelShitPart1 + "shit" + state.pixelShitPart2);
-		Paths.image(state.pixelShitPart1 + "miss" + state.pixelShitPart2);
+		Paths.image(state.pixelRatingPrefix + "perfect" + state.pixelRatingSuffix);
+		Paths.image(state.pixelRatingPrefix + "sick" + state.pixelRatingSuffix);
+		Paths.image(state.pixelRatingPrefix + "good" + state.pixelRatingSuffix);
+		Paths.image(state.pixelRatingPrefix + "bad" + state.pixelRatingSuffix);
+		Paths.image(state.pixelRatingPrefix + "shit" + state.pixelRatingSuffix);
+		Paths.image(state.pixelRatingPrefix + "miss" + state.pixelRatingSuffix);
 
-		for (i in 0...10) Paths.image(state.pixelShitPart1 + 'num' + i + state.pixelShitPart2);
+		for (i in 0...10) Paths.image(state.pixelRatingPrefix + 'num' + i + state.pixelRatingSuffix);
 		if (Paths.fileExists('images/${normalRating}' + 'hitStrings.txt', TEXT))
 			state.hitStrings = Mods.mergeAllTextsNamed('images/${normalRating}' + 'hitStrings.txt', null, false);
 
@@ -130,7 +130,7 @@ class PlayStateRating
 
 			if (state.showRating && ClientPrefs.ratingPopups && !ClientPrefs.simplePopups) {
 				state.rating = state.popUpGroup.recycle(Popup);
-				state.rating.setupRating(state.pixelShitPart1 + state.daRating.image + state.pixelShitPart2);
+				state.rating.setupRating(state.pixelRatingPrefix + state.daRating.image + state.pixelRatingSuffix);
 				state.rating.alphaTween();
 				state.popUpGroup.insert(0, state.rating);
 			}
@@ -153,7 +153,7 @@ class PlayStateRating
 				for (daLoop=>i in state.separatedScore)
 				{
 					state.numScore = state.popUpGroup.recycle(Popup);
-					state.numScore.setupNumber(state.pixelShitPart1 + 'num' + i + state.pixelShitPart2, daLoop, tempComboAlt);
+					state.numScore.setupNumber(state.pixelRatingPrefix + 'num' + i + state.pixelRatingSuffix, daLoop, tempComboAlt);
 					if (miss) state.numScore.color = FlxColor.fromRGB(204, 66, 66);
 					state.numScore.alphaTween(true);
 					state.popUpGroup.insert(0, state.numScore);
@@ -313,7 +313,7 @@ class PlayStateRating
 				(state.sicks > 0), // 'SFC'
 				(state.goods > 0), // 'GFC'
 				(state.bads > 0), // 'BFC'
-				(state.shits > 0), // 'FC'
+				(state.poorRatings > 0), // 'FC'
 				(state.songMisses > 0 && state.songMisses < 10), // 'SDCB'
 				(state.songMisses >= 10), // 'Clear'
 				(state.songMisses >= 100), // 'TDCB'

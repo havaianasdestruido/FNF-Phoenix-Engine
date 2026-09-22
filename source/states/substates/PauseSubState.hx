@@ -21,7 +21,7 @@ import backend.MusicBeatState;
 
 class PauseSubState extends MusicBeatSubstate
 {
-	var grpMenuShit:FlxTypedGroup<Alphabet>;
+	var menuItems:FlxTypedGroup<Alphabet>;
 
 	var menuItems:Array<String> = [];
 	var menuItemsOG:Array<String> = ['Resume', 'Restart Song', 'Change Gameplay Settings', 'Change Difficulty', 'Options', 'Exit'];
@@ -132,8 +132,8 @@ class PauseSubState extends MusicBeatSubstate
 		FlxTween.tween(levelDifficulty, {alpha: 1, y: levelDifficulty.y + 5}, 0.4, {ease: FlxEase.quartInOut, startDelay: 0.5});
 		FlxTween.tween(blueballedTxt, {alpha: 1, y: blueballedTxt.y + 5}, 0.4, {ease: FlxEase.quartInOut, startDelay: 0.7});
 
-		grpMenuShit = new FlxTypedGroup<Alphabet>();
-		add(grpMenuShit);
+		menuItems = new FlxTypedGroup<Alphabet>();
+		add(menuItems);
 
 		regenMenu();
 		cameras = [FlxG.cameras.list[FlxG.cameras.list.length - 1]];
@@ -379,12 +379,12 @@ class PauseSubState extends MusicBeatSubstate
 		if (curSelected >= menuItems.length)
 			curSelected = 0;
 
-		var bullShit:Int = 0;
+		var selectionIndex:Int = 0;
 
-		for (item in grpMenuShit.members)
+		for (item in menuItems.members)
 		{
-			item.targetY = bullShit - curSelected;
-			bullShit++;
+			item.targetY = selectionIndex - curSelected;
+			selectionIndex++;
 
 			item.alpha = 0.6;
 			// item.setGraphicSize(Std.int(item.width * 0.8));
@@ -404,10 +404,10 @@ class PauseSubState extends MusicBeatSubstate
 	}
 
 	public function regenMenu():Void {
-		for (i in 0...grpMenuShit.members.length) {
-			var obj = grpMenuShit.members[0];
+		for (i in 0...menuItems.members.length) {
+			var obj = menuItems.members[0];
 			obj.kill();
-			grpMenuShit.remove(obj, true);
+			menuItems.remove(obj, true);
 			obj.destroy();
 		}
 
@@ -415,7 +415,7 @@ class PauseSubState extends MusicBeatSubstate
 			var item = new Alphabet(90, 320, menuItems[i], true);
 			item.isMenuItem = true;
 			item.targetY = i;
-			grpMenuShit.add(item);
+			menuItems.add(item);
 
 			if(menuItems[i] == 'Skip Time')
 			{

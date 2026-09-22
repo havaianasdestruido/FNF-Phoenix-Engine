@@ -215,13 +215,13 @@ class PhillyStreets extends BaseStage
 		if(!videoEnded && videoName != null)
 		{
 			#if VIDEOS_ALLOWED
-			final shit = game.startVideo(videoName, '', function()
+			final videoSprite = game.startVideo(videoName, '', function()
 			{
 				videoEnded = true;
 				game.videoCutscene = null;
 				videoCutscene();
 			});
-			if (shit == null) // returns an VideoSprite, if it returns null then something went wrong
+			if (videoSprite == null) // returns an VideoSprite, if it returns null then something went wrong
 			{
 				videoEnded = true;
 				videoCutscene();
