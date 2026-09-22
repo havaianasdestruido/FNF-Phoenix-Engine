@@ -132,7 +132,8 @@ class Project extends HXProject
 	 * installed toolchain supports. Enabled with `-DULTRA_OPTIMIZED`.
 	 * Defines this flag toggles (see the ULTRA_OPTIMIZED block in
 	 * configureCompileDefines):
-	 *   ON:  analyzer-optimize, HXCPP_OPTIMIZE_LINK (/GL + /LTCG or -flto)
+	 *   ON:  analyzer-optimize; desktop-only HXCPP_OPTIMIZE_LINK
+	 *        (/GL + /LTCG or -flto)
 	 *   OFF: HXCPP_CHECK_POINTER, HXCPP_STACK_LINE, HXCPP_STACK_TRACE,
 	 *        HXCPP_GC_CHECK_LEAKS, HXCPP_FAST_LINK
 	 *   KEPT: HXCPP_CATCH_SEGV (CrashHandler needs it), fast GC defines,
@@ -554,13 +555,18 @@ class Project extends HXProject
 			// Removing it would crash the game instead of showing the crash
 			// screen; the overhead is negligible so we keep it.
 
-			// ENABLE: link-time codegen (whole-program LTCG/LTO).
+			// ENABLE link-time codegen (whole-program LTCG/LTO) on desktop only.
 			// msvc-toolchain.xml:83 → -GL (compile), :123/:148 → -LTCG (link).
-			// linux-toolchain.xml:31, mac-toolchain.xml:51 → -flto.
-			// HXCPP_FAST_LINK must be unset first so hxcpp uses full LTCG
-			// rather than HXCPP_LTCG_INCREMENTAL (finish-setup.xml:34).
-			unsetHaxedef("HXCPP_FAST_LINK");
-			setHaxedef("HXCPP_OPTIMIZE_LINK");
+			// linux-toolchain.xml:31, mac-toolchain.xml:51 → -flto. Android NDK
+			// LTO cannot resolve hxcpp's __tls_get_addr helper, so don't enable it
+			// for mobile targets.
+			if (!isMobile())
+			{
+				// HXCPP_FAST_LINK must be unset first so hxcpp uses full LTCG rather
+				// than HXCPP_LTCG_INCREMENTAL (finish-setup.xml:34).
+				unsetHaxedef("HXCPP_FAST_LINK");
+				setHaxedef("HXCPP_OPTIMIZE_LINK");
+			}
 
 			// FORCE: analyzer-optimize is normally only set in !isDebug(); ensure it
 			// regardless of build type when ULTRA is on.
