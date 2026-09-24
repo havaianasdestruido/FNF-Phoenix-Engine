@@ -133,8 +133,9 @@ env:
   # to enable its object cache.
   HXCPP_COMPILE_CACHE: ${{ github.workspace }}/.hxcpp_cache
 
-  # Cross-platform hxcpp performance optimization.
-  HXCPP_PERF_FLAGS: "-D HXCPP_OPTIMIZE_LINK"
+  # Desktop hxcpp performance optimization. Android NDK's LTO link does not
+  # resolve hxcpp's TLS runtime helper (__tls_get_addr), so it must not use it.
+  HXCPP_DESKTOP_PERF_FLAGS: "-D HXCPP_OPTIMIZE_LINK"
 
 # Cancel previous runs for the same branch/PR concurrency:
 concurrency:
@@ -570,7 +571,7 @@ jobs:
 
           rm -rf "$HXCPP_COMPILE_CACHE" 2>/dev/null || true
 
-          haxelib run lime build ${{ matrix.target }} ${{ matrix.target_args }} -D"${{ inputs.buildFlags || 'commit' }}" ${{ env.HXCPP_PERF_FLAGS }} ${AIR_SDK:+-DAIR_SDK=$AIR_SDK}
+          haxelib run lime build ${{ matrix.target }} ${{ matrix.target_args }} -D"${{ inputs.buildFlags || 'commit' }}" ${{ env.HXCPP_DESKTOP_PERF_FLAGS }} ${AIR_SDK:+-DAIR_SDK=$AIR_SDK}
 
       # ==========================================
       # Compile Windows
@@ -588,7 +589,7 @@ jobs:
 
           Remove-Item -Force assets/preload/gameRenders/renderlinux.sh
 
-          haxelib run lime build windows -D"${{ inputs.buildFlags || 'commit' }}" ${{ env.HXCPP_PERF_FLAGS }}
+          haxelib run lime build windows -D"${{ inputs.buildFlags || 'commit' }}" ${{ env.HXCPP_DESKTOP_PERF_FLAGS }}
 
       # ==========================================
       # Compile Android
@@ -601,7 +602,7 @@ jobs:
         run: |
           rm -rf "$HXCPP_COMPILE_CACHE" 2>/dev/null || true
 
-          haxelib run lime build android ${{ inputs.buildFlags != '' && format('-D {0}', inputs.buildFlags) || '' }} ${{ env.HXCPP_PERF_FLAGS }}
+          haxelib run lime build android ${{ inputs.buildFlags != '' && format('-D {0}', inputs.buildFlags) || '' }}
 
       # ==========================================
       # Save generated C++ cache
