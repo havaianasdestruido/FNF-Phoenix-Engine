@@ -173,7 +173,11 @@ jobs:
             target_dir: android
             cache_name: android
             artifact: androidBuild
-            artifact_path: build/release/android/bin/app/build/outputs/apk/release
+            # This lime fork runs Gradle `assembleRelease` only when a keystore is
+            # configured (see lime's AndroidHelper). CI has no keystore, so the APK
+            # lands in the `debug` flavor folder even though the build config is
+            # release (output dir is still build/release/...).
+            artifact_path: build/release/android/bin/app/build/outputs/apk/debug
             setup: android
 
           # =========================
