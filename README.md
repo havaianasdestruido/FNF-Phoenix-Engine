@@ -21,7 +21,19 @@
 
 Phoenix Engine focuses on making both Hardmodding (Hardcoded mods, using `Haxe`) *AND* Softmodding (mods you place on `mods/` folder, made with `Lua`/`Luau` or `Python`) easier.
 
-I also want to focus on platform-specific code from now-on, including platform-specific patches. (e.g.: Inject a custom Java code into Android builds that allows it to support Discord RPC, Inject a custom Object-C code for fixing fullscreen-related issues on iOS, etc.)
+I also want to focus on platform-specific code from now-on, including platform-specific patches:
+
+For example:
+- Inject custom Java/Kotlin code into Android builds to provide features such as Discord RPC, Android intents, notifications, permissions, or other Android APIs.
+- Inject custom Objective-C/Objective-C++/Swift code into iOS builds to fix fullscreen, orientation, lifecycle, input, or rendering issues.
+- Apply custom C/C++ patches for native desktop functionality.
+- Modify Android Gradle files, manifests, resources, and project configuration as part of the build process.
+- Modify iOS Xcode project settings, Info.plist, frameworks, and native source files automatically.
+- Provide Windows-specific native integrations through Win32 APIs.
+- Provide Linux-specific patches for windowing, input, filesystem, or audio behavior.
+- Use compile-time platform detection to include only the native code required by the target platform.
+
+Haxe already provides `#if`s that can be useful on making small patches, but it becames a problem when theres issues that can only be solved using non-Haxe code. (e.g.: `C`/`C++` low-level patches)
 
 Phoenix Engine currently has those additions (and more!) that vanilla JSE (Jordan Santiago Engine) doesn't:
 
