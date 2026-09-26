@@ -28,6 +28,7 @@ class MusicBeatSubstate extends FlxSubState
 		return PlayerSettings.player1.controls;
 
 	public var virtualPad:FlxVirtualPad;
+	var virtualPadCamera:FlxCamera;
 	var trackedInputsVirtualPad:Array<FlxActionInput> = [];
 
 	public function addVirtualPad(DPad:FlxDPadMode, Action:FlxActionMode):Void
@@ -50,16 +51,28 @@ class MusicBeatSubstate extends FlxSubState
 
 		if (virtualPad != null)
 			remove(virtualPad);
+
+		if (virtualPadCamera != null)
+		{
+			FlxG.cameras.remove(virtualPadCamera);
+			virtualPadCamera = null;
+		}
 	}
 
 	public function addVirtualPadCamera(DefaultDrawTarget:Bool = false):Void
 	{
 		if (virtualPad != null)
 		{
+			if (virtualPadCamera != null)
+			{
+				FlxG.cameras.remove(virtualPadCamera);
+				virtualPadCamera = null;
+			}
 			var camControls:FlxCamera = new FlxCamera();
 			camControls.bgColor.alpha = 0;
 			FlxG.cameras.add(camControls, DefaultDrawTarget);
 			virtualPad.cameras = [camControls];
+			virtualPadCamera = camControls;
 		}
 	}
 
@@ -67,6 +80,12 @@ class MusicBeatSubstate extends FlxSubState
 	{
 		if (trackedInputsVirtualPad.length > 0)
 			controls.removeVirtualControlsInput(trackedInputsVirtualPad);
+
+		if (virtualPadCamera != null)
+		{
+			FlxG.cameras.remove(virtualPadCamera);
+			virtualPadCamera = null;
+		}
 
 		super.destroy();
 

@@ -1,4 +1,4 @@
-﻿package states;
+package states;
 
 import backend.CoolUtil;
 import backend.DiscordClient;
@@ -149,6 +149,8 @@ class CreditsState extends MusicBeatState
 		bg.color = getCurrentBGColor();
 		intendedColor = bg.color;
 		changeSelection();
+
+		addVirtualPad(UP_DOWN, A_B);
 
 		super.create();
 	}

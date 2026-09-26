@@ -89,6 +89,8 @@ class GameplayChangersSubstate extends MusicBeatSubstate
 		reloadCheckboxes();
 
 		cameras = [FlxG.cameras.list[FlxG.cameras.list.length - 1]];
+		addVirtualPad(LEFT_FULL, A_B_C);
+		addVirtualPadCamera();
 	}
 
 	override function destroy() {
@@ -270,7 +272,7 @@ class GameplayChangersSubstate extends MusicBeatSubstate
 				reloadCheckboxes();
 			}
 
-			if(controls.RESET && !FlxG.keys.pressed.SHIFT)
+			if((controls.RESET && !FlxG.keys.pressed.SHIFT) || virtualPad.buttonC.justPressed)
 			{
 				var leOption:GameplayOption = optionsArray[curSelected];
 				leOption.setValue(leOption.defaultValue);

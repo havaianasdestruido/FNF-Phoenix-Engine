@@ -1,4 +1,4 @@
-﻿package states;
+package states;
 
 import backend.ClientPrefs;
 import backend.CoolUtil;
@@ -190,6 +190,8 @@ class StoryMenuState extends MusicBeatState
 		changeWeek();
 		changeDifficulty();
 
+		addVirtualPad(LEFT_FULL, A_B_C);
+
 		super.create();
 	}
 
@@ -261,7 +263,7 @@ class StoryMenuState extends MusicBeatState
 			else if (upP || downP)
 				changeDifficulty();
 
-			if (FlxG.keys.justPressed.CONTROL) {
+			if (FlxG.keys.justPressed.CONTROL || virtualPad.buttonC.justPressed) {
 				persistentUpdate = false;
 				openSubState(new GameplayChangersSubstate());
 			} else if (controls.RESET) {

@@ -85,8 +85,10 @@ class FlxHitbox extends FlxSpriteGroup
 
 	private function createHint(X:Float, Y:Float, Width:Int, Height:Int, Color:Int = 0xFFFFFF):FlxButton
 	{
-		final guh2:Float = 0.00001;
-		final guh:Float = ClientPrefs.mobileCAlpha >= 0.9 ? ClientPrefs.mobileCAlpha - 0.2 : ClientPrefs.mobileCAlpha;
+		final pressAlpha:Float = ClientPrefs.mobileCAlpha >= 0.9 ? ClientPrefs.mobileCAlpha - 0.2 : ClientPrefs.mobileCAlpha;
+		// Keep the zones faintly visible at rest so players can see where to press.
+		// ("Hidden" hitboxes stay invisible and give no press feedback.)
+		final restAlpha:Float = (ClientPrefs.hitboxType == "Hidden") ? 0.00001 : ClientPrefs.mobileCAlpha * 0.35;
 		var hint:FlxButton = new FlxButton(X, Y);
 		hint.loadGraphic(createHintGraphic(Width, Height, Color));
 		hint.solid = false;
@@ -95,23 +97,23 @@ class FlxHitbox extends FlxSpriteGroup
 		hint.moves = false;
 		hint.antialiasing = ClientPrefs.globalAntialiasing;
 		hint.scrollFactor.set();
-		hint.alpha = guh2;
+		hint.alpha = restAlpha;
 		if (ClientPrefs.hitboxType != "Hidden")
 		{
 			hint.onDown.callback = function()
 			{
-				if (hint.alpha != guh)
-					hint.alpha = guh;
+				if (hint.alpha != pressAlpha)
+					hint.alpha = pressAlpha;
 			}
 			hint.onUp.callback = function()
 			{
-				if (hint.alpha != guh2)
-					hint.alpha = guh2;
+				if (hint.alpha != restAlpha)
+					hint.alpha = restAlpha;
 			}
 			hint.onOut.callback = function()
 			{
-				if (hint.alpha != guh2)
-					hint.alpha = guh2;
+				if (hint.alpha != restAlpha)
+					hint.alpha = restAlpha;
 			}
 		}
 		#if FLX_DEBUG

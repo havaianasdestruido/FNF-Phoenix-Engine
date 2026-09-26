@@ -1,4 +1,4 @@
-﻿package states;
+package states;
 
 import backend.Achievements;
 import backend.ClientPrefs;
@@ -144,6 +144,9 @@ class AchievementsMenuState extends MusicBeatState
 			add(i);
 
 		_changeSelection();
+
+		addVirtualPad(LEFT_FULL, A_B_C);
+
 		super.create();
 
 		FlxG.camera.follow(camFollow, null, 9);
@@ -221,7 +224,7 @@ class AchievementsMenuState extends MusicBeatState
 				}
 			}
 
-			if(controls.RESET && (options[curSelected].unlocked || options[curSelected].curProgress > 0))
+			if((controls.RESET || virtualPad.buttonC.justPressed) && (options[curSelected].unlocked || options[curSelected].curProgress > 0))
 			{
 				openSubState(new ResetAchievementSubstate());
 			}
@@ -317,6 +320,8 @@ class ResetAchievementSubstate extends MusicBeatSubstate
 		noText.scrollFactor.set();
 		add(noText);
 		updateOptions();
+
+		addVirtualPad(LEFT_RIGHT, A_B);
 	}
 
 	override function update(elapsed:Float)

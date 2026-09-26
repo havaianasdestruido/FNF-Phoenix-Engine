@@ -1,4 +1,4 @@
-﻿package states;
+package states;
 
 import backend.ClientPrefs;
 import backend.Conductor;
@@ -154,6 +154,8 @@ class TitleState extends MusicBeatState
         });
       }
     }
+
+    addVirtualPad(NONE, A);
   }
 
   var logoBl:FlxSprite;

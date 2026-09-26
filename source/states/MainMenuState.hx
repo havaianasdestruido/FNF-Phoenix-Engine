@@ -1,4 +1,4 @@
-﻿package states;
+package states;
 
 import backend.Achievements;
 import backend.ClientPrefs;
@@ -224,6 +224,8 @@ class MainMenuState extends MusicBeatState
 
     changeItem();
     tipTextStartScrolling();
+
+    addVirtualPad(UP_DOWN, A_B);
 
     super.create();
   }
