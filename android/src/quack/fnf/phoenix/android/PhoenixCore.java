@@ -52,14 +52,25 @@ public class PhoenixCore extends Extension
 	{
 		callback = object;
 
-		// Deliver any deep link that arrived before the Haxe side was up
-		// (e.g. a phoenix:// URI that launched the app cold).
+		// Attempt delivery of any deep link that arrived before the Haxe
+		// side was up (e.g. a phoenix:// URI that launched the app cold).
+		// The buffered value is NOT cleared here: the Haxe side only clears
+		// it (clearPendingDeepLink) once delivery to a registered subscriber
+		// is confirmed, so the link survives when nobody listens yet.
 		if (object != null && pendingDeepLink != null)
-		{
-			String link = pendingDeepLink;
-			pendingDeepLink = null;
-			dispatch("deeplink", link);
-		}
+			dispatch("deeplink", pendingDeepLink);
+	}
+
+	/** The buffered cold-start deep link, or "" when there is none. */
+	public static String getPendingDeepLink()
+	{
+		return pendingDeepLink == null ? "" : pendingDeepLink;
+	}
+
+	/** Called by the Haxe side after confirmed delivery to a subscriber. */
+	public static void clearPendingDeepLink()
+	{
+		pendingDeepLink = null;
 	}
 
 	/**

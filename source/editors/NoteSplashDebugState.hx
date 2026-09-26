@@ -290,7 +290,9 @@ class NoteSplashDebugState extends MusicBeatState
 
 	function mobilePadSave():Void
 	{
-		if (mobileTyping())
+		// Mirrors update(), where everything past selection is gated on a
+		// loaded animation.
+		if (mobileTyping() || maxAnims < 1)
 			return;
 
 		// Mirrors the double-tap ENTER save flow.

@@ -23,6 +23,7 @@
 package android.platform;
 
 import flixel.FlxG;
+import flixel.util.FlxTimer;
 
 /**
  * Facade for the Phoenix Android platform layer.
@@ -50,6 +51,7 @@ import flixel.FlxG;
 class AndroidPlatform
 {
 	static var initialized:Bool = false;
+	static var deepLinkDrainTimer:FlxTimer = null;
 
 	/** True once init() completed on Android; always false elsewhere. */
 	public static var active(default, null):Bool = false;
@@ -71,6 +73,16 @@ class AndroidPlatform
 		initialized = true;
 
 		AndroidBridge.ensureRegistered();
+
+		// A phoenix:// URI that launched the app cold is buffered natively
+		// before any Haxe subscriber exists; keep retrying its delivery
+		// until something listens (the buffer is only cleared after
+		// confirmed delivery).
+		deepLinkDrainTimer = new FlxTimer().start(1, function(tmr:FlxTimer)
+		{
+			if (AndroidBridge.drainPendingDeepLink())
+				tmr.cancel();
+		}, 0);
 
 		// Lifecycle: keeps audio/gameplay state sane across focus changes.
 		AndroidLifecycle.init(autoPauseAudio);

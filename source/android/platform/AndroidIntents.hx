@@ -37,7 +37,11 @@ class AndroidIntents
 	public static var onDeepLink(get, never):FlxTypedSignal<String->Void>;
 
 	static inline function get_onDeepLink():FlxTypedSignal<String->Void>
+	{
+		// Pull any buffered cold-start deep link once a subscriber exists.
+		AndroidBridge.drainPendingDeepLink();
 		return AndroidBridge.onDeepLink;
+	}
 
 	/** Opens a URL in the system browser. */
 	public static function openUrl(url:String):Void

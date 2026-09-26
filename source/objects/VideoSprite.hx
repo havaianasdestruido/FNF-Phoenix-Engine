@@ -3,6 +3,7 @@ package objects;
 import backend.ClientPrefs;
 import backend.Controls;
 import flixel.addons.display.FlxPieDial;
+import play.PlayState;
 #if hxvlc
 import hxvlc.flixel.FlxVideoSprite;
 #end
@@ -235,7 +236,9 @@ class VideoSprite extends FlxSpriteGroup
     {
       // Mid-song video with no end handler (startVideo(..., forMidSong=true)
       // never assigns one): don't leave gameplay locked in a cutscene.
-      var game = play.PlayState.instance;
+      // NB: unqualified `play.PlayState` would resolve to this class's own
+      // play() method, so use the imported type name.
+      var game = PlayState.instance;
       if (game != null)
       {
         game.inCutscene = false;

@@ -215,7 +215,20 @@ class AndroidBridge #if android implements lime.system.JNI.JNISafety #end
 				onDisplayChanged.dispatch();
 
 			case 'deeplink':
-				onDeepLink.dispatch(arg);
+				if (onDeepLink.hasListeners)
+				{
+					onDeepLink.dispatch(arg);
+					// Confirmed delivery: if this was the buffered cold-start
+					// link, release it. No-op when nothing is buffered.
+					try
+					{
+						clearPendingDeepLink_jni();
+					}
+					catch (e:Dynamic) {}
+				}
+				// No subscribers yet: the link stays buffered on the Java
+				// side (PhoenixCore.pendingDeepLink); drainPendingDeepLink
+				// retries until someone listens.
 
 			case 'intent':
 				onIntentAction.dispatch(arg);
@@ -252,6 +265,63 @@ class AndroidBridge #if android implements lime.system.JNI.JNISafety #end
 			size: Std.int(size),
 			data: data
 		});
+	}
+
+	// ------------------------------------------------------------------
+	// Cold-start deep link replay buffer
+	// ------------------------------------------------------------------
+
+	static var _getPendingDeepLink:Dynamic = null;
+
+	static function getPendingDeepLink_jni():String
+	{
+		if (_getPendingDeepLink == null)
+			_getPendingDeepLink = JNI.createStaticMethod('quack.fnf.phoenix.android.PhoenixCore', 'getPendingDeepLink', '()Ljava/lang/String;');
+		return _getPendingDeepLink();
+	}
+
+	static var _clearPendingDeepLink:Dynamic = null;
+
+	static function clearPendingDeepLink_jni():Void
+	{
+		if (_clearPendingDeepLink == null)
+			_clearPendingDeepLink = JNI.createStaticMethod('quack.fnf.phoenix.android.PhoenixCore', 'clearPendingDeepLink', '()V');
+		_clearPendingDeepLink();
+	}
+
+	/**
+	 * Pulls the buffered cold-start deep link from the native layer and
+	 * delivers it to `onDeepLink` subscribers. The native buffer is only
+	 * cleared after confirmed delivery, so the link keeps retrying until
+	 * something subscribes. Returns true when there is nothing (left) to
+	 * deliver, false while a link is still waiting for a subscriber.
+	 */
+	public static function drainPendingDeepLink():Bool
+	{
+		#if android
+		if (!available)
+			return true;
+
+		var link:String = null;
+		try
+		{
+			link = getPendingDeepLink_jni();
+		}
+		catch (e:Dynamic)
+		{
+			return true;
+		}
+
+		if (link == null || link.length == 0)
+			return true;
+
+		if (!onDeepLink.hasListeners)
+			return false; // keep buffering until a subscriber exists
+
+		onDeepLink.dispatch(link);
+		clearPendingDeepLink_jni();
+		#end
+		return true;
 	}
 
 	static inline final RESULT_OK:Int = -1; // android.app.Activity.RESULT_OK
