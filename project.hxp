@@ -677,13 +677,14 @@ class Project extends HXProject
 		var jniLibsDir = '${app.path}android/bin/app/src/main/jniLibs';
 
 		// Pass what we know to the script; it falls back to ANDROID_NDK_ROOT and
-		// then to Lime's config file when this is empty.
-		var ndkRoot:String = environment.exists("ANDROID_NDK_ROOT") ? environment.get("ANDROID_NDK_ROOT") : "";
+		// then to Lime's config file when this is empty. `Map.get` is nullable and
+		// this file is @:nullSafety, so coalesce instead of assigning directly.
+		var ndkRoot:String = environment.get("ANDROID_NDK_ROOT") ?? "";
 
 		// NB: `Sys.systemName` is a function, not a property (Haxe 4.3 std/Sys.hx).
 		var isWindows = (Sys.systemName() == "Windows");
-		var command = isWindows ? "cmd" : "sh";
-		var args = isWindows ? ["/c", ANDROID_STL_SCRIPT_WINDOWS] : [ANDROID_STL_SCRIPT_UNIX];
+		var command:String = isWindows ? "cmd" : "sh";
+		var args:Array<String> = isWindows ? ["/c", ANDROID_STL_SCRIPT_WINDOWS] : [ANDROID_STL_SCRIPT_UNIX];
 
 		args.push("--ndk");
 		args.push(ndkRoot);
