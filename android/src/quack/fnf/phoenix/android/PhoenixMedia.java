@@ -18,6 +18,8 @@ import android.media.session.MediaSession;
 import android.media.session.PlaybackState;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 
 import org.haxe.extension.Extension;
@@ -74,7 +76,8 @@ public class PhoenixMedia extends Extension
 
 			session = new MediaSession(mainContext, "PhoenixEngineMedia");
 			session.setFlags(MediaSession.FLAG_HANDLES_MEDIA_BUTTONS | MediaSession.FLAG_HANDLES_TRANSPORT_CONTROLS);
-			session.setCallback(new MediaSession.Callback()
+
+			MediaSession.Callback mediaCallback = new MediaSession.Callback()
 			{
 				@Override public void onPlay()
 				{
@@ -105,7 +108,12 @@ public class PhoenixMedia extends Extension
 				{
 					PhoenixCore.dispatch("media", "previous");
 				}
-			});
+			};
+
+			// Deliver callback events on the main thread regardless of which
+			// thread created the session (the no-handler overload would use
+			// the calling thread's Looper, which may not exist).
+			session.setCallback(mediaCallback, new Handler(Looper.getMainLooper()));
 		}
 		catch (Exception e)
 		{

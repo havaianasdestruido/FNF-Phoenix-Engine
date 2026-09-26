@@ -30,7 +30,7 @@ import lime.system.JNI;
  * Native Android notifications. The media (MediaStyle) notification is
  * managed by `AndroidMedia`; this module covers simple status notifications.
  */
-class AndroidNotifications
+class AndroidNotification
 {
 	/**
 	 * Posts a simple notification on the engine's general channel.

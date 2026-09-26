@@ -14,6 +14,7 @@ import android.os.Bundle;
 import android.os.PowerManager;
 import android.provider.Settings;
 import android.util.Log;
+import android.view.WindowManager;
 
 import org.haxe.extension.Extension;
 import org.haxe.lime.HaxeObject;
@@ -40,15 +41,25 @@ public class PhoenixCore extends Extension
 	/** The Haxe-side dispatcher (android.platform.AndroidBridge). May be null until registered. */
 	private static HaxeObject callback = null;
 
-	private static PowerManager.WakeLock wakeLock = null;
-
 	// ------------------------------------------------------------------
 	// Callback registration / event dispatch
 	// ------------------------------------------------------------------
 
+	/** Deep link received before the Haxe callback registered (cold start). */
+	private static String pendingDeepLink = null;
+
 	public static void registerCallback(HaxeObject object)
 	{
 		callback = object;
+
+		// Deliver any deep link that arrived before the Haxe side was up
+		// (e.g. a phoenix:// URI that launched the app cold).
+		if (object != null && pendingDeepLink != null)
+		{
+			String link = pendingDeepLink;
+			pendingDeepLink = null;
+			dispatch("deeplink", link);
+		}
 	}
 
 	/**
@@ -157,7 +168,16 @@ public class PhoenixCore extends Extension
 		Uri data = intent.getData();
 		if (data != null)
 		{
-			dispatch("deeplink", data.toString());
+			if (callback == null)
+			{
+				// Cold start: Haxe isn't listening yet. Buffer it and let
+				// registerCallback deliver it once the bridge is up.
+				pendingDeepLink = data.toString();
+			}
+			else
+			{
+				dispatch("deeplink", data.toString());
+			}
 			return;
 		}
 
@@ -254,24 +274,27 @@ public class PhoenixCore extends Extension
 	// Screen wake lock
 	// ------------------------------------------------------------------
 
+	/**
+	 * Keeps the screen on during gameplay via FLAG_KEEP_SCREEN_ON on the
+	 * activity window (the legacy SCREEN_BRIGHT_WAKE_LOCK is deprecated and
+	 * a no-op on modern Android). The flag is released again by
+	 * releaseWakeLock and implicitly when the activity goes away.
+	 */
 	public static void acquireWakeLock()
 	{
-		if (mainContext == null)
+		final Activity activity = mainActivity;
+		if (activity == null)
 			return;
 
 		try
 		{
-			if (wakeLock == null)
+			activity.runOnUiThread(new Runnable()
 			{
-				PowerManager power = (PowerManager) mainContext.getSystemService(Context.POWER_SERVICE);
-				if (power == null)
-					return;
-				wakeLock = power.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK | PowerManager.ON_AFTER_RELEASE, "phoenix:gameplay");
-				wakeLock.setReferenceCounted(false);
-			}
-
-			if (!wakeLock.isHeld())
-				wakeLock.acquire(4 * 60 * 60 * 1000L); // hard cap: 4 hours
+				@Override public void run()
+				{
+					activity.getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+				}
+			});
 		}
 		catch (Exception e)
 		{
@@ -281,10 +304,19 @@ public class PhoenixCore extends Extension
 
 	public static void releaseWakeLock()
 	{
+		final Activity activity = mainActivity;
+		if (activity == null)
+			return;
+
 		try
 		{
-			if (wakeLock != null && wakeLock.isHeld())
-				wakeLock.release();
+			activity.runOnUiThread(new Runnable()
+			{
+				@Override public void run()
+				{
+					activity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+				}
+			});
 		}
 		catch (Exception e)
 		{

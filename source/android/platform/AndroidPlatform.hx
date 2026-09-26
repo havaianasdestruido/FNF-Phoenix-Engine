@@ -40,7 +40,7 @@ import flixel.FlxG;
  *   - AndroidHaptics       vibration
  *   - AndroidStorage       SAF document picker + content:// URIs
  *   - AndroidIntents       URLs, settings, file sharing
- *   - AndroidNotifications simple notifications
+ *   - AndroidNotification  simple notifications
  *   - AndroidLifecycle     Activity lifecycle signals
  *   - AndroidDiscord       presence through the media session
  *

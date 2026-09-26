@@ -30,6 +30,7 @@ import backend.CoolUtil;
 import flixel.FlxG;
 import flixel.util.FlxTimer;
 import haxe.Json;
+import states.substates.PauseSubState;
 #end
 
 /**
@@ -63,13 +64,18 @@ class PlayStateAndroidMedia
 		AndroidMedia.requestAudioFocus();
 		AndroidSystem.acquireWakeLock();
 
-		// Persist enough context to offer a resume after process death.
+		// Persist enough context to offer a resume after process death
+		// (TitleState.checkRecoveryState consumes it). The difficulty list
+		// and mod directory are included because both are gone after a
+		// process kill and chart paths depend on them.
 		try
 		{
 			AndroidSystem.setRecoveryState(Json.stringify({
 				type: "song",
 				song: playState.SONG != null ? playState.SONG.song : null,
-				difficulty: CoolUtil.difficultyString()
+				difficulty: CoolUtil.difficultyString(),
+				difficulties: CoolUtil.difficulties,
+				mod: Mods.currentModDirectory
 			}));
 		}
 		catch (e:Dynamic) {}
@@ -128,21 +134,28 @@ class PlayStateAndroidMedia
 
 	static function onMediaPlay():Void
 	{
-		if (state == null || !state.paused)
+		// Only resume from an actual pause menu; never resurrect a dead
+		// state or dismiss unrelated substates (game over, results, ...).
+		if (state == null || !state.exists || !state.paused)
 			return;
 
-		// Resume exactly like dismissing the pause menu would.
+		if (state.subState == null || !Std.isOfType(state.subState, PauseSubState))
+			return;
+
 		try
 		{
-			if (state.subState != null)
-				state.closeSubState();
+			state.closeSubState();
 		}
 		catch (e:Dynamic) {}
 	}
 
 	static function onMediaPause():Void
 	{
-		if (state == null || state.paused)
+		if (state == null || !state.exists || state.paused)
+			return;
+
+		// Same guards update() applies to the PAUSE input.
+		if (!state.startedCountdown || !state.canPause || state.heyStopTrying || state.endingSong || state.transitioning)
 			return;
 
 		try

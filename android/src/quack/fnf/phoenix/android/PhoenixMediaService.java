@@ -32,10 +32,18 @@ public class PhoenixMediaService extends Service
 			return START_NOT_STICKY;
 		}
 
-		if (PhoenixMedia.ACTION_PLAY.equals(action))
-			PhoenixCore.dispatch("media", "play");
-		else if (PhoenixMedia.ACTION_PAUSE.equals(action))
-			PhoenixCore.dispatch("media", "pause");
+		if (PhoenixMedia.ACTION_PLAY.equals(action) || PhoenixMedia.ACTION_PAUSE.equals(action))
+		{
+			PhoenixCore.dispatch("media", PhoenixMedia.ACTION_PLAY.equals(action) ? "play" : "pause");
+
+			// Notification-button intents carry no extras: only forward the
+			// event and let the engine refresh the notification itself.
+			// Rebuilding it here would wipe the metadata. Only intents
+			// started by the engine (which attach title/artist) promote or
+			// update the notification below.
+			if (intent == null || !intent.hasExtra("title"))
+				return START_NOT_STICKY;
+		}
 
 		String title = intent != null ? intent.getStringExtra("title") : null;
 		String artist = intent != null ? intent.getStringExtra("artist") : null;
@@ -49,6 +57,9 @@ public class PhoenixMediaService extends Service
 			try
 			{
 				startForeground(SERVICE_NOTIFICATION_ID, notification);
+				// Foreground promotion really happened: make sure cleanup can
+				// stop the foreground service later.
+				PhoenixMedia.setForegroundServiceRunningInternal(true);
 				return START_STICKY;
 			}
 			catch (Exception e)

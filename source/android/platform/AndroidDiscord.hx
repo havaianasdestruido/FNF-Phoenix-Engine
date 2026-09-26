@@ -26,10 +26,10 @@ package android.platform;
  * Android stand-in for Discord Rich Presence.
  *
  * Discord's RPC SDK is desktop-only and Android has no native rich
- * presence API, so on Android the engine's "presence" is exposed through
- * the system media session instead: the same details/state strings that
- * would go to Discord show up on the lock screen, media controls and
- * Bluetooth/Android Auto clients (see `AndroidMedia`).
+ * presence API. The system media session on Android is owned by
+ * `PlayStateAndroidMedia` during gameplay; this class intentionally does
+ * NOT touch it, so toggling Discord RPC in the options (which calls
+ * shutdown) can never tear down or overwrite an active media session.
  *
  * This keeps `DiscordClient` callers platform-agnostic behind one API
  * (the platform abstraction described in the roadmap).
@@ -45,21 +45,19 @@ class AndroidDiscord
 
 	public static function shutdown():Void
 	{
+		// Only forget our own state. The media session belongs to
+		// PlayStateAndroidMedia; releasing it here could kill playback
+		// metadata mid-song when the RPC option is toggled.
 		running = false;
-		AndroidMedia.stop();
 	}
 
 	/**
-	 * Mirrors `DiscordClient.changePresence` on Android by publishing the
-	 * presence strings as media metadata. Playback state/position is owned
-	 * by `PlayStateAndroidMedia` during gameplay, so this only refreshes
-	 * the title/artist text.
+	 * Mirrors `DiscordClient.changePresence` on Android. Menu presence is
+	 * not surfaced on Android (there is no Discord client); the session is
+	 * only published for actual gameplay by `PlayStateAndroidMedia`.
 	 */
 	public static function changePresence(details:String, state:String, ?largeImageKey:String, ?durationMs:Float):Void
 	{
-		if (!running)
-			return;
-
-		AndroidMedia.updateNowPlaying(details ?? "Friday Night Funkin'", state ?? "");
+		// Intentionally empty: see class docs.
 	}
 }

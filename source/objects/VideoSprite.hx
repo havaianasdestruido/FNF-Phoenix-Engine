@@ -185,6 +185,7 @@ class VideoSprite extends FlxSpriteGroup
  * public surface as the real one and immediately resolves its finish
  * callback, so cutscene/intro flows skip the video instead of hanging.
  */
+@:access(play.PlayState)
 class VideoSprite extends FlxSpriteGroup
 {
   public var finishCallback:Void->Void = null;
@@ -230,6 +231,17 @@ class VideoSprite extends FlxSpriteGroup
     if (alreadyDestroyed) return;
 
     if (finishCallback != null) finishCallback();
+    else if (waiting)
+    {
+      // Mid-song video with no end handler (startVideo(..., forMidSong=true)
+      // never assigns one): don't leave gameplay locked in a cutscene.
+      var game = play.PlayState.instance;
+      if (game != null)
+      {
+        game.inCutscene = false;
+        game.canPause = true;
+      }
+    }
     onSkip = null;
 
     if (FlxG.state != null)

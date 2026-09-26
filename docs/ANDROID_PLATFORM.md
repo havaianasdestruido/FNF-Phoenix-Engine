@@ -98,7 +98,7 @@ a no-op outside `#if android` unless noted.
 | `AndroidIntents` | System intents | `openUrl`, `openSettings`, `openFile`, `shareFile`, `shareText`, `viewContentUri`, `onDeepLink` signal (`phoenix://...`) |
 | `AndroidNotification` | Notifications | `notify(id, title, text)`, `cancel(id)`, `requestPermission()` (API 33+) |
 | `AndroidStorage` | SAF / content URIs | `openDocument`, `createDocument`, `openDocumentTree`, `readUriBytes/Text`, `writeUriBytes/Text`, `importUri`, `exportFileToUri`, `persistUriPermission`, `extensionToMime` |
-| `AndroidDiscord` | Presence stand-in | Publishes the engine's Discord presence strings to the media session (Discord RPC is desktop-only) |
+| `AndroidDiscord` | Presence stand-in | No-op on Android: keeps `DiscordClient` platform-agnostic without ever touching the media session, which is owned by `PlayStateAndroidMedia` (Discord RPC is desktop-only) |
 
 Compatibility bindings for common Android classes live under
 `source/android/` (`Permissions`, `Settings`, `content.Context`,
@@ -113,9 +113,10 @@ media integration:
   (title/duration at create; state + position refreshed once per second).
 - Audio focus is requested on start and abandoned on stop; focus **loss
   pauses the game**, **duck** lowers music volume, **gain** restores it.
-- The screen wake lock is held for the duration of gameplay.
+- The screen is kept on for the duration of gameplay via
+  `FLAG_KEEP_SCREEN_ON` on the activity window.
 - A MediaStyle notification is kept in sync via `PhoenixMediaService`.
-- A recovery blob (`{type:"song", song, difficulty}`) is persisted while
+- A recovery blob (`{type:"song", song, difficulty, difficulties, mod}`) is persisted while
   playing and cleared on a clean exit, so a process kill mid-song can be
   recovered (see below).
 

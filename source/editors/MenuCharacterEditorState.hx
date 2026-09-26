@@ -75,8 +75,54 @@ class MenuCharacterEditorState extends MusicBeatState
 		// pad (layout defined by the MENU_CHARACTER_EDITOR modes).
 		addVirtualPad(MENU_CHARACTER_EDITOR, MENU_CHARACTER_EDITOR);
 		addVirtualPadCamera();
+		setupMobilePad();
 		#end
 	}
+
+	#if mobile
+	// Mirrors the keyboard shortcuts (arrows = offset, Space = confirm
+	// preview, Escape = exit) on the touch pad.
+	function setupMobilePad():Void
+	{
+		if (virtualPad == null)
+			return;
+
+		if (virtualPad.buttonUp != null)
+			virtualPad.buttonUp.onUp.callback = mobilePadNudge.bind(1, 1);
+		if (virtualPad.buttonDown != null)
+			virtualPad.buttonDown.onUp.callback = mobilePadNudge.bind(1, -1);
+		if (virtualPad.buttonLeft != null)
+			virtualPad.buttonLeft.onUp.callback = mobilePadNudge.bind(0, 1);
+		if (virtualPad.buttonRight != null)
+			virtualPad.buttonRight.onUp.callback = mobilePadNudge.bind(0, -1);
+		if (virtualPad.buttonA != null)
+			virtualPad.buttonA.onUp.callback = mobilePadPreview;
+		if (virtualPad.buttonB != null)
+			virtualPad.buttonB.onUp.callback = mobilePadExit;
+	}
+
+	function mobilePadNudge(axis:Int, dir:Int):Void
+	{
+		characterFile.position[axis] += dir;
+		updateOffset();
+	}
+
+	function mobilePadPreview():Void
+	{
+		// Mirrors SPACE.
+		if (curTypeSelected == 1)
+			grpWeekCharacters.members[curTypeSelected].animation.play('confirm', true);
+	}
+
+	function mobilePadExit():Void
+	{
+		// Mirrors ESCAPE.
+		FlxG.switchState(editors.MasterEditorMenu.new);
+		FlxG.sound.playMusic(Paths.music('freakyMenu-' + ClientPrefs.daMenuMusic));
+		if (music != null && music.music != null)
+			music.destroy();
+	}
+	#end
 
 	var UI_typebox:FlxUITabMenu;
 	var UI_mainbox:FlxUITabMenu;

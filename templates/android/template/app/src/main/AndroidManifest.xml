@@ -72,8 +72,9 @@
     		android:exported="true"
     		android:grantUriPermissions="true"
 			::if (ANDROID_USE_ANDROIDX)::
-			android:permission="android.permission.MANAGE_DOCUMENTS">
+			android:permission="android.permission.MANAGE_DOCUMENTS"
 			::end::
+			>
     		<intent-filter>
         		<action android:name="android.content.action.DOCUMENTS_PROVIDER" />
     		</intent-filter>

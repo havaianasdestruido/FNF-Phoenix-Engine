@@ -190,9 +190,23 @@ class TitleState extends MusicBeatState
 
     var songLowercase:String = Paths.formatToSongPath(Std.string(data.song));
 
-    // The difficulty list is only populated by the menus, so fall back to
-    // the engine defaults while we're still on the title screen.
-    var diffNames:Array<String> = CoolUtil.difficulties.length > 0 ? CoolUtil.difficulties : CoolUtil.defaultDifficulties;
+    // Restore the mod directory so mod-scoped charts resolve.
+    if (data.mod != null && Std.string(data.mod).length > 0)
+      Mods.currentModDirectory = Std.string(data.mod);
+
+    // Difficulty list preference: the persisted one (may include custom
+    // mod difficulties), then whatever the menus set up, then the engine
+    // defaults. It must be in CoolUtil.difficulties before formatSong,
+    // because Highscore.formatSong/getDifficultyFilePath index into it.
+    var diffNames:Array<String> = null;
+    if (data.difficulties != null && Std.isOfType(data.difficulties, Array) && (data.difficulties : Array<Dynamic>).length > 0)
+      diffNames = [for (d in (data.difficulties : Array<Dynamic>)) Std.string(d)];
+    else if (CoolUtil.difficulties.length > 0)
+      diffNames = CoolUtil.difficulties;
+    else
+      diffNames = CoolUtil.defaultDifficulties.copy();
+
+    CoolUtil.difficulties = diffNames;
 
     function findDifficulty(name:String):Int
     {

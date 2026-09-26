@@ -156,8 +156,181 @@ class DialogueCharacterEditorState extends MusicBeatState
 		// its pad (layout defined by the DIALOGUE_PORTRAIT_EDITOR modes).
 		addVirtualPad(DIALOGUE_PORTRAIT_EDITOR, DIALOGUE_PORTRAIT_EDITOR);
 		addVirtualPadCamera();
+		setupMobilePad();
 		#end
 	}
+
+	#if mobile
+	// Mirrors the keyboard shortcuts on the touch pad:
+	//   bottom dpad = JIKL view movement, top dpad = A/W/D/S keys,
+	//   X/C = Q/E zoom, Y = H ghosts/HUD, Z = R reset, A = Space, B = Esc.
+	function setupMobilePad():Void
+	{
+		if (virtualPad == null)
+			return;
+
+		if (virtualPad.buttonUp != null)
+			virtualPad.buttonUp.onUp.callback = mobilePadMove.bind(0, -10);
+		if (virtualPad.buttonDown != null)
+			virtualPad.buttonDown.onUp.callback = mobilePadMove.bind(0, 10);
+		if (virtualPad.buttonLeft != null)
+			virtualPad.buttonLeft.onUp.callback = mobilePadMove.bind(-10, 0);
+		if (virtualPad.buttonRight != null)
+			virtualPad.buttonRight.onUp.callback = mobilePadMove.bind(10, 0);
+
+		if (virtualPad.buttonUp2 != null)
+			virtualPad.buttonUp2.onUp.callback = mobilePadAWDS.bind(1); // W
+		if (virtualPad.buttonLeft2 != null)
+			virtualPad.buttonLeft2.onUp.callback = mobilePadAWDS.bind(0); // A
+		if (virtualPad.buttonRight2 != null)
+			virtualPad.buttonRight2.onUp.callback = mobilePadAWDS.bind(2); // D
+		if (virtualPad.buttonDown2 != null)
+			virtualPad.buttonDown2.onUp.callback = mobilePadAWDS.bind(3); // S
+
+		if (virtualPad.buttonX != null)
+			virtualPad.buttonX.onUp.callback = mobilePadZoom.bind(true);
+		if (virtualPad.buttonC != null)
+			virtualPad.buttonC.onUp.callback = mobilePadZoom.bind(false);
+		if (virtualPad.buttonY != null)
+			virtualPad.buttonY.onUp.callback = mobilePadGhosts;
+		if (virtualPad.buttonZ != null)
+			virtualPad.buttonZ.onUp.callback = mobilePadReset;
+		if (virtualPad.buttonA != null)
+			virtualPad.buttonA.onUp.callback = mobilePadPlay;
+		if (virtualPad.buttonB != null)
+			virtualPad.buttonB.onUp.callback = mobilePadExit;
+	}
+
+	function mobileInputBlocked():Bool
+	{
+		if (transitioning || animationDropDown.dropPanel.visible)
+			return true;
+		for (inputText in blockPressWhileTypingOn)
+		{
+			if (inputText.hasFocus)
+				return true;
+		}
+		return false;
+	}
+
+	function mobilePadMove(dx:Int, dy:Int):Void
+	{
+		if (mobileInputBlocked())
+			return;
+		mainGroup.x += dx;
+		mainGroup.y += dy;
+	}
+
+	function mobilePadAWDS(i:Int):Void
+	{
+		if (mobileInputBlocked())
+			return;
+
+		if (UI_mainbox.selected_tab_id == 'Animations' && curSelectedAnim != null
+			&& character.dialogueAnimations.exists(curSelectedAnim))
+		{
+			var dialogueAnimation:DialogueAnimArray = character.dialogueAnimations.get(curSelectedAnim);
+			var negaMult:Array<Int> = [1, 1, -1, -1];
+			if (i % 2 == 1)
+				dialogueAnimation.idle_offsets[1] += negaMult[i];
+			else
+				dialogueAnimation.idle_offsets[0] += negaMult[i];
+
+			offsetLoopText.text = 'Loop: ' + dialogueAnimation.loop_offsets;
+			offsetIdleText.text = 'Idle: ' + dialogueAnimation.idle_offsets;
+			ghostLoop.offset.set(dialogueAnimation.loop_offsets[0], dialogueAnimation.loop_offsets[1]);
+			ghostIdle.offset.set(dialogueAnimation.idle_offsets[0], dialogueAnimation.idle_offsets[1]);
+		}
+		else if (UI_mainbox.selected_tab_id == 'Character' && (i == 1 || i == 3)
+			&& character.jsonFile.animations.length > 0)
+		{
+			// Mirrors W/S animation scrolling.
+			curAnim += (i == 1) ? -1 : 1;
+			if (curAnim < 0)
+				curAnim = character.jsonFile.animations.length - 1;
+			else if (curAnim >= character.jsonFile.animations.length)
+				curAnim = 0;
+
+			var animToPlay:String = character.jsonFile.animations[curAnim].anim;
+			if (character.dialogueAnimations.exists(animToPlay))
+				character.playAnim(animToPlay, daText.finishedText);
+
+			animText.text = 'Animation: ' + character.jsonFile.animations[curAnim].anim + ' (' + (curAnim + 1) + ' / '
+				+ character.jsonFile.animations.length + ') - Press W or S to scroll';
+		}
+	}
+
+	function mobilePadZoom(zoomOut:Bool):Void
+	{
+		if (mobileInputBlocked())
+			return;
+		if (zoomOut)
+		{
+			camGame.zoom -= 0.1 * camGame.zoom;
+			if (camGame.zoom < 0.1)
+				camGame.zoom = 0.1;
+		}
+		else
+		{
+			camGame.zoom += 0.1 * camGame.zoom;
+			if (camGame.zoom > 1)
+				camGame.zoom = 1;
+		}
+	}
+
+	function mobilePadGhosts():Void
+	{
+		if (mobileInputBlocked())
+			return;
+		if (UI_mainbox.selected_tab_id == 'Animations')
+		{
+			currentGhosts++;
+			if (currentGhosts > 2)
+				currentGhosts = 0;
+
+			ghostLoop.visible = (currentGhosts != 1);
+			ghostIdle.visible = (currentGhosts != 2);
+			ghostLoop.alpha = (currentGhosts == 2 ? 1 : 0.6);
+			ghostIdle.alpha = (currentGhosts == 1 ? 1 : 0.6);
+		}
+		else
+		{
+			hudGroup.visible = !hudGroup.visible;
+		}
+	}
+
+	function mobilePadReset():Void
+	{
+		if (mobileInputBlocked())
+			return;
+		camGame.zoom = 1;
+		mainGroup.setPosition(0, 0);
+		hudGroup.visible = true;
+	}
+
+	function mobilePadPlay():Void
+	{
+		if (mobileInputBlocked())
+			return;
+		if (UI_mainbox.selected_tab_id == 'Character')
+		{
+			character.playAnim(character.jsonFile.animations[curAnim].anim);
+			daText.resetDialogue();
+			updateTextBox();
+		}
+	}
+
+	function mobilePadExit():Void
+	{
+		if (mobileInputBlocked())
+			return;
+		FlxG.switchState(editors.MasterEditorMenu.new);
+		FlxG.sound.playMusic(Paths.music('freakyMenu-' + ClientPrefs.daMenuMusic), 1);
+		transitioning = true;
+		if (music != null && music.music != null)
+			music.destroy();
+	}
+	#end
 
 	var UI_typebox:FlxUITabMenu;
 	var UI_mainbox:FlxUITabMenu;

@@ -80,7 +80,9 @@ public class PhoenixStorage extends Extension
 		if (requestCode != REQUEST_OPEN_DOCUMENT && requestCode != REQUEST_CREATE_DOCUMENT
 			&& requestCode != REQUEST_OPEN_DOCUMENT_TREE)
 		{
-			return true;
+			// Not ours (e.g. Lime's own FileDialog request codes): leave the
+			// result for the other extensions.
+			return false;
 		}
 
 		Uri uri = (data != null) ? data.getData() : null;
@@ -363,9 +365,10 @@ public class PhoenixStorage extends Extension
 			if (parent != null && !parent.exists())
 				parent.mkdirs();
 
-			FileOutputStream output = new FileOutputStream(destination);
-			output.write(data);
-			output.close();
+			try (FileOutputStream output = new FileOutputStream(destination))
+			{
+				output.write(data);
+			}
 			return true;
 		}
 		catch (Exception e)

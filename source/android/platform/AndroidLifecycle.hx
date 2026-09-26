@@ -119,13 +119,19 @@ class AndroidLifecycle
 		});
 	}
 
+	/** Set when `pauseAudio` actually paused music that was playing. */
+	static var pausedByLifecycle:Bool = false;
+
 	static function pauseAudio():Void
 	{
 		#if android
 		try
 		{
 			if (FlxG.sound.music != null && FlxG.sound.music.playing)
+			{
+				pausedByLifecycle = true;
 				FlxG.sound.music.pause();
+			}
 		}
 		catch (e:Dynamic) {}
 		#end
@@ -134,6 +140,12 @@ class AndroidLifecycle
 	static function resumeAudio():Void
 	{
 		#if android
+		// Only resume what *we* paused; music that was already paused before
+		// the app backgrounded (menus, pause screen, ...) stays paused.
+		if (!pausedByLifecycle)
+			return;
+		pausedByLifecycle = false;
+
 		try
 		{
 			if (FlxG.sound.music != null && !FlxG.sound.music.playing && FlxG.sound.music.time > 0)

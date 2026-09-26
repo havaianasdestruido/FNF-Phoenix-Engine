@@ -63,6 +63,10 @@ class MobileFilePicker
 		var handler:AndroidStorageResult->Void = null;
 		handler = function(result:AndroidStorageResult)
 		{
+			// Ignore results from other pickers; stay registered for ours.
+			if (result.request != AndroidStorage.REQUEST_OPEN_DOCUMENT)
+				return;
+
 			AndroidStorage.onResult.remove(handler);
 
 			if (!result.ok || result.uri.length == 0)
@@ -126,6 +130,10 @@ class MobileFilePicker
 		var handler:AndroidStorageResult->Void = null;
 		handler = function(result:AndroidStorageResult)
 		{
+			// Ignore results from other pickers; stay registered for ours.
+			if (result.request != AndroidStorage.REQUEST_CREATE_DOCUMENT)
+				return;
+
 			AndroidStorage.onResult.remove(handler);
 
 			if (!result.ok || result.uri.length == 0)
@@ -188,6 +196,10 @@ class MobileFilePicker
 		var handler:AndroidStorageResult->Void = null;
 		handler = function(result:AndroidStorageResult)
 		{
+			// Ignore results from other pickers; stay registered for ours.
+			if (result.request != AndroidStorage.REQUEST_OPEN_DOCUMENT_TREE)
+				return;
+
 			AndroidStorage.onResult.remove(handler);
 			onResult(result.ok && result.uri.length > 0 ? result.uri : null);
 		};

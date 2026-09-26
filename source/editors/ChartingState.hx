@@ -679,6 +679,11 @@ class ChartingState extends MusicBeatState
       virtualPad.buttonUp2.onUp.callback = mobilePadNextSection;
     if (virtualPad.buttonDown2 != null)
       virtualPad.buttonDown2.onUp.callback = mobilePadPrevSection;
+    // Right dpad left/right mirrors SHIFT+A/D (jump 4 sections).
+    if (virtualPad.buttonLeft2 != null)
+      virtualPad.buttonLeft2.onUp.callback = mobilePadJumpSection.bind(-4);
+    if (virtualPad.buttonRight2 != null)
+      virtualPad.buttonRight2.onUp.callback = mobilePadJumpSection.bind(4);
     if (virtualPad.buttonA != null)
       virtualPad.buttonA.onUp.callback = mobilePadPlayTest;
     if (virtualPad.buttonB != null)
@@ -687,6 +692,73 @@ class ChartingState extends MusicBeatState
       virtualPad.buttonX.onUp.callback = mobilePadTogglePlayback;
     if (virtualPad.buttonY != null)
       virtualPad.buttonY.onUp.callback = mobilePadEditorPlayTest;
+    // Left dpad mirrors the arrow keys: up/down = quantized scrub,
+    // left/right = change quantization.
+    if (virtualPad.buttonUp != null)
+      virtualPad.buttonUp.onUp.callback = mobilePadScrub.bind(true);
+    if (virtualPad.buttonDown != null)
+      virtualPad.buttonDown.onUp.callback = mobilePadScrub.bind(false);
+    if (virtualPad.buttonLeft != null)
+      virtualPad.buttonLeft.onUp.callback = mobilePadQuant.bind(true);
+    if (virtualPad.buttonRight != null)
+      virtualPad.buttonRight.onUp.callback = mobilePadQuant.bind(false);
+    if (virtualPad.buttonZ != null)
+      virtualPad.buttonZ.onUp.callback = undo;
+  }
+
+  function mobilePadJumpSection(amount:Int):Void
+  {
+    // Mirrors A/D with SHIFT held.
+    if (amount > 0)
+    {
+      if (_song.notes[curSec + amount] == null)
+        addSection(getSectionBeats());
+      changeSection(curSec + amount);
+    }
+    else
+    {
+      if (curSec + amount >= 0)
+        changeSection(curSec + amount);
+      else
+        changeSection(_song.notes.length - 1);
+    }
+  }
+
+  function mobilePadScrub(backward:Bool):Void
+  {
+    // Mirrors the UP/DOWN quantized scrub (non-vortex branch).
+    if (vortex)
+      return;
+
+    if (idleMusic != null && idleMusic.music != null && idleMusicAllow)
+      idleMusic.unpauseMusic(2);
+    FlxG.sound.music.pause();
+    updateCurStep();
+    var beat:Float = curDecBeat;
+    var snap:Float = quantization / 4;
+    var increase:Float = 1 / snap;
+    var target:Float = backward ? CoolUtil.quantize(beat, snap) - increase : CoolUtil.quantize(beat, snap) + increase;
+    FlxG.sound.music.time = Conductor.beatToSeconds(target);
+    pauseAndSetVocalsTime();
+  }
+
+  function mobilePadQuant(previous:Bool):Void
+  {
+    // Mirrors LEFT/RIGHT quantization changes.
+    if (previous)
+    {
+      curQuant--;
+      if (curQuant < 0)
+        curQuant = quantizations.length - 1;
+    }
+    else
+    {
+      curQuant++;
+      if (curQuant > quantizations.length - 1)
+        curQuant = 0;
+    }
+    quantization = quantizations[curQuant];
+    quant.animation.play('q', true, false, curQuant);
   }
 
   function mobilePadNextSection():Void
