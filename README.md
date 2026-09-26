@@ -41,6 +41,7 @@ The Haxe-level patches (the ones that fix files *inside* haxelibs like `flixel`,
 
 - No keyboard buttons on screen (CRITICAL)
 - Failed to copy fonts error (HIGH)
+- "It appears that bf-clicker doesn't actually have a JSON, nor does it actually have voices/instrumental files!" appearing even if the song HAS a valid instrumental/JSON, can be ignored by accepting and the game works flawlessly, visual glitch. (MED-LOW)
 - Asking for image and sound access even with "manage all files" acess (LOW)
 
 Phoenix Engine currently has those additions (and more!) that vanilla JSE (Jordan Santiago Engine) doesn't:
