@@ -19,7 +19,9 @@
 
 <b>IMPORTANT: if you want to clone the repo (for making a pull request or for building locally), use <code>git clone -b main --single-branch https://github.com/havaianasdestruido/FNF-Phoenix-Engine.git</code> so you only git clone _only the main branch_, the other ones are for experiments or are extremely old.</b>
 
-Phoenix Engine focuses on making both Hardmodding (Hardcoded mods) *AND* Softmodding (mods you place on `mods/` folder) easier.
+Phoenix Engine focuses on making both Hardmodding (Hardcoded mods, using `Haxe`) *AND* Softmodding (mods you place on `mods/` folder, made with `Lua`/`Luau` or `Python`) easier.
+
+I also want to focus on platform-specific code from now-on, including platform-specific patches. (e.g.: Inject a custom Java code into Android builds that allows it to support Discord RPC, Inject a custom Object-C code for fixing fullscreen-related issues on iOS, etc.)
 
 Phoenix Engine currently has those additions (and more!) that vanilla JSE (Jordan Santiago Engine) doesn't:
 
@@ -119,6 +121,12 @@ Phoenix Engine currently has those additions (and more!) that vanilla JSE (Jorda
 - hxcpp configuration updates
 - flixel and lime updates
 - hxvlc CPU rendering optimizations
+
+## About AI usage
+
+Yes, I used AI for some changes, mostly related to fixing building issues that were a pain on my ass to fix manually.
+
+You can freely check the git commits and see what I modified by hand and where I used AI.
 
 <details>
   <summary><h2>OG FNF JS Engine README and Stuff</h2></summary>
