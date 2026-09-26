@@ -30,6 +30,7 @@ Generated from full repo audit. Priority: `[P0]` critical/blocker, `[P1]` high, 
 - **[P1] Mobile file picker incomplete** — `source/mobile/files/MobileFilePicker.hx` has a generic `StorageFilePicker` only wired to a few spots; chart-import, character-import from file picker are gated `#if desktop`. Verify on-device.
 - **[P2] Virtual pad consistency** — touch notes fire on `FlxG.keys` via `FlxVirtualPad`, but charting/editor states also need pad support; check `CopyState`, `ChartingState` for `#if mobile` gaps.
 - **[P3] iOS** — likely needs `#if ios` nuances (video/hxvlc below).
+- LOW importance menu to set in-game keybinds to fire on hardware triggers (e.g.: on VOL_UP/VOL_DOWN)
 
 ## 4. VIDEO / AUDIO
 
