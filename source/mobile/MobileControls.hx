@@ -23,6 +23,7 @@
 package mobile;
 
 import backend.ClientPrefs;
+import flixel.FlxCamera;
 import flixel.FlxG;
 import flixel.group.FlxSpriteGroup;
 import flixel.math.FlxPoint;
@@ -60,6 +61,26 @@ class MobileControls extends FlxSpriteGroup
 				hitbox = new FlxHitbox(4, Std.int(FlxG.width / 4), FlxG.height, [0xFF00FF, 0x00FFFF, 0x00FF00, 0xFF0000]);
 				add(hitbox);
 		}
+	}
+
+	/**
+	 * Sets the camera that draws the mobile controls and that their touch input is checked on.
+	 *
+	 * Flixel only forwards `cameras` to the direct members of a sprite group, so the buttons living
+	 * inside `hitbox`/`virtualPad` would keep a `null` cameras list. In that case they are drawn and
+	 * hit-tested on the default draw target (the gameplay camera), scrolling along with it.
+	 *
+	 * @param value The cameras the mobile controls should use.
+	 */
+	override function set_cameras(value:Array<FlxCamera>):Array<FlxCamera>
+	{
+		if (hitbox != null)
+			hitbox.cameras = value;
+
+		if (virtualPad != null)
+			virtualPad.cameras = value;
+
+		return super.set_cameras(value);
 	}
 
 	override public function destroy():Void
