@@ -79,6 +79,71 @@ Audited; these 5 sites were flagged but NOT changed (only 3 charting sites conve
 - **[P2] NDK pin** — commit `.github` to use **r27c** explicitly (matches verified toolchain) so CI != local.
 - **[P3] BUILDING.md "0 warnings" vs 3 MP3 warnings** — fix text.
 
+## 11. ANDROID NATIVE / PLATFORM INTEGRATION
+
+### MEDIA / AUDIO
+
+- **[P1] Android MediaSession / Media3 integration** — Expose the currently playing song to Android's media system, including title, artist/creator, album, artwork, playback state, position, and duration. Integrate with system media controls, lock screen, Bluetooth media controls, Android Auto, and other Android media clients.
+- **[P1] Android media action bridge** — Map Android media actions (`play`, `pause`, `stop`, `next`, `previous`, `seek`, etc.) back into the Haxe audio/gameplay layer.
+- **[P1] Android Audio Focus** — Request/release audio focus appropriately and handle interruptions, audio ducking, playback resumption, and headphone/Bluetooth disconnection.
+- **[P2] Android audio latency information** — Expose native audio output information such as sample rate, channel count, buffer size, and available output-latency information to Haxe for rhythm-game timing and audio-offset calibration.
+- **[P2] Low-latency Android audio backend** — Investigate Android-native low-latency audio APIs/backends where beneficial for rhythm-game timing and playback consistency.
+
+### LIFECYCLE / BACKGROUND
+
+- **[P1] Android lifecycle bridge** — Expose native Activity lifecycle events (`onCreate`, `onStart`, `onResume`, `onPause`, `onStop`, `onDestroy`, etc.) to Haxe and properly synchronize gameplay/audio state when the application loses or regains focus.
+- **[P2] Android process-death recovery** — Handle cases where Android destroys the application process while backgrounded; restore relevant engine state where possible instead of assuming static/global Haxe state survives.
+- **[P2] Android foreground-service support** — Provide a native service abstraction for tasks that legitimately need to continue outside the Activity, particularly Media3/media playback functionality.
+
+### INPUT / CONTROLLERS
+
+- **[P1] Native Android gamepad support** — Expose connected controller information, buttons, axes, hats, device IDs, connection/disconnection events, and controller capabilities to Haxe; integrate with the engine's existing keybind/input system.
+- **[P2] Android hardware input abstraction** — Expose non-standard Android `KeyEvent`s and hardware triggers to Haxe, allowing optional keybind mappings for supported physical buttons while avoiding interference with system-critical controls.
+- **[P2] Android controller identification** — Detect common Xbox, PlayStation, Switch-compatible, and generic HID controllers and expose useful device information to the engine.
+- **[P2] Native Android haptic feedback** — Expose Android vibration/haptic APIs to Haxe for gameplay feedback, menu interactions, and other rhythm-game events.
+
+### DISPLAY / RENDERING
+
+- **[P1] Android display information API** — Expose native display information such as physical resolution, density/DPI, orientation, refresh rate, and display cutout/insets.
+- **[P1] Android fullscreen / edge-to-edge handling** — Implement native immersive fullscreen and edge-to-edge behavior while correctly handling status bars, navigation bars, gesture areas, notches, and hole-punch camera cutouts.
+- **[P2] Android refresh-rate awareness** — Detect the active display refresh rate and expose supported refresh-rate information to the engine for frame-pacing and performance decisions.
+- **[P2] Android screen wake lock** — Prevent the device from automatically turning off the screen during active gameplay where appropriate.
+
+### PERFORMANCE / DEVICE STATE
+
+- **[P2] Android thermal status API** — Expose Android thermal status information to Haxe so the engine can detect thermal throttling and optionally reduce expensive effects or other non-essential workload.
+- **[P2] Android memory-pressure handling** — Detect Android low-memory conditions and notify the engine so it can release caches and other non-essential resources.
+- **[P3] Android battery/power state API** — Expose charging state, battery state, and power-saving information where useful for background work and performance decisions.
+
+### FILES / MODS
+
+- **[P1] Android Storage Access Framework integration** — Use the native Android document picker for importing/exporting mods, charts, assets, replays, and other user files; support `ACTION_OPEN_DOCUMENT`, `ACTION_CREATE_DOCUMENT`, and `ACTION_OPEN_DOCUMENT_TREE`.
+- **[P1] Android content URI support** — Support Android `content://` URIs alongside normal filesystem paths, providing a common Haxe abstraction for resources loaded from either source.
+- **[P2] Android file sharing** — Provide native file sharing through Android intents/`FileProvider` for screenshots, replays, exported charts, mods, and other engine-generated files.
+
+### INTENTS / EXTERNAL INTEGRATION
+
+- **[P2] Android Intent API** — Expose common Android intents to Haxe for opening URLs, files, external applications, Android settings pages, and other supported system activities.
+- **[P2] Android share integration** — Allow the engine to share screenshots, scores, replay files, exported charts, mods, and other supported content through Android's native share sheet.
+- **[P3] Phoenix URI / deep-link system** — Add a platform-independent URI routing system for directly opening songs, charts, mods, replays, menus, and other engine resources (e.g. `phoenix://song/bopeebo?difficulty=hard`, `phoenix://mod/whitty/song/lo-fight`, `phoenix://screen/freeplay`). Android should register the `phoenix://` scheme and forward incoming intents to Haxe; expose parsed URI data to Haxe/Lua/HScript and keep the system extensible for other platforms.
+
+### NOTIFICATIONS
+
+- **[P2] Android notification API** — Expose native notification channels, notifications, progress indicators, actions, and other relevant Android notification functionality to the engine where appropriate.
+- **[P2] MediaStyle notification integration** — Use Android's media notification APIs for active playback where required, keeping notification metadata and playback controls synchronized with the MediaSession.
+
+### DISCORD / EXTERNAL SERVICES
+
+- **[P2] Android Discord integration** — Provide a native Android implementation for Discord-related functionality where platform-specific APIs are required; expose relevant gameplay information such as current song, difficulty, score/state, and gameplay status where supported.
+- **[P3] Platform-specific RPC bridge** — Keep external service integrations behind a platform abstraction so Android-specific implementations do not leak into the engine's cross-platform gameplay code.
+
+### NATIVE BRIDGE / ARCHITECTURE
+
+- **[P1] Android Haxe ↔ Java/Kotlin bridge** — Provide a clean native bridge for calling Android Java/Kotlin APIs from Haxe without scattering Android-specific implementation details throughout the engine.
+- **[P1] Android platform API abstraction** — Group native Android functionality into dedicated APIs/modules (e.g. `AndroidMedia`, `AndroidIntents`, `AndroidStorage`, `AndroidGamepad`, `AndroidHaptics`, `AndroidDisplay`) instead of directly calling platform APIs from gameplay code.
+- **[P2] Android platform-specific patch system** — Allow Android-only patches and native implementations to be injected into builds without requiring unrelated cross-platform engine code to contain Android-specific logic.
+- **[P2] Android native dependency isolation** — Keep Java/Kotlin dependencies and Android-specific source isolated from other targets so desktop, web, Flash/AIR, HashLink, and iOS builds do not require Android-only libraries.
+
 ---
 
 ## TOP 5 (do these first)
