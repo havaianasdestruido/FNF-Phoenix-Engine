@@ -89,6 +89,13 @@ class Project extends HXProject
   static final POSTBUILD_HX:String = "source/Postbuild.hx";
 
 	/**
+	 * Scripts that copy the NDK's `libc++_shared.so` into the generated Gradle
+	 * project on Android. See `configureAndroidRuntime`.
+	 */
+	static final ANDROID_STL_SCRIPT_UNIX:String = "setup/android-copy-stl.sh";
+	static final ANDROID_STL_SCRIPT_WINDOWS:String = "setup/android-copy-stl.bat";
+
+	/**
 	 * Asset path globs to always exclude from asset libraries.
 	 */
 	static final EXCLUDE_ASSETS:Array<String> = [".*", "cvs", "thumbs.db", "desktop.ini", "*.hash", "*.md"];
@@ -177,6 +184,7 @@ class Project extends HXProject
 		configureCompileDefines();
 		configureFeatureFlags();
 		configureOutputDir();
+		configureAndroidRuntime();
 		configureHaxelibs();
 		configureAssets();
 		configureIcons();
@@ -616,6 +624,77 @@ class Project extends HXProject
 		info('Output directory: $buildDir');
 		// setenv('BUILD_DIR', buildDir);
 		app.path = buildDir;
+	}
+
+	/**
+	 * The Android ABIs this build produces, mirroring the selection Lime's
+	 * `AndroidPlatform` performs (default architectures plus the `-ONLY_*`
+	 * overrides and the simulator defaults).
+	 */
+	function androidAbis():Array<String>
+	{
+		if (targetFlags.exists("ONLY_ARMV7"))
+			return ["armeabi-v7a"];
+		if (targetFlags.exists("ONLY_ARM64"))
+			return ["arm64-v8a"];
+		if (targetFlags.exists("ONLY_X86"))
+			return ["x86"];
+		if (targetFlags.exists("ONLY_X86_64"))
+			return ["x86_64"];
+		if (targetFlags.exists("simulator") || targetFlags.exists("emulator"))
+			return ["x86_64", "arm64-v8a"];
+		return ["armeabi-v7a", "arm64-v8a"];
+	}
+
+	/**
+	 * Android: make the APK ship the NDK's `libc++_shared.so`.
+	 *
+	 * The prebuilt `liblime.so` NDLL that Lime copies into the app is linked
+	 * against the *shared* C++ runtime (`readelf -d` reports
+	 * `NEEDED: libc++_shared.so`), but neither Lime's Android target nor the
+	 * Gradle project it generates ever copies that runtime into `jniLibs`.
+	 * The resulting APK fails before the first frame with:
+	 *
+	 *     dlopen failed: library "libc++_shared.so" not found: needed by
+	 *     /data/app/.../lib/arm64/liblime.so in namespace clns-N
+	 *
+	 * Lime runs pre-build callbacks after it creates the Gradle project
+	 * (`update`) and before it copies the NDLLs and invokes Gradle (`build`),
+	 * so this is the last moment the file can be dropped into the right place.
+	 * It also survives `lime build android -clean`, which wipes the target
+	 * directory before `update` recreates it.
+	 */
+	function configureAndroidRuntime()
+	{
+		if (!isAndroid())
+			return;
+
+		var abis = androidAbis();
+		if (abis.length == 0)
+			return;
+
+		// Lime writes the Gradle project to `<app.path>/android/bin`.
+		var jniLibsDir = '${app.path}android/bin/app/src/main/jniLibs';
+
+		// Pass what we know to the script; it falls back to ANDROID_NDK_ROOT and
+		// then to Lime's config file when this is empty. `Map.get` is nullable and
+		// this file is @:nullSafety, so coalesce instead of assigning directly.
+		var ndkRoot:String = environment.get("ANDROID_NDK_ROOT") ?? "";
+
+		// NB: `Sys.systemName` is a function, not a property (Haxe 4.3 std/Sys.hx).
+		var isWindows = (Sys.systemName() == "Windows");
+		var command:String = isWindows ? "cmd" : "sh";
+		var args:Array<String> = isWindows ? ["/c", ANDROID_STL_SCRIPT_WINDOWS] : [ANDROID_STL_SCRIPT_UNIX];
+
+		args.push("--ndk");
+		args.push(ndkRoot);
+		args.push(jniLibsDir);
+		for (abi in abis)
+			args.push(abi);
+
+		info('Android: packaging libc++_shared.so for ${abis.join(", ")}');
+
+		this.preBuildCallbacks.push(new CLICommand(command, args));
 	}
 
 	function configureHaxelibs()

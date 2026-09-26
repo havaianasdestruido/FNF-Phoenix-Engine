@@ -609,6 +609,39 @@ jobs:
           haxelib run lime build android ${{ inputs.buildFlags != '' && format('-D {0}', inputs.buildFlags) || '' }}
 
       # ==========================================
+      # Verify the APK ships the NDK C++ runtime
+      # ==========================================
+      # liblime.so is linked against the shared C++ runtime, so the APK must
+      # contain lib/<abi>/libc++_shared.so next to it or the app dies on launch
+      # with "dlopen failed: library libc++_shared.so not found".
+      - name: Verify Android APK native libs
+        if: steps.target-selection.outputs.enabled == 'true' && matrix.target == 'android'
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          apk=$(ls build/release/android/bin/app/build/outputs/apk/*/*.apk | head -n 1)
+          echo "Checking native libraries in $apk"
+
+          entries=$(unzip -Z1 "$apk" | grep -E '^lib/[^/]+/[^/]+$' || true)
+          echo "$entries"
+
+          if [ -z "$entries" ]; then
+            echo "::error::$apk contains no native libraries at all"
+            exit 1
+          fi
+
+          missing=0
+          for abi in $(printf '%s\n' "$entries" | cut -d/ -f2 | sort -u); do
+            if ! printf '%s\n' "$entries" | grep -qxF "lib/$abi/libc++_shared.so"; then
+              echo "::error::$apk is missing lib/$abi/libc++_shared.so, so liblime.so cannot be loaded at runtime"
+              missing=1
+            fi
+          done
+
+          [ "$missing" -eq 0 ]
+
+      # ==========================================
       # Save generated C++ cache
       # ==========================================
       - name: Save generated C++ cache

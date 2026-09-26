@@ -154,6 +154,44 @@ e.g: Fedora is `gcc-c++`, Gentoo is `sys-devel/gcc`, and so on.
 
 Run `lime test cpp -clean` again, or delete the export (more specifically, export/obj) folder and compile again.
 
+### "The Android build installs, then dies with `dlopen failed: library "libc++_shared.so" not found`"
+
+The APK installs but shows an SDL error on launch:
+
+```
+dlopen failed: library "libc++_shared.so" not found: needed by
+/data/app/.../quack.fnf.phoenix-.../lib/arm64/liblime.so in namespace clns-N
+```
+
+The prebuilt `liblime.so` NDLL that Lime copies into the APK is linked against the
+*shared* C++ runtime:
+
+```
+$ readelf -d <haxelib>/lime/git/ndll/Android/liblime-64.so | grep NEEDED
+ 0x00000001 (NEEDED)   Shared library: [libc++_shared.so]
+```
+
+but nothing in Lime's Android target, or in the Gradle project it generates, ever
+copies that runtime into the app. `project.hxp` therefore registers a pre-build
+callback (`configureAndroidRuntime`) that runs `setup/android-copy-stl.sh`
+(`setup/android-copy-stl.bat` on Windows), which copies `libc++_shared.so` out of
+the NDK into `build/<type>/android/bin/app/src/main/jniLibs/<abi>/` just before
+Gradle packages the APK. Lime runs pre-build callbacks after it creates the
+Gradle project and before it copies the NDLLs, which is the only point in the
+pipeline where the file can still be added (and it survives `-clean`, which wipes
+the target directory first).
+
+If you hit this error:
+
+* Rebuild so the callback runs again (`lime build android`). The NDK is taken
+  from `ANDROID_NDK_ROOT`, and otherwise from Lime's config
+  (`lime config ANDROID_NDK_ROOT`), so make sure `lime setup android` was run.
+* Check the APK directly — `unzip -Z1 <apk> | grep 'lib/.*\.so'` should list
+  `libc++_shared.so` for every ABI. CI does exactly this in the
+  `Verify Android APK native libs` step and fails the build when it is missing.
+* Run the script by hand to see what it resolves:
+  `sh setup/android-copy-stl.sh --ndk "$ANDROID_NDK_ROOT" build/release/android/bin/app/src/main/jniLibs arm64-v8a armeabi-v7a`
+
 ---
 
 ## Multi-target / build matrix & web export

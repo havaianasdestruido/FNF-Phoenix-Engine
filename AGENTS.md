@@ -181,6 +181,13 @@ FNF-JS-Engine-Light/
 - **Linux**: instalar `libvlc` (hxvlc/hxCodec) — erro típico `libvlc.so.5 ... syntax error` → usar hxCodec 3.0.2 ou instalar VLC.
 - **MSVC Windows (LNK1181/LNK1120)**: rodar `setup/windows-msvc-fix.ps1` (ativa fork hxcpp com
   suporte `<assembler>` + J17); ou `lime test cpp -clean`/apagar `export/obj`.
+- **Android (`dlopen failed: library "libc++_shared.so" not found ... needed by ... liblime.so`)**:
+  o `liblime.so` pré-compilado do fork do lime linka contra o `libc++_shared` e nada no
+  Lime/Gradle copia esse runtime pro APK. O `project.hxp` (`configureAndroidRuntime`) registra
+  um pre-build callback que roda `setup/android-copy-stl.sh` (ou `.bat` no Windows) e copia o
+  `libc++_shared.so` do NDK para `build/<tipo>/android/bin/app/src/main/jniLibs/<abi>/`.
+  Confira com `unzip -Z1 <apk> | grep libc++_shared` — o CI checa isso no step
+  `Verify Android APK native libs`. Detalhes em `BUILDING.md`.
 - Runtime `lime.hdll` (HashLink) **bloqueado neste fork** — use windows/neko/linux/mac/html5.
 - Estado do build local: **só `build/release/android/` presente** (build release Android antigo,
   Haxe 4.3.7, NDK 27.2.12479018, versão 0.3.2) — não é a fonte de build atual; refs de versionName/
