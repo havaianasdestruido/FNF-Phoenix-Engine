@@ -680,7 +680,8 @@ class Project extends HXProject
 		// then to Lime's config file when this is empty.
 		var ndkRoot:String = environment.exists("ANDROID_NDK_ROOT") ? environment.get("ANDROID_NDK_ROOT") : "";
 
-		var isWindows = (Sys.systemName == "Windows");
+		// NB: `Sys.systemName` is a function, not a property (Haxe 4.3 std/Sys.hx).
+		var isWindows = (Sys.systemName() == "Windows");
 		var command = isWindows ? "cmd" : "sh";
 		var args = isWindows ? ["/c", ANDROID_STL_SCRIPT_WINDOWS] : [ANDROID_STL_SCRIPT_UNIX];
 
