@@ -142,6 +142,17 @@ class DialogueBox extends FlxSpriteGroup
 	var dialogueStarted:Bool = false;
 	var dialogueEnded:Bool = false;
 
+	// Touch-only devices have no ACCEPT button bound during songs, so any fresh tap advances dialogue.
+	function anyTouchJustPressed():Bool
+	{
+		for (touch in FlxG.touches.list)
+		{
+			if (touch != null && touch.justPressed)
+				return true;
+		}
+		return false;
+	}
+
 	override function update(elapsed:Float)
 	{
 		// HARD CODING CUZ IM STUPDI
@@ -171,7 +182,7 @@ class DialogueBox extends FlxSpriteGroup
 			dialogueStarted = true;
 		}
 
-		if(PlayerSettings.player1.controls.ACCEPT)
+		if(PlayerSettings.player1.controls.ACCEPT || anyTouchJustPressed())
 		{
 			if (dialogueEnded)
 			{

@@ -161,7 +161,26 @@ class CopyState extends MusicBeatState
 					if (textFilesExtensions.contains(Path.extension(file)))
 						createContentFromInternal(file);
 					else
-						File.saveBytes(file, getFileBytes(getFile(file)));
+					{
+						var bytes:ByteArray = getFileBytes(getFile(file));
+						if (bytes == null)
+						{
+							if (isFontFile(file))
+							{
+								// Embedded fonts can't always be read back as raw bytes,
+								// but they still load fine from the packaged assets at
+								// runtime, so a storage copy isn't required for them.
+								failedFilesStack.push('Asset ${getFile(file)} is embedded, skipped storage copy (loads from packaged assets).');
+							}
+							else
+							{
+								failedFiles.push(getFile(file) + ' (Could not read asset bytes)');
+								failedFilesStack.push('Asset ${getFile(file)} returned null bytes.');
+							}
+						}
+						else
+							File.saveBytes(file, bytes);
+					}
 				}
 				else
 				{
@@ -202,10 +221,50 @@ class CopyState extends MusicBeatState
 		switch (Path.extension(file).toLowerCase())
 		{
 			case 'otf' | 'ttf':
-				return ByteArray.fromFile(file);
+				// Fonts are usually embedded into the executable, so on a first-run
+				// mobile install they don't exist as files on the storage yet and
+				// reading them from the filesystem fails. Pull the bytes through
+				// the asset libraries first and only fall back to the filesystem.
+				var bytes:ByteArray = null;
+				try
+				{
+					bytes = OpenFLAssets.getBytes(file);
+				}
+				catch (e:Dynamic) {}
+				if (bytes == null)
+				{
+					try
+					{
+						bytes = LimeAssets.getBytes(file);
+					}
+					catch (e:Dynamic) {}
+				}
+				if (bytes == null)
+				{
+					try
+					{
+						bytes = ByteArray.fromFile(file);
+					}
+					catch (e:Dynamic) {}
+				}
+				return bytes;
 			default:
 				return OpenFLAssets.getBytes(file);
 		}
+	}
+
+	static inline function isFontFile(file:String):Bool
+	{
+		var ext:String = Path.extension(file).toLowerCase();
+		return ext == 'ttf' || ext == 'otf';
+	}
+
+	// Internal fonts that resolve from the packaged assets never need a storage
+	// copy: they load straight from the package at runtime. Mod fonts are NOT
+	// covered here, the mod system reads those from the filesystem instead.
+	static inline function isPackagedFont(file:String):Bool
+	{
+		return isFontFile(file) && !file.startsWith('mods/') && OpenFLAssets.exists(getFile(file));
 	}
 
 	public static function getFile(file:String):String
@@ -232,6 +291,7 @@ class CopyState extends MusicBeatState
 		var mods = locatedFiles.filter(folder -> folder.startsWith('mods/'));
 		locatedFiles = assets.concat(mods);
 		locatedFiles = locatedFiles.filter(file -> !FileSystem.exists(file));
+		locatedFiles = locatedFiles.filter(file -> !isPackagedFont(file));
 
 		var filesToRemove:Array<String> = [];
 

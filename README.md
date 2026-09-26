@@ -35,6 +35,8 @@ For example:
 
 Haxe already provides `#if`s that can be useful on making small patches, but it becames a problem when theres issues that can only be solved using non-Haxe code. (e.g.: `C`/`C++` low-level patches)
 
+The Haxe-level patches (the ones that fix files *inside* haxelibs like `flixel`, `openfl`, `funkin.vis`) live in `source-haxelib-patches/` and get compiled in as class-path overrides — what they fix, why they exist and how the compiler picks them up is explained in [Source patches](#source-patches-source-haxelib-patches).
+
 # KNOW MOBILE (Android) ISSUES
 
 - No keyboard buttons on screen (CRITICAL)
@@ -139,6 +141,129 @@ Phoenix Engine currently has those additions (and more!) that vanilla JSE (Jorda
 - hxcpp configuration updates
 - flixel and lime updates
 - hxvlc CPU rendering optimizations
+
+## Source patches (`source-haxelib-patches/`)
+
+`source-haxelib-patches/` holds the engine's **haxelib overrides**: complete copies of library files
+(`flixel`, `openfl`, `funkin.vis`) with a few lines changed, kept in the repo instead of being applied by hand
+into the haxelib install folder. They are the Haxe-level counterpart of the platform patches listed above.
+
+### Why they exist
+
+- Some bugs are simply **not in `source/`** — they are in the libraries the engine is built on top of, so no
+  `#if` inside the game code can reach them.
+- The libraries used here are already **forks** (`JS-Engine-things/flixel-JS-Engine`, `JS-Engine-things/openfl`,
+  `JS-Engine-things/funkVis-FrequencyFixed` — see `hmm.json` and `setup/unix.sh` / `setup/windows.bat`). Landing a
+  fix in a fork means *everyone* has to re-run setup before they get it, and a plain `haxelib install` of some
+  unrelated lib can flip the active version back (that's the `hxcpp` problem described in `BUILDING.md`).
+- Editing `~/.haxelib/...` directly — which is how these 7 files started — is **machine-local**: it fixes your
+  build, it is invisible to CI, it vanishes on a fresh clone, and reviewers can't see it in the PR diff.
+- Committing them as a class-path override makes the patch part of the project: it applies on every machine and
+  every target, needs no install step, no hook, no `sed`, no copy script, and it is reviewable as plain Haxe.
+
+### How they are used when compiling
+
+`project.hxp` adds exactly one extra class path, right after the game's own:
+
+```haxe
+// Tell Lime where to look for the game's source code.
+this.sources.push(SOURCE_DIR);                 // -> source/
+// Haxelib classpath overrides (shadow machine-local haxelib edits for CI/fresh builds).
+this.sources.push("source-haxelib-patches");   // -> source-haxelib-patches/
+```
+
+Lime writes each entry of `sources` as a `-cp` line in the generated hxml, after the `-lib` class paths, and a
+module that exists in more than one class path is taken from the *last* one declared. So
+`source-haxelib-patches/flixel/sound/FlxSound.hx` **shadows** `flixel/sound/FlxSound.hx` from the haxelib: the
+library copy is never even opened by the compiler. That is the same mechanism that already lets
+`source/flixel/FlxGame.hx` and `source/flixel/addons/ui/*` replace the library files — it just lives in its own folder
+so library fixes stay visible and diffable. Two consequences:
+
+- **A patch is a whole file, not a `.patch`/diff.** The folder mirrors the library's package layout
+  (`flixel/util/FlxSave.hx` *is* module `flixel.util.FlxSave`); the path, the case of every letter and the file
+  name must match exactly, and the file has to compile on its own.
+- **Precedence is `source-haxelib-patches/` > `source/` > haxelib** (it is pushed last). A module patched in both
+  places would be silently taken from this folder, so keep the two lists disjoint — today they are.
+
+Because the substitution happens at Haxe compile time, the patch applies to *every* target (`cpp` desktop, neko,
+html5, flash, air). That is exactly why each patch below is wrapped in platform conditionals: on the native
+desktop/mobile builds the code must behave precisely like upstream.
+
+### What each patch fixes
+
+All 7 current patches exist so the **non-C++ targets (Flash / AIR)** build at all: they gate out API that the
+JS-Engine library forks added for the Lime/OpenFL renderers and that doesn't exist on the SWF backends.
+
+| Patch file | Library | What breaks without it | What the patch does |
+|---|---|---|---|
+| `flixel/sound/FlxSound.hx` | flixel | `FLX_PITCH` is undefined on Flash/AIR, so `FlxSound` has no `pitch` field — and the engine sets it everywhere (`play/PlayState.hx`, `play/helpers/PlayStatePlayback.hx`, `play/helpers/PlayStateChartLoader.hx`, `music/MusicPlayer.hx`, `editors/ChartingState.hx`), which is a `Type not found : pitch` compile error | Adds a store-only `pitch` property under `#if (flash || air)`. Code compiles and runs; changing pitch has no audible effect there, because the SWF audio backend can't pitch-shift |
+| `flixel/graphics/tile/FlxDrawQuadsItem.hx` | flixel | The fork draws tile batches by pushing the batch bitmap through a shader fill (`graphics.shader`, `shader.bitmap.input`, `canvas.graphics.beginShaderFill`/`overrideBlendMode`) — none of that exists on Flash, so the module fails to compile | Wraps the whole shader-blit block (and its `try/catch`) in `#if !flash`. On Flash/AIR quads rendering is skipped instead of breaking the build; desktop/web are untouched |
+| `flixel/graphics/tile/FlxDrawTrianglesItem.hx` | flixel | Same shader-blit path in the triangle batch item (`drawTriangles` + shader bitmap plumbing) | Same treatment: `#if !flash` around the shader + `drawTriangles` + `endFill` block, keeping the `FLX_DEBUG` draw-debug outline code |
+| `flixel/util/FlxGradient.hx` | flixel | Flash's `beginGradientFill()` extern demands different element types than OpenFL's (it wants `UInt` colors and plain integers for the alphas), while flixel passes `Array<FlxColor>` / `Array<Float>` — hits `options/NotesSubState.hx` (note-color preview) and `shaders/CustomFadeTransition.hx` | Converts the color array to `UInt` and floors the alphas **only** under `#if flash`; every other target keeps OpenFL's types and the original call |
+| `flixel/util/FlxSave.hx` | flixel | flixel's `FlxSharedObject` re-implements per-app save directories using `sys.FileSystem` / `sys.io.File`, which the SWF targets don't have — `FlxG.save`, and with it `ClientPrefs`, can't be built | Adds `flash \|\| air` to the `#if (android \|\| ios)` branch, so those targets use plain `SharedObject.getLocal()` (classic `.sol` save behavior) instead of the `sys`-based path |
+| `openfl/utils/Assets.hx` | openfl | `Assets.getBitmapData()` probes for `.astc` / `.ktx` / `.dds` sidecars and loads them via `stage.context3D.createASTCTexture()` / `createETC2Texture()` / `createS3TCTexture()`; there is no Context3D path on SWF, so essentially every asset lookup is affected | Wraps the compressed-texture probe in `#if (!flash && !air)`, so Flash/AIR fall through to the normal `LimeAssets.getImage()` route |
+| `funkin/vis/dsp/SpectralAnalyzer.hx` | funkin.vis | `#if web` also matches the SWF targets, pulling the Web-Audio `funkin.vis._internal.html5.AnalyzerNode` extern into Flash/AIR builds, while the `#else` branch needs a Lime `AudioSource` (`grig.audio.FFT`) that SWF can't provide. Used by `stages/objects/ABotSpeaker.hx` (the speaker visualizer) | Rewrites the guards as `#if (web && !flash)` / `#elseif !flash`, so neither backend is referenced on Flash/AIR (no analyzer there) while web and native keep their original code paths |
+
+Notes:
+
+- AIR compiles as a SWF target and Lime defines `flash` for it too, so `#if flash` already covers AIR; the
+  explicit `#if (flash || air)` form is used where the property being stubbed is the only difference.
+- No patch here changes gameplay, rendering or saving on the native desktop/mobile builds (or neko/html5) — they
+  only *remove or retype* code that cannot compile on the SWF targets.
+
+### How the game source uses them
+
+Nothing imports from this folder and there is no API to call — `source/` keeps talking to
+`flixel.sound.FlxSound`, `openfl.utils.Assets`, `flixel.util.FlxSave`, `funkin.vis.dsp.SpectralAnalyzer`, and the
+patched copy of those modules is what gets compiled. In practice:
+
+- Write code against the **patched** API without extra guards when the patch guarantees it exists everywhere:
+  `state.vocals.pitch = state.playbackRate` in `play/helpers/PlayStateChartLoader.hx` needs no `#if`, because
+  `FlxSound.pitch` now exists on Flash/AIR as well.
+- Keep `#if FLX_PITCH` where *real* pitch shifting matters (see `play/helpers/PlayStateCamera.hx`), since the
+  stub only stores a value.
+- A patch is a promise to every target: if you add `FlxSound.foo()`, `foo()` becomes usable unguarded from
+  `source/`; if you delete a patch, grep for the usages it was covering first.
+
+### Adding, updating, removing a patch
+
+```sh
+# 1. find the active copy of the library
+haxelib libpath flixel
+
+# 2. mirror the exact package path and copy the file (never hand-write one)
+mkdir -p source-haxelib-patches/flixel/sound
+cp "$(haxelib libpath flixel)/flixel/sound/FlxSound.hx" source-haxelib-patches/flixel/sound/FlxSound.hx
+
+# 3. edit only what is needed, keep upstream formatting/tabs, guard with #if,
+#    and leave a comment above the block saying WHICH TARGET needs WHY
+
+# 4. review the delta the way a reviewer will
+diff -u "$(haxelib libpath flixel)/flixel/sound/FlxSound.hx" source-haxelib-patches/flixel/sound/FlxSound.hx
+```
+
+- Patch here only for **library** fixes. Engine behavior belongs in `source/` (or, better, in a PR to the fork).
+- The smaller the diff in step 4, the easier the patch is to keep alive. Never reformat a patched file.
+- When a library is bumped (re-running `setup/unix.sh` / `setup/windows.bat`, or a new ref in `hmm.json`),
+  re-diff **every** patch: the copy is frozen at the moment it was taken, so a stale patch silently reverts the
+  upstream fixes that came after it.
+- Un-applying a patch is just `git rm source-haxelib-patches/<path>` — nothing was written into the haxelib, so
+  there is nothing to restore (build with `-clean` if you still see old output).
+- When the set of patched files changes, update the list in `BUILDING.md`
+  ("Machine-local haxelib patches") too — it is the same 7 files, still worded as if they were local edits.
+
+Not sure whether a patch is being picked up? Check the hxml Lime generates and/or break the file on purpose:
+
+```sh
+haxelib run lime build windows -Dofficial
+grep -rn "source-haxelib-patches" build/release/haxe/*.hxml   # must appear after the -cp for source/
+# brute-force proof: put a syntax error in the patch file and rebuild — the compiler should
+# stop inside source-haxelib-patches/, not inside ~/.haxelib
+```
+
+Anything that cannot be expressed in Haxe (C/C++, Java/Kotlin, Objective-C, Win32) does **not** go here: those go
+through `project.hxp` build callbacks and `setup/` scripts (e.g. `configureAndroidRuntime` +
+`setup/android-copy-stl.sh`, `setup/windows-msvc-fix.ps1`).
 
 ## About AI usage
 

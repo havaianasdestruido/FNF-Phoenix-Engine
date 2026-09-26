@@ -1,4 +1,4 @@
-﻿package states;
+package states;
 
 import backend.ClientPrefs;
 import backend.CoolUtil;
@@ -79,6 +79,9 @@ class RenderingDoneSubState extends MusicBeatSubstate {
 		FlxTween.tween(background, {alpha: 1}, 0.4, {ease: FlxEase.quartInOut});
 		FlxTween.tween(RenderText, {alpha: 1}, 0.4, {ease: FlxEase.quartInOut, startDelay: 0.2});
 		FlxTween.tween(saveTxt, {alpha: 1}, 0.4, {ease: FlxEase.quartInOut, startDelay: 0.2});
+
+		addVirtualPad(NONE, A);
+		addVirtualPadCamera();
 	}
 
 	override function update(elapsed:Float) {

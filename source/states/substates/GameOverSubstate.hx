@@ -1,4 +1,4 @@
-﻿package states.substates;
+package states.substates;
 
 import backend.ClientPrefs;
 import backend.Conductor;
@@ -241,6 +241,9 @@ class GameOverSubstate extends MusicBeatSubstate
 				}
 			}
 		}
+
+		addVirtualPad(NONE, A_B);
+		addVirtualPadCamera();
 
 		super.create();
 	}

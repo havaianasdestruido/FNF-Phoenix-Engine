@@ -1,4 +1,4 @@
-﻿package states;
+package states;
 
 import backend.ClientPrefs;
 import backend.CoolUtil;
@@ -62,12 +62,15 @@ class OutdatedState extends MusicBeatState
 		add(changelog);
 
 		updateText = new FlxText(0, 10, FlxG.width,
-			"Press SPACE/ENTER to go to GitHub to update, or ESCAPE to ignore this!"
+			mobile.MobileControls.enabled ? "Press A to go to GitHub to update, or B to ignore this!"
+			: "Press SPACE/ENTER to go to GitHub to update, or ESCAPE to ignore this!"
 			,24);
 		updateText.setFormat("VCR OSD Mono", 24, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
-			updateText.y = 710 - updateText.height;
-			updateText.x = 10;
+		updateText.y = 710 - updateText.height;
+		updateText.x = 10;
 		add(updateText);
+
+		addVirtualPad(NONE, A_B);
 	}
 
 	override function update(elapsed:Float)
@@ -75,7 +78,7 @@ class OutdatedState extends MusicBeatState
 		checker.x += 0.45 / (ClientPrefs.framerate / 60);
 		checker.y += (0.16 / (ClientPrefs.framerate / 60));
 		if(!leftState) {
-			if (FlxG.keys.justPressed.ENTER || FlxG.keys.justPressed.SPACE) {
+			if (FlxG.keys.justPressed.ENTER || FlxG.keys.justPressed.SPACE || controls.ACCEPT) {
 				CoolUtil.browserLoad("https://github.com/JordanSantiagoYT/FNF-JS-Engine/releases/latest");
 			}
 			else if(controls.BACK) {

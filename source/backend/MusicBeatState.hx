@@ -1,4 +1,4 @@
-﻿package backend;
+package backend;
 
 import Main;
 import play.BaseStage;
@@ -37,6 +37,8 @@ class MusicBeatState extends FlxUIState
 
 	var mobileControls:MobileControls;
 	public var virtualPad:FlxVirtualPad;
+	var mobileControlsCamera:FlxCamera;
+	var virtualPadCamera:FlxCamera;
 	var trackedInputsMobileControls:Array<FlxActionInput> = [];
 	var trackedInputsVirtualPad:Array<FlxActionInput> = [];
 
@@ -60,6 +62,12 @@ class MusicBeatState extends FlxUIState
 
 		if (virtualPad != null)
 			remove(virtualPad);
+
+		if (virtualPadCamera != null)
+		{
+			FlxG.cameras.remove(virtualPadCamera);
+			virtualPadCamera = null;
+		}
 	}
 
 	public function addMobileControls(DefaultDrawTarget:Bool = false):Void
@@ -83,6 +91,7 @@ class MusicBeatState extends FlxUIState
 		var camControls:FlxCamera = new FlxCamera();
 		camControls.bgColor.alpha = 0;
 		FlxG.cameras.add(camControls, DefaultDrawTarget);
+		mobileControlsCamera = camControls;
 
 		mobileControls.cameras = [camControls];
 		mobileControls.visible = false;
@@ -96,16 +105,28 @@ class MusicBeatState extends FlxUIState
 
 		if (mobileControls != null)
 			remove(mobileControls);
+
+		if (mobileControlsCamera != null)
+		{
+			FlxG.cameras.remove(mobileControlsCamera);
+			mobileControlsCamera = null;
+		}
 	}
 
 	public function addVirtualPadCamera(DefaultDrawTarget:Bool = false):Void
 	{
 		if (virtualPad != null)
 		{
+			if (virtualPadCamera != null)
+			{
+				FlxG.cameras.remove(virtualPadCamera);
+				virtualPadCamera = null;
+			}
 			var camControls:FlxCamera = new FlxCamera();
 			camControls.bgColor.alpha = 0;
 			FlxG.cameras.add(camControls, DefaultDrawTarget);
 			virtualPad.cameras = [camControls];
+			virtualPadCamera = camControls;
 		}
 	}
 
@@ -116,6 +137,18 @@ class MusicBeatState extends FlxUIState
 
 		if (trackedInputsVirtualPad.length > 0)
 			controls.removeVirtualControlsInput(trackedInputsVirtualPad);
+
+		if (mobileControlsCamera != null)
+		{
+			FlxG.cameras.remove(mobileControlsCamera);
+			mobileControlsCamera = null;
+		}
+
+		if (virtualPadCamera != null)
+		{
+			FlxG.cameras.remove(virtualPadCamera);
+			virtualPadCamera = null;
+		}
 
 		super.destroy();
 
