@@ -1,4 +1,4 @@
-﻿package objects;
+package objects;
 
 import backend.Paths;
 import backend.ClientPrefs;
@@ -273,6 +273,18 @@ class DialogueBoxPsych extends FlxSpriteGroup
 
 	public var closeSound:String = 'dialogueClose';
 	public var closeVolume:Float = 1;
+
+	// Touch-only devices have no ACCEPT button bound during songs, so any fresh tap advances dialogue.
+	function anyTouchJustPressed():Bool
+	{
+		for (touch in FlxG.touches.list)
+		{
+			if (touch != null && touch.justPressed)
+				return true;
+		}
+		return false;
+	}
+
 	override function update(elapsed:Float)
 	{
 		if(ignoreThisFrame) {
@@ -285,7 +297,7 @@ class DialogueBoxPsych extends FlxSpriteGroup
 			bgFade.alpha += 0.5 * elapsed;
 			if(bgFade.alpha > 0.5) bgFade.alpha = 0.5;
 
-			if(PlayerSettings.player1.controls.ACCEPT) {
+			if(PlayerSettings.player1.controls.ACCEPT || anyTouchJustPressed()) {
 				if(!daText.finishedText) {
 					daText.finishText();
 					if(skipDialogueThing != null) {

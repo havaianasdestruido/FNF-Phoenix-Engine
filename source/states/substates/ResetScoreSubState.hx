@@ -1,4 +1,4 @@
-﻿package states.substates;
+package states.substates;
 
 import backend.CoolUtil;
 import backend.Highscore;
@@ -79,6 +79,8 @@ class ResetScoreSubState extends MusicBeatSubstate
     noText.x += 200;
     add(noText);
     updateOptions();
+
+    addVirtualPad(LEFT_RIGHT, A_B);
   }
 
   override function update(elapsed:Float)

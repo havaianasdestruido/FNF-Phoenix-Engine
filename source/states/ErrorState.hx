@@ -1,4 +1,4 @@
-﻿package states;
+package states;
 
 import backend.ClientPrefs;
 import backend.MusicBeatState;
@@ -37,6 +37,9 @@ class ErrorState extends MusicBeatState
 		errorText.borderSize = 2;
 		errorText.screenCenter();
 		add(errorText);
+
+		addVirtualPad(NONE, A_B);
+
 		super.create();
 	}
 

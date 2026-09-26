@@ -151,6 +151,8 @@ class ModsMenuState extends MusicBeatState
 		add(buttonDisableAll);
 		checkToggleButtons();
 
+		addVirtualPad(LEFT_FULL, A_B);
+
 		if(modsList.all.length < 1)
 		{
 			buttonDisableAll.visible = buttonDisableAll.enabled = false;

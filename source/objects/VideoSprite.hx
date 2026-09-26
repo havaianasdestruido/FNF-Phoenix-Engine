@@ -101,7 +101,20 @@ class VideoSprite extends FlxSpriteGroup
   {
     if (canSkip)
     {
-      if (Controls.instance != null && Controls.instance.ACCEPT_P)
+      // Touch-only devices have no ACCEPT button bound during songs, so holding a touch skips too.
+      var skipHeld:Bool = (Controls.instance != null && Controls.instance.ACCEPT_P);
+      if (!skipHeld)
+      {
+        for (touch in FlxG.touches.list)
+        {
+          if (touch != null && touch.pressed)
+          {
+            skipHeld = true;
+            break;
+          }
+        }
+      }
+      if (skipHeld)
       {
         holdingTime = Math.max(0, Math.min(_timeToSkip, holdingTime + elapsed));
       }

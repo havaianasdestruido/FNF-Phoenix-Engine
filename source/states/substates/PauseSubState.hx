@@ -1,4 +1,4 @@
-﻿package states.substates;
+package states.substates;
 
 import backend.ClientPrefs;
 import backend.Conductor;
@@ -137,6 +137,8 @@ class PauseSubState extends MusicBeatSubstate
 
 		regenMenu();
 		cameras = [FlxG.cameras.list[FlxG.cameras.list.length - 1]];
+		addVirtualPad(LEFT_FULL, A);
+		addVirtualPadCamera();
 		super.create();
 	}
 

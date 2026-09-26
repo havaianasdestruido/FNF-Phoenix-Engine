@@ -1,4 +1,4 @@
-﻿package states;
+package states;
 
 import backend.ClientPrefs;
 import backend.MusicBeatState;
@@ -37,6 +37,8 @@ class FlashingState extends MusicBeatState
 		warnText.setFormat("VCR OSD Mono", 32, FlxColor.WHITE, CENTER);
 		warnText.screenCenter(Y);
 		add(warnText);
+
+		addVirtualPad(NONE, A_B);
 	}
 
 	override function update(elapsed:Float)
