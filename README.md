@@ -21,10 +21,22 @@
 
 Phoenix Engine focuses on making both Hardmodding (Hardcoded mods, using `Haxe`) *AND* Softmodding (mods you place on `mods/` folder, made with `Lua`/`Luau` or `Python`) easier.
 
-I also want to focus on platform-specific code from now-on, including platform-specific patches:
+---
+
+I also want to focus on platform-specific code from now on (mainly Android-related), including platform-specific patches:
 
 For example:
+
 - Inject custom Java/Kotlin code into Android builds to provide features such as Discord RPC, Android intents, notifications, permissions, or other Android APIs.
+  - Expose the currently playing song (title, artist/creator, album, artwork, playback state, position, etc.) to Android through "MediaSession" / Jetpack Media3, allowing integration with system media controls, Now Playing, the lock screen, Bluetooth devices, Android Auto, and other Android media clients.
+  - Integrate with Android's "MediaSessionService" to keep media controls and playback metadata available while the application is running in the background.
+  - Synchronize platform-level playback actions ("play", "pause", "stop", "next", "previous", "seek", etc.) with the engine's internal audio player through a native Android bridge.
+  - Update "MediaMetadata" dynamically whenever the currently playing track changes, including its title, artist, album, and album artwork.
+  - Expose the current playback state and timeline/position through "PlaybackState"/Media3 so Android can display accurate playback controls and progress.
+  - Support Android media intents and external media clients where applicable.
+- Provide platform-specific native bridges between Haxe/engine code and Android Java/Kotlin APIs, allowing engine-side code to access Android functionality without requiring platform-specific logic throughout the entire codebase.
+- Add Android-specific patches when required to work around platform limitations, device-specific issues, or missing functionality in the underlying engine/framework.
+- Keep platform-specific implementations isolated from the cross-platform codebase whenever possible, while exposing clean, engine-level APIs for features that need to be available across platforms.
 - Inject custom Objective-C/Objective-C++/Swift code into iOS builds to fix fullscreen, orientation, lifecycle, input, or rendering issues.
 - Apply custom C/C++ patches for native desktop functionality.
 - Modify Android Gradle files, manifests, resources, and project configuration as part of the build process.
