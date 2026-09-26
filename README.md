@@ -35,6 +35,12 @@ For example:
 
 Haxe already provides `#if`s that can be useful on making small patches, but it becames a problem when theres issues that can only be solved using non-Haxe code. (e.g.: `C`/`C++` low-level patches)
 
+# KNOW MOBILE (Android) ISSUES
+
+- No keyboard buttons on screen (CRITICAL)
+- Failed to copy fonts error (HIGH)
+- Asking for image and sound access even with "manage all files" acess (LOW)
+
 Phoenix Engine currently has those additions (and more!) that vanilla JSE (Jordan Santiago Engine) doesn't:
 
 ## **Major Categories of Changes:**
