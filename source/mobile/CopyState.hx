@@ -259,6 +259,14 @@ class CopyState extends MusicBeatState
 		return ext == 'ttf' || ext == 'otf';
 	}
 
+	// Internal fonts that resolve from the packaged assets never need a storage
+	// copy: they load straight from the package at runtime. Mod fonts are NOT
+	// covered here, the mod system reads those from the filesystem instead.
+	static inline function isPackagedFont(file:String):Bool
+	{
+		return isFontFile(file) && !file.startsWith('mods/') && OpenFLAssets.exists(getFile(file));
+	}
+
 	public static function getFile(file:String):String
 	{
 		if (OpenFLAssets.exists(file))
@@ -283,6 +291,7 @@ class CopyState extends MusicBeatState
 		var mods = locatedFiles.filter(folder -> folder.startsWith('mods/'));
 		locatedFiles = assets.concat(mods);
 		locatedFiles = locatedFiles.filter(file -> !FileSystem.exists(file));
+		locatedFiles = locatedFiles.filter(file -> !isPackagedFont(file));
 
 		var filesToRemove:Array<String> = [];
 

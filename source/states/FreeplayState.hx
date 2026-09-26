@@ -264,6 +264,7 @@ class FreeplayState extends MusicBeatState
 	override function closeSubState() {
 		changeSelection(0, false);
 		persistentUpdate = true;
+		if (virtualPad != null) virtualPad.visible = true;
 		super.closeSubState();
 	}
 
@@ -413,6 +414,7 @@ class FreeplayState extends MusicBeatState
 				if(ctrl && !player.playingMusic)
 				{
 					persistentUpdate = false;
+					if (virtualPad != null) virtualPad.visible = false;
 					openSubState(new GameplayChangersSubstate());
 				}
 				else if(space)
@@ -496,6 +498,7 @@ class FreeplayState extends MusicBeatState
 				}
 				else if ((controls.RESET || virtualPad.buttonY.justPressed) && !player.playingMusic) {
 					persistentUpdate = false;
+					if (virtualPad != null) virtualPad.visible = false;
 					openSubState(new ResetScoreSubState(songs[curSelected].songName, curDifficulty, songs[curSelected].songCharacter));
 					FlxG.sound.play(Paths.sound('scrollMenu'));
 				}

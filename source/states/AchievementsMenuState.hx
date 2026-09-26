@@ -153,6 +153,12 @@ class AchievementsMenuState extends MusicBeatState
 		FlxG.camera.scroll.y = -FlxG.height;
 	}
 
+	override function closeSubState()
+	{
+		if (virtualPad != null) virtualPad.visible = true;
+		super.closeSubState();
+	}
+
 	function makeAchievement(achievement:String, data:Achievement, unlocked:Bool, mod:String = null)
 	{
 		var unlocked:Bool = Achievements.isUnlocked(achievement);
@@ -226,6 +232,7 @@ class AchievementsMenuState extends MusicBeatState
 
 			if((controls.RESET || virtualPad.buttonC.justPressed) && (options[curSelected].unlocked || options[curSelected].curProgress > 0))
 			{
+				if (virtualPad != null) virtualPad.visible = false;
 				openSubState(new ResetAchievementSubstate());
 			}
 		}

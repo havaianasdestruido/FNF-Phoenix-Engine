@@ -156,6 +156,8 @@ class TitleState extends MusicBeatState
     }
 
     addVirtualPad(NONE, A);
+    // startIntro() adds a fullscreen bg after create() on first launch, keep the pad above it.
+    addVirtualPadCamera();
   }
 
   var logoBl:FlxSprite;
