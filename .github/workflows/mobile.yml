@@ -281,7 +281,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: androidBuild
-          path: build/release/android/bin/app/build/outputs/apk/release/*.apk
+          # `FNF-Phoenix-Engine-debug.apk`: this lime fork only runs Gradle
+          # `assembleRelease` when a keystore is configured, and CI has none.
+          path: build/release/android/bin/app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
 
 
