@@ -100,9 +100,11 @@ a no-op outside `#if android` unless noted.
 | `AndroidStorage` | SAF / content URIs | `openDocument`, `createDocument`, `openDocumentTree`, `readUriBytes/Text`, `writeUriBytes/Text`, `importUri`, `exportFileToUri`, `persistUriPermission`, `extensionToMime` |
 | `AndroidDiscord` | Presence stand-in | No-op on Android: keeps `DiscordClient` platform-agnostic without ever touching the media session, which is owned by `PlayStateAndroidMedia` (Discord RPC is desktop-only) |
 
-Compatibility bindings for common Android classes live under
-`source/android/` (`Permissions`, `Settings`, `content.Context`,
-`os.Build`, `os.Environment`).
+Common Android SDK classes (`android.Permissions`, `android.Settings`,
+`android.content.Context`, `android.os.Build`, `android.os.Environment`)
+are provided by the Lime fork itself — the engine uses those externs
+directly instead of shipping its own copies, which would shadow Lime's
+and break `lime.system.System` on Android.
 
 ### Gameplay integration (`play.helpers.PlayStateAndroidMedia`)
 
