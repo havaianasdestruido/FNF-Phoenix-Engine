@@ -68,6 +68,10 @@ class FreeplayState extends MusicBeatState
 
 	var player:MusicPlayer;
 
+	/**
+	 * Executes the `create` operation.
+	 * @return Result produced by `create`, when applicable.
+	 */
 	override function create()
 	{
 		Paths.clearStoredMemory();
@@ -245,30 +249,61 @@ class FreeplayState extends MusicBeatState
 		super.create();
 	}
 
+	/**
+	 * Executes the `checkForSongsThatMatch` operation.
+	 * @param start Input value for `start`.
+	 * @return Result produced by `checkForSongsThatMatch`, when applicable.
+	 */
 	function checkForSongsThatMatch(?start:String = '')
 	{
 		FreeplayStateHelpers.checkForSongsThatMatch(this, start);
 	}
 
+	/**
+	 * Executes the `regenerateSongs` operation.
+	 * @param start Input value for `start`.
+	 * @return Result produced by `regenerateSongs`, when applicable.
+	 */
 	function regenerateSongs(?start:String = '') {
 		FreeplayStateHelpers.regenerateSongs(this, start);
 	}
 
+	/**
+	 * Executes the `closeSubState` operation.
+	 * @return Result produced by `closeSubState`, when applicable.
+	 */
 	override function closeSubState() {
 		changeSelection(0, false);
 		persistentUpdate = true;
 		super.closeSubState();
 	}
 
+	/**
+	 * Executes the `addSong` operation.
+	 * @param songName Input value for `songName`.
+	 * @param weekNum Input value for `weekNum`.
+	 * @param songCharacter Input value for `songCharacter`.
+	 * @param color Input value for `color`.
+	 * @return Result produced by `addSong`, when applicable.
+	 */
 	public function addSong(songName:String, weekNum:Int, songCharacter:String, color:Int)
 	{
 		FreeplayStateHelpers.addSong(this, songName, weekNum, songCharacter, color);
 	}
 
+	/**
+	 * Executes the `weekIsLocked` operation.
+	 * @param name Input value for `name`.
+	 * @return Result produced by `weekIsLocked`, when applicable.
+	 */
 	function weekIsLocked(name:String):Bool {
 		return FreeplayStateHelpers.weekIsLocked(this, name);
 	}
 
+	/**
+	 * Executes the `regenList` operation.
+	 * @return Result produced by `regenList`, when applicable.
+	 */
 	function regenList() {
 		FreeplayStateHelpers.regenList(this);
 	}
@@ -277,6 +312,11 @@ class FreeplayState extends MusicBeatState
 	public static var vocals:FlxSound = null;
 	public static var opponentVocals:FlxSound = null;
 	var holdTime:Float = 0;
+	/**
+	 * Executes the `update` operation.
+	 * @param elapsed Input value for `elapsed`.
+	 * @return Result produced by `update`, when applicable.
+	 */
 	override function update(elapsed:Float)
 	{
 		if (FlxG.sound.music != null)
@@ -498,28 +538,56 @@ class FreeplayState extends MusicBeatState
 		super.update(elapsed);
 	}
 
+	/**
+	 * Executes the `getVocalFromCharacter` operation.
+	 * @param char Input value for `char`.
+	 * @return Result produced by `getVocalFromCharacter`, when applicable.
+	 */
 	function getVocalFromCharacter(char:String)
 	{
 		return FreeplayStateHelpers.getVocalFromCharacter(this, char);
 	}
 
+	/**
+	 * Executes the `destroyFreeplayVocals` operation.
+	 * @return Result produced by `destroyFreeplayVocals`, when applicable.
+	 */
 	public static function destroyFreeplayVocals() {
 		FreeplayStateHelpers.destroyFreeplayVocals();
 	}
 
+	/**
+	 * Executes the `changeDiff` operation.
+	 * @param change Input value for `change`.
+	 * @return Result produced by `changeDiff`, when applicable.
+	 */
 	function changeDiff(change:Int = 0)
 	{
 		FreeplayStateHelpers.changeDiff(this, change);
 	}
 
+	/**
+	 * Executes the `changeSelection` operation.
+	 * @param change Input value for `change`.
+	 * @param playSound Input value for `playSound`.
+	 * @return Result produced by `changeSelection`, when applicable.
+	 */
 	function changeSelection(change:Int = 0, playSound:Bool = true)
 	{
 		FreeplayStateHelpers.changeSelection(this, change, playSound);
 	}
 
+	/**
+	 * Executes the `positionHighscore` operation.
+	 * @return Result produced by `positionHighscore`, when applicable.
+	 */
 	private function positionHighscore() {
 		FreeplayStateHelpers.positionHighscore(this);
 	}
+	/**
+	 * Executes the `beatHit` operation.
+	 * @return Result produced by `beatHit`, when applicable.
+	 */
 	override function beatHit() {
 		super.beatHit();
 
@@ -528,6 +596,11 @@ class FreeplayState extends MusicBeatState
 	}
 	var _drawDistance:Int = 4;
 	var _lastVisibles:Array<Int> = [];
+	/**
+	 * Executes the `updateTexts` operation.
+	 * @param elapsed Input value for `elapsed`.
+	 * @return Result produced by `updateTexts`, when applicable.
+	 */
 	public function updateTexts(elapsed:Float = 0.0)
 	{
 		FreeplayStateHelpers.updateTexts(this, elapsed);
@@ -542,6 +615,13 @@ class SongMetadata
 	public var color:Int = -7179779;
 	public var folder:String = "";
 
+	/**
+	 * Executes the `new` operation.
+	 * @param song Input value for `song`.
+	 * @param week Input value for `week`.
+	 * @param songCharacter Input value for `songCharacter`.
+	 * @param color Input value for `color`.
+	 */
 	public function new(song:String, week:Int, songCharacter:String, color:Int)
 	{
 		this.songName = song;

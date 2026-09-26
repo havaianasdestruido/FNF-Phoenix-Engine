@@ -47,6 +47,10 @@ class PhillyStreets extends BaseStage
 
 	var darkenable:Array<FlxSprite> = [];
 	var abot:ABotSpeaker;
+	/**
+	 * Executes the `create` operation.
+	 * @return Result produced by `create`, when applicable.
+	 */
 	override function create()
 	{
 		if(!ClientPrefs.lowQuality)
@@ -168,6 +172,10 @@ class PhillyStreets extends BaseStage
 	}
 
 	var noteTypes:Array<String> = [];
+	/**
+	 * Executes the `createPost` operation.
+	 * @return Result produced by `createPost`, when applicable.
+	 */
 	override function createPost()
 	{
 		var unspawnNotes:Array<PreloadedChartNote> = cast game.unspawnNotes;
@@ -209,6 +217,11 @@ class PhillyStreets extends BaseStage
 	}
 
 	var videoEnded:Bool = false;
+	/**
+	 * Executes the `videoCutscene` operation.
+	 * @param videoName Input value for `videoName`.
+	 * @return Result produced by `videoCutscene`, when applicable.
+	 */
 	function videoCutscene(?videoName:String = null)
 	{
 		game.inCutscene = true;
@@ -241,6 +254,10 @@ class PhillyStreets extends BaseStage
 	}
 
 	var cutsceneHandler:CutsceneHandler;
+	/**
+	 * Executes the `darnellCutscene` operation.
+	 * @return Result produced by `darnellCutscene`, when applicable.
+	 */
 	function darnellCutscene()
 	{
 		moveCamera('bf');
@@ -388,6 +405,11 @@ class PhillyStreets extends BaseStage
 		FlxG.camera.fade(FlxColor.BLACK, 2, true, null, true);
 	}
 
+	/**
+	 * Executes the `updateABotEye` operation.
+	 * @param finishInstantly Input value for `finishInstantly`.
+	 * @return Result produced by `updateABotEye`, when applicable.
+	 */
 	function updateABotEye(finishInstantly:Bool = false)
 	{
 		if(PlayState.SONG.notes[Std.int(FlxMath.bound(curSection, 0, PlayState.SONG.notes.length - 1))].mustHitSection == true)
@@ -400,12 +422,21 @@ class PhillyStreets extends BaseStage
 		#end
 	}
 
+	/**
+	 * Executes the `startSong` operation.
+	 * @return Result produced by `startSong`, when applicable.
+	 */
 	override function startSong()
 	{
 		abot.snd = FlxG.sound.music;
 		gf.animation.finishCallback = onNeneAnimationFinished;
 	}
 
+	/**
+	 * Executes the `onNeneAnimationFinished` operation.
+	 * @param name Input value for `name`.
+	 * @return Result produced by `onNeneAnimationFinished`, when applicable.
+	 */
 	function onNeneAnimationFinished(name:String)
 	{
 		if(!game.startedCountdown) return;
@@ -431,9 +462,17 @@ class PhillyStreets extends BaseStage
 	var lightCanSnd:FlxSound;
 	var kickCanSnd:FlxSound;
 	var kneeCanSnd:FlxSound;
+	/**
+	 * Executes the `precache` operation.
+	 * @return Result produced by `precache`, when applicable.
+	 */
 	function precache()
 	{
 		var didCreateCan = false;
+		/**
+		 * Executes the `createCan` operation.
+		 * @return Result produced by `createCan`, when applicable.
+		 */
 		function createCan()
 		{
 			if(didCreateCan) return;
@@ -455,6 +494,10 @@ class PhillyStreets extends BaseStage
 		}
 
 		var didCreateCasing = false;
+		/**
+		 * Executes the `precacheCasing` operation.
+		 * @return Result produced by `precacheCasing`, when applicable.
+		 */
 		function precacheCasing()
 		{
 			if(didCreateCasing) return;
@@ -505,6 +548,10 @@ class PhillyStreets extends BaseStage
 			Paths.sound('shots/shot$i');
 	}
 
+	/**
+	 * Executes the `setupRainShader` operation.
+	 * @return Result produced by `setupRainShader`, when applicable.
+	 */
 	function setupRainShader()
 	{
 		rainShader = new RainShader();
@@ -527,6 +574,11 @@ class PhillyStreets extends BaseStage
 
 	var currentNeneState:NeneState = STATE_DEFAULT;
 	var animationFinished:Bool = false;
+	/**
+	 * Executes the `update` operation.
+	 * @param elapsed Input value for `elapsed`.
+	 * @return Result produced by `update`, when applicable.
+	 */
 	override function update(elapsed:Float)
 	{
 		if(scrollingSky != null) scrollingSky.scrollX -= elapsed * 22;
@@ -545,6 +597,10 @@ class PhillyStreets extends BaseStage
 		transitionState();
 	}
 
+	/**
+	 * Executes the `transitionState` operation.
+	 * @return Result produced by `transitionState`, when applicable.
+	 */
 	function transitionState()
 	{
 		switch (currentNeneState)
@@ -595,6 +651,10 @@ class PhillyStreets extends BaseStage
 		}
 	}
 
+	/**
+	 * Executes the `sectionHit` operation.
+	 * @return Result produced by `sectionHit`, when applicable.
+	 */
 	override function sectionHit()
 	{
 		updateABotEye();
@@ -608,6 +668,10 @@ class PhillyStreets extends BaseStage
 	var carInterruptable:Bool = true;
 	var car2Interruptable:Bool = true;
 
+	/**
+	 * Executes the `beatHit` operation.
+	 * @return Result produced by `beatHit`, when applicable.
+	 */
 	override function beatHit()
 	{
 		//if(curBeat % 2 == 0) abot.beatHit();
@@ -640,6 +704,10 @@ class PhillyStreets extends BaseStage
 		if (curBeat == (lastChange + changeInterval)) changeLights(curBeat);
 	}
 
+	/**
+	 * Executes the `changeLights` operation.
+	 * @param beat Input value for `beat`.
+	 */
 	function changeLights(beat:Int):Void
 	{
 		lastChange = beat;
@@ -659,6 +727,10 @@ class PhillyStreets extends BaseStage
 		}
 	}
 
+	/**
+	 * Executes the `finishCarLights` operation.
+	 * @param sprite Input value for `sprite`.
+	 */
 	function finishCarLights(sprite:BGSprite):Void
 	{
 		carWaiting = false;
@@ -677,6 +749,10 @@ class PhillyStreets extends BaseStage
 		FlxTween.quadPath(sprite, path, duration, true, {ease: FlxEase.sineIn, startDelay: startdelay, onComplete: function(_) carInterruptable = true});
 	}
 
+	/**
+	 * Executes the `driveCarLights` operation.
+	 * @param sprite Input value for `sprite`.
+	 */
 	function driveCarLights(sprite:BGSprite):Void
 	{
 		carInterruptable = false;
@@ -718,6 +794,10 @@ class PhillyStreets extends BaseStage
 		}});
 	}
 
+	/**
+	 * Executes the `driveCar` operation.
+	 * @param sprite Input value for `sprite`.
+	 */
 	function driveCar(sprite:BGSprite):Void
 	{
 		carInterruptable = false;
@@ -756,6 +836,10 @@ class PhillyStreets extends BaseStage
 		FlxTween.quadPath(sprite, path, duration, true, {onComplete: function(_) carInterruptable = true});
 	}
 
+	/**
+	 * Executes the `driveCarBack` operation.
+	 * @param sprite Input value for `sprite`.
+	 */
 	function driveCarBack(sprite:FlxSprite):Void
 	{
 		car2Interruptable = false;
@@ -794,6 +878,11 @@ class PhillyStreets extends BaseStage
 		FlxTween.quadPath(sprite, path, duration, true, {onComplete: function(_) car2Interruptable = true});
 	}
 
+	/**
+	 * Executes the `goodNoteHit` operation.
+	 * @param note Input value for `note`.
+	 * @return Result produced by `goodNoteHit`, when applicable.
+	 */
 	override function goodNoteHit(note:Note)
 	{
 		// 10% chance of playing combo50/combo100 animations for Nene
@@ -854,6 +943,10 @@ class PhillyStreets extends BaseStage
 		}
 	}
 
+	/**
+	 * Executes the `createCasing` operation.
+	 * @return Result produced by `createCasing`, when applicable.
+	 */
 	function createCasing()
 	{
 		if(ClientPrefs.lowQuality) return;
@@ -891,6 +984,11 @@ class PhillyStreets extends BaseStage
 		casingGroup.add(casing);
 	}
 
+	/**
+	 * Executes the `opponentNoteHit` operation.
+	 * @param note Input value for `note`.
+	 * @return Result produced by `opponentNoteHit`, when applicable.
+	 */
 	override function opponentNoteHit(note:Note)
 	{
 		var sndTime:Float = note.strumTime - Conductor.songPosition;
@@ -931,6 +1029,11 @@ class PhillyStreets extends BaseStage
 	}
 
 	var picoFlicker:FlxTimer = null;
+	/**
+	 * Executes the `noteMiss` operation.
+	 * @param note Input value for `note`.
+	 * @return Result produced by `noteMiss`, when applicable.
+	 */
 	override function noteMiss(note:Note)
 	{
 		switch(note.noteType)
@@ -984,11 +1087,19 @@ class PhillyStreets extends BaseStage
 		}
 	}
 
+	/**
+	 * Executes the `onGameOver` operation.
+	 * @return Result produced by `onGameOver`, when applicable.
+	 */
 	override function onGameOver()
 	{
 		if (rainShader != null) rainShader = null;
 	}
 
+	/**
+	 * Executes the `showPicoFade` operation.
+	 * @return Result produced by `showPicoFade`, when applicable.
+	 */
 	function showPicoFade()
 	{
 		if(ClientPrefs.lowQuality) return;
@@ -1007,6 +1118,10 @@ class PhillyStreets extends BaseStage
 		FlxTween.tween(picoFade, {alpha: 0}, 0.4, {onComplete: (_) -> (picoFade.visible = false)});
 	}
 
+	/**
+	 * Executes the `darkenStageProps` operation.
+	 * @return Result produced by `darkenStageProps`, when applicable.
+	 */
 	function darkenStageProps()
 	{
 		// Darken the background, then fade it back.

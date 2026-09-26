@@ -22,12 +22,22 @@ import objects.Character;
 @:access(backend.MusicBeatState)
 class ChartingSaveLoad
 {
+  /**
+   * Executes the `songJsonPopup` operation.
+   * @param state Input value for `state`.
+   * @return Result produced by `songJsonPopup`, when applicable.
+   */
   public static function songJsonPopup(state:ChartingState)
   { // you tried reloading the json, but it doesn't exist
     CoolUtil.coolError("The engine failed to load the JSON! \nEither it doesn't exist, or the name doesn't match with the one you're putting?",
       "JS Engine Anti-Crash Tool");
   }
 
+  /**
+   * Executes the `promptBackup` operation.
+   * @param state Input value for `state`.
+   * @return Result produced by `promptBackup`, when applicable.
+   */
   public static function promptBackup(state:ChartingState)
   {
     var fD:FileDialog = new FileDialog();
@@ -59,6 +69,12 @@ class ChartingSaveLoad
     fD.open("json", null, "Choose a Psych Engine Compatible Chart JSON to load as.");
   }
 
+  /**
+   * Executes the `saveUndo` operation.
+   * @param state Input value for `state`.
+   * @param songData Input value for `songData`.
+   * @return Result produced by `saveUndo`, when applicable.
+   */
   public static function saveUndo(state:ChartingState, songData:SwagSong)
   {
     if (CoolUtil.getNoteAmount(songData) <= 50000 && FlxG.save.data.allowUndo)
@@ -78,6 +94,11 @@ class ChartingSaveLoad
     }
   }
 
+  /**
+   * Executes the `undo` operation.
+   * @param state Input value for `state`.
+   * @return Result produced by `undo`, when applicable.
+   */
   public static function undo(state:ChartingState)
   {
     if (state.undos.length > 0 && state.saveUndoCheck.checked)
@@ -93,11 +114,22 @@ class ChartingSaveLoad
     }
   }
 
+  /**
+   * Executes the `getNotes` operation.
+   * @param state Input value for `state`.
+   * @return Result produced by `getNotes`, when applicable.
+   */
   public static function getNotes(state:ChartingState):Array<Dynamic>
   {
     return [for (i in state._song.notes) i.sectionNotes];
   }
 
+  /**
+   * Executes the `loadJson` operation.
+   * @param state Input value for `state`.
+   * @param song Input value for `song`.
+   * @param diff Input value for `diff`.
+   */
   public static function loadJson(state:ChartingState, song:String, ?diff:String = ''):Void
   {
     // shitty null fix, i fucking hate it when this happens
@@ -137,6 +169,11 @@ class ChartingSaveLoad
     }
   }
 
+  /**
+   * Executes the `clearEvents` operation.
+   * @param state Input value for `state`.
+   * @return Result produced by `clearEvents`, when applicable.
+   */
   public static function clearEvents(state:ChartingState)
   {
     state._song.events = [];
@@ -144,6 +181,13 @@ class ChartingSaveLoad
     state.updateGrid();
   }
 
+  /**
+   * Executes the `saveLevel` operation.
+   * @param state Input value for `state`.
+   * @param compressed Input value for `compressed`.
+   * @param isAuto Input value for `isAuto`.
+   * @return Result produced by `saveLevel`, when applicable.
+   */
   public static function saveLevel(state:ChartingState, ?compressed:Bool = false, ?isAuto:Bool = false)
   {
     Paths.gc(true);
@@ -218,11 +262,22 @@ class ChartingSaveLoad
     if (state.autoSaveTimer != null) state.autoSaveTimer.reset(state.autoSaveLength);
   }
 
+  /**
+   * Executes the `sortByTime` operation.
+   * @param Obj1 Input value for `Obj1`.
+   * @param Obj2 Input value for `Obj2`.
+   * @return Result produced by `sortByTime`, when applicable.
+   */
   public static function sortByTime(Obj1:Array<Dynamic>, Obj2:Array<Dynamic>):Int
   {
     return FlxSort.byValues(FlxSort.ASCENDING, Obj1[0], Obj2[0]);
   }
 
+  /**
+   * Executes the `saveEvents` operation.
+   * @param state Input value for `state`.
+   * @return Result produced by `saveEvents`, when applicable.
+   */
   public static function saveEvents(state:ChartingState)
   {
     if (state._song.events != null && state._song.events.length > 1) state._song.events.sort(sortByTime);
@@ -247,6 +302,11 @@ class ChartingSaveLoad
     }
   }
 
+  /**
+   * Executes the `onSaveComplete` operation.
+   * @param state Input value for `state`.
+   * @param _ Input value for `_`.
+   */
   public static function onSaveComplete(state:ChartingState, _):Void
   {
     state._file.removeEventListener(Event.COMPLETE, state.onSaveComplete);
@@ -256,6 +316,11 @@ class ChartingSaveLoad
     FlxG.log.notice("Successfully saved LEVEL DATA.");
   }
 
+  /**
+   * Executes the `onSaveCancel` operation.
+   * @param state Input value for `state`.
+   * @param _ Input value for `_`.
+   */
   public static function onSaveCancel(state:ChartingState, _):Void
   {
     state._file.removeEventListener(Event.COMPLETE, state.onSaveComplete);

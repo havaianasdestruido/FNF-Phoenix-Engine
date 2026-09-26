@@ -27,6 +27,11 @@ import backend.MusicBeatState;
 @:access(backend.MusicBeatState)
 class PlayStateChartLoader
 {
+	/**
+	 * Executes the `generateSong` operation.
+	 * @param state Input value for `state`.
+	 * @param startingPoint Input value for `startingPoint`.
+	 */
 	public static function generateSong(state:PlayState, ?startingPoint:Float = 0):Void
 	{
 		var offsetStart = (startingPoint > 0 ? 500 : 0);

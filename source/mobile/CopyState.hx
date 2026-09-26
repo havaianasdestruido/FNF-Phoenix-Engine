@@ -67,6 +67,10 @@ class CopyState extends MusicBeatState
 	var canUpdate:Bool = true;
 	var loopTimes:Int = 0;
 
+	/**
+	 * Executes the `create` operation.
+	 * @return Result produced by `create`, when applicable.
+	 */
 	override function create()
 	{
 		locatedFiles = [];
@@ -115,6 +119,11 @@ class CopyState extends MusicBeatState
 		super.create();
 	}
 
+	/**
+	 * Executes the `update` operation.
+	 * @param elapsed Input value for `elapsed`.
+	 * @return Result produced by `update`, when applicable.
+	 */
 	override function update(elapsed:Float)
 	{
 		if (shouldCopy)
@@ -147,6 +156,11 @@ class CopyState extends MusicBeatState
 		super.update(elapsed);
 	}
 
+	/**
+	 * Executes the `copyAsset` operation.
+	 * @param file Input value for `file`.
+	 * @return Result produced by `copyAsset`, when applicable.
+	 */
 	public function copyAsset(file:String)
 	{
 		if (!FileSystem.exists(file))
@@ -177,6 +191,11 @@ class CopyState extends MusicBeatState
 		}
 	}
 
+	/**
+	 * Executes the `createContentFromInternal` operation.
+	 * @param file Input value for `file`.
+	 * @return Result produced by `createContentFromInternal`, when applicable.
+	 */
 	public function createContentFromInternal(file:String)
 	{
 		var fileName = Path.withoutDirectory(file);
@@ -197,6 +216,11 @@ class CopyState extends MusicBeatState
 		}
 	}
 
+	/**
+	 * Executes the `getFileBytes` operation.
+	 * @param file Input value for `file`.
+	 * @return Result produced by `getFileBytes`, when applicable.
+	 */
 	public function getFileBytes(file:String):ByteArray
 	{
 		switch (Path.extension(file).toLowerCase())
@@ -208,6 +232,11 @@ class CopyState extends MusicBeatState
 		}
 	}
 
+	/**
+	 * Executes the `getFile` operation.
+	 * @param file Input value for `file`.
+	 * @return Result produced by `getFile`, when applicable.
+	 */
 	public static function getFile(file:String):String
 	{
 		if (OpenFLAssets.exists(file))
@@ -223,6 +252,10 @@ class CopyState extends MusicBeatState
 		return file;
 	}
 
+	/**
+	 * Executes the `checkExistingFiles` operation.
+	 * @return Result produced by `checkExistingFiles`, when applicable.
+	 */
 	public static function checkExistingFiles():Bool
 	{
 		locatedFiles = OpenFLAssets.list();

@@ -21,6 +21,13 @@ class WiggleEffect
 	public var waveFrequency(default, set):Float = 0;
 	public var waveAmplitude(default, set):Float = 0;
 
+	/**
+	 * Executes the `new` operation.
+	 * @param typeOfEffect Input value for `typeOfEffect`.
+	 * @param waveSpeed Input value for `waveSpeed`.
+	 * @param waveFrequency Input value for `waveFrequency`.
+	 * @param waveAmplitude Input value for `waveAmplitude`.
+	 */
 	public function new(typeOfEffect:WiggleEffectType = DREAMY, waveSpeed:Float = 0, waveFrequency:Float = 0, waveAmplitude:Float = 0):Void
 	{
 		shader.uTime.value = [0];
@@ -30,16 +37,29 @@ class WiggleEffect
 		this.effectType = effectType;
 	}
 
+	/**
+	 * Executes the `update` operation.
+	 * @param elapsed Input value for `elapsed`.
+	 */
 	public function update(elapsed:Float):Void
 	{
 		shader.uTime.value[0] += elapsed;
 	}
 
+	/**
+	 * Executes the `setValue` operation.
+	 * @param value Input value for `value`.
+	 */
 	public function setValue(value:Float):Void
 	{
 		shader.uTime.value[0] = value;
 	}
 
+	/**
+	 * Executes the `set_effectType` operation.
+	 * @param v Input value for `v`.
+	 * @return Result produced by `set_effectType`, when applicable.
+	 */
 	function set_effectType(v:WiggleEffectType):WiggleEffectType
 	{
 		effectType = v;
@@ -47,6 +67,11 @@ class WiggleEffect
 		return v;
 	}
 
+	/**
+	 * Executes the `set_waveSpeed` operation.
+	 * @param v Input value for `v`.
+	 * @return Result produced by `set_waveSpeed`, when applicable.
+	 */
 	function set_waveSpeed(v:Float):Float
 	{
 		waveSpeed = v;
@@ -54,6 +79,11 @@ class WiggleEffect
 		return v;
 	}
 
+	/**
+	 * Executes the `set_waveFrequency` operation.
+	 * @param v Input value for `v`.
+	 * @return Result produced by `set_waveFrequency`, when applicable.
+	 */
 	function set_waveFrequency(v:Float):Float
 	{
 		waveFrequency = v;
@@ -61,6 +91,11 @@ class WiggleEffect
 		return v;
 	}
 
+	/**
+	 * Executes the `set_waveAmplitude` operation.
+	 * @param v Input value for `v`.
+	 * @return Result produced by `set_waveAmplitude`, when applicable.
+	 */
 	function set_waveAmplitude(v:Float):Float
 	{
 		waveAmplitude = v;
@@ -145,6 +180,9 @@ class WiggleShader extends FlxFixedShader
 			vec2 uv = sineWave(openfl_TextureCoordv);
 			gl_FragColor = texture2D(bitmap, uv);
 		}')
+	/**
+	 * Executes the `new` operation.
+*/
 	public function new()
 	{
 		super();

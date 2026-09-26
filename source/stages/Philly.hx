@@ -25,6 +25,10 @@ class Philly extends BaseStage
 	var phillyWindowEvent:BGSprite;
 	var curLightEvent:Int = -1;
 
+	/**
+	 * Executes the `create` operation.
+	 * @return Result produced by `create`, when applicable.
+	 */
 	override function create()
 	{
 		if(!ClientPrefs.lowQuality) {
@@ -55,6 +59,11 @@ class Philly extends BaseStage
 		phillyStreet = new BGSprite('philly/street', -40, 50);
 		add(phillyStreet);
 	}
+	/**
+	 * Executes the `eventPushed` operation.
+	 * @param event Input value for `event`.
+	 * @return Result produced by `eventPushed`, when applicable.
+	 */
 	override function eventPushed(event:EventNote)
 	{
 		switch(event.event)
@@ -82,6 +91,11 @@ class Philly extends BaseStage
 		}
 	}
 
+	/**
+	 * Executes the `update` operation.
+	 * @param elapsed Input value for `elapsed`.
+	 * @return Result produced by `update`, when applicable.
+	 */
 	override function update(elapsed:Float)
 	{
 		phillyWindow.alpha -= (Conductor.crochet / 1000) * FlxG.elapsed * 1.5;
@@ -102,6 +116,10 @@ class Philly extends BaseStage
 		}
 	}
 
+	/**
+	 * Executes the `beatHit` operation.
+	 * @return Result produced by `beatHit`, when applicable.
+	 */
 	override function beatHit()
 	{
 		phillyTrain.beatHit(curBeat);
@@ -113,6 +131,16 @@ class Philly extends BaseStage
 		}
 	}
 
+	/**
+	 * Executes the `eventCalled` operation.
+	 * @param eventName Input value for `eventName`.
+	 * @param value1 Input value for `value1`.
+	 * @param value2 Input value for `value2`.
+	 * @param flValue1 Input value for `flValue1`.
+	 * @param flValue2 Input value for `flValue2`.
+	 * @param strumTime Input value for `strumTime`.
+	 * @return Result produced by `eventCalled`, when applicable.
+	 */
 	override function eventCalled(eventName:String, value1:String, value2:String, flValue1:Null<Float>, flValue2:Null<Float>, strumTime:Float)
 	{
 		switch(eventName)
@@ -211,6 +239,10 @@ class Philly extends BaseStage
 		}
 	}
 
+	/**
+	 * Executes the `doFlash` operation.
+	 * @return Result produced by `doFlash`, when applicable.
+	 */
 	function doFlash()
 	{
 		var color:FlxColor = FlxColor.WHITE;

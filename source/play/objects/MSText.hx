@@ -19,6 +19,10 @@ class MSText extends FlxText
 
   private var camHUD:FlxCamera = null;
 
+  /**
+   * Executes the `new` operation.
+   * @param camHUD Input value for `camHUD`.
+   */
   public function new(camHUD:FlxCamera)
   {
     super(0, 0, 0, "");
@@ -38,6 +42,10 @@ class MSText extends FlxText
     applyPosition();
   }
 
+  /**
+   * Executes the `applyStyle` operation.
+   * @return Result produced by `applyStyle`, when applicable.
+   */
   function applyStyle()
   {
     final font = switch (ClientPrefs.scoreStyle)
@@ -51,6 +59,10 @@ class MSText extends FlxText
     setFormat(font, 20, FlxColor.WHITE, LEFT, OUTLINE, FlxColor.BLACK);
   }
 
+  /**
+   * Executes the `applyPosition` operation.
+   * @return Result produced by `applyPosition`, when applicable.
+   */
   function applyPosition()
   {
     x = 408 + 250;
@@ -66,6 +78,11 @@ class MSText extends FlxText
     y -= ClientPrefs.comboOffset[1];
   }
 
+  /**
+   * Executes the `showHit` operation.
+   * @param properties Input value for `properties`.
+   * @return Result produced by `showHit`, when applicable.
+   */
   public function showHit(properties:Null<MSTextProperties>)
   {
     if (!ClientPrefs.showMS || ClientPrefs.hideHud) return;
@@ -107,6 +124,12 @@ class MSText extends FlxText
       });
   }
 
+  /**
+   * Executes the `applyColor` operation.
+   * @param rating Input value for `rating`.
+   * @param miss Input value for `miss`.
+   * @return Result produced by `applyColor`, when applicable.
+   */
   function applyColor(rating:String, miss:Bool)
   {
     if (miss)
@@ -132,6 +155,10 @@ class MSText extends FlxText
     }
   }
 
+  /**
+   * Executes the `destroy` operation.
+   * @return Result produced by `destroy`, when applicable.
+   */
   override function destroy()
   {
     super.destroy();

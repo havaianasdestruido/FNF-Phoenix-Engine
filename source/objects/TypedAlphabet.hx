@@ -11,6 +11,14 @@ class TypedAlphabet extends Alphabet
 	public var sound:String = 'dialogue';
 	public var volume:Float = 1;
 
+	/**
+	 * Executes the `new` operation.
+	 * @param x Input value for `x`.
+	 * @param y Input value for `y`.
+	 * @param text Input value for `text`.
+	 * @param delay Input value for `delay`.
+	 * @param bold Input value for `bold`.
+	 */
 	public function new(x:Float, y:Float, text:String = "", ?delay:Float = 0.05, ?bold:Bool = false)
 	{
 		super(x, y, text, bold);
@@ -18,6 +26,11 @@ class TypedAlphabet extends Alphabet
 		this.delay = delay;
 	}
 
+	/**
+	 * Executes the `set_text` operation.
+	 * @param newText Input value for `newText`.
+	 * @return Result produced by `set_text`, when applicable.
+	 */
 	override private function set_text(newText:String)
 	{
 		super.set_text(newText);
@@ -28,6 +41,11 @@ class TypedAlphabet extends Alphabet
 
 	private var _curLetter:Int = -1;
 	private var _timeToUpdate:Float = 0;
+	/**
+	 * Executes the `update` operation.
+	 * @param elapsed Input value for `elapsed`.
+	 * @return Result produced by `update`, when applicable.
+	 */
 	override function update(elapsed:Float)
 	{
 		if(!finishedText)
@@ -58,6 +76,11 @@ class TypedAlphabet extends Alphabet
 		super.update(elapsed);
 	}
 
+	/**
+	 * Executes the `showCharacterUpTo` operation.
+	 * @param upTo Input value for `upTo`.
+	 * @return Result produced by `showCharacterUpTo`, when applicable.
+	 */
 	public function showCharacterUpTo(upTo:Int)
 	{
 		var start:Int = _curLetter;
@@ -70,6 +93,10 @@ class TypedAlphabet extends Alphabet
 		}
 	}
 
+	/**
+	 * Executes the `resetDialogue` operation.
+	 * @return Result produced by `resetDialogue`, when applicable.
+	 */
 	public function resetDialogue()
 	{
 		_curLetter = -1;
@@ -81,6 +108,10 @@ class TypedAlphabet extends Alphabet
 		}
 	}
 
+	/**
+	 * Executes the `finishText` operation.
+	 * @return Result produced by `finishText`, when applicable.
+	 */
 	public function finishText()
 	{
 		if(finishedText) return;

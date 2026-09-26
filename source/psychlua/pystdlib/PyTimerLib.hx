@@ -8,6 +8,10 @@ import headers.PsychLua;
 // REFACTOR: extracted from psychlua.PythonScript (timer API)
 class PyTimerLib
 {
+	/**
+	 * Executes the `register` operation.
+	 * @param py Input value for `py`.
+	 */
 	public static function register(py:PythonScript):Void {
 		@:privateAccess {
 		// ---------------------------------------------------------------- //

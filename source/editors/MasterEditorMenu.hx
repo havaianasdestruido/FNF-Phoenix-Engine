@@ -30,6 +30,10 @@ class MasterEditorMenu extends MusicBeatState
 	private var curDirectory = 0;
 	private var directoryTxt:FlxText;
 
+	/**
+	 * Executes the `create` operation.
+	 * @return Result produced by `create`, when applicable.
+	 */
 	override function create()
 	{
 		FlxG.camera.bgColor = FlxColor.BLACK;
@@ -82,6 +86,11 @@ class MasterEditorMenu extends MusicBeatState
 		super.create();
 	}
 
+	/**
+	 * Executes the `update` operation.
+	 * @param elapsed Input value for `elapsed`.
+	 * @return Result produced by `update`, when applicable.
+	 */
 	override function update(elapsed:Float)
 	{
 		if (controls.UI_UP_P)
@@ -183,6 +192,11 @@ class MasterEditorMenu extends MusicBeatState
 		super.update(elapsed);
 	}
 
+	/**
+	 * Executes the `changeSelection` operation.
+	 * @param change Input value for `change`.
+	 * @return Result produced by `changeSelection`, when applicable.
+	 */
 	function changeSelection(change:Int = 0)
 	{
 		FlxG.sound.play(Paths.sound('scrollMenu'), 0.4);
@@ -196,6 +210,11 @@ class MasterEditorMenu extends MusicBeatState
 	}
 
 	#if MODS_ALLOWED
+	/**
+	 * Executes the `changeDirectory` operation.
+	 * @param change Input value for `change`.
+	 * @return Result produced by `changeDirectory`, when applicable.
+	 */
 	function changeDirectory(change:Int = 0)
 	{
 		FlxG.sound.play(Paths.sound('scrollMenu'), 0.4);

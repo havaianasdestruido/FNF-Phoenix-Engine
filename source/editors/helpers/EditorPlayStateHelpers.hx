@@ -33,6 +33,11 @@ import states.LoadingState;
 @:access(backend.MusicBeatState)
 class EditorPlayStateHelpers
 {
+	/**
+	 * Executes the `generateSong` operation.
+	 * @param state Input value for `state`.
+	 * @param startingPoint Input value for `startingPoint`.
+	 */
 	public static function generateSong(state:EditorPlayState, ?startingPoint:Float = 0):Void
 	{
 		#if sys
@@ -179,11 +184,23 @@ class EditorPlayStateHelpers
 		trace('Done! The chart was loaded in ' + elapsedTime + " seconds.");
 	}
 
+	/**
+	 * Executes the `sortByTime` operation.
+	 * @param state Input value for `state`.
+	 * @param Obj1 Input value for `Obj1`.
+	 * @param Obj2 Input value for `Obj2`.
+	 * @return Result produced by `sortByTime`, when applicable.
+	 */
 	static function sortByTime(state:EditorPlayState, Obj1:Dynamic, Obj2:Dynamic):Int
 	{
 		return FlxSort.byValues(FlxSort.ASCENDING, Obj1.strumTime, Obj2.strumTime);
 	}
 
+	/**
+	 * Executes the `endSong` operation.
+	 * @param state Input value for `state`.
+	 * @return Result produced by `endSong`, when applicable.
+	 */
 	public static function endSong(state:EditorPlayState) {
 		Conductor.songPosition = 0;
 		FlxG.sound.music.stop();
@@ -194,6 +211,11 @@ class EditorPlayStateHelpers
 		LoadingState.loadAndSwitchState(editors.ChartingState.new);
 	}
 
+	/**
+	 * Executes the `onKeyPress` operation.
+	 * @param state Input value for `state`.
+	 * @param event Input value for `event`.
+	 */
 	public static function onKeyPress(state:EditorPlayState, event:KeyboardEvent):Void
 	{
 		var eventKey:FlxKey = event.keyCode;
@@ -259,6 +281,12 @@ class EditorPlayStateHelpers
 		}
 	}
 
+	/**
+	 * Executes the `sortHitNotes` operation.
+	 * @param a Input value for `a`.
+	 * @param b Input value for `b`.
+	 * @return Result produced by `sortHitNotes`, when applicable.
+	 */
 	public static function sortHitNotes(a:Note, b:Note):Int
 	{
 		if (a.lowPriority && !b.lowPriority)
@@ -269,6 +297,11 @@ class EditorPlayStateHelpers
 		return FlxSort.byValues(FlxSort.ASCENDING, a.strumTime, b.strumTime);
 	}
 
+	/**
+	 * Executes the `onKeyRelease` operation.
+	 * @param state Input value for `state`.
+	 * @param event Input value for `event`.
+	 */
 	public static function onKeyRelease(state:EditorPlayState, event:KeyboardEvent):Void
 	{
 		var eventKey:FlxKey = event.keyCode;
@@ -285,6 +318,12 @@ class EditorPlayStateHelpers
 		//trace('released: ' + controlArray);
 	}
 
+	/**
+	 * Executes the `getKeyFromEvent` operation.
+	 * @param state Input value for `state`.
+	 * @param key Input value for `key`.
+	 * @return Result produced by `getKeyFromEvent`, when applicable.
+	 */
 	public static function getKeyFromEvent(state:EditorPlayState, key:FlxKey):Int
 	{
 		if(key != NONE)
@@ -303,6 +342,10 @@ class EditorPlayStateHelpers
 		return -1;
 	}
 
+	/**
+	 * Executes the `handleKeyInput` operation.
+	 * @param state Input value for `state`.
+	 */
 	public static function handleKeyInput(state:EditorPlayState):Void
 	{
 		// HOLDING
@@ -355,11 +398,20 @@ class EditorPlayStateHelpers
 		}
 	}
 
+	/**
+	 * Executes the `invalidateNote` operation.
+	 * @param state Input value for `state`.
+	 * @param note Input value for `note`.
+	 */
 	public static function invalidateNote(state:EditorPlayState, note:Note):Void {
 		if (!state.killNotes.contains(note))
 			state.killNotes.push(note);
 	}
 
+	/**
+	 * Executes the `destroyNotes` operation.
+	 * @param state Input value for `state`.
+	 */
 	public static function destroyNotes(state:EditorPlayState):Void
 	{
 		final iterator:Iterator<Note> = state.killNotes.iterator();
@@ -376,6 +428,11 @@ class EditorPlayStateHelpers
 		state.killNotes = [];
 	}
 
+	/**
+	 * Executes the `cachePopUpScore` operation.
+	 * @param state Input value for `state`.
+	 * @return Result produced by `cachePopUpScore`, when applicable.
+	 */
 	public static function cachePopUpScore(state:EditorPlayState)
 	{
 		if (PlayState.isPixelStage)
@@ -398,6 +455,11 @@ class EditorPlayStateHelpers
 		for (i in 0...10) Paths.image(state.pixelRatingPrefix + 'num' + i + state.pixelRatingSuffix);
 	}
 
+	/**
+	 * Executes the `popUpScore` operation.
+	 * @param state Input value for `state`.
+	 * @param note Input value for `note`.
+	 */
 	public static function popUpScore(state:EditorPlayState, note:Note = null):Void
 	{
 		var noteDiff:Float = Math.abs(note.strumTime - Conductor.songPosition + ClientPrefs.ratingOffset);
@@ -504,6 +566,11 @@ class EditorPlayStateHelpers
 		});
 	}
 
+	/**
+	 * Executes the `generateStaticArrows` operation.
+	 * @param state Input value for `state`.
+	 * @param player Input value for `player`.
+	 */
 	public static function generateStaticArrows(state:EditorPlayState, player:Int):Void
 	{
 		final strumLine:FlxPoint = FlxPoint.get(ClientPrefs.middleScroll ? PlayState.STRUM_X_MIDDLESCROLL : PlayState.STRUM_X, (ClientPrefs.downScroll) ? FlxG.height - 150 : 50);
@@ -542,6 +609,13 @@ class EditorPlayStateHelpers
 		strumLine.put();
 	}
 
+	/**
+	 * Executes the `spawnHoldSplashOnNote` operation.
+	 * @param state Input value for `state`.
+	 * @param note Input value for `note`.
+	 * @param isDad Input value for `isDad`.
+	 * @return Result produced by `spawnHoldSplashOnNote`, when applicable.
+	 */
 	public static function spawnHoldSplashOnNote(state:EditorPlayState, note:Note, ?isDad:Bool = false) {
 		if (!ClientPrefs.noteSplashes || note == null)
 			return;
@@ -556,6 +630,12 @@ class EditorPlayStateHelpers
 		}
 	}
 
+	/**
+	 * Executes the `spawnHoldSplash` operation.
+	 * @param state Input value for `state`.
+	 * @param note Input value for `note`.
+	 * @return Result produced by `spawnHoldSplash`, when applicable.
+	 */
 	public static function spawnHoldSplash(state:EditorPlayState, note:Note) {
 		var end:Note = note;
 		var splash:SustainSplash = state.grpHoldSplashes.recycle(SustainSplash);

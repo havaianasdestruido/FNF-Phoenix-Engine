@@ -7,6 +7,12 @@ class PhillyGlowParticle extends FlxSprite
 	var lifeTime:Float = 0;
 	var decay:Float = 0;
 	var originalScale:Float = 1;
+	/**
+	 * Executes the `new` operation.
+	 * @param x Input value for `x`.
+	 * @param y Input value for `y`.
+	 * @param color Input value for `color`.
+	 */
 	public function new(x:Float, y:Float, color:FlxColor)
 	{
 		super(x, y);
@@ -30,6 +36,11 @@ class PhillyGlowParticle extends FlxSprite
 		antialiasing = ClientPrefs.globalAntialiasing;
 	}
 
+	/**
+	 * Executes the `update` operation.
+	 * @param elapsed Input value for `elapsed`.
+	 * @return Result produced by `update`, when applicable.
+	 */
 	override function update(elapsed:Float)
 	{
 		lifeTime -= elapsed;

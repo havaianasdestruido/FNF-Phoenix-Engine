@@ -4,6 +4,9 @@ import objects.BGSprite;
 
 class DadBattleFog extends FlxSpriteGroup
 {
+	/**
+	 * Executes the `new` operation.
+*/
 	public function new()
 	{
 		super();

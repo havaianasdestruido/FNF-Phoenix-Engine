@@ -65,6 +65,9 @@ class NotesSubState extends MusicBeatSubstate
 		'1536th', '2048th', '3072nd', '6144th'
 	];
 
+	/**
+	 * Executes the `new` operation.
+*/
 	public function new() {
 		super();
 
@@ -213,6 +216,10 @@ class NotesSubState extends MusicBeatSubstate
 		virtualPad.buttonC.y = FlxG.height - 135;
 	}
 
+	/**
+	 * Executes the `updateTip` operation.
+	 * @return Result produced by `updateTip`, when applicable.
+	 */
 	function updateTip()
 	{
 		if (!mobile.MobileControls.enabled)
@@ -227,6 +234,11 @@ class NotesSubState extends MusicBeatSubstate
 		NUMPADZERO => '0', NUMPADONE => '1', NUMPADTWO => '2', NUMPADTHREE => '3', NUMPADFOUR => '4', NUMPADFIVE => '5', NUMPADSIX => '6',
 		NUMPADSEVEN => '7', NUMPADEIGHT => '8', NUMPADNINE => '9', A => 'A', B => 'B', C => 'C', D => 'D', E => 'E', F => 'F'];
 
+	/**
+	 * Executes the `update` operation.
+	 * @param elapsed Input value for `elapsed`.
+	 * @return Result produced by `update`, when applicable.
+	 */
 	override function update(elapsed:Float) {
 		if (controls.BACK) {
 			FlxG.mouse.visible = false;
@@ -512,37 +524,74 @@ class NotesSubState extends MusicBeatSubstate
 		}
 	}
 
+	/**
+	 * Executes the `pointerOverlaps` operation.
+	 * @param obj Input value for `obj`.
+	 * @return Result produced by `pointerOverlaps`, when applicable.
+	 */
 	function pointerOverlaps(obj:Dynamic)
 	{
 		return FlxG.mouse.overlaps(obj);
 	}
 
+	/**
+	 * Executes the `pointerX` operation.
+	 * @return Result produced by `pointerX`, when applicable.
+	 */
 	function pointerX():Float
 	{
 		return FlxG.mouse.x;
 	}
+	/**
+	 * Executes the `pointerY` operation.
+	 * @return Result produced by `pointerY`, when applicable.
+	 */
 	function pointerY():Float
 	{
 		return FlxG.mouse.y;
 	}
+	/**
+	 * Executes the `pointerFlxPoint` operation.
+	 * @return Result produced by `pointerFlxPoint`, when applicable.
+	 */
 	function pointerFlxPoint():FlxPoint
 	{
 		return FlxG.mouse.getScreenPosition();
 	}
 
+	/**
+	 * Executes the `centerHexTypeLine` operation.
+	 * @return Result produced by `centerHexTypeLine`, when applicable.
+	 */
 	function centerHexTypeLine()
 	{
 		NotesSubStateHelpers.centerHexTypeLine(this);
 	}
 
+	/**
+	 * Executes the `changeSelectionMode` operation.
+	 * @param change Input value for `change`.
+	 * @return Result produced by `changeSelectionMode`, when applicable.
+	 */
 	function changeSelectionMode(change:Int = 0) {
 		NotesSubStateHelpers.changeSelectionMode(this, change);
 	}
+	/**
+	 * Executes the `changeSelectionNote` operation.
+	 * @param change Input value for `change`.
+	 * @return Result produced by `changeSelectionNote`, when applicable.
+	 */
 	function changeSelectionNote(change:Int = 0) {
 		NotesSubStateHelpers.changeSelectionNote(this, change);
 	}
 
 	// alphabets
+	/**
+	 * Executes the `makeColorAlphabet` operation.
+	 * @param x Input value for `x`.
+	 * @param y Input value for `y`.
+	 * @return Result produced by `makeColorAlphabet`, when applicable.
+	 */
 	function makeColorAlphabet(x:Float = 0, y:Float = 0):Alphabet
 	{
 		return NotesSubStateHelpers.makeColorAlphabet(this, x, y);
@@ -554,28 +603,59 @@ class NotesSubState extends MusicBeatSubstate
 	var myNotes:FlxTypedGroup<StrumNote>;
 	var noteTxts:FlxTypedGroup<AttachedText>;
 	var bigNote:Note;
+	/**
+	 * Executes the `spawnNotes` operation.
+	 * @return Result produced by `spawnNotes`, when applicable.
+	 */
 	public function spawnNotes()
 	{
 		NotesSubStateHelpers.spawnNotes(this);
 	}
 
+	/**
+	 * Executes the `updateNotes` operation.
+	 * @param instant Input value for `instant`.
+	 * @return Result produced by `updateNotes`, when applicable.
+	 */
 	function updateNotes(?instant:Bool = false)
 	{
 		NotesSubStateHelpers.updateNotes(this, instant);
 	}
 
+	/**
+	 * Executes the `updateColors` operation.
+	 * @param specific Input value for `specific`.
+	 * @return Result produced by `updateColors`, when applicable.
+	 */
 	function updateColors(specific:Null<FlxColor> = null)
 	{
 		NotesSubStateHelpers.updateColors(this, specific);
 	}
 
+	/**
+	 * Executes the `destroy` operation.
+	 * @return Result produced by `destroy`, when applicable.
+	 */
 	override function destroy()
 	{
 		Note.globalRgbShaders = [];
 		super.destroy();
 	}
 
+	/**
+	 * Executes the `setShaderColor` operation.
+	 * @param value Input value for `value`.
+	 * @return Result produced by `setShaderColor`, when applicable.
+	 */
 	function setShaderColor(value:FlxColor) NotesSubStateHelpers.setShaderColor(this, value);
+	/**
+	 * Executes the `getShaderColor` operation.
+	 * @return Result produced by `getShaderColor`, when applicable.
+	 */
 	function getShaderColor() return NotesSubStateHelpers.getShaderColor(this);
+	/**
+	 * Executes the `getShader` operation.
+	 * @return Result produced by `getShader`, when applicable.
+	 */
 	function getShader() return NotesSubStateHelpers.getShader(this);
 }

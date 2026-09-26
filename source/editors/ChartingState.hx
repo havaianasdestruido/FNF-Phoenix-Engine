@@ -319,6 +319,10 @@ class ChartingState extends MusicBeatState
 
   public var autoSaveLength:Int = 240; // 4 minutes (DEFAULT), probably long but less lag
 
+  /**
+   * Executes the `create` operation.
+   * @return Result produced by `create`, when applicable.
+   */
   override function create()
   {
     idleMusic = new EditingMusic();
@@ -678,18 +682,29 @@ class ChartingState extends MusicBeatState
   var sliderRate:FlxUISlider;
 
   // REFACTOR: delegated to editors.charting.ChartingUISections
+  /**
+   * Executes the `addSongUI` operation.
+*/
   function addSongUI():Void
   {
     ChartingUISections.addSongUI(this);
   }
 
   // REFACTOR: delegated to editors.charting.ChartingSaveLoad
+  /**
+   * Executes the `songJsonPopup` operation.
+   * @return Result produced by `songJsonPopup`, when applicable.
+   */
   function songJsonPopup()
   {
     ChartingSaveLoad.songJsonPopup(this);
   }
 
   // REFACTOR: delegated to editors.charting.ChartingSaveLoad
+  /**
+   * Executes the `promptBackup` operation.
+   * @return Result produced by `promptBackup`, when applicable.
+   */
   function promptBackup()
   {
     ChartingSaveLoad.promptBackup(this);
@@ -705,6 +720,9 @@ class ChartingState extends MusicBeatState
   var winNameInputText:FlxUIInputText;
 
   // REFACTOR: delegated to editors.charting.ChartingUISections
+  /**
+   * Executes the `addSongDataUI` operation.
+   */
   function addSongDataUI():Void // therell be more added here later
   {
     ChartingUISections.addSongDataUI(this);
@@ -730,6 +748,9 @@ class ChartingState extends MusicBeatState
   var deleteSections:FlxButton;
 
   // REFACTOR: delegated to editors.charting.ChartingUISections
+  /**
+   * Executes the `addSectionUI` operation.
+   */
   function addSectionUI():Void
   {
     ChartingUISections.addSectionUI(this);
@@ -741,6 +762,9 @@ class ChartingState extends MusicBeatState
   var currentType:Int = 0;
 
   // REFACTOR: delegated to editors.charting.ChartingUISections
+  /**
+   * Executes the `addNoteUI` operation.
+*/
   function addNoteUI():Void
   {
     ChartingUISections.addNoteUI(this);
@@ -753,6 +777,9 @@ class ChartingState extends MusicBeatState
   var stepperShrinkAmount:FlxUINumericStepper;
 
   // REFACTOR: delegated to editors.charting.ChartingUISections
+  /**
+   * Executes the `addNoteStackingUI` operation.
+*/
   function addNoteStackingUI():Void
   {
     ChartingUISections.addNoteStackingUI(this);
@@ -765,18 +792,33 @@ class ChartingState extends MusicBeatState
   var event7InputText:FlxUIInputText;
 
   // REFACTOR: delegated to editors.charting.ChartingUISections
+  /**
+   * Executes the `addEventsUI` operation.
+*/
   function addEventsUI():Void
   {
     ChartingUISections.addEventsUI(this);
   }
 
   // REFACTOR: delegated to editors.charting.ChartingEvents
+  /**
+   * Executes the `changeEventSelected` operation.
+   * @param change Input value for `change`.
+   * @return Result produced by `changeEventSelected`, when applicable.
+   */
   function changeEventSelected(change:Int = 0)
   {
     ChartingEvents.changeEventSelected(this, change);
   }
 
   // REFACTOR: delegated to editors.charting.ChartingEvents
+  /**
+   * Executes the `setAllLabelsOffset` operation.
+   * @param button Input value for `button`.
+   * @param x Input value for `x`.
+   * @param y Input value for `y`.
+   * @return Result produced by `setAllLabelsOffset`, when applicable.
+   */
   function setAllLabelsOffset(button:FlxButton, x:Float, y:Float)
   {
     ChartingEvents.setAllLabelsOffset(button, x, y);
@@ -797,17 +839,29 @@ class ChartingState extends MusicBeatState
   var hitsoundVolume:FlxUINumericStepper;
 
   // REFACTOR: delegated to editors.charting.ChartingUISections
+  /**
+   * Executes the `addChartingUI` operation.
+   * @return Result produced by `addChartingUI`, when applicable.
+   */
   function addChartingUI()
   {
     ChartingUISections.addChartingUI(this);
   }
 
+  /**
+   * Executes the `pauseVocals` operation.
+   * @return Result produced by `pauseVocals`, when applicable.
+   */
   function pauseVocals()
   {
     if (vocals != null) vocals.pause();
     if (opponentVocals != null) opponentVocals.pause();
   }
 
+  /**
+   * Executes the `pauseAndSetVocalsTime` operation.
+   * @return Result produced by `pauseAndSetVocalsTime`, when applicable.
+   */
   function pauseAndSetVocalsTime()
   {
     pauseVocals();
@@ -816,6 +870,9 @@ class ChartingState extends MusicBeatState
     if (opponentVocals != null) opponentVocals.time = FlxG.sound.music.time;
   }
 
+  /**
+   * Executes the `loadSong` operation.
+   */
   function loadSong():Void
   {
     if (FlxG.sound.music != null)
@@ -873,6 +930,11 @@ class ChartingState extends MusicBeatState
     FlxG.sound.music.time = Conductor.songPosition;
   }
 
+  /**
+   * Executes the `generateSong` operation.
+   * @param diff Input value for `diff`.
+   * @return Result produced by `generateSong`, when applicable.
+   */
   function generateSong(?diff:String = '')
   {
     FlxG.sound.playMusic(Paths.inst(currentSongName, diff), 0.6 /*, false*/);
@@ -901,6 +963,9 @@ class ChartingState extends MusicBeatState
     };
   }
 
+  /**
+   * Executes the `generateUI` operation.
+   */
   function generateUI():Void
   {
     while (chartingUi.members.length > 0)
@@ -913,6 +978,14 @@ class ChartingState extends MusicBeatState
     chartingUi.add(title);
   }
 
+  /**
+   * Executes the `getEvent` operation.
+   * @param id Input value for `id`.
+   * @param sender Input value for `sender`.
+   * @param data Input value for `data`.
+   * @param params Input value for `params`.
+   * @return Result produced by `getEvent`, when applicable.
+   */
   override function getEvent(id:String, sender:Dynamic, data:Dynamic, ?params:Array<Dynamic>)
   {
     if (id == FlxUICheckBox.CLICK_EVENT)
@@ -1035,6 +1108,11 @@ class ChartingState extends MusicBeatState
   var updatedSection:Bool = false;
 
   // REFACTOR: delegated to editors.charting.ChartingUIGrid
+  /**
+   * Executes the `sectionStartTime` operation.
+   * @param add Input value for `add`.
+   * @return Result produced by `sectionStartTime`, when applicable.
+   */
   function sectionStartTime(add:Int = 0):Float
   {
     return ChartingUIGrid.sectionStartTime(this, add);
@@ -1043,6 +1121,11 @@ class ChartingState extends MusicBeatState
   var lastConductorPos:Float;
   var colorSine:Float = 0;
 
+  /**
+   * Executes the `update` operation.
+   * @param elapsed Input value for `elapsed`.
+   * @return Result produced by `update`, when applicable.
+   */
   override function update(elapsed:Float)
   {
     curStep = recalculateSteps();
@@ -1781,6 +1864,10 @@ class ChartingState extends MusicBeatState
     idleMusic.update(elapsed);
   }
 
+  /**
+   * Executes the `resetBuddies` operation.
+   * @return Result produced by `resetBuddies`, when applicable.
+   */
   function resetBuddies()
   {
     lilBf.animation.play("idle");
@@ -1788,6 +1875,10 @@ class ChartingState extends MusicBeatState
   }
 
   // REFACTOR: delegated to editors.charting.ChartingUIGrid
+  /**
+   * Executes the `updateZoom` operation.
+   * @return Result produced by `updateZoom`, when applicable.
+   */
   function updateZoom()
   {
     ChartingUIGrid.updateZoom(this);
@@ -1804,12 +1895,20 @@ class ChartingState extends MusicBeatState
   var lastGridBGHeight:Int = -1;
 
   // REFACTOR: delegated to editors.charting.ChartingUIGrid
+  /**
+   * Executes the `reloadGridLayer` operation.
+   * @return Result produced by `reloadGridLayer`, when applicable.
+   */
   function reloadGridLayer()
   {
     ChartingUIGrid.reloadGridLayer(this);
   }
 
   // REFACTOR: delegated to editors.charting.ChartingUIGrid
+  /**
+   * Executes the `strumLineUpdateY` operation.
+   * @return Result produced by `strumLineUpdateY`, when applicable.
+   */
   function strumLineUpdateY()
   {
     ChartingUIGrid.strumLineUpdateY(this);
@@ -1824,12 +1923,27 @@ class ChartingState extends MusicBeatState
   var waveformCacheBytes:Bytes = null;
 
   // REFACTOR: delegated to editors.charting.ChartingUIWaveform
+  /**
+   * Executes the `updateWaveform` operation.
+   * @return Result produced by `updateWaveform`, when applicable.
+   */
   function updateWaveform()
   {
     ChartingUIWaveform.updateWaveform(this);
   }
 
   // REFACTOR: delegated to editors.charting.ChartingUIWaveform
+  /**
+   * Executes the `waveformData` operation.
+   * @param buffer Input value for `buffer`.
+   * @param bytes Input value for `bytes`.
+   * @param time Input value for `time`.
+   * @param endTime Input value for `endTime`.
+   * @param multiply Input value for `multiply`.
+   * @param array Input value for `array`.
+   * @param steps Input value for `steps`.
+   * @return Result produced by `waveformData`, when applicable.
+   */
   function waveformData(buffer:AudioBuffer, bytes:Bytes, time:Float, endTime:Float, multiply:Float = 1, ?array:Array<Array<Array<Float>>>,
       ?steps:Float):Array<Array<Array<Float>>>
   {
@@ -1837,11 +1951,20 @@ class ChartingState extends MusicBeatState
   }
 
   // REFACTOR: delegated to editors.charting.ChartingEvents
+  /**
+   * Executes the `changeNoteSustain` operation.
+   * @param value Input value for `value`.
+   */
   function changeNoteSustain(value:Float):Void
   {
     ChartingEvents.changeNoteSustain(this, value);
   }
 
+  /**
+   * Executes the `recalculateSteps` operation.
+   * @param add Input value for `add`.
+   * @return Result produced by `recalculateSteps`, when applicable.
+   */
   function recalculateSteps(add:Float = 0):Int
   {
     var lastChange:BPMChangeEvent =
@@ -1861,6 +1984,10 @@ class ChartingState extends MusicBeatState
     return curStep;
   }
 
+  /**
+   * Executes the `resetSection` operation.
+   * @param songBeginning Input value for `songBeginning`.
+   */
   function resetSection(songBeginning:Bool = false):Void
   {
     resetBuddies();
@@ -1885,6 +2012,12 @@ class ChartingState extends MusicBeatState
     updateWaveform();
   }
 
+  /**
+   * Executes the `changeSection` operation.
+   * @param sec Input value for `sec`.
+   * @param updateMusic Input value for `updateMusic`.
+   * @param updateTheGridBITCH Input value for `updateTheGridBITCH`.
+   */
   function changeSection(sec:Int = 0, ?updateMusic:Bool = true, ?updateTheGridBITCH:Bool = true):Void
   {
     if (_song.notes[sec] != null)
@@ -1923,6 +2056,9 @@ class ChartingState extends MusicBeatState
     if (updateTheGridBITCH) updateGrid(true);
   }
 
+  /**
+   * Executes the `updateSectionUI` operation.
+   */
   function updateSectionUI():Void
   {
     var sec = _song.notes[curSec];
@@ -1946,6 +2082,9 @@ class ChartingState extends MusicBeatState
       vocalsP2: null
     };
 
+  /**
+   * Executes the `updateJsonData` operation.
+*/
   function updateJsonData():Void
   {
     for (i in 1...3)
@@ -1956,6 +2095,9 @@ class ChartingState extends MusicBeatState
     }
   }
 
+  /**
+   * Executes the `updateHeads` operation.
+*/
   function updateHeads():Void
   {
     if (_song.notes[curSec] != null)
@@ -1976,6 +2118,11 @@ class ChartingState extends MusicBeatState
 
   var characterFailed:Bool = false;
 
+  /**
+   * Executes the `loadCharacterFile` operation.
+   * @param char Input value for `char`.
+   * @return Result produced by `loadCharacterFile`, when applicable.
+   */
   function loadCharacterFile(char:String):CharacterFile
   {
     characterFailed = false;
@@ -2007,144 +2154,264 @@ class ChartingState extends MusicBeatState
   }
 
   // REFACTOR: delegated to editors.charting.ChartingUIGrid
+  /**
+   * Executes the `updateNoteUI` operation.
+   */
   function updateNoteUI():Void
   {
     ChartingUIGrid.updateNoteUI(this);
   }
 
   // REFACTOR: delegated to editors.charting.ChartingUIGrid
+  /**
+   * Executes the `updateGrid` operation.
+   * @param andNext Input value for `andNext`.
+   * @param onlyEvents Input value for `onlyEvents`.
+   */
   function updateGrid(?andNext:Bool = true, ?onlyEvents:Bool = false):Void
   {
     ChartingUIGrid.updateGrid(this, andNext, onlyEvents);
   }
 
   // REFACTOR: delegated to editors.charting.ChartingUIGrid
+  /**
+   * Executes the `setupNoteData` operation.
+   * @param i Input value for `i`.
+   * @param isNextSection Input value for `isNextSection`.
+   * @return Result produced by `setupNoteData`, when applicable.
+   */
   function setupNoteData(i:Array<Dynamic>, isNextSection:Bool):Note
   {
     return ChartingUIGrid.setupNoteData(this, i, isNextSection);
   }
 
   // REFACTOR: delegated to editors.charting.ChartingUIGrid
+  /**
+   * Executes the `getEventName` operation.
+   * @param names Input value for `names`.
+   * @return Result produced by `getEventName`, when applicable.
+   */
   function getEventName(names:Array<Dynamic>):String
   {
     return ChartingUIGrid.getEventName(names);
   }
 
   // REFACTOR: delegated to editors.charting.ChartingUIGrid
+  /**
+   * Executes the `setupSusNote` operation.
+   * @param note Input value for `note`.
+   * @param beats Input value for `beats`.
+   * @return Result produced by `setupSusNote`, when applicable.
+   */
   function setupSusNote(note:Note, beats:Float):FlxSprite
   {
     return ChartingUIGrid.setupSusNote(this, note, beats);
   }
 
   // REFACTOR: delegated to editors.charting.ChartingUIGrid
+  /**
+   * Executes the `addSection` operation.
+   * @param sectionBeats Input value for `sectionBeats`.
+   */
   private function addSection(sectionBeats:Float = 4):Void
   {
     ChartingUIGrid.addSection(this, sectionBeats);
   }
 
   // REFACTOR: delegated to editors.charting.ChartingEvents
+  /**
+   * Executes the `selectNote` operation.
+   * @param note Input value for `note`.
+   * @param updateTheGrid Input value for `updateTheGrid`.
+   */
   function selectNote(note:Note, ?updateTheGrid:Bool = true):Void
   {
     ChartingEvents.selectNote(this, note, updateTheGrid);
   }
 
   // REFACTOR: delegated to editors.charting.ChartingEvents
+  /**
+   * Executes the `deleteNote` operation.
+   * @param note Input value for `note`.
+   * @param usingVortex Input value for `usingVortex`.
+   */
   function deleteNote(note:Note, ?usingVortex:Bool = false):Void
   {
     ChartingEvents.deleteNote(this, note, usingVortex);
   }
 
   // REFACTOR: delegated to editors.charting.ChartingEvents
+  /**
+   * Executes the `doANoteThing` operation.
+   * @param cs Input value for `cs`.
+   * @param d Input value for `d`.
+   * @param style Input value for `style`.
+   * @return Result produced by `doANoteThing`, when applicable.
+   */
   public function doANoteThing(cs, d, style)
   {
     ChartingEvents.doANoteThing(this, cs, d, style);
   }
 
   // REFACTOR: delegated to editors.charting.ChartingEvents
+  /**
+   * Executes the `clearSong` operation.
+   */
   function clearSong():Void
   {
     ChartingEvents.clearSong(this);
   }
 
   // REFACTOR: delegated to editors.charting.ChartingEvents
+  /**
+   * Executes the `addNote` operation.
+   * @param strum Input value for `strum`.
+   * @param data Input value for `data`.
+   * @param type Input value for `type`.
+   * @param gridUpdate Input value for `gridUpdate`.
+   */
   private function addNote(strum:Null<Float> = null, data:Null<Int> = null, type:Null<Int> = null, ?gridUpdate:Bool = true):Void
   {
     ChartingEvents.addNote(this, strum, data, type, gridUpdate);
   }
 
   // REFACTOR: delegated to editors.charting.ChartingEvents
+  /**
+   * Executes the `redo` operation.
+   * @return Result produced by `redo`, when applicable.
+   */
   function redo()
   {
     ChartingEvents.redo(this);
   }
 
   // REFACTOR: delegated to editors.charting.ChartingUIGrid
+  /**
+   * Executes the `getStrumTime` operation.
+   * @param yPos Input value for `yPos`.
+   * @param doZoomCalc Input value for `doZoomCalc`.
+   * @return Result produced by `getStrumTime`, when applicable.
+   */
   function getStrumTime(yPos:Float, doZoomCalc:Bool = true):Float
   {
     return ChartingUIGrid.getStrumTime(this, yPos, doZoomCalc);
   }
 
   // REFACTOR: delegated to editors.charting.ChartingUIGrid
+  /**
+   * Executes the `getYfromStrum` operation.
+   * @param strumTime Input value for `strumTime`.
+   * @param doZoomCalc Input value for `doZoomCalc`.
+   * @return Result produced by `getYfromStrum`, when applicable.
+   */
   function getYfromStrum(strumTime:Float, doZoomCalc:Bool = true):Float
   {
     return ChartingUIGrid.getYfromStrum(this, strumTime, doZoomCalc);
   }
 
   // REFACTOR: delegated to editors.charting.ChartingUIGrid
+  /**
+   * Executes the `getYfromStrumNotes` operation.
+   * @param strumTime Input value for `strumTime`.
+   * @param beats Input value for `beats`.
+   * @return Result produced by `getYfromStrumNotes`, when applicable.
+   */
   function getYfromStrumNotes(strumTime:Float, beats:Float):Float
   {
     return ChartingUIGrid.getYfromStrumNotes(this, strumTime, beats);
   }
 
   // REFACTOR: delegated to editors.charting.ChartingSaveLoad
+  /**
+   * Executes the `saveUndo` operation.
+   * @param songData Input value for `songData`.
+   * @return Result produced by `saveUndo`, when applicable.
+   */
   public function saveUndo(songData:SwagSong)
   {
     ChartingSaveLoad.saveUndo(this, songData);
   }
 
   // REFACTOR: delegated to editors.charting.ChartingSaveLoad
+  /**
+   * Executes the `undo` operation.
+   * @return Result produced by `undo`, when applicable.
+   */
   public function undo()
   {
     ChartingSaveLoad.undo(this);
   }
 
   // REFACTOR: delegated to editors.charting.ChartingSaveLoad
+  /**
+   * Executes the `getNotes` operation.
+   * @return Result produced by `getNotes`, when applicable.
+   */
   function getNotes():Array<Dynamic>
   {
     return ChartingSaveLoad.getNotes(this);
   }
 
   // REFACTOR: delegated to editors.charting.ChartingSaveLoad
+  /**
+   * Executes the `loadJson` operation.
+   * @param song Input value for `song`.
+   * @param diff Input value for `diff`.
+   */
   function loadJson(song:String, ?diff:String = ''):Void
   {
     ChartingSaveLoad.loadJson(this, song, diff);
   }
 
   // REFACTOR: delegated to editors.charting.ChartingSaveLoad
+  /**
+   * Executes the `clearEvents` operation.
+   * @return Result produced by `clearEvents`, when applicable.
+   */
   function clearEvents()
   {
     ChartingSaveLoad.clearEvents(this);
   }
 
   // REFACTOR: delegated to editors.charting.ChartingSaveLoad
+  /**
+   * Executes the `saveLevel` operation.
+   * @param compressed Input value for `compressed`.
+   * @param isAuto Input value for `isAuto`.
+   * @return Result produced by `saveLevel`, when applicable.
+   */
   private function saveLevel(?compressed:Bool = false, ?isAuto:Bool = false)
   {
     ChartingSaveLoad.saveLevel(this, compressed, isAuto);
   }
 
   // REFACTOR: delegated to editors.charting.ChartingSaveLoad
+  /**
+   * Executes the `sortByTime` operation.
+   * @param Obj1 Input value for `Obj1`.
+   * @param Obj2 Input value for `Obj2`.
+   * @return Result produced by `sortByTime`, when applicable.
+   */
   function sortByTime(Obj1:Array<Dynamic>, Obj2:Array<Dynamic>):Int
   {
     return ChartingSaveLoad.sortByTime(Obj1, Obj2);
   }
 
   // REFACTOR: delegated to editors.charting.ChartingSaveLoad
+  /**
+   * Executes the `saveEvents` operation.
+   * @return Result produced by `saveEvents`, when applicable.
+   */
   private function saveEvents()
   {
     ChartingSaveLoad.saveEvents(this);
   }
 
   // REFACTOR: delegated to editors.charting.ChartingSaveLoad
+  /**
+   * Executes the `onSaveComplete` operation.
+   * @param _ Input value for `_`.
+   */
   function onSaveComplete(_):Void
   {
     ChartingSaveLoad.onSaveComplete(this, _);
@@ -2154,23 +2421,39 @@ class ChartingState extends MusicBeatState
    * Called when the save file dialog is cancelled.
    */
   // REFACTOR: delegated to editors.charting.ChartingSaveLoad
+  /**
+   * Executes the `onSaveCancel` operation.
+   * @param _ Input value for `_`.
+   */
   function onSaveCancel(_):Void
   {
     ChartingSaveLoad.onSaveCancel(this, _);
   }
 
   // REFACTOR: delegated to editors.charting.ChartingSaveLoad
+  /**
+   * Executes the `onSaveError` operation.
+   * @param _ Input value for `_`.
+   */
   function onSaveError(_):Void
   {
     ChartingSaveLoad.onSaveError(this, _);
   }
 
   // REFACTOR: delegated to editors.charting.ChartingUIGrid
+  /**
+   * Executes the `getSectionBeats` operation.
+   * @param section Input value for `section`.
+   * @return Result produced by `getSectionBeats`, when applicable.
+   */
   function getSectionBeats(?section:Null<Int> = null)
   {
     return ChartingUIGrid.getSectionBeats(this, section);
   }
 
+  /**
+   * Executes the `onFocusLost` operation.
+   */
   override public function onFocusLost():Void
   {
     if (idleMusic != null && idleMusic.music != null) idleMusic.pauseMusic();
@@ -2178,6 +2461,9 @@ class ChartingState extends MusicBeatState
     super.onFocusLost();
   }
 
+  /**
+   * Executes the `onFocus` operation.
+   */
   override public function onFocus():Void
   {
     if (idleMusic != null && idleMusic.music != null) idleMusic.unpauseMusic();
@@ -2185,6 +2471,9 @@ class ChartingState extends MusicBeatState
     super.onFocus();
   }
 
+  /**
+   * Executes the `destroy` operation.
+   */
   override public function destroy():Void
   {
     Paths.noteSkinFramesMap.clear();

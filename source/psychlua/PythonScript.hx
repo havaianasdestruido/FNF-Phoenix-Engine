@@ -82,6 +82,11 @@ class PythonScript
 	var parser:Parser;
 	var _missingCalls:Map<String, Bool> = new Map();
 
+	/**
+	 * Executes the `new` operation.
+	 * @param scriptName Input value for `scriptName`.
+	 * @param scriptCode Input value for `scriptCode`.
+	 */
 	public function new(scriptName:String, ?scriptCode:String)
 	{
 		this.scriptName = scriptName;
@@ -180,6 +185,12 @@ class PythonScript
 	//                            INTERNALS                                 //
 	// -------------------------------------------------------------------- //
 
+	/**
+	 * Executes the `call` operation.
+	 * @param func Input value for `func`.
+	 * @param args Input value for `args`.
+	 * @return Result produced by `call`, when applicable.
+	 */
 	public function call(func:String, args:Array<Dynamic>):Dynamic {
 		if (closed) return Function_Continue;
 
@@ -210,6 +221,12 @@ class PythonScript
 		}
 	}
 
+	/**
+	 * Executes the `set` operation.
+	 * @param variable Input value for `variable`.
+	 * @param data Input value for `data`.
+	 * @return Result produced by `set`, when applicable.
+	 */
 	public function set(variable:String, data:Dynamic) {
 		if (closed) return;
 
@@ -225,6 +242,11 @@ class PythonScript
 		}
 	}
 
+	/**
+	 * Executes the `get` operation.
+	 * @param variable Input value for `variable`.
+	 * @return Result produced by `get`, when applicable.
+	 */
 	public function get(variable:String):Dynamic {
 		if (closed) return null;
 		try {
@@ -238,6 +260,10 @@ class PythonScript
 		}
 	}
 
+	/**
+	 * Executes the `stop` operation.
+	 * @return Result produced by `stop`, when applicable.
+	 */
 	public function stop() {
 		closed = true;
 		if (interp == null) return;
@@ -249,6 +275,14 @@ class PythonScript
 		}
 	}
 
+	/**
+	 * Executes the `pyTrace` operation.
+	 * @param text Input value for `text`.
+	 * @param ignoreCheck Input value for `ignoreCheck`.
+	 * @param deprecated Input value for `deprecated`.
+	 * @param color Input value for `color`.
+	 * @return Result produced by `pyTrace`, when applicable.
+	 */
 	public function pyTrace(text:String, ignoreCheck:Bool = false, deprecated:Bool = false, color:FlxColor = FlxColor.WHITE) {
 		if (ignoreCheck || getVar('pythonDebugMode')) {
 			if (deprecated && !getVar('pythonDeprecatedWarnings')) {
@@ -259,6 +293,11 @@ class PythonScript
 		}
 	}
 
+	/**
+	 * Executes the `getVar` operation.
+	 * @param variable Input value for `variable`.
+	 * @return Result produced by `getVar`, when applicable.
+	 */
 	public function getVar(variable:String):Dynamic {
 		if (closed) return false;
 		try {
@@ -276,6 +315,11 @@ class PythonScript
 		}
 	}
 
+	/**
+	 * Executes the `getErrorString` operation.
+	 * @param e Input value for `e`.
+	 * @return Result produced by `getErrorString`, when applicable.
+	 */
 	static function getErrorString(e:Error):String {
 		return switch (e) {
 			case EUnknownVariable(v): "NameError: name '" + v + "' is not defined";
@@ -302,9 +346,20 @@ class PythonScript
 		}
 	}
 
+	/**
+	 * Executes the `registerFunction` operation.
+	 * @param name Input value for `name`.
+	 * @param func Input value for `func`.
+	 */
 	public static function registerFunction(name:String, func:Dynamic):Void
 		registeredFunctions.set(name, func);
 
+	/**
+	 * Executes the `isOfTypes` operation.
+	 * @param value Input value for `value`.
+	 * @param types Input value for `types`.
+	 * @return Result produced by `isOfTypes`, when applicable.
+	 */
 	public static function isOfTypes(value:Any, types:Array<Dynamic>) {
 		for (type in types) {
 			if (Std.isOfType(value, type)) return true;
@@ -312,6 +367,10 @@ class PythonScript
 		return false;
 	}
 
+	/**
+	 * Executes the `registerCustomFunctions` operation.
+	 * @return Result produced by `registerCustomFunctions`, when applicable.
+	 */
 	function registerCustomFunctions() {
 		for (name => func in customFunctions) {
 			if (func != null) {
@@ -321,6 +380,12 @@ class PythonScript
 		}
 	}
 
+	/**
+	 * Executes the `addLocalCallback` operation.
+	 * @param name Input value for `name`.
+	 * @param myFunction Input value for `myFunction`.
+	 * @return Result produced by `addLocalCallback`, when applicable.
+	 */
 	function addLocalCallback(name:String, myFunction:Dynamic) {
 		_missingCalls.remove(name);
 		set(name, myFunction);
@@ -330,14 +395,29 @@ class PythonScript
 	//                          HELPERS                                     //
 	// -------------------------------------------------------------------- //
 
+	/**
+	 * Executes the `getInstance` operation.
+	 * @return Result produced by `getInstance`, when applicable.
+	 */
 	function getInstance():Dynamic {
 		return PlayState.instance.isDead ? GameOverSubstate.instance : PlayState.instance;
 	}
 
+	/**
+	 * Executes the `getTextObject` operation.
+	 * @param name Input value for `name`.
+	 * @return Result produced by `getTextObject`, when applicable.
+	 */
 	inline function getTextObject(name:String):FlxText {
 		return PlayState.instance.modchartTexts.exists(name) ? PlayState.instance.modchartTexts.get(name) : Reflect.getProperty(PlayState.instance, name);
 	}
 
+	/**
+	 * Executes the `getGroupStuff` operation.
+	 * @param leArray Input value for `leArray`.
+	 * @param variable Input value for `variable`.
+	 * @return Result produced by `getGroupStuff`, when applicable.
+	 */
 	function getGroupStuff(leArray:Dynamic, variable:String) {
 		var killMe:Array<String> = variable.split('.');
 		if(killMe.length > 1) {
@@ -360,6 +440,13 @@ class PythonScript
 		}
 	}
 
+	/**
+	 * Executes the `setGroupStuff` operation.
+	 * @param leArray Input value for `leArray`.
+	 * @param variable Input value for `variable`.
+	 * @param value Input value for `value`.
+	 * @return Result produced by `setGroupStuff`, when applicable.
+	 */
 	function setGroupStuff(leArray:Dynamic, variable:String, value:Dynamic) {
 		var killMe:Array<String> = variable.split('.');
 		if(killMe.length > 1) {
@@ -373,6 +460,13 @@ class PythonScript
 		Reflect.setProperty(leArray, variable, value);
 	}
 
+	/**
+	 * Executes the `loadFrames` operation.
+	 * @param spr Input value for `spr`.
+	 * @param image Input value for `image`.
+	 * @param spriteType Input value for `spriteType`.
+	 * @return Result produced by `loadFrames`, when applicable.
+	 */
 	function loadFrames(spr:FlxSprite, image:String, spriteType:String) {
 		switch(spriteType.toLowerCase().trim()) {
 			case 'aseprite' | 'jsoni8':
@@ -384,6 +478,11 @@ class PythonScript
 		}
 	}
 
+	/**
+	 * Executes the `resetTextTag` operation.
+	 * @param tag Input value for `tag`.
+	 * @return Result produced by `resetTextTag`, when applicable.
+	 */
 	function resetTextTag(tag:String) {
 		if(!PlayState.instance.modchartTexts.exists(tag)) {
 			return;
@@ -397,6 +496,11 @@ class PythonScript
 		PlayState.instance.modchartTexts.remove(tag);
 	}
 
+	/**
+	 * Executes the `resetSpriteTag` operation.
+	 * @param tag Input value for `tag`.
+	 * @return Result produced by `resetSpriteTag`, when applicable.
+	 */
 	function resetSpriteTag(tag:String) {
 		if(!PlayState.instance.modchartSprites.exists(tag)) {
 			return;
@@ -411,6 +515,11 @@ class PythonScript
 		PlayState.instance.modchartSprites.remove(tag);
 	}
 
+	/**
+	 * Executes the `cancelTween` operation.
+	 * @param tag Input value for `tag`.
+	 * @return Result produced by `cancelTween`, when applicable.
+	 */
 	function cancelTween(tag:String) {
 		if(PlayState.instance.modchartTweens.exists(tag)) {
 			PlayState.instance.modchartTweens.get(tag).cancel();
@@ -419,6 +528,12 @@ class PythonScript
 		}
 	}
 
+	/**
+	 * Executes the `tweenPrepare` operation.
+	 * @param tag Input value for `tag`.
+	 * @param vars Input value for `vars`.
+	 * @return Result produced by `tweenPrepare`, when applicable.
+	 */
 	function tweenPrepare(tag:String, vars:String) {
 		if (tag != null) cancelTween(tag);
 		var variables:Array<String> = vars.split('.');
@@ -429,6 +544,11 @@ class PythonScript
 		return sexyProp;
 	}
 
+	/**
+	 * Executes the `cancelTimer` operation.
+	 * @param tag Input value for `tag`.
+	 * @return Result produced by `cancelTimer`, when applicable.
+	 */
 	function cancelTimer(tag:String) {
 		if(PlayState.instance.modchartTimers.exists(tag)) {
 			PlayState.instance.modchartTimers.get(tag).cancel();
@@ -436,6 +556,16 @@ class PythonScript
 		}
 	}
 
+	/**
+	 * Executes the `addAnimByIndices` operation.
+	 * @param obj Input value for `obj`.
+	 * @param name Input value for `name`.
+	 * @param prefix Input value for `prefix`.
+	 * @param indices Input value for `indices`.
+	 * @param framerate Input value for `framerate`.
+	 * @param loop Input value for `loop`.
+	 * @return Result produced by `addAnimByIndices`, when applicable.
+	 */
 	static function addAnimByIndices(obj:String, name:String, prefix:String, indices:String, framerate:Int = 24, loop:Bool = false) {
 		var spr:FlxSprite = PlayState.instance.getLuaObject(obj, false);
 		if(spr == null) {
@@ -456,6 +586,10 @@ class PythonScript
 		return false;
 	}
 
+	/**
+	 * Executes the `getInstanceStatic` operation.
+	 * @return Result produced by `getInstanceStatic`, when applicable.
+	 */
 	public static inline function getInstanceStatic()
 	{
 		return PlayState.instance.isDead ? GameOverSubstate.instance : PlayState.instance;

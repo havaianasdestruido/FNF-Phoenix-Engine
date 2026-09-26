@@ -38,6 +38,10 @@ class NoteSplashDebugState extends MusicBeatState
 
 	public static final defaultTexture:String = 'noteSplashes';
 
+	/**
+	 * Executes the `create` operation.
+	 * @return Result produced by `create`, when applicable.
+	 */
 	override function create()
 	{
 		FlxG.camera.bgColor = FlxColor.fromHSL(0, 0, 0.5);
@@ -189,6 +193,11 @@ class NoteSplashDebugState extends MusicBeatState
 	var curAnim:Int = 1;
 	var visibleTime:Float = 0;
 	var pressEnterToSave:Float = 0;
+	/**
+	 * Executes the `update` operation.
+	 * @param elapsed Input value for `elapsed`.
+	 * @return Result produced by `update`, when applicable.
+	 */
 	override function update(elapsed:Float)
 	{
 		@:privateAccess
@@ -307,6 +316,10 @@ class NoteSplashDebugState extends MusicBeatState
 		}
 	}
 
+	/**
+	 * Executes the `updateOffsetText` operation.
+	 * @return Result produced by `updateOffsetText`, when applicable.
+	 */
 	function updateOffsetText()
 	{
 		selecArr = selectedArray();
@@ -316,6 +329,10 @@ class NoteSplashDebugState extends MusicBeatState
 	var textureName:String = defaultTexture;
 	var texturePath:String = '';
 	var copiedArray:Array<Float> = null;
+	/**
+	 * Executes the `loadFrames` operation.
+	 * @return Result produced by `loadFrames`, when applicable.
+	 */
 	function loadFrames()
 	{
 		texturePath = 'noteSplashes/' + textureName;
@@ -337,6 +354,10 @@ class NoteSplashDebugState extends MusicBeatState
 		reloadAnims();
 	}
 
+	/**
+	 * Executes the `saveFile` operation.
+	 * @return Result produced by `saveFile`, when applicable.
+	 */
 	function saveFile()
 	{
 		#if sys
@@ -364,6 +385,14 @@ class NoteSplashDebugState extends MusicBeatState
 		#end
 	}
 
+	/**
+	 * Executes the `getEvent` operation.
+	 * @param id Input value for `id`.
+	 * @param sender Input value for `sender`.
+	 * @param data Input value for `data`.
+	 * @param params Input value for `params`.
+	 * @return Result produced by `getEvent`, when applicable.
+	 */
 	override function getEvent(id:String, sender:Dynamic, data:Dynamic, ?params:Array<Dynamic>)
 	{
 		if (id == FlxUINumericStepper.CHANGE_EVENT && (sender is FlxUINumericStepper))
@@ -385,6 +414,10 @@ class NoteSplashDebugState extends MusicBeatState
 	}
 
 	var maxAnims:Int = 0;
+	/**
+	 * Executes the `reloadAnims` operation.
+	 * @return Result produced by `reloadAnims`, when applicable.
+	 */
 	function reloadAnims()
 	{
 		var loopContinue:Bool = true;
@@ -415,6 +448,11 @@ class NoteSplashDebugState extends MusicBeatState
 	}
 
 	var maxFrame:Int = 0;
+	/**
+	 * Executes the `changeAnim` operation.
+	 * @param change Input value for `change`.
+	 * @return Result produced by `changeAnim`, when applicable.
+	 */
 	function changeAnim(change:Int = 0)
 	{
 		maxFrame = 0;
@@ -449,6 +487,11 @@ class NoteSplashDebugState extends MusicBeatState
 		updateOffsetText();
 	}
 
+	/**
+	 * Executes the `changeSelection` operation.
+	 * @param change Input value for `change`.
+	 * @return Result produced by `changeSelection`, when applicable.
+	 */
 	function changeSelection(change:Int = 0)
 	{
 		var max:Int = Note.colArray.length;
@@ -460,6 +503,11 @@ class NoteSplashDebugState extends MusicBeatState
 		updateOffsetText();
 	}
 
+	/**
+	 * Executes the `selectedArray` operation.
+	 * @param sel Input value for `sel`.
+	 * @return Result produced by `selectedArray`, when applicable.
+	 */
 	function selectedArray(sel:Int = -1)
 	{
 		if(sel < 0) sel = curSelected;
@@ -472,12 +520,25 @@ class NoteSplashDebugState extends MusicBeatState
 		return config.offsets[FlxMath.wrap(animID, 0, config.offsets.length-1)];
 	}
 
+	/**
+	 * Executes the `addAnimAndCheck` operation.
+	 * @param spr Input value for `spr`.
+	 * @param name Input value for `name`.
+	 * @param anim Input value for `anim`.
+	 * @param framerate Input value for `framerate`.
+	 * @param loop Input value for `loop`.
+	 * @return Result produced by `addAnimAndCheck`, when applicable.
+	 */
 	function addAnimAndCheck(spr:FlxSprite, name:String, anim:String, ?framerate:Int = 24, ?loop:Bool = false)
 	{
 		spr.animation.addByPrefix(name, anim, framerate, loop);
 		return spr.animation.getByName(name) != null;
 	}
 
+	/**
+	 * Executes the `destroy` operation.
+	 * @return Result produced by `destroy`, when applicable.
+	 */
 	override function destroy()
 	{
 		super.destroy();

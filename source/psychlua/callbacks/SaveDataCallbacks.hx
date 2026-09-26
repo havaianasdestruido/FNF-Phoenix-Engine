@@ -8,6 +8,10 @@ import headers.PsychLua;
 // REFACTOR: extracted from psychlua.FunkinLua (save data API)
 class SaveDataCallbacks
 {
+	/**
+	 * Executes the `register` operation.
+	 * @param funk Input value for `funk`.
+	 */
 	public static function register(funk:FunkinLua):Void {
 		@:privateAccess {
 		FunkinLua.registerFunction("initSaveData", function(name:String, ?folder:String = 'psychenginemods') {

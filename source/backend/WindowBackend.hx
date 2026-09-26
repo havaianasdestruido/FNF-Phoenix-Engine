@@ -29,6 +29,11 @@ class WindowBackend
         }
         UpdateWindow(window);
     ')
+	/**
+	 * Executes the `setWindowColorMode` operation.
+	 * @param isDarkMode Input value for `isDarkMode`.
+	 * @return Result produced by `setWindowColorMode`, when applicable.
+	 */
 	public static function setWindowColorMode(isDarkMode:Bool) {}
 	
 	@:functionCode('
@@ -40,6 +45,13 @@ class WindowBackend
 		
         UpdateWindow(window);
     ')
+	/**
+	 * Executes the `setWindowBorderColor` operation.
+	 * @param color Input value for `color`.
+	 * @param setHeader Input value for `setHeader`.
+	 * @param setBorder Input value for `setBorder`.
+	 * @return Result produced by `setWindowBorderColor`, when applicable.
+	 */
 	public static function setWindowBorderColor(color:Array<Int>, setHeader:Bool = true, setBorder:Bool = false) {}
 	
 	@:functionCode('
@@ -49,9 +61,18 @@ class WindowBackend
 		DwmSetWindowAttribute(window, 36, &finalColor, sizeof(COLORREF));
         UpdateWindow(window);
     ')
+	/**
+	 * Executes the `setWindowTitleColor` operation.
+	 * @param color Input value for `color`.
+	 * @return Result produced by `setWindowTitleColor`, when applicable.
+	 */
 	public static function setWindowTitleColor(color:Array<Int>) {}
 	
 	@:functionCode('UpdateWindow(GetActiveWindow());')
+	/**
+	 * Executes the `updateWindow` operation.
+	 * @return Result produced by `updateWindow`, when applicable.
+	 */
 	public static function updateWindow() {}
 	#end
 }

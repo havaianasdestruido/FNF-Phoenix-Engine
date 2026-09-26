@@ -27,6 +27,10 @@ class CreditsState extends MusicBeatState
 
 	var offsetThing:Float = -75;
 
+	/**
+	 * Executes the `create` operation.
+	 * @return Result produced by `create`, when applicable.
+	 */
 	override function create()
 	{
 		Paths.clearStoredMemory();
@@ -155,6 +159,11 @@ class CreditsState extends MusicBeatState
 
 	var quitting:Bool = false;
 	var holdTime:Float = 0;
+	/**
+	 * Executes the `update` operation.
+	 * @param elapsed Input value for `elapsed`.
+	 * @return Result produced by `update`, when applicable.
+	 */
 	override function update(elapsed:Float)
 	{
 		if (FlxG.sound.music.volume < 0.7)
@@ -231,6 +240,11 @@ class CreditsState extends MusicBeatState
 	}
 
 	var moveTween:FlxTween = null;
+	/**
+	 * Executes the `changeSelection` operation.
+	 * @param change Input value for `change`.
+	 * @return Result produced by `changeSelection`, when applicable.
+	 */
 	function changeSelection(change:Int = 0)
 	{
 		FlxG.sound.play(Paths.sound('scrollMenu'), 0.4);
@@ -281,6 +295,11 @@ class CreditsState extends MusicBeatState
 	}
 
 	#if MODS_ALLOWED
+	/**
+	 * Executes the `pushModCreditsToList` operation.
+	 * @param folder Input value for `folder`.
+	 * @return Result produced by `pushModCreditsToList`, when applicable.
+	 */
 	function pushModCreditsToList(folder:String)
 	{
 		var creditsFile:String = null;
@@ -301,6 +320,10 @@ class CreditsState extends MusicBeatState
 	}
 	#end
 
+	/**
+	 * Executes the `getCurrentBGColor` operation.
+	 * @return Result produced by `getCurrentBGColor`, when applicable.
+	 */
 	function getCurrentBGColor() {
 		var bgColor:String = creditsStuff[curSelected][4];
 		if(!bgColor.startsWith('0x')) {
@@ -309,6 +332,11 @@ class CreditsState extends MusicBeatState
 		return Std.parseInt(bgColor);
 	}
 
+	/**
+	 * Executes the `unselectableCheck` operation.
+	 * @param num Input value for `num`.
+	 * @return Result produced by `unselectableCheck`, when applicable.
+	 */
 	private function unselectableCheck(num:Int):Bool {
 		return creditsStuff[num].length <= 1;
 	}

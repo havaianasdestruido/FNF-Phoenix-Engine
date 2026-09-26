@@ -14,9 +14,17 @@ import cpp.SizeT;
 extern class GetTotalMemory
 {
 	@:native("getPeakRSS")
+	/**
+	 * Executes the `getPeakRSS` operation.
+	 * @return Result produced by `getPeakRSS`, when applicable.
+	 */
 	static function getPeakRSS():SizeT;
 
 	@:native("getCurrentRSS")
+	/**
+	 * Executes the `getCurrentRSS` operation.
+	 * @return Result produced by `getCurrentRSS`, when applicable.
+	 */
 	static function getCurrentRSS():SizeT;
 }
 #else

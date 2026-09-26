@@ -26,6 +26,10 @@ class MenuCharacterEditorState extends MusicBeatState
 	var defaultCharacters:Array<String> = ['dad', 'bf', 'gf'];
 	var music:EditingMusic;
 
+	/**
+	 * Executes the `create` operation.
+	 * @return Result produced by `create`, when applicable.
+	 */
 	override function create() {
 		music = new EditingMusic();
 		characterFile = {
@@ -74,6 +78,10 @@ class MenuCharacterEditorState extends MusicBeatState
 	var UI_typebox:FlxUITabMenu;
 	var UI_mainbox:FlxUITabMenu;
 	var blockPressWhileTypingOn:Array<FlxUIInputText> = [];
+	/**
+	 * Executes the `addEditorBox` operation.
+	 * @return Result produced by `addEditorBox`, when applicable.
+	 */
 	function addEditorBox() {
 		var tabs = [
 			{name: 'Character Type', label: 'Character Type'},
@@ -116,6 +124,10 @@ class MenuCharacterEditorState extends MusicBeatState
 	var boyfriendCheckbox:FlxUICheckBox;
 	var girlfriendCheckbox:FlxUICheckBox;
 	var curTypeSelected:Int = 0; //0 = Dad, 1 = BF, 2 = GF
+	/**
+	 * Executes the `addTypeUI` operation.
+	 * @return Result produced by `addTypeUI`, when applicable.
+	 */
 	function addTypeUI() {
 		var tab_group = new FlxUI(null, UI_typebox);
 		tab_group.name = "Character Type";
@@ -152,6 +164,10 @@ class MenuCharacterEditorState extends MusicBeatState
 	var confirmInputText:FlxUIInputText;
 	var scaleStepper:FlxUINumericStepper;
 	var flipXCheckbox:FlxUICheckBox;
+	/**
+	 * Executes the `addCharacterUI` operation.
+	 * @return Result produced by `addCharacterUI`, when applicable.
+	 */
 	function addCharacterUI() {
 		var tab_group = new FlxUI(null, UI_mainbox);
 		tab_group.name = "Character";
@@ -193,6 +209,10 @@ class MenuCharacterEditorState extends MusicBeatState
 		UI_mainbox.addGroup(tab_group);
 	}
 
+	/**
+	 * Executes the `updateCharTypeBox` operation.
+	 * @return Result produced by `updateCharTypeBox`, when applicable.
+	 */
 	function updateCharTypeBox() {
 		opponentCheckbox.checked = false;
 		boyfriendCheckbox.checked = false;
@@ -210,6 +230,10 @@ class MenuCharacterEditorState extends MusicBeatState
 		updateCharacters();
 	}
 
+	/**
+	 * Executes the `updateCharacters` operation.
+	 * @return Result produced by `updateCharacters`, when applicable.
+	 */
 	function updateCharacters() {
 		for (i in 0...3) {
 			var char:MenuCharacter = grpWeekCharacters.members[i];
@@ -220,6 +244,10 @@ class MenuCharacterEditorState extends MusicBeatState
 		reloadSelectedCharacter();
 	}
 
+	/**
+	 * Executes the `reloadSelectedCharacter` operation.
+	 * @return Result produced by `reloadSelectedCharacter`, when applicable.
+	 */
 	function reloadSelectedCharacter() {
 		var char:MenuCharacter = grpWeekCharacters.members[curTypeSelected];
 
@@ -240,6 +268,14 @@ class MenuCharacterEditorState extends MusicBeatState
 		#end
 	}
 
+	/**
+	 * Executes the `getEvent` operation.
+	 * @param id Input value for `id`.
+	 * @param sender Input value for `sender`.
+	 * @param data Input value for `data`.
+	 * @param params Input value for `params`.
+	 * @return Result produced by `getEvent`, when applicable.
+	 */
 	override function getEvent(id:String, sender:Dynamic, data:Dynamic, ?params:Array<Dynamic>) {
 		if(id == FlxUIInputText.CHANGE_EVENT && (sender is FlxUIInputText)) {
 			if(sender == imageInputText) {
@@ -257,6 +293,11 @@ class MenuCharacterEditorState extends MusicBeatState
 		}
 	}
 
+	/**
+	 * Executes the `update` operation.
+	 * @param elapsed Input value for `elapsed`.
+	 * @return Result produced by `update`, when applicable.
+	 */
 	override function update(elapsed:Float) {
 		if (FlxG.mouse.justPressed) FlxG.sound.play(Paths.sound('click'));
 		var blockInput:Bool = false;
@@ -316,6 +357,10 @@ class MenuCharacterEditorState extends MusicBeatState
 		music.update(elapsed);
 	}
 
+	/**
+	 * Executes the `updateOffset` operation.
+	 * @return Result produced by `updateOffset`, when applicable.
+	 */
 	function updateOffset() {
 		var char:MenuCharacter = grpWeekCharacters.members[curTypeSelected];
 		char.offset.set(characterFile.position[0], characterFile.position[1]);
@@ -323,6 +368,10 @@ class MenuCharacterEditorState extends MusicBeatState
 	}
 
 	var _file:FileReference = null;
+	/**
+	 * Executes the `loadCharacter` operation.
+	 * @return Result produced by `loadCharacter`, when applicable.
+	 */
 	function loadCharacter() {
 		var jsonFilter:FileFilter = new FileFilter('JSON', 'json');
 		_file = new FileReference();
@@ -332,6 +381,10 @@ class MenuCharacterEditorState extends MusicBeatState
 		_file.browse([jsonFilter]);
 	}
 
+	/**
+	 * Executes the `onLoadComplete` operation.
+	 * @param _ Input value for `_`.
+	 */
 	function onLoadComplete(_):Void
 	{
 		_file.removeEventListener(Event.SELECT, onLoadComplete);
@@ -383,7 +436,7 @@ class MenuCharacterEditorState extends MusicBeatState
 
 	/**
 		* Called if there is an error while saving the gameplay recording.
-		*/
+*/
 	function onLoadError(_):Void
 	{
 		_file.removeEventListener(Event.SELECT, onLoadComplete);
@@ -393,6 +446,10 @@ class MenuCharacterEditorState extends MusicBeatState
 		trace("Problem loading file");
 	}
 
+	/**
+	 * Executes the `saveCharacter` operation.
+	 * @return Result produced by `saveCharacter`, when applicable.
+	 */
 	function saveCharacter() {
 		var data:String = Json.stringify(characterFile, "\t");
 		if (data.length > 0)
@@ -408,6 +465,10 @@ class MenuCharacterEditorState extends MusicBeatState
 		}
 	}
 
+	/**
+	 * Executes the `onSaveComplete` operation.
+	 * @param _ Input value for `_`.
+	 */
 	function onSaveComplete(_):Void
 	{
 		_file.removeEventListener(Event.COMPLETE, onSaveComplete);
@@ -439,12 +500,18 @@ class MenuCharacterEditorState extends MusicBeatState
 		_file = null;
 		FlxG.log.error("Problem saving file");
 	}
+	/**
+	 * Executes the `onFocusLost` operation.
+	 */
 	override public function onFocusLost():Void
 	    {
 		    if (music != null && music.music != null) music.pauseMusic();
 
 		    super.onFocusLost();
 	    }
+	/**
+	 * Executes the `onFocus` operation.
+	 */
 	override public function onFocus():Void
 	    {
 		    if (music != null && music.music != null) music.unpauseMusic();

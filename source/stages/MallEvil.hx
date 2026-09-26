@@ -8,6 +8,10 @@ import stages.objects.*;
 
 class MallEvil extends BaseStage
 {
+	/**
+	 * Executes the `create` operation.
+	 * @return Result produced by `create`, when applicable.
+	 */
 	override function create()
 	{
 		var bg:BGSprite = new BGSprite('christmas/evilBG', -400, -500, 0.2, 0.2);
@@ -33,6 +37,10 @@ class MallEvil extends BaseStage
 		}
 	}
 
+	/**
+	 * Executes the `winterHorrorlandCutscene` operation.
+	 * @return Result produced by `winterHorrorlandCutscene`, when applicable.
+	 */
 	function winterHorrorlandCutscene()
 	{
 		camHUD.visible = false;

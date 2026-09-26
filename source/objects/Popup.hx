@@ -16,6 +16,9 @@ class Popup extends FlxSprite {
     var playbackRate(get, null):Float = 1.0;
     var showRating(get, null):Bool = true;
 
+    /**
+     * Executes the `new` operation.
+*/
     public function new() {
         super();
         try {
@@ -24,6 +27,10 @@ class Popup extends FlxSprite {
         catch(e) { playbackRate = 1.0;}
     }
 
+    /**
+     * Executes the `get_playbackRate` operation.
+     * @return Result produced by `get_playbackRate`, when applicable.
+     */
     public function get_playbackRate():Float
     {
         try {
@@ -33,6 +40,10 @@ class Popup extends FlxSprite {
         return playbackRate;
     }
 
+    /**
+     * Executes the `get_showRating` operation.
+     * @return Result produced by `get_showRating`, when applicable.
+     */
     public function get_showRating():Bool
     {
         try {
@@ -42,6 +53,11 @@ class Popup extends FlxSprite {
         return showRating;
     }
 
+    /**
+     * Executes the `setupRating` operation.
+     * @param img Input value for `img`.
+     * @return Result produced by `setupRating`, when applicable.
+     */
     public function setupRating(img:String)
     {
         popTime = Conductor.songPosition;
@@ -60,6 +76,13 @@ class Popup extends FlxSprite {
         updateHitbox();
     }
 
+    /**
+     * Executes the `setupNumber` operation.
+     * @param img Input value for `img`.
+     * @param daLoop Input value for `daLoop`.
+     * @param combo Input value for `combo`.
+     * @return Result produced by `setupNumber`, when applicable.
+     */
     public function setupNumber(img:String, daLoop:Int, combo:Float)
     {
         popTime = Conductor.songPosition;
@@ -78,6 +101,11 @@ class Popup extends FlxSprite {
         updateHitbox();
     }
 
+    /**
+     * Executes the `alphaTween` operation.
+     * @param isNumber Input value for `isNumber`.
+     * @return Result produced by `alphaTween`, when applicable.
+     */
     public function alphaTween(?isNumber:Bool = false)
     {
         FlxTween.tween(this, {alpha: 0}, 0.2 / playbackRate, {
@@ -89,6 +117,10 @@ class Popup extends FlxSprite {
         });
     }
 
+    /**
+     * Executes the `revive` operation.
+     * @return Result produced by `revive`, when applicable.
+     */
     override public function revive() {
         super.revive();
         initVars();

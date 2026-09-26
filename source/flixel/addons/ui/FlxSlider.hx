@@ -172,6 +172,20 @@ class FlxSlider extends FlxSpriteGroup
 	 * @param	Color 			Color of the slider background and all texts except for valueText showing the current value
 	 * @param	HandleColor 	Color of the slider handle and the valueText showing the current value
 	 */
+	/**
+	 * Executes the `new` operation.
+	 * @param Object Input value for `Object`.
+	 * @param VarString Input value for `VarString`.
+	 * @param X Input value for `X`.
+	 * @param Y Input value for `Y`.
+	 * @param MinValue Input value for `MinValue`.
+	 * @param MaxValue Input value for `MaxValue`.
+	 * @param Width Input value for `Width`.
+	 * @param Height Input value for `Height`.
+	 * @param Thickness Input value for `Thickness`.
+	 * @param Color Input value for `Color`.
+	 * @param HandleColor Input value for `HandleColor`.
+	 */
 	public function new(Object:Dynamic, VarString:String, X:Float = 0, Y:Float = 0, MinValue:Float = 0, MaxValue:Float = 10, Width:Int = 100, Height:Int = 15,
 			Thickness:Int = 3, Color:Int = 0xFF000000, HandleColor:Int = 0xFF828282)
 	{
@@ -261,6 +275,10 @@ class FlxSlider extends FlxSpriteGroup
 		add(maxLabel);
 	}
 
+	/**
+	 * Executes the `update` operation.
+	 * @param elapsed Input value for `elapsed`.
+	 */
 	override public function update(elapsed:Float):Void
 	{
 		// Clicking and sound logic
@@ -332,6 +350,11 @@ class FlxSlider extends FlxSpriteGroup
 		super.update(elapsed);
 	}
 
+	/**
+	 * Executes the `mouseInRect` operation.
+	 * @param rect Input value for `rect`.
+	 * @return Result produced by `mouseInRect`, when applicable.
+	 */
 	private function mouseInRect(rect:flixel.math.FlxRect)
 	{
 		if (FlxMath.pointInFlxRect(FlxG.mouse.getPositionInCameraView(camera).x,FlxG.mouse.getPositionInCameraView(camera).y,rect)) return true;
@@ -430,6 +453,10 @@ class FlxSlider extends FlxSpriteGroup
 		super.destroy();
 	}
 
+	/**
+	 * Executes the `get_expectedPos` operation.
+	 * @return Result produced by `get_expectedPos`, when applicable.
+	 */
 	function get_expectedPos():Float
 	{
 		var pos:Float = x + offset.x + ((_width - handle.width) * ((value - minValue) / (maxValue - minValue)));
@@ -447,6 +474,10 @@ class FlxSlider extends FlxSpriteGroup
 		return pos;
 	}
 
+	/**
+	 * Executes the `get_relativePos` operation.
+	 * @return Result produced by `get_relativePos`, when applicable.
+	 */
 	function get_relativePos():Float
 	{
 		var pos:Float = (handle.x - x - offset.x) / (_width - handle.width);
@@ -460,6 +491,11 @@ class FlxSlider extends FlxSpriteGroup
 		return pos;
 	}
 
+	/**
+	 * Executes the `set_varString` operation.
+	 * @param Value Input value for `Value`.
+	 * @return Result produced by `set_varString`, when applicable.
+	 */
 	function set_varString(Value:String):String
 	{
 		try
@@ -476,6 +512,11 @@ class FlxSlider extends FlxSpriteGroup
 		return Value;
 	}
 
+	/**
+	 * Executes the `set_x` operation.
+	 * @param value Input value for `value`.
+	 * @return Result produced by `set_x`, when applicable.
+	 */
 	override function set_x(value:Float):Float
 	{
 		super.set_x(value);
@@ -483,6 +524,11 @@ class FlxSlider extends FlxSpriteGroup
 		return x = value;
 	}
 
+	/**
+	 * Executes the `set_y` operation.
+	 * @param value Input value for `value`.
+	 * @return Result produced by `set_y`, when applicable.
+	 */
 	override function set_y(value:Float):Float
 	{
 		super.set_y(value);
@@ -490,6 +536,10 @@ class FlxSlider extends FlxSpriteGroup
 		return y = value;
 	}
 
+	/**
+	 * Executes the `updateBounds` operation.
+	 * @return Result produced by `updateBounds`, when applicable.
+	 */
 	inline function updateBounds()
 	{
 		if (_bounds != null)

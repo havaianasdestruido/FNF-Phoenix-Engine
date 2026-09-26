@@ -48,6 +48,11 @@ class FlxInputText extends FlxText
 	 */
 	public var customFilterPattern(default, set):EReg;
 
+	/**
+	 * Executes the `set_customFilterPattern` operation.
+	 * @param cfp Input value for `cfp`.
+	 * @return Result produced by `set_customFilterPattern`, when applicable.
+	 */
 	function set_customFilterPattern(cfp:EReg)
 	{
 		customFilterPattern = cfp;
@@ -70,6 +75,11 @@ class FlxInputText extends FlxText
 	 */
 	public var caretColor(default, set):Int;
 
+	/**
+	 * Executes the `set_caretColor` operation.
+	 * @param i Input value for `i`.
+	 * @return Result produced by `set_caretColor`, when applicable.
+	 */
 	function set_caretColor(i:Int):Int
 	{
 		caretColor = i;
@@ -79,6 +89,11 @@ class FlxInputText extends FlxText
 
 	public var caretWidth(default, set):Int = 1;
 
+	/**
+	 * Executes the `set_caretWidth` operation.
+	 * @param i Input value for `i`.
+	 * @return Result produced by `set_caretWidth`, when applicable.
+	 */
 	function set_caretWidth(i:Int):Int
 	{
 		caretWidth = i;
@@ -261,7 +276,7 @@ class FlxInputText extends FlxText
 
 	/**
 	 * Draw the caret in addition to the text.
-	 */
+*/
 	override public function draw():Void
 	{
 		drawSprite(fieldBorderSprite);
@@ -463,6 +478,10 @@ class FlxInputText extends FlxText
 		}
 	}
 
+	/**
+	 * Executes the `onChange` operation.
+	 * @param action Input value for `action`.
+	 */
 	private function onChange(action:String):Void
 	{
 		if (callback != null)
@@ -507,6 +526,11 @@ class FlxInputText extends FlxText
 		#end
 	}
 
+	/**
+	 * Executes the `getCharBoundaries` operation.
+	 * @param charIndex Input value for `charIndex`.
+	 * @return Result produced by `getCharBoundaries`, when applicable.
+	 */
 	private function getCharBoundaries(charIndex:Int):Rectangle
 	{
 		if (_charBoundaries != null && charIndex >= 0 && _charBoundaries.length > 0)
@@ -525,6 +549,11 @@ class FlxInputText extends FlxText
 		return null;
 	}
 
+	/**
+	 * Executes the `set_text` operation.
+	 * @param Text Input value for `Text`.
+	 * @return Result produced by `set_text`, when applicable.
+	 */
 	private override function set_text(Text:String):String
 	{
 		#if !js
@@ -572,6 +601,12 @@ class FlxInputText extends FlxText
 		return return_text;
 	}
 
+	/**
+	 * Executes the `getCharIndexAtPoint` operation.
+	 * @param X Input value for `X`.
+	 * @param Y Input value for `Y`.
+	 * @return Result produced by `getCharIndexAtPoint`, when applicable.
+	 */
 	private function getCharIndexAtPoint(X:Float, Y:Float):Int
 	{
 		var i:Int = 0;
@@ -623,6 +658,10 @@ class FlxInputText extends FlxText
 		return 0;
 	}
 
+	/**
+	 * Executes the `prepareCharBoundaries` operation.
+	 * @param numChars Input value for `numChars`.
+	 */
 	private function prepareCharBoundaries(numChars:Int):Void
 	{
 		if (_charBoundaries == null)
@@ -779,7 +818,7 @@ class FlxInputText extends FlxText
 
 	/**
 	 * Turns the caret on/off for the caret flashing animation.
-	 */
+*/
 	private function toggleCaret(timer:FlxTimer):Void
 	{
 		caret.visible = !caret.visible;
@@ -788,7 +827,7 @@ class FlxInputText extends FlxText
 	/**
 	 * Checks an input string against the current
 	 * filter and returns a filtered string
-	 */
+*/
 	private function filter(text:String):String
 	{
 		if (forceCase == UPPER_CASE)
@@ -821,6 +860,11 @@ class FlxInputText extends FlxText
 		return text;
 	}
 
+	/**
+	 * Executes the `set_params` operation.
+	 * @param p Input value for `p`.
+	 * @return Result produced by `set_params`, when applicable.
+	 */
 	private function set_params(p:Array<Dynamic>):Array<Dynamic>
 	{
 		params = p;
@@ -833,6 +877,11 @@ class FlxInputText extends FlxText
 		return p;
 	}
 
+	/**
+	 * Executes the `set_x` operation.
+	 * @param X Input value for `X`.
+	 * @return Result produced by `set_x`, when applicable.
+	 */
 	private override function set_x(X:Float):Float
 	{
 		if ((fieldBorderSprite != null) && fieldBorderThickness > 0)
@@ -846,6 +895,11 @@ class FlxInputText extends FlxText
 		return super.set_x(X);
 	}
 
+	/**
+	 * Executes the `set_y` operation.
+	 * @param Y Input value for `Y`.
+	 * @return Result produced by `set_y`, when applicable.
+	 */
 	private override function set_y(Y:Float):Float
 	{
 		if ((fieldBorderSprite != null) && fieldBorderThickness > 0)
@@ -859,6 +913,11 @@ class FlxInputText extends FlxText
 		return super.set_y(Y);
 	}
 
+	/**
+	 * Executes the `set_hasFocus` operation.
+	 * @param newFocus Input value for `newFocus`.
+	 * @return Result produced by `set_hasFocus`, when applicable.
+	 */
 	private function set_hasFocus(newFocus:Bool):Bool
 	{
 		if (newFocus)
@@ -887,6 +946,10 @@ class FlxInputText extends FlxText
 		return hasFocus = newFocus;
 	}
 
+	/**
+	 * Executes the `getAlignStr` operation.
+	 * @return Result produced by `getAlignStr`, when applicable.
+	 */
 	private function getAlignStr():FlxTextAlign
 	{
 		var alignStr:FlxTextAlign = LEFT;
@@ -897,6 +960,11 @@ class FlxInputText extends FlxText
 		return alignStr;
 	}
 
+	/**
+	 * Executes the `set_caretIndex` operation.
+	 * @param newCaretIndex Input value for `newCaretIndex`.
+	 * @return Result produced by `set_caretIndex`, when applicable.
+	 */
 	private function set_caretIndex(newCaretIndex:Int):Int
 	{
 		var offx:Float = 0;
@@ -976,6 +1044,11 @@ class FlxInputText extends FlxText
 		return caretIndex;
 	}
 
+	/**
+	 * Executes the `set_forceCase` operation.
+	 * @param Value Input value for `Value`.
+	 * @return Result produced by `set_forceCase`, when applicable.
+	 */
 	private function set_forceCase(Value:Int):Int
 	{
 		forceCase = Value;
@@ -983,6 +1056,11 @@ class FlxInputText extends FlxText
 		return forceCase;
 	}
 
+	/**
+	 * Executes the `set_size` operation.
+	 * @param Value Input value for `Value`.
+	 * @return Result produced by `set_size`, when applicable.
+	 */
 	override private function set_size(Value:Int):Int
 	{
 		super.size = Value;
@@ -990,6 +1068,11 @@ class FlxInputText extends FlxText
 		return Value;
 	}
 
+	/**
+	 * Executes the `set_maxLength` operation.
+	 * @param Value Input value for `Value`.
+	 * @return Result produced by `set_maxLength`, when applicable.
+	 */
 	private function set_maxLength(Value:Int):Int
 	{
 		maxLength = Value;
@@ -1000,6 +1083,11 @@ class FlxInputText extends FlxText
 		return maxLength;
 	}
 
+	/**
+	 * Executes the `set_lines` operation.
+	 * @param Value Input value for `Value`.
+	 * @return Result produced by `set_lines`, when applicable.
+	 */
 	private function set_lines(Value:Int):Int
 	{
 		if (Value == 0)
@@ -1021,11 +1109,20 @@ class FlxInputText extends FlxText
 		return lines;
 	}
 
+	/**
+	 * Executes the `get_passwordMode` operation.
+	 * @return Result produced by `get_passwordMode`, when applicable.
+	 */
 	private function get_passwordMode():Bool
 	{
 		return textField.displayAsPassword;
 	}
 
+	/**
+	 * Executes the `set_passwordMode` operation.
+	 * @param value Input value for `value`.
+	 * @return Result produced by `set_passwordMode`, when applicable.
+	 */
 	private function set_passwordMode(value:Bool):Bool
 	{
 		textField.displayAsPassword = value;
@@ -1033,6 +1130,11 @@ class FlxInputText extends FlxText
 		return value;
 	}
 
+	/**
+	 * Executes the `set_filterMode` operation.
+	 * @param Value Input value for `Value`.
+	 * @return Result produced by `set_filterMode`, when applicable.
+	 */
 	private function set_filterMode(Value:Int):Int
 	{
 		filterMode = Value;
@@ -1040,6 +1142,11 @@ class FlxInputText extends FlxText
 		return filterMode;
 	}
 
+	/**
+	 * Executes the `set_fieldBorderColor` operation.
+	 * @param Value Input value for `Value`.
+	 * @return Result produced by `set_fieldBorderColor`, when applicable.
+	 */
 	private function set_fieldBorderColor(Value:Int):Int
 	{
 		fieldBorderColor = Value;
@@ -1047,6 +1154,11 @@ class FlxInputText extends FlxText
 		return fieldBorderColor;
 	}
 
+	/**
+	 * Executes the `set_fieldBorderThickness` operation.
+	 * @param Value Input value for `Value`.
+	 * @return Result produced by `set_fieldBorderThickness`, when applicable.
+	 */
 	private function set_fieldBorderThickness(Value:Int):Int
 	{
 		fieldBorderThickness = Value;
@@ -1054,6 +1166,11 @@ class FlxInputText extends FlxText
 		return fieldBorderThickness;
 	}
 
+	/**
+	 * Executes the `set_backgroundColor` operation.
+	 * @param Value Input value for `Value`.
+	 * @return Result produced by `set_backgroundColor`, when applicable.
+	 */
 	private function set_backgroundColor(Value:Int):Int
 	{
 		backgroundColor = Value;

@@ -24,6 +24,9 @@ class SustainSplash extends FlxSprite
 
 	public static var defaultNoteHoldSplash(default, never):String = 'noteSplashes/holdSplashes/holdSplash';
 
+	/**
+	 * Executes the `new` operation.
+*/
 	public function new():Void
 	{
 		super();
@@ -40,6 +43,11 @@ class SustainSplash extends FlxSprite
 		animation.addByPrefix('end', 'end', 24, false);
 	}
 
+	/**
+	 * Executes the `update` operation.
+	 * @param elapsed Input value for `elapsed`.
+	 * @return Result produced by `update`, when applicable.
+	 */
 	override function update(elapsed)
 	{
 		super.update(elapsed);
@@ -61,6 +69,12 @@ class SustainSplash extends FlxSprite
 		}
 	}
 
+	/**
+	 * Executes the `setupSusSplash` operation.
+	 * @param strum Input value for `strum`.
+	 * @param daNote Input value for `daNote`.
+	 * @param playbackRate Input value for `playbackRate`.
+	 */
 	public function setupSusSplash(strum:StrumNote, daNote:Note, ?playbackRate:Float = 1):Void
 	{
 		final susLength:Float = (!daNote.isSustainNote ? daNote.sustainLength : daNote.parentSL);
@@ -126,6 +140,10 @@ class SustainSplash extends FlxSprite
 		});
 	}
 
+	/**
+	 * Executes the `getSplashSkinPostfix` operation.
+	 * @return Result produced by `getSplashSkinPostfix`, when applicable.
+	 */
 	public static function getSplashSkinPostfix()
 	{
 		var skin:String = '';

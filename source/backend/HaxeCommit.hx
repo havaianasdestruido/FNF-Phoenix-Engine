@@ -25,6 +25,10 @@ package backend;
 // yes it's on the haxe cookbook, but I'm lazy :P
 class HaxeCommit
 {
+	/**
+	 * Executes the `getGitCommitHash` operation.
+	 * @return Result produced by `getGitCommitHash`, when applicable.
+	 */
 	public static macro function getGitCommitHash():haxe.macro.Expr.ExprOf<String>
 	{
 		#if !commit return macro $v{null}; #end 

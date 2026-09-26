@@ -6,6 +6,16 @@ import backend.ClientPrefs;
 class BGSprite extends FlxSprite
 {
 	private var idleAnim:String;
+	/**
+	 * Executes the `new` operation.
+	 * @param image Input value for `image`.
+	 * @param x Input value for `x`.
+	 * @param y Input value for `y`.
+	 * @param scrollX Input value for `scrollX`.
+	 * @param scrollY Input value for `scrollY`.
+	 * @param animArray Input value for `animArray`.
+	 * @param loop Input value for `loop`.
+	 */
 	public function new(image:String, x:Float = 0, y:Float = 0, ?scrollX:Float = 1, ?scrollY:Float = 1, ?animArray:Array<String> = null, ?loop:Bool = false) {
 		super(x, y);
 
@@ -29,6 +39,11 @@ class BGSprite extends FlxSprite
 		antialiasing = ClientPrefs.globalAntialiasing;
 	}
 
+	/**
+	 * Executes the `dance` operation.
+	 * @param forceplay Input value for `forceplay`.
+	 * @return Result produced by `dance`, when applicable.
+	 */
 	public function dance(?forceplay:Bool = false) {
 		if(idleAnim != null) {
 			animation.play(idleAnim, forceplay);

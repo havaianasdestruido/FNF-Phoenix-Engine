@@ -12,6 +12,11 @@ import psychlua.FunkinLua.State;
 #if (LUA_ALLOWED && flxanimate)
 class FlxAnimateFunctions
 {
+	/**
+	 * Executes the `implement` operation.
+	 * @param funk Input value for `funk`.
+	 * @return Result produced by `implement`, when applicable.
+	 */
 	public static function implement(funk:FunkinLua)
 	{
 		final lua:State = funk.lua;
@@ -80,6 +85,11 @@ class FlxAnimateFunctions
 	}
 
 	#if PYTHON_ALLOWED
+	/**
+	 * Executes the `implementPython` operation.
+	 * @param python Input value for `python`.
+	 * @return Result produced by `implementPython`, when applicable.
+	 */
 	public static function implementPython(python:PythonScript)
 	{
 		python.set("makeFlxAnimateSprite", function(tag:String, ?x:Float = 0, ?y:Float = 0, ?loadFolder:String = null) {

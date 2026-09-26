@@ -10,6 +10,9 @@ import shaders.CrossFade;
 
 class GameplaySettingsSubState extends BaseOptionsMenu
 {
+	/**
+	 * Executes the `new` operation.
+*/
 	public function new()
 	{
 		title = 'Gameplay Settings';
@@ -247,6 +250,10 @@ class GameplaySettingsSubState extends BaseOptionsMenu
 		super();
 	}
 
+	/**
+	 * Executes the `onChangeHitsoundVolume` operation.
+	 * @return Result produced by `onChangeHitsoundVolume`, when applicable.
+	 */
 	function onChangeHitsoundVolume()
 	{
 		if (ClientPrefs.hitsoundType != 'none'){

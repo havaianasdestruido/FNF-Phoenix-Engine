@@ -131,6 +131,9 @@ class VCRDistortionShader extends FlxShader // https://www.shadertoy.com/view/ld
       }
     }
   ')
+  /**
+   * Executes the `new` operation.
+*/
   public function new()
   {
     super();
@@ -221,6 +224,10 @@ class VCRDistortionShader extends FlxShader // https://www.shadertoy.com/view/ld
   void main() {
   mainImage(gl_FragColor, openfl_TextureCoordv*openfl_TextureSize);
   }')
+  /**
+   * Executes the `new` operation.
+   * @param lockAlpha Input value for `lockAlpha`.
+   */
   public function new(lockAlpha:Bool)
   {
     super();

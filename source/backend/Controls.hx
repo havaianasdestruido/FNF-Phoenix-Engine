@@ -126,156 +126,281 @@ class Controls extends FlxActionSet
 
 	public var UI_UP(get, never):Bool;
 
+	/**
+	 * Executes the `get_UI_UP` operation.
+	 * @return Result produced by `get_UI_UP`, when applicable.
+	 */
 	inline function get_UI_UP()
 		return _ui_up.check();
 
 	public var UI_LEFT(get, never):Bool;
 
+	/**
+	 * Executes the `get_UI_LEFT` operation.
+	 * @return Result produced by `get_UI_LEFT`, when applicable.
+	 */
 	inline function get_UI_LEFT()
 		return _ui_left.check();
 
 	public var UI_RIGHT(get, never):Bool;
 
+	/**
+	 * Executes the `get_UI_RIGHT` operation.
+	 * @return Result produced by `get_UI_RIGHT`, when applicable.
+	 */
 	inline function get_UI_RIGHT()
 		return _ui_right.check();
 
 	public var UI_DOWN(get, never):Bool;
 
+	/**
+	 * Executes the `get_UI_DOWN` operation.
+	 * @return Result produced by `get_UI_DOWN`, when applicable.
+	 */
 	inline function get_UI_DOWN()
 		return _ui_down.check();
 
 	public var UI_UP_P(get, never):Bool;
 
+	/**
+	 * Executes the `get_UI_UP_P` operation.
+	 * @return Result produced by `get_UI_UP_P`, when applicable.
+	 */
 	inline function get_UI_UP_P()
 		return _ui_upP.check();
 
 	public var UI_LEFT_P(get, never):Bool;
 
+	/**
+	 * Executes the `get_UI_LEFT_P` operation.
+	 * @return Result produced by `get_UI_LEFT_P`, when applicable.
+	 */
 	inline function get_UI_LEFT_P()
 		return _ui_leftP.check();
 
 	public var UI_RIGHT_P(get, never):Bool;
 
+	/**
+	 * Executes the `get_UI_RIGHT_P` operation.
+	 * @return Result produced by `get_UI_RIGHT_P`, when applicable.
+	 */
 	inline function get_UI_RIGHT_P()
 		return _ui_rightP.check();
 
 	public var UI_DOWN_P(get, never):Bool;
 
+	/**
+	 * Executes the `get_UI_DOWN_P` operation.
+	 * @return Result produced by `get_UI_DOWN_P`, when applicable.
+	 */
 	inline function get_UI_DOWN_P()
 		return _ui_downP.check();
 
 	public var UI_UP_R(get, never):Bool;
 
+	/**
+	 * Executes the `get_UI_UP_R` operation.
+	 * @return Result produced by `get_UI_UP_R`, when applicable.
+	 */
 	inline function get_UI_UP_R()
 		return _ui_upR.check();
 
 	public var UI_LEFT_R(get, never):Bool;
 
+	/**
+	 * Executes the `get_UI_LEFT_R` operation.
+	 * @return Result produced by `get_UI_LEFT_R`, when applicable.
+	 */
 	inline function get_UI_LEFT_R()
 		return _ui_leftR.check();
 
 	public var UI_RIGHT_R(get, never):Bool;
 
+	/**
+	 * Executes the `get_UI_RIGHT_R` operation.
+	 * @return Result produced by `get_UI_RIGHT_R`, when applicable.
+	 */
 	inline function get_UI_RIGHT_R()
 		return _ui_rightR.check();
 
 	public var UI_DOWN_R(get, never):Bool;
 
+	/**
+	 * Executes the `get_UI_DOWN_R` operation.
+	 * @return Result produced by `get_UI_DOWN_R`, when applicable.
+	 */
 	inline function get_UI_DOWN_R()
 		return _ui_downR.check();
 
 	public var NOTE_UP(get, never):Bool;
 
+	/**
+	 * Executes the `get_NOTE_UP` operation.
+	 * @return Result produced by `get_NOTE_UP`, when applicable.
+	 */
 	inline function get_NOTE_UP()
 		return _note_up.check();
 
 	public var NOTE_LEFT(get, never):Bool;
 
+	/**
+	 * Executes the `get_NOTE_LEFT` operation.
+	 * @return Result produced by `get_NOTE_LEFT`, when applicable.
+	 */
 	inline function get_NOTE_LEFT()
 		return _note_left.check();
 
 	public var NOTE_RIGHT(get, never):Bool;
 
+	/**
+	 * Executes the `get_NOTE_RIGHT` operation.
+	 * @return Result produced by `get_NOTE_RIGHT`, when applicable.
+	 */
 	inline function get_NOTE_RIGHT()
 		return _note_right.check();
 
 	public var NOTE_DOWN(get, never):Bool;
 
+	/**
+	 * Executes the `get_NOTE_DOWN` operation.
+	 * @return Result produced by `get_NOTE_DOWN`, when applicable.
+	 */
 	inline function get_NOTE_DOWN()
 		return _note_down.check();
 
 	public var NOTE_UP_P(get, never):Bool;
 
+	/**
+	 * Executes the `get_NOTE_UP_P` operation.
+	 * @return Result produced by `get_NOTE_UP_P`, when applicable.
+	 */
 	inline function get_NOTE_UP_P()
 		return _note_upP.check();
 
 	public var NOTE_LEFT_P(get, never):Bool;
 
+	/**
+	 * Executes the `get_NOTE_LEFT_P` operation.
+	 * @return Result produced by `get_NOTE_LEFT_P`, when applicable.
+	 */
 	inline function get_NOTE_LEFT_P()
 		return _note_leftP.check();
 
 	public var NOTE_RIGHT_P(get, never):Bool;
 
+	/**
+	 * Executes the `get_NOTE_RIGHT_P` operation.
+	 * @return Result produced by `get_NOTE_RIGHT_P`, when applicable.
+	 */
 	inline function get_NOTE_RIGHT_P()
 		return _note_rightP.check();
 
 	public var NOTE_DOWN_P(get, never):Bool;
 
+	/**
+	 * Executes the `get_NOTE_DOWN_P` operation.
+	 * @return Result produced by `get_NOTE_DOWN_P`, when applicable.
+	 */
 	inline function get_NOTE_DOWN_P()
 		return _note_downP.check();
 
 	public var NOTE_UP_R(get, never):Bool;
 
+	/**
+	 * Executes the `get_NOTE_UP_R` operation.
+	 * @return Result produced by `get_NOTE_UP_R`, when applicable.
+	 */
 	inline function get_NOTE_UP_R()
 		return _note_upR.check();
 
 	public var NOTE_LEFT_R(get, never):Bool;
 
+	/**
+	 * Executes the `get_NOTE_LEFT_R` operation.
+	 * @return Result produced by `get_NOTE_LEFT_R`, when applicable.
+	 */
 	inline function get_NOTE_LEFT_R()
 		return _note_leftR.check();
 
 	public var NOTE_RIGHT_R(get, never):Bool;
 
+	/**
+	 * Executes the `get_NOTE_RIGHT_R` operation.
+	 * @return Result produced by `get_NOTE_RIGHT_R`, when applicable.
+	 */
 	inline function get_NOTE_RIGHT_R()
 		return _note_rightR.check();
 
 	public var NOTE_DOWN_R(get, never):Bool;
 
+	/**
+	 * Executes the `get_NOTE_DOWN_R` operation.
+	 * @return Result produced by `get_NOTE_DOWN_R`, when applicable.
+	 */
 	inline function get_NOTE_DOWN_R()
 		return _note_downR.check();
 
 	public var BOT_ENERGY_P(get, never):Bool;
 
+	/**
+	 * Executes the `get_BOT_ENERGY_P` operation.
+	 * @return Result produced by `get_BOT_ENERGY_P`, when applicable.
+	 */
 	inline function get_BOT_ENERGY_P()
 		return _bot_energyP.check();
 
 	public var ACCEPT(get, never):Bool;
 
+	/**
+	 * Executes the `get_ACCEPT` operation.
+	 * @return Result produced by `get_ACCEPT`, when applicable.
+	 */
 	inline function get_ACCEPT()
 		return _accept.check();
 
 	public var ACCEPT_P(get, never):Bool;
 
+	/**
+	 * Executes the `get_ACCEPT_P` operation.
+	 * @return Result produced by `get_ACCEPT_P`, when applicable.
+	 */
 	inline function get_ACCEPT_P()
 		return _acceptP.check();
 
 	public var BACK(get, never):Bool;
 
+	/**
+	 * Executes the `get_BACK` operation.
+	 * @return Result produced by `get_BACK`, when applicable.
+	 */
 	inline function get_BACK()
 		return _back.check();
 
 	public var PAUSE(get, never):Bool;
 
+	/**
+	 * Executes the `get_PAUSE` operation.
+	 * @return Result produced by `get_PAUSE`, when applicable.
+	 */
 	inline function get_PAUSE()
 		return _pause.check();
 
 	public var RESET(get, never):Bool;
 
+	/**
+	 * Executes the `get_RESET` operation.
+	 * @return Result produced by `get_RESET`, when applicable.
+	 */
 	inline function get_RESET()
 		return _reset.check();
 
 	public static var instance:Controls;
 
+	/**
+	 * Executes the `new` operation.
+	 * @param name Input value for `name`.
+	 * @param scheme Input value for `scheme`.
+	 */
 	public function new(name, scheme = None)
 	{
 		super(name);
@@ -322,6 +447,12 @@ class Controls extends FlxActionSet
 	public var trackedInputsUI:Array<FlxActionInput> = [];
 	public var trackedInputsNOTES:Array<FlxActionInput> = [];
 
+	/**
+	 * Executes the `addButtonNOTES` operation.
+	 * @param action Input value for `action`.
+	 * @param button Input value for `button`.
+	 * @param state Input value for `state`.
+	 */
 	public function addButtonNOTES(action:FlxActionDigital, button:FlxButton, state:FlxInputState):Void
 	{
 		if (button == null)
@@ -332,6 +463,12 @@ class Controls extends FlxActionSet
 		action.add(input);
 	}
 
+	/**
+	 * Executes the `addButtonUI` operation.
+	 * @param action Input value for `action`.
+	 * @param button Input value for `button`.
+	 * @param state Input value for `state`.
+	 */
 	public function addButtonUI(action:FlxActionDigital, button:FlxButton, state:FlxInputState):Void
 	{
 		if (button == null)
@@ -342,6 +479,10 @@ class Controls extends FlxActionSet
 		action.add(input);
 	}
 
+	/**
+	 * Executes the `setHitBox` operation.
+	 * @param Hitbox Input value for `Hitbox`.
+	 */
 	public function setHitBox(Hitbox:FlxHitbox):Void
 	{
 		if (Hitbox == null)
@@ -353,6 +494,12 @@ class Controls extends FlxActionSet
 		inline forEachBound(Control.NOTE_RIGHT, (action, state) -> addButtonNOTES(action, Hitbox.hints[3], state));
 	}
 
+	/**
+	 * Executes the `setVirtualPadUI` operation.
+	 * @param VirtualPad Input value for `VirtualPad`.
+	 * @param DPad Input value for `DPad`.
+	 * @param Action Input value for `Action`.
+	 */
 	public function setVirtualPadUI(VirtualPad:FlxVirtualPad, DPad:FlxDPadMode, Action:FlxActionMode):Void
 	{
 		if (VirtualPad == null)
@@ -398,6 +545,12 @@ class Controls extends FlxActionSet
 		}
 	}
 
+	/**
+	 * Executes the `setVirtualPadNOTES` operation.
+	 * @param VirtualPad Input value for `VirtualPad`.
+	 * @param DPad Input value for `DPad`.
+	 * @param Action Input value for `Action`.
+	 */
 	public function setVirtualPadNOTES(VirtualPad:FlxVirtualPad, DPad:FlxDPadMode, Action:FlxActionMode):Void
 	{
 		if (VirtualPad == null)
@@ -443,6 +596,10 @@ class Controls extends FlxActionSet
 		}
 	}
 
+	/**
+	 * Executes the `removeVirtualControlsInput` operation.
+	 * @param Tinputs Input value for `Tinputs`.
+	 */
 	public function removeVirtualControlsInput(Tinputs:Array<FlxActionInput>):Void
 	{
 		for (action in this.digitalActions)
@@ -460,12 +617,21 @@ class Controls extends FlxActionSet
 		}
 	}
 
+	/**
+	 * Executes the `update` operation.
+	 * @return Result produced by `update`, when applicable.
+	 */
 	override function update()
 	{
 		super.update();
 	}
 
 	// inline
+	/**
+	 * Executes the `checkByName` operation.
+	 * @param name Input value for `name`.
+	 * @return Result produced by `checkByName`, when applicable.
+	 */
 	public function checkByName(name:Action):Bool
 	{
 		#if debug
@@ -475,6 +641,11 @@ class Controls extends FlxActionSet
 		return byName[name].check();
 	}
 
+	/**
+	 * Executes the `getDialogueName` operation.
+	 * @param action Input value for `action`.
+	 * @return Result produced by `getDialogueName`, when applicable.
+	 */
 	public function getDialogueName(action:FlxActionDigital):String
 	{
 		var input = action.inputs[0];
@@ -486,11 +657,21 @@ class Controls extends FlxActionSet
 		}
 	}
 
+	/**
+	 * Executes the `getDialogueNameFromToken` operation.
+	 * @param token Input value for `token`.
+	 * @return Result produced by `getDialogueNameFromToken`, when applicable.
+	 */
 	public function getDialogueNameFromToken(token:String):String
 	{
 		return getDialogueName(getActionFromControl(Control.createByName(token.toUpperCase())));
 	}
 
+	/**
+	 * Executes the `getActionFromControl` operation.
+	 * @param control Input value for `control`.
+	 * @return Result produced by `getActionFromControl`, when applicable.
+	 */
 	function getActionFromControl(control:Control):FlxActionDigital
 	{
 		return switch (control)
@@ -511,6 +692,9 @@ class Controls extends FlxActionSet
 		}
 	}
 
+	/**
+	 * Executes the `init` operation.
+	 */
 	static function init():Void
 	{
 		var actions = new FlxActionManager();
@@ -573,6 +757,14 @@ class Controls extends FlxActionSet
 		}
 	}
 
+	/**
+	 * Executes the `replaceBinding` operation.
+	 * @param control Input value for `control`.
+	 * @param device Input value for `device`.
+	 * @param toAdd Input value for `toAdd`.
+	 * @param toRemove Input value for `toRemove`.
+	 * @return Result produced by `replaceBinding`, when applicable.
+	 */
 	public function replaceBinding(control:Control, device:Device, ?toAdd:Int, ?toRemove:Int)
 	{
 		if (toAdd == toRemove)
@@ -594,6 +786,12 @@ class Controls extends FlxActionSet
 		}
 	}
 
+	/**
+	 * Executes the `copyFrom` operation.
+	 * @param controls Input value for `controls`.
+	 * @param device Input value for `device`.
+	 * @return Result produced by `copyFrom`, when applicable.
+	 */
 	public function copyFrom(controls:Controls, ?device:Device)
 	{
 		for (name => action in controls.byName)
@@ -622,11 +820,21 @@ class Controls extends FlxActionSet
 		}
 	}
 
+	/**
+	 * Executes the `copyTo` operation.
+	 * @param controls Input value for `controls`.
+	 * @param device Input value for `device`.
+	 * @return Result produced by `copyTo`, when applicable.
+	 */
 	inline public function copyTo(controls:Controls, ?device:Device)
 	{
 		controls.copyFrom(this, device);
 	}
 
+	/**
+	 * Executes the `mergeKeyboardScheme` operation.
+	 * @param scheme Input value for `scheme`.
+	 */
 	function mergeKeyboardScheme(scheme:KeyboardScheme):Void
 	{
 		if (scheme != None)
@@ -655,6 +863,12 @@ class Controls extends FlxActionSet
 		inline forEachBound(control, (action, state) -> addKeys(action, copyKeys, state));
 	}
 
+	/**
+	 * Executes the `unbindKeys` operation.
+	 * @param control Input value for `control`.
+	 * @param keys Input value for `keys`.
+	 * @return Result produced by `unbindKeys`, when applicable.
+	 */
 	public function unbindKeys(control:Control, keys:Array<FlxKey>) {
 		var copyKeys:Array<FlxKey> = keys.copy();
 		for (i in 0...copyKeys.length) {
@@ -665,6 +879,13 @@ class Controls extends FlxActionSet
 		inline forEachBound(control, (action, _) -> removeKeys(action, copyKeys));
 	}
 
+	/**
+	 * Executes the `addKeys` operation.
+	 * @param action Input value for `action`.
+	 * @param keys Input value for `keys`.
+	 * @param state Input value for `state`.
+	 * @return Result produced by `addKeys`, when applicable.
+	 */
 	inline static function addKeys(action:FlxActionDigital, keys:Array<FlxKey>, state:FlxInputState)
 	{
 		for (key in keys)
@@ -672,6 +893,12 @@ class Controls extends FlxActionSet
 				action.addKey(key, state);
 	}
 
+	/**
+	 * Executes the `removeKeys` operation.
+	 * @param action Input value for `action`.
+	 * @param keys Input value for `keys`.
+	 * @return Result produced by `removeKeys`, when applicable.
+	 */
 	static function removeKeys(action:FlxActionDigital, keys:Array<FlxKey>)
 	{
 		var i = action.inputs.length;
@@ -683,6 +910,12 @@ class Controls extends FlxActionSet
 		}
 	}
 
+	/**
+	 * Executes the `setKeyboardScheme` operation.
+	 * @param scheme Input value for `scheme`.
+	 * @param reset Input value for `reset`.
+	 * @return Result produced by `setKeyboardScheme`, when applicable.
+	 */
 	public function setKeyboardScheme(scheme:KeyboardScheme, reset = true)
 	{
 		if (reset)
@@ -741,6 +974,10 @@ class Controls extends FlxActionSet
 		}
 	}
 
+	/**
+	 * Executes the `removeKeyboard` operation.
+	 * @return Result produced by `removeKeyboard`, when applicable.
+	 */
 	function removeKeyboard()
 	{
 		for (action in this.digitalActions)
@@ -755,6 +992,11 @@ class Controls extends FlxActionSet
 		}
 	}
 
+	/**
+	 * Executes the `addGamepad` operation.
+	 * @param id Input value for `id`.
+	 * @param buttonMap Input value for `buttonMap`.
+	 */
 	public function addGamepad(id:Int, ?buttonMap:Map<Control, Array<FlxGamepadInputID>>):Void
 	{
 		gamepadsAdded.push(id);
@@ -763,6 +1005,11 @@ class Controls extends FlxActionSet
 			inline bindButtons(control, id, buttons);
 	}
 
+	/**
+	 * Executes the `addGamepadLiteral` operation.
+	 * @param id Input value for `id`.
+	 * @param buttonMap Input value for `buttonMap`.
+	 */
 	inline function addGamepadLiteral(id:Int, ?buttonMap:Map<Control, Array<FlxGamepadInputID>>):Void
 	{
 		gamepadsAdded.push(id);
@@ -771,6 +1018,10 @@ class Controls extends FlxActionSet
 			inline bindButtons(control, id, buttons);
 	}
 
+	/**
+	 * Executes the `removeGamepad` operation.
+	 * @param deviceID Input value for `deviceID`.
+	 */
 	public function removeGamepad(deviceID:Int = FlxInputDeviceID.ALL):Void
 	{
 		for (action in this.digitalActions)
@@ -787,6 +1038,10 @@ class Controls extends FlxActionSet
 		gamepadsAdded.remove(deviceID);
 	}
 
+	/**
+	 * Executes the `addDefaultGamepad` operation.
+	 * @param id Input value for `id`.
+	 */
 	public function addDefaultGamepad(id):Void
 	{
 		#if !switch
@@ -826,7 +1081,7 @@ class Controls extends FlxActionSet
 	/**
 	 * Sets all actions that pertain to the binder to trigger when the supplied keys are used.
 	 * If binder is a literal you can inline this
-	 */
+*/
 	public function bindButtons(control:Control, id, buttons)
 	{
 		inline forEachBound(control, (action, state) -> addButtons(action, buttons, state, id));
@@ -835,18 +1090,33 @@ class Controls extends FlxActionSet
 	/**
 	 * Sets all actions that pertain to the binder to trigger when the supplied keys are used.
 	 * If binder is a literal you can inline this
-	 */
+*/
 	public function unbindButtons(control:Control, gamepadID:Int, buttons)
 	{
 		inline forEachBound(control, (action, _) -> removeButtons(action, gamepadID, buttons));
 	}
 
+	/**
+	 * Executes the `addButtons` operation.
+	 * @param action Input value for `action`.
+	 * @param buttons Input value for `buttons`.
+	 * @param state Input value for `state`.
+	 * @param id Input value for `id`.
+	 * @return Result produced by `addButtons`, when applicable.
+	 */
 	inline static function addButtons(action:FlxActionDigital, buttons:Array<FlxGamepadInputID>, state, id)
 	{
 		for (button in buttons)
 			action.addGamepad(button, state, id);
 	}
 
+	/**
+	 * Executes the `removeButtons` operation.
+	 * @param action Input value for `action`.
+	 * @param gamepadID Input value for `gamepadID`.
+	 * @param buttons Input value for `buttons`.
+	 * @return Result produced by `removeButtons`, when applicable.
+	 */
 	static function removeButtons(action:FlxActionDigital, gamepadID:Int, buttons:Array<FlxGamepadInputID>)
 	{
 		var i = action.inputs.length;
@@ -858,6 +1128,13 @@ class Controls extends FlxActionSet
 		}
 	}
 
+	/**
+	 * Executes the `getInputsFor` operation.
+	 * @param control Input value for `control`.
+	 * @param device Input value for `device`.
+	 * @param list Input value for `list`.
+	 * @return Result produced by `getInputsFor`, when applicable.
+	 */
 	public function getInputsFor(control:Control, device:Device, ?list:Array<Int>):Array<Int>
 	{
 		if (list == null)
@@ -881,6 +1158,11 @@ class Controls extends FlxActionSet
 		return list;
 	}
 
+	/**
+	 * Executes the `removeDevice` operation.
+	 * @param device Input value for `device`.
+	 * @return Result produced by `removeDevice`, when applicable.
+	 */
 	public function removeDevice(device:Device)
 	{
 		switch (device)
@@ -892,6 +1174,12 @@ class Controls extends FlxActionSet
 		}
 	}
 
+	/**
+	 * Executes the `isDevice` operation.
+	 * @param input Input value for `input`.
+	 * @param device Input value for `device`.
+	 * @return Result produced by `isDevice`, when applicable.
+	 */
 	static function isDevice(input:FlxActionInput, device:Device)
 	{
 		return switch device
@@ -901,6 +1189,12 @@ class Controls extends FlxActionSet
 		}
 	}
 
+	/**
+	 * Executes the `isGamepad` operation.
+	 * @param input Input value for `input`.
+	 * @param deviceID Input value for `deviceID`.
+	 * @return Result produced by `isGamepad`, when applicable.
+	 */
 	inline static function isGamepad(input:FlxActionInput, deviceID:Int)
 	{
 		return input.device == GAMEPAD && (deviceID == FlxInputDeviceID.ALL || input.deviceID == deviceID);

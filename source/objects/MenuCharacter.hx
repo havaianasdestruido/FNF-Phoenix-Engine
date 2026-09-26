@@ -21,6 +21,11 @@ class MenuCharacter extends FlxSprite
 	public var hasConfirmAnimation:Bool = false;
 	private static var DEFAULT_CHARACTER:String = 'bf';
 
+	/**
+	 * Executes the `new` operation.
+	 * @param x Input value for `x`.
+	 * @param character Input value for `character`.
+	 */
 	public function new(x:Float, character:String = 'bf')
 	{
 		super(x);
@@ -28,6 +33,11 @@ class MenuCharacter extends FlxSprite
 		changeCharacter(character);
 	}
 
+	/**
+	 * Executes the `changeCharacter` operation.
+	 * @param character Input value for `character`.
+	 * @return Result produced by `changeCharacter`, when applicable.
+	 */
 	public function changeCharacter(?character:String = 'bf') {
 		if(character == null) character = '';
 		if(character == this.character) return;

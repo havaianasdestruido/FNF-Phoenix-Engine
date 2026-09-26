@@ -10,10 +10,22 @@ import play.PlayState;
 class LoadingState extends MusicBeatState {
 	// TO DO: Make this easier
 
+	/**
+	 * Executes the `loadAndSwitchState` operation.
+	 * @param target Input value for `target`.
+	 * @param stopMusic Input value for `stopMusic`.
+	 * @return Result produced by `loadAndSwitchState`, when applicable.
+	 */
 	public static function loadAndSwitchState(target:NextState, stopMusic = false) {
 		FlxG.switchState(getNextState(target, stopMusic));
 	}
 
+	/**
+	 * Executes the `getNextState` operation.
+	 * @param target Input value for `target`.
+	 * @param stopMusic Input value for `stopMusic`.
+	 * @return Result produced by `getNextState`, when applicable.
+	 */
 	static function getNextState(target:NextState, stopMusic = false):NextState {
 		var directory:String = 'shared';
 		var weekDir:String = StageData.forceNextDirectory;
@@ -40,10 +52,20 @@ class LoadingState extends MusicBeatState {
 	}
 
 	#if NO_PRELOAD_ALL
+	/**
+	 * Executes the `isSoundLoaded` operation.
+	 * @param path Input value for `path`.
+	 * @return Result produced by `isSoundLoaded`, when applicable.
+	 */
 	static function isSoundLoaded(path:String):Bool {
 		return Assets.cache.hasSound(path);
 	}
 
+	/**
+	 * Executes the `isLibraryLoaded` operation.
+	 * @param library Input value for `library`.
+	 * @return Result produced by `isLibraryLoaded`, when applicable.
+	 */
 	static function isLibraryLoaded(library:String):Bool {
 		return Assets.getLibrary(library) != null;
 	}

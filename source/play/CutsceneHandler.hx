@@ -27,6 +27,10 @@ class CutsceneHandler extends FlxBasic
 	public var skipSprite:FlxPieDial;
 	public var finishCallback:Void->Void = null;
 
+	/**
+	 * Executes the `new` operation.
+	 * @param canSkip Input value for `canSkip`.
+	 */
 	public function new(canSkip:Bool = true)
 	{
 		super();
@@ -57,6 +61,11 @@ class CutsceneHandler extends FlxBasic
 
 	private var cutsceneTime:Float = 0;
 	private var firstFrame:Bool = false;
+	/**
+	 * Executes the `update` operation.
+	 * @param elapsed Input value for `elapsed`.
+	 * @return Result produced by `update`, when applicable.
+	 */
 	override function update(elapsed)
 	{
 		super.update(elapsed);
@@ -107,6 +116,10 @@ class CutsceneHandler extends FlxBasic
 		}
 	}
 
+	/**
+	 * Executes the `updateSkipAlpha` operation.
+	 * @return Result produced by `updateSkipAlpha`, when applicable.
+	 */
 	function updateSkipAlpha()
 	{
 		if(skipSprite == null) return;
@@ -115,17 +128,33 @@ class CutsceneHandler extends FlxBasic
 		skipSprite.alpha = FlxMath.remapToRange(skipSprite.amount, 0.025, 1, 0, 1);
 	}
 
+	/**
+	 * Executes the `push` operation.
+	 * @param spr Input value for `spr`.
+	 * @return Result produced by `push`, when applicable.
+	 */
 	public function push(spr:FlxSprite)
 	{
 		objects.push(spr);
 	}
 
+	/**
+	 * Executes the `timer` operation.
+	 * @param time Input value for `time`.
+	 * @return Result produced by `timer`, when applicable.
+	 */
 	public function timer(time:Float, func:Void->Void)
 	{
 		timedEvents.push({time: time, func: func});
 		timedEvents.sort(sortByTime);
 	}
 
+	/**
+	 * Executes the `sortByTime` operation.
+	 * @param Obj1 Input value for `Obj1`.
+	 * @param Obj2 Input value for `Obj2`.
+	 * @return Result produced by `sortByTime`, when applicable.
+	 */
 	function sortByTime(Obj1:CutsceneEvent, Obj2:CutsceneEvent):Int
 	{
 		return FlxSort.byValues(FlxSort.ASCENDING, Obj1.time, Obj2.time);

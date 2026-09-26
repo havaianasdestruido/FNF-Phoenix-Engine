@@ -15,6 +15,9 @@ class GreyscaleShader extends FlxShader
 
 
 	')
+  /**
+   * Executes the `new` operation.
+*/
   public function new()
   {
     super();

@@ -30,6 +30,13 @@ class Alphabet extends FlxSpriteGroup
 	public var distancePerItem:FlxPoint = new FlxPoint(20, 120);
 	public var startPosition:FlxPoint = new FlxPoint(0, 0); //for the calculations
 
+	/**
+	 * Executes the `new` operation.
+	 * @param x Input value for `x`.
+	 * @param y Input value for `y`.
+	 * @param text Input value for `text`.
+	 * @param bold Input value for `bold`.
+	 */
 	public function new(x:Float, y:Float, text:String = "", ?bold:Bool = true)
 	{
 		super(x, y);
@@ -40,6 +47,11 @@ class Alphabet extends FlxSpriteGroup
 		this.text = text;
 	}
 
+	/**
+	 * Executes the `setAlignmentFromString` operation.
+	 * @param align Input value for `align`.
+	 * @return Result produced by `setAlignmentFromString`, when applicable.
+	 */
 	public function setAlignmentFromString(align:String)
 	{
 		switch(align.toLowerCase().trim())
@@ -53,6 +65,11 @@ class Alphabet extends FlxSpriteGroup
 		}
 	}
 
+	/**
+	 * Executes the `set_alignment` operation.
+	 * @param align Input value for `align`.
+	 * @return Result produced by `set_alignment`, when applicable.
+	 */
 	private function set_alignment(align:Alignment)
 	{
 		alignment = align;
@@ -60,6 +77,10 @@ class Alphabet extends FlxSpriteGroup
 		return align;
 	}
 
+	/**
+	 * Executes the `updateAlignment` operation.
+	 * @return Result produced by `updateAlignment`, when applicable.
+	 */
 	private function updateAlignment()
 	{
 		for (letter in letters)
@@ -81,6 +102,11 @@ class Alphabet extends FlxSpriteGroup
 		}
 	}
 
+	/**
+	 * Executes the `set_text` operation.
+	 * @param newText Input value for `newText`.
+	 * @return Result produced by `set_text`, when applicable.
+	 */
 	private function set_text(newText:String)
 	{
 		newText = newText.replace('\\n', '\n');
@@ -91,6 +117,10 @@ class Alphabet extends FlxSpriteGroup
 		return newText;
 	}
 
+	/**
+	 * Executes the `clearLetters` operation.
+	 * @return Result produced by `clearLetters`, when applicable.
+	 */
 	public function clearLetters()
 	{
 		var i:Int = letters.length;
@@ -109,6 +139,12 @@ class Alphabet extends FlxSpriteGroup
 		rows = 0;
 	}
 
+	/**
+	 * Executes the `setScale` operation.
+	 * @param newX Input value for `newX`.
+	 * @param newY Input value for `newY`.
+	 * @return Result produced by `setScale`, when applicable.
+	 */
 	public function setScale(newX:Float, newY:Null<Float> = null)
 	{
 		var lastX:Float = scale.x;
@@ -124,6 +160,11 @@ class Alphabet extends FlxSpriteGroup
 		softReloadLetters(newX / lastX, newY / lastY);
 	}
 
+	/**
+	 * Executes the `set_scaleX` operation.
+	 * @param value Input value for `value`.
+	 * @return Result produced by `set_scaleX`, when applicable.
+	 */
 	private function set_scaleX(value:Float)
 	{
 		if (value == scaleX) return value;
@@ -135,6 +176,11 @@ class Alphabet extends FlxSpriteGroup
 		return value;
 	}
 
+	/**
+	 * Executes the `set_scaleY` operation.
+	 * @param value Input value for `value`.
+	 * @return Result produced by `set_scaleY`, when applicable.
+	 */
 	private function set_scaleY(value:Float)
 	{
 		if (value == scaleY) return value;
@@ -146,6 +192,12 @@ class Alphabet extends FlxSpriteGroup
 		return value;
 	}
 
+	/**
+	 * Executes the `softReloadLetters` operation.
+	 * @param ratioX Input value for `ratioX`.
+	 * @param ratioY Input value for `ratioY`.
+	 * @return Result produced by `softReloadLetters`, when applicable.
+	 */
 	public function softReloadLetters(ratioX:Float = 1, ratioY:Null<Float> = null)
 	{
 		if(ratioY == null) ratioY = ratioX;
@@ -162,6 +214,11 @@ class Alphabet extends FlxSpriteGroup
 		}
 	}
 
+	/**
+	 * Executes the `update` operation.
+	 * @param elapsed Input value for `elapsed`.
+	 * @return Result produced by `update`, when applicable.
+	 */
 	override function update(elapsed:Float)
 	{
 		if (isMenuItem)
@@ -175,6 +232,10 @@ class Alphabet extends FlxSpriteGroup
 		super.update(elapsed);
 	}
 
+	/**
+	 * Executes the `snapToPosition` operation.
+	 * @return Result produced by `snapToPosition`, when applicable.
+	 */
 	public function snapToPosition()
 	{
 		if (isMenuItem)
@@ -188,6 +249,11 @@ class Alphabet extends FlxSpriteGroup
 
 	private static var Y_PER_ROW:Float = 100;
 
+	/**
+	 * Executes the `createLetters` operation.
+	 * @param newText Input value for `newText`.
+	 * @return Result produced by `createLetters`, when applicable.
+	 */
 	private function createLetters(newText:String)
 	{
 		var consecutiveSpaces:Int = 0;
@@ -347,6 +413,9 @@ class AlphaCharacter extends FlxSprite
 	public var row:Int = 0;
 	public var rowWidth:Float = 0;
 	public var character:String = '?';
+	/**
+	 * Executes the `new` operation.
+*/
 	public function new()
 	{
 		super(x, y);
@@ -355,6 +424,14 @@ class AlphaCharacter extends FlxSprite
 	}
 
 	public var curLetter:Letter = null;
+	/**
+	 * Executes the `setupAlphaCharacter` operation.
+	 * @param x Input value for `x`.
+	 * @param y Input value for `y`.
+	 * @param character Input value for `character`.
+	 * @param bold Input value for `bold`.
+	 * @return Result produced by `setupAlphaCharacter`, when applicable.
+	 */
 	public function setupAlphaCharacter(x:Float, y:Float, ?character:String = null, ?bold:Null<Bool> = null)
 	{
 		this.x = x;
@@ -407,6 +484,11 @@ class AlphaCharacter extends FlxSprite
 		updateHitbox();
 	}
 
+	/**
+	 * Executes the `isTypeAlphabet` operation.
+	 * @param c Input value for `c`.
+	 * @return Result produced by `isTypeAlphabet`, when applicable.
+	 */
 	public static function isTypeAlphabet(c:String) // thanks kade
 	{
 		var ascii = StringTools.fastCodeAt(c, 0);
@@ -417,6 +499,11 @@ class AlphaCharacter extends FlxSprite
 			|| (ascii >= 248 && ascii <= 255);
 	}
 
+	/**
+	 * Executes the `getCachedFrames` operation.
+	 * @param name Input value for `name`.
+	 * @return Result produced by `getCachedFrames`, when applicable.
+	 */
 	private static function getCachedFrames(name:String):FlxAtlasFrames
 	{
 		if (cachedFrames.exists(name))
@@ -430,6 +517,11 @@ class AlphaCharacter extends FlxSprite
 		return atlas;
 	}
 
+	/**
+	 * Executes the `set_image` operation.
+	 * @param name Input value for `name`.
+	 * @return Result produced by `set_image`, when applicable.
+	 */
 	private function set_image(name:String)
 	{
 		if(frames == null) //first setup
@@ -460,6 +552,10 @@ class AlphaCharacter extends FlxSprite
 		return name;
 	}
 
+	/**
+	 * Executes the `updateLetterOffset` operation.
+	 * @return Result produced by `updateLetterOffset`, when applicable.
+	 */
 	public function updateLetterOffset()
 	{
 		if (animation.curAnim == null)
@@ -491,6 +587,10 @@ class AlphaCharacter extends FlxSprite
 		offset.y += letterOffset[1] * scale.y - (add - height);
 	}
 
+	/**
+	 * Executes the `updateHitbox` operation.
+	 * @return Result produced by `updateHitbox`, when applicable.
+	 */
 	override public function updateHitbox()
 	{
 		super.updateHitbox();

@@ -20,6 +20,9 @@ class InvertShader extends FlxShader
         gl_FragColor = sineWave(texture2D(bitmap, uv));
 		gl_FragColor.a = 1.0 - gl_FragColor.a;
     }')
+  /**
+   * Executes the `new` operation.
+*/
   public function new()
   {
     super();

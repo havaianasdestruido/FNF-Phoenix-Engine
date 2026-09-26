@@ -35,6 +35,15 @@ class Option
 	public var name:String = 'Unknown';
 	public var specialOption:Bool = false;
 
+	/**
+	 * Executes the `new` operation.
+	 * @param name Input value for `name`.
+	 * @param description Input value for `description`.
+	 * @param variable Input value for `variable`.
+	 * @param type Input value for `type`.
+	 * @param defaultValue Input value for `defaultValue`.
+	 * @param options Input value for `options`.
+	 */
 	public function new(name:String, description:String = '', variable:String, type:String = 'bool', defaultValue:Dynamic = 'null variable value', ?options:Array<String> = null)
 	{
 		this.name = name;
@@ -89,6 +98,10 @@ class Option
 		}
 	}
 
+	/**
+	 * Executes the `change` operation.
+	 * @return Result produced by `change`, when applicable.
+	 */
 	public function change()
 	{
 		//nothing lol
@@ -97,20 +110,38 @@ class Option
 		}
 	}
 
+	/**
+	 * Executes the `getValue` operation.
+	 * @return Result produced by `getValue`, when applicable.
+	 */
 	public function getValue():Dynamic
 	{
 		return Reflect.getProperty(ClientPrefs, variable);
 	}
+	/**
+	 * Executes the `setValue` operation.
+	 * @param value Input value for `value`.
+	 * @return Result produced by `setValue`, when applicable.
+	 */
 	public function setValue(value:Dynamic)
 	{
 		Reflect.setProperty(ClientPrefs, variable, value);
 	}
 
+	/**
+	 * Executes the `setChild` operation.
+	 * @param child Input value for `child`.
+	 * @return Result produced by `setChild`, when applicable.
+	 */
 	public function setChild(child:Alphabet)
 	{
 		this.child = child;
 	}
 
+	/**
+	 * Executes the `get_text` operation.
+	 * @return Result produced by `get_text`, when applicable.
+	 */
 	private function get_text()
 	{
 		if(child != null) {
@@ -118,6 +149,11 @@ class Option
 		}
 		return null;
 	}
+	/**
+	 * Executes the `set_text` operation.
+	 * @param newValue Input value for `newValue`.
+	 * @return Result produced by `set_text`, when applicable.
+	 */
 	private function set_text(newValue:String = '')
 	{
 		if(child != null) {
@@ -126,6 +162,10 @@ class Option
 		return null;
 	}
 
+	/**
+	 * Executes the `get_type` operation.
+	 * @return Result produced by `get_type`, when applicable.
+	 */
 	private function get_type()
 	{
 		var newValue:String = 'bool';

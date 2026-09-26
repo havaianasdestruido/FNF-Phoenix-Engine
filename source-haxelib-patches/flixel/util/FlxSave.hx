@@ -59,7 +59,7 @@ class FlxSave implements IFlxDestroyable
 	
 	/**
 	 * Checks for `~%&\;:"',<>?#` or space characters
-	 */
+*/
 	static function hasInvalidChars(str:String)
 	{
 		#if html5
@@ -74,6 +74,11 @@ class FlxSave implements IFlxDestroyable
 	 * Converts invalid characters to "-", producing a valid string for a FlxSave's name and path
 	 */
 	@:allow(flixel.FlxG.initSave)
+	/**
+	 * Executes the `validate` operation.
+	 * @param str Input value for `str`.
+	 * @return Result produced by `validate`, when applicable.
+	 */
 	static function validate(str:String)
 	{
 		#if html5
@@ -130,6 +135,9 @@ class FlxSave implements IFlxDestroyable
 	 */
 	var _sharedObject:SharedObject;
 
+	/**
+	 * Executes the `new` operation.
+	 */
 	public function new() {}
 
 	/**
@@ -152,6 +160,12 @@ class FlxSave implements IFlxDestroyable
 	 *                Mainly used to differentiate from other FlxSaves. If you do not specify
 	 *                this parameter, the company name specified in your Project.xml is used.
 	 * @return  Whether or not you successfully connected to the save data.
+	 */
+	/**
+	 * Executes the `bind` operation.
+	 * @param name Input value for `name`.
+	 * @param path Input value for `path`.
+	 * @return Result produced by `bind`, when applicable.
 	 */
 	public function bind(name:String, ?path:String):Bool
 	{
@@ -186,6 +200,15 @@ class FlxSave implements IFlxDestroyable
 	 * @param   eraseSave    Whether to erase the save after successfully migrating the data. defaults to true.
 	 * @param   minFileSize  If you need X amount of space for your save, specify it here.
 	 * @return  Whether or not you successfully found, merged and flushed data.
+	 */
+	/**
+	 * Executes the `mergeDataFrom` operation.
+	 * @param name Input value for `name`.
+	 * @param path Input value for `path`.
+	 * @param overwrite Input value for `overwrite`.
+	 * @param eraseSave Input value for `eraseSave`.
+	 * @param minFileSize Input value for `minFileSize`.
+	 * @return Result produced by `mergeDataFrom`, when applicable.
 	 */
 	public function mergeDataFrom(name:String, ?path:String, overwrite = false, eraseSave = true, minFileSize = 0):Bool
 	{
@@ -316,6 +339,10 @@ class FlxSave implements IFlxDestroyable
 		return false;
 	}
 
+	/**
+	 * Executes the `get_name` operation.
+	 * @return Result produced by `get_name`, when applicable.
+	 */
 	function get_name()
 	{
 		return switch (status)
@@ -326,6 +353,10 @@ class FlxSave implements IFlxDestroyable
 		}
 	}
 
+	/**
+	 * Executes the `get_path` operation.
+	 * @return Result produced by `get_path`, when applicable.
+	 */
 	function get_path()
 	{
 		return switch (status)
@@ -336,6 +367,10 @@ class FlxSave implements IFlxDestroyable
 		}
 	}
 
+	/**
+	 * Executes the `get_isBound` operation.
+	 * @return Result produced by `get_isBound`, when applicable.
+	 */
 	inline function get_isBound()
 	{
 		return status.match(BOUND(_, _));
@@ -380,6 +415,12 @@ private class FlxSharedObject extends SharedObject
 		return SharedObject.getLocal(name, localPath);
 	}
 	
+	/**
+	 * Executes the `exists` operation.
+	 * @param name Input value for `name`.
+	 * @param path Input value for `path`.
+	 * @return Result produced by `exists`, when applicable.
+	 */
 	public static inline function exists(name:String, ?path:String)
 	{
 		return true;
@@ -387,6 +428,10 @@ private class FlxSharedObject extends SharedObject
 	#else
 	static var all:Map<String, FlxSharedObject>;
 	
+	/**
+	 * Executes the `init` operation.
+	 * @return Result produced by `init`, when applicable.
+	 */
 	static function init()
 	{
 		if (all == null)
@@ -399,6 +444,11 @@ private class FlxSharedObject extends SharedObject
 		}
 	}
 	
+	/**
+	 * Executes the `onExit` operation.
+	 * @param _ Input value for `_`.
+	 * @return Result produced by `onExit`, when applicable.
+	 */
 	static function onExit(_)
 	{
 		for (sharedObject in all)
@@ -420,6 +470,12 @@ private class FlxSharedObject extends SharedObject
 		return path;
 	}
 	
+	/**
+	 * Executes the `getLocal` operation.
+	 * @param name Input value for `name`.
+	 * @param localPath Input value for `localPath`.
+	 * @return Result produced by `getLocal`, when applicable.
+	 */
 	public static function getLocal(name:String, ?localPath:String):SharedObject
 	{
 		if (name == null || name == "")
@@ -472,12 +528,23 @@ private class FlxSharedObject extends SharedObject
 	}
 	
 	#if (js && html5)
+	/**
+	 * Executes the `getData` operation.
+	 * @param name Input value for `name`.
+	 * @param localPath Input value for `localPath`.
+	 * @return Result produced by `getData`, when applicable.
+	 */
 	static function getData(name:String, ?localPath:String)
 	{
 		final storage = js.Browser.getLocalStorage();
 		if (storage == null)
 			return null;
 		
+		/**
+		 * Executes the `get` operation.
+		 * @param path Input value for `path`.
+		 * @return Result produced by `get`, when applicable.
+		 */
 		function get(path:String)
 		{
 			return storage.getItem(path + ":" + name);
@@ -502,6 +569,12 @@ private class FlxSharedObject extends SharedObject
 		return get(js.Browser.window.location.href);
 	}
 	
+	/**
+	 * Executes the `exists` operation.
+	 * @param name Input value for `name`.
+	 * @param localPath Input value for `localPath`.
+	 * @return Result produced by `exists`, when applicable.
+	 */
 	public static function exists(name:String, ?localPath:String)
 	{
 		final storage = js.Browser.getLocalStorage();
@@ -509,6 +582,11 @@ private class FlxSharedObject extends SharedObject
 		if (storage == null)
 			return false;
 		
+		/**
+		 * Executes the `has` operation.
+		 * @param path Input value for `path`.
+		 * @return Result produced by `has`, when applicable.
+		 */
 		inline function has(path:String)
 		{
 			return storage.getItem(path + ":" + name) != null;
@@ -523,6 +601,12 @@ private class FlxSharedObject extends SharedObject
 	// should include every sys target
 	#else
 	
+	/**
+	 * Executes the `getData` operation.
+	 * @param name Input value for `name`.
+	 * @param localPath Input value for `localPath`.
+	 * @return Result produced by `getData`, when applicable.
+	 */
 	static function getData(name:String, ?localPath:String)
 	{
 		var path = getPath(localPath, name);
@@ -537,6 +621,12 @@ private class FlxSharedObject extends SharedObject
 		return null;
 	}
 	
+	/**
+	 * Executes the `getPath` operation.
+	 * @param localPath Input value for `localPath`.
+	 * @param name Input value for `name`.
+	 * @return Result produced by `getPath`, when applicable.
+	 */
 	static function getPath(localPath:String, name:String):String
 	{
 		// Avoid ever putting .sol files directly in AppData
@@ -592,6 +682,12 @@ private class FlxSharedObject extends SharedObject
 		return sys.FileSystem.exists(getPath(localPath, name));
 	}
 	
+	/**
+	 * Executes the `getLegacyPath` operation.
+	 * @param localPath Input value for `localPath`.
+	 * @param name Input value for `name`.
+	 * @return Result produced by `getLegacyPath`, when applicable.
+	 */
 	static inline function getLegacyPath(localPath:String, name:String)
 	{
 		return SharedObject.__getPath(localPath, name);
@@ -605,6 +701,11 @@ private class FlxSharedObject extends SharedObject
 		return sys.FileSystem.exists(getLegacyPath(localPath, name));
 	}
 	
+	/**
+	 * Executes the `flush` operation.
+	 * @param minDiskSpace Input value for `minDiskSpace`.
+	 * @return Result produced by `flush`, when applicable.
+	 */
 	override function flush(minDiskSpace:Int = 0)
 	{
 		if (Reflect.fields(data).length == 0)
@@ -634,6 +735,10 @@ private class FlxSharedObject extends SharedObject
 		return SharedObjectFlushStatus.FLUSHED;
 	}
 	
+	/**
+	 * Executes the `clear` operation.
+	 * @return Result produced by `clear`, when applicable.
+	 */
 	override function clear()
 	{
 		data = {};

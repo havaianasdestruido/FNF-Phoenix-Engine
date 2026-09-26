@@ -21,6 +21,10 @@ class RenderingDoneSubState extends MusicBeatSubstate {
 	var checker:FlxBackdrop;
 	var timeTaken:Float = 0;
 
+	/**
+	 * Executes the `new` operation.
+	 * @param timeTakenLol Input value for `timeTakenLol`.
+	 */
 	public function new(timeTakenLol:Float) {
 		super();
 		FlxG.sound.music.volume = 1;
@@ -28,6 +32,10 @@ class RenderingDoneSubState extends MusicBeatSubstate {
 		timeTaken = timeTakenLol;
 	}
 
+	/**
+	 * Executes the `create` operation.
+	 * @return Result produced by `create`, when applicable.
+	 */
 	override public function create() {
 		super.create();
 		PlayState.stopRender();
@@ -81,6 +89,11 @@ class RenderingDoneSubState extends MusicBeatSubstate {
 		FlxTween.tween(saveTxt, {alpha: 1}, 0.4, {ease: FlxEase.quartInOut, startDelay: 0.2});
 	}
 
+	/**
+	 * Executes the `update` operation.
+	 * @param elapsed Input value for `elapsed`.
+	 * @return Result produced by `update`, when applicable.
+	 */
 	override function update(elapsed:Float) {
 		super.update(elapsed);
 		checker.x += 0.45 / (ClientPrefs.framerate / 60);

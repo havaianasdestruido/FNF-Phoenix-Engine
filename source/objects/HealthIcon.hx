@@ -16,6 +16,12 @@ class HealthIcon extends FlxSprite
 	var initialWidth:Float = 0;
 	var initialHeight:Float = 0;
 
+	/**
+	 * Executes the `new` operation.
+	 * @param char Input value for `char`.
+	 * @param isPlayer Input value for `isPlayer`.
+	 * @param allowGPU Input value for `allowGPU`.
+	 */
 	public function new(char:String = 'bf', isPlayer:Bool = false, ?allowGPU:Bool = true)
 	{
 		super();
@@ -24,6 +30,11 @@ class HealthIcon extends FlxSprite
 		scrollFactor.set();
 	}
 
+	/**
+	 * Executes the `update` operation.
+	 * @param elapsed Input value for `elapsed`.
+	 * @return Result produced by `update`, when applicable.
+	 */
 	override function update(elapsed:Float)
 	{
 		super.update(elapsed);
@@ -39,6 +50,11 @@ class HealthIcon extends FlxSprite
 	}
 
 	public var iconOffsets:Array<Float> = [0, 0];
+	/**
+	 * Executes the `changeIcon` operation.
+	 * @param char Input value for `char`.
+	 * @return Result produced by `changeIcon`, when applicable.
+	 */
 	public function changeIcon(char:String) {
 		if(this.char != char) {
 			if (char.length < 1)
@@ -74,6 +90,10 @@ class HealthIcon extends FlxSprite
 		}
 	}
 
+	/**
+	 * Executes the `bounce` operation.
+	 * @return Result produced by `bounce`, when applicable.
+	 */
 	public function bounce() {
 		if(canBounce) {
 			var mult:Float = 1.2;
@@ -82,11 +102,20 @@ class HealthIcon extends FlxSprite
 		}
 	}
 
+	/**
+	 * Executes the `playAnim` operation.
+	 * @param anim Input value for `anim`.
+	 * @return Result produced by `playAnim`, when applicable.
+	 */
 	public function playAnim(anim:String) {
 		if (animation.exists(anim))
 			animation.play(anim);
 	}
 
+	/**
+	 * Executes the `updateHitbox` operation.
+	 * @return Result produced by `updateHitbox`, when applicable.
+	 */
 	override function updateHitbox()
 	{
 		if (ClientPrefs.iconBounceType != 'Golden Apple' && ClientPrefs.iconBounceType != 'Dave and Bambi' || !Std.isOfType(FlxG.state, PlayState))
@@ -104,6 +133,10 @@ class HealthIcon extends FlxSprite
 		}
 	}
 
+	/**
+	 * Executes the `getCharacter` operation.
+	 * @return Result produced by `getCharacter`, when applicable.
+	 */
 	public function getCharacter():String {
 		return char;
 	}

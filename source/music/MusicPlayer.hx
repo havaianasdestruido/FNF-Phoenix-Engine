@@ -35,6 +35,10 @@ class MusicPlayer extends FlxGroup
 	var holdPitchTime:Float = 0;
 	var playbackRate(default, set):Float = 1;
 
+	/**
+	 * Executes the `new` operation.
+	 * @param instance Input value for `instance`.
+	 */
 	public function new(instance:FreeplayState)
 	{
 		super();
@@ -83,6 +87,11 @@ class MusicPlayer extends FlxGroup
 		switchPlayMusic();
 	}
 
+	/**
+	 * Executes the `update` operation.
+	 * @param elapsed Input value for `elapsed`.
+	 * @return Result produced by `update`, when applicable.
+	 */
 	override function update(elapsed:Float)
 	{
 		super.update(elapsed);
@@ -211,6 +220,11 @@ class MusicPlayer extends FlxGroup
 		updatePlaybackTxt();
 	}
 
+	/**
+	 * Executes the `setVocalsTime` operation.
+	 * @param time Input value for `time`.
+	 * @return Result produced by `setVocalsTime`, when applicable.
+	 */
 	function setVocalsTime(time:Float)
 	{
 		if (FreeplayState.vocals != null && FreeplayState.vocals.length > time)
@@ -219,6 +233,11 @@ class MusicPlayer extends FlxGroup
 			FreeplayState.opponentVocals.time = time;
 	}
 
+	/**
+	 * Executes the `pauseOrResume` operation.
+	 * @param resume Input value for `resume`.
+	 * @return Result produced by `pauseOrResume`, when applicable.
+	 */
 	public function pauseOrResume(resume:Bool = false)
 	{
 		if (resume)
@@ -242,6 +261,10 @@ class MusicPlayer extends FlxGroup
 		}
 	}
 
+	/**
+	 * Executes the `switchPlayMusic` operation.
+	 * @return Result produced by `switchPlayMusic`, when applicable.
+	 */
 	public function switchPlayMusic()
 	{
 		FlxG.autoPause = (!playingMusic && ClientPrefs.autoPause);
@@ -285,6 +308,10 @@ class MusicPlayer extends FlxGroup
 		progressBar.updateBar();
 	}
 
+	/**
+	 * Executes the `updatePlaybackTxt` operation.
+	 * @return Result produced by `updatePlaybackTxt`, when applicable.
+	 */
 	function updatePlaybackTxt()
 	{
 		var text = "";
@@ -301,6 +328,10 @@ class MusicPlayer extends FlxGroup
 		playbackTxt.text = text + 'x';
 	}
 
+	/**
+	 * Executes the `positionSong` operation.
+	 * @return Result produced by `positionSong`, when applicable.
+	 */
 	function positionSong()
 	{
 		var length:Int = instance.songs[FreeplayState.curSelected].songName.length;
@@ -346,12 +377,20 @@ class MusicPlayer extends FlxGroup
 		}
 	}
 
+	/**
+	 * Executes the `updateTimeTxt` operation.
+	 * @return Result produced by `updateTimeTxt`, when applicable.
+	 */
 	function updateTimeTxt()
 	{
 		var text = FlxStringUtil.formatTime(FlxG.sound.music.time / 1000, false) + ' / ' + FlxStringUtil.formatTime(FlxG.sound.music.length / 1000, false);
 		timeTxt.text = '< ' + text + ' >';
 	}
 
+	/**
+	 * Executes the `setPlaybackRate` operation.
+	 * @return Result produced by `setPlaybackRate`, when applicable.
+	 */
 	function setPlaybackRate()
 	{
 		FlxG.sound.music.pitch = playbackRate;
@@ -361,11 +400,20 @@ class MusicPlayer extends FlxGroup
 			FreeplayState.opponentVocals.pitch = playbackRate;
 	}
 
+	/**
+	 * Executes the `get_playing` operation.
+	 * @return Result produced by `get_playing`, when applicable.
+	 */
 	function get_playing():Bool
 	{
 		return FlxG.sound.music.playing;
 	}
 
+	/**
+	 * Executes the `set_playbackRate` operation.
+	 * @param value Input value for `value`.
+	 * @return Result produced by `set_playbackRate`, when applicable.
+	 */
 	function set_playbackRate(value:Float):Float
 	{
 		var value = FlxMath.roundDecimal(value, 2);

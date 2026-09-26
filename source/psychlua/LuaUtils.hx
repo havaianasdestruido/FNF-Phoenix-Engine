@@ -18,6 +18,11 @@ using StringTools;
 @:allow(psychlua.FunkinLua)
 class LuaUtils {
 	// REFACTOR: root classes moved into packages; resolve legacy bare class names from scripts
+	/**
+	 * Executes the `resolveClassCompat` operation.
+	 * @param className Input value for `className`.
+	 * @return Result produced by `resolveClassCompat`, when applicable.
+	 */
 	public static function resolveClassCompat(className:String):Class<Dynamic>
 	{
 		if (className == null || className.length < 1) return null;
@@ -34,6 +39,11 @@ class LuaUtils {
 		return null;
 	}
 
+	/**
+	 * Executes the `getLuaTween` operation.
+	 * @param options Input value for `options`.
+	 * @return Result produced by `getLuaTween`, when applicable.
+	 */
 	public static function getLuaTween(options:Dynamic)
 	{
 		return (options != null) ? {
@@ -48,6 +58,11 @@ class LuaUtils {
 	}
 
 	//buncho string stuffs
+	/**
+	 * Executes the `getTweenTypeByString` operation.
+	 * @param type Input value for `type`.
+	 * @return Result produced by `getTweenTypeByString`, when applicable.
+	 */
 	public static function getTweenTypeByString(?type:String = '') {
 		switch(type.toLowerCase().trim())
 		{
@@ -60,6 +75,11 @@ class LuaUtils {
 	}
 
     //Better optimized than using some getProperty shit or idk
+	/**
+	 * Executes the `getFlxEaseByString` operation.
+	 * @param ease Input value for `ease`.
+	 * @return Result produced by `getFlxEaseByString`, when applicable.
+	 */
 	public static inline function getFlxEaseByString(?ease:String = '') {
 		return switch(ease.toLowerCase().trim()) {
 			case 'backin': return FlxEase.backIn;
@@ -102,6 +122,11 @@ class LuaUtils {
 		}
 	}
 
+	/**
+	 * Executes the `blendModeFromString` operation.
+	 * @param blend Input value for `blend`.
+	 * @return Result produced by `blendModeFromString`, when applicable.
+	 */
 	public static inline function blendModeFromString(blend:String):BlendMode {
 		return switch(blend.toLowerCase().trim()) {
 			case 'add': return ADD;
@@ -122,6 +147,11 @@ class LuaUtils {
 		}
 	}
 
+	/**
+	 * Executes the `cameraFromString` operation.
+	 * @param cam Input value for `cam`.
+	 * @return Result produced by `cameraFromString`, when applicable.
+	 */
 	public static inline function cameraFromString(cam:String):FlxCamera {
 		return switch(cam.toLowerCase()) {
 			case 'camhud' | 'hud': return PlayState.instance.camHUD;
@@ -131,12 +161,26 @@ class LuaUtils {
 	}
 	
 	// alias for above, helper function basically
+	/**
+	 * Executes the `getCam` operation.
+	 * @param obj Input value for `obj`.
+	 * @return Result produced by `getCam`, when applicable.
+	 */
 	public static function getCam(obj:String):Dynamic {
         if (obj.toLowerCase().trim() == "global")
 		    return FlxG.game;
 	    return cameraFromString(obj);
     }
 
+	/**
+	 * Executes the `luaTrace` operation.
+	 * @param lua Input value for `lua`.
+	 * @param text Input value for `text`.
+	 * @param ignoreCheck Input value for `ignoreCheck`.
+	 * @param deprecated Input value for `deprecated`.
+	 * @param color Input value for `color`.
+	 * @return Result produced by `luaTrace`, when applicable.
+	 */
 	public static function luaTrace(lua: #if LUA_ALLOWED State #else Dynamic #end, text:String, ignoreCheck:Bool = false, deprecated:Bool = false, color:FlxColor = FlxColor.WHITE) {
 		#if LUA_ALLOWED
 		if(ignoreCheck || getBool(lua, 'luaDebugMode')) {
@@ -149,6 +193,12 @@ class LuaUtils {
 		#end
 	}
 
+	/**
+	 * Executes the `getErrorMessage` operation.
+	 * @param lua Input value for `lua`.
+	 * @param status Input value for `status`.
+	 * @return Result produced by `getErrorMessage`, when applicable.
+	 */
 	public static function getErrorMessage(lua: #if LUA_ALLOWED State #else Dynamic #end, status:Int):String {
 		#if LUA_ALLOWED
 		var v:String = Lua.tostring(lua, -1);
@@ -175,6 +225,12 @@ class LuaUtils {
 		#end
 	}
 	
+	/**
+	 * Executes the `isOfTypes` operation.
+	 * @param value Input value for `value`.
+	 * @param types Input value for `types`.
+	 * @return Result produced by `isOfTypes`, when applicable.
+	 */
 	public static function isOfTypes(value:Any, types:Array<Dynamic>)
 	{
 		for (type in types)
@@ -184,6 +240,12 @@ class LuaUtils {
 		return false;
 	}
 
+	/**
+	 * Executes the `getBool` operation.
+	 * @param lua Input value for `lua`.
+	 * @param variable Input value for `variable`.
+	 * @return Result produced by `getBool`, when applicable.
+	 */
 	public static function getBool(lua: #if LUA_ALLOWED State #else Dynamic #end, variable:String) {
 		#if LUA_ALLOWED
 		var result:String = null;
@@ -201,6 +263,11 @@ class LuaUtils {
 	}
 
 	// REFACTOR: moved from FunkinLua; pure/stateless helpers
+	/**
+	 * Executes the `typeToString` operation.
+	 * @param type Input value for `type`.
+	 * @return Result produced by `typeToString`, when applicable.
+	 */
 	public static function typeToString(type:Int):String
 	{
 		#if LUA_ALLOWED
@@ -223,11 +290,22 @@ class LuaUtils {
 		return "unknown";
 	}
 
+	/**
+	 * Executes the `getInstance` operation.
+	 * @return Result produced by `getInstance`, when applicable.
+	 */
 	public static inline function getInstance()
 	{
 		return PlayState.instance.isDead ? GameOverSubstate.instance : PlayState.instance;
 	}
 
+	/**
+	 * Executes the `setVarInArray` operation.
+	 * @param instance Input value for `instance`.
+	 * @param variable Input value for `variable`.
+	 * @param value Input value for `value`.
+	 * @return Result produced by `setVarInArray`, when applicable.
+	 */
 	public static function setVarInArray(instance:Dynamic, variable:String, value:Dynamic):Any
 	{
 		if(variable.indexOf('[') == -1)
@@ -278,6 +356,12 @@ class LuaUtils {
 		Reflect.setProperty(instance, variable, value);
 		return true;
 	}
+	/**
+	 * Executes the `getVarInArray` operation.
+	 * @param instance Input value for `instance`.
+	 * @param variable Input value for `variable`.
+	 * @return Result produced by `getVarInArray`, when applicable.
+	 */
 	public static function getVarInArray(instance:Dynamic, variable:String):Any
 	{
 		if(variable.indexOf('[') == -1)
@@ -323,6 +407,12 @@ class LuaUtils {
 		return Reflect.getProperty(instance, variable);
 	}
 
+	/**
+	 * Executes the `getObjectDirectly` operation.
+	 * @param objectName Input value for `objectName`.
+	 * @param checkForTextsToo Input value for `checkForTextsToo`.
+	 * @return Result produced by `getObjectDirectly`, when applicable.
+	 */
 	public static function getObjectDirectly(objectName:String, ?checkForTextsToo:Bool = true):Dynamic
 	{
 		var coverMeInPiss:Dynamic = PlayState.instance.getLuaObject(objectName, checkForTextsToo);
@@ -332,6 +422,13 @@ class LuaUtils {
 		return coverMeInPiss;
 	}
 
+	/**
+	 * Executes the `getPropertyLoopThingWhatever` operation.
+	 * @param killMe Input value for `killMe`.
+	 * @param checkForTextsToo Input value for `checkForTextsToo`.
+	 * @param getProperty Input value for `getProperty`.
+	 * @return Result produced by `getPropertyLoopThingWhatever`, when applicable.
+	 */
 	public static function getPropertyLoopThingWhatever(killMe:Array<String>, ?checkForTextsToo:Bool = true, ?getProperty:Bool=true):Dynamic
 	{
 		var coverMeInPiss:Dynamic = getObjectDirectly(killMe[0], checkForTextsToo);
@@ -344,6 +441,16 @@ class LuaUtils {
 		return coverMeInPiss;
 	}
 
+	/**
+	 * Executes the `addAnimByIndices` operation.
+	 * @param obj Input value for `obj`.
+	 * @param name Input value for `name`.
+	 * @param prefix Input value for `prefix`.
+	 * @param indices Input value for `indices`.
+	 * @param framerate Input value for `framerate`.
+	 * @param loop Input value for `loop`.
+	 * @return Result produced by `addAnimByIndices`, when applicable.
+	 */
 	public static function addAnimByIndices(obj:String, name:String, prefix:String, indices:String, framerate:Int = 24, loop:Bool = false)
 	{
 		var strIndices:Array<String> = indices.trim().split(',');

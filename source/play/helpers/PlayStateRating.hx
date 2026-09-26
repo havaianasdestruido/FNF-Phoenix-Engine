@@ -25,6 +25,11 @@ import play.helpers.PlayStateNoteHelpers;
 @:access(backend.MusicBeatState)
 class PlayStateRating
 {
+	/**
+	 * Executes the `cachePopUpScore` operation.
+	 * @param state Input value for `state`.
+	 * @return Result produced by `cachePopUpScore`, when applicable.
+	 */
 	public static function cachePopUpScore(state:PlayState)
 	{
 		if (PlayState.isPixelStage)
@@ -52,6 +57,13 @@ class PlayStateRating
 			state.fcStrings = Mods.mergeAllTextsNamed('images/${normalRating}' + 'fcStrings.txt', null, false);
 	}
 
+	/**
+	 * Executes the `judgeNote` operation.
+	 * @param state Input value for `state`.
+	 * @param note Input value for `note`.
+	 * @param miss Input value for `miss`.
+	 * @return Result produced by `judgeNote`, when applicable.
+	 */
 	public static function judgeNote(state:PlayState, note:Note = null, ?miss:Bool = false)
 	{
 		if (note == null || !note.alive) return;
@@ -94,6 +106,12 @@ class PlayStateRating
 		}
 	}
 
+	/**
+	 * Executes the `popUpScore` operation.
+	 * @param state Input value for `state`.
+	 * @param note Input value for `note`.
+	 * @param miss Input value for `miss`.
+	 */
 	public static function popUpScore(state:PlayState, note:Note = null, ?miss:Bool = false):Void
 	{
 		state.popUpsFrame += 1;
@@ -187,6 +205,12 @@ class PlayStateRating
 		}
 	}
 
+	/**
+	 * Executes the `updateScore` operation.
+	 * @param state Input value for `state`.
+	 * @param miss Input value for `miss`.
+	 * @return Result produced by `updateScore`, when applicable.
+	 */
 	public static function updateScore(state:PlayState, miss:Bool = false)
 	{
 		state.scoreTxtUpdateFrame++;
@@ -251,6 +275,12 @@ class PlayStateRating
 		state.callOnLuas('onUpdateScore', [miss]);
 	}
 
+	/**
+	 * Executes the `RecalculateRating` operation.
+	 * @param state Input value for `state`.
+	 * @param badHit Input value for `badHit`.
+	 * @return Result produced by `RecalculateRating`, when applicable.
+	 */
 	public static function RecalculateRating(state:PlayState, badHit:Bool = false) {
 		state.setOnLuas('score', state.songScore);
 		state.setOnLuas('misses', state.songMisses);
@@ -342,6 +372,11 @@ class PlayStateRating
 	}
 
 	// REFACTOR: NPS tracking block extracted from play.PlayState.update()
+	/**
+	 * Executes the `updateNps` operation.
+	 * @param state Input value for `state`.
+	 * @return Result produced by `updateNps`, when applicable.
+	 */
 	public static function updateNps(state:PlayState)
 	{
 		if (ClientPrefs.showNPS && (state.notesHitDateArray.length > 0 || state.oppNotesHitDateArray.length > 0)) {
@@ -397,6 +432,12 @@ if (state.scoreTxtUpdateFrame <= 8 && state.scoreTxt != null) state.updateScore(
 
 	#if ACHIEVEMENTS_ALLOWED
 	// REFACTOR: achievement checking extracted from play.PlayState
+	/**
+	 * Executes the `checkForAchievement` operation.
+	 * @param state Input value for `state`.
+	 * @param achievesToCheck Input value for `achievesToCheck`.
+	 * @return Result produced by `checkForAchievement`, when applicable.
+	 */
 	public static function checkForAchievement(state:PlayState, achievesToCheck:Array<String> = null)
 	{
 		if(PlayState.chartingMode || state.trollingMode) return;

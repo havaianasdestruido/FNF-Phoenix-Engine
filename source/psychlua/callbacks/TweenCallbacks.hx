@@ -10,6 +10,10 @@ import psychlua.FunkinLua.LuaTweenOptions;
 // REFACTOR: extracted from psychlua.FunkinLua (tween/timer API)
 class TweenCallbacks
 {
+	/**
+	 * Executes the `register` operation.
+	 * @param funk Input value for `funk`.
+	 */
 	public static function register(funk:FunkinLua):Void {
 		@:privateAccess {
 		// gay ass tweens

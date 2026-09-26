@@ -36,6 +36,10 @@ class NoteOffsetState extends MusicBeatState
 
 	var changeModeText:FlxText;
 
+	/**
+	 * Executes the `create` operation.
+	 * @return Result produced by `create`, when applicable.
+	 */
 	override public function create()
 	{
 		// Cameras
@@ -200,6 +204,11 @@ class NoteOffsetState extends MusicBeatState
 	var startMousePos:FlxPoint = new FlxPoint();
 	var startComboOffset:FlxPoint = new FlxPoint();
 
+	/**
+	 * Executes the `update` operation.
+	 * @param elapsed Input value for `elapsed`.
+	 * @return Result produced by `update`, when applicable.
+	 */
 	override public function update(elapsed:Float)
 	{
 		var addNum:Int = 1;
@@ -357,6 +366,10 @@ class NoteOffsetState extends MusicBeatState
 
 	var zoomTween:FlxTween;
 	var lastBeatHit:Int = -1;
+	/**
+	 * Executes the `beatHit` operation.
+	 * @return Result produced by `beatHit`, when applicable.
+	 */
 	override public function beatHit()
 	{
 		super.beatHit();
@@ -397,6 +410,10 @@ class NoteOffsetState extends MusicBeatState
 		lastBeatHit = curBeat;
 	}
 
+	/**
+	 * Executes the `repositionCombo` operation.
+	 * @return Result produced by `repositionCombo`, when applicable.
+	 */
 	function repositionCombo()
 	{
 		rating.screenCenter();
@@ -409,6 +426,10 @@ class NoteOffsetState extends MusicBeatState
 		reloadTexts();
 	}
 
+	/**
+	 * Executes the `createTexts` operation.
+	 * @return Result produced by `createTexts`, when applicable.
+	 */
 	function createTexts()
 	{
 		for (i in 0...4)
@@ -427,6 +448,10 @@ class NoteOffsetState extends MusicBeatState
 		}
 	}
 
+	/**
+	 * Executes the `reloadTexts` operation.
+	 * @return Result produced by `reloadTexts`, when applicable.
+	 */
 	function reloadTexts()
 	{
 		for (i in 0...dumbTexts.length)
@@ -441,6 +466,10 @@ class NoteOffsetState extends MusicBeatState
 		}
 	}
 
+	/**
+	 * Executes the `updateNoteDelay` operation.
+	 * @return Result produced by `updateNoteDelay`, when applicable.
+	 */
 	function updateNoteDelay()
 	{
 		ClientPrefs.noteOffset = Math.round(barPercent);
@@ -449,6 +478,10 @@ class NoteOffsetState extends MusicBeatState
 
 	final buttonAccept:String = mobile.MobileControls.enabled ? 'A' : 'Accept';
 
+	/**
+	 * Executes the `updateMode` operation.
+	 * @return Result produced by `updateMode`, when applicable.
+	 */
 	function updateMode()
 	{
 		rating.visible = onComboMenu;

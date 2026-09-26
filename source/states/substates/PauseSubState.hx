@@ -40,6 +40,10 @@ class PauseSubState extends MusicBeatSubstate
 
 	public static var songName:String = '';
 
+	/**
+	 * Executes the `create` operation.
+	 * @return Result produced by `create`, when applicable.
+	 */
 	override function create()
 	{
 		if(CoolUtil.difficulties.length < 2) menuItemsOG.remove('Change Difficulty'); //No need to change difficulty if there is only one!
@@ -142,6 +146,11 @@ class PauseSubState extends MusicBeatSubstate
 
 	var holdTime:Float = 0;
 	var cantUnpause:Float = 0.1;
+	/**
+	 * Executes the `update` operation.
+	 * @param elapsed Input value for `elapsed`.
+	 * @return Result produced by `update`, when applicable.
+	 */
 	override function update(elapsed:Float)
 	{
 		if(requireRestart) {
@@ -330,6 +339,10 @@ class PauseSubState extends MusicBeatSubstate
 		}
 	}
 
+	/**
+	 * Executes the `deleteSkipTimeText` operation.
+	 * @return Result produced by `deleteSkipTimeText`, when applicable.
+	 */
 	function deleteSkipTimeText()
 	{
 		if(skipTimeText != null)
@@ -342,6 +355,11 @@ class PauseSubState extends MusicBeatSubstate
 		skipTimeTracker = null;
 	}
 
+	/**
+	 * Executes the `restartSong` operation.
+	 * @param noTrans Input value for `noTrans`.
+	 * @return Result produced by `restartSong`, when applicable.
+	 */
 	public static function restartSong(noTrans:Bool = false)
 	{
 		PlayState.instance.paused = true; // For lua
@@ -360,6 +378,10 @@ class PauseSubState extends MusicBeatSubstate
 		}
 	}
 
+	/**
+	 * Executes the `destroy` operation.
+	 * @return Result produced by `destroy`, when applicable.
+	 */
 	override function destroy()
 	{
 		if (pauseMusic != null) pauseMusic.destroy();
@@ -368,6 +390,10 @@ class PauseSubState extends MusicBeatSubstate
 		super.destroy();
 	}
 
+	/**
+	 * Executes the `changeSelection` operation.
+	 * @param change Input value for `change`.
+	 */
 	function changeSelection(change:Int = 0):Void
 	{
 		curSelected += change;
@@ -403,6 +429,9 @@ class PauseSubState extends MusicBeatSubstate
 		}
 	}
 
+	/**
+	 * Executes the `regenMenu` operation.
+	 */
 	public function regenMenu():Void {
 		for (i in 0...menuItemGroup.members.length) {
 			var obj = menuItemGroup.members[0];
@@ -434,6 +463,10 @@ class PauseSubState extends MusicBeatSubstate
 		changeSelection();
 	}
 
+	/**
+	 * Executes the `updateSkipTextStuff` operation.
+	 * @return Result produced by `updateSkipTextStuff`, when applicable.
+	 */
 	function updateSkipTextStuff()
 	{
 		if(skipTimeText != null || skipTimeTracker != null) {
@@ -443,6 +476,10 @@ class PauseSubState extends MusicBeatSubstate
 		}
 	}
 
+	/**
+	 * Executes the `updateSkipTimeText` operation.
+	 * @return Result produced by `updateSkipTimeText`, when applicable.
+	 */
 	function updateSkipTimeText()
 	{
 		skipTimeText.text = FlxStringUtil.formatTime(Math.max(0, Math.floor(curTime / 1000)), false) + ' / ' + FlxStringUtil.formatTime(Math.max(0, Math.floor(FlxG.sound.music.length / 1000)), false);

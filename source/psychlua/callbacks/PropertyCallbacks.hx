@@ -10,6 +10,10 @@ import Type.ValueType;
 // REFACTOR: extracted from psychlua.FunkinLua (getProperty / setProperty family)
 class PropertyCallbacks
 {
+	/**
+	 * Executes the `register` operation.
+	 * @param funk Input value for `funk`.
+	 */
 	public static function register(funk:FunkinLua):Void {
 		@:privateAccess {
 		FunkinLua.registerFunction("loadGraphic", function(variable:String, image:String, ?gridX:Int = 0, ?gridY:Int = 0) {

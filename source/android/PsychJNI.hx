@@ -37,9 +37,21 @@ class PsychJNI #if (lime >= "8.0.0") implements JNISafety #end
 	public static final SDL_ORIENTATION_PORTRAIT:Int = 3;
 	public static final SDL_ORIENTATION_PORTRAIT_FLIPPED:Int = 4;
 
+	/**
+	 * Executes the `setOrientation` operation.
+	 * @param width Input value for `width`.
+	 * @param height Input value for `height`.
+	 * @param resizeable Input value for `resizeable`.
+	 * @param hint Input value for `hint`.
+	 * @return Result produced by `setOrientation`, when applicable.
+	 */
 	public static inline function setOrientation(width:Int, height:Int, resizeable:Bool, hint:String):Dynamic
 		return setOrientation_jni(width, height, resizeable, hint);
 
+	/**
+	 * Executes the `getCurrentOrientationAsString` operation.
+	 * @return Result produced by `getCurrentOrientationAsString`, when applicable.
+	 */
 	public static inline function getCurrentOrientationAsString():String
 	{
 		return switch (getCurrentOrientation_jni())
@@ -52,21 +64,47 @@ class PsychJNI #if (lime >= "8.0.0") implements JNISafety #end
 		}
 	}
 
+	/**
+	 * Executes the `isScreenKeyboardShown` operation.
+	 * @return Result produced by `isScreenKeyboardShown`, when applicable.
+	 */
 	public static inline function isScreenKeyboardShown():Dynamic
 		return isScreenKeyboardShown_jni();
 
+	/**
+	 * Executes the `clipboardHasText` operation.
+	 * @return Result produced by `clipboardHasText`, when applicable.
+	 */
 	public static inline function clipboardHasText():Dynamic
 		return clipboardHasText_jni();
 
+	/**
+	 * Executes the `clipboardGetText` operation.
+	 * @return Result produced by `clipboardGetText`, when applicable.
+	 */
 	public static inline function clipboardGetText():Dynamic
 		return clipboardGetText_jni();
 
+	/**
+	 * Executes the `clipboardSetText` operation.
+	 * @param string Input value for `string`.
+	 * @return Result produced by `clipboardSetText`, when applicable.
+	 */
 	public static inline function clipboardSetText(string:String):Dynamic
 		return clipboardSetText_jni(string);
 
+	/**
+	 * Executes the `manualBackButton` operation.
+	 * @return Result produced by `manualBackButton`, when applicable.
+	 */
 	public static inline function manualBackButton():Dynamic
 		return manualBackButton_jni();
 
+	/**
+	 * Executes the `setActivityTitle` operation.
+	 * @param title Input value for `title`.
+	 * @return Result produced by `setActivityTitle`, when applicable.
+	 */
 	public static inline function setActivityTitle(title:String):Dynamic
 		return setActivityTitle_jni(title);
 

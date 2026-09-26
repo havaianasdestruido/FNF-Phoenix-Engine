@@ -20,12 +20,22 @@ import flixel.FlxG;
 class DialogueEditorHelpers
 {
 	// ---- Pure shared: JSON stringify (dialogue save) ----
+	/**
+	 * Executes the `jsonStringify` operation.
+	 * @param data Input value for `data`.
+	 * @return Result produced by `jsonStringify`, when applicable.
+	 */
 	public static function jsonStringify(data:Dynamic):String
 	{
 		return Json.stringify(data, "\t");
 	}
 
 	// ---- Pure shared: read raw json file content ----
+	/**
+	 * Executes the `readRawJson` operation.
+	 * @param path Input value for `path`.
+	 * @return Result produced by `readRawJson`, when applicable.
+	 */
 	public static function readRawJson(path:String):String
 	{
 		#if sys
@@ -36,6 +46,10 @@ class DialogueEditorHelpers
 	}
 
 	// ---- Shared: set up a FileReference browse dialog for a JSON file ----
+	/**
+	 * Executes the `browseForJsonFile` operation.
+	 * @param file Input value for `file`.
+	 */
 	public static function browseForJsonFile(file:FileReference, onLoadComplete:Dynamic->Void, onLoadCancel:Dynamic->Void, onLoadError:Dynamic->Void):Void
 	{
 		var jsonFilter:FileFilter = new FileFilter('JSON', 'json');
@@ -46,6 +60,12 @@ class DialogueEditorHelpers
 	}
 
 	// ---- Shared: save a JSON string through a FileReference dialog ----
+	/**
+	 * Executes the `saveJsonFile` operation.
+	 * @param file Input value for `file`.
+	 * @param data Input value for `data`.
+	 * @param fileName Input value for `fileName`.
+	 */
 	public static function saveJsonFile(file:FileReference, data:String, fileName:String, onComplete:Dynamic->Void, onCancel:Dynamic->Void, onError:Dynamic->Void):Void
 	{
 		file.addEventListener(Event.COMPLETE, onComplete);
@@ -55,6 +75,10 @@ class DialogueEditorHelpers
 	}
 
 	// ---- Shared: remove load listeners + cancel trace ----
+	/**
+	 * Executes the `cancelLoadFile` operation.
+	 * @param file Input value for `file`.
+	 */
 	public static function cancelLoadFile(file:FileReference, onLoadComplete:Dynamic->Void, onLoadCancel:Dynamic->Void, onLoadError:Dynamic->Void):Void
 	{
 		file.removeEventListener(Event.SELECT, onLoadComplete);
@@ -64,6 +88,10 @@ class DialogueEditorHelpers
 	}
 
 	// ---- Shared: remove load listeners + load error trace ----
+	/**
+	 * Executes the `failLoadFile` operation.
+	 * @param file Input value for `file`.
+	 */
 	public static function failLoadFile(file:FileReference, onLoadComplete:Dynamic->Void, onLoadCancel:Dynamic->Void, onLoadError:Dynamic->Void):Void
 	{
 		file.removeEventListener(Event.SELECT, onLoadComplete);
@@ -73,6 +101,10 @@ class DialogueEditorHelpers
 	}
 
 	// ---- Shared: remove save listeners + success notice ----
+	/**
+	 * Executes the `completeSaveFile` operation.
+	 * @param file Input value for `file`.
+	 */
 	public static function completeSaveFile(file:FileReference, onComplete:Dynamic->Void, onCancel:Dynamic->Void, onError:Dynamic->Void):Void
 	{
 		file.removeEventListener(Event.COMPLETE, onComplete);
@@ -82,6 +114,10 @@ class DialogueEditorHelpers
 	}
 
 	// ---- Shared: remove save listeners (cancelled, no message) ----
+	/**
+	 * Executes the `cancelSaveFile` operation.
+	 * @param file Input value for `file`.
+	 */
 	public static function cancelSaveFile(file:FileReference, onComplete:Dynamic->Void, onCancel:Dynamic->Void, onError:Dynamic->Void):Void
 	{
 		file.removeEventListener(Event.COMPLETE, onComplete);
@@ -90,6 +126,10 @@ class DialogueEditorHelpers
 	}
 
 	// ---- Shared: remove save listeners + save error ----
+	/**
+	 * Executes the `failSaveFile` operation.
+	 * @param file Input value for `file`.
+	 */
 	public static function failSaveFile(file:FileReference, onComplete:Dynamic->Void, onCancel:Dynamic->Void, onError:Dynamic->Void):Void
 	{
 		file.removeEventListener(Event.COMPLETE, onComplete);
@@ -99,6 +139,10 @@ class DialogueEditorHelpers
 	}
 
 	// ---- per-file: onLoadComplete for editors.DialogueCharacterEditorState ----
+	/**
+	 * Executes the `onLoadCompleteCharacter` operation.
+	 * @param state Input value for `state`.
+	 */
 	public static function onLoadCompleteCharacter(state:DialogueCharacterEditorState):Void
 	{
 		state._file.removeEventListener(Event.SELECT, state.onLoadComplete);
@@ -140,6 +184,10 @@ class DialogueEditorHelpers
 	}
 
 	// ---- per-file: onLoadComplete for editors.DialogueEditorState ----
+	/**
+	 * Executes the `onLoadCompleteDialogue` operation.
+	 * @param state Input value for `state`.
+	 */
 	public static function onLoadCompleteDialogue(state:DialogueEditorState):Void
 	{
 		state._file.removeEventListener(Event.SELECT, state.onLoadComplete);

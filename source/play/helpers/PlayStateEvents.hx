@@ -25,6 +25,12 @@ import objects.Note;
 class PlayStateEvents
 {
 	// called only once per different event (Used for precaching)
+	/**
+	 * Executes the `eventPushed` operation.
+	 * @param state Input value for `state`.
+	 * @param event Input value for `event`.
+	 * @return Result produced by `eventPushed`, when applicable.
+	 */
 	public static function eventPushed(state:PlayState, event:EventNote) {
 		switch (event.event)
 		{
@@ -61,6 +67,12 @@ class PlayStateEvents
 		}
 	}
 
+	/**
+	 * Executes the `eventPushedUnique` operation.
+	 * @param state Input value for `state`.
+	 * @param event Input value for `event`.
+	 * @return Result produced by `eventPushedUnique`, when applicable.
+	 */
 	public static function eventPushedUnique(state:PlayState, event:EventNote) {
 		switch(event.event) {
 			case 'Change Character':
@@ -84,6 +96,12 @@ class PlayStateEvents
 		state.stagesFunc(function(stage:BaseStage) stage.eventPushedUnique(event));
 	}
 
+	/**
+	 * Executes the `eventNoteEarlyTrigger` operation.
+	 * @param state Input value for `state`.
+	 * @param event Input value for `event`.
+	 * @return Result produced by `eventNoteEarlyTrigger`, when applicable.
+	 */
 	public static function eventNoteEarlyTrigger(state:PlayState, event:EventNote):Float {
 		var returnedValue:Null<Float> = state.callOnLuas('eventEarlyTrigger', [event.event, event.value1, event.value2, event.strumTime], true, [], [0]);
 		#if LUA_ALLOWED
@@ -99,15 +117,38 @@ class PlayStateEvents
 		return 0;
 	}
 
+	/**
+	 * Executes the `sortByTime` operation.
+	 * @param state Input value for `state`.
+	 * @param Obj1 Input value for `Obj1`.
+	 * @param Obj2 Input value for `Obj2`.
+	 * @return Result produced by `sortByTime`, when applicable.
+	 */
 	public static function sortByTime(state:PlayState, Obj1:Dynamic, Obj2:Dynamic):Int
 	{
 		return FlxSort.byValues(FlxSort.ASCENDING, Obj1.strumTime, Obj2.strumTime);
 	}
 
+	/**
+	 * Executes the `sortNotesByTime` operation.
+	 * @param state Input value for `state`.
+	 * @param Obj1 Input value for `Obj1`.
+	 * @param Obj2 Input value for `Obj2`.
+	 * @return Result produced by `sortNotesByTime`, when applicable.
+	 */
 	public static function sortNotesByTime(state:PlayState, Obj1:Note, Obj2:Note):Int {
 		return FlxSort.byValues(FlxSort.ASCENDING, Obj1.strumTime, Obj2.strumTime);
 	}
 
+	/**
+	 * Executes the `triggerEventNote` operation.
+	 * @param state Input value for `state`.
+	 * @param eventName Input value for `eventName`.
+	 * @param value1 Input value for `value1`.
+	 * @param value2 Input value for `value2`.
+	 * @param strumTime Input value for `strumTime`.
+	 * @return Result produced by `triggerEventNote`, when applicable.
+	 */
 	public static function triggerEventNote(state:PlayState, eventName:String, value1:String, value2:String, strumTime:Float) {
 		var flValue1:Null<Float> = Std.parseFloat(value1);
 		var flValue2:Null<Float> = Std.parseFloat(value2);
@@ -628,6 +669,14 @@ class PlayStateEvents
 		state.callOnLuas('onEvent', [eventName, value1, value2, strumTime]);
 	}
 
+	/**
+	 * Executes the `sendWindowsNotification` operation.
+	 * @param state Input value for `state`.
+	 * @param title Input value for `title`.
+	 * @param desc Input value for `desc`.
+	 * @param isEvent Input value for `isEvent`.
+	 * @return Result produced by `sendWindowsNotification`, when applicable.
+	 */
 	public static function sendWindowsNotification(state:PlayState, title:String, desc:String, isEvent:Bool = false) {
 		// haha i got them from slushi engine :) (by nael2xd)
 		#if (cpp && windows)
@@ -637,6 +686,10 @@ class PlayStateEvents
 		}
 		#end
 		#if windows
+		/**
+		 * Executes the `getWindowsVersion` operation.
+		 * @return Result produced by `getWindowsVersion`, when applicable.
+		 */
 		function getWindowsVersion() {
 			var windowsVersions:Map<String, Int> = [
 				"Windows 11" => 11,

@@ -14,6 +14,10 @@ class Mall extends BaseStage
 	var bottomBoppers:MallCrowd;
 	var santa:BGSprite;
 
+	/**
+	 * Executes the `create` operation.
+	 * @return Result produced by `create`, when applicable.
+	 */
 	override function create()
 	{
 		var bg:BGSprite = new BGSprite('christmas/bgWalls', -1000, -500, 0.2, 0.2);
@@ -51,9 +55,29 @@ class Mall extends BaseStage
 			setEndCallback(eggnogEndCutscene);
 	}
 
+	/**
+	 * Executes the `countdownTick` operation.
+	 * @param count Input value for `count`.
+	 * @param num Input value for `num`.
+	 * @return Result produced by `countdownTick`, when applicable.
+	 */
 	override function countdownTick(count:Countdown, num:Int) everyoneDance();
+	/**
+	 * Executes the `beatHit` operation.
+	 * @return Result produced by `beatHit`, when applicable.
+	 */
 	override function beatHit() everyoneDance();
 
+	/**
+	 * Executes the `eventCalled` operation.
+	 * @param eventName Input value for `eventName`.
+	 * @param value1 Input value for `value1`.
+	 * @param value2 Input value for `value2`.
+	 * @param flValue1 Input value for `flValue1`.
+	 * @param flValue2 Input value for `flValue2`.
+	 * @param strumTime Input value for `strumTime`.
+	 * @return Result produced by `eventCalled`, when applicable.
+	 */
 	override function eventCalled(eventName:String, value1:String, value2:String, flValue1:Null<Float>, flValue2:Null<Float>, strumTime:Float)
 	{
 		switch(eventName)
@@ -68,6 +92,10 @@ class Mall extends BaseStage
 		}
 	}
 
+	/**
+	 * Executes the `everyoneDance` operation.
+	 * @return Result produced by `everyoneDance`, when applicable.
+	 */
 	function everyoneDance()
 	{
 		if(!ClientPrefs.lowQuality)
@@ -77,6 +105,10 @@ class Mall extends BaseStage
 		santa.dance(true);
 	}
 
+	/**
+	 * Executes the `eggnogEndCutscene` operation.
+	 * @return Result produced by `eggnogEndCutscene`, when applicable.
+	 */
 	function eggnogEndCutscene()
 	{
 		if(PlayState.storyPlaylist[1] == null)

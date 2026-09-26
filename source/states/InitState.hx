@@ -12,6 +12,9 @@ import backend.Achievements;
  * Handles initialization of variables when first opening the game.
 **/
 class InitState extends FlxState {
+    /**
+     * Executes the `create` operation.
+*/
     override function create():Void {
         super.create();
 

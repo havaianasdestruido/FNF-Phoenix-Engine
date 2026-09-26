@@ -72,6 +72,11 @@ class CharacterEditorState extends MusicBeatState
 	*/
 	var checkifChanged:Array<CharacterChange> = [];
 
+	/**
+	 * Executes the `new` operation.
+	 * @param _char Input value for `_char`.
+	 * @param goToPlayState Input value for `goToPlayState`.
+	 */
 	public function new(_char:String = 'spooky', goToPlayState:Bool = true)
 	{
 		super();
@@ -98,6 +103,10 @@ class CharacterEditorState extends MusicBeatState
 	var cameraFollowPointer:FlxSprite;
 	var healthBarBG:FlxSprite;
 
+	/**
+	 * Executes the `create` operation.
+	 * @return Result produced by `create`, when applicable.
+	 */
 	override function create()
 	{
 		music = new EditingMusic();
@@ -227,6 +236,10 @@ class CharacterEditorState extends MusicBeatState
 		super.create();
 	}
 
+	/**
+	 * Executes the `addHelpScreen` operation.
+	 * @return Result produced by `addHelpScreen`, when applicable.
+	 */
 	function addHelpScreen()
 	{
 		var str:Array<String> = ["CAMERA",
@@ -276,6 +289,10 @@ class CharacterEditorState extends MusicBeatState
 	var barToUse:Int = 1;
 	var onPixelBG:Bool = false;
 	var OFFSET_X:Float = 300;
+	/**
+	 * Executes the `reloadBGs` operation.
+	 * @return Result produced by `reloadBGs`, when applicable.
+	 */
 	function reloadBGs() {
 		var i:Int = bgLayer.members.length-1;
 		while(i >= 0) {
@@ -423,6 +440,11 @@ class CharacterEditorState extends MusicBeatState
 			"vocals_file": null
 		}';
 
+	/**
+	 * Executes the `addCharacter` operation.
+	 * @param reload Input value for `reload`.
+	 * @return Result produced by `addCharacter`, when applicable.
+	 */
 	function addCharacter(reload:Bool = false)
 	{
 		var pos:Int = -1;
@@ -454,6 +476,10 @@ class CharacterEditorState extends MusicBeatState
 	}
 
 	var ghostAlpha:Float = 0.6;
+	/**
+	 * Executes the `addGhostUI` operation.
+	 * @return Result produced by `addGhostUI`, when applicable.
+	 */
 	function addGhostUI()
 	{
 		var tab_group = new FlxUI(null, UI_box);
@@ -571,6 +597,10 @@ class CharacterEditorState extends MusicBeatState
 
 	var charDropDown:FlxUIDropDownMenuCustom;
 	var check_player:FlxUICheckBox;
+	/**
+	 * Executes the `addSettingsUI` operation.
+	 * @return Result produced by `addSettingsUI`, when applicable.
+	 */
 	function addSettingsUI() {
 		var tab_group = new FlxUI(null, UI_box);
 		tab_group.name = "Settings";
@@ -684,6 +714,10 @@ class CharacterEditorState extends MusicBeatState
 
 	var barShowDropDown:FlxUIDropDownMenuCustom;
 
+	/**
+	 * Executes the `addCharacterUI` operation.
+	 * @return Result produced by `addCharacterUI`, when applicable.
+	 */
 	function addCharacterUI() {
 		var tab_group = new FlxUI(null, UI_box);
 		tab_group.name = "Character";
@@ -800,6 +834,10 @@ class CharacterEditorState extends MusicBeatState
 	var shakeIntensityStepper:FlxUINumericStepper;
 	var shakeDurationStepper:FlxUINumericStepper;
 	var shakeScreenBox:FlxUICheckBox;
+	/**
+	 * Executes the `addMiscUI` operation.
+	 * @return Result produced by `addMiscUI`, when applicable.
+	 */
 	function addMiscUI() {
 		var tab_group = new FlxUI(null, UI_box);
 		tab_group.name = "Misc";
@@ -855,6 +893,10 @@ class CharacterEditorState extends MusicBeatState
 
 	var flixelTrailCheckBox:FlxUICheckBox;
 
+	/**
+	 * Executes the `addCrossfadesUI` operation.
+	 * @return Result produced by `addCrossfadesUI`, when applicable.
+	 */
 	function addCrossfadesUI()
 	{
 		var tab_group = new FlxUI(null, UI_box);
@@ -904,6 +946,10 @@ class CharacterEditorState extends MusicBeatState
 	var animationIndicesInputText:FlxUIInputText;
 	var animationFramerate:FlxUINumericStepper;
 	var animationLoopCheckBox:FlxUICheckBox;
+	/**
+	 * Executes the `addAnimationsUI` operation.
+	 * @return Result produced by `addAnimationsUI`, when applicable.
+	 */
 	function addAnimationsUI() {
 		var tab_group = new FlxUI(null, UI_box);
 		tab_group.name = "Animations";
@@ -1025,6 +1071,14 @@ if(!char.isAnimateAtlas) char.animation.remove(anim.anim);
 		UI_characterbox.addGroup(tab_group);
 	}
 
+	/**
+	 * Executes the `getEvent` operation.
+	 * @param id Input value for `id`.
+	 * @param sender Input value for `sender`.
+	 * @param data Input value for `data`.
+	 * @param params Input value for `params`.
+	 * @return Result produced by `getEvent`, when applicable.
+	 */
 	override function getEvent(id:String, sender:Dynamic, data:Dynamic, ?params:Array<Dynamic>) {
 		if(id == FlxUIInputText.CHANGE_EVENT && (sender is FlxUIInputText)) {
 			if(sender == healthIconInputText) {
@@ -1131,39 +1185,80 @@ if(!char.isAnimateAtlas) char.animation.remove(anim.anim);
 		}
 	}
 
+	/**
+	 * Executes the `reloadCharacterImage` operation.
+	 * @return Result produced by `reloadCharacterImage`, when applicable.
+	 */
 	function reloadCharacterImage()
 	{
 		CharacterEditorHelpers.reloadCharacterImage(this);
 	}
 
+	/**
+	 * Executes the `updatePointerPos` operation.
+	 * @return Result produced by `updatePointerPos`, when applicable.
+	 */
 	function updatePointerPos() {
 		CharacterEditorHelpers.updatePointerPos(this);
 	}
 
+	/**
+	 * Executes the `findAnimationByName` operation.
+	 * @param name Input value for `name`.
+	 * @return Result produced by `findAnimationByName`, when applicable.
+	 */
 	function findAnimationByName(name:String):AnimArray {
 		return CharacterEditorHelpers.findAnimationByName(this, name);
 	}
 
+	/**
+	 * Executes the `updateCharacterPositions` operation.
+	 * @return Result produced by `updateCharacterPositions`, when applicable.
+	 */
 	inline function updateCharacterPositions()
 	{
 		CharacterEditorHelpers.updateCharacterPositions(this);
 	}
 
+	/**
+	 * Executes the `predictCharacterIsNotPlayer` operation.
+	 * @param name Input value for `name`.
+	 * @return Result produced by `predictCharacterIsNotPlayer`, when applicable.
+	 */
 	inline function predictCharacterIsNotPlayer(name:String)
 	{
 		return CharacterEditorHelpers.predictCharacterIsNotPlayer(this, name);
 	}
 
+	/**
+	 * Executes the `addAnimation` operation.
+	 * @param anim Input value for `anim`.
+	 * @param name Input value for `name`.
+	 * @param fps Input value for `fps`.
+	 * @param loop Input value for `loop`.
+	 * @param indices Input value for `indices`.
+	 * @return Result produced by `addAnimation`, when applicable.
+	 */
 	function addAnimation(anim:String, name:String, fps:Float, loop:Bool, indices:Array<Int>)
 	{
 		CharacterEditorHelpers.addAnimation(this, anim, name, fps, loop, indices);
 	}
 
+	/**
+	 * Executes the `newAnim` operation.
+	 * @param anim Input value for `anim`.
+	 * @param name Input value for `name`.
+	 * @return Result produced by `newAnim`, when applicable.
+	 */
 	inline function newAnim(anim:String, name:String):AnimArray
 	{
 		return CharacterEditorHelpers.newAnim(this, anim, name);
 	}
 
+	/**
+	 * Executes the `reloadCharacterOptions` operation.
+	 * @return Result produced by `reloadCharacterOptions`, when applicable.
+	 */
 	function reloadCharacterOptions() {
 		if(UI_characterbox != null) {
 			imageInputText.text = char.imageFile;
@@ -1196,28 +1291,52 @@ if(!char.isAnimateAtlas) char.animation.remove(anim.anim);
 		}
 	}
 
+	/**
+	 * Executes the `updateText` operation.
+	 * @return Result produced by `updateText`, when applicable.
+	 */
 	inline function updateText()
 	{
 		CharacterEditorHelpers.updateText(this);
 	}
 
+	/**
+	 * Executes the `reloadAnimList` operation.
+	 * @return Result produced by `reloadAnimList`, when applicable.
+	 */
 	inline function reloadAnimList()
 	{
 		CharacterEditorHelpers.reloadAnimList(this);
 	}
 
+	/**
+	 * Executes the `reloadAnimationDropDown` operation.
+	 * @return Result produced by `reloadAnimationDropDown`, when applicable.
+	 */
 	function reloadAnimationDropDown() {
 		CharacterEditorHelpers.reloadAnimationDropDown(this);
 	}
 
+	/**
+	 * Executes the `reloadCharacterDropDown` operation.
+	 * @return Result produced by `reloadCharacterDropDown`, when applicable.
+	 */
 	function reloadCharacterDropDown() {
 		CharacterEditorHelpers.reloadCharacterDropDown(this);
 	}
 
+	/**
+	 * Executes the `resetHealthBarColor` operation.
+	 * @return Result produced by `resetHealthBarColor`, when applicable.
+	 */
 	function resetHealthBarColor() {
 		CharacterEditorHelpers.resetHealthBarColor(this);
 	}
 
+	/**
+	 * Executes the `updatePresence` operation.
+	 * @return Result produced by `updatePresence`, when applicable.
+	 */
 	function updatePresence() {
 		#if DISCORD_ALLOWED
 		// Updating Discord Rich Presence
@@ -1227,6 +1346,11 @@ if(!char.isAnimateAtlas) char.animation.remove(anim.anim);
 
 	var holdingFrameTime:Float = 0;
 	var holdingFrameElapsed:Float = 0;
+	/**
+	 * Executes the `update` operation.
+	 * @param elapsed Input value for `elapsed`.
+	 * @return Result produced by `update`, when applicable.
+	 */
 	override function update(elapsed:Float)
 	{
 		if (FlxG.mouse.justPressed) FlxG.sound.play(Paths.sound('click'));
@@ -1435,6 +1559,10 @@ if(!char.isAnimateAtlas) char.animation.remove(anim.anim);
 		}
 	}*/
 
+	/**
+	 * Executes the `onSaveComplete` operation.
+	 * @param _ Input value for `_`.
+	 */
 	function onSaveComplete(_):Void
 	{
 		_file.removeEventListener(Event.COMPLETE, onSaveComplete);
@@ -1467,6 +1595,10 @@ if(!char.isAnimateAtlas) char.animation.remove(anim.anim);
 		FlxG.log.error("Problem saving file");
 	}
 
+	/**
+	 * Executes the `saveCharacter` operation.
+	 * @return Result produced by `saveCharacter`, when applicable.
+	 */
 	function saveCharacter() {
 		var json = {
 			"animations": char.animationsArray,
@@ -1506,6 +1638,11 @@ if(!char.isAnimateAtlas) char.animation.remove(anim.anim);
 		}
 	}
 
+	/**
+	 * Executes the `ClipboardAdd` operation.
+	 * @param prefix Input value for `prefix`.
+	 * @return Result produced by `ClipboardAdd`, when applicable.
+	 */
 	function ClipboardAdd(prefix:String = ''):String {
 		if(prefix.toLowerCase().endsWith('v')) //probably copy paste attempt
 		{
@@ -1516,12 +1653,18 @@ if(!char.isAnimateAtlas) char.animation.remove(anim.anim);
 		return text;
 	}
 
+	/**
+	 * Executes the `onFocusLost` operation.
+	 */
 	override public function onFocusLost():Void
 	    {
 		    if (music != null && music.music != null) music.pauseMusic();
 
 		    super.onFocusLost();
 	    }
+	/**
+	 * Executes the `onFocus` operation.
+	 */
 	override public function onFocus():Void
 	    {
 		    if (music != null && music.music != null) music.unpauseMusic();

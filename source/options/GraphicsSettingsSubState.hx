@@ -12,6 +12,9 @@ import objects.Note;
 
 class GraphicsSettingsSubState extends BaseOptionsMenu
 {
+	/**
+	 * Executes the `new` operation.
+*/
 	public function new()
 	{
 		title = 'Graphics';
@@ -103,6 +106,10 @@ class GraphicsSettingsSubState extends BaseOptionsMenu
 		super();
 	}
 
+	/**
+	 * Executes the `onChangeAntiAliasing` operation.
+	 * @return Result produced by `onChangeAntiAliasing`, when applicable.
+	 */
 	function onChangeAntiAliasing()
 	{
 		FlxSprite.defaultAntialiasing = ClientPrefs.globalAntialiasing;
@@ -117,6 +124,10 @@ class GraphicsSettingsSubState extends BaseOptionsMenu
 		}
 	}
 
+	/**
+	 * Executes the `onChangeFramerate` operation.
+	 * @return Result produced by `onChangeFramerate`, when applicable.
+	 */
 	function onChangeFramerate()
 	{
 		if(ClientPrefs.framerate > FlxG.drawFramerate)
@@ -130,6 +141,10 @@ class GraphicsSettingsSubState extends BaseOptionsMenu
 			FlxG.updateFramerate = ClientPrefs.framerate;
 		}
 	}
+	/**
+	 * Executes the `onChangeResolution` operation.
+	 * @return Result produced by `onChangeResolution`, when applicable.
+	 */
 	function onChangeResolution() {
 		#if desktop
     		var resolutionValue = cast(ClientPrefs.resolution, String); // Assuming 'clientprefs.resolution' holds the selected resolution

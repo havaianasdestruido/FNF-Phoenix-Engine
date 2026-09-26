@@ -32,6 +32,10 @@ class MusicBeatState extends FlxUIState
 
 	public static var camBeat:FlxCamera;
 
+	/**
+	 * Executes the `get_controls` operation.
+	 * @return Result produced by `get_controls`, when applicable.
+	 */
 	inline function get_controls():Controls
 		return PlayerSettings.player1.controls;
 
@@ -40,6 +44,11 @@ class MusicBeatState extends FlxUIState
 	var trackedInputsMobileControls:Array<FlxActionInput> = [];
 	var trackedInputsVirtualPad:Array<FlxActionInput> = [];
 
+	/**
+	 * Executes the `addVirtualPad` operation.
+	 * @param DPad Input value for `DPad`.
+	 * @param Action Input value for `Action`.
+	 */
 	public function addVirtualPad(DPad:FlxDPadMode, Action:FlxActionMode):Void
 	{
 		if (virtualPad != null)
@@ -53,6 +62,9 @@ class MusicBeatState extends FlxUIState
 		controls.trackedInputsUI = [];
 	}
 
+	/**
+	 * Executes the `removeVirtualPad` operation.
+	 */
 	public function removeVirtualPad():Void
 	{
 		if (trackedInputsVirtualPad.length > 0)
@@ -62,6 +74,10 @@ class MusicBeatState extends FlxUIState
 			remove(virtualPad);
 	}
 
+	/**
+	 * Executes the `addMobileControls` operation.
+	 * @param DefaultDrawTarget Input value for `DefaultDrawTarget`.
+	 */
 	public function addMobileControls(DefaultDrawTarget:Bool = false):Void
 	{
 		if (mobileControls != null)
@@ -89,6 +105,9 @@ class MusicBeatState extends FlxUIState
 		add(mobileControls);
 	}
 
+	/**
+	 * Executes the `removeMobileControls` operation.
+	 */
 	public function removeMobileControls():Void
 	{
 		if (trackedInputsMobileControls.length > 0)
@@ -98,6 +117,10 @@ class MusicBeatState extends FlxUIState
 			remove(mobileControls);
 	}
 
+	/**
+	 * Executes the `addVirtualPadCamera` operation.
+	 * @param DefaultDrawTarget Input value for `DefaultDrawTarget`.
+	 */
 	public function addVirtualPadCamera(DefaultDrawTarget:Bool = false):Void
 	{
 		if (virtualPad != null)
@@ -109,6 +132,9 @@ class MusicBeatState extends FlxUIState
 		}
 	}
 
+	/**
+	 * Executes the `destroy` operation.
+	 */
 	override function destroy():Void
 	{
 		if (trackedInputsMobileControls.length > 0)
@@ -133,6 +159,11 @@ class MusicBeatState extends FlxUIState
 	public static var windowNamePrefix:String = "Friday Night Funkin' - Phoenix Engine";
 
 	// better then updating it all the time which can cause memory leaks
+	/**
+	 * Executes the `set_windowNameSuffix` operation.
+	 * @param value Input value for `value`.
+	 * @return Result produced by `set_windowNameSuffix`, when applicable.
+	 */
 	static function set_windowNameSuffix(value:String){
 		windowNameSuffix = value;
 		#if !flash
@@ -140,6 +171,11 @@ class MusicBeatState extends FlxUIState
 		#end
 		return value;
 	}
+	/**
+	 * Executes the `set_windowNameSuffix2` operation.
+	 * @param value Input value for `value`.
+	 * @return Result produced by `set_windowNameSuffix2`, when applicable.
+	 */
 	static function set_windowNameSuffix2(value:String){
 		windowNameSuffix2 = value;
 		#if !flash
@@ -148,14 +184,25 @@ class MusicBeatState extends FlxUIState
 		return value;
 	}
 	public var variables:Map<String, Dynamic> = new Map<String, Dynamic>();
+	/**
+	 * Executes the `getVariables` operation.
+	 * @return Result produced by `getVariables`, when applicable.
+	 */
 	public static function getVariables()
 		return getState().variables;
 	
 	// this is just because FlxUIState has arguments in it's constructor
+	/**
+	 * Executes the `new` operation.
+	 */
 	public function new() {
 		super();
 	}
 
+	/**
+	 * Executes the `create` operation.
+	 * @return Result produced by `create`, when applicable.
+	 */
 	override function create() {
 		camBeat = FlxG.camera;
 		var skip:Bool = FlxTransitionableState.skipNextTransOut;
@@ -176,6 +223,10 @@ class MusicBeatState extends FlxUIState
 		#end
 	}
 
+	/**
+	 * Executes the `initPsychCamera` operation.
+	 * @return Result produced by `initPsychCamera`, when applicable.
+	 */
 	public function initPsychCamera():PsychCamera
 	{
 		var camera = new PsychCamera();
@@ -185,6 +236,11 @@ class MusicBeatState extends FlxUIState
 		return camera;
 	}
 
+	/**
+	 * Executes the `update` operation.
+	 * @param elapsed Input value for `elapsed`.
+	 * @return Result produced by `update`, when applicable.
+	 */
 	override function update(elapsed:Float)
 	{
 		oldStep = curStep;
@@ -214,6 +270,9 @@ class MusicBeatState extends FlxUIState
 		super.update(elapsed);
 	}
 
+	/**
+	 * Executes the `updateSection` operation.
+	 */
 	private function updateSection():Void
 	{
 		if(stepsToDo < 1) stepsToDo = Math.round(getBeatsOnSection() * 4);
@@ -226,6 +285,9 @@ class MusicBeatState extends FlxUIState
 		}
 	}
 
+	/**
+	 * Executes the `rollbackSection` operation.
+	 */
 	private function rollbackSection():Void
 	{
 		if(curStep < 0) return;
@@ -247,12 +309,18 @@ class MusicBeatState extends FlxUIState
 		if(curSection > lastSection) sectionHit();
 	}
 
+	/**
+	 * Executes the `updateBeat` operation.
+	 */
 	private function updateBeat():Void
 	{
 		curBeat = Math.floor(curStep / 4);
 		curDecBeat = curDecStep/4;
 	}
 
+	/**
+	 * Executes the `updateCurStep` operation.
+	 */
 	private function updateCurStep():Void
 	{
 		final lastChange = Conductor.getBPMFromSeconds(Conductor.songPosition);
@@ -263,6 +331,9 @@ class MusicBeatState extends FlxUIState
 		updateBeat();
 	}
 
+	/**
+	 * Executes the `startOutro` operation.
+*/
 	override function startOutro(onOutroComplete:()->Void):Void
 	{
 		if (!FlxTransitionableState.skipNextTransIn)
@@ -279,6 +350,9 @@ class MusicBeatState extends FlxUIState
 
 	public var stages:Array<BaseStage> = [];
 	//runs whenever the game hits a step
+	/**
+	 * Executes the `stepHit` operation.
+*/
 	public function stepHit():Void
 	{
 		//trace('Step: ' + curStep);
@@ -293,6 +367,9 @@ class MusicBeatState extends FlxUIState
 	}
 
 	//runs whenever the game hits a beat
+	/**
+	 * Executes the `beatHit` operation.
+*/
 	public function beatHit():Void
 	{
 		stagesFunc(function(stage:BaseStage) {
@@ -303,6 +380,9 @@ class MusicBeatState extends FlxUIState
 	}
 
 	//runs whenever the game hits a section
+	/**
+	 * Executes the `sectionHit` operation.
+*/
 	public function sectionHit():Void
 	{
 		stagesFunc(function(stage:BaseStage) {
@@ -311,10 +391,18 @@ class MusicBeatState extends FlxUIState
 		});
 	}
 
+	/**
+	 * Executes the `getState` operation.
+	 * @return Result produced by `getState`, when applicable.
+	 */
 	public static function getState():MusicBeatState {
 		return cast (FlxG.state, MusicBeatState);
 	}
 
+	/**
+	 * Executes the `stagesFunc` operation.
+	 * @return Result produced by `stagesFunc`, when applicable.
+	 */
 	function stagesFunc(func:BaseStage->Void)
 	{
 		for (stage in stages)
@@ -322,6 +410,10 @@ class MusicBeatState extends FlxUIState
 				func(stage);
 	}
 
+	/**
+	 * Executes the `getBeatsOnSection` operation.
+	 * @return Result produced by `getBeatsOnSection`, when applicable.
+	 */
 	function getBeatsOnSection()
 	{
 		var val:Null<Float> = 4;

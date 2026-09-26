@@ -36,6 +36,9 @@ class MobileOptionsSubState extends BaseOptionsMenu
 {
 	final hintOptions:Array<String> = ["No Gradient", "No Gradient (Old)", "Gradient", "Hidden"];
 
+	/**
+	 * Executes the `new` operation.
+*/
 	public function new()
 	{
 		title = 'Mobile Options';

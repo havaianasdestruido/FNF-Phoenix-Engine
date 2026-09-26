@@ -27,11 +27,20 @@ class HScript
 	public var variables(get, never):Map<String, Dynamic>;
 	public var parentLua:FunkinLua;
 
+	/**
+	 * Executes the `get_variables` operation.
+	 * @return Result produced by `get_variables`, when applicable.
+	 */
 	public function get_variables()
 	{
 		return interp.variables;
 	}
 	
+	/**
+	 * Executes the `initHaxeModule` operation.
+	 * @param parent Input value for `parent`.
+	 * @return Result produced by `initHaxeModule`, when applicable.
+	 */
 	public static function initHaxeModule(parent:FunkinLua)
 	{
 		#if HSCRIPT_ALLOWED
@@ -43,6 +52,10 @@ class HScript
 		#end
 	}
 
+	/**
+	 * Executes the `new` operation.
+	 * @param parent Input value for `parent`.
+	 */
 	public function new(parent:FunkinLua)
 	{
 		#if HSCRIPT_ALLOWED
@@ -132,6 +145,13 @@ class HScript
 	}
 
 	#if HSCRIPT_ALLOWED
+	/**
+	 * Executes the `execute` operation.
+	 * @param codeToRun Input value for `codeToRun`.
+	 * @param funcToRun Input value for `funcToRun`.
+	 * @param funcArgs Input value for `funcArgs`.
+	 * @return Result produced by `execute`, when applicable.
+	 */
 	public function execute(codeToRun:String, ?funcToRun:String = null, ?funcArgs:Array<Dynamic>):Dynamic
 	{
 		try {
@@ -157,6 +177,12 @@ class HScript
 		}
 	}
 
+	/**
+	 * Executes the `executeFunction` operation.
+	 * @param funcToRun Input value for `funcToRun`.
+	 * @param funcArgs Input value for `funcArgs`.
+	 * @return Result produced by `executeFunction`, when applicable.
+	 */
 	public function executeFunction(funcToRun:String = null, funcArgs:Array<Dynamic>)
 	{
 		if(funcToRun != null)
@@ -176,6 +202,11 @@ class HScript
 	}
 	#end
 
+	/**
+	 * Executes the `implement` operation.
+	 * @param funk Input value for `funk`.
+	 * @return Result produced by `implement`, when applicable.
+	 */
 	public static function implement(funk:FunkinLua)
 	{
 		#if LUA_ALLOWED

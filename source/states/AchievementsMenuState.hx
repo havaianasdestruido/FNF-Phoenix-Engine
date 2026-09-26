@@ -33,6 +33,10 @@ class AchievementsMenuState extends MusicBeatState
 
 	public var progressValue:Float = 0;
 
+	/**
+	 * Executes the `create` operation.
+	 * @return Result produced by `create`, when applicable.
+	 */
 	override function create()
 	{
 		Paths.clearStoredMemory();
@@ -150,6 +154,14 @@ class AchievementsMenuState extends MusicBeatState
 		FlxG.camera.scroll.y = -FlxG.height;
 	}
 
+	/**
+	 * Executes the `makeAchievement` operation.
+	 * @param achievement Input value for `achievement`.
+	 * @param data Input value for `data`.
+	 * @param unlocked Input value for `unlocked`.
+	 * @param mod Input value for `mod`.
+	 * @return Result produced by `makeAchievement`, when applicable.
+	 */
 	function makeAchievement(achievement:String, data:Achievement, unlocked:Bool, mod:String = null)
 	{
 		var unlocked:Bool = Achievements.isUnlocked(achievement);
@@ -166,10 +178,21 @@ class AchievementsMenuState extends MusicBeatState
 		};
 	}
 
+	/**
+	 * Executes the `sortByID` operation.
+	 * @param Obj1 Input value for `Obj1`.
+	 * @param Obj2 Input value for `Obj2`.
+	 * @return Result produced by `sortByID`, when applicable.
+	 */
 	public static function sortByID(Obj1:Dynamic, Obj2:Dynamic):Int
 		return FlxSort.byValues(FlxSort.ASCENDING, Obj1.ID, Obj2.ID);
 
 	var goingBack:Bool = false;
+	/**
+	 * Executes the `update` operation.
+	 * @param elapsed Input value for `elapsed`.
+	 * @return Result produced by `update`, when applicable.
+	 */
 	override function update(elapsed:Float) {
 		if(!goingBack && options.length > 1)
 		{
@@ -236,6 +259,10 @@ class AchievementsMenuState extends MusicBeatState
 	}
 
 	public var barTween:FlxTween = null;
+	/**
+	 * Executes the `_changeSelection` operation.
+	 * @return Result produced by `_changeSelection`, when applicable.
+	 */
 	function _changeSelection()
 	{
 		FlxG.sound.play(Paths.sound('scrollMenu'));
@@ -283,6 +310,9 @@ class ResetAchievementSubstate extends MusicBeatSubstate
 	var yesText:Alphabet;
 	var noText:Alphabet;
 
+	/**
+	 * Executes the `new` operation.
+*/
 	public function new()
 	{
 		super();
@@ -319,6 +349,11 @@ class ResetAchievementSubstate extends MusicBeatSubstate
 		updateOptions();
 	}
 
+	/**
+	 * Executes the `update` operation.
+	 * @param elapsed Input value for `elapsed`.
+	 * @return Result produced by `update`, when applicable.
+	 */
 	override function update(elapsed:Float)
 	{
 		if(controls.BACK)
@@ -372,6 +407,10 @@ class ResetAchievementSubstate extends MusicBeatSubstate
 		}
 	}
 
+	/**
+	 * Executes the `updateOptions` operation.
+	 * @return Result produced by `updateOptions`, when applicable.
+	 */
 	function updateOptions() {
 		var scales:Array<Float> = [0.75, 1];
 		var alphas:Array<Float> = [0.6, 1.25];

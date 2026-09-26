@@ -21,6 +21,9 @@ class Scanline extends FlxShader
 				gl_FragColor = texture2D(bitmap, openfl_TextureCoordv);
 			}
 		}')
+  /**
+   * Executes the `new` operation.
+*/
   public function new()
   {
     super();

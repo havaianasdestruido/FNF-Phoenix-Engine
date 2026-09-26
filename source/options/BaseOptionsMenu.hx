@@ -36,6 +36,9 @@ class BaseOptionsMenu extends MusicBeatSubstate
 	public var title:String;
 	public var rpcTitle:String;
 
+	/**
+	 * Executes the `new` operation.
+*/
 	public function new()
 	{
 		super();
@@ -107,6 +110,11 @@ class BaseOptionsMenu extends MusicBeatSubstate
 		addVirtualPad(LEFT_FULL, A_B_C);
 	}
 
+	/**
+	 * Executes the `addOption` operation.
+	 * @param option Input value for `option`.
+	 * @return Result produced by `addOption`, when applicable.
+	 */
 	public function addOption(option:Option) {
 		if(optionsArray == null || optionsArray.length < 1) optionsArray = [];
 		optionsArray.push(option);
@@ -114,6 +122,11 @@ class BaseOptionsMenu extends MusicBeatSubstate
 
 	var originalOptionsArray:Array<Option> = [];
 	var optionsFound:Array<Option> = [];
+	/**
+	 * Executes the `optionsSearch` operation.
+	 * @param query Input value for `query`.
+	 * @return Result produced by `optionsSearch`, when applicable.
+	 */
 	function optionsSearch(?query:String = '')
 	{
 		optionsFound = [];
@@ -147,12 +160,21 @@ class BaseOptionsMenu extends MusicBeatSubstate
 			return;
 		}
 	}
+	/**
+	 * Executes the `regenerateOptions` operation.
+	 * @param query Input value for `query`.
+	 * @return Result produced by `regenerateOptions`, when applicable.
+	 */
 	function regenerateOptions(?query:String = '') {
 		if (query.length > 0) optionsArray = optionsFound;
 		else if (optionsArray != originalOptionsArray) optionsArray = originalOptionsArray.copy();
 		regenList();
 	}
 
+	/**
+	 * Executes the `regenList` operation.
+	 * @return Result produced by `regenList`, when applicable.
+	 */
 	function regenList() {
 			grpOptions.forEach(option -> {
 				grpOptions.remove(option, true);
@@ -182,6 +204,11 @@ class BaseOptionsMenu extends MusicBeatSubstate
 	var holdTime:Float = 0;
 	var holdValue:Float = 0;
 	var _textThrottle:Float = 0;
+	/**
+	 * Executes the `update` operation.
+	 * @param elapsed Input value for `elapsed`.
+	 * @return Result produced by `update`, when applicable.
+	 */
 	override function update(elapsed:Float)
 	{
 		if (!optionSearchText.hasFocus)
@@ -346,6 +373,11 @@ class BaseOptionsMenu extends MusicBeatSubstate
 		super.update(elapsed);
 	}
 
+	/**
+	 * Executes the `updateTextFrom` operation.
+	 * @param option Input value for `option`.
+	 * @return Result produced by `updateTextFrom`, when applicable.
+	 */
 	function updateTextFrom(option:Option) {
 		var text:String = option.displayFormat;
 		var val:Dynamic = option.getValue();
@@ -356,6 +388,11 @@ class BaseOptionsMenu extends MusicBeatSubstate
 		option.text = newText;
 	}
 
+	/**
+	 * Executes the `refreshDescription` operation.
+	 * @param option Input value for `option`.
+	 * @return Result produced by `refreshDescription`, when applicable.
+	 */
 	function refreshDescription(option:Option)
 	{
 	    if (curOption == option)
@@ -372,6 +409,10 @@ class BaseOptionsMenu extends MusicBeatSubstate
 	    }
 	}
 
+	/**
+	 * Executes the `clearHold` operation.
+	 * @return Result produced by `clearHold`, when applicable.
+	 */
 	function clearHold()
 	{
 		if(holdTime > 0.5) {
@@ -380,6 +421,11 @@ class BaseOptionsMenu extends MusicBeatSubstate
 		holdTime = 0;
 	}
 
+	/**
+	 * Executes the `changeSelection` operation.
+	 * @param change Input value for `change`.
+	 * @return Result produced by `changeSelection`, when applicable.
+	 */
 	function changeSelection(change:Int = 0)
 	{
 		curSelected += change;
@@ -422,6 +468,10 @@ class BaseOptionsMenu extends MusicBeatSubstate
 		FlxG.sound.play(Paths.sound('scrollMenu'));
 	}
 
+	/**
+	 * Executes the `reloadBoyfriend` operation.
+	 * @return Result produced by `reloadBoyfriend`, when applicable.
+	 */
 	public function reloadBoyfriend()
 	{
 		var wasVisible:Bool = false;
@@ -440,6 +490,10 @@ class BaseOptionsMenu extends MusicBeatSubstate
 		boyfriend.visible = wasVisible;
 	}
 
+	/**
+	 * Executes the `reloadCheckboxes` operation.
+	 * @return Result produced by `reloadCheckboxes`, when applicable.
+	 */
 	function reloadCheckboxes() {
 		for (checkbox in checkboxGroup) {
 			checkbox.daValue = (optionsArray[checkbox.ID].getValue() == true);

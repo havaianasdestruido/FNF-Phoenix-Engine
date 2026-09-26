@@ -10,6 +10,12 @@ import flixel.util.FlxColor;
 @:access(objects.Note)
 class NoteHelpers
 {
+	/**
+	 * Executes the `initializeGlobalRGBShader` operation.
+	 * @param noteData Input value for `noteData`.
+	 * @param note Input value for `note`.
+	 * @return Result produced by `initializeGlobalRGBShader`, when applicable.
+	 */
 	public static function initializeGlobalRGBShader(noteData:Int = 0, ?note:Note = null)
 	{
 		if (note == null)
@@ -78,6 +84,10 @@ class NoteHelpers
 		}
 	}
 
+	/**
+	 * Executes the `getNoteSkinPostfix` operation.
+	 * @return Result produced by `getNoteSkinPostfix`, when applicable.
+	 */
 	public static function getNoteSkinPostfix()
 	{
 		var skin:String = '';

@@ -6,6 +6,9 @@ import objects.Note;
 
 class OptimizationSubState extends BaseOptionsMenu
 {
+	/**
+	 * Executes the `new` operation.
+*/
 	public function new()
 	{
 		title = 'Optimization';

@@ -10,6 +10,12 @@ class CheckboxThingie extends FlxSprite
 	public var copyAlpha:Bool = true;
 	public var offsetX:Float = 0;
 	public var offsetY:Float = 0;
+	/**
+	 * Executes the `new` operation.
+	 * @param x Input value for `x`.
+	 * @param y Input value for `y`.
+	 * @param checked Input value for `checked`.
+	 */
 	public function new(x:Float = 0, y:Float = 0, ?checked = false) {
 		super(x, y);
 
@@ -28,6 +34,11 @@ class CheckboxThingie extends FlxSprite
 		daValue = checked;
 	}
 
+	/**
+	 * Executes the `update` operation.
+	 * @param elapsed Input value for `elapsed`.
+	 * @return Result produced by `update`, when applicable.
+	 */
 	override function update(elapsed:Float) {
 		if (sprTracker != null) {
 			setPosition(sprTracker.x - 130 + offsetX, sprTracker.y + 30 + offsetY);
@@ -38,6 +49,11 @@ class CheckboxThingie extends FlxSprite
 		super.update(elapsed);
 	}
 
+	/**
+	 * Executes the `set_daValue` operation.
+	 * @param check Input value for `check`.
+	 * @return Result produced by `set_daValue`, when applicable.
+	 */
 	private function set_daValue(check:Bool):Bool {
 		if(check) {
 			if(animation.curAnim.name != 'checked' && animation.curAnim.name != 'checking') {
@@ -51,6 +67,11 @@ class CheckboxThingie extends FlxSprite
 		return check;
 	}
 
+	/**
+	 * Executes the `animationFinished` operation.
+	 * @param name Input value for `name`.
+	 * @return Result produced by `animationFinished`, when applicable.
+	 */
 	private function animationFinished(name:String)
 	{
 		switch(name)

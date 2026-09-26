@@ -67,6 +67,11 @@ class Song
 
 	public static var psychV1Chart:Bool = false;
 
+	/**
+	 * Executes the `onLoadJson` operation.
+	 * @param songJson Input value for `songJson`.
+	 * @return Result produced by `onLoadJson`, when applicable.
+	 */
 	private static function onLoadJson(songJson:Dynamic) // Convert old charts to newest format
 	{
 		if(songJson.events == null)
@@ -133,6 +138,12 @@ class Song
 		}
 	}
 
+	/**
+	 * Executes the `hasDifficulty` operation.
+	 * @param songName Input value for `songName`.
+	 * @param difficulty Input value for `difficulty`.
+	 * @return Result produced by `hasDifficulty`, when applicable.
+	 */
 	public static function hasDifficulty(songName:String, difficulty:String):Bool
 	{
 		var formattedSong:String = Paths.formatToSongPath(songName);
@@ -150,6 +161,12 @@ class Song
 		return false;
 	}
 	public static var loadedSongName:String;
+	/**
+	 * Executes the `loadFromJson` operation.
+	 * @param jsonInput Input value for `jsonInput`.
+	 * @param folder Input value for `folder`.
+	 * @return Result produced by `loadFromJson`, when applicable.
+	 */
 	public static function loadFromJson(jsonInput:String, ?folder:String):SwagSong
 	{
 		if(folder == null) folder = jsonInput;
@@ -183,6 +200,11 @@ class Song
 	}
 
 	
+	/**
+	 * Executes the `parseJSON` operation.
+	 * @param rawJson Input value for `rawJson`.
+	 * @return Result produced by `parseJSON`, when applicable.
+	 */
 	public static function parseJSON(rawJson:String):Dynamic {
 		var songJson = cast Json.parse(rawJson);
 		psychV1Chart = Reflect.hasField(songJson, 'format');

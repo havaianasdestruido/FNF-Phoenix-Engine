@@ -16,6 +16,12 @@ class StartupState extends MusicBeatState
 	var canAutism = false;
 
 	private var vidSprite:VideoSprite = null;
+	/**
+	 * Executes the `startVideo` operation.
+	 * @param name Input value for `name`.
+	 * @param library Input value for `library`.
+	 * @return Result produced by `startVideo`, when applicable.
+	 */
 	private function startVideo(name:String, ?library:String = null, ?callback:Void->Void = null, canSkip:Bool = true, loop:Bool = false, playOnLoad:Bool = true)
 	{
 		#if VIDEOS_ALLOWED
@@ -34,6 +40,10 @@ class StartupState extends MusicBeatState
 			vidSprite = new VideoSprite(fileName, false, canSkip, loop);
 
 			// Finish callback
+			/**
+			 * Executes the `onVideoEnd` operation.
+			 * @return Result produced by `onVideoEnd`, when applicable.
+			 */
 			function onVideoEnd()
 			{
 				FlxG.switchState(TitleState.new);
@@ -61,6 +71,9 @@ class StartupState extends MusicBeatState
 		return null;
 	}
 
+	/**
+	 * Executes the `create` operation.
+	 */
 	override public function create():Void
 	{
 		if (DateUtils.isChristmas()) //Only triggers if the date is between 12/16 and 12/31
@@ -104,6 +117,11 @@ class StartupState extends MusicBeatState
 		super.create();
 	}
 
+	/**
+	 * Executes the `onIntroDone` operation.
+	 * @param fadeDelay Input value for `fadeDelay`.
+	 * @return Result produced by `onIntroDone`, when applicable.
+	 */
 	function onIntroDone(?fadeDelay:Float = 0) {
 		FlxTween.tween(logo, {alpha: 0}, 1, {
 			startDelay: fadeDelay,
@@ -114,6 +132,10 @@ class StartupState extends MusicBeatState
 		});
 	}
 
+	/**
+	 * Executes the `doIntro` operation.
+	 * @return Result produced by `doIntro`, when applicable.
+	 */
 	function doIntro() {
 		#if debug // for testing purposes
 			startVideo('broCopiedDenpa', 'splash');
@@ -189,6 +211,11 @@ class StartupState extends MusicBeatState
 		#end
 	}
 
+	/**
+	 * Executes the `update` operation.
+	 * @param elapsed Input value for `elapsed`.
+	 * @return Result produced by `update`, when applicable.
+	 */
 	override function update(elapsed:Float)
 	{
 		if (FlxG.keys.justPressed.ENTER) FlxG.switchState(TitleState.new);

@@ -10,6 +10,10 @@ import headers.PsychLua;
 // REFACTOR: extracted from psychlua.PythonScript (text object API)
 class PyTextLib
 {
+	/**
+	 * Executes the `register` operation.
+	 * @param py Input value for `py`.
+	 */
 	public static function register(py:PythonScript):Void {
 		@:privateAccess {
 		// Lua texts

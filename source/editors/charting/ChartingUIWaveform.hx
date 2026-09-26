@@ -14,6 +14,11 @@ import backend.Conductor;
 @:access(backend.MusicBeatState)
 class ChartingUIWaveform
 {
+  /**
+   * Executes the `updateWaveform` operation.
+   * @param state Input value for `state`.
+   * @return Result produced by `updateWaveform`, when applicable.
+   */
   public static function updateWaveform(state:ChartingState)
   {
     #if (desktop && !air)
@@ -98,6 +103,17 @@ class ChartingUIWaveform
     #end
   }
 
+  /**
+   * Executes the `waveformData` operation.
+   * @param buffer Input value for `buffer`.
+   * @param bytes Input value for `bytes`.
+   * @param time Input value for `time`.
+   * @param endTime Input value for `endTime`.
+   * @param multiply Input value for `multiply`.
+   * @param array Input value for `array`.
+   * @param steps Input value for `steps`.
+   * @return Result produced by `waveformData`, when applicable.
+   */
   public static function waveformData(buffer:AudioBuffer, bytes:Bytes, time:Float, endTime:Float, multiply:Float = 1, ?array:Array<Array<Array<Float>>>,
       ?steps:Float):Array<Array<Array<Float>>>
   {

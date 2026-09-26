@@ -57,6 +57,10 @@ class MobileControlsSelectSubState extends FlxSubState
 	private var bindButton:FlxButton;
 	private var resetButton:FlxButton;
 
+	/**
+	 * Executes the `create` operation.
+	 * @return Result produced by `create`, when applicable.
+	 */
 	override function create()
 	{
 		for (i in 0...controlsItems.length)
@@ -154,6 +158,11 @@ class MobileControlsSelectSubState extends FlxSubState
 		super.create();
 	}
 
+	/**
+	 * Executes the `update` operation.
+	 * @param elapsed Input value for `elapsed`.
+	 * @return Result produced by `update`, when applicable.
+	 */
 	override function update(elapsed:Float)
 	{
 		super.update(elapsed);
@@ -239,6 +248,10 @@ class MobileControlsSelectSubState extends FlxSubState
 		}
 	}
 
+	/**
+	 * Executes the `changeSelection` operation.
+	 * @param change Input value for `change`.
+	 */
 	private function changeSelection(change:Int = 0):Void
 	{
 		curSelected += change;
@@ -266,6 +279,11 @@ class MobileControlsSelectSubState extends FlxSubState
 		exPosition.visible = daChoice == 'Pad-Custom';
 	}
 
+	/**
+	 * Executes the `moveButton` operation.
+	 * @param touch Input value for `touch`.
+	 * @param button Input value for `button`.
+	 */
 	private function moveButton(touch:FlxTouch, button:FlxButton):Void
 	{
 		bindButton = button;
@@ -276,6 +294,10 @@ class MobileControlsSelectSubState extends FlxSubState
 			buttonBinded = true;
 	}
 
+	/**
+	 * Executes the `reloadMobileControls` operation.
+	 * @param daChoice Input value for `daChoice`.
+	 */
 	private function reloadMobileControls(daChoice:String):Void
 	{
 		switch (daChoice)
@@ -307,6 +329,9 @@ class MobileControlsSelectSubState extends FlxSubState
 			hitbox.visible = (daChoice == 'Hitbox');
 	}
 
+	/**
+	 * Executes the `removeControls` operation.
+	 */
 	private function removeControls():Void
 	{
 		if (virtualPad != null)

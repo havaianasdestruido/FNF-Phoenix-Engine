@@ -6,6 +6,10 @@ import psychlua.FunkinLua;
 // REFACTOR: extracted from psychlua.FunkinLua (input polling API)
 class InputCallbacks
 {
+	/**
+	 * Executes the `register` operation.
+	 * @param funk Input value for `funk`.
+	 */
 	public static function register(funk:FunkinLua):Void {
 		@:privateAccess {
 		FunkinLua.registerFunction("mouseClicked", function(button:String) {

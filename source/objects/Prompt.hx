@@ -21,6 +21,11 @@ class Prompt extends MusicBeatSubstate
 	var buttonAccept:FlxButton;
 	var buttonNo:FlxButton;
 	var cornerSize:Int = 10;
+	/**
+	 * Executes the `new` operation.
+	 * @param promptText Input value for `promptText`.
+	 * @param defaultSelected Input value for `defaultSelected`.
+	 */
 	public function new(promptText:String='', defaultSelected:Int = 0, okCallback:Void->Void, cancelCallback:Void->Void,acceptOnDefault:Bool=false,option1:String=null,option2:String=null)
 	{
 		selected = defaultSelected;
@@ -41,6 +46,9 @@ class Prompt extends MusicBeatSubstate
 		super();
 	}
 
+	/**
+	 * Executes the `create` operation.
+	 */
 	override public function create():Void
 	{
 		cameras = [FlxG.cameras.list[FlxG.cameras.list.length-1]];
@@ -80,6 +88,14 @@ class Prompt extends MusicBeatSubstate
 		}
 	}
 
+	/**
+	 * Executes the `makeSelectorGraphic` operation.
+	 * @param panel Input value for `panel`.
+	 * @param w Input value for `w`.
+	 * @param h Input value for `h`.
+	 * @param color Input value for `color`.
+	 * @return Result produced by `makeSelectorGraphic`, when applicable.
+	 */
 	function makeSelectorGraphic(panel:FlxSprite,w,h,color:FlxColor)
 	{
 		panel.makeGraphic(w, h, color);
@@ -97,6 +113,14 @@ class Prompt extends MusicBeatSubstate
 		drawCircleCornerOnSelector(panel,true, true,color);
 	}
 
+	/**
+	 * Executes the `drawCircleCornerOnSelector` operation.
+	 * @param panel Input value for `panel`.
+	 * @param flipX Input value for `flipX`.
+	 * @param flipY Input value for `flipY`.
+	 * @param color Input value for `color`.
+	 * @return Result produced by `drawCircleCornerOnSelector`, when applicable.
+	 */
 	function drawCircleCornerOnSelector(panel:FlxSprite,flipX:Bool, flipY:Bool,color:FlxColor)
 	{
 		var antiX:Float = (panel.width - cornerSize);

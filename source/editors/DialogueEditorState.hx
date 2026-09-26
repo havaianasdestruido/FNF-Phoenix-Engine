@@ -38,6 +38,10 @@ class DialogueEditorState extends MusicBeatState
 	var defaultLine:DialogueLine;
 	var dialogueFile:DialogueFile = null;
 
+	/**
+	 * Executes the `create` operation.
+	 * @return Result produced by `create`, when applicable.
+	 */
 	override function create() {
 		music = new EditingMusic();
 		persistentUpdate = persistentDraw = true;
@@ -105,6 +109,10 @@ class DialogueEditorState extends MusicBeatState
 	}
 
 	var UI_box:FlxUITabMenu;
+	/**
+	 * Executes the `addEditorBox` operation.
+	 * @return Result produced by `addEditorBox`, when applicable.
+	 */
 	function addEditorBox() {
 		var tabs = [
 			{name: 'Dialogue Line', label: 'Dialogue Line'},
@@ -124,6 +132,10 @@ class DialogueEditorState extends MusicBeatState
 	var angryCheckbox:FlxUICheckBox;
 	var speedStepper:FlxUINumericStepper;
 	var soundInputText:FlxUIInputText;
+	/**
+	 * Executes the `addDialogueLineUI` operation.
+	 * @return Result produced by `addDialogueLineUI`, when applicable.
+	 */
 	function addDialogueLineUI() {
 		var tab_group = new FlxUI(null, UI_box);
 		tab_group.name = "Dialogue Line";
@@ -170,6 +182,10 @@ class DialogueEditorState extends MusicBeatState
 		UI_box.addGroup(tab_group);
 	}
 
+	/**
+	 * Executes the `copyDefaultLine` operation.
+	 * @return Result produced by `copyDefaultLine`, when applicable.
+	 */
 	function copyDefaultLine():DialogueLine {
 		var copyLine:DialogueLine = {
 			portrait: defaultLine.portrait,
@@ -182,6 +198,10 @@ class DialogueEditorState extends MusicBeatState
 		return copyLine;
 	}
 
+	/**
+	 * Executes the `updateTextBox` operation.
+	 * @return Result produced by `updateTextBox`, when applicable.
+	 */
 	function updateTextBox() {
 		box.flipX = false;
 		var isAngry:Bool = angryCheckbox.checked;
@@ -201,6 +221,10 @@ class DialogueEditorState extends MusicBeatState
 		DialogueBoxPsych.updateBoxOffsets(box);
 	}
 
+	/**
+	 * Executes the `reloadCharacter` operation.
+	 * @return Result produced by `reloadCharacter`, when applicable.
+	 */
 	function reloadCharacter() {
 		character.frames = Paths.getSparrowAtlas('dialogue/' + character.jsonFile.image);
 		character.jsonFile = character.jsonFile;
@@ -233,6 +257,11 @@ class DialogueEditorState extends MusicBeatState
 	private static var DEFAULT_TEXT:String = "coolswag";
 	private static var DEFAULT_SPEED:Float = 0.05;
 	private static var DEFAULT_BUBBLETYPE:String = "normal";
+	/**
+	 * Executes the `reloadText` operation.
+	 * @param skipDialogue Input value for `skipDialogue`.
+	 * @return Result produced by `reloadText`, when applicable.
+	 */
 	function reloadText(skipDialogue:Bool) {
 		var textToType:String = lineInputText.text;
 		if(textToType == null || textToType.length < 1) textToType = ' ';
@@ -262,6 +291,14 @@ class DialogueEditorState extends MusicBeatState
 		#end
 	}
 
+	/**
+	 * Executes the `getEvent` operation.
+	 * @param id Input value for `id`.
+	 * @param sender Input value for `sender`.
+	 * @param data Input value for `data`.
+	 * @param params Input value for `params`.
+	 * @return Result produced by `getEvent`, when applicable.
+	 */
 	override function getEvent(id:String, sender:Dynamic, data:Dynamic, ?params:Array<Dynamic>) {
 		if(id == FlxUIInputText.CHANGE_EVENT && (sender is FlxUIInputText)) {
 			if (sender == characterInputText)
@@ -311,6 +348,11 @@ class DialogueEditorState extends MusicBeatState
 	var curAnim:Int = 0;
 	var blockPressWhileTypingOn:Array<FlxUIInputText> = [];
 	var transitioning:Bool = false;
+	/**
+	 * Executes the `update` operation.
+	 * @param elapsed Input value for `elapsed`.
+	 * @return Result produced by `update`, when applicable.
+	 */
 	override function update(elapsed:Float) {
 		if(transitioning) {
 			super.update(elapsed);
@@ -402,6 +444,11 @@ class DialogueEditorState extends MusicBeatState
 		music.update(elapsed);
 	}
 
+	/**
+	 * Executes the `changeText` operation.
+	 * @param add Input value for `add`.
+	 * @return Result produced by `changeText`, when applicable.
+	 */
 	function changeText(add:Int = 0) {
 		curSelected += add;
 		if(curSelected < 0) curSelected = dialogueFile.dialogue.length - 1;
@@ -445,6 +492,10 @@ class DialogueEditorState extends MusicBeatState
 		selectedText.text = 'Line: (' + (curSelected + 1) + ' / ' + dialogueFile.dialogue.length + ') - Press A or D to scroll';
 	}
 
+	/**
+	 * Executes the `characterAnimSpeed` operation.
+	 * @return Result produced by `characterAnimSpeed`, when applicable.
+	 */
 	function characterAnimSpeed() {
 		if(character.animation.curAnim != null) {
 			var speed:Float = speedStepper.value;
@@ -456,11 +507,19 @@ class DialogueEditorState extends MusicBeatState
 	}
 
 	var _file:FileReference = null;
+	/**
+	 * Executes the `loadDialogue` operation.
+	 * @return Result produced by `loadDialogue`, when applicable.
+	 */
 	function loadDialogue() {
 		_file = new FileReference();
 		DialogueEditorHelpers.browseForJsonFile(_file, onLoadComplete, onLoadCancel, onLoadError);
 	}
 
+	/**
+	 * Executes the `onLoadComplete` operation.
+	 * @param _ Input value for `_`.
+	 */
 	function onLoadComplete(_):Void
 	{
 		DialogueEditorHelpers.onLoadCompleteDialogue(this);
@@ -484,6 +543,10 @@ class DialogueEditorState extends MusicBeatState
 		_file = null;
 	}
 
+	/**
+	 * Executes the `saveDialogue` operation.
+	 * @return Result produced by `saveDialogue`, when applicable.
+	 */
 	function saveDialogue() {
 		var data:String = DialogueEditorHelpers.jsonStringify(dialogueFile);
 		if (data.length > 0)
@@ -493,6 +556,10 @@ class DialogueEditorState extends MusicBeatState
 		}
 	}
 
+	/**
+	 * Executes the `onSaveComplete` operation.
+	 * @param _ Input value for `_`.
+	 */
 	function onSaveComplete(_):Void
 	{
 		DialogueEditorHelpers.completeSaveFile(_file, onSaveComplete, onSaveCancel, onSaveError);
@@ -516,12 +583,18 @@ class DialogueEditorState extends MusicBeatState
 		DialogueEditorHelpers.failSaveFile(_file, onSaveComplete, onSaveCancel, onSaveError);
 		_file = null;
 	}
+	/**
+	 * Executes the `onFocusLost` operation.
+	 */
 	override public function onFocusLost():Void
 	    {
 		    if (music != null && music.music != null) music.pauseMusic();
 
 		    super.onFocusLost();
 	    }
+	/**
+	 * Executes the `onFocus` operation.
+	 */
 	override public function onFocus():Void
 	    {
 		    if (music != null && music.music != null) music.unpauseMusic();

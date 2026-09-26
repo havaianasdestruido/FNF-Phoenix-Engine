@@ -12,6 +12,12 @@ import utils.DateUtils;
 @:access(backend.MusicBeatState)
 class PlayStateRender
 {
+	/**
+	 * Executes the `initRender` operation.
+	 * @param state Input value for `state`.
+	 * @param renderPath Input value for `renderPath`.
+	 * @param prefixName Input value for `prefixName`.
+	 */
 	public static function initRender(state:PlayState, renderPath:String = "assets/gameRenders/", ?prefixName:String = null):Void
 	{
 		#if sys
@@ -61,6 +67,10 @@ class PlayStateRender
 		#end
 	}
 
+	/**
+	 * Executes the `pipeFrame` operation.
+	 * @param state Input value for `state`.
+	 */
 	public static function pipeFrame(state:PlayState):Void
 	{
 		#if sys
@@ -73,6 +83,9 @@ class PlayStateRender
 		#end
 	}
 
+	/**
+	 * Executes the `stopRender` operation.
+	 */
 	public static function stopRender():Void
 	{
 		#if sys

@@ -10,6 +10,11 @@ class CustomFadeTransition extends MusicBeatSubstate {
 	var transGradient:FlxSprite;
 
 	var duration:Float;
+	/**
+	 * Executes the `new` operation.
+	 * @param duration Input value for `duration`.
+	 * @param isTransIn Input value for `isTransIn`.
+	 */
 	public function new(duration:Float, isTransIn:Bool)
 	{
 		this.duration = duration;
@@ -17,6 +22,10 @@ class CustomFadeTransition extends MusicBeatSubstate {
 		super();
 	}
 
+	/**
+	 * Executes the `create` operation.
+	 * @return Result produced by `create`, when applicable.
+	 */
 	override function create()
 	{
 		cameras = [FlxG.cameras.list[FlxG.cameras.list.length-1]];
@@ -44,6 +53,11 @@ class CustomFadeTransition extends MusicBeatSubstate {
 		super.create();
 	}
 
+	/**
+	 * Executes the `update` operation.
+	 * @param elapsed Input value for `elapsed`.
+	 * @return Result produced by `update`, when applicable.
+	 */
 	override function update(elapsed:Float) {
 		super.update(elapsed);
 
@@ -66,6 +80,9 @@ class CustomFadeTransition extends MusicBeatSubstate {
 	}
 
 	// Don't delete this
+	/**
+	 * Executes the `close` operation.
+	 */
 	override function close():Void
 	{
 		super.close();

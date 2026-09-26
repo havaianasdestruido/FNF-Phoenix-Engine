@@ -27,6 +27,13 @@ class ResetScoreSubState extends MusicBeatSubstate
   var week:Int;
 
   // Week -1 = Freeplay
+  /**
+   * Executes the `new` operation.
+   * @param song Input value for `song`.
+   * @param difficulty Input value for `difficulty`.
+   * @param character Input value for `character`.
+   * @param week Input value for `week`.
+   */
   public function new(song:String, difficulty:Int, character:String, week:Int = -1)
   {
     this.song = song;
@@ -81,6 +88,11 @@ class ResetScoreSubState extends MusicBeatSubstate
     updateOptions();
   }
 
+  /**
+   * Executes the `update` operation.
+   * @param elapsed Input value for `elapsed`.
+   * @return Result produced by `update`, when applicable.
+   */
   override function update(elapsed:Float)
   {
     bg.alpha += elapsed * 1.5;
@@ -123,6 +135,10 @@ class ResetScoreSubState extends MusicBeatSubstate
     super.update(elapsed);
   }
 
+  /**
+   * Executes the `updateOptions` operation.
+   * @return Result produced by `updateOptions`, when applicable.
+   */
   function updateOptions()
   {
     var scales:Array<Float> = [0.75, 1];

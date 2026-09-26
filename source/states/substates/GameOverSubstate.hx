@@ -34,6 +34,11 @@ class GameOverSubstate extends MusicBeatSubstate
 
 	public static var instance:GameOverSubstate;
 	var parentPlayState:PlayState = null; // assuring PlayState isn't null
+	/**
+	 * Executes the `new` operation.
+	 * @param char Input value for `char`.
+	 * @param ps Input value for `ps`.
+	 */
 	public function new(?char:Character, ps:PlayState)
 	{
 		super();
@@ -49,6 +54,12 @@ class GameOverSubstate extends MusicBeatSubstate
 		createDeathCharacter(char, parentPlayState);
 	}
 	
+	/**
+	 * Executes the `createDeathCharacter` operation.
+	 * @param char Input value for `char`.
+	 * @param game Input value for `game`.
+	 * @return Result produced by `createDeathCharacter`, when applicable.
+	 */
 	function createDeathCharacter(char:Character, game:PlayState)
 	{
 		var deathName:String = characterName != null 
@@ -76,8 +87,19 @@ class GameOverSubstate extends MusicBeatSubstate
 		add(camFollowPos);
 	}
 	
+	/**
+	 * Executes the `startGeneric` operation.
+	 * @return Result produced by `startGeneric`, when applicable.
+	 */
 	inline function startGeneric() {
 		var tweens:Array<FlxTween> = [];
+		/**
+		 * Executes the `doTween` operation.
+		 * @param goals Input value for `goals`.
+		 * @param dur Input value for `dur`.
+		 * @param props Input value for `props`.
+		 * @return Result produced by `doTween`, when applicable.
+		 */
 		inline function doTween(goals:Dynamic, dur:Float, ?props:flixel.tweens.FlxTween.TweenOptions)
 			tweens.push(FlxTween.tween(genericCharacter, goals, dur, props));
 		
@@ -109,6 +131,10 @@ class GameOverSubstate extends MusicBeatSubstate
 		tweens = null;
 	}
 	
+	/**
+	 * Executes the `doGenericGameOver` operation.
+	 * @return Result produced by `doGenericGameOver`, when applicable.
+	 */
 	function doGenericGameOver()
 	{
 		genericCharacter = new FlxSprite(0, 0);
@@ -121,6 +147,10 @@ class GameOverSubstate extends MusicBeatSubstate
 		add(camFollowPos);
 	}
 
+	/**
+	 * Executes the `resetVariables` operation.
+	 * @return Result produced by `resetVariables`, when applicable.
+	 */
 	public static function resetVariables() {
 		characterName = 'bf-dead';
 		deathSoundName = 'fnf_loss_sfx';
@@ -142,6 +172,10 @@ class GameOverSubstate extends MusicBeatSubstate
 		}
 	}
 	
+	/**
+	 * Executes the `usingCharacter` operation.
+	 * @return Result produced by `usingCharacter`, when applicable.
+	 */
 	inline function usingCharacter():Bool
 	{
 		return boyfriend != null;
@@ -152,6 +186,10 @@ class GameOverSubstate extends MusicBeatSubstate
 
 	var overlay:FlxSprite;
 	var overlayConfirmOffsets:FlxPoint = FlxPoint.get();
+	/**
+	 * Executes the `create` operation.
+	 * @return Result produced by `create`, when applicable.
+	 */
 	override function create()
 	{
 		instance = this;
@@ -245,6 +283,11 @@ class GameOverSubstate extends MusicBeatSubstate
 		super.create();
 	}
 
+	/**
+	 * Executes the `update` operation.
+	 * @param elapsed Input value for `elapsed`.
+	 * @return Result produced by `update`, when applicable.
+	 */
 	override function update(elapsed:Float)
 	{
 		super.update(elapsed);
@@ -325,12 +368,19 @@ class GameOverSubstate extends MusicBeatSubstate
 	}
 
 	var isEnding:Bool = false;
+	/**
+	 * Executes the `coolStartDeath` operation.
+	 * @param volume Input value for `volume`.
+	 */
 	function coolStartDeath(?volume:Float = 1):Void
 	{
 		FlxG.sound.music.play(true);
 		FlxG.sound.music.volume = volume;
 	}
 
+	/**
+	 * Executes the `endGameOver` operation.
+	 */
 	function endGameOver():Void
 	{
 		if (!isEnding)
@@ -374,6 +424,10 @@ class GameOverSubstate extends MusicBeatSubstate
 		}
 	}
 
+	/**
+	 * Executes the `destroy` operation.
+	 * @return Result produced by `destroy`, when applicable.
+	 */
 	override function destroy()
 	{
 		instance = null;

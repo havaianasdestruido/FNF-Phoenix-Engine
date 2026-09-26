@@ -13,6 +13,11 @@ import states.substates.PauseSubState;
 @:access(states.substates.GameplayChangersSubstate)
 class GameplayChangersHelpers
 {
+	/**
+	 * Executes the `getOptions` operation.
+	 * @param state Input value for `state`.
+	 * @return Result produced by `getOptions`, when applicable.
+	 */
 	public static function getOptions(state:GameplayChangersSubstate)
 	{
 		var skip:Bool = GameplayChangersSubstate.inThePauseMenu;
@@ -163,6 +168,12 @@ class GameplayChangersHelpers
 		state.optionsArray.push(option);
 	}
 
+	/**
+	 * Executes the `getOptionByName` operation.
+	 * @param state Input value for `state`.
+	 * @param name Input value for `name`.
+	 * @return Result produced by `getOptionByName`, when applicable.
+	 */
 	public static function getOptionByName(state:GameplayChangersSubstate, name:String)
 	{
 		for(i in state.optionsArray)
@@ -174,6 +185,11 @@ class GameplayChangersHelpers
 		return null;
 	}
 
+	/**
+	 * Executes the `updateTextFrom` operation.
+	 * @param option Input value for `option`.
+	 * @return Result produced by `updateTextFrom`, when applicable.
+	 */
 	public static function updateTextFrom(option:GameplayOption) {
 		var text:String = option.displayFormat;
 		var val:Dynamic = option.getValue();
@@ -182,6 +198,11 @@ class GameplayChangersHelpers
 		option.text = text.replace('%v', val).replace('%d', def);
 	}
 
+	/**
+	 * Executes the `clearHold` operation.
+	 * @param state Input value for `state`.
+	 * @return Result produced by `clearHold`, when applicable.
+	 */
 	public static function clearHold(state:GameplayChangersSubstate)
 	{
 		if(state.holdTime > 0.5) {
@@ -190,6 +211,11 @@ class GameplayChangersHelpers
 		state.holdTime = 0;
 	}
 
+	/**
+	 * Executes the `onChangeChartOption` operation.
+	 * @param state Input value for `state`.
+	 * @return Result produced by `onChangeChartOption`, when applicable.
+	 */
 	public static function onChangeChartOption(state:GameplayChangersSubstate)
 	{
 		if(GameplayChangersSubstate.inThePauseMenu)
@@ -198,6 +224,11 @@ class GameplayChangersHelpers
 			PauseSubState.requireRestart = true;
 		}
 	}
+	/**
+	 * Executes the `onChangeCheat` operation.
+	 * @param state Input value for `state`.
+	 * @return Result produced by `onChangeCheat`, when applicable.
+	 */
 	public static function onChangeCheat(state:GameplayChangersSubstate)
 	{
 		if(GameplayChangersSubstate.inThePauseMenu)
@@ -207,6 +238,12 @@ class GameplayChangersHelpers
 		}
 	}
 
+	/**
+	 * Executes the `changeSelection` operation.
+	 * @param state Input value for `state`.
+	 * @param change Input value for `change`.
+	 * @return Result produced by `changeSelection`, when applicable.
+	 */
 	public static function changeSelection(state:GameplayChangersSubstate, change:Int = 0)
 	{
 		state.curSelected += change;
@@ -236,6 +273,11 @@ class GameplayChangersHelpers
 		FlxG.sound.play(Paths.sound('scrollMenu'));
 	}
 
+	/**
+	 * Executes the `reloadCheckboxes` operation.
+	 * @param state Input value for `state`.
+	 * @return Result produced by `reloadCheckboxes`, when applicable.
+	 */
 	public static function reloadCheckboxes(state:GameplayChangersSubstate) {
 		for (checkbox in state.checkboxGroup) {
 			checkbox.daValue = (state.optionsArray[checkbox.ID].getValue() == true);

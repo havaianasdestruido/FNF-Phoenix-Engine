@@ -57,6 +57,9 @@ class Main extends Sprite
   // You can pretty much ignore everything from here on - your code should go in your states.
 
   @:noCompletion
+  /**
+   * Executes the `__init__` operation.
+*/
   private static function __init__():Void
   {
     #if GAMEMODE_ALLOWED
@@ -72,7 +75,7 @@ class Main extends Sprite
   /**
    * Best-effort GameMode cleanup. Called on application exit; the daemon also
    * unregisters the process automatically when it terminates.
-   */
+*/
   public static function shutdownGameMode():Void
   {
     #if GAMEMODE_ALLOWED
@@ -81,11 +84,17 @@ class Main extends Sprite
     #end
   }
 
+  /**
+   * Executes the `main` operation.
+*/
   public static function main():Void
   {
     Lib.current.addChild(new Main());
   }
 
+  /**
+   * Executes the `new` operation.
+*/
   public function new()
   {
     super();
@@ -110,9 +119,16 @@ class Main extends Sprite
 
   public static var askedToUpdate:Bool = false;
 
+  /**
+   * Executes the `isPlayState` operation.
+   * @return Result produced by `isPlayState`, when applicable.
+   */
   public static function isPlayState():Bool
     return Std.isOfType(FlxG.state, play.PlayState);
 
+  /**
+   * Executes the `setupGame` operation.
+   */
   private function setupGame():Void
   {
     var stageWidth:Int = Lib.current.stage.stageWidth;
@@ -188,6 +204,10 @@ class Main extends Sprite
     });
   }
 
+  /**
+   * Executes the `getTime` operation.
+   * @return Result produced by `getTime`, when applicable.
+   */
   public static function getTime():Float
   {
     #if ((js && !nodejs) || electron)
@@ -203,6 +223,10 @@ class Main extends Sprite
     #end
   }
 
+  /**
+   * Executes the `resetSpriteCache` operation.
+   * @param sprite Input value for `sprite`.
+   */
   static function resetSpriteCache(sprite:Sprite):Void
   {
     #if !flash
@@ -213,6 +237,11 @@ class Main extends Sprite
     #end
   }
 
+  /**
+   * Executes the `changeFPSColor` operation.
+   * @param color Input value for `color`.
+   * @return Result produced by `changeFPSColor`, when applicable.
+   */
   public static function changeFPSColor(color:FlxColor)
   {
     fpsVar.textColor = color;

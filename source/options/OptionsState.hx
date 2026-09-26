@@ -33,6 +33,11 @@ class OptionsState extends MusicBeatState
 	private var subCamera:FlxCamera;
 	private var otherCamera:FlxCamera;
 
+	/**
+	 * Executes the `openSelectedSubstate` operation.
+	 * @param label Input value for `label`.
+	 * @return Result produced by `openSelectedSubstate`, when applicable.
+	 */
 	function openSelectedSubstate(label:String) {
 		if (label != "Adjust Delay and Combo"){
 			removeVirtualPad();
@@ -70,6 +75,10 @@ class OptionsState extends MusicBeatState
 	var camFollow:FlxObject;
 	var camFollowPos:FlxObject;
 
+	/**
+	 * Executes the `create` operation.
+	 * @return Result produced by `create`, when applicable.
+	 */
 	override function create() {
 		Paths.clearStoredMemory();
 		Paths.clearUnusedMemory();
@@ -137,6 +146,10 @@ class OptionsState extends MusicBeatState
 		super.create();
 	}
 
+	/**
+	 * Executes the `closeSubState` operation.
+	 * @return Result produced by `closeSubState`, when applicable.
+	 */
 	override function closeSubState() {
 		super.closeSubState();
 		if (FlxG.sound.music != null && FlxG.sound.music.volume == 0)
@@ -149,6 +162,11 @@ class OptionsState extends MusicBeatState
 		FlxG.mouse.visible = false;
 	}
 
+	/**
+	 * Executes the `update` operation.
+	 * @param elapsed Input value for `elapsed`.
+	 * @return Result produced by `update`, when applicable.
+	 */
 	override function update(elapsed:Float) {
 		super.update(elapsed);
 
@@ -202,6 +220,9 @@ class OptionsState extends MusicBeatState
 		}
 	}
 
+	/**
+	 * Executes the `enterSuperSecretDebugMenu` operation.
+*/
 	function enterSuperSecretDebugMenu():Void
 	{
 		enteringDebugMenu = true;
@@ -223,6 +244,11 @@ class OptionsState extends MusicBeatState
 		}});
 	}
 
+	/**
+	 * Executes the `changeSelection` operation.
+	 * @param change Input value for `change`.
+	 * @return Result produced by `changeSelection`, when applicable.
+	 */
 	function changeSelection(change:Int = 0) {
 		curSelected += change;
 		if (curSelected < 0)
@@ -253,6 +279,10 @@ class OptionsState extends MusicBeatState
 
 		FlxG.sound.play(Paths.sound('scrollMenu'));
 	}
+/**
+ * Executes the `checkKonamiCode` operation.
+ * @return Result produced by `checkKonamiCode`, when applicable.
+ */
 function checkKonamiCode():Bool {
     if (konamiCode[konamiIndex].justPressed) {
         konamiIndex++;

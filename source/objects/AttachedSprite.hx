@@ -15,6 +15,13 @@ class AttachedSprite extends FlxSprite
 	public var copyAlpha:Bool = true;
 	public var copyVisible:Bool = false;
 
+	/**
+	 * Executes the `new` operation.
+	 * @param file Input value for `file`.
+	 * @param anim Input value for `anim`.
+	 * @param library Input value for `library`.
+	 * @param loop Input value for `loop`.
+	 */
 	public function new(?file:String = null, ?anim:String = null, ?library:String = null, ?loop:Bool = false)
 	{
 		super();
@@ -29,6 +36,11 @@ class AttachedSprite extends FlxSprite
 		scrollFactor.set();
 	}
 
+	/**
+	 * Executes the `update` operation.
+	 * @param elapsed Input value for `elapsed`.
+	 * @return Result produced by `update`, when applicable.
+	 */
 	override function update(elapsed:Float)
 	{
 		super.update(elapsed);

@@ -8,6 +8,9 @@ class BackgroundTank extends BGSprite
 	public var offsetY:Float = 1300;
 	public var tankSpeed:Float = 0;
 	public var tankAngle:Float = 0;
+	/**
+	 * Executes the `new` operation.
+*/
 	public function new()
 	{
 		super('tankRolling', 0, 0, 0.5, 0.5, ['BG tank w lighting'], true);
@@ -16,6 +19,11 @@ class BackgroundTank extends BGSprite
 		antialiasing = ClientPrefs.globalAntialiasing;
 	}
 
+	/**
+	 * Executes the `update` operation.
+	 * @param elapsed Input value for `elapsed`.
+	 * @return Result produced by `update`, when applicable.
+	 */
 	override function update(elapsed:Float)
 	{
 		super.update(elapsed);

@@ -9,6 +9,10 @@ import objects.Character;
 // REFACTOR: extracted from psychlua.PythonScript (character API)
 class PyCharacterLib
 {
+	/**
+	 * Executes the `register` operation.
+	 * @param py Input value for `py`.
+	 */
 	public static function register(py:PythonScript):Void {
 		@:privateAccess {
 		// ---------------------------------------------------------------- //

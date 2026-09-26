@@ -18,6 +18,9 @@ class GameRendererSettingsSubState extends BaseOptionsMenu
 {
 	var fpsOption:Option;
 	var renderPathOption:Option;
+	/**
+	 * Executes the `new` operation.
+*/
 	public function new()
 	{
 		title = 'Game Renderer';
@@ -135,11 +138,19 @@ class GameRendererSettingsSubState extends BaseOptionsMenu
 
 		super();
 	}
+	/**
+	 * Executes the `onChangeFramerate` operation.
+	 * @return Result produced by `onChangeFramerate`, when applicable.
+	 */
 	function onChangeFramerate()
 	{
 		fpsOption.scrollSpeed = fpsOption.getValue() / 2;
 	}
 
+	/**
+	 * Executes the `changeOutputPath` operation.
+	 * @return Result produced by `changeOutputPath`, when applicable.
+	 */
 	function changeOutputPath()
 	{
 		#if hxnativefiledialog

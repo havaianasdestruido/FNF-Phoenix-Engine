@@ -21,6 +21,15 @@ import flixel.math.FlxAngle;
  */
 class FlxGradient
 {
+	/**
+	 * Executes the `createGradientMatrix` operation.
+	 * @param width Input value for `width`.
+	 * @param height Input value for `height`.
+	 * @param colors Input value for `colors`.
+	 * @param chunkSize Input value for `chunkSize`.
+	 * @param rotation Input value for `rotation`.
+	 * @return Result produced by `createGradientMatrix`, when applicable.
+	 */
 	public static function createGradientMatrix(width:Int, height:Int, colors:Array<FlxColor>, chunkSize:UInt = 1, rotation:Int = 90):GradientMatrix
 	{
 		var gradientMatrix = new Matrix();
@@ -64,6 +73,16 @@ class FlxGradient
 		return {matrix: gradientMatrix, alpha: alpha, ratio: ratio};
 	}
 
+	/**
+	 * Executes the `createGradientArray` operation.
+	 * @param width Input value for `width`.
+	 * @param height Input value for `height`.
+	 * @param colors Input value for `colors`.
+	 * @param chunkSize Input value for `chunkSize`.
+	 * @param rotation Input value for `rotation`.
+	 * @param interpolate Input value for `interpolate`.
+	 * @return Result produced by `createGradientArray`, when applicable.
+	 */
 	public static function createGradientArray(width:Int, height:Int, colors:Array<FlxColor>, chunkSize:UInt = 1, rotation:Int = 90,
 			interpolate:Bool = true):Array<FlxColor>
 	{
@@ -89,6 +108,16 @@ class FlxGradient
 	 * @param   interpolate   Interpolate the colours? True uses RGB interpolation, false uses linear RGB
 	 * @return  A FlxSprite containing your gradient (if valid parameters given!)
 	 */
+	/**
+	 * Executes the `createGradientFlxSprite` operation.
+	 * @param width Input value for `width`.
+	 * @param height Input value for `height`.
+	 * @param colors Input value for `colors`.
+	 * @param chunkSize Input value for `chunkSize`.
+	 * @param rotation Input value for `rotation`.
+	 * @param interpolate Input value for `interpolate`.
+	 * @return Result produced by `createGradientFlxSprite`, when applicable.
+	 */
 	public static function createGradientFlxSprite(width:Int, height:Int, colors:Array<FlxColor>, chunkSize:UInt = 1, rotation:Int = 90,
 			interpolate:Bool = true):FlxSprite
 	{
@@ -98,6 +127,16 @@ class FlxGradient
 		return dest;
 	}
 
+	/**
+	 * Executes the `createGradientBitmapData` operation.
+	 * @param width Input value for `width`.
+	 * @param height Input value for `height`.
+	 * @param colors Input value for `colors`.
+	 * @param chunkSize Input value for `chunkSize`.
+	 * @param rotation Input value for `rotation`.
+	 * @param interpolate Input value for `interpolate`.
+	 * @return Result produced by `createGradientBitmapData`, when applicable.
+	 */
 	public static function createGradientBitmapData(width:UInt, height:UInt, colors:Array<FlxColor>, chunkSize:UInt = 1, rotation:Int = 90,
 			interpolate:Bool = true):BitmapData
 	{
@@ -171,6 +210,19 @@ class FlxGradient
 	 * @param   interpolate   Interpolate the colours? True uses RGB interpolation, false uses linear RGB
 	 * @return  The composited FlxSprite (for chaining, if you need)
 	 */
+	/**
+	 * Executes the `overlayGradientOnFlxSprite` operation.
+	 * @param dest Input value for `dest`.
+	 * @param width Input value for `width`.
+	 * @param height Input value for `height`.
+	 * @param colors Input value for `colors`.
+	 * @param destX Input value for `destX`.
+	 * @param destY Input value for `destY`.
+	 * @param chunkSize Input value for `chunkSize`.
+	 * @param rotation Input value for `rotation`.
+	 * @param interpolate Input value for `interpolate`.
+	 * @return Result produced by `overlayGradientOnFlxSprite`, when applicable.
+	 */
 	public static function overlayGradientOnFlxSprite(dest:FlxSprite, width:Int, height:Int, colors:Array<FlxColor>, destX:Int = 0, destY:Int = 0,
 			chunkSize:UInt = 1, rotation:Int = 90, interpolate:Bool = true):FlxSprite
 	{
@@ -204,6 +256,19 @@ class FlxGradient
 	 * @param   rotation      Angle of the gradient in degrees. 90 = top to bottom, 180 = left to right. Any angle is valid
 	 * @param   interpolate   Interpolate the colours? True uses RGB interpolation, false uses linear RGB
 	 * @return  The composited BitmapData
+	 */
+	/**
+	 * Executes the `overlayGradientOnBitmapData` operation.
+	 * @param dest Input value for `dest`.
+	 * @param width Input value for `width`.
+	 * @param height Input value for `height`.
+	 * @param colors Input value for `colors`.
+	 * @param destX Input value for `destX`.
+	 * @param destY Input value for `destY`.
+	 * @param chunkSize Input value for `chunkSize`.
+	 * @param rotation Input value for `rotation`.
+	 * @param interpolate Input value for `interpolate`.
+	 * @return Result produced by `overlayGradientOnBitmapData`, when applicable.
 	 */
 	public static function overlayGradientOnBitmapData(dest:BitmapData, width:Int, height:Int, colors:Array<FlxColor>, destX:Int = 0, destY:Int = 0,
 			chunkSize:UInt = 1, rotation:Int = 90, interpolate:Bool = true):BitmapData

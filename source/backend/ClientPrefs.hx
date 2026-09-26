@@ -269,6 +269,10 @@ class ClientPrefs { //default settings if it can't find a save file containing y
 	public static var defaultPixelRGB:Array<Array<FlxColor>>;
 	public static var defaultQuantRGB:Array<Array<FlxColor>>;
 
+	/**
+	 * Executes the `loadDefaultStuff` operation.
+	 * @return Result produced by `loadDefaultStuff`, when applicable.
+	 */
 	public static function loadDefaultStuff() {
 		defaultKeys = keyBinds.copy();
 		defaultArrowRGB = arrowRGB.copy();
@@ -276,6 +280,10 @@ class ClientPrefs { //default settings if it can't find a save file containing y
 		defaultQuantRGB = quantRGB.copy();
 	}
 
+	/**
+	 * Executes the `saveSettings` operation.
+	 * @return Result produced by `saveSettings`, when applicable.
+	 */
 	public static function saveSettings() { //changes settings when you exit so that it doesn't reset every time you close the game
 		// null code real, from my own mod
 		// credits to my friend sanco
@@ -301,6 +309,10 @@ class ClientPrefs { //default settings if it can't find a save file containing y
 		FlxG.log.add("Settings saved!");
 	}
 
+	/**
+	 * Executes the `loadPrefs` operation.
+	 * @return Result produced by `loadPrefs`, when applicable.
+	 */
 	public static function loadPrefs() { //loads settings if it finds a save file containing the settings
 		#if ACHIEVEMENTS_ALLOWED Achievements.load(); #end
 
@@ -356,10 +368,20 @@ class ClientPrefs { //default settings if it can't find a save file containing y
 		}
 	}
 
+	/**
+	 * Executes the `getGameplaySetting` operation.
+	 * @param name Input value for `name`.
+	 * @param defaultValue Input value for `defaultValue`.
+	 * @return Result produced by `getGameplaySetting`, when applicable.
+	 */
 	inline public static function getGameplaySetting(name:String, defaultValue:Dynamic):Dynamic {
 		return (gameplaySettings.exists(name) ? gameplaySettings.get(name) : defaultValue);
 	}
 
+	/**
+	 * Executes the `reloadControls` operation.
+	 * @return Result produced by `reloadControls`, when applicable.
+	 */
 	public static function reloadControls() {
 		PlayerSettings.player1.controls.setKeyboardScheme(KeyboardScheme.Solo);
 
@@ -370,6 +392,11 @@ class ClientPrefs { //default settings if it can't find a save file containing y
 		FlxG.sound.volumeDownKeys = TitleState.volumeDownKeys;
 		FlxG.sound.volumeUpKeys = TitleState.volumeUpKeys;
 	}
+	/**
+	 * Executes the `copyKey` operation.
+	 * @param arrayToCopy Input value for `arrayToCopy`.
+	 * @return Result produced by `copyKey`, when applicable.
+	 */
 	public static function copyKey(arrayToCopy:Array<FlxKey>):Array<FlxKey> {
 		var copiedArray:Array<FlxKey> = arrayToCopy.copy();
 		var i:Int = 0;

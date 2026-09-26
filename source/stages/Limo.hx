@@ -33,6 +33,10 @@ class Limo extends BaseStage
 	var grpLimoParticles:FlxTypedGroup<BGSprite>;
 	var dancersDiff:Float = 320;
 
+	/**
+	 * Executes the `create` operation.
+	 * @return Result produced by `create`, when applicable.
+	 */
 	override function create()
 	{
 		var skyBG:BGSprite = new BGSprite('limo/limoSunset', -120, -50, 0.1, 0.1);
@@ -81,6 +85,10 @@ class Limo extends BaseStage
 		fastCar = new BGSprite('limo/fastCarLol', -300, 160);
 		fastCar.active = true;
 	}
+	/**
+	 * Executes the `createPost` operation.
+	 * @return Result produced by `createPost`, when applicable.
+	 */
 	override function createPost()
 	{
 		resetFastCar();
@@ -91,6 +99,11 @@ class Limo extends BaseStage
 	}
 
 	var limoSpeed:Float = 0;
+	/**
+	 * Executes the `update` operation.
+	 * @param elapsed Input value for `elapsed`.
+	 * @return Result produced by `update`, when applicable.
+	 */
 	override function update(elapsed:Float)
 	{
 		if(!ClientPrefs.lowQuality) {
@@ -175,6 +188,10 @@ class Limo extends BaseStage
 		}
 	}
 
+	/**
+	 * Executes the `beatHit` operation.
+	 * @return Result produced by `beatHit`, when applicable.
+	 */
 	override function beatHit()
 	{
 		if(!ClientPrefs.lowQuality) {
@@ -189,6 +206,10 @@ class Limo extends BaseStage
 	}
 
 	// Substates for pausing/resuming tweens and timers
+	/**
+	 * Executes the `closeSubState` operation.
+	 * @return Result produced by `closeSubState`, when applicable.
+	 */
 	override function closeSubState()
 	{
 		if(paused)
@@ -197,6 +218,11 @@ class Limo extends BaseStage
 		}
 	}
 
+	/**
+	 * Executes the `openSubState` operation.
+	 * @param SubState Input value for `SubState`.
+	 * @return Result produced by `openSubState`, when applicable.
+	 */
 	override function openSubState(SubState:flixel.FlxSubState)
 	{
 		if(paused)
@@ -205,6 +231,16 @@ class Limo extends BaseStage
 		}
 	}
 
+	/**
+	 * Executes the `eventCalled` operation.
+	 * @param eventName Input value for `eventName`.
+	 * @param value1 Input value for `value1`.
+	 * @param value2 Input value for `value2`.
+	 * @param flValue1 Input value for `flValue1`.
+	 * @param flValue2 Input value for `flValue2`.
+	 * @param strumTime Input value for `strumTime`.
+	 * @return Result produced by `eventCalled`, when applicable.
+	 */
 	override function eventCalled(eventName:String, value1:String, value2:String, flValue1:Null<Float>, flValue2:Null<Float>, strumTime:Float)
 	{
 		switch(eventName)
@@ -214,6 +250,10 @@ class Limo extends BaseStage
 		}
 	}
 
+	/**
+	 * Executes the `dancersParenting` operation.
+	 * @return Result produced by `dancersParenting`, when applicable.
+	 */
 	function dancersParenting()
 	{
 		var dancers:Array<BackgroundDancer> = grpLimoDancers.members;
@@ -222,6 +262,9 @@ class Limo extends BaseStage
 		}
 	}
 
+	/**
+	 * Executes the `resetLimoKill` operation.
+	 */
 	function resetLimoKill():Void
 	{
 		limoMetalPole.x = -500;
@@ -234,6 +277,9 @@ class Limo extends BaseStage
 		limoCorpseTwo.visible = false;
 	}
 
+	/**
+	 * Executes the `resetFastCar` operation.
+	 */
 	function resetFastCar():Void
 	{
 		fastCar.x = -12600;
@@ -243,6 +289,10 @@ class Limo extends BaseStage
 	}
 
 	var carTimer:FlxTimer;
+	/**
+	 * Executes the `fastCarDrive` operation.
+	 * @return Result produced by `fastCarDrive`, when applicable.
+	 */
 	function fastCarDrive()
 	{
 		//trace('Car drive');
@@ -257,6 +307,9 @@ class Limo extends BaseStage
 		});
 	}
 
+	/**
+	 * Executes the `killHenchmen` operation.
+	 */
 	function killHenchmen():Void
 	{
 		if(!ClientPrefs.lowQuality) {

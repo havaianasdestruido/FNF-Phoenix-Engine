@@ -365,6 +365,11 @@ class RainShader extends FlxFixedShader
 
 	public var time(default, set):Float = 1;
 
+	/**
+	 * Executes the `set_time` operation.
+	 * @param value Input value for `value`.
+	 * @return Result produced by `set_time`, when applicable.
+	 */
 	function set_time(value:Float):Float
 	{
 		#if !flash
@@ -378,6 +383,11 @@ class RainShader extends FlxFixedShader
 	// The size of the raindrops is proportional to the value of this parameter.
 	public var scale(default, set):Float = 1;
 
+	/**
+	 * Executes the `set_scale` operation.
+	 * @param value Input value for `value`.
+	 * @return Result produced by `set_scale`, when applicable.
+	 */
 	function set_scale(value:Float):Float
 	{
 		#if !flash
@@ -389,6 +399,11 @@ class RainShader extends FlxFixedShader
 	// The intensity of the rain. Zero means no rain and one means the maximum amount of rain.
 	public var intensity(default, set):Float = 0.5;
 
+	/**
+	 * Executes the `set_intensity` operation.
+	 * @param value Input value for `value`.
+	 * @return Result produced by `set_intensity`, when applicable.
+	 */
 	function set_intensity(value:Float):Float
 	{
 		#if !flash
@@ -400,6 +415,11 @@ class RainShader extends FlxFixedShader
 	// the y coord of the puddle, used to mirror things
 	public var puddleY(default, set):Float = 0;
 
+	/**
+	 * Executes the `set_puddleY` operation.
+	 * @param value Input value for `value`.
+	 * @return Result produced by `set_puddleY`, when applicable.
+	 */
 	function set_puddleY(value:Float):Float
 	{
 		#if !flash
@@ -411,6 +431,11 @@ class RainShader extends FlxFixedShader
 	// the y scale of the puddle, the less this value the more the puddle effects squished
 	public var puddleScaleY(default, set):Float = 0;
 
+	/**
+	 * Executes the `set_puddleScaleY` operation.
+	 * @param value Input value for `value`.
+	 * @return Result produced by `set_puddleScaleY`, when applicable.
+	 */
 	function set_puddleScaleY(value:Float):Float
 	{
 		#if !flash
@@ -421,6 +446,11 @@ class RainShader extends FlxFixedShader
 
 	public var blurredScreen(default, set):BitmapData;
 
+	/**
+	 * Executes the `set_blurredScreen` operation.
+	 * @param value Input value for `value`.
+	 * @return Result produced by `set_blurredScreen`, when applicable.
+	 */
 	function set_blurredScreen(value:BitmapData):BitmapData
 	{
 		#if !flash
@@ -431,6 +461,11 @@ class RainShader extends FlxFixedShader
 
 	public var mask(default, set):BitmapData;
 
+	/**
+	 * Executes the `set_mask` operation.
+	 * @param value Input value for `value`.
+	 * @return Result produced by `set_mask`, when applicable.
+	 */
 	function set_mask(value:BitmapData):BitmapData
 	{
 		#if !flash
@@ -441,6 +476,11 @@ class RainShader extends FlxFixedShader
 
 	public var lightMap(default, set):BitmapData;
 
+	/**
+	 * Executes the `set_lightMap` operation.
+	 * @param value Input value for `value`.
+	 * @return Result produced by `set_lightMap`, when applicable.
+	 */
 	function set_lightMap(value:BitmapData):BitmapData
 	{
 		#if !flash
@@ -451,6 +491,11 @@ class RainShader extends FlxFixedShader
 
 	public var numLightsSwag(default, set):Int = 0; // swag heads, we have never been more back (needs different name purely for hashlink casting fix)
 
+	/**
+	 * Executes the `set_numLightsSwag` operation.
+	 * @param value Input value for `value`.
+	 * @return Result produced by `set_numLightsSwag`, when applicable.
+	 */
 	function set_numLightsSwag(value:Int):Int
 	{
 		#if !flash
@@ -459,6 +504,9 @@ class RainShader extends FlxFixedShader
 		return numLightsSwag = value;
 	}
 
+	/**
+	 * Executes the `new` operation.
+	 */
 	public function new()
 	{
 		super();
@@ -473,6 +521,10 @@ class RainShader extends FlxFixedShader
 		#end
 	}
 
+	/**
+	 * Executes the `update` operation.
+	 * @param elapsed Input value for `elapsed`.
+	 */
 	public function update(elapsed:Float):Void
 	{
 		time += elapsed;
@@ -497,6 +549,12 @@ class RainShader extends FlxFixedShader
 	var _size:Array<Float> = [0, 0];
 	var _view:Array<Float> = [0, 0, 0, 0];
 
+	/**
+	 * Executes the `updateViewInfo` operation.
+	 * @param screenWidth Input value for `screenWidth`.
+	 * @param screenHeight Input value for `screenHeight`.
+	 * @param camera Input value for `camera`.
+	 */
 	public function updateViewInfo(screenWidth:Float, screenHeight:Float, camera:FlxCamera):Void
 	{
 		_size[0] = screenWidth;
@@ -530,6 +588,12 @@ class RainShader extends FlxFixedShader
 
 	#if !flash
 	@:access(openfl.display.ShaderParameter)
+	/**
+	 * Executes the `addFloatUniform` operation.
+	 * @param name Input value for `name`.
+	 * @param length Input value for `length`.
+	 * @return Result produced by `addFloatUniform`, when applicable.
+	 */
 	function addFloatUniform(name:String, length:Int):ShaderParameter<Float>
 	{
 		final res = new ShaderParameter<Float>();

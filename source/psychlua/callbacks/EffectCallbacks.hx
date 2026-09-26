@@ -22,6 +22,10 @@ import shaders.BlockedGlitchEffect;
 // REFACTOR: extracted from psychlua.FunkinLua (camera shader effect adders)
 class EffectCallbacks
 {
+	/**
+	 * Executes the `register` operation.
+	 * @param funk Input value for `funk`.
+	 */
 	public static function register(funk:FunkinLua):Void {
 		@:privateAccess {
 		//SHADER SHIT

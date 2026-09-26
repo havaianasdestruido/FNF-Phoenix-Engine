@@ -15,6 +15,9 @@ class CustomSoundTray extends FlxSoundTray
 	var alphaTarget:Float = 0;
   var volumeMaxSound:String;
 
+	/**
+	 * Executes the `new` operation.
+*/
 	public function new()
 	{
 		super();
@@ -62,11 +65,22 @@ class CustomSoundTray extends FlxSoundTray
 		// trace('Custom Sound Tray Added!');
 	}
 
+	/**
+	 * Executes the `coolLerp` operation.
+	 * @param base Input value for `base`.
+	 * @param target Input value for `target`.
+	 * @param ratio Input value for `ratio`.
+	 * @return Result produced by `coolLerp`, when applicable.
+	 */
 	function coolLerp(base:Float, target:Float, ratio:Float):Float
 	{
 		return base + (ratio * (FlxG.elapsed / (1 / 60))) * (target - base);
 	}
 
+	/**
+	 * Executes the `update` operation.
+	 * @param MS Input value for `MS`.
+	 */
 	override function update(MS:Float):Void
 	{
 		y = coolLerp(y, lerpYPos, 0.1);
@@ -132,6 +146,10 @@ class CustomSoundTray extends FlxSoundTray
 class CustomSoundFrontEnd extends SoundFrontEnd
 {
 	@:privateAccess
+	/**
+	 * Executes the `changeVolume` operation.
+	 * @param Amount Input value for `Amount`.
+	 */
 	override function changeVolume(Amount:Float):Void
 	{
 		muted = false;
@@ -144,11 +162,23 @@ class CustomSoundFrontEnd extends SoundFrontEnd
 
 // don't need the whole lib lol
 private class MathTools {
+	/**
+	 * Executes the `linearToLog` operation.
+	 * @param x Input value for `x`.
+	 * @param minValue Input value for `minValue`.
+	 * @return Result produced by `linearToLog`, when applicable.
+	 */
 	public static function linearToLog(x:Float, minValue:Float = 0.001):Float {
 			x = Math.max(0, Math.min(1, x));
 			return Math.exp(Math.log(minValue) * (1 - x));
 	}
 
+	/**
+	 * Executes the `logToLinear` operation.
+	 * @param x Input value for `x`.
+	 * @param minValue Input value for `minValue`.
+	 * @return Result produced by `logToLinear`, when applicable.
+	 */
 	public static function logToLinear(x:Float, minValue:Float = 0.001):Float {
 			x = Math.max(minValue, Math.min(1, x));
 			return 1 - (Math.log(x) / Math.log(minValue));

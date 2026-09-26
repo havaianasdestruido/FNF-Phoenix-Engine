@@ -53,6 +53,10 @@ class EditorPlayState extends MusicBeatState
 	var pixelRatingPrefix:String = "";
 	var pixelRatingSuffix:String = '';
 
+	/**
+	 * Executes the `new` operation.
+	 * @param startPos Input value for `startPos`.
+	 */
 	public function new(startPos:Float) {
 		this.startPos = startPos;
 		Conductor.songPosition = startPos - startOffset;
@@ -77,6 +81,10 @@ class EditorPlayState extends MusicBeatState
 
 	public static var cpuControlled:Bool = false;
 
+	/**
+	 * Executes the `create` operation.
+	 * @return Result produced by `create`, when applicable.
+	 */
 	override function create()
 	{
 		instance = this;
@@ -182,12 +190,19 @@ class EditorPlayState extends MusicBeatState
 	var songHits:Int = 0;
 	var songMisses:Int = 0;
 	var startingSong:Bool = true;
+	/**
+	 * Executes the `generateSong` operation.
+	 * @param startingPoint Input value for `startingPoint`.
+	 */
 	private function generateSong(?startingPoint:Float = 0):Void
 	{
 		// REFACTOR: delegated to editors.helpers.EditorPlayStateHelpers
 		EditorPlayStateHelpers.generateSong(this, startingPoint);
 	}
 
+	/**
+	 * Executes the `startSong` operation.
+	 */
 	function startSong():Void
 	{
 		startingSong = false;
@@ -202,11 +217,21 @@ class EditorPlayState extends MusicBeatState
 		opponentVocals.play();
 	}
 
+	/**
+	 * Executes the `sortNotesByTime` operation.
+	 * @param Obj1 Input value for `Obj1`.
+	 * @param Obj2 Input value for `Obj2`.
+	 * @return Result produced by `sortNotesByTime`, when applicable.
+	 */
 	function sortNotesByTime(Obj1:Note, Obj2:Note):Int
 	{
 		return FlxSort.byValues(FlxSort.ASCENDING, Obj1.strumTime, Obj2.strumTime);
 	}
 
+	/**
+	 * Executes the `endSong` operation.
+	 * @return Result produced by `endSong`, when applicable.
+	 */
 	private function endSong() {
 		// REFACTOR: delegated to editors.helpers.EditorPlayStateHelpers
 		EditorPlayStateHelpers.endSong(this);
@@ -215,6 +240,11 @@ class EditorPlayState extends MusicBeatState
 	public var noteKillOffset:Float = 350;
 	public var spawnTime:Float = 2000;
 	public var notesAddedCount:Int = 0;
+	/**
+	 * Executes the `update` operation.
+	 * @param elapsed Input value for `elapsed`.
+	 * @return Result produced by `update`, when applicable.
+	 */
 	override function update(elapsed:Float) {
 		if (FlxG.keys.justPressed.ESCAPE)
 		{
@@ -280,6 +310,9 @@ class EditorPlayState extends MusicBeatState
 		super.update(elapsed);
 	}
 
+	/**
+	 * Executes the `onFocus` operation.
+*/
 	override public function onFocus():Void
 	{
 		for (i in [vocals, opponentVocals])
@@ -288,6 +321,9 @@ class EditorPlayState extends MusicBeatState
 		super.onFocus();
 	}
 
+	/**
+	 * Executes the `onFocusLost` operation.
+*/
 	override public function onFocusLost():Void
 	{
 		for (i in [vocals, opponentVocals])
@@ -296,6 +332,10 @@ class EditorPlayState extends MusicBeatState
 		super.onFocusLost();
 	}
 
+	/**
+	 * Executes the `beatHit` operation.
+	 * @return Result produced by `beatHit`, when applicable.
+	 */
 	override function beatHit()
 	{
 		super.beatHit();
@@ -307,6 +347,10 @@ class EditorPlayState extends MusicBeatState
 		}
 	}
 
+	/**
+	 * Executes the `stepHit` operation.
+	 * @return Result produced by `stepHit`, when applicable.
+	 */
 	override function stepHit()
 	{
 		if (FlxG.sound.music.time >= -ClientPrefs.noteOffset)
@@ -323,6 +367,9 @@ class EditorPlayState extends MusicBeatState
 		super.stepHit();
 	}
 
+	/**
+	 * Executes the `resyncVocals` operation.
+	 */
 	function resyncVocals():Void
 	{
 		FlxG.sound.music.play();
@@ -339,36 +386,62 @@ class EditorPlayState extends MusicBeatState
 		vocals.play();
 		opponentVocals.play();
 	}
+	/**
+	 * Executes the `onKeyPress` operation.
+	 * @param event Input value for `event`.
+	 */
 	private function onKeyPress(event:KeyboardEvent):Void
 	{
 		// REFACTOR: delegated to editors.helpers.EditorPlayStateHelpers
 		EditorPlayStateHelpers.onKeyPress(this, event);
 	}
 
+	/**
+	 * Executes the `sortHitNotes` operation.
+	 * @param a Input value for `a`.
+	 * @param b Input value for `b`.
+	 * @return Result produced by `sortHitNotes`, when applicable.
+	 */
 	function sortHitNotes(a:Note, b:Note):Int
 	{
 		// REFACTOR: delegated to editors.helpers.EditorPlayStateHelpers
 		return EditorPlayStateHelpers.sortHitNotes(a, b);
 	}
 
+	/**
+	 * Executes the `onKeyRelease` operation.
+	 * @param event Input value for `event`.
+	 */
 	private function onKeyRelease(event:KeyboardEvent):Void
 	{
 		// REFACTOR: delegated to editors.helpers.EditorPlayStateHelpers
 		EditorPlayStateHelpers.onKeyRelease(this, event);
 	}
 
+	/**
+	 * Executes the `getKeyFromEvent` operation.
+	 * @param key Input value for `key`.
+	 * @return Result produced by `getKeyFromEvent`, when applicable.
+	 */
 	private function getKeyFromEvent(key:FlxKey):Int
 	{
 		// REFACTOR: delegated to editors.helpers.EditorPlayStateHelpers
 		return EditorPlayStateHelpers.getKeyFromEvent(this, key);
 	}
 
+	/**
+	 * Executes the `handleKeyInput` operation.
+	 */
 	private function handleKeyInput():Void
 	{
 		// REFACTOR: delegated to editors.helpers.EditorPlayStateHelpers
 		EditorPlayStateHelpers.handleKeyInput(this);
 	}
 
+	/**
+	 * Executes the `updateNote` operation.
+	 * @param daNote Input value for `daNote`.
+	 */
 	function updateNote(daNote:Note):Void
 	{
 		if (daNote != null && daNote.exists)
@@ -430,6 +503,10 @@ class EditorPlayState extends MusicBeatState
 	}
 
 	var combo:Int = 0;
+	/**
+	 * Executes the `goodNoteHit` operation.
+	 * @param note Input value for `note`.
+	 */
 	function goodNoteHit(?note:Note):Void
 	{
 		if (note != null && !note.wasGoodHit)
@@ -489,6 +566,9 @@ class EditorPlayState extends MusicBeatState
 		}
 	}
 
+	/**
+	 * Executes the `noteMiss` operation.
+*/
 	function noteMiss():Void
 	{
 		combo = 0;
@@ -499,22 +579,38 @@ class EditorPlayState extends MusicBeatState
 		vocals.volume = 0;
 	}
 
+	/**
+	 * Executes the `invalidateNote` operation.
+	 * @param note Input value for `note`.
+	 */
 	public function invalidateNote(note:Note):Void {
 		// REFACTOR: delegated to editors.helpers.EditorPlayStateHelpers
 		EditorPlayStateHelpers.invalidateNote(this, note);
 	}
 
+	/**
+	 * Executes the `destroyNotes` operation.
+	 */
 	public function destroyNotes():Void
 	{
 		// REFACTOR: delegated to editors.helpers.EditorPlayStateHelpers
 		EditorPlayStateHelpers.destroyNotes(this);
 	}
 
+	/**
+	 * Executes the `calculateResetTime` operation.
+	 * @param sustainNote Input value for `sustainNote`.
+	 * @return Result produced by `calculateResetTime`, when applicable.
+	 */
 	function calculateResetTime(?sustainNote:Bool = false):Float {
 		if (ClientPrefs.strumLitStyle == 'BPM Based') return (Conductor.stepCrochet * 1.5 / 1000) * (!sustainNote ? 1 : 2);
 		return 0.15 * (!sustainNote ? 1 : 2);
 	}
 
+		/**
+		 * Executes the `cachePopUpScore` operation.
+		 * @return Result produced by `cachePopUpScore`, when applicable.
+		 */
 		private function cachePopUpScore()
 	{
 		// REFACTOR: delegated to editors.helpers.EditorPlayStateHelpers
@@ -523,12 +619,20 @@ class EditorPlayState extends MusicBeatState
 
 	var COMBO_X:Float = 400;
 	var COMBO_Y:Float = 340;
+	/**
+	 * Executes the `popUpScore` operation.
+	 * @param note Input value for `note`.
+	 */
 	private function popUpScore(note:Note = null):Void
 	{
 		// REFACTOR: delegated to editors.helpers.EditorPlayStateHelpers
 		EditorPlayStateHelpers.popUpScore(this, note);
 	}
 
+	/**
+	 * Executes the `generateStaticArrows` operation.
+	 * @param player Input value for `player`.
+	 */
 	private function generateStaticArrows(player:Int):Void
 	{
 		// REFACTOR: delegated to editors.helpers.EditorPlayStateHelpers
@@ -537,6 +641,13 @@ class EditorPlayState extends MusicBeatState
 
 
 	// For Opponent's notes glow
+	/**
+	 * Executes the `StrumPlayAnim` operation.
+	 * @param isDad Input value for `isDad`.
+	 * @param id Input value for `id`.
+	 * @param time Input value for `time`.
+	 * @return Result produced by `StrumPlayAnim`, when applicable.
+	 */
 	function StrumPlayAnim(isDad:Bool, id:Int, time:Float) {
 		var spr:StrumNote = null;
 		if(isDad) {
@@ -551,17 +662,33 @@ class EditorPlayState extends MusicBeatState
 		}
 	}
 
+	/**
+	 * Executes the `spawnHoldSplashOnNote` operation.
+	 * @param note Input value for `note`.
+	 * @param isDad Input value for `isDad`.
+	 * @return Result produced by `spawnHoldSplashOnNote`, when applicable.
+	 */
 	public function spawnHoldSplashOnNote(note:Note, ?isDad:Bool = false) {
 		// REFACTOR: delegated to editors.helpers.EditorPlayStateHelpers
 		EditorPlayStateHelpers.spawnHoldSplashOnNote(this, note, isDad);
 	}
 
+	/**
+	 * Executes the `spawnHoldSplash` operation.
+	 * @param note Input value for `note`.
+	 * @return Result produced by `spawnHoldSplash`, when applicable.
+	 */
 	public function spawnHoldSplash(note:Note) {
 		// REFACTOR: delegated to editors.helpers.EditorPlayStateHelpers
 		EditorPlayStateHelpers.spawnHoldSplash(this, note);
 	}
 
 	// Note splash shit, duh
+	/**
+	 * Executes the `spawnNoteSplashOnNote` operation.
+	 * @param note Input value for `note`.
+	 * @return Result produced by `spawnNoteSplashOnNote`, when applicable.
+	 */
 	function spawnNoteSplashOnNote(note:Note) {
 		if(ClientPrefs.noteSplashes && note != null) {
 			var strum:StrumNote = playerStrums.members[note.noteData];
@@ -571,12 +698,25 @@ class EditorPlayState extends MusicBeatState
 		}
 	}
 
+	/**
+	 * Executes the `spawnNoteSplash` operation.
+	 * @param x Input value for `x`.
+	 * @param y Input value for `y`.
+	 * @param data Input value for `data`.
+	 * @param note Input value for `note`.
+	 * @return Result produced by `spawnNoteSplash`, when applicable.
+	 */
 	function spawnNoteSplash(x:Float, y:Float, data:Int, ?note:Note = null) {
 		var splash:NoteSplash = grpNoteSplashes.recycle(NoteSplash);
 		splash.setupNoteSplash(x, y, data, note);
 		grpNoteSplashes.add(splash);
 	}
 
+	/**
+	 * Executes the `loadCharacterFile` operation.
+	 * @param char Input value for `char`.
+	 * @return Result produced by `loadCharacterFile`, when applicable.
+	 */
 	function loadCharacterFile(char:String):CharacterFile {
 		var characterPath:String = 'characters/' + char + '.json';
 		#if MODS_ALLOWED
@@ -602,6 +742,10 @@ class EditorPlayState extends MusicBeatState
 		return cast Json.parse(rawJson);
 	}
 
+	/**
+	 * Executes the `destroy` operation.
+	 * @return Result produced by `destroy`, when applicable.
+	 */
 	override function destroy() {
 		FlxG.sound.music.stop();
 		vocals.stop();

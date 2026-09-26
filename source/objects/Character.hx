@@ -111,6 +111,14 @@ class Character extends FlxSprite
 	public var flixelTrail:Bool = false;
 
 	public static var DEFAULT_CHARACTER:String = 'bf'; //In case a character is missing, it will use BF on its place
+	/**
+	 * Executes the `new` operation.
+	 * @param x Input value for `x`.
+	 * @param y Input value for `y`.
+	 * @param character Input value for `character`.
+	 * @param isPlayer Input value for `isPlayer`.
+	 * @param isDeathCharacter Input value for `isDeathCharacter`.
+	 */
 	public function new(x:Float, y:Float, ?character:String = 'bf', ?isPlayer:Bool = false, ?isDeathCharacter:Bool = false)
 	{
 		super(x, y);
@@ -176,6 +184,11 @@ class Character extends FlxSprite
 		}
 	}
 
+	/**
+	 * Executes the `loadCharacterFile` operation.
+	 * @param json Input value for `json`.
+	 * @return Result produced by `loadCharacterFile`, when applicable.
+	 */
 	public function loadCharacterFile(json:CharacterFile)
 	{
 		isAnimateAtlas = false;
@@ -291,6 +304,11 @@ class Character extends FlxSprite
 	}
 
 	var anim:String;
+	/**
+	 * Executes the `update` operation.
+	 * @param elapsed Input value for `elapsed`.
+	 * @return Result produced by `update`, when applicable.
+	 */
 	override function update(elapsed:Float)
 	{
 		if (ClientPrefs.ffmpegMode) elapsed = 1 / ClientPrefs.targetFPS;
@@ -378,6 +396,10 @@ class Character extends FlxSprite
 		super.update(elapsed);
 	}
 
+	/**
+	 * Executes the `isAnimationNull` operation.
+	 * @return Result produced by `isAnimationNull`, when applicable.
+	 */
 	inline public function isAnimationNull():Bool
 	{
 		#if flxanimate
@@ -388,11 +410,19 @@ class Character extends FlxSprite
 	}
 
 	var _lastPlayedAnimation:String;
+	/**
+	 * Executes the `getAnimationName` operation.
+	 * @return Result produced by `getAnimationName`, when applicable.
+	 */
 	inline public function getAnimationName():String
 	{
 		return _lastPlayedAnimation;
 	}
 
+	/**
+	 * Executes the `isAnimationFinished` operation.
+	 * @return Result produced by `isAnimationFinished`, when applicable.
+	 */
 	public function isAnimationFinished():Bool
 	{
 		if(isAnimationNull()) return false;
@@ -403,6 +433,9 @@ class Character extends FlxSprite
 		#end
 	}
 
+	/**
+	 * Executes the `finishAnimation` operation.
+	 */
 	public function finishAnimation():Void
 	{
 		if(isAnimationNull()) return;
@@ -413,12 +446,21 @@ class Character extends FlxSprite
 		#end
 	}
 
+	/**
+	 * Executes the `hasAnimation` operation.
+	 * @param anim Input value for `anim`.
+	 * @return Result produced by `hasAnimation`, when applicable.
+	 */
 	public function hasAnimation(anim:String):Bool
 	{
 		return animOffsets.exists(anim);
 	}
 
 	public var animPaused(get, set):Bool;
+	/**
+	 * Executes the `get_animPaused` operation.
+	 * @return Result produced by `get_animPaused`, when applicable.
+	 */
 	private function get_animPaused():Bool
 	{
 		if(isAnimationNull()) return false;
@@ -428,6 +470,11 @@ class Character extends FlxSprite
 		return animation.curAnim.paused;
 		#end
 	}
+	/**
+	 * Executes the `set_animPaused` operation.
+	 * @param value Input value for `value`.
+	 * @return Result produced by `set_animPaused`, when applicable.
+	 */
 	private function set_animPaused(value:Bool):Bool
 	{
 		if(isAnimationNull()) return value;
@@ -468,6 +515,13 @@ class Character extends FlxSprite
 	}
 
 	var daOffset = null;
+	/**
+	 * Executes the `playAnim` operation.
+	 * @param AnimName Input value for `AnimName`.
+	 * @param Force Input value for `Force`.
+	 * @param Reversed Input value for `Reversed`.
+	 * @param Frame Input value for `Frame`.
+	 */
 	public function playAnim(AnimName:String, Force:Bool = false, Reversed:Bool = false, Frame:Int = 0):Void
 	{
 		specialAnim = false;
@@ -504,6 +558,9 @@ class Character extends FlxSprite
 		}
 	}
 
+	/**
+	 * Executes the `loadMappedAnims` operation.
+	 */
 	function loadMappedAnims():Void
 	{
 		var noteData:Array<SwagSection> = Song.loadFromJson('picospeaker', Paths.formatToSongPath(PlayState.SONG.song)).notes;
@@ -516,6 +573,12 @@ class Character extends FlxSprite
 		animationNotes.sort(sortAnims);
 	}
 
+	/**
+	 * Executes the `sortAnims` operation.
+	 * @param Obj1 Input value for `Obj1`.
+	 * @param Obj2 Input value for `Obj2`.
+	 * @return Result produced by `sortAnims`, when applicable.
+	 */
 	function sortAnims(Obj1:Array<Dynamic>, Obj2:Array<Dynamic>):Int
 	{
 		return FlxSort.byValues(FlxSort.ASCENDING, Obj1[0], Obj2[0]);
@@ -523,6 +586,10 @@ class Character extends FlxSprite
 
 	public var danceEveryNumBeats:Int = 2;
 	private var settingCharacterUp:Bool = true;
+	/**
+	 * Executes the `recalculateDanceIdle` operation.
+	 * @return Result produced by `recalculateDanceIdle`, when applicable.
+	 */
 	public function recalculateDanceIdle() {
 		var lastDanceIdle:Bool = danceIdle;
 		danceIdle = (animation.getByName('danceLeft' + idleSuffix) != null && animation.getByName('danceRight' + idleSuffix) != null);
@@ -544,11 +611,24 @@ class Character extends FlxSprite
 		settingCharacterUp = false;
 	}
 
+	/**
+	 * Executes the `addOffset` operation.
+	 * @param name Input value for `name`.
+	 * @param x Input value for `x`.
+	 * @param y Input value for `y`.
+	 * @return Result produced by `addOffset`, when applicable.
+	 */
 	public function addOffset(name:String, x:Float = 0, y:Float = 0)
 	{
 		animOffsets[name] = [x, y];
 	}
 
+	/**
+	 * Executes the `quickAnimAdd` operation.
+	 * @param name Input value for `name`.
+	 * @param anim Input value for `anim`.
+	 * @return Result produced by `quickAnimAdd`, when applicable.
+	 */
 	public function quickAnimAdd(name:String, anim:String)
 	{
 		animation.addByPrefix(name, anim, 24, false);
@@ -559,6 +639,10 @@ class Character extends FlxSprite
 	public var isAnimateAtlas:Bool = false;
 	#if flxanimate
 	public var atlas:FlxAnimate;
+	/**
+	 * Executes the `draw` operation.
+	 * @return Result produced by `draw`, when applicable.
+	 */
 	public override function draw()
 	{
 		if(isAnimateAtlas)
@@ -570,6 +654,10 @@ class Character extends FlxSprite
 		super.draw();
 	}
 
+	/**
+	 * Executes the `copyAtlasValues` operation.
+	 * @return Result produced by `copyAtlasValues`, when applicable.
+	 */
 	public function copyAtlasValues()
 	{
 		@:privateAccess
@@ -593,12 +681,20 @@ class Character extends FlxSprite
 		}
 	}
 
+	/**
+	 * Executes the `destroy` operation.
+	 * @return Result produced by `destroy`, when applicable.
+	 */
 	public override function destroy()
 	{
 		super.destroy();
 		destroyAtlas();
 	}
 
+	/**
+	 * Executes the `destroyAtlas` operation.
+	 * @return Result produced by `destroyAtlas`, when applicable.
+	 */
 	public function destroyAtlas()
 	{
 		if (atlas != null)
@@ -611,11 +707,22 @@ class Boyfriend extends Character
 {
 	public var startedDeath:Bool = false;
 
+	/**
+	 * Executes the `new` operation.
+	 * @param x Input value for `x`.
+	 * @param y Input value for `y`.
+	 * @param char Input value for `char`.
+	 */
 	public function new(x:Float, y:Float, ?char:String = 'bf')
 	{
 		super(x, y, char, true);
 	}
 
+	/**
+	 * Executes the `update` operation.
+	 * @param elapsed Input value for `elapsed`.
+	 * @return Result produced by `update`, when applicable.
+	 */
 	override function update(elapsed:Float)
 	{
 		if (ClientPrefs.ffmpegMode) elapsed = 1 / ClientPrefs.targetFPS;

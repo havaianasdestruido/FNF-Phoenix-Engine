@@ -13,6 +13,12 @@ import objects.CheckboxThingie;
 @:access(options.BaseOptionsMenu)
 class OptionsMenuHelpers
 {
+	/**
+	 * Executes the `createOptionRow` operation.
+	 * @param state Input value for `state`.
+	 * @param optionsArray Input value for `optionsArray`.
+	 * @return Result produced by `createOptionRow`, when applicable.
+	 */
 	public static function createOptionRow(state:BaseOptionsMenu, optionsArray:Array<Option>)
 	{
 		for (i in 0...optionsArray.length)

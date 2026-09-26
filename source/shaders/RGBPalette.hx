@@ -10,6 +10,11 @@ class RGBPalette {
 	public var b(default, set):FlxColor;
 	public var mult(default, set):Float;
 
+	/**
+	 * Executes the `set_r` operation.
+	 * @param color Input value for `color`.
+	 * @return Result produced by `set_r`, when applicable.
+	 */
 	private function set_r(color:FlxColor) {
 		r = color;
 		if (shader != null)
@@ -17,6 +22,11 @@ class RGBPalette {
 		return color;
 	}
 
+	/**
+	 * Executes the `set_g` operation.
+	 * @param color Input value for `color`.
+	 * @return Result produced by `set_g`, when applicable.
+	 */
 	private function set_g(color:FlxColor) {
 		g = color;
 		if (shader != null)
@@ -24,6 +34,11 @@ class RGBPalette {
 		return color;
 	}
 
+	/**
+	 * Executes the `set_b` operation.
+	 * @param color Input value for `color`.
+	 * @return Result produced by `set_b`, when applicable.
+	 */
 	private function set_b(color:FlxColor) {
 		b = color;
 		if (shader != null)
@@ -31,6 +46,11 @@ class RGBPalette {
 		return color;
 	}
 
+	/**
+	 * Executes the `set_mult` operation.
+	 * @param value Input value for `value`.
+	 * @return Result produced by `set_mult`, when applicable.
+	 */
 	private function set_mult(value:Float) {
 		mult = FlxMath.bound(value, 0, 1);
 		if (shader != null)
@@ -38,6 +58,9 @@ class RGBPalette {
 		return mult;
 	}
 
+	/**
+	 * Executes the `new` operation.
+	 */
 	public function new()
 	{
 		r = 0xFFFF0000;
@@ -59,6 +82,11 @@ class RGBShaderReference
 	public var parent:RGBPalette;
 	private var _owner:FlxSprite;
 	private var _original:RGBPalette;
+	/**
+	 * Executes the `new` operation.
+	 * @param owner Input value for `owner`.
+	 * @param ref Input value for `ref`.
+	 */
 	public function new(owner:FlxSprite, ref:RGBPalette)
 	{
 		parent = ref;
@@ -75,26 +103,51 @@ class RGBShaderReference
 		}
 	}
 
+	/**
+	 * Executes the `set_r` operation.
+	 * @param value Input value for `value`.
+	 * @return Result produced by `set_r`, when applicable.
+	 */
 	private function set_r(value:FlxColor)
 	{
 		if(allowNew && value != _original.r) cloneOriginal();
 		return (r = parent.r = value);
 	}
+	/**
+	 * Executes the `set_g` operation.
+	 * @param value Input value for `value`.
+	 * @return Result produced by `set_g`, when applicable.
+	 */
 	private function set_g(value:FlxColor)
 	{
 		if(allowNew && value != _original.g) cloneOriginal();
 		return (g = parent.g = value);
 	}
+	/**
+	 * Executes the `set_b` operation.
+	 * @param value Input value for `value`.
+	 * @return Result produced by `set_b`, when applicable.
+	 */
 	private function set_b(value:FlxColor)
 	{
 		if(allowNew && value != _original.b) cloneOriginal();
 		return (b = parent.b = value);
 	}
+	/**
+	 * Executes the `set_mult` operation.
+	 * @param value Input value for `value`.
+	 * @return Result produced by `set_mult`, when applicable.
+	 */
 	private function set_mult(value:Float)
 	{
 		if(allowNew && value != _original.mult) cloneOriginal();
 		return (mult = parent.mult = value);
 	}
+	/**
+	 * Executes the `set_enabled` operation.
+	 * @param value Input value for `value`.
+	 * @return Result produced by `set_enabled`, when applicable.
+	 */
 	private function set_enabled(value:Bool)
 	{
 		_owner.shader = value ? parent.shader : null;
@@ -102,6 +155,10 @@ class RGBShaderReference
 	}
 
 	public var allowNew = true;
+	/**
+	 * Executes the `cloneOriginal` operation.
+	 * @return Result produced by `cloneOriginal`, when applicable.
+	 */
 	private function cloneOriginal()
 	{
 		if(allowNew)
@@ -161,6 +218,9 @@ class RGBPaletteShader extends FlxFixedShader {
 			gl_FragColor = flixel_texture2DCustom(bitmap, openfl_TextureCoordv);
 		}')
 
+	/**
+	 * Executes the `new` operation.
+	 */
 	public function new()
 	{
 		super();

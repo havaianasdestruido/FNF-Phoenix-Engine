@@ -31,24 +31,44 @@ class Stdin extends haxe.io.Output
 	var p:Dynamic;
 	var buf:haxe.io.Bytes;
 
+	/**
+	 * Executes the `new` operation.
+	 * @param p Input value for `p`.
+	 */
 	public function new(p:Dynamic)
 	{
 		this.p = p;
 		buf = haxe.io.Bytes.alloc(1);
 	}
 
+	/**
+	 * Executes the `close` operation.
+	 * @return Result produced by `close`, when applicable.
+	 */
 	public override function close()
 	{
 		super.close();
 		NativeProcess.process_stdin_close(p);
 	}
 
+	/**
+	 * Executes the `writeByte` operation.
+	 * @param c Input value for `c`.
+	 * @return Result produced by `writeByte`, when applicable.
+	 */
 	public override function writeByte(c)
 	{
 		buf.set(0, c);
 		writeBytes(buf, 0, 1);
 	}
 
+	/**
+	 * Executes the `writeBytes` operation.
+	 * @param buf Input value for `buf`.
+	 * @param pos Input value for `pos`.
+	 * @param len Input value for `len`.
+	 * @return Result produced by `writeBytes`, when applicable.
+	 */
 	public override function writeBytes(buf:haxe.io.Bytes, pos:Int, len:Int):Int
 	{
 		try
@@ -69,6 +89,11 @@ class Stdout extends haxe.io.Input
 	var out:Bool;
 	var buf:haxe.io.Bytes;
 
+	/**
+	 * Executes the `new` operation.
+	 * @param p Input value for `p`.
+	 * @param out Input value for `out`.
+	 */
 	public function new(p:Dynamic, out)
 	{
 		this.p = p;
@@ -76,6 +101,10 @@ class Stdout extends haxe.io.Input
 		buf = haxe.io.Bytes.alloc(1);
 	}
 
+	/**
+	 * Executes the `readByte` operation.
+	 * @return Result produced by `readByte`, when applicable.
+	 */
 	public override function readByte()
 	{
 		if (readBytes(buf, 0, 1) == 0)
@@ -83,6 +112,13 @@ class Stdout extends haxe.io.Input
 		return buf.get(0);
 	}
 
+	/**
+	 * Executes the `readBytes` operation.
+	 * @param str Input value for `str`.
+	 * @param pos Input value for `pos`.
+	 * @param len Input value for `len`.
+	 * @return Result produced by `readBytes`, when applicable.
+	 */
 	public override function readBytes(str:haxe.io.Bytes, pos:Int, len:Int):Int
 	{
 		var result:Int;
@@ -108,6 +144,12 @@ class HiddenProcess
 	public var stderr(default, null):haxe.io.Input;
 	public var stdin(default, null):haxe.io.Output;
 
+	/**
+	 * Executes the `new` operation.
+	 * @param cmd Input value for `cmd`.
+	 * @param args Input value for `args`.
+	 * @param detached Input value for `detached`.
+	 */
 	public function new(cmd:String, ?args:Array<String>, ?detached:Bool):Void
 	{
 		if (detached)
@@ -119,21 +161,36 @@ class HiddenProcess
 		stderr = new Stdout(p, false);
 	}
 
+	/**
+	 * Executes the `getPid` operation.
+	 * @return Result produced by `getPid`, when applicable.
+	 */
 	public function getPid():Int
 	{
 		return NativeProcess.process_pid(p);
 	}
 
+	/**
+	 * Executes the `exitCode` operation.
+	 * @param block Input value for `block`.
+	 * @return Result produced by `exitCode`, when applicable.
+	 */
 	public function exitCode(block:Bool = true):Null<Int>
 	{
 		return NativeProcess.process_exit(p #if (haxe >= "4.3.0"), block #end);
 	}
 
+	/**
+	 * Executes the `close` operation.
+	 */
 	public function close():Void
 	{
 		NativeProcess.process_close(p);
 	}
 
+	/**
+	 * Executes the `kill` operation.
+	 */
 	public function kill():Void
 	{
 		NativeProcess.process_kill(p);

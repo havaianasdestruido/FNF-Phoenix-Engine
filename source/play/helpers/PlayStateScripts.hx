@@ -17,6 +17,12 @@ import play.PlayState;
 class PlayStateScripts
 {
 	#if SHADERS_ALLOWED
+	/**
+	 * Executes the `createRuntimeShader` operation.
+	 * @param state Input value for `state`.
+	 * @param shaderName Input value for `shaderName`.
+	 * @return Result produced by `createRuntimeShader`, when applicable.
+	 */
 	public static function createRuntimeShader(state:PlayState, shaderName:String):ErrorHandledRuntimeShader
 	{
 		if(!ClientPrefs.shaders) return new ErrorHandledRuntimeShader(shaderName);
@@ -36,6 +42,12 @@ class PlayStateScripts
 		#end
 	}
 
+	/**
+	 * Executes the `initLuaShader` operation.
+	 * @param state Input value for `state`.
+	 * @param name Input value for `name`.
+	 * @return Result produced by `initLuaShader`, when applicable.
+	 */
 	public static function initLuaShader(state:PlayState, name:String)
 	{
 		if(!ClientPrefs.shaders) return false;
@@ -93,6 +105,13 @@ class PlayStateScripts
 	}
 	#end
 
+	/**
+	 * Executes the `addTextToDebug` operation.
+	 * @param state Input value for `state`.
+	 * @param text Input value for `text`.
+	 * @param color Input value for `color`.
+	 * @return Result produced by `addTextToDebug`, when applicable.
+	 */
 	public static function addTextToDebug(state:PlayState, text:String, color:FlxColor) {
 		#if LUA_ALLOWED
 		var newText:DebugLuaText = state.luaDebugGroup.recycle(DebugLuaText);
@@ -113,6 +132,13 @@ class PlayStateScripts
 		#end
 	}
 
+	/**
+	 * Executes the `addShaderToCamera` operation.
+	 * @param state Input value for `state`.
+	 * @param cam Input value for `cam`.
+	 * @param effect Input value for `effect`.
+	 * @return Result produced by `addShaderToCamera`, when applicable.
+	 */
 	public static function addShaderToCamera(state:PlayState, cam:String,effect:Dynamic){//STOLE FROM ANDROMEDA	// actually i got it from old psych engine
 		switch(cam.toLowerCase()) {
 			case 'camhud' | 'hud':
@@ -136,6 +162,13 @@ class PlayStateScripts
 		}
  	}
 
+	/**
+	 * Executes the `removeShaderFromCamera` operation.
+	 * @param state Input value for `state`.
+	 * @param cam Input value for `cam`.
+	 * @param effect Input value for `effect`.
+	 * @return Result produced by `removeShaderFromCamera`, when applicable.
+	 */
 	public static function removeShaderFromCamera(state:PlayState, cam:String,effect:Dynamic){
 		switch(cam.toLowerCase()) {
 			case 'camhud' | 'hud':
@@ -180,6 +213,12 @@ class PlayStateScripts
 			}
 	}
 
+	/**
+	 * Executes the `clearShaderFromCamera` operation.
+	 * @param state Input value for `state`.
+	 * @param cam Input value for `cam`.
+	 * @return Result produced by `clearShaderFromCamera`, when applicable.
+	 */
 	public static function clearShaderFromCamera(state:PlayState, cam:String){
 		switch(cam.toLowerCase()) {
 			case 'camhud' | 'hud':
@@ -193,6 +232,13 @@ class PlayStateScripts
 		}
 	}
 
+	/**
+	 * Executes the `getLuaObject` operation.
+	 * @param state Input value for `state`.
+	 * @param tag Input value for `tag`.
+	 * @param text Input value for `text`.
+	 * @return Result produced by `getLuaObject`, when applicable.
+	 */
 	public static function getLuaObject(state:PlayState, tag:String, text:Bool=true):FlxSprite {
 		#if LUA_ALLOWED
 		if(state.modchartSprites.exists(tag)) return state.modchartSprites.get(tag);
@@ -203,6 +249,12 @@ class PlayStateScripts
 	}
 
 	#if LUA_ALLOWED
+	/**
+	 * Executes the `startLuasOnFolder` operation.
+	 * @param state Input value for `state`.
+	 * @param luaFile Input value for `luaFile`.
+	 * @return Result produced by `startLuasOnFolder`, when applicable.
+	 */
 	public static function startLuasOnFolder(state:PlayState, luaFile:String)
 	{
 		for (script in state.luaArray)
@@ -239,6 +291,12 @@ class PlayStateScripts
 	#end
 
 	#if PYTHON_ALLOWED
+	/**
+	 * Executes the `startPythonScriptOnFolder` operation.
+	 * @param state Input value for `state`.
+	 * @param pyFile Input value for `pyFile`.
+	 * @return Result produced by `startPythonScriptOnFolder`, when applicable.
+	 */
 	public static function startPythonScriptOnFolder(state:PlayState, pyFile:String)
 	{
 		for (script in state.pythonArray)

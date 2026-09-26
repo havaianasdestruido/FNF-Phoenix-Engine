@@ -39,6 +39,9 @@ class FlxDrawTrianglesItem extends FlxDrawBaseItem<FlxDrawTrianglesItem>
 
 	var bounds:FlxRect = FlxRect.get();
 
+	/**
+	 * Executes the `new` operation.
+	 */
 	public function new()
 	{
 		super();
@@ -46,6 +49,10 @@ class FlxDrawTrianglesItem extends FlxDrawBaseItem<FlxDrawTrianglesItem>
 		alphas = [];
 	}
 
+	/**
+	 * Executes the `render` operation.
+	 * @param camera Input value for `camera`.
+	 */
 	override public function render(camera:FlxCamera):Void
 	{
 		if (!FlxG.renderTile)
@@ -89,6 +96,9 @@ class FlxDrawTrianglesItem extends FlxDrawBaseItem<FlxDrawTrianglesItem>
 		super.render(camera);
 	}
 
+	/**
+	 * Executes the `reset` operation.
+	 */
 	override public function reset():Void
 	{
 		super.reset();
@@ -107,6 +117,9 @@ class FlxDrawTrianglesItem extends FlxDrawBaseItem<FlxDrawTrianglesItem>
 			colorOffsets.splice(0, colorOffsets.length);
 	}
 
+	/**
+	 * Executes the `dispose` operation.
+*/
 	override public function dispose():Void
 	{
 		super.dispose();
@@ -121,6 +134,16 @@ class FlxDrawTrianglesItem extends FlxDrawBaseItem<FlxDrawTrianglesItem>
 		colorOffsets = null;
 	}
 
+	/**
+	 * Executes the `addTriangles` operation.
+	 * @param vertices Input value for `vertices`.
+	 * @param indices Input value for `indices`.
+	 * @param uvtData Input value for `uvtData`.
+	 * @param colors Input value for `colors`.
+	 * @param position Input value for `position`.
+	 * @param cameraBounds Input value for `cameraBounds`.
+	 * @param transform Input value for `transform`.
+	 */
 	public function addTriangles(vertices:DrawData<Float>, indices:DrawData<Int>, uvtData:DrawData<Float>, ?colors:DrawData<Int>, ?position:FlxPoint,
 			?cameraBounds:FlxRect, ?transform:ColorTransform):Void
 	{
@@ -242,6 +265,11 @@ class FlxDrawTrianglesItem extends FlxDrawBaseItem<FlxDrawTrianglesItem>
 		}
 	}
 
+	/**
+	 * Executes the `setParameterValue` operation.
+	 * @param parameter Input value for `parameter`.
+	 * @param value Input value for `value`.
+	 */
 	inline function setParameterValue(parameter:ShaderParameter<Bool>, value:Bool):Void
 	{
 		if (parameter.value == null)
@@ -249,6 +277,13 @@ class FlxDrawTrianglesItem extends FlxDrawBaseItem<FlxDrawTrianglesItem>
 		parameter.value[0] = value;
 	}
 
+	/**
+	 * Executes the `inflateBounds` operation.
+	 * @param bounds Input value for `bounds`.
+	 * @param x Input value for `x`.
+	 * @param y Input value for `y`.
+	 * @return Result produced by `inflateBounds`, when applicable.
+	 */
 	public static inline function inflateBounds(bounds:FlxRect, x:Float, y:Float):FlxRect
 	{
 		if (x < bounds.x)
@@ -276,6 +311,12 @@ class FlxDrawTrianglesItem extends FlxDrawBaseItem<FlxDrawTrianglesItem>
 		return bounds;
 	}
 
+	/**
+	 * Executes the `addQuad` operation.
+	 * @param frame Input value for `frame`.
+	 * @param matrix Input value for `matrix`.
+	 * @param transform Input value for `transform`.
+	 */
 	override public function addQuad(frame:FlxFrame, matrix:FlxMatrix, ?transform:ColorTransform):Void
 	{
 		var prevVerticesPos:Int = verticesPosition;
@@ -358,11 +399,19 @@ class FlxDrawTrianglesItem extends FlxDrawBaseItem<FlxDrawTrianglesItem>
 		indicesPosition += 6;
 	}
 
+	/**
+	 * Executes the `get_numVertices` operation.
+	 * @return Result produced by `get_numVertices`, when applicable.
+	 */
 	override function get_numVertices():Int
 	{
 		return Std.int(vertices.length / 2);
 	}
 
+	/**
+	 * Executes the `get_numTriangles` operation.
+	 * @return Result produced by `get_numTriangles`, when applicable.
+	 */
 	override function get_numTriangles():Int
 	{
 		return Std.int(indices.length / 3);

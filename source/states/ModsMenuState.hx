@@ -54,11 +54,19 @@ class ModsMenuState extends MusicBeatState
 	var noModsTxt:FlxText;
 
 	var startMod:String = null;
+	/**
+	 * Executes the `new` operation.
+	 * @param startMod Input value for `startMod`.
+	 */
 	public function new(startMod:String = null)
 	{
 		this.startMod = startMod;
 		super();
 	}
+	/**
+	 * Executes the `create` operation.
+	 * @return Result produced by `create`, when applicable.
+	 */
 	override function create()
 	{
 		Paths.clearStoredMemory();
@@ -301,6 +309,11 @@ class ModsMenuState extends MusicBeatState
 
 	var holdTime:Float = 0;
 
+	/**
+	 * Executes the `update` operation.
+	 * @param elapsed Input value for `elapsed`.
+	 * @return Result produced by `update`, when applicable.
+	 */
 	override function update(elapsed:Float)
 	{
 		if(controls.BACK && hoveringOnMods)
@@ -541,49 +554,90 @@ class ModsMenuState extends MusicBeatState
 		super.update(elapsed);
 	}
 
+	/**
+	 * Executes the `changeSelectedButton` operation.
+	 * @param add Input value for `add`.
+	 * @return Result produced by `changeSelectedButton`, when applicable.
+	 */
 	function changeSelectedButton(add:Int = 0)
 	{
 		ModsMenuHelpers.changeSelectedButton(this, add);
 	}
 
+	/**
+	 * Executes the `getButton` operation.
+	 * @return Result produced by `getButton`, when applicable.
+	 */
 	function getButton()
 	{
 		return ModsMenuHelpers.getButton(this);
 	}
 
+	/**
+	 * Executes the `changeSelectedMod` operation.
+	 * @param add Input value for `add`.
+	 * @param isMouseWheel Input value for `isMouseWheel`.
+	 * @return Result produced by `changeSelectedMod`, when applicable.
+	 */
 	function changeSelectedMod(add:Int = 0, isMouseWheel:Bool = false)
 	{
 		ModsMenuHelpers.changeSelectedMod(this, add, isMouseWheel);
 	}
 
 	var colorTween:FlxTween = null;
+	/**
+	 * Executes the `updateModDisplayData` operation.
+	 * @return Result produced by `updateModDisplayData`, when applicable.
+	 */
 	function updateModDisplayData()
 	{
 		ModsMenuHelpers.updateModDisplayData(this);
 	}
 
 	var centerMod:Int = 2;
+	/**
+	 * Executes the `updateItemPositions` operation.
+	 * @return Result produced by `updateItemPositions`, when applicable.
+	 */
 	function updateItemPositions()
 	{
 		ModsMenuHelpers.updateItemPositions(this);
 	}
 
 	var waitingToRestart:Bool = false;
+	/**
+	 * Executes the `moveModToPosition` operation.
+	 * @param mod Input value for `mod`.
+	 * @param position Input value for `position`.
+	 * @return Result produced by `moveModToPosition`, when applicable.
+	 */
 	function moveModToPosition(?mod:String = null, position:Int = 0)
 	{
 		ModsMenuHelpers.moveModToPosition(this, mod, position);
 	}
 
+	/**
+	 * Executes the `checkToggleButtons` operation.
+	 * @return Result produced by `checkToggleButtons`, when applicable.
+	 */
 	function checkToggleButtons()
 	{
 		ModsMenuHelpers.checkToggleButtons(this);
 	}
 
+	/**
+	 * Executes the `reload` operation.
+	 * @return Result produced by `reload`, when applicable.
+	 */
 	function reload()
 	{
 		ModsMenuHelpers.reload(this);
 	}
 	
+	/**
+	 * Executes the `saveTxt` operation.
+	 * @return Result produced by `saveTxt`, when applicable.
+	 */
 	function saveTxt()
 	{
 		ModsMenuHelpers.saveTxt(this);
@@ -607,6 +661,10 @@ class ModItem extends FlxSpriteGroup
 	public var mustRestart:Bool = false;
 	public var settings:Array<Dynamic> = null;
 
+	/**
+	 * Executes the `new` operation.
+	 * @param folder Input value for `folder`.
+	 */
 	public function new(folder:String)
 	{
 		super();
@@ -701,6 +759,15 @@ class MenuButton extends FlxSpriteGroup
 	public var icon:FlxSprite;
 	public var onClick:Void->Void = null;
 	public var enabled(default, set):Bool = true;
+	/**
+	 * Executes the `new` operation.
+	 * @param x Input value for `x`.
+	 * @param y Input value for `y`.
+	 * @param width Input value for `width`.
+	 * @param height Input value for `height`.
+	 * @param text Input value for `text`.
+	 * @param img Input value for `img`.
+	 */
 	public function new(x:Float, y:Float, width:Int, height:Int, ?text:String = null, ?img:FlxGraphic = null, onClick:Void->Void = null, animWidth:Int = 0, animHeight:Int = 0)
 	{
 		super(x, y);
@@ -744,6 +811,11 @@ class MenuButton extends FlxSpriteGroup
 	public var onFocus(default, set):Bool = false;
 	public var ignoreCheck:Bool = false;
 	private var _needACheck:Bool = false;
+	/**
+	 * Executes the `update` operation.
+	 * @param elapsed Input value for `elapsed`.
+	 * @return Result produced by `update`, when applicable.
+	 */
 	override function update(elapsed:Float)
 	{
 		super.update(elapsed);
@@ -767,6 +839,11 @@ class MenuButton extends FlxSpriteGroup
 		}
 	}
 
+	/**
+	 * Executes the `set_onFocus` operation.
+	 * @param newValue Input value for `newValue`.
+	 * @return Result produced by `set_onFocus`, when applicable.
+	 */
 	function set_onFocus(newValue:Bool)
 	{
 		var lastFocus:Bool = onFocus;
@@ -775,6 +852,11 @@ class MenuButton extends FlxSpriteGroup
 		return newValue;
 	}
 
+	/**
+	 * Executes the `set_enabled` operation.
+	 * @param newValue Input value for `newValue`.
+	 * @return Result produced by `set_enabled`, when applicable.
+	 */
 	function set_enabled(newValue:Bool)
 	{
 		enabled = newValue;
@@ -785,6 +867,11 @@ class MenuButton extends FlxSpriteGroup
 		return newValue;
 	}
 
+	/**
+	 * Executes the `setButtonVisibility` operation.
+	 * @param focusVal Input value for `focusVal`.
+	 * @return Result produced by `setButtonVisibility`, when applicable.
+	 */
 	public function setButtonVisibility(focusVal:Bool)
 	{
 		alpha = 1;
@@ -808,6 +895,11 @@ class MenuButton extends FlxSpriteGroup
 		if(focusChangeCallback != null) focusChangeCallback(focusVal);
 	}
 
+	/**
+	 * Executes the `centerOnBg` operation.
+	 * @param spr Input value for `spr`.
+	 * @return Result produced by `centerOnBg`, when applicable.
+	 */
 	public function centerOnBg(spr:FlxSprite)
 	{
 		spr.x = bg.width/2 - spr.width/2;
@@ -817,6 +909,9 @@ class MenuButton extends FlxSpriteGroup
 #else
 class ModsMenuState extends MusicBeatState
 {
+	/**
+	 * Executes the `new` operation.
+	 */
 	public function new() { super(); }
 }
 #end

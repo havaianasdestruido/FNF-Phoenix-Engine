@@ -7,9 +7,17 @@ import objects.Character;
 // Pico Note functions
 class PicoBlazinHandler
 {
+	/**
+	 * Executes the `new` operation.
+*/
 	public function new() {}
 
 	var cantUppercut = false;
+	/**
+	 * Executes the `noteHit` operation.
+	 * @param note Input value for `note`.
+	 * @return Result produced by `noteHit`, when applicable.
+	 */
 	public function noteHit(note:Note)
 	{
 		if (wasNoteHitPoorly(note.rating) && isPlayerLowHealth() && isDarnellPreppingUppercut())
@@ -90,6 +98,11 @@ class PicoBlazinHandler
 		}
 	}
 
+	/**
+	 * Executes the `noteMiss` operation.
+	 * @param note Input value for `note`.
+	 * @return Result produced by `noteMiss`, when applicable.
+	 */
 	public function noteMiss(note:Note)
 	{
 		//trace('missed note!');
@@ -183,6 +196,11 @@ class PicoBlazinHandler
 		}
 	}
 	
+	/**
+	 * Executes the `noteMissPress` operation.
+	 * @param direction Input value for `direction`.
+	 * @return Result produced by `noteMissPress`, when applicable.
+	 */
 	public function noteMissPress(direction:Int)
 	{
 		if (willMissBeLethal())
@@ -191,6 +209,10 @@ class PicoBlazinHandler
 			playPunchHighAnim(); // Pico wildly throws punches but Darnell dodges.
 	}
 
+	/**
+	 * Executes the `movePicoToBack` operation.
+	 * @return Result produced by `movePicoToBack`, when applicable.
+	 */
 	function movePicoToBack()
 	{
 		var bfPos:Int = FlxG.state.members.indexOf(boyfriendGroup);
@@ -201,6 +223,10 @@ class PicoBlazinHandler
 		FlxG.state.members[bfPos] = dadGroup;
 	}
 
+	/**
+	 * Executes the `movePicoToFront` operation.
+	 * @return Result produced by `movePicoToFront`, when applicable.
+	 */
 	function movePicoToFront()
 	{
 		var bfPos:Int = FlxG.state.members.indexOf(boyfriendGroup);
@@ -212,12 +238,20 @@ class PicoBlazinHandler
 	}
 
 	var alternate:Bool = false;
+	/**
+	 * Executes the `doAlternate` operation.
+	 * @return Result produced by `doAlternate`, when applicable.
+	 */
 	function doAlternate():String
 	{
 		alternate = !alternate;
 		return alternate ? '1' : '2';
 	}
 
+	/**
+	 * Executes the `playBlockAnim` operation.
+	 * @return Result produced by `playBlockAnim`, when applicable.
+	 */
 	function playBlockAnim()
 	{
 		boyfriend.playAnim('block', true);
@@ -225,36 +259,61 @@ class PicoBlazinHandler
 		moveToBack();
 	}
 
+	/**
+	 * Executes the `playCringeAnim` operation.
+	 * @return Result produced by `playCringeAnim`, when applicable.
+	 */
 	function playCringeAnim()
 	{
 		boyfriend.playAnim('cringe', true);
 		moveToBack();
 	}
 
+	/**
+	 * Executes the `playDodgeAnim` operation.
+	 * @return Result produced by `playDodgeAnim`, when applicable.
+	 */
 	function playDodgeAnim()
 	{
 		boyfriend.playAnim('dodge', true);
 		moveToBack();
 	}
 
+	/**
+	 * Executes the `playIdleAnim` operation.
+	 * @return Result produced by `playIdleAnim`, when applicable.
+	 */
 	function playIdleAnim()
 	{
 		boyfriend.playAnim('idle', false);
 		moveToBack();
 	}
 
+	/**
+	 * Executes the `playFakeoutAnim` operation.
+	 * @return Result produced by `playFakeoutAnim`, when applicable.
+	 */
 	function playFakeoutAnim()
 	{
 		boyfriend.playAnim('fakeout', true);
 		moveToBack();
 	}
 
+	/**
+	 * Executes the `playUppercutPrepAnim` operation.
+	 * @return Result produced by `playUppercutPrepAnim`, when applicable.
+	 */
 	function playUppercutPrepAnim()
 	{
 		boyfriend.playAnim('uppercutPrep', true);
 		moveToFront();
 	}
 
+	/**
+	 * Executes the `playUppercutAnim` operation.
+	 * @param hit Input value for `hit`.
+	 * @return Result produced by `playUppercutAnim`, when applicable.
+	 */
 	function playUppercutAnim(hit:Bool)
 	{
 		boyfriend.playAnim('uppercut', true);
@@ -262,6 +321,10 @@ class PicoBlazinHandler
 		moveToFront();
 	}
 
+	/**
+	 * Executes the `playUppercutHitAnim` operation.
+	 * @return Result produced by `playUppercutHitAnim`, when applicable.
+	 */
 	function playUppercutHitAnim()
 	{
 		boyfriend.playAnim('uppercutHit', true);
@@ -269,6 +332,10 @@ class PicoBlazinHandler
 		moveToBack();
 	}
 
+	/**
+	 * Executes the `playHitHighAnim` operation.
+	 * @return Result produced by `playHitHighAnim`, when applicable.
+	 */
 	function playHitHighAnim()
 	{
 		boyfriend.playAnim('hitHigh', true);
@@ -276,6 +343,10 @@ class PicoBlazinHandler
 		moveToBack();
 	}
 
+	/**
+	 * Executes the `playHitLowAnim` operation.
+	 * @return Result produced by `playHitLowAnim`, when applicable.
+	 */
 	function playHitLowAnim()
 	{
 		boyfriend.playAnim('hitLow', true);
@@ -283,6 +354,10 @@ class PicoBlazinHandler
 		moveToBack();
 	}
 
+	/**
+	 * Executes the `playHitSpinAnim` operation.
+	 * @return Result produced by `playHitSpinAnim`, when applicable.
+	 */
 	function playHitSpinAnim()
 	{
 		boyfriend.playAnim('hitSpin', true);
@@ -290,18 +365,30 @@ class PicoBlazinHandler
 		moveToBack();
 	}
 
+	/**
+	 * Executes the `playPunchHighAnim` operation.
+	 * @return Result produced by `playPunchHighAnim`, when applicable.
+	 */
 	function playPunchHighAnim()
 	{
 		boyfriend.playAnim('punchHigh' + doAlternate(), true);
 		moveToFront();
 	}
 
+	/**
+	 * Executes the `playPunchLowAnim` operation.
+	 * @return Result produced by `playPunchLowAnim`, when applicable.
+	 */
 	function playPunchLowAnim()
 	{
 		boyfriend.playAnim('punchLow' + doAlternate(), true);
 		moveToFront();
 	}
 
+	/**
+	 * Executes the `playTauntConditionalAnim` operation.
+	 * @return Result produced by `playTauntConditionalAnim`, when applicable.
+	 */
 	function playTauntConditionalAnim()
 	{
 		if (boyfriend.getAnimationName() == "fakeout")
@@ -310,37 +397,66 @@ class PicoBlazinHandler
 			playIdleAnim();
 	}
 
+	/**
+	 * Executes the `playTauntAnim` operation.
+	 * @return Result produced by `playTauntAnim`, when applicable.
+	 */
 	function playTauntAnim()
 	{
 		boyfriend.playAnim('taunt', true);
 		moveToBack();
 	}
 
+	/**
+	 * Executes the `willMissBeLethal` operation.
+	 * @return Result produced by `willMissBeLethal`, when applicable.
+	 */
 	function willMissBeLethal()
 	{
 		return PlayState.instance.health <= 0.0 && !PlayState.instance.practiceMode;
 	}
 	
+	/**
+	 * Executes the `isDarnellPreppingUppercut` operation.
+	 * @return Result produced by `isDarnellPreppingUppercut`, when applicable.
+	 */
 	function isDarnellPreppingUppercut()
 	{
 		return dad.getAnimationName() == 'uppercutPrep';
 	}
 
+	/**
+	 * Executes the `isDarnellInUppercut` operation.
+	 * @return Result produced by `isDarnellInUppercut`, when applicable.
+	 */
 	function isDarnellInUppercut()
 	{
 		return dad.getAnimationName() == 'uppercut' || dad.getAnimationName() == 'uppercut-hold';
 	}
 
+	/**
+	 * Executes the `wasNoteHitPoorly` operation.
+	 * @param rating Input value for `rating`.
+	 * @return Result produced by `wasNoteHitPoorly`, when applicable.
+	 */
 	function wasNoteHitPoorly(rating:String)
 	{
 		return (rating == "bad" || rating == "shit");
 	}
 
+	/**
+	 * Executes the `isPlayerLowHealth` operation.
+	 * @return Result produced by `isPlayerLowHealth`, when applicable.
+	 */
 	function isPlayerLowHealth()
 	{
 		return PlayState.instance.health <= 0.3 * 2;
 	}
 	
+	/**
+	 * Executes the `moveToBack` operation.
+	 * @return Result produced by `moveToBack`, when applicable.
+	 */
 	function moveToBack()
 	{
 		var bfPos:Int = FlxG.state.members.indexOf(boyfriendGroup);
@@ -351,6 +467,10 @@ class PicoBlazinHandler
 		FlxG.state.members[bfPos] = dadGroup;
 	}
 
+	/**
+	 * Executes the `moveToFront` operation.
+	 * @return Result produced by `moveToFront`, when applicable.
+	 */
 	function moveToFront()
 	{
 		var bfPos:Int = FlxG.state.members.indexOf(boyfriendGroup);
@@ -365,8 +485,24 @@ class PicoBlazinHandler
 	var dad(get, never):Character;
 	var boyfriendGroup(get, never):FlxSpriteGroup;
 	var dadGroup(get, never):FlxSpriteGroup;
+	/**
+	 * Executes the `get_boyfriend` operation.
+	 * @return Result produced by `get_boyfriend`, when applicable.
+	 */
 	function get_boyfriend() return PlayState.instance.boyfriend;
+	/**
+	 * Executes the `get_dad` operation.
+	 * @return Result produced by `get_dad`, when applicable.
+	 */
 	function get_dad() return PlayState.instance.dad;
+	/**
+	 * Executes the `get_boyfriendGroup` operation.
+	 * @return Result produced by `get_boyfriendGroup`, when applicable.
+	 */
 	function get_boyfriendGroup() return PlayState.instance.boyfriendGroup;
+	/**
+	 * Executes the `get_dadGroup` operation.
+	 * @return Result produced by `get_dadGroup`, when applicable.
+	 */
 	function get_dadGroup() return PlayState.instance.dadGroup;
 }

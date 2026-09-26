@@ -18,6 +18,9 @@ class BuildingShader extends FlxShader
       gl_FragColor = color;
     }
   ')
+  /**
+   * Executes the `new` operation.
+*/
   public function new()
   {
     super();

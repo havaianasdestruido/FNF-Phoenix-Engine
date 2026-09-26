@@ -16,6 +16,15 @@ class WiggleEffectLua extends Effect
   public var verticalStrength(default, set):Float = 1;
   public var horizontalStrength(default, set):Float = 1;
 
+  /**
+   * Executes the `new` operation.
+   * @param typeOfEffect Input value for `typeOfEffect`.
+   * @param waveSpeed Input value for `waveSpeed`.
+   * @param waveFrequency Input value for `waveFrequency`.
+   * @param waveAmplitude Input value for `waveAmplitude`.
+   * @param verticalStrength Input value for `verticalStrength`.
+   * @param horizontalStrength Input value for `horizontalStrength`.
+   */
   public function new(typeOfEffect:String = 'DREAMY', waveSpeed:Float = 0, waveFrequency:Float = 0, waveAmplitude:Float = 0, ?verticalStrength:Float = 1,
       ?horizontalStrength:Float = 1):Void
   {
@@ -29,12 +38,21 @@ class WiggleEffectLua extends Effect
     PlayState.instance.shaderUpdates.push(update);
   }
 
+  /**
+   * Executes the `update` operation.
+   * @param elapsed Input value for `elapsed`.
+   */
   public function update(elapsed:Float):Void
   {
     shader.uTime.value[0] += elapsed;
   }
 
   // FIX: converted switch statement to if-else (switch cases unsupported on macOS/miscellaneous platforms)
+  /**
+   * Executes the `effectTypeFromString` operation.
+   * @param effectType Input value for `effectType`.
+   * @return Result produced by `effectTypeFromString`, when applicable.
+   */
   private function effectTypeFromString(effectType:String):WiggleEffectType
   {
     var normalized:String = effectType.trim().replace('_', '').replace('-', '').toLowerCase();
@@ -47,6 +65,11 @@ class WiggleEffectLua extends Effect
     return DREAMY;
   }
 
+  /**
+   * Executes the `set_effectType` operation.
+   * @param v Input value for `v`.
+   * @return Result produced by `set_effectType`, when applicable.
+   */
   function set_effectType(v:WiggleEffectType):WiggleEffectType
   {
     effectType = v;
@@ -54,6 +77,11 @@ class WiggleEffectLua extends Effect
     return v;
   }
 
+  /**
+   * Executes the `set_waveSpeed` operation.
+   * @param v Input value for `v`.
+   * @return Result produced by `set_waveSpeed`, when applicable.
+   */
   function set_waveSpeed(v:Float):Float
   {
     waveSpeed = v;
@@ -61,6 +89,11 @@ class WiggleEffectLua extends Effect
     return v;
   }
 
+  /**
+   * Executes the `set_waveFrequency` operation.
+   * @param v Input value for `v`.
+   * @return Result produced by `set_waveFrequency`, when applicable.
+   */
   function set_waveFrequency(v:Float):Float
   {
     waveFrequency = v;
@@ -68,6 +101,11 @@ class WiggleEffectLua extends Effect
     return v;
   }
 
+  /**
+   * Executes the `set_waveAmplitude` operation.
+   * @param v Input value for `v`.
+   * @return Result produced by `set_waveAmplitude`, when applicable.
+   */
   function set_waveAmplitude(v:Float):Float
   {
     waveAmplitude = v;
@@ -75,6 +113,11 @@ class WiggleEffectLua extends Effect
     return v;
   }
 
+  /**
+   * Executes the `set_verticalStrength` operation.
+   * @param v Input value for `v`.
+   * @return Result produced by `set_verticalStrength`, when applicable.
+   */
   function set_verticalStrength(v:Float):Float
   {
     verticalStrength = v;
@@ -82,6 +125,11 @@ class WiggleEffectLua extends Effect
     return v;
   }
 
+  /**
+   * Executes the `set_horizontalStrength` operation.
+   * @param v Input value for `v`.
+   * @return Result produced by `set_horizontalStrength`, when applicable.
+   */
   function set_horizontalStrength(v:Float):Float
   {
     horizontalStrength = v;

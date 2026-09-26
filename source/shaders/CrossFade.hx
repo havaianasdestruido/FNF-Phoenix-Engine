@@ -6,6 +6,12 @@ import play.PlayState;
 
 class CrossFade extends FlxSprite
 {
+	/**
+	 * Executes the `new` operation.
+	 * @param character Input value for `character`.
+	 * @param group Input value for `group`.
+	 * @param isDad Input value for `isDad`.
+	 */
 	public function new(character:Character, group:FlxTypedGroup<CrossFade>, ?isDad:Bool = true)
 	{
 		super();

@@ -13,6 +13,10 @@ class StageWeek1 extends BaseStage
 	var dadbattleBlack:BGSprite;
 	var dadbattleLight:BGSprite;
 	var dadbattleFog:DadBattleFog;
+	/**
+	 * Executes the `create` operation.
+	 * @return Result produced by `create`, when applicable.
+	 */
 	override function create()
 	{
 		var bg:BGSprite = new BGSprite('stageback', -600, -200, 0.9, 0.9);
@@ -39,6 +43,11 @@ class StageWeek1 extends BaseStage
 			add(stageCurtains);
 		}
 	}
+	/**
+	 * Executes the `eventPushed` operation.
+	 * @param event Input value for `event`.
+	 * @return Result produced by `eventPushed`, when applicable.
+	 */
 	override function eventPushed(event:EventNote)
 	{
 		switch(event.event)
@@ -62,6 +71,16 @@ class StageWeek1 extends BaseStage
 		}
 	}
 
+	/**
+	 * Executes the `eventCalled` operation.
+	 * @param eventName Input value for `eventName`.
+	 * @param value1 Input value for `value1`.
+	 * @param value2 Input value for `value2`.
+	 * @param flValue1 Input value for `flValue1`.
+	 * @param flValue2 Input value for `flValue2`.
+	 * @param strumTime Input value for `strumTime`.
+	 * @return Result produced by `eventCalled`, when applicable.
+	 */
 	override function eventCalled(eventName:String, value1:String, value2:String, flValue1:Null<Float>, flValue2:Null<Float>, strumTime:Float)
 	{
 		switch(eventName)

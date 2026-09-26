@@ -48,6 +48,10 @@ class StoryMenuState extends MusicBeatState
 
 	var loadedWeeks:Array<WeekData> = [];
 
+	/**
+	 * Executes the `create` operation.
+	 * @return Result produced by `create`, when applicable.
+	 */
 	override function create()
 	{
 		Paths.clearStoredMemory();
@@ -193,12 +197,21 @@ class StoryMenuState extends MusicBeatState
 		super.create();
 	}
 
+	/**
+	 * Executes the `closeSubState` operation.
+	 * @return Result produced by `closeSubState`, when applicable.
+	 */
 	override function closeSubState() {
 		persistentUpdate = true;
 		changeWeek();
 		super.closeSubState();
 	}
 
+	/**
+	 * Executes the `update` operation.
+	 * @param elapsed Input value for `elapsed`.
+	 * @return Result produced by `update`, when applicable.
+	 */
 	override function update(elapsed:Float)
 	{
 		if(grpWeekText != null && grpWeekText.length < 1)
@@ -294,6 +307,10 @@ class StoryMenuState extends MusicBeatState
 	var selectedWeek:Bool = false;
 	var stopspamming:Bool = false;
 
+	/**
+	 * Executes the `selectWeek` operation.
+	 * @return Result produced by `selectWeek`, when applicable.
+	 */
 	function selectWeek()
 	{
 		if (!weekIsLocked(loadedWeeks[curWeek].fileName))
@@ -345,6 +362,10 @@ class StoryMenuState extends MusicBeatState
 	}
 
 	var tweenDifficulty:FlxTween;
+	/**
+	 * Executes the `changeDifficulty` operation.
+	 * @param change Input value for `change`.
+	 */
 	function changeDifficulty(change:Int = 0):Void
 	{
 		curDifficulty += change;
@@ -384,6 +405,10 @@ class StoryMenuState extends MusicBeatState
 	var lerpScore:Int = 0;
 	var intendedScore:Int = 0;
 
+	/**
+	 * Executes the `changeWeek` operation.
+	 * @param change Input value for `change`.
+	 */
 	function changeWeek(change:Int = 0):Void
 	{
 		curWeek += change;
@@ -474,11 +499,20 @@ class StoryMenuState extends MusicBeatState
 		updateText();
 	}
 
+	/**
+	 * Executes the `weekIsLocked` operation.
+	 * @param name Input value for `name`.
+	 * @return Result produced by `weekIsLocked`, when applicable.
+	 */
 	function weekIsLocked(name:String):Bool {
 		var leWeek:WeekData = WeekData.weeksLoaded.get(name);
 		return (!leWeek.startUnlocked && leWeek.weekBefore.length > 0 && (!weekCompleted.exists(leWeek.weekBefore) || !weekCompleted.get(leWeek.weekBefore)));
 	}
 
+	/**
+	 * Executes the `updateText` operation.
+	 * @return Result produced by `updateText`, when applicable.
+	 */
 	function updateText()
 	{
 		var weekArray:Array<String> = loadedWeeks[curWeek].weekCharacters;

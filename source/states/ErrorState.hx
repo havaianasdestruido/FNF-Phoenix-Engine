@@ -12,6 +12,10 @@ class ErrorState extends MusicBeatState
 	public var backCallback:Void->Void;
 	public var errorMsg:String;
 
+	/**
+	 * Executes the `new` operation.
+	 * @param error Input value for `error`.
+	 */
 	public function new(error:String, accept:Void->Void = null, back:Void->Void = null)
 	{
 		this.errorMsg = error;
@@ -23,6 +27,10 @@ class ErrorState extends MusicBeatState
 
 	public var errorSine:Float = 0;
 	public var errorText:FlxText;
+	/**
+	 * Executes the `create` operation.
+	 * @return Result produced by `create`, when applicable.
+	 */
 	override function create()
 	{
 		var bg = new FlxSprite().loadGraphic(Paths.image('menuDesat', 'preload'));
@@ -40,6 +48,11 @@ class ErrorState extends MusicBeatState
 		super.create();
 	}
 
+	/**
+	 * Executes the `update` operation.
+	 * @param elapsed Input value for `elapsed`.
+	 * @return Result produced by `update`, when applicable.
+	 */
 	override function update(elapsed:Float)
 	{
 		errorSine += 180 * elapsed;
