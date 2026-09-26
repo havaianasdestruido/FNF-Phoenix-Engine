@@ -669,6 +669,49 @@ class Project extends HXProject
 		if (!isAndroid())
 			return;
 
+		// Java sources of the native platform bridge (extensions). Lime copies
+		// these into the generated Gradle project's java source set.
+		this.javaPaths.push("android/src");
+
+		// Engine platform templates (MainActivity, AndroidManifest overrides).
+		// Pushed so they take priority over haxelib template paths.
+		this.templatePaths.push("templates");
+
+		// Register the native bridge extensions with Lime's Android build.
+		// Each one extends org.haxe.extension.Extension and is instantiated by
+		// the generated GameActivity, which forwards lifecycle/intent/result
+		// callbacks to them. PhoenixMediaService is an Android Service declared
+		// in the manifest template, not an extension.
+		config.set("android.extension", [
+			"quack.fnf.phoenix.android.PhoenixCore",
+			"quack.fnf.phoenix.android.PhoenixDisplay",
+			"quack.fnf.phoenix.android.PhoenixInput",
+			"quack.fnf.phoenix.android.PhoenixMedia",
+			"quack.fnf.phoenix.android.PhoenixStorage"
+		]);
+
+		// Lime's default Android permissions plus the ones the platform bridge
+		// needs (media notifications, foreground media playback service).
+		// NB: setting `android.permission` replaces Lime's defaults entirely,
+		// so they are repeated here.
+		config.set("android.permission", [
+			"android.permission.WAKE_LOCK",
+			"android.permission.INTERNET",
+			"android.permission.VIBRATE",
+			"android.permission.ACCESS_NETWORK_STATE",
+			"android.permission.ACCESS_MEDIA_LOCATION",
+			"android.permission.MANAGE_EXTERNAL_STORAGE",
+			"android.permission.READ_MEDIA_IMAGES",
+			"android.permission.READ_MEDIA_VIDEO",
+			"android.permission.READ_MEDIA_AUDIO",
+			"android.permission.READ_MEDIA_VISUAL_USER_SELECTED",
+			"android.permission.READ_EXTERNAL_STORAGE",
+			"android.permission.WRITE_EXTERNAL_STORAGE",
+			"android.permission.POST_NOTIFICATIONS",
+			"android.permission.FOREGROUND_SERVICE",
+			"android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK"
+		]);
+
 		var abis = androidAbis();
 		if (abis.length == 0)
 			return;
@@ -713,7 +756,9 @@ class Project extends HXProject
 		addHaxelib('funkin.vis');
 		if (!isFlash() && !isAir())
 			addHaxelib('flxanimate'); // Texture atlas rendering
-		if (!isFlash() && !isWeb() && isCPP())
+		// Native file dialogs are desktop-only; its NDLL ships no mobile
+		// binaries, so keep it off mobile classpaths entirely.
+		if (isDesktop() && !isFlash() && !isWeb() && isCPP())
 			addHaxelib('hxnativefiledialog');
 		addHaxelib('tjson');
 
@@ -822,9 +867,23 @@ class Project extends HXProject
 
 		if (isAndroid())
 		{
-			if (sys.FileSystem.exists("key.keystore"))
+			// Signing key resolution order:
+			// 1. PHOENIX_KEYSTORE env var (plus PHOENIX_KEYSTORE_PASSWORD /
+			//    PHOENIX_KEYSTORE_ALIAS / PHOENIX_KEYSTORE_ALIAS_PASSWORD).
+			// 2. Local development keystore `key.keystore` with the legacy
+			//    javascriptengine credentials.
+			// If neither exists the build produces an unsigned/debug APK.
+			var keystorePath:Null<String> = Sys.getEnv("PHOENIX_KEYSTORE");
+			if (keystorePath == null || keystorePath == "")
+				keystorePath = sys.FileSystem.exists("key.keystore") ? "key.keystore" : null;
+
+			if (keystorePath != null && sys.FileSystem.exists(keystorePath))
 			{
-				this.keystore = new Keystore("key.keystore", "javascriptengine", "jsport", "javascriptengine");
+				var password:String = Sys.getEnv("PHOENIX_KEYSTORE_PASSWORD") ?? "javascriptengine";
+				var alias:String = Sys.getEnv("PHOENIX_KEYSTORE_ALIAS") ?? "jsport";
+				var aliasPassword:String = Sys.getEnv("PHOENIX_KEYSTORE_ALIAS_PASSWORD") ?? password;
+				this.keystore = new Keystore(keystorePath, password, alias, aliasPassword);
+				info('Android: signing with keystore "$keystorePath"');
 			}
 		}
 	}

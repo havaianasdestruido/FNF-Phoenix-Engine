@@ -658,7 +658,133 @@ class ChartingState extends MusicBeatState
     updateGrid();
 
     super.create();
+
+    #if mobile
+    // Touch devices have no keyboard: give the chart editor a virtual pad.
+    // The pad's extra buttons are wired to the common keyboard shortcuts in
+    // setupMobilePad() below (see "Virtual pad consistency" in TODO.md).
+    addVirtualPad(BOTH_FULL, CHART_EDITOR);
+    addVirtualPadCamera();
+    setupMobilePad();
+    #end
   }
+
+  #if mobile
+  function setupMobilePad():Void
+  {
+    if (virtualPad == null)
+      return;
+
+    if (virtualPad.buttonUp2 != null)
+      virtualPad.buttonUp2.onUp.callback = mobilePadNextSection;
+    if (virtualPad.buttonDown2 != null)
+      virtualPad.buttonDown2.onUp.callback = mobilePadPrevSection;
+    if (virtualPad.buttonA != null)
+      virtualPad.buttonA.onUp.callback = mobilePadPlayTest;
+    if (virtualPad.buttonB != null)
+      virtualPad.buttonB.onUp.callback = mobilePadExit;
+    if (virtualPad.buttonX != null)
+      virtualPad.buttonX.onUp.callback = mobilePadTogglePlayback;
+    if (virtualPad.buttonY != null)
+      virtualPad.buttonY.onUp.callback = mobilePadEditorPlayTest;
+  }
+
+  function mobilePadNextSection():Void
+  {
+    if (_song.notes[curSec + 1] == null)
+      addSection(getSectionBeats());
+    changeSection(curSec + 1);
+  }
+
+  function mobilePadPrevSection():Void
+  {
+    if (curSec <= 0)
+      changeSection(_song.notes.length - 1);
+    else
+      changeSection(curSec - 1);
+  }
+
+  function mobilePadTogglePlayback():Void
+  {
+    // Mirrors the SPACE shortcut.
+    if (FlxG.sound.music.playing)
+    {
+      FlxG.sound.music.pause();
+      pauseVocals();
+      resetBuddies();
+      lilBf.color = lilOpp.color = FlxColor.WHITE;
+      if (idleMusic != null && idleMusic.music != null && idleMusicAllow)
+        idleMusic.unpauseMusic(2);
+    }
+    else
+    {
+      pauseAndSetVocalsTime();
+      if (!FlxG.sound.music.playing)
+      {
+        FlxG.sound.music.play();
+        if (vocals != null)
+          vocals.play();
+        if (opponentVocals != null)
+          opponentVocals.play();
+      }
+      if (idleMusic != null && idleMusic.music != null && idleMusicAllow)
+        idleMusic.pauseMusic();
+      resetBuddies();
+      lilBf.color = lilOpp.color = FlxColor.WHITE;
+    }
+  }
+
+  function mobilePadPlayTest():Void
+  {
+    // Mirrors the ENTER shortcut.
+    if (CoolUtil.getNoteAmount(_song) <= 1000000)
+      saveLevel(true, true);
+    FlxG.mouse.visible = false;
+    PlayState.SONG = _song;
+    FlxG.sound.music.stop();
+    if (vocals != null)
+      vocals.stop();
+    if (opponentVocals != null)
+      opponentVocals.stop();
+    CoolUtil.currentDifficulty = difficulty;
+    StageData.loadDirectory(_song);
+    LoadingState.loadAndSwitchState(PlayState.new);
+    if (idleMusic != null && idleMusic.music != null)
+      idleMusic.destroy();
+  }
+
+  function mobilePadEditorPlayTest():Void
+  {
+    // Mirrors the ESCAPE shortcut.
+    saveLevel(true, true);
+    FlxG.sound.music.pause();
+    pauseVocals();
+    LoadingState.loadAndSwitchState(() -> new editors.EditorPlayState(sectionStartTime()));
+    if (idleMusic != null && idleMusic.music != null)
+      idleMusic.destroy();
+    FlxG.sound.music.onComplete = null; // So that it doesn't crash when you reach the end
+  }
+
+  function mobilePadExit():Void
+  {
+    // Mirrors the BACKSPACE shortcut.
+    if (!unsavedChanges)
+    {
+      saveLevel(true, true);
+
+      CoolUtil.currentDifficulty = difficulty;
+      PlayState.chartingMode = false;
+      FlxG.switchState(editors.MasterEditorMenu.new);
+      FlxG.sound.playMusic(Paths.music('freakyMenu-' + ClientPrefs.daMenuMusic));
+      FlxG.mouse.visible = false;
+      if (idleMusic != null && idleMusic.music != null)
+        idleMusic.destroy();
+      return;
+    }
+    openSubState(new Prompt('WARNING! This action will clear unsaved progress.\n\nProceed?', 0,
+      function() FlxG.switchState(editors.MasterEditorMenu.new), null, ignoreWarnings));
+  }
+  #end
 
   var check_mute_inst:FlxUICheckBox = null;
   var check_mute_vocals:FlxUICheckBox = null;

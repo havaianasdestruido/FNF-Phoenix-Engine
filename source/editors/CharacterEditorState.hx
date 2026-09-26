@@ -28,6 +28,7 @@ import flixel.system.debug.interaction.tools.Pointer.GraphicCursorCross;
 import flixel.ui.FlxButton;
 import flixel.ui.FlxSpriteButton;
 import lime.system.Clipboard;
+import mobile.files.MobileFilePicker;
 import openfl.events.Event;
 import openfl.events.IOErrorEvent;
 import openfl.net.FileReference;
@@ -225,6 +226,13 @@ class CharacterEditorState extends MusicBeatState
 		reloadCharacterOptions();
 
 		super.create();
+
+		#if mobile
+		// Touch devices have no keyboard: give the character editor its pad
+		// (layout defined by FlxActionMode.CHARACTER_EDITOR).
+		addVirtualPad(BOTH_FULL, CHARACTER_EDITOR);
+		addVirtualPadCamera();
+		#end
 	}
 
 	function addHelpScreen()
@@ -648,12 +656,43 @@ class CharacterEditorState extends MusicBeatState
 		templateCharacter.color = FlxColor.RED;
 		templateCharacter.label.color = FlxColor.WHITE;
 
+		// Imports a character.json through the file picker. Works on desktop
+		// (native dialog) and mobile (Android SAF document picker).
+		var importCharacter:FlxButton = new FlxButton(140, 80, "Import Char", function()
+		{
+			MobileFilePicker.openFile(function(file)
+			{
+				if (file == null || file.data == null)
+					return;
+
+				try
+				{
+					var json:CharacterFile = cast Json.parse(file.data.toString());
+					char.loadCharacterFile(json);
+					char.debugMode = true;
+					char.color = FlxColor.WHITE;
+					char.alpha = 1;
+					reloadAnimList();
+					reloadCharacterOptions();
+					updateCharacterPositions();
+					updatePointerPos();
+					reloadCharacterDropDown();
+					resetHealthBarColor();
+				}
+				catch (e:Dynamic)
+				{
+					CoolUtil.coolError('Failed to import character JSON!\nIs it really a character.json?\nError: $e', "JS Engine Anti-Crash Tool");
+				}
+			}, ['json'], "Choose a character.json to import");
+		});
+
 		tab_group.add(new FlxText(charDropDown.x, charDropDown.y - 18, 0, 'Character:'));
 		tab_group.add(check_player);
 		tab_group.add(reloadCharacter);
 		tab_group.add(charDropDown);
 		tab_group.add(reloadCharacter);
 		tab_group.add(templateCharacter);
+		tab_group.add(importCharacter);
 
 		for (i in tab_group.members)
 			i.cameras = [camMenu];
@@ -1498,11 +1537,19 @@ if(!char.isAnimateAtlas) char.animation.remove(anim.anim);
 
 		if (data.length > 0)
 		{
+			#if android
+			// FileReference can't save on Android; use the SAF picker.
+			MobileFilePicker.saveText(data, _char + ".json", "application/json", "Save character as", function(result) {
+				if (result != null)
+					FlxG.log.notice("Successfully saved file.");
+			});
+			#else
 			_file = new FileReference();
 			_file.addEventListener(Event.COMPLETE, onSaveComplete);
 			_file.addEventListener(Event.CANCEL, onSaveCancel);
 			_file.addEventListener(IOErrorEvent.IO_ERROR, onSaveError);
 			_file.save(data, _char + ".json");
+			#end
 		}
 	}
 

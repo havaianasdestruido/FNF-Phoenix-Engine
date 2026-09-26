@@ -1569,6 +1569,11 @@ class PlayState extends MusicBeatState
 		Paths.clearUnusedMemory();
 
 		startingTime = haxe.Timer.stamp();
+
+		#if android
+		// Android media session / audio focus / wake lock integration.
+		PlayStateAndroidMedia.start(this);
+		#end
 	}
 
 	#if SHADERS_ALLOWED
@@ -2832,6 +2837,10 @@ class PlayState extends MusicBeatState
 	}
 
 	override function destroy() {
+		#if android
+		PlayStateAndroidMedia.stop(this);
+		#end
+
 		#if LUA_ALLOWED
 		for (lua in luaArray) {
 			lua.call('onDestroy', []);

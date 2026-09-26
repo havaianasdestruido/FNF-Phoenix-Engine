@@ -150,6 +150,13 @@ class DialogueCharacterEditorState extends MusicBeatState
 		updateCharTypeBox();
 
 		super.create();
+
+		#if mobile
+		// Touch devices have no keyboard: give the dialogue portrait editor
+		// its pad (layout defined by the DIALOGUE_PORTRAIT_EDITOR modes).
+		addVirtualPad(DIALOGUE_PORTRAIT_EDITOR, DIALOGUE_PORTRAIT_EDITOR);
+		addVirtualPadCamera();
+		#end
 	}
 
 	var UI_typebox:FlxUITabMenu;

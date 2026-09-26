@@ -7,9 +7,9 @@ import flixel.addons.display.FlxPieDial;
 import hxvlc.flixel.FlxVideoSprite;
 #end
 
+#if (VIDEOS_ALLOWED && hxvlc)
 class VideoSprite extends FlxSpriteGroup
 {
-  #if VIDEOS_ALLOWED
   public var finishCallback:Void->Void = null;
   public var onSkip:Void->Void = null;
 
@@ -176,5 +176,94 @@ class VideoSprite extends FlxSpriteGroup
 
   public function pause()
     videoSprite?.pause();
-  #end
 }
+#else
+/**
+ * Graceful fallback used when the hxvlc video backend isn't available on
+ * this platform (hxvlc is a desktop-only haxelib; mobile builds have
+ * VIDEOS_ALLOWED set but no video decoder). The sprite keeps the same
+ * public surface as the real one and immediately resolves its finish
+ * callback, so cutscene/intro flows skip the video instead of hanging.
+ */
+class VideoSprite extends FlxSpriteGroup
+{
+  public var finishCallback:Void->Void = null;
+  public var onSkip:Void->Void = null;
+
+  public var holdingTime:Float = 0;
+  public var videoSprite:NullVideoSpriteBackend = new NullVideoSpriteBackend();
+  public var canSkip(default, set):Bool = false;
+
+  private var videoName:String;
+
+  public var waiting:Bool = false;
+
+  var alreadyDestroyed:Bool = false;
+  var resolved:Bool = false;
+
+  public function new(videoName:String, isWaiting:Bool, canSkip:Bool = false, shouldLoop:Dynamic = false, autoPause:Bool = true)
+  {
+    super();
+
+    this.videoName = videoName;
+    waiting = isWaiting;
+    if (canSkip) this.canSkip = true;
+
+    trace('Video backend unavailable on this platform, skipping "$videoName"');
+  }
+
+  override function update(elapsed:Float)
+  {
+    super.update(elapsed);
+
+    // Resolve the "video ended" flow one frame after construction so the
+    // caller has had a chance to hook up finishCallback/onSkip first.
+    if (!resolved)
+    {
+      resolved = true;
+      destroy();
+    }
+  }
+
+  override function destroy()
+  {
+    if (alreadyDestroyed) return;
+
+    if (finishCallback != null) finishCallback();
+    onSkip = null;
+
+    if (FlxG.state != null)
+    {
+      if (FlxG.state.members.contains(this)) FlxG.state.remove(this);
+
+      if (FlxG.state.subState != null && FlxG.state.subState.members.contains(this)) FlxG.state.subState.remove(this);
+    }
+    super.destroy();
+    alreadyDestroyed = true;
+  }
+
+  function set_canSkip(newValue:Bool)
+  {
+    canSkip = newValue;
+    return canSkip;
+  }
+
+  public function play() {}
+
+  public function resume() {}
+
+  public function pause() {}
+}
+
+/** Stand-in for `hxvlc.flixel.FlxVideoSprite` when no backend exists. */
+class NullVideoSpriteBackend
+{
+  public function new() {}
+
+  public function play() {}
+
+  public function resume() {}
+
+  public function pause() {}
+}
+#end

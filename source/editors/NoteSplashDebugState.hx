@@ -1,4 +1,4 @@
-﻿package editors;
+package editors;
 import backend.ClientPrefs;
 import backend.MusicBeatState;
 import backend.Paths;
@@ -184,6 +184,13 @@ class NoteSplashDebugState extends MusicBeatState
 		changeSelection();
 		super.create();
 		FlxG.mouse.visible = true;
+
+		#if mobile
+		// Touch devices have no keyboard: give the note splash debugger its
+		// pad (layout defined by the NOTE_SPLASH_DEBUG modes).
+		addVirtualPad(NOTE_SPLASH_DEBUG, NOTE_SPLASH_DEBUG);
+		addVirtualPadCamera();
+		#end
 	}
 
 	var curAnim:Int = 1;

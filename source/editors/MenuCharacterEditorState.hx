@@ -69,6 +69,13 @@ class MenuCharacterEditorState extends MusicBeatState
 		updateCharTypeBox();
 
 		super.create();
+
+		#if mobile
+		// Touch devices have no keyboard: give the menu character editor its
+		// pad (layout defined by the MENU_CHARACTER_EDITOR modes).
+		addVirtualPad(MENU_CHARACTER_EDITOR, MENU_CHARACTER_EDITOR);
+		addVirtualPadCamera();
+		#end
 	}
 
 	var UI_typebox:FlxUITabMenu;
