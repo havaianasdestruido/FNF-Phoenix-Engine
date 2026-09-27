@@ -3,13 +3,18 @@
 # Requires ffmpeg with libmp3lame and libvorbis.
 set -eu
 
-ROOT=.
+ROOT=""
 MP3_BITRATE=128
 OGG_BITRATE=96
 
+# Default root: the repository root (parent of the directory holding this script),
+# so the tool behaves the same no matter where it is run from.
+script_dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+DEFAULT_ROOT=$(CDPATH= cd -- "$script_dir/.." && pwd)
+
 usage() {
     printf '%s\n' "Usage: $0 [--root DIR] [--mp3-bitrate KBPS] [--ogg-bitrate KBPS]"
-    printf '%s\n' "Defaults: root=., MP3=128 kbps, OGG=96 kbps"
+    printf '%s\n' "Defaults: root=repository root ($DEFAULT_ROOT), MP3=128 kbps, OGG=96 kbps"
 }
 while [ "$#" -gt 0 ]; do
     case "$1" in
@@ -21,13 +26,21 @@ while [ "$#" -gt 0 ]; do
     esac
 done
 
+[ -n "$ROOT" ] || ROOT=$DEFAULT_ROOT
+
 command -v ffmpeg >/dev/null 2>&1 || { echo 'ERROR: ffmpeg was not found in PATH.' >&2; exit 1; }
 [ -d "$ROOT" ] || { echo "ERROR: directory not found: $ROOT" >&2; exit 1; }
 
 tmpdir=$(mktemp -d "${TMPDIR:-/tmp}/phoenix-audio.XXXXXX")
 trap 'rm -rf "$tmpdir"' EXIT HUP INT TERM
 filelist="$tmpdir/files"
-find "$ROOT" -type f \( -iname '*.mp3' -o -iname '*.ogg' \) -print > "$filelist"
+find "$ROOT" -type d -name .git -prune -o -type f \( -iname '*.mp3' -o -iname '*.ogg' \) -print > "$filelist"
+
+if [ ! -s "$filelist" ]; then
+    echo "No MP3 or OGG files found under: $ROOT"
+    echo "Pass a different folder with --root, e.g.: $0 --root assets"
+    exit 0
+fi
 
 processed=0; replaced=0; skipped=0; failed=0; saved=0
 while IFS= read -r file; do

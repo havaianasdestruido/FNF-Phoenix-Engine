@@ -1,12 +1,28 @@
 param(
-    [string]$Root = (Get-Location).Path,
+    [string]$Root = "",
     [int]$Mp3Bitrate = 128,
     [int]$OggBitrate = 96
 )
 
 $ErrorActionPreference = "Stop"
 
-$Root = (Resolve-Path $Root).Path
+# Default to the repository root (the folder that contains tools/) so the script
+# works no matter which directory it is launched from.
+if ([string]::IsNullOrWhiteSpace($Root)) {
+    if ($PSScriptRoot) {
+        $Root = Split-Path -Parent $PSScriptRoot
+    }
+    if ([string]::IsNullOrWhiteSpace($Root)) {
+        $Root = (Get-Location).Path
+    }
+}
+
+if (-not (Test-Path -LiteralPath $Root)) {
+    Write-Host "ERROR: directory not found: $Root" -ForegroundColor Red
+    exit 1
+}
+
+$Root = (Resolve-Path -LiteralPath $Root).Path
 
 if (-not (Get-Command ffmpeg -ErrorAction SilentlyContinue)) {
     Write-Host "ERROR: ffmpeg was not found in PATH." -ForegroundColor Red
@@ -20,14 +36,16 @@ Write-Host "========================================" -ForegroundColor Cyan
 Write-Host "Root: $Root"
 Write-Host ""
 
-# Recursively find every MP3 and OGG
-$files = Get-ChildItem -Path $Root -Recurse -File -ErrorAction SilentlyContinue |
+# Recursively find every MP3 and OGG (skipping .git)
+$files = @(Get-ChildItem -Path $Root -Recurse -File -ErrorAction SilentlyContinue |
     Where-Object {
-        $_.Extension -eq ".mp3" -or $_.Extension -eq ".ogg"
-    }
+        ($_.Extension -eq ".mp3" -or $_.Extension -eq ".ogg") -and
+        $_.FullName -notmatch '\\\.git\\'
+    })
 
-if ($null -eq $files -or $files.Count -eq 0) {
-    Write-Host "No MP3 or OGG files found." -ForegroundColor Yellow
+if ($files.Count -eq 0) {
+    Write-Host "No MP3 or OGG files found under: $Root" -ForegroundColor Yellow
+    Write-Host "Pass a different folder with -Root, e.g.: .\compress-audio.ps1 -Root assets" -ForegroundColor Yellow
     exit 0
 }
 
