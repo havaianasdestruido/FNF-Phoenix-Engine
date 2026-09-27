@@ -51,8 +51,10 @@ class HealthIcon extends FlxSprite
 
 			if (iconAsset == null)
 				iconAsset = Paths.image('icons/icon-face');
-			else if (!Paths.fileExists('images/icons/icon-face.png', IMAGE))
-				trace("Warning: could not find the placeholder icon, expect crashes!");
+			if (iconAsset == null)
+				// No icon art at all (e.g. content-stripped builds ship no
+				// icons/): generate a stand-in instead of crashing.
+				iconAsset = getPlaceholderIcon(char);
 
 			//cleaned up to be less confusing. also floor is used so iSize has to definitively be 3 to use winning icons
 			final iSize:Float = Math.round(iconAsset.width / iconAsset.height);
@@ -106,5 +108,38 @@ class HealthIcon extends FlxSprite
 
 	public function getCharacter():String {
 		return char;
+	}
+
+	static var _placeholderIcons:Map<String, FlxGraphic> = [];
+
+	/**
+	 * Generates (and caches) a two-frame health icon stand-in: the normal frame
+	 * in the character's placeholder color, the losing frame darkened.
+	 * Matches the standard 150x150-per-frame icon layout.
+	 */
+	static function getPlaceholderIcon(char:String):FlxGraphic
+	{
+		if (_placeholderIcons.exists(char))
+		{
+			var cached:FlxGraphic = _placeholderIcons.get(char);
+			// Bitmap cleanup (Paths.clearStoredMemory) can destroy or evict
+			// cached graphics; drop dead entries so a fresh placeholder is
+			// generated below instead of reusing a broken graphic.
+			if (cached != null && cached.bitmap != null && FlxG.bitmap.get(cached.key) == cached)
+				return cached;
+			_placeholderIcons.remove(char);
+		}
+
+		trace('HealthIcon: no icon found for "$char", using a generated placeholder.');
+		var base:FlxColor = Character.placeholderColor(char);
+		var dark:FlxColor = FlxColor.fromRGB(Std.int(base.red * 0.45), Std.int(base.green * 0.45), Std.int(base.blue * 0.45));
+
+		var pixels:BitmapData = new BitmapData(300, 150, true, 0);
+		pixels.fillRect(new Rectangle(0, 0, 150, 150), base);
+		pixels.fillRect(new Rectangle(150, 0, 150, 150), dark);
+
+		var graphic:FlxGraphic = FlxGraphic.fromBitmapData(pixels, false, 'placeholder-icon-$char');
+		_placeholderIcons.set(char, graphic);
+		return graphic;
 	}
 }

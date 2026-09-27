@@ -322,9 +322,16 @@ class CharacterEditorState extends MusicBeatState
 
 			var scaledWidth = Std.int(bgSky.width * 6);
 			var bgTrees:FlxSprite = new FlxSprite(repositionOffset - 380, -800 - playerYDifference);
-			bgTrees.frames = Paths.getPackerAtlas('weeb/weebTrees');
-			bgTrees.animation.add('treeLoop', [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18], 12);
-			bgTrees.animation.play('treeLoop');
+			var treeFrames = Paths.getPackerAtlas('weeb/weebTrees');
+			if (treeFrames == null) {
+				// No week 6 art (e.g. content-stripped builds ship no weeb/
+				// art): invisible stand-in so the editor stays usable.
+				bgTrees.makeGraphic(2, 2, 0, true);
+			} else {
+				bgTrees.frames = treeFrames;
+				bgTrees.animation.add('treeLoop', [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18], 12);
+				bgTrees.animation.play('treeLoop');
+			}
 			bgTrees.scrollFactor.set(0.85, 0.85);
 			bgLayer.add(bgTrees);
 			bgTrees.antialiasing = false;

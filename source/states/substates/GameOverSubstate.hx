@@ -112,7 +112,14 @@ class GameOverSubstate extends MusicBeatSubstate
 	function doGenericGameOver()
 	{
 		genericCharacter = new FlxSprite(0, 0);
-		genericCharacter.loadGraphic(Paths.image(genericName));
+		var genericGraphic = Paths.image(genericName);
+		if (genericGraphic == null) {
+			// No generic game-over art (e.g. content-stripped builds ship no
+			// characters/ art): stand-in box instead of crashing.
+			genericCharacter.makeGraphic(300, 300, 0xFFFF00FF, true);
+		} else {
+			genericCharacter.loadGraphic(genericGraphic);
+		}
 		genericCharacter.scrollFactor.set();
 		genericCharacter.screenCenter();
 		add(genericCharacter);

@@ -125,7 +125,13 @@ class TitleState extends MusicBeatState
     Highscore.load();
 
     // IGNORE THIS!!!
-    titleJSON = Json.parse(Paths.getTextFromFile('images/gfDanceTitle.json'));
+    var rawTitleJson:String = Paths.getTextFromFile('images/gfDanceTitle.json');
+    if (rawTitleJson != null)
+      titleJSON = Json.parse(rawTitleJson);
+    else
+      // No title config shipped (e.g. content-stripped builds drop the GF
+      // dancer + its JSON): fall back to the stock layout values.
+      titleJSON = {titlex: -150, titley: 1500, startx: 100, starty: 576, gfx: 512, gfy: 40, backgroundSprite: '', bpm: 102, endY: -100};
 
     if (!initialized)
     {
@@ -309,15 +315,22 @@ class TitleState extends MusicBeatState
     logoBl.updateHitbox();
 
     swagShader = new ColorSwap();
-    gfDance = new FlxSprite(titleJSON.gfx, titleJSON.gfy);
+    // The title dancer is optional: content-stripped builds ship no
+    // gfDanceTitle art. (beatHit() already null-checks gfDance.)
+    // Both the image and the Sparrow atlas must exist: getSparrowAtlas
+    // would treat a missing .xml path as literal XML and fail to parse it.
+    if (Paths.image('gfDanceTitle') != null && Paths.fileExists('images/gfDanceTitle.xml', TEXT))
+    {
+      gfDance = new FlxSprite(titleJSON.gfx, titleJSON.gfy);
 
-    gfDance.frames = Paths.getSparrowAtlas('gfDanceTitle');
-    gfDance.animation.addByIndices('danceLeft', 'gfDance', [30, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14], "", 24, false);
-    gfDance.animation.addByIndices('danceRight', 'gfDance', [15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29], "", 24, false);
-    gfDance.antialiasing = ClientPrefs.globalAntialiasing;
+      gfDance.frames = Paths.getSparrowAtlas('gfDanceTitle');
+      gfDance.animation.addByIndices('danceLeft', 'gfDance', [30, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14], "", 24, false);
+      gfDance.animation.addByIndices('danceRight', 'gfDance', [15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29], "", 24, false);
+      gfDance.antialiasing = ClientPrefs.globalAntialiasing;
 
-    add(gfDance);
-    gfDance.shader = swagShader.shader;
+      add(gfDance);
+      gfDance.shader = swagShader.shader;
+    }
     add(logoBl);
     logoBl.shader = swagShader.shader;
 

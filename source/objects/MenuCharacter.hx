@@ -58,6 +58,12 @@ class MenuCharacter extends FlxSprite
 				if(!FileSystem.exists(path)) {
 					path = Paths.getPreloadPath('images/menucharacters/' + DEFAULT_CHARACTER + '.json');
 				}
+				if (!FileSystem.exists(path)) {
+					// No menu character art (e.g. content-stripped builds ship no
+					// menucharacters/): hide instead of crashing.
+					visible = false;
+					return;
+				}
 				rawJson = File.getContent(path);
 
 				#else
@@ -65,11 +71,22 @@ class MenuCharacter extends FlxSprite
 				if(!Assets.exists(path)) {
 					path = Paths.getPreloadPath('images/menucharacters/' + DEFAULT_CHARACTER + '.json');
 				}
+				if (!Assets.exists(path)) {
+					// No menu character art (e.g. content-stripped builds ship no
+					// menucharacters/): hide instead of crashing.
+					visible = false;
+					return;
+				}
 				rawJson = Assets.getText(path);
 				#end
 
 				var charFile:MenuCharacterFile = cast Json.parse(rawJson);
 				frames = Paths.getSparrowAtlas('menucharacters/' + charFile.image);
+				if (frames == null) {
+					// JSON exists but its sprite is missing: hide instead of crashing.
+					visible = false;
+					return;
+				}
 				animation.addByPrefix('idle', charFile.idle_anim, 24);
 
 				var confirmAnim:String = charFile.confirm_anim;

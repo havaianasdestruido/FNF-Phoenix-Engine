@@ -277,6 +277,16 @@ class MenuCharacterEditorState extends MusicBeatState
 		var char:MenuCharacter = grpWeekCharacters.members[curTypeSelected];
 
 		char.alpha = 1;
+		if (Paths.image('menucharacters/' + characterFile.image) == null) {
+			// No menu character sprite (e.g. content-stripped builds ship no
+			// menucharacters/): stand-in box so the editor stays usable.
+			char.makeGraphic(150, 150, 0xFFFF00FF, true);
+			char.flipX = (characterFile.flipX == true);
+			char.scale.set(characterFile.scale, characterFile.scale);
+			char.updateHitbox();
+			updateOffset();
+			return;
+		}
 		char.frames = Paths.getSparrowAtlas('menucharacters/' + characterFile.image);
 		char.animation.addByPrefix('idle', characterFile.idle_anim, 24);
 		if(curTypeSelected == 1) char.animation.addByPrefix('confirm', characterFile.confirm_anim, 24, false);

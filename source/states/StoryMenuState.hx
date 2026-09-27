@@ -423,7 +423,14 @@ class StoryMenuState extends MusicBeatState
 		if(assetName == null || assetName.length < 1) {
 			bgSprite.visible = false;
 		} else {
-			bgSprite.loadGraphic(Paths.image('menubackgrounds/menu_' + assetName));
+			var menuBgGraphic = Paths.image('menubackgrounds/menu_' + assetName);
+			if (menuBgGraphic == null) {
+				// No week backdrop art (e.g. content-stripped builds ship no
+				// menubackgrounds/): hide instead of crashing.
+				bgSprite.visible = false;
+			} else {
+				bgSprite.loadGraphic(menuBgGraphic);
+			}
 		}
 		PlayState.storyWeek = curWeek;
 

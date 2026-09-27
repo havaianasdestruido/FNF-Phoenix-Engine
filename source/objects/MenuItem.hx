@@ -13,7 +13,15 @@ class MenuItem extends FlxSprite
 	public function new(x:Float, y:Float, weekName:String = '')
 	{
 		super(x, y);
-		loadGraphic(Paths.image('storymenu/' + weekName));
+		var weekGraphic = Paths.image('storymenu/' + weekName);
+		if (weekGraphic == null) {
+			// No week title card (e.g. content-stripped builds ship no
+			// storymenu/ art): solid bar so the row stays visible/selectable.
+			// The week name itself is shown by txtWeekTitle.
+			makeGraphic(800, 100, 0xFF222222, true);
+		} else {
+			loadGraphic(weekGraphic);
+		}
 		//trace('Test added: ' + WeekData.getWeekNumber(weekNum) + ' (' + weekNum + ')');
 		antialiasing = ClientPrefs.globalAntialiasing;
 	}

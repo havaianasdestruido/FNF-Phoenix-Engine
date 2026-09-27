@@ -467,6 +467,9 @@ class ChartingState extends MusicBeatState
     nextRenderedNotes = new FlxTypedGroup<Note>();
 
     if (curSec >= _song.notes.length) curSec = _song.notes.length - 1;
+    // Songs without any section (e.g. the empty dummy chart) would leave
+    // curSec at -1; clamp to the section appended just below instead.
+    if (curSec < 0) curSec = 0;
 
     FlxG.mouse.visible = true;
 
@@ -2194,6 +2197,18 @@ class ChartingState extends MusicBeatState
       path = Paths.getPreloadPath('characters/' + Character.DEFAULT_CHARACTER +
         '.json'); // If a character couldn't be found, change him to BF just to prevent a crash
       characterFailed = true;
+    }
+
+    #if MODS_ALLOWED
+    if (!FileSystem.exists(path))
+    #else
+    if (!OpenFlAssets.exists(path))
+    #end
+    {
+      // No character JSON at all (e.g. content-stripped builds ship no
+      // characters/): use a dummy file so the editor can still open.
+      characterFailed = true;
+      return Character.dummyFile();
     }
 
     #if MODS_ALLOWED

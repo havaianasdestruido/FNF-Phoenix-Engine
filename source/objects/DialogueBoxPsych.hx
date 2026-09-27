@@ -66,7 +66,14 @@ class DialogueCharacter extends FlxSprite
 		this.curCharacter = character;
 
 		reloadCharacterJson(character);
-		frames = Paths.getSparrowAtlas('dialogue/' + jsonFile.image);
+		frames = null;
+		if (jsonFile.image != null && jsonFile.image.length > 0)
+			frames = Paths.getSparrowAtlas('dialogue/' + jsonFile.image);
+		if (frames == null) {
+			// No portrait art (e.g. content-stripped builds ship no dialogue/
+			// art): stand-in box so dialogue and its editors stay usable.
+			makeGraphic(200, 300, 0xFFFF00FF, true);
+		}
 		reloadAnimations();
 
 		antialiasing = ClientPrefs.globalAntialiasing;
@@ -86,13 +93,28 @@ class DialogueCharacter extends FlxSprite
 		if(!FileSystem.exists(path)) {
 			path = Paths.getPreloadPath('images/dialogue/' + DEFAULT_CHARACTER + '.json');
 		}
-		rawJson = File.getContent(path);
+		if (FileSystem.exists(path))
+			rawJson = File.getContent(path);
 
 		#else
 		var path:String = Paths.getPreloadPath(characterPath);
-		rawJson = Assets.getText(path);
+		if (Assets.exists(path))
+			rawJson = Assets.getText(path);
 		#end
 
+		if (rawJson == null) {
+			// No portrait JSON at all (e.g. content-stripped builds ship no
+			// dialogue/ art): use an empty stand-in instead of crashing.
+			jsonFile = {
+				image: '',
+				dialogue_pos: 'left',
+				no_antialiasing: false,
+				animations: [],
+				position: [0, 0],
+				scale: 1
+			};
+			return;
+		}
 		jsonFile = cast Json.parse(rawJson);
 	}
 
