@@ -31,17 +31,23 @@ Prettier automatically handles formatting of JSON files, and can be configured i
   * This means that long single-line objects are automatically expanded, and short multi-line objects aren't automatically collapsed.
   * You may want to use regex replacement to manually remove the first newline in short multi-line objects to convince Prettier to collapse them.
 
-## .java
+## .java (Android)
 TBD
 
 ## .c/.h
 TBD
 
-## .cpp/.hpp 
+## .cpp/.hpp (currently unused)
 TBD
 
-## .js
+## .js (Web)
 TBD
 
-## .as
+## .as (Flash)
+TBD
+
+## .m/.mm/.h (Objective-C; iOS)
+TBD
+
+## .swift (iOS)
 TBD
