@@ -260,6 +260,8 @@ class TitleState extends MusicBeatState
   var titleText:FlxSprite;
   var swagShader:ColorSwap = null;
 
+  var deepLinkReady:Bool = false;
+
   function startIntro()
   {
     if (!initialized)
@@ -372,6 +374,7 @@ class TitleState extends MusicBeatState
     if (initialized) skipIntro();
     else
       initialized = true;
+    deepLinkReady = true;
   }
 
   function getIntroText():Array<Array<String>>
@@ -396,6 +399,7 @@ class TitleState extends MusicBeatState
 
   override function update(elapsed:Float)
   {
+    if (deepLinkReady && !transitioning && backend.deeplink.DeepLinks.dispatch()) return;
     if (FlxG.sound.music != null) Conductor.songPosition = FlxG.sound.music.time;
 
     var pressedEnter:Bool = FlxG.keys.justPressed.ENTER || controls.ACCEPT;

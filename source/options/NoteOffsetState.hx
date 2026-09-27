@@ -346,7 +346,7 @@ class NoteOffsetState extends MusicBeatState
 			if(beatTween != null) beatTween.cancel();
 
 			persistentUpdate = false;
-			FlxG.switchState(options.OptionsState.new);
+			FlxG.switchState(() -> new options.OptionsState());
 			FlxG.sound.playMusic(Paths.music('freakyMenu-' + ClientPrefs.daMenuMusic), 1, true);
 			FlxG.mouse.visible = false;
 		}
