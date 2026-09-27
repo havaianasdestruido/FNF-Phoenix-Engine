@@ -27,7 +27,7 @@ import java.io.OutputStream;
  * intent-based sharing for the Phoenix Android platform layer.
  *
  * Picker results are delivered to the registered Haxe dispatcher as:
- *   onStorageResult(requestCode, resultCode, uri, displayName, size, bytes)
+ *   handleStorageResult(requestCode, resultCode, uri, displayName, size, bytes)
  * where bytes is null unless the request was an open-document request.
  *
  * Part of the Phoenix Android platform layer. See docs/ANDROID_PLATFORM.md.
@@ -42,7 +42,7 @@ public class PhoenixStorage extends Extension
 
 	private static HaxeObject storageCallback = null;
 
-	/** Registers the Haxe object receiving onStorageResult callbacks. */
+	/** Registers the Haxe object receiving handleStorageResult callbacks. */
 	public static void registerStorageCallback(HaxeObject object)
 	{
 		storageCallback = object;
@@ -67,7 +67,7 @@ public class PhoenixStorage extends Extension
 			args[3] = name;
 			args[4] = size;
 			args[5] = bytes;
-			target.call("onStorageResult", args);
+			target.call("handleStorageResult", args);
 		}
 		catch (Exception e)
 		{

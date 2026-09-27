@@ -33,7 +33,7 @@ import lime.system.JNI;
  * layer (`android/src/quack/fnf/phoenix/android/*.java`).
  *
  * Java pushes events through `onAndroidEvent(event, arg)` and storage
- * results through `onStorageResult(...)`; this class demultiplexes them
+ * results through `handleStorageResult(...)`; this class demultiplexes them
  * into the typed signals exposed by the `android.platform.*` modules.
  *
  * Everything here is safe to reference on every platform: outside of
@@ -242,7 +242,7 @@ class AndroidBridge #if android implements lime.system.JNI.JNISafety #end
 	}
 
 	@:runOnMainThread
-	public function onStorageResult(requestCode:Int, resultCode:Int, uri:String, name:String, size:Float, bytes:Dynamic):Void
+	public function handleStorageResult(requestCode:Int, resultCode:Int, uri:String, name:String, size:Float, bytes:Dynamic):Void
 	{
 		var data:Bytes = null;
 		if (bytes != null)

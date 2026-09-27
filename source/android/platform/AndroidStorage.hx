@@ -22,6 +22,7 @@
 
 package android.platform;
 
+import android.platform.AndroidBridge.AndroidStorageResult;
 import flixel.util.FlxSignal;
 import haxe.io.Bytes;
 #if android
