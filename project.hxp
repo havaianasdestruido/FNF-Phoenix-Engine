@@ -134,6 +134,21 @@ class Project extends HXProject
 	static final FLASH_ALLOWED:FeatureFlag = "FLASH_ALLOWED";
 
 	/**
+	 * `-DNO_BUILTIN_CONTENT` (content-stripped / copyright-safe builds).
+	 * When enabled, `configureAssets()` drops every built-in song, week and
+	 * character asset (charts, song audio, week libraries, character JSONs
+	 * and sprites, stage art, cutscene videos) and only keeps SFX, menu /
+	 * pause / game-over music, engine UI art, fonts and the bundled mods
+	 * (e.g. bf-clicker). The game code has fallbacks (placeholder
+	 * characters/icons, hidden title dancer, empty-week handling) so these
+	 * builds still boot and can play mod content.
+	 * This flag is intentionally NOT applied with a default in
+	 * `configureFeatureFlags()` (there is no meaningful inverse default);
+	 * pass `-DNO_BUILTIN_CONTENT` explicitly to strip a build.
+	 */
+	static final NO_BUILTIN_CONTENT:FeatureFlag = "NO_BUILTIN_CONTENT";
+
+	/**
 	 * `-DULTRA_OPTIMIZED` (WIP / EXPERIMENTAL max-speed build flag).
 	 * Strips debug instrumentation and forces the fastest codegen the
 	 * installed toolchain supports. Enabled with `-DULTRA_OPTIMIZED`.
@@ -797,6 +812,9 @@ class Project extends HXProject
 		var exclude = EXCLUDE_ASSETS.concat(isWeb() ? EXCLUDE_ASSETS_WEB : EXCLUDE_ASSETS_NATIVE);
 		var shouldPreload = PRELOAD_ALL.isEnabled(this);
 		var shouldEmbed = EMBED_ASSETS.isEnabled(this);
+		// Content-stripped build: drop built-in songs/weeks/characters, keep only
+		// SFX, menu music, engine UI shell and bundled mods. See NO_BUILTIN_CONTENT.
+		var stripped:Bool = NO_BUILTIN_CONTENT.isEnabled(this);
 
 		if (shouldEmbed)
 		{
@@ -807,10 +825,44 @@ class Project extends HXProject
 			info('Including assets alongside executable...');
 		}
 
+		if (stripped)
+		{
+			info('NO_BUILTIN_CONTENT: stripping built-in songs, weeks and characters (keeping SFX + menu music)...');
+		}
+
 		// Default asset library
 		var shouldPreloadDefault = true;
 		addAssetLibrary("default", shouldEmbed, shouldPreloadDefault);
-		addAssetPath("assets/preload", "assets", "default", ["*"], exclude, shouldEmbed);
+		if (!stripped)
+		{
+			addAssetPath("assets/preload", "assets", "default", ["*"], exclude, shouldEmbed);
+		}
+		else
+		{
+			// Stripped: SFX + menu music only. Song charts (data/<song>/),
+			// character JSONs (characters/), week JSONs (weeks/) and stage
+			// JSONs (stages/) are all dropped.
+			addAssetPath("assets/preload/sounds", "assets/sounds", "default", ["*"], exclude, shouldEmbed);
+			addAssetPath("assets/preload/music", "assets/music", "default", ["*"], exclude, shouldEmbed);
+			addAssetPath("assets/preload/gameRenders", "assets/gameRenders", "default", ["*"], exclude, shouldEmbed);
+			// Flavor text the engine reads at runtime (countdown popups,
+			// loading tips, rating quotes, window titles). NOT song charts.
+			addAsset("assets/preload/data/introText.txt", "assets/data/introText.txt", "default", shouldEmbed);
+			addAsset("assets/preload/data/funnyTips.txt", "assets/data/funnyTips.txt", "default", shouldEmbed);
+			addAsset("assets/preload/data/windowTitleBase.txt", "assets/data/windowTitleBase.txt", "default", shouldEmbed);
+			addAssetPath("assets/preload/data/ratingQuotes", "assets/data/ratingQuotes", "default", ["*"], exclude, shouldEmbed);
+			// Menu/UI shell art only. Built-in character, week and dialogue
+			// art is dropped (the game falls back to generated placeholders).
+			var excludePreloadImages:Array<String> = exclude.concat([
+				"icons", // character health icons (incl. icon-face fallback)
+				"menucharacters", // story menu dancers
+				"storymenu", // week title cards
+				"dialogue", // dialogue portraits + character JSONs
+				"menubackgrounds", // per-week story menu backdrops
+				"gfDanceTitle.*" // title screen dancer (+ its .json/.xml)
+			]);
+			addAssetPath("assets/preload/images", "assets/images", "default", ["*"], excludePreloadImages, shouldEmbed);
+		}
 
 		// Font assets
 		var shouldEmbedFonts = true;
@@ -828,31 +880,64 @@ class Project extends HXProject
 
 		// Shared asset libraries
 		addAssetLibrary("songs", shouldEmbed, shouldPreload);
-		addAssetPath("assets/songs", "assets/songs", "songs", ["*"], exclude, shouldEmbed);
+		if (!stripped)
+			addAssetPath("assets/songs", "assets/songs", "songs", ["*"], exclude, shouldEmbed);
 		addAssetLibrary("shared", shouldEmbed, shouldPreload);
-		addAssetPath("assets/shared", "assets/shared", "shared", ["*"], exclude, shouldEmbed);
-		if (VIDEOS_ALLOWED.isEnabled(this))
+		if (!stripped)
+		{
+			addAssetPath("assets/shared", "assets/shared", "shared", ["*"], exclude, shouldEmbed);
+		}
+		else
+		{
+			// Stripped: SFX + menu/pause/game-over music only.
+			addAssetPath("assets/shared/sounds", "assets/shared/sounds", "shared", ["*"], exclude, shouldEmbed);
+			addAssetPath("assets/shared/music", "assets/shared/music", "shared", ["*"], exclude, shouldEmbed);
+			// Engine UI art only (noteskins, ratings, splash, dialogue box,
+			// pixel UI theme, ...). Character sprites/portraits, dialogue
+			// portraits and week stage art are dropped.
+			var excludeSharedImages:Array<String> = exclude.concat([
+				"characters", // every character sprite + the game-over placeholder
+				"dialogue", // BF/GF dialogue portraits
+				"weeb", // week 6 school stage art
+				"stageback.png", // week 1 stage art ...
+				"stagefront.png",
+				"stagecurtains.png",
+				"stage_light.png",
+				"spotlight.png", // ... incl. Dadbattle Spotlight event art
+				"smoke.png" // Dadbattle fog art
+			]);
+			addAssetPath("assets/shared/images", "assets/shared/images", "shared", ["*"], excludeSharedImages, shouldEmbed);
+		}
+		if (VIDEOS_ALLOWED.isEnabled(this) && !stripped)
 		{
 			// var shouldEmbedVideos = false;
 			addAssetLibrary("videos", false, shouldPreload);
 			addAssetPath("assets/videos", "assets/videos", "videos", ["*"], exclude, false);
 		}
 
-		// Level asset libraries
+		// Level asset libraries (dropped entirely in stripped builds: each one
+		// is stage art + stage SFX for a built-in week).
 		addAssetLibrary("week2", shouldEmbed, shouldPreload);
-		addAssetPath("assets/week2", "assets/week2", "week2", ["*"], exclude, shouldEmbed);
+		if (!stripped)
+			addAssetPath("assets/week2", "assets/week2", "week2", ["*"], exclude, shouldEmbed);
 		addAssetLibrary("week3", shouldEmbed, shouldPreload);
-		addAssetPath("assets/week3", "assets/week3", "week3", ["*"], exclude, shouldEmbed);
+		if (!stripped)
+			addAssetPath("assets/week3", "assets/week3", "week3", ["*"], exclude, shouldEmbed);
 		addAssetLibrary("week4", shouldEmbed, shouldPreload);
-		addAssetPath("assets/week4", "assets/week4", "week4", ["*"], exclude, shouldEmbed);
+		if (!stripped)
+			addAssetPath("assets/week4", "assets/week4", "week4", ["*"], exclude, shouldEmbed);
 		addAssetLibrary("week5", shouldEmbed, shouldPreload);
-		addAssetPath("assets/week5", "assets/week5", "week5", ["*"], exclude, shouldEmbed);
+		if (!stripped)
+			addAssetPath("assets/week5", "assets/week5", "week5", ["*"], exclude, shouldEmbed);
 		addAssetLibrary("week6", shouldEmbed, shouldPreload);
-		addAssetPath("assets/week6", "assets/week6", "week6", ["*"], exclude, shouldEmbed);
+		if (!stripped)
+			addAssetPath("assets/week6", "assets/week6", "week6", ["*"], exclude, shouldEmbed);
 		addAssetLibrary("week7", shouldEmbed, shouldPreload);
-		addAssetPath("assets/week7", "assets/week7", "week7", ["*"], exclude, shouldEmbed);
+		if (!stripped)
+			addAssetPath("assets/week7", "assets/week7", "week7", ["*"], exclude, shouldEmbed);
 		addAssetLibrary("weekend1", shouldEmbed, shouldPreload);
-		addAssetPath("assets/weekend1", "assets/weekend1", "weekend1", ["*"], exclude, shouldEmbed);
+		if (!stripped)
+			addAssetPath("assets/weekend1", "assets/weekend1", "weekend1", ["*"], exclude, shouldEmbed);
 
 		// Art asset library (where README and CHANGELOG pull from)
 		var shouldEmbedArt = false;

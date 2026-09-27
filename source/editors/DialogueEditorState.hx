@@ -202,7 +202,16 @@ class DialogueEditorState extends MusicBeatState
 	}
 
 	function reloadCharacter() {
-		character.frames = Paths.getSparrowAtlas('dialogue/' + character.jsonFile.image);
+		var portraitAtlas = null;
+		if (character.jsonFile.image != null && character.jsonFile.image.length > 0)
+			portraitAtlas = Paths.getSparrowAtlas('dialogue/' + character.jsonFile.image);
+		if (portraitAtlas == null) {
+			// No portrait art (e.g. content-stripped builds ship no dialogue/
+			// art): stand-in box so the editor stays usable.
+			character.makeGraphic(200, 300, 0xFFFF00FF, true);
+		} else {
+			character.frames = portraitAtlas;
+		}
 		character.jsonFile = character.jsonFile;
 		character.reloadAnimations();
 		character.setGraphicSize(Std.int(character.width * DialogueCharacter.DEFAULT_SCALE * character.jsonFile.scale));

@@ -2197,6 +2197,18 @@ class ChartingState extends MusicBeatState
     }
 
     #if MODS_ALLOWED
+    if (!FileSystem.exists(path))
+    #else
+    if (!OpenFlAssets.exists(path))
+    #end
+    {
+      // No character JSON at all (e.g. content-stripped builds ship no
+      // characters/): use a dummy file so the editor can still open.
+      characterFailed = true;
+      return Character.dummyFile();
+    }
+
+    #if MODS_ALLOWED
     var rawJson = File.getContent(path);
     #else
     var rawJson = OpenFlAssets.getText(path);

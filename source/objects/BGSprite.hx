@@ -11,17 +11,31 @@ class BGSprite extends FlxSprite
 
 		if (animArray != null) {
 			frames = Paths.getSparrowAtlas(image);
-			for (i in 0...animArray.length) {
-				var anim:String = animArray[i];
-				animation.addByPrefix(anim, anim, 24, loop);
-				if(idleAnim == null) {
-					idleAnim = anim;
-					animation.play(anim);
+			if (frames == null) {
+				// Missing atlas (e.g. stripped stage art in content-stripped
+				// builds): invisible stand-in so stages keep working.
+				makeGraphic(2, 2, 0, true);
+				active = false;
+			} else {
+				for (i in 0...animArray.length) {
+					var anim:String = animArray[i];
+					animation.addByPrefix(anim, anim, 24, loop);
+					if(idleAnim == null) {
+						idleAnim = anim;
+						animation.play(anim);
+					}
 				}
 			}
 		} else {
 			if(image != null) {
-				loadGraphic(Paths.image(image));
+				var loaded = Paths.image(image);
+				if (loaded == null) {
+					// Missing image (e.g. stripped stage art in content-stripped
+					// builds): invisible stand-in so stages keep working.
+					makeGraphic(2, 2, 0, true);
+				} else {
+					loadGraphic(loaded);
+				}
 			}
 			active = false;
 		}

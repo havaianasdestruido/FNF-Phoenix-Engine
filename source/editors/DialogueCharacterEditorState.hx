@@ -595,7 +595,16 @@ class DialogueCharacterEditorState extends MusicBeatState
 	function reloadCharacter() {
 		var charsArray:Array<DialogueCharacter> = [character, ghostLoop, ghostIdle];
 		for (char in charsArray) {
-			char.frames = Paths.getSparrowAtlas('dialogue/' + character.jsonFile.image);
+			var portraitAtlas = null;
+			if (character.jsonFile.image != null && character.jsonFile.image.length > 0)
+				portraitAtlas = Paths.getSparrowAtlas('dialogue/' + character.jsonFile.image);
+			if (portraitAtlas == null) {
+				// No portrait art (e.g. content-stripped builds ship no
+				// dialogue/ art): stand-in box so the editor stays usable.
+				char.makeGraphic(200, 300, 0xFFFF00FF, true);
+			} else {
+				char.frames = portraitAtlas;
+			}
 			char.jsonFile = character.jsonFile;
 			char.reloadAnimations();
 			char.setGraphicSize(Std.int(char.width * DialogueCharacter.DEFAULT_SCALE * character.jsonFile.scale));
@@ -614,18 +623,27 @@ class DialogueCharacterEditorState extends MusicBeatState
 		}
 		character.x += character.jsonFile.position[0] + mainGroup.x;
 		character.y += character.jsonFile.position[1] + mainGroup.y;
-		character.playAnim(character.jsonFile.animations[0].anim);
 		if(character.jsonFile.animations.length > 0) {
+			character.playAnim(character.jsonFile.animations[0].anim);
 			curSelectedAnim = character.jsonFile.animations[0].anim;
 			var dialogueAnimation:DialogueAnimArray = character.dialogueAnimations.get(curSelectedAnim);
 			ghostLoop.playAnim(dialogueAnimation.anim);
 			ghostIdle.playAnim(dialogueAnimation.anim, true);
 			offsetLoopText.text = 'Loop: ' + dialogueAnimation.loop_offsets;
 			offsetIdleText.text = 'Idle: ' + dialogueAnimation.idle_offsets;
+		} else {
+			// No portrait animations defined (e.g. nothing installed in a
+			// content-stripped build yet): stay on the stand-in portrait.
+			curSelectedAnim = '';
+			offsetLoopText.text = 'Loop: [0, 0]';
+			offsetIdleText.text = 'Idle: [0, 0]';
 		}
 
 		curAnim = 0;
-		animText.text = 'Animation: ' + character.jsonFile.animations[curAnim].anim + ' (' + (curAnim + 1) +' / ' + character.jsonFile.animations.length + ') - Press W or S to scroll';
+		if (character.jsonFile.animations.length > 0)
+			animText.text = 'Animation: ' + character.jsonFile.animations[curAnim].anim + ' (' + (curAnim + 1) +' / ' + character.jsonFile.animations.length + ') - Press W or S to scroll';
+		else
+			animText.text = 'Animation: (none yet) - add one in the Animations tab';
 
 		#if DISCORD_ALLOWED
 		// Updating Discord Rich Presence

@@ -173,13 +173,62 @@ class Song
 				rawJson = File.getContent(path);
 			else
 			#end
-				rawJson = Assets.getText(path);
+			{
+				try {
+					rawJson = Assets.getText(path);
+				} catch (e:Dynamic) {
+					rawJson = null;
+				}
+			}
+		}
+
+		if (rawJson == null) {
+			// No chart found at all (e.g. content-stripped builds ship no
+			// charts): hand back an empty dummy song instead of crashing.
+			trace('Song "$folder/$jsonInput": chart not found, using an empty dummy chart.');
+			psychV1Chart = false;
+			var dummy:SwagSong = dummySong(jsonInput);
+			if (jsonInput != 'events')
+				StageData.loadDirectory(dummy);
+			onLoadJson(dummy);
+			return dummy;
 		}
 
 		var songJson:Dynamic = parseJSON(rawJson);
 		if(jsonInput != 'events') StageData.loadDirectory(songJson);
 		onLoadJson(songJson);
 		return songJson;
+	}
+
+	/**
+	 * Empty but fully valid song used when a chart file cannot be found.
+	 * Keeps direct PlayState entry, the anti-cheat song swap and chart-less
+	 * debug paths working in content-stripped (NO_BUILTIN_CONTENT) builds.
+	 */
+	public static function dummySong(?songName:String = 'test'):SwagSong
+	{
+		return {
+			song: songName,
+			notes: [],
+			events: [],
+			bpm: 150,
+			needsVoices: false,
+			speed: 1,
+			player1: 'bf',
+			player2: 'dad',
+			gfVersion: 'gf',
+			stage: 'stage',
+			songCredit: '',
+			songCreditBarPath: '',
+			songCreditIcon: '',
+			event7: '',
+			event7Value: '',
+			windowName: '',
+			specialAudioName: '',
+			specialEventsName: '',
+			arrowSkin: '',
+			splashSkin: 'noteSplashes'
+		};
 	}
 
 	

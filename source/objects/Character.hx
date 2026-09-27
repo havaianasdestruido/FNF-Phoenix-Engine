@@ -87,6 +87,13 @@ class Character extends FlxSprite
 
 	public var isDeathCharacter:Bool = false;
 
+	/**
+	 * True when this character is a code-generated stand-in (its JSON, and the
+	 * DEFAULT_CHARACTER fallback, were both missing). This is always the case
+	 * for built-in characters in content-stripped (NO_BUILTIN_CONTENT) builds.
+	 */
+	public var isPlaceholder:Bool = false;
+
 	public var healthDrain:Bool = false;
 	public var drainAmount:Float = 0;
 	public var drainFloor:Float = 0;
@@ -111,6 +118,44 @@ class Character extends FlxSprite
 	public var flixelTrail:Bool = false;
 
 	public static var DEFAULT_CHARACTER:String = 'bf'; //In case a character is missing, it will use BF on its place
+
+	/**
+	 * Minimal valid character file used when no JSON could be loaded at all
+	 * (content-stripped builds, or a typo'd character with no BF fallback).
+	 * The chart editor uses this so it can open without any characters installed.
+	 */
+	public static function dummyFile():CharacterFile
+	{
+		return {
+			animations: [],
+			image: '',
+			scale: 1,
+			sing_duration: 4,
+			healthicon: 'face',
+			position: [0, 0],
+			camera_position: [0, 0],
+			flip_x: false,
+			no_antialiasing: false,
+			healthbar_colors: [161, 161, 161]
+		};
+	}
+
+	/**
+	 * Deterministic stand-in color derived from a character name, so every
+	 * placeholder (character body, health icon) for the same name matches.
+	 */
+	public static function placeholderColor(charName:String):FlxColor
+	{
+		var h:Int = 0;
+		if (charName == null)
+			charName = '';
+		for (i in 0...charName.length)
+			h = (h * 31 + charName.charCodeAt(i)) % 360;
+		if (h < 0)
+			h += 360;
+		return FlxColor.fromHSB(h, 0.65, 0.9);
+	}
+
 	public function new(x:Float, y:Float, ?character:String = 'bf', ?isPlayer:Bool = false, ?isDeathCharacter:Bool = false)
 	{
 		super(x, y);
@@ -142,17 +187,33 @@ class Character extends FlxSprite
 					path = Paths.getPreloadPath('characters/' + DEFAULT_CHARACTER + '.json'); //If a character couldn't be found, change him to BF just to prevent a crash
 				}
 
-				try
+				// If even the fallback character file is missing (e.g. content-stripped
+				// NO_BUILTIN_CONTENT builds ship no characters at all), spawn a
+				// code-generated placeholder so the game keeps running instead of crashing.
+				#if MODS_ALLOWED
+				var charFileFound:Bool = FileSystem.exists(path);
+				#else
+				var charFileFound:Bool = Assets.exists(path);
+				#end
+				if (!charFileFound)
 				{
-					#if MODS_ALLOWED
-					loadCharacterFile(cast Json.parse(File.getContent(path)));
-					#else
-					loadCharacterFile(cast Json.parse(Assets.getText(path)));
-					#end
+					loadPlaceholderCharacter(curCharacter);
 				}
-				catch(e:Dynamic)
+				else
 				{
-					trace('Error loading character file of "$character": $e');
+					try
+					{
+						#if MODS_ALLOWED
+						loadCharacterFile(cast Json.parse(File.getContent(path)));
+						#else
+						loadCharacterFile(cast Json.parse(Assets.getText(path)));
+						#end
+					}
+					catch(e:Dynamic)
+					{
+						trace('Error loading character file of "$character": $e');
+						loadPlaceholderCharacter(curCharacter);
+					}
 				}
 		}
 		originalFlipX = flipX;
@@ -287,6 +348,48 @@ class Character extends FlxSprite
 			#if flxanimate
 			if(isAnimateAtlas) copyAtlasValues();
 			#end
+		}
+	}
+
+	/**
+	 * Builds a fully functional single-frame stand-in character: a solid box
+	 * with every animation the engine may request (sing/miss, dance, taunts,
+	 * death poses). Used when the character JSON (and the BF fallback) could
+	 * not be loaded, which is always the case for built-in characters in
+	 * content-stripped (NO_BUILTIN_CONTENT) builds.
+	 */
+	public function loadPlaceholderCharacter(charName:String)
+	{
+		trace('Character "$charName": no character file found, using a generated placeholder.');
+		isPlaceholder = true;
+		isAnimateAtlas = false;
+		imageFile = '';
+		healthIcon = 'face';
+		singDuration = 4;
+		jsonScale = 1;
+		flipX = false;
+		noAntialiasing = false;
+		positionArray = [0, 0];
+		cameraPosition = [0, 0];
+		animationsArray = [];
+
+		var color:FlxColor = placeholderColor(charName);
+		healthColorArray = [color.red, color.green, color.blue];
+
+		scale.set(1, 1);
+		makeGraphic(150, 150, color, true);
+		updateHitbox();
+
+		for (anim in [
+			'idle', 'danceLeft', 'danceRight',
+			'singLEFT', 'singDOWN', 'singUP', 'singRIGHT',
+			'singLEFTmiss', 'singDOWNmiss', 'singUPmiss', 'singRIGHTmiss',
+			'hey', 'cheer', 'sad', 'hurt', 'scared',
+			'firstDeath', 'deathLoop', 'deathConfirm'
+		])
+		{
+			animation.add(anim, [0], 24, false);
+			addOffset(anim, 0, 0);
 		}
 	}
 
@@ -473,6 +576,14 @@ class Character extends FlxSprite
 		specialAnim = false;
 		if(!isAnimateAtlas)
 		{
+			// Clamp out-of-range start frames (e.g. Boyfriend requests frame 10
+			// of 'idle', which single-frame placeholders don't have).
+			if (Frame > 0)
+			{
+				var targetAnim = animation.getByName(AnimName);
+				if (targetAnim != null && Frame >= targetAnim.frames.length)
+					Frame = 0;
+			}
 			animation.play(AnimName, Force, Reversed, Frame);
 		}
 		#if flxanimate

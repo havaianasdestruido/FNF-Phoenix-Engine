@@ -139,6 +139,37 @@ implementation (haxelib `hython`), so no external Python runtime is needed.
 
 ---
 
+### Content-stripped (copyright-safe) builds
+
+Pass `-DNO_BUILTIN_CONTENT` to build the engine **without any built-in songs,
+weeks or characters**:
+
+`lime test windows -DNO_BUILTIN_CONTENT`
+
+This is meant for distributing the engine itself (source ports, engine-only
+releases, modding bases) without shipping the base game's copyrighted story
+content. Only the following built-in assets are kept:
+
+* SFX (`assets/preload/sounds`, `assets/shared/sounds`)
+* Menu / pause / game-over music (`assets/preload/music`, `assets/shared/music`)
+* Engine shell: UI art, fonts, sound tray, splash, easter-egg embeds
+* Small runtime text files (`introText.txt`, `funnyTips.txt`, `windowTitleBase.txt`, `ratingQuotes/`)
+* Bundled mods (`mods/`, e.g. the `bf-clicker` example mod still works)
+
+Everything else content-related is dropped from the build: song audio
+(`assets/songs`), all charts (`assets/preload/data/<song>/`), character JSONs
+(`assets/preload/characters`), week JSONs (`assets/preload/weeks`), stage JSONs
+(`assets/preload/stages`), the `week2`-`week7` + `weekend1` libraries, cutscene
+videos, and all character / week / dialogue / stage art.
+
+The game still boots and runs in this mode: characters, health icons, stage
+art, week cards and dialogue portraits are replaced by code-generated
+placeholders, the title dancer is hidden, and story/freeplay show their usual
+"no weeks" message unless mods provide content. All editors remain usable for
+creating new content.
+
+---
+
 ### "It's taking a while, should I be worried?"
 
 No, that is normal, when you compile flixel games for the first time, it usually takes around 5 to 10 minutes,
