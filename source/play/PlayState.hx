@@ -36,6 +36,7 @@ import play.BaseStage;
 import play.BaseStage.Countdown;
 // REFACTOR: import kept for safety against stale global `BaseStage.Countdown` in source\import.hx
 import play.CutsceneHandler;
+import play.helpers.PlayStateAndroidMedia;
 import play.objects.*;
 
 import headers.Play;
@@ -392,7 +393,7 @@ class PlayState extends MusicBeatState
 
 	var heyStopTrying:Bool = false;
 
-	#if desktop
+	#if DISCORD_ALLOWED
 	// Discord RPC variables
 	var storyDifficultyText:String = "";
 	var detailsText:String = "";
@@ -595,7 +596,7 @@ class PlayState extends MusicBeatState
 
 		if (!chartingMode) CoolUtil.currentDifficulty = CoolUtil.difficultyString();
 
-		#if desktop
+		#if DISCORD_ALLOWED
 		storyDifficultyText = CoolUtil.difficulties[storyDifficulty];
 
 		// String that contains the mode defined here so it isn't necessary to call changePresence for each mode
@@ -1569,6 +1570,11 @@ class PlayState extends MusicBeatState
 		Paths.clearUnusedMemory();
 
 		startingTime = haxe.Timer.stamp();
+
+		#if android
+		// Android media session / audio focus / wake lock integration.
+		PlayStateAndroidMedia.start(this);
+		#end
 	}
 
 	#if SHADERS_ALLOWED
@@ -2832,6 +2838,10 @@ class PlayState extends MusicBeatState
 	}
 
 	override function destroy() {
+		#if android
+		PlayStateAndroidMedia.stop(this);
+		#end
+
 		#if LUA_ALLOWED
 		for (lua in luaArray) {
 			lua.call('onDestroy', []);

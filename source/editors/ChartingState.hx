@@ -658,7 +658,205 @@ class ChartingState extends MusicBeatState
     updateGrid();
 
     super.create();
+
+    #if mobile
+    // Touch devices have no keyboard: give the chart editor a virtual pad.
+    // The pad's extra buttons are wired to the common keyboard shortcuts in
+    // setupMobilePad() below (see "Virtual pad consistency" in TODO.md).
+    addVirtualPad(BOTH_FULL, CHART_EDITOR);
+    addVirtualPadCamera();
+    setupMobilePad();
+    #end
   }
+
+  #if mobile
+  function setupMobilePad():Void
+  {
+    if (virtualPad == null)
+      return;
+
+    if (virtualPad.buttonUp2 != null)
+      virtualPad.buttonUp2.onUp.callback = mobilePadNextSection;
+    if (virtualPad.buttonDown2 != null)
+      virtualPad.buttonDown2.onUp.callback = mobilePadPrevSection;
+    // Right dpad left/right mirrors SHIFT+A/D (jump 4 sections).
+    if (virtualPad.buttonLeft2 != null)
+      virtualPad.buttonLeft2.onUp.callback = mobilePadJumpSection.bind(-4);
+    if (virtualPad.buttonRight2 != null)
+      virtualPad.buttonRight2.onUp.callback = mobilePadJumpSection.bind(4);
+    if (virtualPad.buttonA != null)
+      virtualPad.buttonA.onUp.callback = mobilePadPlayTest;
+    if (virtualPad.buttonB != null)
+      virtualPad.buttonB.onUp.callback = mobilePadExit;
+    if (virtualPad.buttonX != null)
+      virtualPad.buttonX.onUp.callback = mobilePadTogglePlayback;
+    if (virtualPad.buttonY != null)
+      virtualPad.buttonY.onUp.callback = mobilePadEditorPlayTest;
+    // Left dpad mirrors the arrow keys: up/down = quantized scrub,
+    // left/right = change quantization.
+    if (virtualPad.buttonUp != null)
+      virtualPad.buttonUp.onUp.callback = mobilePadScrub.bind(true);
+    if (virtualPad.buttonDown != null)
+      virtualPad.buttonDown.onUp.callback = mobilePadScrub.bind(false);
+    if (virtualPad.buttonLeft != null)
+      virtualPad.buttonLeft.onUp.callback = mobilePadQuant.bind(true);
+    if (virtualPad.buttonRight != null)
+      virtualPad.buttonRight.onUp.callback = mobilePadQuant.bind(false);
+    if (virtualPad.buttonZ != null)
+      virtualPad.buttonZ.onUp.callback = undo;
+  }
+
+  function mobilePadJumpSection(amount:Int):Void
+  {
+    // Mirrors A/D with SHIFT held.
+    if (amount > 0)
+    {
+      if (_song.notes[curSec + amount] == null)
+        addSection(getSectionBeats());
+      changeSection(curSec + amount);
+    }
+    else
+    {
+      if (curSec + amount >= 0)
+        changeSection(curSec + amount);
+      else
+        changeSection(_song.notes.length - 1);
+    }
+  }
+
+  function mobilePadScrub(backward:Bool):Void
+  {
+    // Mirrors the UP/DOWN quantized scrub (non-vortex branch).
+    if (vortex)
+      return;
+
+    if (idleMusic != null && idleMusic.music != null && idleMusicAllow)
+      idleMusic.unpauseMusic(2);
+    FlxG.sound.music.pause();
+    updateCurStep();
+    var beat:Float = curDecBeat;
+    var snap:Float = quantization / 4;
+    var increase:Float = 1 / snap;
+    var target:Float = backward ? CoolUtil.quantize(beat, snap) - increase : CoolUtil.quantize(beat, snap) + increase;
+    FlxG.sound.music.time = Conductor.beatToSeconds(target);
+    pauseAndSetVocalsTime();
+  }
+
+  function mobilePadQuant(previous:Bool):Void
+  {
+    // Mirrors LEFT/RIGHT quantization changes.
+    if (previous)
+    {
+      curQuant--;
+      if (curQuant < 0)
+        curQuant = quantizations.length - 1;
+    }
+    else
+    {
+      curQuant++;
+      if (curQuant > quantizations.length - 1)
+        curQuant = 0;
+    }
+    quantization = quantizations[curQuant];
+    quant.animation.play('q', true, false, curQuant);
+  }
+
+  function mobilePadNextSection():Void
+  {
+    if (_song.notes[curSec + 1] == null)
+      addSection(getSectionBeats());
+    changeSection(curSec + 1);
+  }
+
+  function mobilePadPrevSection():Void
+  {
+    if (curSec <= 0)
+      changeSection(_song.notes.length - 1);
+    else
+      changeSection(curSec - 1);
+  }
+
+  function mobilePadTogglePlayback():Void
+  {
+    // Mirrors the SPACE shortcut.
+    if (FlxG.sound.music.playing)
+    {
+      FlxG.sound.music.pause();
+      pauseVocals();
+      resetBuddies();
+      lilBf.color = lilOpp.color = FlxColor.WHITE;
+      if (idleMusic != null && idleMusic.music != null && idleMusicAllow)
+        idleMusic.unpauseMusic(2);
+    }
+    else
+    {
+      pauseAndSetVocalsTime();
+      if (!FlxG.sound.music.playing)
+      {
+        FlxG.sound.music.play();
+        if (vocals != null)
+          vocals.play();
+        if (opponentVocals != null)
+          opponentVocals.play();
+      }
+      if (idleMusic != null && idleMusic.music != null && idleMusicAllow)
+        idleMusic.pauseMusic();
+      resetBuddies();
+      lilBf.color = lilOpp.color = FlxColor.WHITE;
+    }
+  }
+
+  function mobilePadPlayTest():Void
+  {
+    // Mirrors the ENTER shortcut.
+    if (CoolUtil.getNoteAmount(_song) <= 1000000)
+      saveLevel(true, true);
+    FlxG.mouse.visible = false;
+    PlayState.SONG = _song;
+    FlxG.sound.music.stop();
+    if (vocals != null)
+      vocals.stop();
+    if (opponentVocals != null)
+      opponentVocals.stop();
+    CoolUtil.currentDifficulty = difficulty;
+    StageData.loadDirectory(_song);
+    LoadingState.loadAndSwitchState(PlayState.new);
+    if (idleMusic != null && idleMusic.music != null)
+      idleMusic.destroy();
+  }
+
+  function mobilePadEditorPlayTest():Void
+  {
+    // Mirrors the ESCAPE shortcut.
+    saveLevel(true, true);
+    FlxG.sound.music.pause();
+    pauseVocals();
+    LoadingState.loadAndSwitchState(() -> new editors.EditorPlayState(sectionStartTime()));
+    if (idleMusic != null && idleMusic.music != null)
+      idleMusic.destroy();
+    FlxG.sound.music.onComplete = null; // So that it doesn't crash when you reach the end
+  }
+
+  function mobilePadExit():Void
+  {
+    // Mirrors the BACKSPACE shortcut.
+    if (!unsavedChanges)
+    {
+      saveLevel(true, true);
+
+      CoolUtil.currentDifficulty = difficulty;
+      PlayState.chartingMode = false;
+      FlxG.switchState(editors.MasterEditorMenu.new);
+      FlxG.sound.playMusic(Paths.music('freakyMenu-' + ClientPrefs.daMenuMusic));
+      FlxG.mouse.visible = false;
+      if (idleMusic != null && idleMusic.music != null)
+        idleMusic.destroy();
+      return;
+    }
+    openSubState(new Prompt('WARNING! This action will clear unsaved progress.\n\nProceed?', 0,
+      function() FlxG.switchState(editors.MasterEditorMenu.new), null, ignoreWarnings));
+  }
+  #end
 
   var check_mute_inst:FlxUICheckBox = null;
   var check_mute_vocals:FlxUICheckBox = null;

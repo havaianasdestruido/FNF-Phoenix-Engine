@@ -7,9 +7,8 @@ import data.Song;
 import data.Song.SwagSong;
 import editors.ChartingState;
 import flixel.util.FlxSort;
-import lime.ui.FileDialog;
-import lime.ui.FileDialogType;
 import lime.utils.Assets;
+import mobile.files.MobileFilePicker;
 import objects.Prompt;
 import openfl.events.Event;
 import openfl.events.IOErrorEvent;
@@ -30,14 +29,16 @@ class ChartingSaveLoad
 
   public static function promptBackup(state:ChartingState)
   {
-    var fD:FileDialog = new FileDialog();
+    // Uses the cross-platform picker so chart imports work on mobile too
+    // (SAF document picker on Android, native dialog on desktop).
+    MobileFilePicker.openFile(function(file) {
+      if (file == null || file.data == null) return;
 
-    fD.onOpen.add(f -> {
       // Kinda stupid but it works
       state.openSubState(new Prompt('This action will clear current progress.\n\nProceed?', 0, function() {
         try
         {
-          var wrapper:SwagSong = Song.parseJSON(f);
+          var wrapper:SwagSong = Song.parseJSON(file.data.toString());
           if (wrapper.song == null)
           {
             CoolUtil.coolError("Failed to load JSON â€“ not a valid chart.json.", "JS Engine Anti-Crash Tool");
@@ -54,9 +55,7 @@ class ChartingSaveLoad
           CoolUtil.coolError('Failed to load JSON, is it a character.json or a stage.json instead of a chart.json?\nError: $e', "JS Engine Anti-Crash Tool");
         };
       }, null, state.ignoreWarnings));
-    });
-
-    fD.open("json", null, "Choose a Psych Engine Compatible Chart JSON to load as.");
+    }, ["json"], "Choose a Psych Engine Compatible Chart JSON to load as.");
   }
 
   public static function saveUndo(state:ChartingState, songData:SwagSong)
@@ -170,12 +169,21 @@ class ChartingSaveLoad
 
       if (!isAuto)
       {
+        #if android
+        // FileReference can't save on Android; use the SAF create-document
+        // picker through the mobile file picker instead.
+        MobileFilePicker.saveText(data.trim(), gamingName + ".json", "application/json", "Save chart as", function(result) {
+          if (result != null)
+            onSaveComplete(state, null);
+        });
+        #else
         state._file = new FileReference();
         state._file.addEventListener(Event.COMPLETE, state.onSaveComplete);
         state._file.addEventListener(Event.CANCEL, state.onSaveCancel);
         state._file.addEventListener(IOErrorEvent.IO_ERROR, state.onSaveError);
 
         state._file.save(data.trim(), gamingName + ".json");
+        #end
       } else
       {
         #if sys
@@ -239,29 +247,43 @@ class ChartingSaveLoad
 
     if ((data != null) && (data.length > 0))
     {
+      #if android
+      MobileFilePicker.saveText(data.trim(), "events.json", "application/json", "Save events as", function(result) {
+        if (result != null)
+          onSaveComplete(state, null);
+      });
+      #else
       state._file = new FileReference();
       state._file.addEventListener(Event.COMPLETE, state.onSaveComplete);
       state._file.addEventListener(Event.CANCEL, state.onSaveCancel);
       state._file.addEventListener(IOErrorEvent.IO_ERROR, state.onSaveError);
       state._file.save(data.trim(), "events.json");
+      #end
     }
   }
 
   public static function onSaveComplete(state:ChartingState, _):Void
   {
-    state._file.removeEventListener(Event.COMPLETE, state.onSaveComplete);
-    state._file.removeEventListener(Event.CANCEL, state.onSaveCancel);
-    state._file.removeEventListener(IOErrorEvent.IO_ERROR, state.onSaveError);
-    state._file = null;
+    // state._file is null when the save went through the mobile SAF picker.
+    if (state._file != null)
+    {
+      state._file.removeEventListener(Event.COMPLETE, state.onSaveComplete);
+      state._file.removeEventListener(Event.CANCEL, state.onSaveCancel);
+      state._file.removeEventListener(IOErrorEvent.IO_ERROR, state.onSaveError);
+      state._file = null;
+    }
     FlxG.log.notice("Successfully saved LEVEL DATA.");
   }
 
   public static function onSaveCancel(state:ChartingState, _):Void
   {
-    state._file.removeEventListener(Event.COMPLETE, state.onSaveComplete);
-    state._file.removeEventListener(Event.CANCEL, state.onSaveCancel);
-    state._file.removeEventListener(IOErrorEvent.IO_ERROR, state.onSaveError);
-    state._file = null;
+    if (state._file != null)
+    {
+      state._file.removeEventListener(Event.COMPLETE, state.onSaveComplete);
+      state._file.removeEventListener(Event.CANCEL, state.onSaveCancel);
+      state._file.removeEventListener(IOErrorEvent.IO_ERROR, state.onSaveError);
+      state._file = null;
+    }
   }
 
   /**
@@ -269,10 +291,13 @@ class ChartingSaveLoad
    */
   public static function onSaveError(state:ChartingState, _):Void
   {
-    state._file.removeEventListener(Event.COMPLETE, state.onSaveComplete);
-    state._file.removeEventListener(Event.CANCEL, state.onSaveCancel);
-    state._file.removeEventListener(IOErrorEvent.IO_ERROR, state.onSaveError);
-    state._file = null;
+    if (state._file != null)
+    {
+      state._file.removeEventListener(Event.COMPLETE, state.onSaveComplete);
+      state._file.removeEventListener(Event.CANCEL, state.onSaveCancel);
+      state._file.removeEventListener(IOErrorEvent.IO_ERROR, state.onSaveError);
+      state._file = null;
+    }
     FlxG.log.error("Problem saving Level data");
   }
 }

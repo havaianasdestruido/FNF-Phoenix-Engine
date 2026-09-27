@@ -18,6 +18,8 @@ import openfl.Assets;
 import openfl.display.BitmapData;
 
 import backend.Controls;
+import data.Song;
+import play.PlayState;
 
 typedef TitleData =
 {
@@ -158,7 +160,99 @@ class TitleState extends MusicBeatState
     addVirtualPad(NONE, A);
     // startIntro() adds a fullscreen bg after create() on first launch, keep the pad above it.
     addVirtualPadCamera();
+
+    #if android
+    // If Android killed the process mid-song (low memory etc.), offer to
+    // resume the interrupted song. No-op when there's nothing to recover.
+    checkRecoveryState();
+    #end
   }
+
+  #if android
+  function checkRecoveryState():Void
+  {
+    var blob:String = android.platform.AndroidSystem.consumeRecoveryState();
+    if (blob == null || blob == "")
+      return;
+
+    var data:Dynamic = null;
+    try
+    {
+      data = Json.parse(blob);
+    }
+    catch (e:Dynamic)
+    {
+      return;
+    }
+
+    if (data == null || data.type != "song" || data.song == null)
+      return;
+
+    var songLowercase:String = Paths.formatToSongPath(Std.string(data.song));
+
+    // Restore the mod directory so mod-scoped charts resolve.
+    if (data.mod != null && Std.string(data.mod).length > 0)
+      Mods.currentModDirectory = Std.string(data.mod);
+
+    // Difficulty list preference: the persisted one (may include custom
+    // mod difficulties), then whatever the menus set up, then the engine
+    // defaults. It must be in CoolUtil.difficulties before formatSong,
+    // because Highscore.formatSong/getDifficultyFilePath index into it.
+    var diffNames:Array<String> = null;
+    if (data.difficulties != null && Std.isOfType(data.difficulties, Array) && (data.difficulties : Array<Dynamic>).length > 0)
+      diffNames = [for (d in (data.difficulties : Array<Dynamic>)) Std.string(d)];
+    else if (CoolUtil.difficulties.length > 0)
+      diffNames = CoolUtil.difficulties;
+    else
+      diffNames = CoolUtil.defaultDifficulties.copy();
+
+    CoolUtil.difficulties = diffNames;
+
+    function findDifficulty(name:String):Int
+    {
+      for (i in 0...diffNames.length)
+      {
+        if (diffNames[i].toLowerCase() == name.toLowerCase())
+          return i;
+      }
+      return -1;
+    }
+
+    var diffIndex:Int = findDifficulty(CoolUtil.defaultDifficulty);
+    if (diffIndex < 0)
+      diffIndex = 0;
+
+    if (data.difficulty != null)
+    {
+      var wanted:Int = findDifficulty(Std.string(data.difficulty));
+      if (wanted >= 0)
+        diffIndex = wanted;
+    }
+
+    var poop:String = Highscore.formatSong(songLowercase, diffIndex);
+
+    var exists:Bool = false;
+    #if sys
+    exists = sys.FileSystem.exists(Paths.modsJson(songLowercase + '/' + poop)) || sys.FileSystem.exists(Paths.json(songLowercase + '/' + poop))
+      || OpenFlAssets.exists(Paths.modsJson(songLowercase + '/' + poop)) || OpenFlAssets.exists(Paths.json(songLowercase + '/' + poop));
+    #else
+    exists = OpenFlAssets.exists(Paths.json(songLowercase + '/' + poop));
+    #end
+
+    if (!exists)
+      return;
+
+    openSubState(new objects.Prompt('The game was interrupted during "${data.song}".\n\nResume it now?', 0, function()
+    {
+      PlayState.SONG = Song.loadFromJson(poop, songLowercase);
+      PlayState.storyDifficulty = diffIndex;
+      PlayState.isStoryMode = false;
+      PlayState.wasOriginallyFreeplay = true;
+      CoolUtil.currentDifficulty = CoolUtil.difficultyString();
+      LoadingState.loadAndSwitchState(PlayState.new);
+    }, null, true));
+  }
+  #end
 
   var logoBl:FlxSprite;
   var gfDance:FlxSprite;

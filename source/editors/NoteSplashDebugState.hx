@@ -1,4 +1,4 @@
-﻿package editors;
+package editors;
 import backend.ClientPrefs;
 import backend.MusicBeatState;
 import backend.Paths;
@@ -184,7 +184,134 @@ class NoteSplashDebugState extends MusicBeatState
 		changeSelection();
 		super.create();
 		FlxG.mouse.visible = true;
+
+		#if mobile
+		// Touch devices have no keyboard: give the note splash debugger its
+		// pad (layout defined by the NOTE_SPLASH_DEBUG modes).
+		addVirtualPad(NOTE_SPLASH_DEBUG, NOTE_SPLASH_DEBUG);
+		addVirtualPadCamera();
+		setupMobilePad();
+		#end
 	}
+
+	#if mobile
+	// Mirrors the keyboard shortcuts on the touch pad:
+	//   dpad = arrow-key offsets (dpad2 = SHIFT+arrows, 10x),
+	//   X/C = A/D selection, Z/Y = S/W animation, A = Space animation reset,
+	//   E = E frame step (Q has no button), V = Enter save (double tap).
+	// Exit stays on controls.BACK (the B button).
+	function setupMobilePad():Void
+	{
+		if (virtualPad == null)
+			return;
+
+		if (virtualPad.buttonUp != null)
+			virtualPad.buttonUp.onUp.callback = mobilePadMove.bind(0, 1, 1);
+		if (virtualPad.buttonDown != null)
+			virtualPad.buttonDown.onUp.callback = mobilePadMove.bind(0, -1, 1);
+		if (virtualPad.buttonLeft != null)
+			virtualPad.buttonLeft.onUp.callback = mobilePadMove.bind(-1, 0, 1);
+		if (virtualPad.buttonRight != null)
+			virtualPad.buttonRight.onUp.callback = mobilePadMove.bind(1, 0, 1);
+		if (virtualPad.buttonUp2 != null)
+			virtualPad.buttonUp2.onUp.callback = mobilePadMove.bind(0, 1, 10);
+		if (virtualPad.buttonDown2 != null)
+			virtualPad.buttonDown2.onUp.callback = mobilePadMove.bind(0, -1, 10);
+		if (virtualPad.buttonLeft2 != null)
+			virtualPad.buttonLeft2.onUp.callback = mobilePadMove.bind(-1, 0, 10);
+		if (virtualPad.buttonRight2 != null)
+			virtualPad.buttonRight2.onUp.callback = mobilePadMove.bind(1, 0, 10);
+
+		if (virtualPad.buttonX != null)
+			virtualPad.buttonX.onUp.callback = mobilePadSelect.bind(-1);
+		if (virtualPad.buttonC != null)
+			virtualPad.buttonC.onUp.callback = mobilePadSelect.bind(1);
+		if (virtualPad.buttonZ != null)
+			virtualPad.buttonZ.onUp.callback = mobilePadAnim.bind(-1);
+		if (virtualPad.buttonY != null)
+			virtualPad.buttonY.onUp.callback = mobilePadAnim.bind(1);
+		if (virtualPad.buttonA != null)
+			virtualPad.buttonA.onUp.callback = mobilePadAnim.bind(0);
+		if (virtualPad.buttonE != null)
+			virtualPad.buttonE.onUp.callback = mobilePadFrame;
+		if (virtualPad.buttonV != null)
+			virtualPad.buttonV.onUp.callback = mobilePadSave;
+	}
+
+	function mobileTyping():Bool
+		return nameInputText.hasFocus || imageInputText.hasFocus;
+
+	function mobilePadMove(movex:Int, movey:Int, mult:Int):Void
+	{
+		if (mobileTyping() || maxAnims < 1 || selecArr == null)
+			return;
+
+		selecArr[0] -= movex * mult;
+		selecArr[1] += movey * mult;
+		updateOffsetText();
+		splashes.members[curSelected].offset.set(10 + selecArr[0], 10 + selecArr[1]);
+	}
+
+	function mobilePadSelect(dir:Int):Void
+	{
+		if (mobileTyping())
+			return;
+		changeSelection(dir);
+	}
+
+	function mobilePadAnim(dir:Int):Void
+	{
+		if (mobileTyping() || maxAnims < 1)
+			return;
+		if (dir == 0)
+			changeAnim();
+		else
+			changeAnim(dir);
+	}
+
+	function mobilePadFrame():Void
+	{
+		if (mobileTyping() || maxAnims < 1)
+			return;
+
+		forceFrame++;
+		if (forceFrame >= maxFrame)
+			forceFrame = maxFrame - 1;
+		if (forceFrame < 0)
+			forceFrame = 0;
+
+		curFrameText.text = 'Force Frame: ${forceFrame + 1} / $maxFrame\n(Press Q/E to change)';
+		splashes.forEachAlive(function(spr:FlxSprite)
+		{
+			spr.animation.curAnim.paused = true;
+			spr.animation.curAnim.curFrame = forceFrame;
+		});
+	}
+
+	function mobilePadSave():Void
+	{
+		// Mirrors update(), where everything past selection is gated on a
+		// loaded animation.
+		if (mobileTyping() || maxAnims < 1)
+			return;
+
+		// Mirrors the double-tap ENTER save flow.
+		savedText.text = 'Press ENTER again to save.';
+		if (pressEnterToSave > 0)
+		{
+			saveFile();
+			FlxG.sound.play(Paths.sound('confirmMenu'), 0.4);
+			pressEnterToSave = 0;
+			visibleTime = 3;
+		}
+		else
+		{
+			pressEnterToSave = 0.5;
+			visibleTime = 0.5;
+		}
+		savedText.visible = true;
+	}
+	#end
 
 	var curAnim:Int = 1;
 	var visibleTime:Float = 0;

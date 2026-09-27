@@ -1,6 +1,6 @@
 package backend;
 
-#if DISCORD_ALLOWED
+#if (DISCORD_ALLOWED && !android)
 #if cpp
 import cpp.ConstCharStar;
 import cpp.Function;
@@ -17,13 +17,20 @@ import lime.app.Application;
 import sys.thread.Thread;
 #end
 
+#if (DISCORD_ALLOWED && android)
+import android.platform.AndroidDiscord;
+#if LUA_ALLOWED
+import psychlua.FunkinLua.State;
+#end
+#end
+
 class DiscordClient
 {
 	public static var isInitialized:Bool = false;
 	private inline static final _defaultID:String = "1192736165472784445";
 	public static var clientID(default, set):String = _defaultID;
 
-	#if DISCORD_ALLOWED
+	#if (DISCORD_ALLOWED && !android)
 	private static var presence:DiscordRichPresence = new DiscordRichPresence(); // I think for now we don't need DiscordPresence.create();
 	// hides this field from scripts and reflection in general
 	@:unreflective private static var __thread:Thread;
@@ -144,6 +151,59 @@ class DiscordClient
 		});
 	}
 	#end
+	#elseif (DISCORD_ALLOWED && android)
+	// Android build: Discord's RPC SDK is desktop-only, so the same public
+	// API is routed through `AndroidDiscord`, which publishes the presence
+	// strings to the system media session (lock screen / media controls)
+	// instead of a non-existent Discord client.
+
+	public static function check()
+	{
+		if(ClientPrefs.discordRPC) initialize();
+		else if(isInitialized) shutdown();
+	}
+
+	public static function prepare()
+	{
+		if (!isInitialized && ClientPrefs.discordRPC)
+			initialize();
+	}
+
+	public dynamic static function shutdown()
+	{
+		isInitialized = false;
+		AndroidDiscord.shutdown();
+	}
+
+	public static function initialize()
+	{
+		AndroidDiscord.initialize();
+		if(!isInitialized) trace("Discord Client initialized (Android media session)");
+		isInitialized = true;
+	}
+
+	public static function changePresence(details:String = 'In the Menus', ?state:String, ?smallImageKey:String, ?hasStartTimestamp:Bool, ?endTimestamp:Float, largeImageKey:String = 'icon')
+	{
+		if(!isInitialized || !ClientPrefs.discordRPC)
+			return;
+
+		var durationMs:Float = -1;
+		if (endTimestamp > 0) durationMs = endTimestamp;
+		AndroidDiscord.changePresence(details, state, largeImageKey, durationMs);
+	}
+
+	public static function updatePresence():Void {}
+
+	#if LUA_ALLOWED
+	public static function addLuaCallbacks(lua:State)
+	{
+		Convert.addCallback(lua, "changeDiscordPresence", changePresence);
+		Convert.addCallback(lua, "changeDiscordClientID", function(?newID:String) {
+			if(newID == null) newID = _defaultID;
+			clientID = newID;
+		});
+	}
+	#end
 	#else
 	// No-op stub for builds compiled without Discord RPC (e.g. Neko).
 	public static function check():Void {}
@@ -164,12 +224,14 @@ class DiscordClient
 		var change:Bool = (clientID != newID);
 		clientID = newID;
 
+		#if (DISCORD_ALLOWED && !android)
 		if(change && isInitialized)
 		{
 			shutdown();
 			initialize();
 			updatePresence();
 		}
+		#end
 		return newID;
 	}
 }
