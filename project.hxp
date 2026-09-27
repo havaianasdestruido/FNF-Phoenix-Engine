@@ -228,6 +228,10 @@ class Project extends HXProject
 		// If for some reason we have multiple source directories, we can add more entries here.
 		this.sources.push(SOURCE_DIR);
 
+    if (isIOS()) this.templatePaths.push("templates");
+    if (isWindows())
+      addAssetPath("setup/uri", "uri", null, ["*.ps1"]);
+
 		// Haxelib classpath overrides (shadow machine-local haxelib edits for CI/fresh builds).
 		this.sources.push("source-haxelib-patches");
 

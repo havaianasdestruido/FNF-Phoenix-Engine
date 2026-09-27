@@ -295,6 +295,7 @@ class MainMenuState extends MusicBeatState
 
   override function update(elapsed:Float)
   {
+    if (!selectedSomethin && backend.deeplink.DeepLinks.dispatch()) return;
     FlxG.camera.followLerp = 7.5;
     if (tipTextScrolling)
     {

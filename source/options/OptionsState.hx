@@ -1,4 +1,4 @@
-﻿package options;
+package options;
 
 import backend.Controls;
 import flixel.graphics.FlxGraphic;
@@ -18,6 +18,14 @@ import states.substates.PauseSubState;
 
 class OptionsState extends MusicBeatState
 {
+  final openMiscOnCreate:Bool;
+
+  public function new(openMisc:Bool = false)
+  {
+    super();
+    openMiscOnCreate = openMisc;
+  }
+
     var kId = 0;
     var keys:Array<FlxKey> = [D, E, B, U, G, SEVEN]; // lol
 	var konamiIndex:Int = 0; // Track the progress in the Konami code sequence
@@ -135,6 +143,12 @@ class OptionsState extends MusicBeatState
 		virtualPad.camera = otherCamera;
 
 		super.create();
+    if (openMiscOnCreate)
+    {
+      curSelected = options.indexOf('Misc');
+      changeSelection();
+      openSelectedSubstate('Misc');
+    }
 	}
 
 	override function closeSubState() {

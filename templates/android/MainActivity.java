@@ -27,6 +27,7 @@ public class MainActivity extends org.haxe.lime.GameActivity
 
 	@Override protected void onNewIntent(Intent intent)
 	{
+		setIntent(intent);
 		PhoenixCore.handleNewIntent(intent);
 		super.onNewIntent(intent);
 	}

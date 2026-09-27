@@ -89,6 +89,7 @@ class Main extends Sprite
   public function new()
   {
     super();
+    backend.deeplink.DeepLinks.init();
     #if mobile
     #if android
     mobile.StorageUtil.requestPermissions();
