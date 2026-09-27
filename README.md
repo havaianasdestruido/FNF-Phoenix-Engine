@@ -282,6 +282,12 @@ Yes, I used AI for some changes, mostly related to fixing building issues that w
 
 You can freely check the git commits and see what I modified by hand and where I used AI.
 
+<a href="https://github.com/havaianasdestruido/FNF-Phoenix-Engine/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=havaianasdestruido/FNF-Phoenix-Engine" />
+</a>
+
+Made with [contrib.rocks](https://contrib.rocks).
+
 <details>
   <summary><h2>OG FNF JS Engine README and Stuff</h2></summary>
 <!-- this is an secret -->
