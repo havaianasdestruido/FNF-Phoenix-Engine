@@ -682,19 +682,26 @@ class Project extends HXProject
 		// the generated GameActivity, which forwards lifecycle/intent/result
 		// callbacks to them. PhoenixMediaService is an Android Service declared
 		// in the manifest template, not an extension.
-		config.set("android.extension", [
+		//
+		// NB: use config.push() per item. ConfigData only tracks lists through
+		// its companion `___array` bucket that push() maintains; config.set()
+		// with a Haxe Array stores one value that lime's getArrayString()
+		// stringifies into "[a,b,c]" (invalid Java in GameActivity).
+		for (extension in [
 			"quack.fnf.phoenix.android.PhoenixCore",
 			"quack.fnf.phoenix.android.PhoenixDisplay",
 			"quack.fnf.phoenix.android.PhoenixInput",
 			"quack.fnf.phoenix.android.PhoenixMedia",
 			"quack.fnf.phoenix.android.PhoenixStorage"
-		]);
+		])
+			config.push("android.extension", extension, true);
 
 		// Lime's default Android permissions plus the ones the platform bridge
 		// needs (media notifications, foreground media playback service).
 		// NB: setting `android.permission` replaces Lime's defaults entirely,
-		// so they are repeated here.
-		config.set("android.permission", [
+		// so they are repeated here. Pushed individually for the same reason
+		// as the extensions above.
+		for (permission in [
 			"android.permission.WAKE_LOCK",
 			"android.permission.INTERNET",
 			"android.permission.VIBRATE",
@@ -709,7 +716,8 @@ class Project extends HXProject
 			"android.permission.POST_NOTIFICATIONS",
 			"android.permission.FOREGROUND_SERVICE",
 			"android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK"
-		]);
+		])
+			config.push("android.permission", permission, true);
 
 		var abis = androidAbis();
 		if (abis.length == 0)
