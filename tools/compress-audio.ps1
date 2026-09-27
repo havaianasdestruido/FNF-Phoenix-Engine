@@ -43,7 +43,7 @@ if ($DryRun) {
 Write-Host ""
 
 # Recursively find every MP3 and OGG (skipping .git)
-$files = @(Get-ChildItem -Path $Root -Recurse -File -ErrorAction SilentlyContinue |
+$files = @(Get-ChildItem -LiteralPath $Root -Recurse -File -ErrorAction SilentlyContinue |
     Where-Object {
         ($_.Extension -eq ".mp3" -or $_.Extension -eq ".ogg") -and
         $_.FullName -notmatch '\\\.git\\'
@@ -153,44 +153,57 @@ foreach ($file in $files) {
                     $file.IsReadOnly = $false
                 }
 
-                # File.Replace() must be given a real backup path. Windows PowerShell
-                # hands .NET an empty string for a $null string argument, and .NET then
-                # fails with "The path is not of a legal form." The backup lives in the
-                # same directory (same volume) and is deleted right after the swap.
-                $backupFile = "$($file.FullName).replacing.bak"
-
                 try {
-                    [System.IO.File]::Replace($tempFile, $file.FullName, $backupFile)
-                }
-                catch {
-                    # ReplaceFile() is not available on every filesystem (network
-                    # shares, FAT/exFAT), so fall back to renames in the same folder.
-                    if (-not (Test-Path -LiteralPath $file.FullName)) {
-                        # Should be impossible; never leave the original audio missing.
-                        if (Test-Path -LiteralPath $backupFile) {
-                            Move-Item -LiteralPath $backupFile -Destination $file.FullName -Force
-                        }
-                        throw "Could not replace $($file.Name); the original file was restored."
-                    }
 
-                    Move-Item -LiteralPath $file.FullName -Destination $backupFile -Force
+                    # File.Replace() must be given a real backup path. Windows PowerShell
+                    # hands .NET an empty string for a $null string argument, and .NET then
+                    # fails with "The path is not of a legal form." The backup lives in the
+                    # same directory (same volume) and is deleted right after the swap.
+                    # Its name is unique so a .bak left behind by an interrupted earlier
+                    # run - which may hold the only copy of the original audio - is never
+                    # overwritten here or removed by the cleanup below.
+                    $backupFile = "$($file.FullName).replacing.$([Guid]::NewGuid()).bak"
+
+                    while (Test-Path -LiteralPath $backupFile) {
+                        $backupFile = "$($file.FullName).replacing.$([Guid]::NewGuid()).bak"
+                    }
 
                     try {
-                        Move-Item -LiteralPath $tempFile -Destination $file.FullName -Force
+                        [System.IO.File]::Replace($tempFile, $file.FullName, $backupFile)
                     }
                     catch {
-                        Move-Item -LiteralPath $backupFile -Destination $file.FullName -Force
-                        throw
+                        # ReplaceFile() is not available on every filesystem (network
+                        # shares, FAT/exFAT), so fall back to renames in the same folder.
+                        if (-not (Test-Path -LiteralPath $file.FullName)) {
+                            # Should be impossible; never leave the original audio missing.
+                            if (Test-Path -LiteralPath $backupFile) {
+                                Move-Item -LiteralPath $backupFile -Destination $file.FullName -Force
+                            }
+                            throw "Could not replace $($file.Name); the original file was restored."
+                        }
+
+                        Move-Item -LiteralPath $file.FullName -Destination $backupFile -Force
+
+                        try {
+                            Move-Item -LiteralPath $tempFile -Destination $file.FullName -Force
+                        }
+                        catch {
+                            Move-Item -LiteralPath $backupFile -Destination $file.FullName -Force
+                            throw
+                        }
+                    }
+
+                    if (Test-Path -LiteralPath $backupFile) {
+                        Remove-Item -LiteralPath $backupFile -Force
                     }
                 }
-
-                if (Test-Path -LiteralPath $backupFile) {
-                    Remove-Item -LiteralPath $backupFile -Force
-                }
-
-                if ($wasReadOnly) {
-                    $newItem = Get-Item -LiteralPath $file.FullName
-                    $newItem.IsReadOnly = $true
+                finally {
+                    # Restore the attribute even when both the Replace and the fallback
+                    # failed, so a file we could not compress is left exactly as found.
+                    if ($wasReadOnly -and (Test-Path -LiteralPath $file.FullName)) {
+                        $currentItem = Get-Item -LiteralPath $file.FullName
+                        $currentItem.IsReadOnly = $true
+                    }
                 }
 
                 $totalFinal += $compressedSize

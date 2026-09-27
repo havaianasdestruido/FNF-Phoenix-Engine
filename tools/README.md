@@ -27,6 +27,6 @@ On Windows PowerShell:
 
 `.git` is skipped. Re-encoding is destructive: commit or back up your audio first, then listen to a few tracks before committing the result.
 
-`--dry-run` / `-DryRun` is the safe way to start: it encodes each file to a temporary copy, reports the size it would reach and the total projected saving, and deletes the copy without touching your audio. Files already encoded at or below the target bitrate are reported as skipped, which is normal — a track that is already 96 kbps cannot get smaller without quality loss.
+`--dry-run` / `-DryRun` is the safe way to start: it encodes each file to a temporary copy, reports the size it would reach and the total projected saving, and deletes the copy without touching your audio. A file is replaced only when the encoded output is smaller than the source; output that is the same size or larger is reported as skipped, which is normal for audio that is already tightly encoded.
 
 Defaults are 128 kbps MP3 and 96 kbps Ogg Vorbis. Use a higher bitrate for music that has audible artifacts and a lower bitrate only for short sound effects. The existing `art/scripts/compress.ps1` remains available for compatibility; new usage should prefer the scripts in this directory.
