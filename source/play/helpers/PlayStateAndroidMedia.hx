@@ -30,6 +30,7 @@ import backend.CoolUtil;
 import flixel.FlxG;
 import flixel.util.FlxTimer;
 import haxe.Json;
+import play.PlayState;
 import states.substates.PauseSubState;
 #end
 
@@ -55,7 +56,7 @@ class PlayStateAndroidMedia
 		stop(playState); // detach any previous wiring (defensive)
 		state = playState;
 
-		var title:String = playState.SONG != null ? playState.SONG.song : "Unknown";
+		var title:String = PlayState.SONG != null ? PlayState.SONG.song : "Unknown";
 		var duration:Float = FlxG.sound.music != null ? FlxG.sound.music.length : 0;
 
 		AndroidMedia.updateNowPlaying(title, 'Friday Night Funkin\'', duration);
@@ -72,7 +73,7 @@ class PlayStateAndroidMedia
 		{
 			AndroidSystem.setRecoveryState(Json.stringify({
 				type: "song",
-				song: playState.SONG != null ? playState.SONG.song : null,
+				song: PlayState.SONG != null ? PlayState.SONG.song : null,
 				difficulty: CoolUtil.difficultyString(),
 				difficulties: CoolUtil.difficulties,
 				mod: Mods.currentModDirectory
