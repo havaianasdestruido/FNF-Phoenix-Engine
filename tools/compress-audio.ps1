@@ -41,9 +41,6 @@ $replaced = 0
 $skipped = 0
 $failed = 0
 
-$tempDir = Join-Path $env:TEMP "audio-compress-$([Guid]::NewGuid())"
-
-New-Item -ItemType Directory -Path $tempDir -Force | Out-Null
 
 foreach ($file in $files) {
 
@@ -56,7 +53,7 @@ foreach ($file in $files) {
     $originalSize = [int64]$file.Length
     $totalOriginal += $originalSize
 
-    $tempFile = Join-Path $tempDir "$([Guid]::NewGuid())$($file.Extension)"
+    $tempFile = "$($file.FullName).compress.$([Guid]::NewGuid())$($file.Extension)"
 
     try {
 
@@ -107,11 +104,10 @@ foreach ($file in $files) {
             $oldWrite = $file.LastWriteTime
             $oldAccess = $file.LastAccessTime
 
-            Move-Item -Force $tempFile $file.FullName
-
-            $file.CreationTime = $oldCreation
-            $file.LastWriteTime = $oldWrite
-            $file.LastAccessTime = $oldAccess
+            [System.IO.File]::SetCreationTime($tempFile, $oldCreation)
+            [System.IO.File]::SetLastWriteTime($tempFile, $oldWrite)
+            [System.IO.File]::SetLastAccessTime($tempFile, $oldAccess)
+            [System.IO.File]::Replace($tempFile, $file.FullName, $null)
 
             $totalFinal += $compressedSize
             $replaced++
@@ -138,21 +134,18 @@ foreach ($file in $files) {
     }
     catch {
 
-        if (Test-Path $tempFile) {
-            Remove-Item -Force $tempFile
-        }
-
         $totalFinal += $originalSize
         $failed++
 
         Write-Host "  FAILED: $($_.Exception.Message)" -ForegroundColor Red
     }
+    finally {
+        if (Test-Path $tempFile) {
+            Remove-Item -Force $tempFile -ErrorAction SilentlyContinue
+        }
+    }
 
     Write-Host ""
-}
-
-if (Test-Path $tempDir) {
-    Remove-Item -Path $tempDir -Recurse -Force -ErrorAction SilentlyContinue
 }
 
 $totalSaved = $totalOriginal - $totalFinal

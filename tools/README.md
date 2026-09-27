@@ -1,11 +1,11 @@
 # Audio compression tools
 
-These scripts re-encode project audio at conservative, game-friendly bitrates and replace a source file **only when the encoded file is smaller**. They preserve the original file format, audio metadata where supported, and timestamps. Re-encoding is lossy, so review the result before committing; keep backups if the source files are important.
+These scripts re-encode project audio at conservative, game-friendly bitrates and replace a source file **only when the encoded file is smaller**. They preserve the original file format and audio metadata where supported. Re-encoding is lossy, so review the result before committing; keep backups if the source files are important.
 
 Both scripts require [FFmpeg](https://ffmpeg.org/) in `PATH`.
 
 ```sh
-# From the repository root (all MP3/OGG files below the repo)
+# From the repository root (all MP3/OGG files below assets)
 ./tools/compress-audio.sh --root assets
 ./tools/compress-audio.sh --root assets --mp3-bitrate 160 --ogg-bitrate 112
 ```

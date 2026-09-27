@@ -34,7 +34,7 @@ while IFS= read -r file; do
     processed=$((processed + 1))
     ext=${file##*.}; ext=$(printf '%s' "$ext" | tr '[:upper:]' '[:lower:]')
     original=$(wc -c < "$file" | tr -d ' ')
-    out="$tmpdir/output.$ext"
+    out="${file}.compress.$$.$ext"
     printf '[%s] %s\n' "$processed" "$file"
 
     if [ "$ext" = mp3 ]; then codec=libmp3lame; bitrate=$MP3_BITRATE
@@ -42,7 +42,7 @@ while IFS= read -r file; do
     fi
 
     if ffmpeg -hide_banner -loglevel error -y -i "$file" -map 0:a:0 -vn \
-        -map_metadata 0 -c:a "$codec" -b:a "${bitrate}k" -ar 44100 -ac 2 "$out"; then
+        -map_metadata 0 -c:a "$codec" -b:a "${bitrate}k" -ar 44100 -ac 2 "$out" </dev/null; then
         compressed=$(wc -c < "$out" | tr -d ' ')
         if [ "$compressed" -lt "$original" ]; then
             # Keep the source timestamp; the replacement is atomic on the same filesystem.
