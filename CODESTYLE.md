@@ -30,3 +30,18 @@ Prettier automatically handles formatting of JSON files, and can be configured i
 * Prettier will automatically attempt to place expressions on a single line if they fit, but will keep them multi-line if they are manually made multi-line.
   * This means that long single-line objects are automatically expanded, and short multi-line objects aren't automatically collapsed.
   * You may want to use regex replacement to manually remove the first newline in short multi-line objects to convince Prettier to collapse them.
+
+## .java
+TBD
+
+## .c/.h
+TBD
+
+## .cpp/.hpp 
+TBD
+
+## .js
+TBD
+
+## .as
+TBD
