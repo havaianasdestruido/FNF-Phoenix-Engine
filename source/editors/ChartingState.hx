@@ -467,6 +467,9 @@ class ChartingState extends MusicBeatState
     nextRenderedNotes = new FlxTypedGroup<Note>();
 
     if (curSec >= _song.notes.length) curSec = _song.notes.length - 1;
+    // Songs without any section (e.g. the empty dummy chart) would leave
+    // curSec at -1; clamp to the section appended just below instead.
+    if (curSec < 0) curSec = 0;
 
     FlxG.mouse.visible = true;
 

@@ -404,7 +404,7 @@ class ChartingUISections
     state.check_altAnim.name = 'check_altAnim';
 
     state.check_crossFade = new FlxUICheckBox(130, 60, null, null, "Cross Fade", 100);
-		state.check_crossFade.checked = state._song.notes[ChartingState.curSec].crossFade;
+		state.check_crossFade.checked = (state._song.notes[ChartingState.curSec] != null ? state._song.notes[ChartingState.curSec].crossFade : false);
 		state.check_crossFade.name = 'check_crossFade';
 
     state.check_changeBPM = new FlxUICheckBox(10, state.stepperBeats.y + 30, null, null, 'Change BPM', 100);

@@ -160,7 +160,8 @@ Everything else content-related is dropped from the build: song audio
 (`assets/songs`), all charts (`assets/preload/data/<song>/`), character JSONs
 (`assets/preload/characters`), week JSONs (`assets/preload/weeks`), stage JSONs
 (`assets/preload/stages`), the `week2`-`week7` + `weekend1` libraries, cutscene
-videos, and all character / week / dialogue / stage art.
+videos, and all character / week / dialogue / stage art (including the
+`week*_nomiss` achievement icons; generic achievement icons stay).
 
 The game still boots and runs in this mode: characters, health icons, stage
 art, week cards and dialogue portraits are replaced by code-generated

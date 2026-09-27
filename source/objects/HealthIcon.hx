@@ -120,7 +120,15 @@ class HealthIcon extends FlxSprite
 	static function getPlaceholderIcon(char:String):FlxGraphic
 	{
 		if (_placeholderIcons.exists(char))
-			return _placeholderIcons.get(char);
+		{
+			var cached:FlxGraphic = _placeholderIcons.get(char);
+			// Bitmap cleanup (Paths.clearStoredMemory) can destroy or evict
+			// cached graphics; drop dead entries so a fresh placeholder is
+			// generated below instead of reusing a broken graphic.
+			if (cached != null && cached.bitmap != null && FlxG.bitmap.get(cached.key) == cached)
+				return cached;
+			_placeholderIcons.remove(char);
+		}
 
 		trace('HealthIcon: no icon found for "$char", using a generated placeholder.');
 		var base:FlxColor = Character.placeholderColor(char);

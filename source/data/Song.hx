@@ -185,9 +185,11 @@ class Song
 		if (rawJson == null) {
 			// No chart found at all (e.g. content-stripped builds ship no
 			// charts): hand back an empty dummy song instead of crashing.
-			trace('Song "$folder/$jsonInput": chart not found, using an empty dummy chart.');
-			psychV1Chart = false;
-			var dummy:SwagSong = dummySong(jsonInput);
+		trace('Song "$folder/$jsonInput": chart not found, using an empty dummy chart.');
+		psychV1Chart = false;
+		// Use the song directory (not the difficulty-suffixed chart name) so
+		// Inst/Voices lookups still resolve to the song's audio files.
+		var dummy:SwagSong = dummySong(folder);
 			if (jsonInput != 'events')
 				StageData.loadDirectory(dummy);
 			onLoadJson(dummy);

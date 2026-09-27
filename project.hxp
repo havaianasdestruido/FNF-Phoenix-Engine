@@ -859,6 +859,14 @@ class Project extends HXProject
 				"storymenu", // week title cards
 				"dialogue", // dialogue portraits + character JSONs
 				"menubackgrounds", // per-week story menu backdrops
+				"week1_nomiss.png", // built-in week achievement art ...
+				"week2_nomiss.png",
+				"week3_nomiss.png",
+				"week4_nomiss.png",
+				"week5_nomiss.png",
+				"week6_nomiss.png",
+				"week7_nomiss.png",
+				"weekend1_nomiss.png", // ... (generic achievement icons stay)
 				"gfDanceTitle.*" // title screen dancer (+ its .json/.xml)
 			]);
 			addAssetPath("assets/preload/images", "assets/images", "default", ["*"], excludePreloadImages, shouldEmbed);

@@ -312,7 +312,7 @@ class DialogueCharacterEditorState extends MusicBeatState
 	{
 		if (mobileInputBlocked())
 			return;
-		if (UI_mainbox.selected_tab_id == 'Character')
+		if (UI_mainbox.selected_tab_id == 'Character' && character.jsonFile.animations.length > 0)
 		{
 			character.playAnim(character.jsonFile.animations[curAnim].anim);
 			daText.resetDialogue();
@@ -720,7 +720,7 @@ class DialogueCharacterEditorState extends MusicBeatState
 			FlxG.sound.muteKeys = TitleState.muteKeys;
 			FlxG.sound.volumeDownKeys = TitleState.volumeDownKeys;
 			FlxG.sound.volumeUpKeys = TitleState.volumeUpKeys;
-			if(FlxG.keys.justPressed.SPACE && UI_mainbox.selected_tab_id == 'Character') {
+			if(FlxG.keys.justPressed.SPACE && UI_mainbox.selected_tab_id == 'Character' && character.jsonFile.animations.length > 0) {
 				character.playAnim(character.jsonFile.animations[curAnim].anim);
 				daText.resetDialogue();
 				updateTextBox();
@@ -833,17 +833,22 @@ class DialogueCharacterEditorState extends MusicBeatState
 					updateTextBox();
 					daText.resetDialogue();
 
-					if(curAnim < 0) curAnim = character.jsonFile.animations.length - 1;
-					else if(curAnim >= character.jsonFile.animations.length) curAnim = 0;
+					if(character.jsonFile.animations.length > 0) {
+						if(curAnim < 0) curAnim = character.jsonFile.animations.length - 1;
+						else if(curAnim >= character.jsonFile.animations.length) curAnim = 0;
 
-					character.playAnim(character.jsonFile.animations[curAnim].anim);
-					animText.text = 'Animation: '
-						+ character.jsonFile.animations[curAnim].anim
-							+ ' ('
-							+ (curAnim + 1)
-							+ ' / '
-							+ character.jsonFile.animations.length
-							+ ') - Press W or S to scroll';
+						character.playAnim(character.jsonFile.animations[curAnim].anim);
+						animText.text = 'Animation: '
+							+ character.jsonFile.animations[curAnim].anim
+								+ ' ('
+								+ (curAnim + 1)
+								+ ' / '
+								+ character.jsonFile.animations.length
+								+ ') - Press W or S to scroll';
+					} else {
+						curAnim = 0;
+						animText.text = 'Animation: (none yet) - add one in the Animations tab';
+					}
 				}
 				lastTab = UI_mainbox.selected_tab_id;
 				currentGhosts = 0;
@@ -871,7 +876,10 @@ class DialogueCharacterEditorState extends MusicBeatState
 							}
 						}
 					}
-					animText.text = 'Animation: ' + character.jsonFile.animations[curAnim].anim + ' (' + (curAnim + 1) +' / ' + character.jsonFile.animations.length + ') - Press W or S to scroll';
+					if(character.jsonFile.animations.length > 0)
+						animText.text = 'Animation: ' + character.jsonFile.animations[curAnim].anim + ' (' + (curAnim + 1) +' / ' + character.jsonFile.animations.length + ') - Press W or S to scroll';
+					else
+						animText.text = 'Animation: (none yet) - add one in the Animations tab';
 				}
 			}
 
