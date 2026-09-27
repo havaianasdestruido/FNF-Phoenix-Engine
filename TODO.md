@@ -23,6 +23,13 @@ Generated from full repo audit. Priority: `[P0]` critical/blocker, `[P1]` high, 
 - **[P1] Double-chart / charting BPM** `ChartingState.hx:574` TODO "expand more & port the 1.0 system" and `:617` TODO "make BPM changes work properly" — BPM-change-aware step/section math is a real gameplay-integrity gap vs Psych.
 - **[P3] Missing funkin.vis cross-target** — `SpectralAnalyzer` patched; check hacking shaders (`Glitch`, `Chromatic`, `Malmo`?) compile on flash/air (`#if desktop` guard audit, §9).
 
+### 2.1. 4th WALL BREAKING
+
+- Port most of `META_HORROR` elements from here: [https://github.com/notmagniill/psych-engine-modified-build/blob/stable/source/backend/CoolUtil.hx](https://github.com/notmagniill/psych-engine-modified-build/blob/stable/source/backend/CoolUtil.hx), with credits, of course.
+- Add "Transparent Window" Haxe support (e.g.: [https://github.com/notmagniill/psych-engine-modified-build/blob/stable/source/backend/FlxTransWindow.hx](https://github.com/notmagniill/psych-engine-modified-build/blob/stable/source/backend/FlxTransWindow.hx)).
+- Add Lua & Python basic "sandboxing" (blocking some strings and functions if they are called by a softmod script) (e.g.: [https://github.com/Psych-Plus-Team/FNF-PlusEngine/blob/main/source/backend/ModSecurity.hx](https://github.com/Psych-Plus-Team/FNF-PlusEngine/blob/main/source/backend/ModSecurity.hx)).
+- Port GPU/CPU driver/manufacter detection from Psych Plus: [https://github.com/Psych-Plus-Team/FNF-PlusEngine/blob/main/source/backend/Native.hx](https://github.com/Psych-Plus-Team/FNF-PlusEngine/blob/main/source/backend/Native.hx).
+
 ## 3. MOBILE / PLATFORM
 
 - **[P1] ~~Mobile file picker incomplete~~ DONE** — `source/mobile/files/MobileFilePicker.hx` facade over the Android SAF (`ACTION_OPEN_DOCUMENT`/`ACTION_CREATE_DOCUMENT`/`ACTION_OPEN_DOCUMENT_TREE`) and lime `FileDialog` on desktop. Chart import (`ChartingSaveLoad.promptBackup`) and character import (new **Import Char** button in `CharacterEditorState`) plus chart/event/character export all route through it on Android; desktop keeps `FileReference`/`FileDialog`. Verify on-device.
