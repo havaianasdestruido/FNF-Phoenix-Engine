@@ -52,6 +52,13 @@ class AndroidBridge #if android implements lime.system.JNI.JNISafety #end
 	static var registered:Bool = false;
 	static var instance:AndroidBridge = null;
 
+	/**
+	 * Explicit constructor: classes built by lime's JNISafety autoBuild macro
+	 * don't get the compiler-generated default one, so `new AndroidBridge()`
+	 * would fail to type without this.
+	 */
+	public function new() {}
+
 	// ------------------------------------------------------------------
 	// Signals (fired on the main Haxe thread)
 	// ------------------------------------------------------------------
@@ -97,6 +104,14 @@ class AndroidBridge #if android implements lime.system.JNI.JNISafety #end
 
 	/** Incoming phoenix:// deep link (or any VIEW data URI). */
 	public static var onDeepLink:FlxTypedSignal<String->Void> = new FlxTypedSignal<String->Void>();
+
+	/**
+	 * Subscriber count for `onDeepLink`, maintained by `watchDeepLink`.
+	 * Flixel signals in this build expose no listener introspection, so the
+	 * bridge tracks it itself to know when a buffered cold-start link can be
+	 * confirmed delivered.
+	 */
+	static var deepLinkListeners:Int = 0;
 
 	/** Non-launch intents that carried no data (informational). */
 	public static var onIntentAction:FlxTypedSignal<String->Void> = new FlxTypedSignal<String->Void>();
@@ -215,7 +230,7 @@ class AndroidBridge #if android implements lime.system.JNI.JNISafety #end
 				onDisplayChanged.dispatch();
 
 			case 'deeplink':
-				if (onDeepLink.hasListeners)
+				if (deepLinkListeners > 0)
 				{
 					onDeepLink.dispatch(arg);
 					// Confirmed delivery: if this was the buffered cold-start
@@ -290,11 +305,25 @@ class AndroidBridge #if android implements lime.system.JNI.JNISafety #end
 	}
 
 	/**
+	 * Subscribes to `onDeepLink` and registers the subscription with the
+	 * delivery tracker. Use this instead of `onDeepLink.add(...)` so a
+	 * buffered cold-start deep link can be confirmed delivered to you; the
+	 * bridge immediately tries to drain any pending link.
+	 */
+	public static function watchDeepLink(listener:String->Void):Void
+	{
+		onDeepLink.add(listener);
+		deepLinkListeners++;
+		drainPendingDeepLink(); // no-op outside Android
+	}
+
+	/**
 	 * Pulls the buffered cold-start deep link from the native layer and
 	 * delivers it to `onDeepLink` subscribers. The native buffer is only
 	 * cleared after confirmed delivery, so the link keeps retrying until
-	 * something subscribes. Returns true when there is nothing (left) to
-	 * deliver, false while a link is still waiting for a subscriber.
+	 * something subscribes via `watchDeepLink`. Returns true when there is
+	 * nothing (left) to deliver, false while a link is still waiting for a
+	 * subscriber.
 	 */
 	public static function drainPendingDeepLink():Bool
 	{
@@ -315,7 +344,7 @@ class AndroidBridge #if android implements lime.system.JNI.JNISafety #end
 		if (link == null || link.length == 0)
 			return true;
 
-		if (!onDeepLink.hasListeners)
+		if (deepLinkListeners < 1)
 			return false; // keep buffering until a subscriber exists
 
 		onDeepLink.dispatch(link);

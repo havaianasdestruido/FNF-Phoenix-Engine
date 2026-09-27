@@ -43,6 +43,17 @@ class AndroidIntents
 		return AndroidBridge.onDeepLink;
 	}
 
+	/**
+	 * Subscribes to incoming deep links. Prefer this over adding directly to
+	 * `onDeepLink`: it registers the subscription with the delivery tracker
+	 * so a buffered cold-start deep link is delivered to you as soon as it
+	 * becomes available.
+	 */
+	public static function subscribeDeepLink(listener:String->Void):Void
+	{
+		AndroidBridge.watchDeepLink(listener);
+	}
+
 	/** Opens a URL in the system browser. */
 	public static function openUrl(url:String):Void
 	{
