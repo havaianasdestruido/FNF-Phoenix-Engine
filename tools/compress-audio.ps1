@@ -1,12 +1,29 @@
 param(
-    [string]$Root = (Get-Location).Path,
+    [string]$Root = "",
     [int]$Mp3Bitrate = 128,
-    [int]$OggBitrate = 96
+    [int]$OggBitrate = 96,
+    [switch]$DryRun
 )
 
 $ErrorActionPreference = "Stop"
 
-$Root = (Resolve-Path $Root).Path
+# Default to the repository root (the folder that contains tools/) so the script
+# works no matter which directory it is launched from.
+if ([string]::IsNullOrWhiteSpace($Root)) {
+    if ($PSScriptRoot) {
+        $Root = Split-Path -Parent $PSScriptRoot
+    }
+    if ([string]::IsNullOrWhiteSpace($Root)) {
+        $Root = (Get-Location).Path
+    }
+}
+
+if (-not (Test-Path -LiteralPath $Root)) {
+    Write-Host "ERROR: directory not found: $Root" -ForegroundColor Red
+    exit 1
+}
+
+$Root = (Resolve-Path -LiteralPath $Root).Path
 
 if (-not (Get-Command ffmpeg -ErrorAction SilentlyContinue)) {
     Write-Host "ERROR: ffmpeg was not found in PATH." -ForegroundColor Red
@@ -18,16 +35,23 @@ Write-Host "========================================" -ForegroundColor Cyan
 Write-Host " Audio Compressor" -ForegroundColor Cyan
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host "Root: $Root"
+
+if ($DryRun) {
+    Write-Host "Mode: DRY RUN - files are encoded to a temp copy and measured, nothing is replaced." -ForegroundColor Magenta
+}
+
 Write-Host ""
 
-# Recursively find every MP3 and OGG
-$files = Get-ChildItem -Path $Root -Recurse -File -ErrorAction SilentlyContinue |
+# Recursively find every MP3 and OGG (skipping .git)
+$files = @(Get-ChildItem -LiteralPath $Root -Recurse -File -ErrorAction SilentlyContinue |
     Where-Object {
-        $_.Extension -eq ".mp3" -or $_.Extension -eq ".ogg"
-    }
+        ($_.Extension -eq ".mp3" -or $_.Extension -eq ".ogg") -and
+        $_.FullName -notmatch '\\\.git\\'
+    })
 
-if ($null -eq $files -or $files.Count -eq 0) {
-    Write-Host "No MP3 or OGG files found." -ForegroundColor Yellow
+if ($files.Count -eq 0) {
+    Write-Host "No MP3 or OGG files found under: $Root" -ForegroundColor Yellow
+    Write-Host "Pass a different folder with -Root, e.g.: .\compress-audio.ps1 -Root assets" -ForegroundColor Yellow
     exit 0
 }
 
@@ -38,6 +62,7 @@ $totalOriginal = 0
 $totalFinal = 0
 $processed = 0
 $replaced = 0
+$planned = 0
 $skipped = 0
 $failed = 0
 
@@ -92,25 +117,13 @@ foreach ($file in $files) {
             throw "FFmpeg returned exit code $LASTEXITCODE"
         }
 
-        if (-not (Test-Path $tempFile)) {
+        if (-not (Test-Path -LiteralPath $tempFile)) {
             throw "FFmpeg did not create an output file."
         }
 
-        $compressedSize = [int64](Get-Item $tempFile).Length
+        $compressedSize = [int64](Get-Item -LiteralPath $tempFile).Length
 
         if ($compressedSize -lt $originalSize) {
-
-            $oldCreation = $file.CreationTime
-            $oldWrite = $file.LastWriteTime
-            $oldAccess = $file.LastAccessTime
-
-            [System.IO.File]::SetCreationTime($tempFile, $oldCreation)
-            [System.IO.File]::SetLastWriteTime($tempFile, $oldWrite)
-            [System.IO.File]::SetLastAccessTime($tempFile, $oldAccess)
-            [System.IO.File]::Replace($tempFile, $file.FullName, $null)
-
-            $totalFinal += $compressedSize
-            $replaced++
 
             $saved = $originalSize - $compressedSize
             $percent = ($saved / $originalSize) * 100
@@ -118,12 +131,91 @@ foreach ($file in $files) {
             $oldMB = $originalSize / 1MB
             $newMB = $compressedSize / 1MB
 
-            Write-Host ("  {0:N2} MB -> {1:N2} MB" -f $oldMB, $newMB) -ForegroundColor Green
-            Write-Host ("  Saved {0:N2}%" -f $percent) -ForegroundColor Green
+            if ($DryRun) {
+
+                $totalFinal += $compressedSize
+                $planned++
+
+                Write-Host ("  {0:N2} MB -> {1:N2} MB (would save {2:N2}%)" -f $oldMB, $newMB, $percent) -ForegroundColor Magenta
+            }
+            else {
+
+                $oldCreation = $file.CreationTime
+                $oldWrite = $file.LastWriteTime
+                $oldAccess = $file.LastAccessTime
+                $wasReadOnly = $file.IsReadOnly
+
+                [System.IO.File]::SetCreationTime($tempFile, $oldCreation)
+                [System.IO.File]::SetLastWriteTime($tempFile, $oldWrite)
+                [System.IO.File]::SetLastAccessTime($tempFile, $oldAccess)
+
+                if ($wasReadOnly) {
+                    $file.IsReadOnly = $false
+                }
+
+                try {
+
+                    # File.Replace() must be given a real backup path. Windows PowerShell
+                    # hands .NET an empty string for a $null string argument, and .NET then
+                    # fails with "The path is not of a legal form." The backup lives in the
+                    # same directory (same volume) and is deleted right after the swap.
+                    # Its name is unique so a .bak left behind by an interrupted earlier
+                    # run - which may hold the only copy of the original audio - is never
+                    # overwritten here or removed by the cleanup below.
+                    $backupFile = "$($file.FullName).replacing.$([Guid]::NewGuid()).bak"
+
+                    while (Test-Path -LiteralPath $backupFile) {
+                        $backupFile = "$($file.FullName).replacing.$([Guid]::NewGuid()).bak"
+                    }
+
+                    try {
+                        [System.IO.File]::Replace($tempFile, $file.FullName, $backupFile)
+                    }
+                    catch {
+                        # ReplaceFile() is not available on every filesystem (network
+                        # shares, FAT/exFAT), so fall back to renames in the same folder.
+                        if (-not (Test-Path -LiteralPath $file.FullName)) {
+                            # Should be impossible; never leave the original audio missing.
+                            if (Test-Path -LiteralPath $backupFile) {
+                                Move-Item -LiteralPath $backupFile -Destination $file.FullName -Force
+                            }
+                            throw "Could not replace $($file.Name); the original file was restored."
+                        }
+
+                        Move-Item -LiteralPath $file.FullName -Destination $backupFile -Force
+
+                        try {
+                            Move-Item -LiteralPath $tempFile -Destination $file.FullName -Force
+                        }
+                        catch {
+                            Move-Item -LiteralPath $backupFile -Destination $file.FullName -Force
+                            throw
+                        }
+                    }
+
+                    if (Test-Path -LiteralPath $backupFile) {
+                        Remove-Item -LiteralPath $backupFile -Force
+                    }
+                }
+                finally {
+                    # Restore the attribute even when both the Replace and the fallback
+                    # failed, so a file we could not compress is left exactly as found.
+                    if ($wasReadOnly -and (Test-Path -LiteralPath $file.FullName)) {
+                        $currentItem = Get-Item -LiteralPath $file.FullName
+                        $currentItem.IsReadOnly = $true
+                    }
+                }
+
+                $totalFinal += $compressedSize
+                $replaced++
+
+                Write-Host ("  {0:N2} MB -> {1:N2} MB" -f $oldMB, $newMB) -ForegroundColor Green
+                Write-Host ("  Saved {0:N2}%" -f $percent) -ForegroundColor Green
+            }
         }
         else {
 
-            Remove-Item -Force $tempFile
+            Remove-Item -LiteralPath $tempFile -Force
 
             $totalFinal += $originalSize
             $skipped++
@@ -140,8 +232,8 @@ foreach ($file in $files) {
         Write-Host "  FAILED: $($_.Exception.Message)" -ForegroundColor Red
     }
     finally {
-        if (Test-Path $tempFile) {
-            Remove-Item -Force $tempFile -ErrorAction SilentlyContinue
+        if (Test-Path -LiteralPath $tempFile) {
+            Remove-Item -LiteralPath $tempFile -Force -ErrorAction SilentlyContinue
         }
     }
 
@@ -151,20 +243,44 @@ foreach ($file in $files) {
 $totalSaved = $totalOriginal - $totalFinal
 
 Write-Host "========================================" -ForegroundColor Cyan
-Write-Host " Compression complete" -ForegroundColor Cyan
+if ($DryRun) {
+    Write-Host " Dry run complete (no files were modified)" -ForegroundColor Cyan
+}
+else {
+    Write-Host " Compression complete" -ForegroundColor Cyan
+}
 Write-Host "========================================" -ForegroundColor Cyan
 
 Write-Host "Files processed : $processed"
-Write-Host "Files replaced  : $replaced"
+
+if ($DryRun) {
+    Write-Host "Would replace   : $planned"
+}
+else {
+    Write-Host "Files replaced  : $replaced"
+}
+
 Write-Host "Files skipped   : $skipped"
 Write-Host "Files failed    : $failed"
 Write-Host ""
 
-Write-Host ("Original size   : {0:N2} MB" -f ($totalOriginal / 1MB))
-Write-Host ("Final size      : {0:N2} MB" -f ($totalFinal / 1MB))
-Write-Host ("Space saved     : {0:N2} MB" -f ($totalSaved / 1MB))
+if ($DryRun) {
+    Write-Host ("Current size    : {0:N2} MB" -f ($totalOriginal / 1MB))
+    Write-Host ("Projected size  : {0:N2} MB" -f ($totalFinal / 1MB))
+    Write-Host ("Projected saving: {0:N2} MB" -f ($totalSaved / 1MB))
+}
+else {
+    Write-Host ("Original size   : {0:N2} MB" -f ($totalOriginal / 1MB))
+    Write-Host ("Final size      : {0:N2} MB" -f ($totalFinal / 1MB))
+    Write-Host ("Space saved     : {0:N2} MB" -f ($totalSaved / 1MB))
+}
 
 if ($totalOriginal -gt 0) {
     $reduction = ($totalSaved / $totalOriginal) * 100
     Write-Host ("Reduction       : {0:N2}%" -f $reduction)
+}
+
+if ($DryRun) {
+    Write-Host ""
+    Write-Host "Re-run without -DryRun to apply these changes." -ForegroundColor Magenta
 }

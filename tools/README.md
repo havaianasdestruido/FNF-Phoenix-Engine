@@ -4,17 +4,29 @@ These scripts re-encode project audio at conservative, game-friendly bitrates an
 
 Both scripts require [FFmpeg](https://ffmpeg.org/) in `PATH`.
 
+With no arguments they scan the **repository root** (the folder containing `tools/`), so they can be run from any directory. Pass `--root` / `-Root` to narrow the scan, e.g. to `assets` only:
+
 ```sh
-# From the repository root (all MP3/OGG files below assets)
+# All MP3/OGG files in the repository
+./tools/compress-audio.sh
+# Only the ones below assets
 ./tools/compress-audio.sh --root assets
 ./tools/compress-audio.sh --root assets --mp3-bitrate 160 --ogg-bitrate 112
+# Measure first: encode everything, report the savings, change nothing
+./tools/compress-audio.sh --root assets --dry-run
 ```
 
 On Windows PowerShell:
 
 ```powershell
+.\tools\compress-audio.ps1
 .\tools\compress-audio.ps1 -Root assets
 .\tools\compress-audio.ps1 -Root assets -Mp3Bitrate 160 -OggBitrate 112
+.\tools\compress-audio.ps1 -Root assets -DryRun
 ```
+
+`.git` is skipped. Re-encoding is destructive: commit or back up your audio first, then listen to a few tracks before committing the result.
+
+`--dry-run` / `-DryRun` is the safe way to start: it encodes each file to a temporary copy, reports the size it would reach and the total projected saving, and deletes the copy without touching your audio. A file is replaced only when the encoded output is smaller than the source; output that is the same size or larger is reported as skipped, which is normal for audio that is already tightly encoded.
 
 Defaults are 128 kbps MP3 and 96 kbps Ogg Vorbis. Use a higher bitrate for music that has audible artifacts and a lower bitrate only for short sound effects. The existing `art/scripts/compress.ps1` remains available for compatibility; new usage should prefer the scripts in this directory.
