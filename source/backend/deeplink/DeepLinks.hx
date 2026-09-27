@@ -45,7 +45,7 @@ class DeepLinks
     {
       case "mods":
         #if MODS_ALLOWED
-        FlxG.switchState(states.ModsMenuState.new);
+        FlxG.switchState(() -> new states.ModsMenuState());
         #else
         FlxG.switchState(MainMenuState.new);
         #end

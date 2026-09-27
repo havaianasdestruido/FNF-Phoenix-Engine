@@ -280,7 +280,7 @@ class PauseSubState extends MusicBeatSubstate
 						PlayState.instance.botplaySine = 0;
 					}
 				case "Options":
-					FlxG.switchState(OptionsState.new);
+					FlxG.switchState(() -> new OptionsState());
 					inPause = true;
 					if(ClientPrefs.pauseMusic != 'None')
 					{
