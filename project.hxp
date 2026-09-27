@@ -230,7 +230,7 @@ class Project extends HXProject
 
     if (isIOS()) this.templatePaths.push("templates");
     if (isWindows())
-      addAssetPath("setup/uri", "uri", null, ["*.ps1"]);
+      addAssetPath("setup/uri", "uri", "default", ["*.ps1"]);
 
 		// Haxelib classpath overrides (shadow machine-local haxelib edits for CI/fresh builds).
 		this.sources.push("source-haxelib-patches");
