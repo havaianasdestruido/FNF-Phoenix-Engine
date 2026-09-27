@@ -28,64 +28,22 @@ import lime.system.JNI;
 #end
 
 /**
- * Device-state information: thermal status, memory pressure, battery state,
- * screen wake locking and process-death recovery state.
+ * Device-state information: memory pressure, battery state, screen wake
+ * locking and process-death recovery state.
  */
 class AndroidSystem
 {
-	// Thermal status constants (android.os.PowerManager.THERMAL_STATUS_*).
-	public static inline final THERMAL_NONE:Int = 0;
-	public static inline final THERMAL_LIGHT:Int = 1;
-	public static inline final THERMAL_MODERATE:Int = 2;
-	public static inline final THERMAL_SEVERE:Int = 3;
-	public static inline final THERMAL_CRITICAL:Int = 4;
-	public static inline final THERMAL_EMERGENCY:Int = 5;
-	public static inline final THERMAL_SHUTDOWN:Int = 6;
-
-	/** Fired when the thermal status changes (API 30+). */
-	public static var onThermalStatus(get, never):FlxTypedSignal<Int->Void>;
-
 	/** Fired when the system reports low memory. */
 	public static var onLowMemory(get, never):FlxSignal;
 
 	/** Fired on trim-memory requests with the trim level. */
 	public static var onTrimMemory(get, never):FlxTypedSignal<Int->Void>;
 
-	static inline function get_onThermalStatus():FlxTypedSignal<Int->Void>
-		return AndroidBridge.onThermalStatus;
-
 	static inline function get_onLowMemory():FlxSignal
 		return AndroidBridge.onLowMemory;
 
 	static inline function get_onTrimMemory():FlxTypedSignal<Int->Void>
 		return AndroidBridge.onTrimMemory;
-
-	// ------------------------------------------------------------------
-	// Thermal
-	// ------------------------------------------------------------------
-
-	/**
-	 * Current thermal status (THERMAL_* constants), or -1 when unsupported
-	 * (below API 30 or non-Android).
-	 */
-	public static function getThermalStatus():Int
-	{
-		#if android
-		AndroidBridge.ensureRegistered();
-		return getThermalStatus_jni();
-		#else
-		return -1;
-		#end
-	}
-
-	/** Starts receiving thermal status change events (API 30+). */
-	public static function watchThermalStatus():Void
-	{
-		#if android
-		AndroidBridge.ensureRegistered();
-		registerThermalListener_jni();
-		#end
-	}
 
 	// ------------------------------------------------------------------
 	// Battery
@@ -198,24 +156,6 @@ class AndroidSystem
 	// ------------------------------------------------------------------
 
 	#if android
-	static var _getThermalStatus:Dynamic = null;
-
-	static function getThermalStatus_jni():Int
-	{
-		if (_getThermalStatus == null)
-			_getThermalStatus = JNI.createStaticMethod('quack.fnf.phoenix.android.PhoenixCore', 'getThermalStatus', '()I');
-		return _getThermalStatus();
-	}
-
-	static var _registerThermalListener:Dynamic = null;
-
-	static function registerThermalListener_jni():Void
-	{
-		if (_registerThermalListener == null)
-			_registerThermalListener = JNI.createStaticMethod('quack.fnf.phoenix.android.PhoenixCore', 'registerThermalListener', '()V');
-		_registerThermalListener();
-	}
-
 	static var _getBatteryInfo:Dynamic = null;
 
 	static function getBatteryInfo_jni():String

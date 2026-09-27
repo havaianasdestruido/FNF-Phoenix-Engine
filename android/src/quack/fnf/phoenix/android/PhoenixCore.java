@@ -11,7 +11,6 @@ import android.net.Uri;
 import android.os.BatteryManager;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.PowerManager;
 import android.provider.Settings;
 import android.util.Log;
 import android.view.WindowManager;
@@ -197,56 +196,6 @@ public class PhoenixCore extends Extension
 		String action = intent.getAction();
 		if (action != null && !Intent.ACTION_MAIN.equals(action))
 			dispatch("intent", action);
-	}
-
-	// ------------------------------------------------------------------
-	// Thermal status (API 30+)
-	// ------------------------------------------------------------------
-
-	private static PowerManager.ThermalStatusListener thermalListener = null;
-
-	/** @return one of the THERMAL_STATUS_* constants, or -1 when unsupported. */
-	public static int getThermalStatus()
-	{
-		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R || mainContext == null)
-			return -1;
-
-		PowerManager power = (PowerManager) mainContext.getSystemService(Context.POWER_SERVICE);
-		if (power == null)
-			return -1;
-
-		return power.getCurrentThermalStatus();
-	}
-
-	public static void registerThermalListener()
-	{
-		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R || mainContext == null)
-			return;
-
-		PowerManager power = (PowerManager) mainContext.getSystemService(Context.POWER_SERVICE);
-		if (power == null)
-			return;
-
-		unregisterThermalListener();
-		thermalListener = new PowerManager.ThermalStatusListener()
-		{
-			@Override public void onThermalStatusChanged(int status)
-			{
-				dispatch("thermal", String.valueOf(status));
-			}
-		};
-		power.addThermalStatusListener(thermalListener);
-	}
-
-	public static void unregisterThermalListener()
-	{
-		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R || mainContext == null || thermalListener == null)
-			return;
-
-		PowerManager power = (PowerManager) mainContext.getSystemService(Context.POWER_SERVICE);
-		if (power != null)
-			power.removeThermalStatusListener(thermalListener);
-		thermalListener = null;
 	}
 
 	// ------------------------------------------------------------------

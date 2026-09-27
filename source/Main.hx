@@ -93,7 +93,7 @@ class Main extends Sprite
     #if android
     mobile.StorageUtil.requestPermissions();
     // Boots the Phoenix Android platform layer (lifecycle, media session,
-    // audio focus, gamepads, thermal/memory handling, ...). See
+    // audio focus, gamepads, memory handling, ...). See
     // docs/ANDROID_PLATFORM.md.
     android.platform.AndroidPlatform.init();
     #end

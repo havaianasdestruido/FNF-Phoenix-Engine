@@ -34,7 +34,7 @@ import flixel.util.FlxTimer;
  *   - AndroidMedia         media session, MediaStyle notification, audio focus
  *   - AndroidDisplay       resolution/DPI/orientation/refresh rate/cutouts,
  *                          immersive fullscreen
- *   - AndroidSystem        thermal, memory pressure, battery, wake lock,
+ *   - AndroidSystem        memory pressure, battery, wake lock,
  *                          process-death recovery
  *   - AndroidGamepad       controller info + connection events
  *   - AndroidHardwareInput volume keys as bindable game input
@@ -58,14 +58,12 @@ class AndroidPlatform
 
 	/**
 	 * Boots the platform layer: registers the JNI bridge, starts lifecycle
-	 * handling, controller watching, thermal monitoring and memory-pressure
-	 * responses.
+	 * handling, controller watching and memory-pressure responses.
 	 *
 	 * @param autoPauseAudio pause/resume music when the Activity backgrounds
-	 * @param watchThermal   start receiving thermal status events
 	 * @param watchDisplay   start receiving display change events
 	 */
-	public static function init(autoPauseAudio:Bool = true, watchThermal:Bool = true, watchDisplay:Bool = true):Void
+	public static function init(autoPauseAudio:Bool = true, watchDisplay:Bool = true):Void
 	{
 		#if android
 		if (initialized)
@@ -91,8 +89,6 @@ class AndroidPlatform
 		AndroidGamepad.init();
 
 		// Device-state watchers.
-		if (watchThermal)
-			AndroidSystem.watchThermalStatus();
 		if (watchDisplay)
 			AndroidDisplay.watchDisplay();
 

@@ -109,7 +109,7 @@ Audited; these 5 sites were flagged but NOT changed (only 3 charting sites conve
 
 ### PERFORMANCE / DEVICE STATE
 
-- **[P2] ~~Android thermal status API~~ DONE** (`AndroidSystem.getThermalStatus()` + `onThermalStatus` signal) — Expose Android thermal status information to Haxe so the engine can detect thermal throttling and optionally reduce expensive effects or other non-essential workload.
+- **[P2] ~~Android thermal status API~~ REMOVED** — Intentionally not implemented: thermal monitoring offers little benefit for a game of FNF's scope, and `PowerManager.ThermalStatusListener` did not compile under the project's Android toolchain.
 - **[P2] ~~Android memory-pressure handling~~ DONE** (`onLowMemory`/`onTrimMemory` signals release caches) — Detect Android low-memory conditions and notify the engine so it can release caches and other non-essential resources.
 - **[P3] ~~Android battery/power state API~~ DONE** (`AndroidSystem.getBatteryInfo()` — bonus) — Expose charging state, battery state, and power-saving information where useful for background work and performance decisions.
 

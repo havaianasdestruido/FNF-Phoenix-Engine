@@ -39,13 +39,12 @@ gameplay code never needs to know about the platform layer.
 - **Java → Haxe**: extensions call `PhoenixCore.dispatch(event, arg)`
   which routes through a registered `HaxeObject` to
   `AndroidBridge.onAndroidEvent(event, arg)`. The bridge fans events out
-  to the module signals (`lifecycle`, `media_*`, `focus`, `thermal`,
-  `memory`, `gamepad_*`, `hwkey`, `display`, `deeplink`, `intent`,
-  `permissions`, `recovery`).
+  to the module signals (`lifecycle`, `media_*`, `focus`, `memory`,
+  `gamepad_*`, `hwkey`, `display`, `deeplink`, `intent`, `permissions`,
+  `recovery`).
 - The boot hook lives in `Main.hx`:
   `android.platform.AndroidPlatform.init()` (Android only) initializes the
-  bridge, lifecycle handling, gamepad tracking, thermal watching and display
-  watching.
+  bridge, lifecycle handling, gamepad tracking and display watching.
 
 ### Build integration (`project.hxp`)
 
@@ -86,11 +85,11 @@ a no-op outside `#if android` unless noted.
 
 | Module | Purpose | Highlights |
 | --- | --- | --- |
-| `AndroidPlatform` | One-shot boot | `init(autoPauseAudio, watchThermal, watchDisplay)` |
+| `AndroidPlatform` | One-shot boot | `init(autoPauseAudio, watchDisplay)` |
 | `AndroidBridge` | JNI plumbing | Event dispatch, `ensureRegistered()` |
 | `AndroidLifecycle` | Activity lifecycle | `onCreate/onResume/onPause/onStop/onDestroy` signals, optional auto-pause of `FlxG.sound.music` |
 | `AndroidMedia` | MediaSession/audio focus | `updateNowPlaying(title, artist, ?durationMs)`, `setPlaybackState(state, positionMs, speed)`, `updateNotification`, foreground service start/stop, `requestAudioFocus()`/`abandonAudioFocus()`, `getAudioInfo()`, signals `onPlay/onPause/onStop/onNext/onPrevious/onSeek/onAudioFocusChanged` |
-| `AndroidSystem` | Device state | `getThermalStatus()`/`watchThermalStatus()`/`onThermalStatus`, `onLowMemory`/`onTrimMemory`, `getBatteryInfo()`, `acquireWakeLock()`/`releaseWakeLock()`, `setRecoveryState(blob)`/`consumeRecoveryState()` |
+| `AndroidSystem` | Device state | `onLowMemory`/`onTrimMemory`, `getBatteryInfo()`, `acquireWakeLock()`/`releaseWakeLock()`, `setRecoveryState(blob)`/`consumeRecoveryState()` |
 | `AndroidDisplay` | Screen info | `getInfo()` (size, DPI, orientation, refresh), `getCutoutInsets()`, `getRefreshRate()`, `setImmersive()`, `setCutoutMode()`, `setPreferredRefreshRate()`, `onChanged` |
 | `AndroidGamepad` | Controllers | `getDevices()`/`getDevice(id)` with Xbox/PlayStation/Switch/HID identification, `onConnected`/`onDisconnected`, rumble via `vibrate(deviceId, ms)` |
 | `AndroidHardwareInput` | Physical keys | Volume-key interception (`enableVolumeKeys()`/`disableVolumeKeys()`), `onKey(keyCode, down)` signal |

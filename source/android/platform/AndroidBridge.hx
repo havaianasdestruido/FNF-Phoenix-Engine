@@ -72,9 +72,6 @@ class AndroidBridge #if android implements lime.system.JNI.JNISafety #end
 	/** Fired on Activity#onTrimMemory with the trim level. */
 	public static var onTrimMemory:FlxTypedSignal<Int->Void> = new FlxTypedSignal<Int->Void>();
 
-	/** Thermal status changes (API 30+): 0 = none ... 5 = shutdown. */
-	public static var onThermalStatus:FlxTypedSignal<Int->Void> = new FlxTypedSignal<Int->Void>();
-
 	public static var onMediaPlay:FlxSignal = new FlxSignal();
 	public static var onMediaPause:FlxSignal = new FlxSignal();
 	public static var onMediaStop:FlxSignal = new FlxSignal();
@@ -173,9 +170,6 @@ class AndroidBridge #if android implements lime.system.JNI.JNISafety #end
 					onLowMemory.dispatch();
 				else if (StringTools.startsWith(arg, 'trim:'))
 					onTrimMemory.dispatch(Std.parseInt(arg.substr(5)) ?? 0);
-
-			case 'thermal':
-				onThermalStatus.dispatch(Std.parseInt(arg) ?? 0);
 
 			case 'media':
 				if (StringTools.startsWith(arg, 'seek:'))
