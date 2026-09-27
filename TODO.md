@@ -25,7 +25,7 @@ Generated from full repo audit. Priority: `[P0]` critical/blocker, `[P1]` high, 
 
 ### 2.1. 4th WALL BREAKING
 
-- Port most of `META_HORROR` elements from here: [https://github.com/notmagniill/psych-engine-modified-build/blob/stable/source/backend/CoolUtil.hx](https://github.com/notmagniill/psych-engine-modified-build/blob/stable/source/backend/CoolUtil.hx), with credits, of course.
+- Port most of `META_HORROR` elements from here: [https://github.com/notmagniill/psych-engine-modified-build/blob/stable/source/backend/CoolUtil.hx](https://github.com/notmagniill/psych-engine-modified-build/blob/stable/source/backend/CoolUtil.hx) and from here [https://github.com/Dewott2501/Mario-Madness/blob/main/source/CppAPI.hx](https://github.com/Dewott2501/Mario-Madness/blob/main/source/CppAPI.hx), with credits, of course.
 - Add "Transparent Window" Haxe support (e.g.: [https://github.com/notmagniill/psych-engine-modified-build/blob/stable/source/backend/FlxTransWindow.hx](https://github.com/notmagniill/psych-engine-modified-build/blob/stable/source/backend/FlxTransWindow.hx)).
 - Add Lua & Python basic "sandboxing" (blocking some strings and functions if they are called by a softmod script) (e.g.: [https://github.com/Psych-Plus-Team/FNF-PlusEngine/blob/main/source/backend/ModSecurity.hx](https://github.com/Psych-Plus-Team/FNF-PlusEngine/blob/main/source/backend/ModSecurity.hx)).
 - Port GPU/CPU driver/manufacter detection from Psych Plus: [https://github.com/Psych-Plus-Team/FNF-PlusEngine/blob/main/source/backend/Native.hx](https://github.com/Psych-Plus-Team/FNF-PlusEngine/blob/main/source/backend/Native.hx).
