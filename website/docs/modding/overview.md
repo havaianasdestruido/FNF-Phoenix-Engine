@@ -30,8 +30,9 @@ Python scripting, extra callbacks, extra events.
 
 ## What a build supports
 
-Scripting is compile-time gated. A binary built with `-DMODDING_LEVEL=0` has no script VM
-at all, and one built with `=1` has Lua but no Python:
+Scripting is compile-time gated. `-DMODDING_LEVEL=0` disables both Lua and Python, and
+`=1` keeps Lua but drops Python. HScript is controlled separately by `HSCRIPT_ALLOWED`, so
+it stays available at every modding level on targets that support it:
 
 | Build | `MODS_ALLOWED` | Lua | Python | HScript |
 |---|---|---|---|---|

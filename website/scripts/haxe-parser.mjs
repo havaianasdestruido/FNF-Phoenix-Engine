@@ -228,6 +228,10 @@ export function parseHaxeFile(text, relativePath) {
   let braceDepth = 0;
   let typeBraceDepth = null;
   let pendingMeta = [];
+  // Brace depth snapshots for `#if` blocks: every branch of a conditional must
+  // start from the same depth, otherwise `#if A ... { #else ... { #end` counts
+  // one opening brace per branch and the tracker drifts for the rest of the file.
+  const condStack = [];
 
   // character offset of the start of each line, for balanced reads
   const offsets = [];
@@ -238,6 +242,12 @@ export function parseHaxeFile(text, relativePath) {
     const rawLine = lines[i];
     const line = rawLine.trim();
     if (!line || line.startsWith('//') || line.startsWith('#') || line.startsWith('*')) {
+      if (line.startsWith('#')) {
+        if (/^#if\b/.test(line)) condStack.push(braceDepth);
+        else if (/^#(else|elseif)\b/.test(line) && condStack.length) {
+          braceDepth = condStack[condStack.length - 1];
+        } else if (/^#end\b/.test(line)) condStack.pop();
+      }
       updateDepth();
       continue;
     }
@@ -297,7 +307,12 @@ export function parseHaxeFile(text, relativePath) {
       continue;
     }
 
-    if (current) {
+    // Only declarations sitting directly in the type body are members. Anything
+    // deeper is a local inside a function body (Phoenix registers most of its
+    // script callbacks from inside `register()`, so this matters a lot).
+    const inTypeBody = typeBraceDepth !== null && braceDepth === typeBraceDepth + 1;
+
+    if (current && inTypeBody) {
       const field = parseMember(line, rawLine, i);
       if (field) {
         field.doc = docs[i] || '';

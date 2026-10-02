@@ -76,11 +76,16 @@ class MyState extends MusicBeatState {
   override function create():Void { super.create(); }
   override function update(elapsed:Float):Void { super.update(elapsed); }
 
-  override function stepHit():Void { super.stepHit(); }        // 16× per section
-  override function beatHit():Void { super.beatHit(); }        // 4× per section
+  override function stepHit():Void { super.stepHit(); }        // 16× per section by default
+  override function beatHit():Void { super.beatHit(); }        // 4× per section by default
   override function sectionHit():Void { super.sectionHit(); }  // 1× per section
 }
 ```
+
+A beat is always four steps, but a *section* is not always four beats:
+`MusicBeatState.updateSection()` advances by `Math.round(getBeatsOnSection() * 4)` steps, so
+a section with a non-default `sectionBeats` fires proportionally more or fewer steps and
+beats. Never assume 16 steps per section in timing-sensitive code — count beats instead.
 
 `MusicBeatState` tracks `curStep`, `curBeat` and `curSection` from
 [`Conductor`](./conductor-and-timing.md), handles the transition in/out, exposes

@@ -57,7 +57,7 @@ A good PR:
 |---|---|
 | New or removed haxelib patch | update `BUILDING.md` and [Haxelib patches](../architecture/haxelib-patches.md) |
 | New feature flag | add it to `project.hxp` *and* [Project configuration](../getting-started/project-configuration.md) |
-| New Lua callback | add the Python twin in `pystdlib/`, then run `npm run gen:api` in `website/` |
+| New Lua callback | add the Python twin in `pystdlib/`, then run `npm run gen:scripts` in `website/` |
 | New preference | add the `Option` entry and check the save/load blacklists |
 | Dependency bump in `hmm.json` | re-diff every file in `source-haxelib-patches/` |
 | Version bump | change `VERSION` in `project.hxp` only |

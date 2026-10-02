@@ -66,12 +66,17 @@ state can override:
 ```haxe
 override function stepHit():Void {
   super.stepHit();
-  // runs 16× per section
+  // runs 16× per section with the default 4-beat section
 }
 
-override function beatHit():Void { ... }     // 4× per section
+override function beatHit():Void { ... }     // 4× per section by default
 override function sectionHit():Void { ... }  // once per section
 ```
+
+The 16/4 figures are the defaults for a four-beat section. `curBeat` is always
+`Math.floor(curStep / 4)`, but the step count of a section comes from
+`Math.round(getBeatsOnSection() * 4)`, so charts that change `sectionBeats` change how many
+steps and beats each section produces.
 
 Internally `update()` recomputes `curStep` from the BPM map, then:
 

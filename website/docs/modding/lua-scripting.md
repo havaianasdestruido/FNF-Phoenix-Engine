@@ -22,7 +22,9 @@ mobile default to `2`). The VM is LuaJIT through `hxluajit`.
 | `mods/<mod>/custom_events/<event>.lua` | when the chart uses that event |
 
 Global scripts are deduplicated by file name; the first match in priority order
-(global mods → current mod → loose `mods/` → preload) wins.
+(global mods → current mod → loose `mods/` → preload) wins. Note the direction: an
+enabled global mod shadows a same-named script in the active mod, not the other way
+round. (Asset lookup uses the opposite order — the active mod wins there.)
 
 A script can also be loaded on demand from another script with
 `addLuaScript(path, ignoreAlreadyRunning)` and removed with `removeLuaScript(path)`.

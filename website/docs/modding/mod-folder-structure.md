@@ -119,8 +119,9 @@ and `Mods.directoriesWithFile(path, fileToFind)` finds every mod providing a giv
 | `custom_events/<event>.lua` / `.py` | when that event exists in the chart |
 
 Global scripts are deduplicated by **file name** across folders, and the first match in
-priority order wins — a global mod can therefore be shadowed by the active mod using the
-same script name.
+priority order wins. Global mods are checked *before* the active mod, so a global mod
+shadows an active-mod script of the same name — the opposite of asset lookup, where
+`mods/<currentMod>/` is searched first.
 
 ## Distributing
 

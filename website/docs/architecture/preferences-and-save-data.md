@@ -93,5 +93,11 @@ mods can define their own in `mods/<mod>/achievements/`.
 
 Scripts get an isolated namespace rather than access to `FlxG.save`:
 `initSaveData`, `setDataFromSave`, `getDataFromSave` and `flushSaveData`
-(see the [Lua API reference](../modding/lua-api-reference.md#save-data)). Each mod's data
-is stored under its own save name, so two mods cannot clobber each other.
+(see the [Lua API reference](../modding/lua-api-reference.md#save-data)).
+
+These saves are keyed **only by the `name` you pass to `initSaveData`** (stored in
+`PlayState.instance.modchartSaves`, backed by `FlxSave` under
+`CoolUtil.getSavePath()/<folder>`, default folder `psychenginemods`). There is no per-mod
+namespacing: two mods that call `initSaveData('save')` share the same file and will
+overwrite each other's keys. Prefix your save name with your mod's id
+(`initSaveData('mymod_progress')`) to stay out of other mods' data.
