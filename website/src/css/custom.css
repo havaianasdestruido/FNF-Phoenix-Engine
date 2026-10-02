@@ -1,0 +1,64 @@
+/**
+ * Global styles for the Phoenix Engine documentation.
+ * Infima variables are overridden with a warm "phoenix" palette.
+ */
+
+:root {
+  --ifm-color-primary: #c2410c;
+  --ifm-color-primary-dark: #af3a0b;
+  --ifm-color-primary-darker: #a5370a;
+  --ifm-color-primary-darkest: #882d08;
+  --ifm-color-primary-light: #d5480d;
+  --ifm-color-primary-lighter: #e14c0e;
+  --ifm-color-primary-lightest: #ef6324;
+  --ifm-code-font-size: 92%;
+  --ifm-font-family-monospace: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas,
+    'Liberation Mono', monospace;
+  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.08);
+}
+
+[data-theme='dark'] {
+  --ifm-color-primary: #fb923c;
+  --ifm-color-primary-dark: #fa7f1c;
+  --ifm-color-primary-darker: #f9750c;
+  --ifm-color-primary-darkest: #d25f05;
+  --ifm-color-primary-light: #fca55c;
+  --ifm-color-primary-lighter: #fdaf6c;
+  --ifm-color-primary-lightest: #fec89b;
+  --docusaurus-highlighted-code-line-bg: rgba(255, 255, 255, 0.1);
+}
+
+/* Reference pages are table-heavy: keep them readable and scrollable. */
+.markdown table {
+  display: table;
+  width: 100%;
+  font-size: 0.92rem;
+}
+
+.markdown table code {
+  white-space: nowrap;
+}
+
+.markdown table th:empty {
+  padding: 0;
+}
+
+/* The generated "fact table" at the top of each reference page. */
+.markdown table td:first-child strong {
+  white-space: nowrap;
+}
+
+.markdown h3 code,
+.markdown h4 code {
+  font-size: inherit;
+}
+
+.markdown details {
+  background: var(--ifm-background-surface-color);
+}
+
+/* Mermaid diagrams sit better with a little breathing room. */
+.docusaurus-mermaid-container {
+  margin: 1.5rem 0;
+  text-align: center;
+}

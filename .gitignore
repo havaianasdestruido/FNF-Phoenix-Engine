@@ -22,3 +22,12 @@ export/*
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
+
+### Documentation site (website/)
+website/node_modules/
+website/build/
+website/.docusaurus/
+# Generated from source/ by website/scripts/ on every build — never committed.
+website/docs/reference/
+website/docs/modding/lua-api-reference.md
+website/docs/modding/python-api-reference.md
