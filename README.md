@@ -17,6 +17,21 @@
 <img alt="GitHub contributors" src="https://img.shields.io/github/contributors/havaianasdestruido/FNF-Phoenix-Engine">
 </p>
 
+## Documentation
+
+Full codebase documentation lives in [`website/`](website/) and is published with Docusaurus to
+**https://havaianasdestruido.github.io/FNF-Phoenix-Engine/**:
+
+- **Getting started** — requirements, building, `project.hxp` flags, troubleshooting
+- **Architecture** — boot sequence, state flow, `Paths`, `Conductor`, haxelib patches, platform layer
+- **Subsystems** — gameplay, charts, characters/stages, shaders, options, editors, audio, mobile, deep links
+- **Modding** — mod folder layout, Lua/Python/HScript, every script hook, custom events and notetypes
+- **Code reference** — every type in `source/`, generated from the Haxe sources on each build
+
+Run it locally with `cd website && npm install && npm start`.
+
+---
+
 <b>IMPORTANT: if you want to clone the repo (for making a pull request or for building locally), use <code>git clone -b main --single-branch https://github.com/havaianasdestruido/FNF-Phoenix-Engine.git</code> so you only git clone _only the main branch_, the other ones are for experiments or are extremely old.</b>
 
 Phoenix Engine focuses on making both Hardmodding (Hardcoded mods, using `Haxe`) *AND* Softmodding (mods you place on `mods/` folder, made with `Lua`/`Luau` or `Python`) easier.
