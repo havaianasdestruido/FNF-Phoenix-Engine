@@ -1,0 +1,5 @@
+# Bolt's Journal
+
+## 2026-10-10 - updateScore() runs every frame; the per-frame callback is Psych-compatible
+**Learning:** `PlayState.update()` calls `updateScore()` every frame in the `else` branch of the score-lerp block, which rebuilds ~6 `formatNumber` strings and fires `callOnLuas('onUpdateScore')` even when nothing changed. `FlxText.set_text` already skips regeneration when the string is identical, so the text assignment is not the cost. The per-frame callback is inherited from Psych Engine, so mods may depend on it. Skipping the call would change mod-visible behaviour, and skipping only the string work saves microseconds per frame, which is not measurable against a 16 ms frame budget.
+**Action:** Before optimizing a per-frame path, check whether a Lua/Python callback fires from it (`callOnLuas`) and whether mods depend on that cadence. Measure first. Hot-path candidates with real cost are the per-spawn `members.indexOf(...)` in `PlayStateNotes.spawnNotes` (O(n) per spawned note) and the eager `indexOf` arguments built for `callOnLuas` in hit/miss handlers, which run even with no scripts loaded. Both need a profiler to confirm.
