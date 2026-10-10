@@ -351,8 +351,10 @@ class PlayStateRating
 
 			while (i < state.notesHitDateArray.length) {
 				if (Math.isNaN(state.notesHitDateArray[i])) {
-					state.notesToRemoveCount++;
-				} else if (state.notesHitDateArray[i] < threshold) {
+					i++;
+					continue;
+				}
+				if ((state.notesHitDateArray[i] < threshold)) {
 					state.notesToRemoveCount++;
 				} else {
 					break;
@@ -374,8 +376,10 @@ class PlayStateRating
 
 			while (i < state.oppNotesHitDateArray.length) {
 				if (Math.isNaN(state.oppNotesHitDateArray[i])) {
-					state.oppNotesToRemoveCount++;
-				} else if (state.oppNotesHitDateArray[i] < threshold) {
+					i++;
+					continue;
+				}
+				if ((state.oppNotesHitDateArray[i] < threshold)) {
 					state.oppNotesToRemoveCount++;
 				} else {
 					break;

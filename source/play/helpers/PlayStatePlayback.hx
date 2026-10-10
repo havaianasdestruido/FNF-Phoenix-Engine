@@ -45,6 +45,15 @@ class PlayStatePlayback
 		FlxG.sound.music.time = time;
 		FlxG.sound.music.play();
 		FlxG.sound.music.pitch = state.playbackRate;
+
+		state.notesHitDateArray = [];
+		state.notesHitArray = [];
+		state.oppNotesHitDateArray = [];
+		state.oppNotesHitArray = [];
+		state.notesToRemoveCount = 0;
+		state.oppNotesToRemoveCount = 0;
+		state.nps = 0;
+		state.oppNPS = 0;
 		if (state.ffmpegMode) FlxG.sound.music.volume = 0;
 
 		if (Conductor.songPosition <= state.vocals.length)
@@ -82,6 +91,15 @@ class PlayStatePlayback
 			FlxG.sound.music.onComplete = PlayStatePlayback.finishSong.bind(state);
 
 		FlxG.sound.music.pitch = state.playbackRate;
+
+		state.notesHitDateArray = [];
+		state.notesHitArray = [];
+		state.oppNotesHitDateArray = [];
+		state.oppNotesHitArray = [];
+		state.notesToRemoveCount = 0;
+		state.oppNotesToRemoveCount = 0;
+		state.nps = 0;
+		state.oppNPS = 0;
 		state.vocals.pitch = state.opponentVocals.pitch = state.playbackRate;
 
 		setSongTime(state, Math.max(0, PlayState.startOnTime - 500) + Conductor.offset);
@@ -204,6 +222,15 @@ class PlayStatePlayback
 		if(state.finishTimer != null || state.ffmpegMode) return;
 
 		FlxG.sound.music.pitch = state.playbackRate;
+
+		state.notesHitDateArray = [];
+		state.notesHitArray = [];
+		state.oppNotesHitDateArray = [];
+		state.oppNotesHitArray = [];
+		state.notesToRemoveCount = 0;
+		state.oppNotesToRemoveCount = 0;
+		state.nps = 0;
+		state.oppNPS = 0;
 		state.vocals.pitch = state.opponentVocals.pitch = state.playbackRate;
 		if(!(Conductor.songPosition > 20 && FlxG.sound.music.time < 20))
 		{
@@ -336,6 +363,15 @@ class PlayStatePlayback
 		state.lastUpdateTime = startingPoint;
 		Conductor.songPosition = startingPoint;
 		state.notesAddedCount = state.eventIndex = 0;
+
+		state.notesHitDateArray = [];
+		state.notesHitArray = [];
+		state.oppNotesHitDateArray = [];
+		state.oppNotesHitArray = [];
+		state.notesToRemoveCount = 0;
+		state.oppNotesToRemoveCount = 0;
+		state.nps = 0;
+		state.oppNPS = 0;
 
 		for (n in state.unspawnNotes)
 			if (n.strumTime <= startingPoint)
