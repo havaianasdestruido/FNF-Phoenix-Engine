@@ -38,7 +38,6 @@ configureIcons();
 | `MAIN_CLASS` | `Main` |
 | `PRELOADER` | `flixel.system.FlxPreloader` |
 | `SOURCE_DIR` | `source` |
-| `PREBUILD_HX` / `POSTBUILD_HX` | `source/Prebuild.hx`, `source/Postbuild.hx` |
 
 :::tip Bumping the version
 Change `VERSION` in `project.hxp` and nothing else — every other place reads it from there.

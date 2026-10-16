@@ -30,4 +30,18 @@ if ($out -match '\[git\]') {
     exit 1
 }
 
+# Verify that the checked-out hxcpp actually comes from the expected fork.
+$hxcppPath = (& haxelib path hxcpp 2>&1) -split "`n" | Where-Object { $_.Trim() -ne '' } | Select-Object -Last 1
+$hxcppPath = $hxcppPath.Trim()
+if (Test-Path (Join-Path $hxcppPath '.git')) {
+    $remote = (& git -C $hxcppPath remote get-url origin 2>&1) -join "`n"
+    if ($remote -notmatch 'FunkinCrew/hxcpp') {
+        Write-Error "hxcpp git checkout points at an unexpected remote ($remote). Expected https://github.com/FunkinCrew/hxcpp."
+        exit 1
+    }
+} else {
+    Write-Error "hxcpp path is not a git checkout: $hxcppPath"
+    exit 1
+}
+
 Write-Host "`nDone. Build with: lime build windows -DMODDING_LEVEL=2"

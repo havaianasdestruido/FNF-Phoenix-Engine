@@ -184,11 +184,8 @@ jobs:
         run: |
           set -eux
 
-          haxelib install hscript || true
-          haxelib install hmm || true
-          haxelib install lime || true
-
-          haxelib run hmm install --quiet || true
+          chmod +x ./setup/unix.sh
+          SKIP_SYSTEM_DEPENDENCIES=1 ./setup/unix.sh
 
 
       # ==========================================
