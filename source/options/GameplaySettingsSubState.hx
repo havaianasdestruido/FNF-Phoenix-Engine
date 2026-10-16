@@ -5,6 +5,7 @@ import flixel.graphics.FlxGraphic;
 import flixel.input.keyboard.FlxKey;
 
 import backend.ClientPrefs;
+import backend.Conductor;
 import objects.Note;
 import shaders.CrossFade;
 
@@ -207,6 +208,7 @@ class GameplaySettingsSubState extends BaseOptionsMenu
 		option.maxValue = 20;
 		if (ClientPrefs.safeFrames > 10) option.displayFormat = '%v (Will not save)';
 		option.changeValue = 0.1;
+		option.onChange = function() Conductor.recalculateTimings();
 		addOption(option);
 
 		var option:Option = new Option('Voiid-Styled Troll Mode',

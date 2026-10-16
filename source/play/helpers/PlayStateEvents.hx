@@ -85,7 +85,7 @@ class PlayStateEvents
 	}
 
 	public static function eventNoteEarlyTrigger(state:PlayState, event:EventNote):Float {
-		var returnedValue:Null<Float> = state.callOnLuas('eventEarlyTrigger', [event.event, event.value1, event.value2, event.strumTime], true, [], [0]);
+		var returnedValue:Null<Float> = state.callOnLuas('eventEarlyTrigger', [event.event], true, [], [0]);
 		#if LUA_ALLOWED
 		if(returnedValue != null && returnedValue != 0 && returnedValue != FunkinLua.Function_Continue) {
 			return returnedValue;
@@ -625,7 +625,7 @@ class PlayStateEvents
 				}
 		}
 		state.stagesFunc(function(stage:BaseStage) stage.eventCalled(eventName, value1, value2, flValue1, flValue2, strumTime));
-		state.callOnLuas('onEvent', [eventName, value1, value2, strumTime]);
+		state.callOnLuas('onEvent', [eventName, value1, value2]);
 	}
 
 	public static function sendWindowsNotification(state:PlayState, title:String, desc:String, isEvent:Bool = false) {

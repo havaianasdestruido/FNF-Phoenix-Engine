@@ -65,6 +65,11 @@ All seven exist so the **non-C++ targets (Flash / AIR)** build at all.
 | `flixel/util/FlxSave.hx` | flixel | `FlxSharedObject` re-implements save directories with `sys.FileSystem`/`sys.io.File`, absent on SWF — so `FlxG.save` and `ClientPrefs` cannot build | adds `flash \|\| air` to the `#if (android \|\| ios)` branch so those targets use `SharedObject.getLocal()` |
 | `openfl/utils/Assets.hx` | openfl | `getBitmapData()` probes `.astc`/`.ktx`/`.dds` sidecars via `Context3D`, which SWF has no path for — affects essentially every asset lookup | wraps the compressed-texture probe in `#if (!flash && !air)` so SWF falls through to `LimeAssets.getImage()` |
 | `funkin/vis/dsp/SpectralAnalyzer.hx` | funkin.vis | `#if web` also matches SWF, pulling in the Web-Audio analyzer, while the `#else` branch needs a Lime `AudioSource`. Used by `stages/objects/ABotSpeaker.hx` | rewrites the guards as `#if (web && !flash)` / `#elseif !flash`, so neither backend is referenced on Flash/AIR |
+| `flixel/FlxGame.hx` | flixel | engine-specific overrides previously vendored under `source/` | moved into the documented patch location (see issue #46) |
+| `flixel/addons/ui/FlxInputText.hx` | flixel-addons | engine-specific overrides previously vendored under `source/` | moved into the documented patch location (see issue #46) |
+| `flixel/addons/ui/FlxSlider.hx` | flixel-addons | engine-specific overrides previously vendored under `source/` | moved into the documented patch location (see issue #46) |
+| `flixel/addons/ui/FlxUIDropDownMenu.hx` | flixel-addons | engine-specific overrides previously vendored under `source/` | moved into the documented patch location (see issue #46) |
+| `flixel/addons/ui/FlxUIInputText.hx` | flixel-addons | engine-specific overrides previously vendored under `source/` | moved into the documented patch location (see issue #46) |
 
 Notes:
 

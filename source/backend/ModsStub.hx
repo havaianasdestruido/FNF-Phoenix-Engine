@@ -1,5 +1,6 @@
 package backend;
 
+#if !MODS_ALLOWED
 // Always-available no-op stub of backend.Mods for non-MODS_ALLOWED targets.
 // Callers can reference Mods.<method> without wrapping in #if MODS_ALLOWED;
 // on MODS_ALLOWED builds this is shadowed by the real backend.Mods import in import.hx.
@@ -30,3 +31,4 @@ typedef ModsList = {
 	disabled:Array<String>,
 	all:Array<String>
 };
+#end

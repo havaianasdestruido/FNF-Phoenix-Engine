@@ -125,6 +125,7 @@ class PythonScript
 
 		// Python globals
 		set('Function_StopAll', Function_StopAll);
+		set('Function_StopLua', Function_StopAll); // Lua-compatible alias
 		set('Function_Stop', Function_Stop);
 		set('Function_Continue', Function_Continue);
 		set('pythonDebugMode', false);
