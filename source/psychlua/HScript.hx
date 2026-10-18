@@ -10,6 +10,7 @@ import haxe.Exception;
 import backend.Paths;
 import backend.Conductor;
 import backend.ClientPrefs;
+import backend.Native;
 import objects.Character;
 import objects.Alphabet;
 import play.PlayState;
@@ -67,6 +68,38 @@ class HScript
 		#end
 		interp.variables.set('ShaderFilter', openfl.filters.ShaderFilter);
 		interp.variables.set('StringTools', StringTools);
+		// Hardware information (GPU, driver, CPU, OS), mirroring the Lua API.
+		interp.variables.set('Native', Native);
+		interp.variables.set('getSystemInfo', function():String {
+			return Native.buildSystemInfo();
+		});
+		interp.variables.set('getGPUName', function():String {
+			return Native.getGPUName();
+		});
+		interp.variables.set('getGPUVendor', function():String {
+			return Native.getGPUVendor();
+		});
+		interp.variables.set('getGPUDriverVersion', function():String {
+			return Native.getGPUDriverVersion();
+		});
+		interp.variables.set('getCPUName', function():String {
+			return Native.getCPUName();
+		});
+		interp.variables.set('getCPUVendor', function():String {
+			return Native.getCPUVendor();
+		});
+		interp.variables.set('getOSName', function():String {
+			return Native.getOSName();
+		});
+		interp.variables.set('getOSVersion', function():String {
+			return Native.getOSVersion();
+		});
+		interp.variables.set('getGraphicsApi', function():String {
+			return Native.getGraphicsApi();
+		});
+		interp.variables.set('getAudioApi', function():String {
+			return Native.getSystemInfo().audioApi;
+		});
 
 		interp.variables.set('setVar', function(name:String, value:Dynamic)
 		{

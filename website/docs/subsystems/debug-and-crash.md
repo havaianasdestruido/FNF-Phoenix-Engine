@@ -37,6 +37,37 @@ The readable native stack traces come from defines set in `project.hxp`:
 prefer it. `CoolUtil.coolError(message, title)` is the engine's own error popup, used for
 recoverable problems (for example opening the Note Colors menu with the feature off).
 
+### Hardware information in the crash log
+
+Every crash log (`crash/FNF-Phoenix-Engine_<date>.log`) ends with the hardware the game
+was running on, so a bug report carries it automatically:
+
+```
+GPU: NVIDIA GeForce RTX 3060
+GPU Vendor: NVIDIA
+GPU Driver: 535.104.05
+Graphics API: OpenGL 4.6
+CPU: Intel(R) Core(TM) i7-9700K CPU @ 3.60GHz
+CPU Vendor: Intel
+OS: Windows 10.0.19045
+Audio: OpenAL Soft | 1.23.1
+```
+
+`backend.Native` collects the values: the GPU, its vendor and the driver version come
+from the OpenGL context (`GL.VENDOR`, `GL.RENDERER`, `GL.VERSION`), the CPU and the
+operating system from the small native layer in `source/backend/native/`. The GPU
+sniffing is ported from the [Psych Plus Engine](https://github.com/Psych-Plus-Team/FNF-PlusEngine)
+— thanks to the Psych Plus Team for the original implementation.
+
+Everything degrades gracefully: a target without a render context or without the native
+queries reports `Unknown` instead of failing, and the crash log is still written.
+
+The same values are available to scripts through `getSystemInfo()`, `getGPUName()`,
+`getGPUVendor()`, `getGPUDriverVersion()`, `getCPUName()`, `getCPUVendor()`,
+`getOSName()`, `getOSVersion()`, `getGraphicsApi()` and `getAudioApi()` (Lua, Python and
+HScript), see the [Lua](../modding/lua-api-reference.md) and
+[Python](../modding/python-api-reference.md) API references.
+
 ## Script errors
 
 Lua, Python and HScript errors never take the game down:

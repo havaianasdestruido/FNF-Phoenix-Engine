@@ -72,7 +72,7 @@ template with every hook — Lua and Python share the same hook list; the shippe
 | Booleans | `true` / `false` | `True` / `False` |
 | Nil | `nil` | `None` |
 | Tables as arguments | `{1, 2, 3}` | `[1, 2, 3]` |
-| Function count | 233 | 149 |
+| Function count | 244 | 159 |
 | Comments | `--` | `#` |
 
 Both languages receive every hook listed in [Script hooks](./script-hooks.md);
@@ -123,5 +123,5 @@ difference is irrelevant.
 
 ## Next
 
-- [Python API reference](./python-api-reference.md) — all 149 functions (generated).
+- [Python API reference](./python-api-reference.md) — all 159 functions (generated).
 - [Script hooks](./script-hooks.md) — the callbacks, shared with Lua.

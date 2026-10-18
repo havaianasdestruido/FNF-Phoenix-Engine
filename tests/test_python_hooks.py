@@ -126,7 +126,7 @@ class TestPythonCallbackParity(unittest.TestCase):
 	def test_python_scripting_doc_accuracy(self):
 		doc = read("website/docs/modding/python-scripting.md")
 		self.assertNotIn("128 functions", doc)
-		self.assertIn("149 functions", doc)
+		self.assertIn("159 functions", doc)
 		self.assertIn("Python callbacks", doc)
 		# Must document both sentinel names
 		self.assertIn("Function_StopLua", doc)

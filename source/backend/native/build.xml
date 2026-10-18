@@ -1,0 +1,19 @@
+<xml>
+  <!--
+    Build configuration for the native hardware queries in
+    source/backend/native/include/phoenix_hardware.h.
+
+    The include folder is added to the "haxe" file group so the generated C++
+    translation unit can find the header, and advapi32 is linked on Windows for
+    the registry lookup of the CPU name.
+  -->
+  <set name="PHOENIX_HARDWARE_DIR" value="${this_dir}" />
+  <files id="haxe">
+    <compilervalue name="-I" value="${PHOENIX_HARDWARE_DIR}/include/" />
+  </files>
+  <target id="haxe">
+    <section if="windows">
+      <lib name="advapi32.lib" />
+    </section>
+  </target>
+</xml>
