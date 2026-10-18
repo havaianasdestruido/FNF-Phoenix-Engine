@@ -12,7 +12,7 @@ package backend;
  */
 #if cpp
 @:buildXml('<include name="../../../../source/backend/native/build.xml" />')
-@:include("phoenix_hardware.h")
+@:cppFileCode('#include "phoenix_hardware.h"')
 @:keep
 class NativeHardware
 {

@@ -132,6 +132,13 @@ class HardwareWiringTests(unittest.TestCase):
         for name in ("cpuVendor", "cpuModel", "osName", "osVersion"):
             self.assertIn(f"function {name}():String", stub)
 
+    def test_native_header_is_included(self):
+        source = read("source/backend/NativeHardware.hx")
+        # The C++ branch has to pull in the header and the build configuration.
+        self.assertIn('@:buildXml', source)
+        self.assertIn("source/backend/native/build.xml", source)
+        self.assertIn('#include "phoenix_hardware.h"', source)
+
     def test_build_xml_adds_include_path(self):
         source = read("source/backend/native/build.xml")
         self.assertIn('<compilervalue name="-I"', source)
