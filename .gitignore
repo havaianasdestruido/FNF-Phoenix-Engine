@@ -40,3 +40,8 @@ website/.docusaurus/
 website/docs/reference/
 website/docs/modding/lua-api-reference.md
 website/docs/modding/python-api-reference.md
+
+### Python
+# Bytecode caches from `python3 -m unittest` / tools/check_dependencies.py.
+__pycache__/
+*.pyc
