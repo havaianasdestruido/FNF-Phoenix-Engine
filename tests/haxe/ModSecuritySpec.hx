@@ -1,3 +1,4 @@
+import backend.ModSecurity;
 import backend.ScriptSecurityScanner;
 import backend.ScriptSecurityScanner.ScriptSecurityFinding;
 
@@ -67,6 +68,19 @@ class ModSecuritySpec
 		check(safeReflection.length == 0, 'normal game-state reflection stays available');
 		var unsafeReflection = ScriptSecurityScanner.scan("getPropertyFromClass('sys.io.File', 'getContent')", 'python');
 		check(has(unsafeReflection, 'engine.native-class', 1), 'privileged reflection is blocked');
+
+		// Integration policy is also dependency-free when MODS_ALLOWED is off,
+		// which catches context/path/report/bootstrap typing regressions in CI.
+		var decision = ModSecurity.checkScript('mods/UnsafeMod/scripts/payload.lua', "os.execute('bad')", 'lua');
+		check(decision.sandboxed, 'softmod sandbox defaults on');
+		check(decision.modName == 'UnsafeMod', 'owning mod folder');
+		check(decision.displayPath == 'scripts/payload.lua', 'mod-relative display path');
+		check(has(decision.findings, 'lua.os', 1), 'integrated source finding');
+		var engineDecision = ModSecurity.checkScript('assets/preload/scripts/engine.lua', "os.execute('trusted')", 'lua');
+		check(!engineDecision.softmod && engineDecision.findings.length == 0, 'engine scripts are not softmods');
+		var bootstrap = ModSecurity.luaBootstrap([]);
+		check(bootstrap.indexOf("os = __phoenix_proxy('os')") >= 0, 'Lua OS runtime proxy');
+		check(bootstrap.indexOf("package.loadlib") >= 0, 'Lua native loader runtime guard');
 
 		Sys.println('Mod security scanner tests passed');
 	}

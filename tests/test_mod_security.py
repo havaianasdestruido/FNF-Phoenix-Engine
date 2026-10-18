@@ -69,6 +69,7 @@ class ModSecurityIntegration(unittest.TestCase):
     def test_dependency_free_scanner_runs_in_haxe_ci(self):
         runner = read("tests/haxe/run-layout.sh")
         self.assertIn("ScriptSecurityScanner.hx", runner)
+        self.assertIn("ModSecurity.hx", runner)
         self.assertIn("-main ModSecuritySpec --interp", runner)
 
 
