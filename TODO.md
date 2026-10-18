@@ -22,6 +22,12 @@ Generated from full repo audit. Priority: `[P0]` critical/blocker, `[P1]` high, 
   - Objective-C -> Swift (maybe???)
   - JavaScript -> TypeScript (only for complex code bits)
 
+- Be able to change you character to any from the game + from loaded mods
+
+- Be able to change your noteskin to any from the engine + from loaded mods
+
+- FIX HTML5/WEB!!!
+
 ## 1. BUILD / TOOLCHAIN (all targets green)
 
 - **[P0] HashLink target blocked.** `lime.hdll` missing locally, HL wasn't verifiable, HL agent dead-ended. Install a compatible HashLink (`lime.hdll` + `lime-hdiowrap`), fix any compile errors, re-enable the `hl` CI job in `.github/workflows/main.yml`. ([#63](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/issues/63))
