@@ -19,31 +19,38 @@ import shaders.CrossFade;
 @:access(backend.MusicBeatState)
 class ChartingUIGrid
 {
+  /**
+   * Returns the absolute song time at a chart section boundary. The relative
+   * overload keeps the existing callers concise; timing itself is calculated
+   * from cumulative section steps and the current Conductor BPM map.
+   */
   public static function sectionStartTime(state:ChartingState, add:Int = 0):Float
   {
-    var daBPM:Float = state._song.bpm;
-    var daPos:Float = 0;
-    for (i in 0...ChartingState.curSec + add)
-    {
-      if (state._song.notes[i] != null)
-      {
-        if (state._song.notes[i].changeBPM)
-        {
-          daBPM = state._song.notes[i].bpm;
-        }
-        daPos += state.getSectionBeats(i) * (1000 * 60 / daBPM);
-      }
-    }
-    return daPos;
+    return sectionStartTimeAt(state, ChartingState.curSec + add);
   }
 
-  public static function getSectionBeats(state:ChartingState, ?section:Null<Int> = null)
+  public static function sectionStartTimeAt(state:ChartingState, section:Int):Float
+  {
+    return ChartingTiming.sectionStartTime(cast state._song.notes, cast Conductor.bpmChangeMap, state._song.bpm, section);
+  }
+
+  public static function sectionIndexAtTime(state:ChartingState, time:Float):Int
+  {
+    return ChartingTiming.sectionIndexAtTime(cast state._song.notes, cast Conductor.bpmChangeMap, state._song.bpm, time);
+  }
+
+  public static function sectionDuration(state:ChartingState, section:Int):Float
+  {
+    return ChartingTiming.sectionDuration(cast state._song.notes, cast Conductor.bpmChangeMap, state._song.bpm, section);
+  }
+
+  public static function getSectionBeats(state:ChartingState, ?section:Null<Int> = null):Float
   {
     if (section == null) section = ChartingState.curSec;
     var val:Null<Float> = null;
 
     if (state._song.notes[section] != null) val = state._song.notes[section].sectionBeats;
-    return val != null ? val : 4;
+    return val != null && !Math.isNaN(val) && val > 0 ? val : 4;
   }
 
   public static function addSection(state:ChartingState, sectionBeats:Float = 4):Void
@@ -62,31 +69,43 @@ class ChartingUIGrid
       };
 
     state._song.notes.push(sec);
+    state.rebuildBPMMap();
   }
 
-  public static function getStrumTime(state:ChartingState, yPos:Float, doZoomCalc:Bool = true):Float
+  public static function getStrumTime(state:ChartingState, yPos:Float):Float
   {
-    var leZoom:Float = state.zoomList[state.curZoom];
-    if (!doZoomCalc) leZoom = 1;
-    return FlxMath.remapToRange(yPos, state.gridBG.y, state.gridBG.y + state.gridBG.height * leZoom, 0, 16 * Conductor.stepCrochet);
+    var gridHeight:Float = state.gridBG.height;
+    var duration:Float = sectionDuration(state, ChartingState.curSec);
+    if (gridHeight <= 0 || duration <= 0) return 0;
+
+    return (yPos - state.gridBG.y) / gridHeight * duration;
   }
 
-  public static function getYfromStrum(state:ChartingState, strumTime:Float, doZoomCalc:Bool = true):Float
+  public static function getYfromStrum(state:ChartingState, strumTime:Float):Float
   {
-    var leZoom:Float = state.zoomList[state.curZoom];
-    if (!doZoomCalc) leZoom = 1;
-    return FlxMath.remapToRange(strumTime, 0, 16 * Conductor.stepCrochet, state.gridBG.y, state.gridBG.y + state.gridBG.height * leZoom);
+    var duration:Float = sectionDuration(state, ChartingState.curSec);
+    if (duration <= 0) return state.gridBG.y;
+
+    return state.gridBG.y + (strumTime / duration) * state.gridBG.height;
   }
 
-  public static function getYfromStrumNotes(state:ChartingState, strumTime:Float, beats:Float):Float
+  public static function getYfromStrumNotes(state:ChartingState, strumTime:Float, beats:Float, section:Int, sectionTop:Float):Float
   {
-    var value:Float = strumTime / (beats * 4 * Conductor.stepCrochet);
-    return ChartingState.GRID_SIZE * beats * 4 * state.zoomList[state.curZoom] * value + state.gridBG.y;
+    var duration:Float = sectionDuration(state, section);
+    if (duration <= 0) return sectionTop;
+
+    var sectionHeight:Float = ChartingState.GRID_SIZE * beats * 4 * state.zoomList[state.curZoom];
+    return sectionTop + sectionHeight * (strumTime / duration);
   }
 
   public static function strumLineUpdateY(state:ChartingState)
   {
-    state.strumLine.y = state.getYfromStrum((Conductor.songPosition - state.sectionStartTime()) / state.zoomList[state.curZoom] % (Conductor.stepCrochet * 16)) / (state.getSectionBeats() / 4);
+    var timeIntoSection:Float = Conductor.songPosition - sectionStartTime(state);
+    var duration:Float = sectionDuration(state, ChartingState.curSec);
+    if (duration > 0) timeIntoSection = FlxMath.bound(timeIntoSection, 0, duration);
+    else timeIntoSection = 0;
+
+    state.strumLine.y = state.getYfromStrum(timeIntoSection);
   }
 
   public static function updateZoom(state:ChartingState)
@@ -237,9 +256,11 @@ class ChartingUIGrid
       }
     }
 
-    var beats:Float = state.getSectionBeats(isNextSection ? 1 : 0);
-    note.y = state.getYfromStrumNotes(daStrumTime - state.sectionStartTime(), beats);
-    // if(isNextSection) note.y += state.gridBG.height;
+    var sectionIndex:Int = ChartingState.curSec + (isNextSection ? 1 : 0);
+    var beats:Float = state.getSectionBeats(sectionIndex);
+    var sectionStart:Float = sectionStartTimeAt(state, sectionIndex);
+    var sectionTop:Float = state.gridBG.y + (isNextSection ? state.gridBG.height : 0);
+    note.y = state.getYfromStrumNotes(daStrumTime - sectionStart, beats, sectionIndex, sectionTop);
     if (note.y < -150) note.y = -150;
     return note;
   }
@@ -257,9 +278,10 @@ class ChartingUIGrid
     return retStr;
   }
 
-  public static function setupSusNote(state:ChartingState, note:Note, beats:Float):FlxSprite
+  public static function setupSusNote(state:ChartingState, note:Note, section:Int):FlxSprite
   {
-    var height:Int = Math.floor(FlxMath.remapToRange(note.sustainLength, 0, Conductor.stepCrochet * 16, 0, ChartingState.GRID_SIZE * 16 * state.zoomList[state.curZoom])
+    var stepCrochet:Float = ChartingTiming.stepCrochetAtSection(cast state._song.notes, cast Conductor.bpmChangeMap, state._song.bpm, section);
+    var height:Int = Math.floor((note.sustainLength / stepCrochet) * ChartingState.GRID_SIZE * state.zoomList[state.curZoom]
       + (ChartingState.GRID_SIZE * state.zoomList[state.curZoom])
       - ChartingState.GRID_SIZE / 2);
     var minHeight:Int = Std.int((ChartingState.GRID_SIZE * state.zoomList[state.curZoom] / 2) + ChartingState.GRID_SIZE / 2);
@@ -335,28 +357,18 @@ class ChartingUIGrid
 
       if (state._song.notes[ChartingState.curSec] != null)
       {
-        if (state._song.notes[ChartingState.curSec].changeBPM && state._song.notes[ChartingState.curSec].bpm > 0)
-        {
-          Conductor.changeBPM(state._song.notes[ChartingState.curSec].bpm);
-          // trace('BPM of this section:');
-        } else
-        {
-          // get last bpm
-          var daBPM:Float = state._song.bpm;
-          for (i in 0...ChartingState.curSec)
-            if (state._song.notes[i].changeBPM) daBPM = state._song.notes[i].bpm;
-          Conductor.changeBPM(daBPM);
-        }
+        var currentStepCrochet:Float = ChartingTiming.stepCrochetAtSection(cast state._song.notes, cast Conductor.bpmChangeMap,
+          state._song.bpm, ChartingState.curSec);
+        if (currentStepCrochet > 0) Conductor.changeBPM(15000 / currentStepCrochet);
 
         // CURRENT SECTION
-        var beats:Float = state.getSectionBeats();
         for (i in state._song.notes[ChartingState.curSec].sectionNotes)
         {
           var note:Note = state.setupNoteData(i, false);
           state.curRenderedNotes.add(note);
           if (note.sustainLength > 0)
           {
-            state.curRenderedSustains.add(state.setupSusNote(note, beats));
+            state.curRenderedSustains.add(state.setupSusNote(note, ChartingState.curSec));
           }
 
           if (i[3] != null && note.noteType != null && note.noteType.length > 0)
@@ -409,7 +421,6 @@ class ChartingUIGrid
       if (!onlyEvents)
       {
         // NEXT SECTION, which shouldnt even update if you're in the current section
-        var beats:Float = state.getSectionBeats(1);
         if (ChartingState.curSec < state._song.notes.length - 1)
         {
           for (i in state._song.notes[ChartingState.curSec + 1].sectionNotes)
@@ -419,7 +430,7 @@ class ChartingUIGrid
             state.nextRenderedNotes.add(note);
             if (note.sustainLength > 0)
             {
-              state.nextRenderedSustains.add(state.setupSusNote(note, beats));
+              state.nextRenderedSustains.add(state.setupSusNote(note, ChartingState.curSec + 1));
             }
           }
         }

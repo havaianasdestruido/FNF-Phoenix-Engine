@@ -2,10 +2,10 @@ package editors;
 
 // REFACTOR: explicit imports for shader subtypes
 import editors.charting.ChartingUISections;
+import editors.charting.ChartingTiming;
 import shaders.RGBPalette.RGBShaderReference;
 
 import objects.Character.CharacterFile;
-import backend.Conductor.BPMChangeEvent;
 import data.Section.SwagSection;
 import data.Song.SwagSong;
 import backend.MusicBeatState;
@@ -65,8 +65,6 @@ import shaders.RGBPalette;
 import backend.Controls;
 import objects.Character;
 
-@:access(flixel.sound.FlxSound._sound)
-@:access(openfl.media.Sound.__buffer)
 class ChartingState extends MusicBeatState
 {
   public static var noteTypeList:Array<String> = // Used for backwards compatibility with 0.1 - 0.3.2 charts, though, you should add your hardcoded custom note types here too.
@@ -617,31 +615,11 @@ class ChartingState extends MusicBeatState
     songSlider.scrollFactor.set();
     songSlider.callback = function(fuck:Float) {
       vocals.time = opponentVocals.time = FlxG.sound.music.time;
-      var sectionIndex = Std.int(FlxG.sound.music.time / (Conductor.crochet * 4)); // TODO uhh make this work properly with bpm changes or somethin
+      var sectionIndex:Int = sectionIndexAtTime(FlxG.sound.music.time);
 
-      if (Conductor.bpmChangeMap.length > 0)
-      {
-        var foundSection:Bool = false;
-        var sec:Int = 1;
-        var lastSecStartTime:Float = 0;
-        while (!foundSection)
-        {
-          var secStartTime = sectionStartTime(sec);
-          if (FlxG.sound.music.time >= lastSecStartTime && FlxG.sound.music.time <= secStartTime)
-          {
-            sectionIndex = sec;
-            foundSection = true;
-          } else if (secStartTime >= FlxG.sound.music.length)
-          {
-            sectionIndex = 0;
-            foundSection = true;
-          }
-          sec++;
-          lastSecStartTime = secStartTime;
-        }
-      }
-
-      changeSection(sectionIndex);
+      // A scrub should keep the exact slider time; changeSection(false) only
+      // updates the editor's selected section and leaves playback in place.
+      changeSection(sectionIndex, false);
     };
 
     if (lastSong != currentSongName)
@@ -741,7 +719,7 @@ class ChartingState extends MusicBeatState
     var snap:Float = quantization / 4;
     var increase:Float = 1 / snap;
     var target:Float = backward ? CoolUtil.quantize(beat, snap) - increase : CoolUtil.quantize(beat, snap) + increase;
-    FlxG.sound.music.time = Conductor.beatToSeconds(target);
+    FlxG.sound.music.time = beatToSeconds(target);
     pauseAndSetVocalsTime();
   }
 
@@ -1136,7 +1114,8 @@ class ChartingState extends MusicBeatState
 
         case 'Change BPM':
           _song.notes[curSec].changeBPM = check.checked;
-          FlxG.log.add('changed bpm shit');
+          rebuildBPMMap();
+          updateGrid();
         case "Alt Animation":
           _song.notes[curSec].altAnim = check.checked;
         case "Cross Fade":
@@ -1150,6 +1129,7 @@ class ChartingState extends MusicBeatState
       {
         case 'section_beats':
           _song.notes[curSec].sectionBeats = nums.value;
+          rebuildBPMMap();
           reloadGridLayer();
 
         case 'song_speed':
@@ -1157,8 +1137,8 @@ class ChartingState extends MusicBeatState
 
         case 'song_bpm':
           _song.bpm = nums.value;
-          Conductor.mapBPMChanges(_song);
-          Conductor.changeBPM(nums.value);
+          rebuildBPMMap();
+          updateGrid();
 
         case 'note_susLength':
           if (curSelectedNote != null && curSelectedNote[2] != null)
@@ -1169,6 +1149,7 @@ class ChartingState extends MusicBeatState
 
         case 'section_bpm':
           _song.notes[curSec].bpm = nums.value;
+          rebuildBPMMap();
           updateGrid();
 
         case 'inst_volume':
@@ -1239,6 +1220,27 @@ class ChartingState extends MusicBeatState
   function sectionStartTime(add:Int = 0):Float
   {
     return ChartingUIGrid.sectionStartTime(this, add);
+  }
+
+  function sectionStartTimeAt(section:Int):Float
+  {
+    return ChartingUIGrid.sectionStartTimeAt(this, section);
+  }
+
+  function sectionIndexAtTime(time:Float):Int
+  {
+    return ChartingUIGrid.sectionIndexAtTime(this, time);
+  }
+
+  function beatToSeconds(beat:Float):Float
+  {
+    return ChartingTiming.timeAtStep(cast Conductor.bpmChangeMap, _song.bpm, beat * 4);
+  }
+
+  /** Rebuilds the conductor timeline after a chart's BPM or section length changes. */
+  public function rebuildBPMMap():Void
+  {
+    if (_song != null) Conductor.mapBPMChanges(_song);
   }
 
   var lastConductorPos:Float;
@@ -1640,11 +1642,11 @@ class ChartingState extends MusicBeatState
           if (FlxG.mouse.wheel > 0)
           {
             var fuck:Float = CoolUtil.quantize(beat, snap) - increase;
-            FlxG.sound.music.time = Conductor.beatToSeconds(fuck);
+            FlxG.sound.music.time = beatToSeconds(fuck);
           } else
           {
             var fuck:Float = CoolUtil.quantize(beat, snap) + increase;
-            FlxG.sound.music.time = Conductor.beatToSeconds(fuck);
+            FlxG.sound.music.time = beatToSeconds(fuck);
           }
         }
         pauseAndSetVocalsTime();
@@ -1686,11 +1688,11 @@ class ChartingState extends MusicBeatState
           if (FlxG.keys.pressed.UP)
           {
             var fuck:Float = CoolUtil.quantize(beat, snap) - increase; // (Math.floor((beat+snap) / snap) * snap);
-            FlxG.sound.music.time = Conductor.beatToSeconds(fuck);
+            FlxG.sound.music.time = beatToSeconds(fuck);
           } else
           {
             var fuck:Float = CoolUtil.quantize(beat, snap) + increase; // (Math.floor((beat+snap) / snap) * snap);
-            FlxG.sound.music.time = Conductor.beatToSeconds(fuck);
+            FlxG.sound.music.time = beatToSeconds(fuck);
           }
         }
       }
@@ -1702,7 +1704,7 @@ class ChartingState extends MusicBeatState
         style = 3;
       }
 
-      var conductorTime = Conductor.songPosition; // + sectionStartTime();Conductor.songPosition / Conductor.stepCrochet;
+      var conductorTime = Conductor.songPosition;
 
       // AWW YOU MADE IT SEXY <3333 THX SHADMAR
 
@@ -1757,11 +1759,11 @@ class ChartingState extends MusicBeatState
           if (FlxG.keys.pressed.UP)
           {
             var fuck:Float = CoolUtil.quantize(beat, snap) - increase;
-            feces = Conductor.beatToSeconds(fuck);
+            feces = beatToSeconds(fuck);
           } else
           {
             var fuck:Float = CoolUtil.quantize(beat, snap) + increase; // (Math.floor((beat+snap) / snap) * snap);
-            feces = Conductor.beatToSeconds(fuck);
+            feces = beatToSeconds(fuck);
           }
           FlxTween.tween(FlxG.sound.music, {time: feces}, 0.1, {ease: FlxEase.circOut});
           pauseAndSetVocalsTime();
@@ -2043,20 +2045,17 @@ class ChartingState extends MusicBeatState
     ChartingEvents.changeNoteSustain(this, value);
   }
 
+  override function updateCurStep():Void
+  {
+    curDecStep = ChartingTiming.stepAtTime(cast Conductor.bpmChangeMap, _song.bpm, Conductor.songPosition, ClientPrefs.noteOffset);
+    curStep = Math.floor(curDecStep);
+    updateBeat();
+  }
+
   function recalculateSteps(add:Float = 0):Int
   {
-    var lastChange:BPMChangeEvent =
-      {
-        stepTime: 0,
-        songTime: 0,
-        bpm: 0
-      }
-    for (i in 0...Conductor.bpmChangeMap.length)
-    {
-      if (FlxG.sound.music.time > Conductor.bpmChangeMap[i].songTime) lastChange = Conductor.bpmChangeMap[i];
-    }
-
-    curStep = lastChange.stepTime + Math.floor((FlxG.sound.music.time - lastChange.songTime + add) / Conductor.stepCrochet);
+    curDecStep = ChartingTiming.stepAtTime(cast Conductor.bpmChangeMap, _song.bpm, FlxG.sound.music.time + add);
+    curStep = Math.floor(curDecStep);
     updateBeat();
 
     return curStep;
@@ -2244,9 +2243,9 @@ class ChartingState extends MusicBeatState
   }
 
   // REFACTOR: delegated to editors.charting.ChartingUIGrid
-  function setupSusNote(note:Note, beats:Float):FlxSprite
+  function setupSusNote(note:Note, section:Int):FlxSprite
   {
-    return ChartingUIGrid.setupSusNote(this, note, beats);
+    return ChartingUIGrid.setupSusNote(this, note, section);
   }
 
   // REFACTOR: delegated to editors.charting.ChartingUIGrid
@@ -2292,21 +2291,21 @@ class ChartingState extends MusicBeatState
   }
 
   // REFACTOR: delegated to editors.charting.ChartingUIGrid
-  function getStrumTime(yPos:Float, doZoomCalc:Bool = true):Float
+  function getStrumTime(yPos:Float):Float
   {
-    return ChartingUIGrid.getStrumTime(this, yPos, doZoomCalc);
+    return ChartingUIGrid.getStrumTime(this, yPos);
   }
 
   // REFACTOR: delegated to editors.charting.ChartingUIGrid
-  function getYfromStrum(strumTime:Float, doZoomCalc:Bool = true):Float
+  function getYfromStrum(strumTime:Float):Float
   {
-    return ChartingUIGrid.getYfromStrum(this, strumTime, doZoomCalc);
+    return ChartingUIGrid.getYfromStrum(this, strumTime);
   }
 
   // REFACTOR: delegated to editors.charting.ChartingUIGrid
-  function getYfromStrumNotes(strumTime:Float, beats:Float):Float
+  function getYfromStrumNotes(strumTime:Float, beats:Float, section:Int, sectionTop:Float):Float
   {
-    return ChartingUIGrid.getYfromStrumNotes(this, strumTime, beats);
+    return ChartingUIGrid.getYfromStrumNotes(this, strumTime, beats, section, sectionTop);
   }
 
   // REFACTOR: delegated to editors.charting.ChartingSaveLoad

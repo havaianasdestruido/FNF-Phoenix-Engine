@@ -113,7 +113,8 @@ class CoolUtil
 		return false; // Equal versions
 	}
 
-	#if desktop
+	// Resolution scaling is used with native resizable windows, not AIR's window model.
+	#if (desktop && !air)
 	public static var resW:Float = 1;
 	public static var resH:Float = 1;
 	public static var baseW:Float = 1;

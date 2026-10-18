@@ -4,18 +4,29 @@ package editors.charting;
 import editors.ChartingState;
 import haxe.io.Bytes;
 import lime.media.AudioBuffer;
+import flixel.FlxG;
+import flixel.math.FlxMath;
+import flixel.sound.FlxSound;
+import flixel.util.FlxColor;
+import openfl.geom.Rectangle;
 
 // REFACTOR: imports for relocated root classes
+// Conductor stays explicitly imported: #67 moved the waveform bounds to
+// ChartingState.sectionStartTime(), which resolves through this class' explicit
+// dependency list (targeted by tests/test_psych_parity_guards.py).
 import backend.Conductor;
+
+// These private native buffer fields are used only by the desktop waveform renderer.
+#if (desktop && !air)
 @:access(flixel.sound.FlxSound._sound)
 @:access(openfl.media.Sound.__buffer)
-
 @:access(editors.ChartingState)
-@:access(backend.MusicBeatState)
+#end
 class ChartingUIWaveform
 {
   public static function updateWaveform(state:ChartingState)
   {
+    // AIR does not expose the same native sound-buffer internals as desktop.
     #if (desktop && !air)
     if (state.waveformPrinted)
     {
@@ -43,9 +54,8 @@ class ChartingUIWaveform
     state.wavData[1][0] = [];
     state.wavData[1][1] = [];
 
-    var steps:Int = Math.round(state.getSectionBeats() * 4);
     var st:Float = state.sectionStartTime();
-    var et:Float = st + (Conductor.stepCrochet * steps);
+    var et:Float = state.sectionStartTime(1);
 
     var sound:FlxSound = FlxG.sound.music;
     if (FlxG.save.data.chart_waveformVoices) sound = state.vocals;
@@ -101,7 +111,7 @@ class ChartingUIWaveform
   public static function waveformData(buffer:AudioBuffer, bytes:Bytes, time:Float, endTime:Float, multiply:Float = 1, ?array:Array<Array<Array<Float>>>,
       ?steps:Float):Array<Array<Array<Float>>>
   {
-    #if (lime_cffi && !macro)
+    #if (lime_cffi && !macro && !flash && !air)
     if (buffer == null || buffer.data == null) return [[[0], [0]], [[0], [0]]];
 
     var khz:Float = (buffer.sampleRate / 1000);
