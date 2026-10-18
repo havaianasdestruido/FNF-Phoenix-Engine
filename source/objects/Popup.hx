@@ -4,6 +4,7 @@ import backend.Paths;
 import backend.Conductor;
 import backend.ClientPrefs;
 import backend.ScreenLayout;
+import debug.PoolStats;
 import play.PlayState;
 
 import data.Song;
@@ -90,6 +91,21 @@ class Popup extends FlxSprite {
                 kill();
             }
         });
+    }
+
+    /**
+     * Returns the popup to `PlayState.popUpGroup` and counts the return so the pool
+     * hit rate stays measurable. (#88)
+     */
+    override public function kill():Void
+    {
+        if (exists)
+        {
+            super.kill();
+            PoolStats.release(PoolStats.POPUP);
+            return;
+        }
+        super.kill();
     }
 
     override public function revive() {

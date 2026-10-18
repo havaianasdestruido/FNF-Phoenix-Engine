@@ -512,6 +512,12 @@ class Project extends HXProject
 			setHaxedef("FLX_NO_DEBUG");
 			setHaxedef("analyzer-optimize");
 		}
+
+		// Diagnostics gated behind `#if MAIN_DEBUG` (Paths asset fallback, shader
+		// helpers, etc.) must stay silent in production but exist in debug builds.
+		// Without this define the gate compiles away on every configuration.
+		if (isDebug())
+			setHaxedef("MAIN_DEBUG");
 		// addHaxeFlag("-dce full");
 		addHaxeFlag("-dce no");
 

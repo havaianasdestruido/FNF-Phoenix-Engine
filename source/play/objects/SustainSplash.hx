@@ -2,6 +2,7 @@
 
 import backend.ClientPrefs;
 import backend.Conductor;
+import debug.PoolStats;
 import objects.Note;
 import objects.NoteSplash;
 import objects.StrumNote;
@@ -22,6 +23,12 @@ class SustainSplash extends FlxSprite
 
 	var timer:FlxTimer;
 
+	// #88: this sprite is pooled, so the timer, its callback and the end-anim callback
+	// are built once per instance instead of once per hold splash spawn.
+	var endTimerCallback:FlxTimer->Void;
+	var endAnimCallback:Dynamic->Void;
+	var pendingNote:Note;
+
 	public static var defaultNoteHoldSplash(default, never):String = 'noteSplashes/holdSplashes/holdSplash';
 
 	public function new():Void
@@ -38,6 +45,47 @@ class SustainSplash extends FlxSprite
 		}
 		animation.addByPrefix('hold', 'hold', 24, true);
 		animation.addByPrefix('end', 'end', 24, false);
+		endTimerCallback = onEndTimer;
+		endAnimCallback = onEndAnimFinished;
+	}
+
+	/**
+	 * Retires the splash back into `PlayState.grpHoldSplashes` and counts the return,
+	 * so the pool hit rate stays measurable. (#88)
+	 */
+	override public function kill():Void
+	{
+		if (timer != null) timer.cancel();
+		pendingNote = null;
+
+		if (exists)
+		{
+			super.kill();
+			PoolStats.release(PoolStats.HOLD_SPLASH);
+			return;
+		}
+		super.kill();
+	}
+
+	function onEndTimer(idk:FlxTimer):Void
+	{
+		final daNote:Note = pendingNote;
+		if (daNote != null && daNote.isSustainEnd && daNote.mustPress && !daNote.noteSplashData.disabled && ClientPrefs.noteSplashes)
+		{
+			alpha = 1;
+			animation.play('end', true, false, 0);
+			animation.curAnim.looped = false;
+			animation.curAnim.frameRate = 24;
+			clipRect = null;
+			animation.finishCallback = endAnimCallback;
+			return;
+		}
+		kill();
+	}
+
+	function onEndAnimFinished(idkEither:Dynamic):Void
+	{
+		kill();
 	}
 
 	override function update(elapsed)
@@ -74,7 +122,10 @@ class SustainSplash extends FlxSprite
 
 		shader = (ClientPrefs.enableColorShader ? rgbShader.shader : null);
 
-		clipRect = new flixel.math.FlxRect(0, !PlayState.isPixelStage ? 0 : -210, frameWidth, frameHeight);
+		// Reuse the clip rect instead of allocating one per spawn. (#88)
+		final clip:FlxRect = clipRect != null ? clipRect : new FlxRect();
+		clip.set(0, !PlayState.isPixelStage ? 0 : -210, frameWidth, frameHeight);
+		clipRect = clip;
 
 		if (daNote != null && daNote.rgbShader != null)
 		{
@@ -99,31 +150,19 @@ class SustainSplash extends FlxSprite
 		}
 
 		strumNote = strum;
-
-		if (timer != null)
-			timer.cancel();
+		pendingNote = daNote;
 
 		offset.set(PlayState.isPixelStage ? 112.5 : 106.25, 100);
 
 		setPosition(strumNote.x, strumNote.y);
 
-		timer = new FlxTimer().start(timeThingy, (idk:FlxTimer) ->
-		{
-			if (daNote.isSustainEnd && daNote.mustPress && !daNote.noteSplashData.disabled && ClientPrefs.noteSplashes)
-			{
-				alpha = 1;
-				animation.play('end', true, false, 0);
-				animation.curAnim.looped = false;
-				animation.curAnim.frameRate = 24;
-				clipRect = null;
-				animation.finishCallback = (idkEither:Dynamic) ->
-				{
-					kill();
-				}
-				return;
-			}
-			kill();
-		});
+		// One reusable timer per pooled splash: a fresh FlxTimer + closure per spawn
+		// was the bulk of the hold-splash garbage. (#88)
+		if (timer == null)
+			timer = new FlxTimer();
+		else
+			timer.cancel();
+		timer.start(timeThingy, endTimerCallback);
 	}
 
 	public static function getSplashSkinPostfix()
