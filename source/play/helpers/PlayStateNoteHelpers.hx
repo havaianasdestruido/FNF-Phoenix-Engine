@@ -1,9 +1,14 @@
 package play.helpers;
 
+import flixel.util.FlxSort;
+
 import backend.ClientPrefs;
 import backend.Conductor;
 import backend.ScreenLayout;
 
+import debug.PoolStats;
+
+import objects.Character;
 import objects.Note;
 import objects.NoteSplash;
 import objects.StrumNote;
@@ -12,11 +17,40 @@ import play.objects.SustainSplash;
 
 import play.PlayState;
 
+import shaders.CrossFade;
+
 // REFACTOR: note group/splash helpers extracted from play.PlayState
 @:access(play.PlayState)
 @:access(backend.MusicBeatState)
 class PlayStateNoteHelpers
 {
+	/**
+	 * Note groups are sorted twice per frame during gameplay, and
+	 * `FlxTypedGroup.sort()` binds a brand new closure on every call. These two
+	 * comparators are bound once at class-init time so the per-frame sort is
+	 * allocation free. (#88)
+	 */
+	static function compareNoteY(order:Int, note1:Note, note2:Note):Int
+	{
+		return FlxSort.byValues(order, note1.y, note2.y);
+	}
+
+	static final notesAscending:Note->Note->Int = compareNoteY.bind(FlxSort.ASCENDING);
+	static final notesDescending:Note->Note->Int = compareNoteY.bind(FlxSort.DESCENDING);
+
+	/**
+	 * Sorts one note group by `y` for the current scroll direction, reusing the
+	 * cached comparator instead of allocating a closure like
+	 * `FlxTypedGroup.sort()` does.
+	 *
+	 * @param group `PlayState.notes` or `PlayState.sustainNotes`.
+	 */
+	public static function sortNoteGroup(group:FlxTypedGroup<Note>):Void
+	{
+		if (group == null || group.length <= 1) return;
+		group.members.sort(ClientPrefs.downScroll ? notesAscending : notesDescending);
+	}
+
 	public static function addBehindGF(state:PlayState, obj:FlxObject)
 	{
 		state.insert(state.members.indexOf(state.gfGroup), obj);
@@ -32,50 +66,88 @@ class PlayStateNoteHelpers
 
 	public static function clearNotesBefore(state:PlayState, time:Float)
 	{
-		for (group in [state.notes, state.sustainNotes])
-		{
-			var i:Int = group.length - 1;
-			while (i >= 0) {
-				var daNote:Note = group.members[i];
-				if(daNote.strumTime - 350 < time)
-				{
-					daNote.active = false;
-					daNote.visible = false;
-					daNote.ignoreNote = true;
-					group.remove(daNote, true);
-				}
-				--i;
+		// #88: no `[state.notes, state.sustainNotes]` array per call — these run on every seek.
+		clearGroupNotesBefore(state.notes, time);
+		clearGroupNotesBefore(state.sustainNotes, time);
+	}
+
+	static function clearGroupNotesBefore(group:FlxTypedGroup<Note>, time:Float)
+	{
+		if (group == null) return;
+		var i:Int = group.length - 1;
+		while (i >= 0) {
+			var daNote:Note = group.members[i];
+			if(daNote.strumTime - 350 < time)
+			{
+				daNote.active = false;
+				daNote.visible = false;
+				daNote.ignoreNote = true;
+				daNote.pendingKill = false;
+				PoolStats.release(daNote.isSustainNote ? PoolStats.SUSTAIN : PoolStats.NOTE);
+				group.remove(daNote, true);
 			}
+			--i;
 		}
 	}
 
 	public static function KillNotes(state:PlayState) {
-		for (group in [state.notes, state.sustainNotes]){
-			if (group != null){
-				while (group.length > 0) {
-					group.remove(group.members[0], true);
-				}
-			}
-		}
+		killNoteGroup(state.notes);
+		killNoteGroup(state.sustainNotes);
 		//unspawnNotes = [];
 		//eventNotes = [];
 	}
 
-	public static function invalidateNote(state:PlayState, note:Note):Void {
-		if (!state.killNotes.contains(note))
-			state.killNotes.push(note);
+	static function killNoteGroup(group:FlxTypedGroup<Note>)
+	{
+		if (group == null) return;
+		while (group.length > 0)
+		{
+			final daNote:Note = group.members[0];
+			if (daNote != null)
+			{
+				daNote.pendingKill = false;
+				PoolStats.release(daNote.isSustainNote ? PoolStats.SUSTAIN : PoolStats.NOTE);
+			}
+			group.remove(daNote, true);
+		}
 	}
 
+	/**
+	 * Queues a note for recycling at the end of the frame.
+	 *
+	 * The `killNotes` array used to be scanned with `contains()` on every call,
+	 * which is O(live notes) per note per frame; the queue membership now lives on
+	 * the note itself. (#88)
+	 */
+	public static function invalidateNote(state:PlayState, note:Note):Void {
+		if (note == null || note.pendingKill) return;
+		note.pendingKill = true;
+		state.killNotes.push(note);
+	}
+
+	/**
+	 * Kills every queued note and empties the queue in place.
+	 *
+	 * Runs once per frame, so it must not allocate: the previous `killNotes = []`
+	 * threw away a fresh array every frame and `iterator()` added another object
+	 * on top. Killed notes stay group members with `exists == false`, which is
+	 * exactly what `FlxTypedGroup.recycle()` picks up next time a note spawns.
+	 */
 	public static function destroyNotes(state:PlayState):Void
 	{
-		final iterator:Iterator<Note> = state.killNotes.iterator();
+		final killList:Array<Note> = state.killNotes;
 
-		while (iterator.hasNext())
+		// shift() keeps the same array alive: `killNotes = []` used to allocate a
+		// fresh array every frame, and `iterator()` allocated on top of it.
+		while (killList.length > 0)
 		{
-			var noteKill:Note = iterator.next();
+			final noteKill:Note = killList.shift();
+			if (noteKill == null) continue;
+
 			noteKill.kill();
+			noteKill.pendingKill = false; // cleared after kill() so nothing can re-queue mid-kill
+			PoolStats.release(noteKill.isSustainNote ? PoolStats.SUSTAIN : PoolStats.NOTE);
 		}
-		state.killNotes = [];
 	}
 
 	public static function spawnHoldSplashOnNote(state:PlayState, note:Note, ?isDad:Bool = false) {
@@ -95,10 +167,14 @@ class PlayStateNoteHelpers
 	}
 
 	public static function spawnHoldSplash(state:PlayState, note:Note) {
-		var end:Note = note;
-		var splash:SustainSplash = state.grpHoldSplashes.recycle(SustainSplash);
+		final group:FlxTypedGroup<SustainSplash> = state.grpHoldSplashes;
+		final pooled:Int = group.length;
+		var splash:SustainSplash = group.recycle(SustainSplash);
+		// A grow/rotate pool only changes the group size when it had to construct. (#88)
+		PoolStats.spawn(PoolStats.HOLD_SPLASH, group.length == pooled);
 		splash.setupSusSplash((note.mustPress ? state.playerStrums : state.opponentStrums).members[note.noteData], note, state.playbackRate);
-		state.grpHoldSplashes.add(end.noteHoldSplash = splash);
+		note.noteHoldSplash = splash;
+		group.add(splash);
 	}
 
 	public static function spawnNoteSplashOnNote(state:PlayState, isDad:Bool, note:Note) {
@@ -111,9 +187,40 @@ class PlayStateNoteHelpers
 	}
 
 	public static function spawnNoteSplash(state:PlayState, x:Float, y:Float, data:Int, ?note:Note = null) {
-		var splash:NoteSplash = state.grpNoteSplashes.recycle(NoteSplash);
+		final group:FlxTypedGroup<NoteSplash> = state.grpNoteSplashes;
+		final pooled:Int = group.length;
+		var splash:NoteSplash = group.recycle(NoteSplash);
+		PoolStats.spawn(PoolStats.NOTE_SPLASH, group.length == pooled);
 		splash.setupNoteSplash(x, y, data, note);
-		state.grpNoteSplashes.add(splash);
+		group.add(splash);
+	}
+
+	/**
+	 * Spawns a cross fade ghost out of its pool.
+	 *
+	 * Replaces the old `new CrossFade(...)` call sites, which allocated a sprite, a
+	 * frames copy, an animation and a tween callback on every opponent note hit that
+	 * carried the effect. (#88)
+	 *
+	 * @param group     one of `PlayState.grpCrossFade` / `grpGFCrossFade` / `grpBFCrossFade`.
+	 * @param character the character to ghost.
+	 * @param isDad     `true` on the opponent side of the strum line.
+	 */
+	public static function spawnCrossFade(group:FlxTypedGroup<CrossFade>, character:Character, ?isDad:Bool = true):Void
+	{
+		if (group == null || character == null) return;
+
+		final pooled:Int = group.length;
+		final fade:CrossFade = group.recycle(CrossFade);
+		PoolStats.spawn(PoolStats.CROSS_FADE, group.length == pooled);
+
+		// Characters that already draw a FlxTrail skip the effect; drop the pooled
+		// instance again so it does not linger as a dead member.
+		if (!fade.setup(character, isDad))
+		{
+			group.remove(fade, true);
+			fade.destroy();
+		}
 	}
 
 	public static function generateStaticArrows(state:PlayState, player:Int):Void

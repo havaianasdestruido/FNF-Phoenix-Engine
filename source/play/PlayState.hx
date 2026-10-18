@@ -20,6 +20,8 @@ import data.Section.SwagSection;
 import data.Song;
 import data.StageData;
 
+import debug.PoolStats;
+
 import editors.CharacterEditorState;
 import editors.ChartingState;
 
@@ -37,6 +39,23 @@ import play.BaseStage;
 import play.BaseStage.Countdown;
 // REFACTOR: import kept for safety against stale global `BaseStage.Countdown` in source\import.hx
 import play.CutsceneHandler;
+// The decomposed gameplay helpers live in `play.helpers`. Haxe only resolves
+// unqualified types from the current package (`play`), so every helper this file
+// delegates to has to be imported explicitly. (#88: found while adding
+// PlayStateNoteHelpers.sortNoteGroup calls to update())
+import play.helpers.PlayStateCamera;
+import play.helpers.PlayStateCharacters;
+import play.helpers.PlayStateChartLoader;
+import play.helpers.PlayStateCountdown;
+import play.helpers.PlayStateCutscenes;
+import play.helpers.PlayStateEvents;
+import play.helpers.PlayStateInput;
+import play.helpers.PlayStateNoteHelpers;
+import play.helpers.PlayStateNotes;
+import play.helpers.PlayStatePlayback;
+import play.helpers.PlayStateRating;
+import play.helpers.PlayStateRender;
+import play.helpers.PlayStateScripts;
 import play.helpers.PlayStateAndroidMedia;
 #if android
 import android.platform.AndroidHardwareInput;
@@ -473,6 +492,9 @@ class PlayState extends MusicBeatState
 
 	override public function create()
 	{
+		// #88: per-play pool accounting so the debug overlay reports this song's numbers.
+		PoolStats.reset();
+
 		layoutWidth = FlxG.width;
 		FlxG.mouse.visible = false;
 		//Stops playing on a height that isn't divisible by 2
@@ -2021,23 +2043,12 @@ class PlayState extends MusicBeatState
 		#if android
 		PlayStateHardwareInput.syncVolumeKeys(this);
 		#end
+		// #88: the ghosts are pooled now, so dead ones stay in their group as pool
+		// members instead of being removed (and destroyed) every frame. That also
+		// drops the three per-frame `forEachDead` closures.
 		grpCrossFade.update(elapsed);
-		grpCrossFade.forEachDead(function(img:CrossFade)
-		{
-			grpCrossFade.remove(img, true);
-		});
-
 		grpGFCrossFade.update(elapsed);
-		grpGFCrossFade.forEachDead(function(img:CrossFade)
-		{
-			grpGFCrossFade.remove(img, true);
-		});
-
 		grpBFCrossFade.update(elapsed);
-		grpBFCrossFade.forEachDead(function(img:CrossFade)
-		{
-			grpBFCrossFade.remove(img, true);
-		});
 
 		if (ffmpegMode) elapsed = 1 / ClientPrefs.targetFPS;
 		if (screenshader.enabled)
@@ -2115,7 +2126,10 @@ class PlayState extends MusicBeatState
 		energyTxt.text = (botEnergy < 2 ? FlxMath.roundDecimal(botEnergy * 50, 0) + '%' : 'Full');
 		energyTxt.y = (FlxG.height / 1.3) - (botEnergy * 50 * 4);
 
-		callOnLuas('onUpdate', [elapsed]);
+		// #88: the `[elapsed]` literal is allocated by the caller, so skipping the
+		// dispatch when no script is loaded removes a per-frame array (plus the two
+		// more that callOnScripts builds for its default arguments).
+		if (hasActiveScripts()) callOnLuas('onUpdate', [elapsed]);
 		super.update(elapsed);
 
 		if (tankmanAscend && curStep > 895 && curStep < 1151) camGame.zoom = 0.8;
@@ -2361,11 +2375,10 @@ class PlayState extends MusicBeatState
 
 				amountOfRenderedNotes = 0;
 				notes.forEach(updateNote);
-				if (notes.length > 1)
-					notes.sort(FlxSort.byY, ClientPrefs.downScroll ? FlxSort.ASCENDING : FlxSort.DESCENDING);
+				// #88: cached comparators — FlxTypedGroup.sort() binds a new closure per call.
+				PlayStateNoteHelpers.sortNoteGroup(notes);
 				sustainNotes.forEach(updateNote);
-				if (sustainNotes.length > 1)
-					sustainNotes.sort(FlxSort.byY, ClientPrefs.downScroll ? FlxSort.ASCENDING : FlxSort.DESCENDING);
+				PlayStateNoteHelpers.sortNoteGroup(sustainNotes);
 			}
 
 			destroyNotes();
@@ -2430,10 +2443,15 @@ class PlayState extends MusicBeatState
 			else renderedTxt.text = 'Rendered Notes: ${formatNumber(amountOfRenderedNotes)}/${formatNumber(maxRenderedNotes)}/${formatNumber(notes.members.length + sustainNotes.members.length)}';
 		}
 
-		setOnLuas('cameraX', camFollowPos.x);
-		setOnLuas('cameraY', camFollowPos.y);
-		setOnLuas('botPlay', cpuControlled);
-		callOnLuas('onUpdatePost', [elapsed]);
+		// #88: same reasoning as onUpdate — three boxed values plus an array per frame
+		// that nobody reads when no script is attached.
+		if (hasActiveScripts())
+		{
+			setOnLuas('cameraX', camFollowPos.x);
+			setOnLuas('cameraY', camFollowPos.y);
+			setOnLuas('botPlay', cpuControlled);
+			callOnLuas('onUpdatePost', [elapsed]);
+		}
 
 		if (shaderUpdates.length > 0)
 			for (i in shaderUpdates){

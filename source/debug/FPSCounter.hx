@@ -1,6 +1,7 @@
 package debug;
 
 import debug.FrameProfiler;
+import debug.PoolStats;
 import debug.mem.GetTotalMemory;
 import lime.system.System as LimeSystem;
 import openfl.events.Event;
@@ -160,6 +161,10 @@ class FPSCounter extends TextField
       + (ClientPrefs.showMaxRamUsage ? " / " + MemoryUtil.formatMemory(mempeak) : "");
     if (ClientPrefs.frameProfiler || ClientPrefs.debugInfo)
       text += "\n" + FrameProfiler.getOverlayText();
+    // #88: pool hit rates for the gameplay pools. HTML5 has no readable managed heap,
+    // so this is the allocation signal available on web (built once a second, off the hot path).
+    if (ClientPrefs.debugInfo && PoolStats.totalSpawned() > 0)
+      text += "\nPools: " + PoolStats.summary();
     if (ClientPrefs.debugInfo)
     {
       text += '\nCurrent state: ${Type.getClassName(Type.getClass(FlxG.state))}';
