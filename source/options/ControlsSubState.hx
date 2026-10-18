@@ -1,4 +1,4 @@
-﻿package options;
+package options;
 
 import flixel.input.FlxInput;
 import flixel.input.keyboard.FlxKey;
@@ -236,6 +236,8 @@ class ControlsSubState extends MusicBeatSubstate {
 			#if android
 			if (capturingHardware) {
 				if (FlxG.keys.checkStatus(BACKSPACE, JUST_PRESSED)) {
+					// Qualified: this file imports flixel.text.FlxText, and
+					// FlxTextBorderStyle.NONE shadows the bare NONE here.
 					setBindSlot(FlxKey.NONE);
 					bound = true;
 				} else if (pendingHardwareKey > -1) {

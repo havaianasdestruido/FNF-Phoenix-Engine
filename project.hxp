@@ -1232,22 +1232,31 @@ class Project extends HXProject
 		for (file in sys.FileSystem.readDirectory(path))
 		{
 			var fullPath = '${path}/${file}';
-			// Broken/optional symlinks (for example an uninitialised linked mod)
-			// must not abort project evaluation before Haxe can compile.
-			if (!sys.FileSystem.exists(fullPath)) continue;
-			if (sys.FileSystem.isDirectory(fullPath))
+
+			// Resolve the entry before typing it: on HashLink/Neko
+			// `FileSystem.isDirectory()` throws `std@sys_file_type` when the path
+			// cannot be stat()ed, and a dangling symlink is enough to trigger it
+			// (e.g. `mods/fnf_030_ui` pointing inside the `mods/psych-scripts`
+			// submodule, which a plain `actions/checkout` never populates).
+			// That exception aborted *every* Windows/Android build (#129), so a
+			// missing target is now a warning instead of a dead build.
+			if (!sys.FileSystem.exists(fullPath))
+			{
+				Log.warn('Skipping asset "${fullPath}": the path does not exist (broken symlink?).');
+			}
+			else if (sys.FileSystem.isDirectory(fullPath))
 			{
 				// Attempt to recursively add all assets in the directory.
 				if (this.filter(file, ["*"], exclude))
 				{
-					addAssetPath('${path}/${file}', '${targetPath}${file}', library, include, exclude, embed);
+					addAssetPath(fullPath, '${targetPath}${file}', library, include, exclude, embed);
 				}
 			}
 			else
 			{
 				if (this.filter(file, include, exclude))
 				{
-					addAsset('${path}/${file}', '${targetPath}${file}', library, embed);
+					addAsset(fullPath, '${targetPath}${file}', library, embed);
 				}
 			}
 		}
