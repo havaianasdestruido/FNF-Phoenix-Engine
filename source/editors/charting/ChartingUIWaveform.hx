@@ -6,7 +6,6 @@ import haxe.io.Bytes;
 import lime.media.AudioBuffer;
 
 // REFACTOR: imports for relocated root classes
-import backend.Conductor;
 @:access(flixel.sound.FlxSound._sound)
 @:access(openfl.media.Sound.__buffer)
 
@@ -43,9 +42,8 @@ class ChartingUIWaveform
     state.wavData[1][0] = [];
     state.wavData[1][1] = [];
 
-    var steps:Int = Math.round(state.getSectionBeats() * 4);
     var st:Float = state.sectionStartTime();
-    var et:Float = st + (Conductor.stepCrochet * steps);
+    var et:Float = state.sectionStartTime(1);
 
     var sound:FlxSound = FlxG.sound.music;
     if (FlxG.save.data.chart_waveformVoices) sound = state.vocals;

@@ -1,7 +1,6 @@
 package editors.charting;
 
 // REFACTOR: extracted from editors.ChartingState (behavior-preserving)
-import backend.Conductor;
 import backend.Paths;
 import editors.ChartingState;
 import editors.charting.AttachedFlxText;
@@ -167,7 +166,7 @@ class ChartingEvents
 
   public static function addNote(state:ChartingState, strum:Null<Float> = null, data:Null<Int> = null, type:Null<Int> = null, ?gridUpdate:Bool = true):Void
   {
-    var noteStrum = state.getStrumTime(state.selectionNote.y * (state.getSectionBeats() / 4), false) + state.sectionStartTime();
+    var noteStrum = state.getStrumTime(state.selectionNote.y) + state.sectionStartTime();
     var noteData:Int = Math.floor((FlxG.mouse.x - ChartingState.GRID_SIZE) / ChartingState.GRID_SIZE);
     var noteSus = 0;
     var daAlt = false;
@@ -221,12 +220,11 @@ class ChartingEvents
           daText.sprTracker = note;
         // trace('test: ' + i[0], 'startThing: ' + startThing, 'endThing: ' + endThing);
         default:
-          var beats:Float = state.getSectionBeats();
           var note:Note = state.setupNoteData(state.curSelectedNote, false);
           state.curRenderedNotes.add(note);
           if (note.sustainLength > 0)
           {
-            state.curRenderedSustains.add(state.setupSusNote(note, beats));
+            state.curRenderedSustains.add(state.setupSusNote(note, ChartingState.curSec));
           }
 
           if (state.curSelectedNote[3] != null && note.noteType != null && note.noteType.length > 0)

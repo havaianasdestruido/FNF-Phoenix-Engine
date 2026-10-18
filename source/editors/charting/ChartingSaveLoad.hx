@@ -82,6 +82,7 @@ class ChartingSaveLoad
     if (state.undos.length > 0 && state.saveUndoCheck.checked)
     {
       state._song.notes = state.undos[0];
+      state.rebuildBPMMap();
       state.redos.unshift(state.undos[0]);
       state.undos.splice(0, 1);
       state.lastUndoData = null;

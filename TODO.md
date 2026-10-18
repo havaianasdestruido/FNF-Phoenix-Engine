@@ -44,7 +44,7 @@ Generated from full repo audit. Priority: `[P0]` critical/blocker, `[P1]` high, 
 ## 2. GAMEPLAY / PSYCH SYNC (P3 imports)
 
 - **[P2] Add missing `import`s/defines for full Psych parity** — audit found non-compiling-on-clean-machine deps (`backend.MusicBeatState` in `CopyState`, `ChartingUIWaveform` AIR gating). Grep revealed: `WeekData.hx`, `MusicPlayer.hx`, `PsychLua` all fine, but verify `#if desktop` vs `#if (desktop && !air)` at the 5 leftover audit sites (see §9). ([#74](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/issues/74))
-- **[P1] Double-chart / charting BPM** `ChartingState.hx:574` TODO "expand more & port the 1.0 system" and `:617` TODO "make BPM changes work properly" — BPM-change-aware step/section math is a real gameplay-integrity gap vs Psych. ([#67](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/issues/67))
+- **[P1] ~~Double-chart / charting BPM~~ DONE** — Chart section/time conversions now use the BPM map and section step lengths; scrubbing, navigation, note placement and section previews stay aligned across tempo changes. ([#67](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/issues/67))
 - **[P3] Missing funkin.vis cross-target** — `SpectralAnalyzer` patched; check hacking shaders (`Glitch`, `Chromatic`, `Malmo`?) compile on flash/air (`#if desktop` guard audit, §9). ([#79](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/issues/79))
 
 ### 2.1. 4th WALL BREAKING
