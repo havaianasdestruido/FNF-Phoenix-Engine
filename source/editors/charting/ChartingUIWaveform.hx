@@ -4,18 +4,26 @@ package editors.charting;
 import editors.ChartingState;
 import haxe.io.Bytes;
 import lime.media.AudioBuffer;
+import flixel.FlxG;
+import flixel.math.FlxMath;
+import flixel.sound.FlxSound;
+import flixel.util.FlxColor;
+import openfl.geom.Rectangle;
 
 // REFACTOR: imports for relocated root classes
 import backend.Conductor;
+
+// These private native buffer fields are used only by the desktop waveform renderer.
+#if (desktop && !air)
 @:access(flixel.sound.FlxSound._sound)
 @:access(openfl.media.Sound.__buffer)
-
 @:access(editors.ChartingState)
-@:access(backend.MusicBeatState)
+#end
 class ChartingUIWaveform
 {
   public static function updateWaveform(state:ChartingState)
   {
+    // AIR does not expose the same native sound-buffer internals as desktop.
     #if (desktop && !air)
     if (state.waveformPrinted)
     {
@@ -101,7 +109,7 @@ class ChartingUIWaveform
   public static function waveformData(buffer:AudioBuffer, bytes:Bytes, time:Float, endTime:Float, multiply:Float = 1, ?array:Array<Array<Array<Float>>>,
       ?steps:Float):Array<Array<Array<Float>>>
   {
-    #if (lime_cffi && !macro)
+    #if (lime_cffi && !macro && !flash && !air)
     if (buffer == null || buffer.data == null) return [[[0], [0]], [[0], [0]]];
 
     var khz:Float = (buffer.sampleRate / 1000);
