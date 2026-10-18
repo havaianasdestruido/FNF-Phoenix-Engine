@@ -14,7 +14,10 @@ name: Sparse Submodule (fnf_030_ui)
 #
 # mods/fnf_030_ui is a symlink to psych-scripts/fnf_030_ui, so once this
 # workflow finishes the engine sees a normal top-level mod with
-# pack.json at mods/fnf_030_ui/pack.json.
+# pack.json at mods/fnf_030_ui/pack.json. The symlink is NOT tracked in git
+# (#129): a plain checkout of the repo has an empty psych-scripts/ folder, so
+# the committed link dangled and `lime build` died walking mods/. This job
+# creates it after the sparse clone instead.
 
 on:
   push:
@@ -22,14 +25,12 @@ on:
     paths:
       - ".gitmodules"
       - "mods/psych-scripts"
-      - "mods/fnf_030_ui"
       - ".github/workflows/sparse-submodule.yml"
   pull_request:
     branches: [main]
     paths:
       - ".gitmodules"
       - "mods/psych-scripts"
-      - "mods/fnf_030_ui"
       - ".github/workflows/sparse-submodule.yml"
   workflow_dispatch:
   # Lets other workflows (e.g. Build) reuse this clone step as a job.
@@ -89,6 +90,18 @@ jobs:
           # so `git submodule status` and friends work as usual.
           git submodule absorbgitdirs "$SUBMODULE_PATH"
 
+      - name: Link mods/fnf_030_ui to the sparse checkout
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          # Not tracked in git on purpose (#129). A dangling symlink makes
+          # `sys.FileSystem.isDirectory()` throw `std@sys_file_type` while
+          # project.hxp walks mods/, which broke every Windows/Android build.
+          rm -f mods/fnf_030_ui
+          ln -s psych-scripts/fnf_030_ui mods/fnf_030_ui
+          test -f mods/fnf_030_ui/pack.json
+
       - name: Verify only fnf_030_ui was checked out
         env:
           SUBMODULE_PATH: mods/psych-scripts
@@ -99,8 +112,8 @@ jobs:
           echo "Sparse patterns:"
           git -C "$SUBMODULE_PATH" sparse-checkout list
 
-          # The mod is present, at the pinned commit, through both the
-          # real path and the top-level mods/fnf_030_ui symlink.
+          # The mod is present, at the pinned commit, through both the real
+          # path and the mods/fnf_030_ui symlink created in the previous step.
           test -f "$SUBMODULE_PATH/fnf_030_ui/pack.json"
           test -f "mods/fnf_030_ui/pack.json"
           test "$(git -C "$SUBMODULE_PATH" rev-parse HEAD)" = "$PINNED"
