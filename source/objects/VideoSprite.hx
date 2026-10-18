@@ -63,8 +63,11 @@ class VideoSprite extends FlxSpriteGroup
   private function layoutVideo():Void
   {
     if (videoSprite == null) return;
-    final width:Float = videoSprite.frameWidth > 0 ? videoSprite.frameWidth : videoSprite.bitmap.formatWidth;
-    final height:Float = videoSprite.frameHeight > 0 ? videoSprite.frameHeight : videoSprite.bitmap.formatHeight;
+    // The pinned hxvlc exposes the decoded frame as a plain Bitmap's
+    // bitmapData (there is no formatWidth/formatHeight on hxvlc.funkin.FunkinInternalVideo).
+    final frame:openfl.display.BitmapData = videoSprite.bitmap != null ? videoSprite.bitmap.bitmapData : null;
+    final width:Float = videoSprite.frameWidth > 0 ? videoSprite.frameWidth : (frame != null ? frame.width : 0);
+    final height:Float = videoSprite.frameHeight > 0 ? videoSprite.frameHeight : (frame != null ? frame.height : 0);
     if (width <= 0 || height <= 0) return;
     final scale:Float = Math.max(FlxG.width / width, FlxG.height / height);
     videoSprite.scale.set(scale, scale);
