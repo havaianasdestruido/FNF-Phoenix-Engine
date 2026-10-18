@@ -38,6 +38,10 @@ import play.BaseStage.Countdown;
 // REFACTOR: import kept for safety against stale global `BaseStage.Countdown` in source\import.hx
 import play.CutsceneHandler;
 import play.helpers.PlayStateAndroidMedia;
+#if android
+import android.platform.AndroidHardwareInput;
+import play.helpers.PlayStateHardwareInput;
+#end
 import play.objects.*;
 
 import headers.Play;
@@ -1553,6 +1557,11 @@ class PlayState extends MusicBeatState
 			FlxG.stage.addEventListener(KeyboardEvent.KEY_UP, onKeyRelease);
 		}
 
+		#if android
+		hardwareKeyHandler = onHardwareKey;
+		AndroidHardwareInput.onKey.add(hardwareKeyHandler);
+		#end
+
 		//PRECACHING THINGS THAT GET USED FREQUENTLY TO AVOID LAGSPIKES
 		if (hitSoundString != "none")
 			hitsound = FlxG.sound.load(Paths.sound("hitsounds/" + Std.string(hitSoundString).toLowerCase()));
@@ -1903,6 +1912,11 @@ class PlayState extends MusicBeatState
 			FlxTween.globalManager.forEach(function(twn:FlxTween) if(!twn.finished) twn.active = false);
 		}
 
+		#if android
+		// Menus opened over gameplay (pause, game over, ...) get the system volume keys back.
+		PlayStateHardwareInput.syncVolumeKeys(this, true);
+		#end
+
 		super.openSubState(SubState);
 	}
 
@@ -1986,6 +2000,11 @@ class PlayState extends MusicBeatState
 	var strumsHeld:Array<Bool> = [false, false, false, false];
 	var strumHeldAmount:Int = 0;
 	var holdArray:Array<Bool> = [false, false, false, false];
+	#if android
+	// Hardware triggers (volume keys) currently held, per note lane; see PlayStateHardwareInput.
+	var hardwareHeld:Array<Bool> = [false, false, false, false];
+	var hardwareKeyHandler:Int->Bool->Void = null;
+	#end
 	var pressArray:Array<Bool> = [false, false, false, false];
 	var releaseArray:Array<Bool> = [false, false, false, false];
 	var notesBeingHit:Bool = false;
@@ -1998,6 +2017,9 @@ class PlayState extends MusicBeatState
 
 	override public function update(elapsed:Float)
 	{
+		#if android
+		PlayStateHardwareInput.syncVolumeKeys(this);
+		#end
 		grpCrossFade.update(elapsed);
 		grpCrossFade.forEachDead(function(img:CrossFade)
 		{
@@ -2746,6 +2768,13 @@ class PlayState extends MusicBeatState
 		PlayStateInput.onKeyRelease(this, event);
 	}
 
+	#if android
+	private function onHardwareKey(keyCode:Int, down:Bool):Void
+	{
+		PlayStateHardwareInput.onHardwareKey(this, keyCode, down);
+	}
+	#end
+
 	private function keyReleased(key:Int)
 	{
 		// REFACTOR: delegated to play.helpers
@@ -2894,6 +2923,15 @@ class PlayState extends MusicBeatState
 			FlxG.stage.removeEventListener(KeyboardEvent.KEY_DOWN, onKeyPress);
 			FlxG.stage.removeEventListener(KeyboardEvent.KEY_UP, onKeyRelease);
 		}
+
+		#if android
+		if (hardwareKeyHandler != null)
+		{
+			AndroidHardwareInput.onKey.remove(hardwareKeyHandler);
+			hardwareKeyHandler = null;
+		}
+		PlayStateHardwareInput.release(this);
+		#end
 		FlxG.animationTimeScale = 1;
 		FlxG.sound.music.pitch = 1;
 		#if cpp
