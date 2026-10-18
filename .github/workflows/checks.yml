@@ -41,5 +41,5 @@ jobs:
       - uses: krdlab/setup-haxe@master
         with:
           haxe-version: "4.3.7"
-      - name: Test viewport, touch lanes and resize rollback
+      - name: Test viewport, touch lanes, resize rollback and script scanning
         run: bash tests/haxe/run-layout.sh

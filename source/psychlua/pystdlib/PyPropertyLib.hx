@@ -87,6 +87,7 @@ class PyPropertyLib
 			Reflect.getProperty(py.getInstance(), obj).remove(Reflect.getProperty(py.getInstance(), obj)[index]);
 		});
 		PythonScript.registerFunction("getPropertyFromClass", function(classVar:String, variable:String) {
+			if(!py.allowClassAccess(classVar)) return null;
 			@:privateAccess
 			var killMe:Array<String> = variable.split('.');
 			if(killMe.length > 1) {
@@ -99,6 +100,7 @@ class PyPropertyLib
 			return FunkinLua.getVarInArray(LuaUtils.resolveClassCompat(classVar), variable);
 		});
 		PythonScript.registerFunction("setPropertyFromClass", function(classVar:String, variable:String, value:Dynamic) {
+			if(!py.allowClassAccess(classVar)) return false;
 			@:privateAccess
 			var killMe:Array<String> = variable.split('.');
 			if(killMe.length > 1) {

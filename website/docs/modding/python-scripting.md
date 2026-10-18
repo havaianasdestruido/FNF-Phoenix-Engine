@@ -37,6 +37,15 @@ Exactly where Lua scripts go, with a `.py` extension:
 
 Lua and Python scripts coexist; both are loaded and both receive every hook.
 
+:::caution[Softmod sandbox]
+
+Python files under `mods/` are source-scanned before Hython is created. Dangerous
+OS/process/network/file imports and APIs are blocked by default, and host Haxe class
+resolution is disabled. A finding stops that script and logs its mod, file and line. See
+[Script security sandbox](./script-security.md) for the rules and per-mod allowlist.
+
+:::
+
 ## A minimal script
 
 ```python
