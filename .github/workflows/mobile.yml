@@ -2,7 +2,7 @@ name: Mobile
 
 on:
   push:
-    branches: [main]
+    branches: [main, bleeding]
 
   workflow_dispatch:
     inputs:
