@@ -173,11 +173,21 @@ class CrashHandler
 			errorMessage += 'Uncaught Error: $m\n\n$stackLabel';
 
 			#if sys
+			// The hardware information makes a bug report a lot more useful, but
+			// it must never keep the crash log itself from being written.
+			var systemInfo:String = 'System information unavailable.';
+			try
+			{
+				systemInfo = Native.buildSystemInfo();
+			}
+			catch (e)
+				systemInfo = 'System information unavailable.';
+
 			try
 			{
 				if (!FileSystem.exists("crash/"))
 					FileSystem.createDirectory("crash/");
-				File.saveContent(path, '$errorMessage\n\nCrash Happened on Phoenix Engine v${MainMenuState.phoenixEngineVersion} (JSE v${MainMenuState.psychEngineJSVersion})!');
+				File.saveContent(path, '$errorMessage\n\nCrash Happened on Phoenix Engine v${MainMenuState.phoenixEngineVersion} (JSE v${MainMenuState.psychEngineJSVersion})!\n\n$systemInfo');
 			}
 			catch (e)
 				trace('Couldn\'t save error message. (${e.message})');

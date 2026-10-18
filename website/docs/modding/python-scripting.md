@@ -37,6 +37,15 @@ Exactly where Lua scripts go, with a `.py` extension:
 
 Lua and Python scripts coexist; both are loaded and both receive every hook.
 
+:::caution[Softmod sandbox]
+
+Python files under `mods/` are source-scanned before Hython is created. Dangerous
+OS/process/network/file imports and APIs are blocked by default, and host Haxe class
+resolution is disabled. A finding stops that script and logs its mod, file and line. See
+[Script security sandbox](./script-security.md) for the rules and per-mod allowlist.
+
+:::
+
 ## A minimal script
 
 ```python
@@ -72,7 +81,7 @@ template with every hook — Lua and Python share the same hook list; the shippe
 | Booleans | `true` / `false` | `True` / `False` |
 | Nil | `nil` | `None` |
 | Tables as arguments | `{1, 2, 3}` | `[1, 2, 3]` |
-| Function count | 242 | 158 |
+| Function count | 253 | 168 |
 | Comments | `--` | `#` |
 
 Both languages receive every hook listed in [Script hooks](./script-hooks.md);
@@ -123,6 +132,6 @@ difference is irrelevant.
 
 ## Next
 
-- [Python API reference](./python-api-reference.md) — all 158 functions (generated).
+- [Python API reference](./python-api-reference.md) — all 168 functions (generated).
 - [Transparent window](./transparent-window.md) — make the game window see-through.
 - [Script hooks](./script-hooks.md) — the callbacks, shared with Lua.

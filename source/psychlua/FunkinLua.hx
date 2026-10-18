@@ -13,6 +13,8 @@ import openfl.display.BlendMode;
 import backend.Paths;
 import backend.ClientPrefs;
 import backend.WeekData;
+import backend.ModSecurity;
+import backend.ScriptSecurityScanner.ScriptSecurityFinding;
 import play.PlayState;
 import states.MainMenuState;
 import objects.NoteSplash;
@@ -21,6 +23,7 @@ import psychlua.callbacks.DeprecatedCallbacks;
 import psychlua.callbacks.EffectCallbacks;
 import psychlua.callbacks.FileCallbacks;
 import psychlua.callbacks.GameCallbacks;
+import psychlua.callbacks.HardwareCallbacks;
 import psychlua.callbacks.InputCallbacks;
 import psychlua.callbacks.MiscCallbacks;
 import psychlua.callbacks.PropertyCallbacks;
@@ -84,6 +87,11 @@ class FunkinLua {
 	public var modFolder:String = null;
 	public var closed:Bool = false;
 
+	/** Runtime half of the softmod sandbox; populated before Lua is created. */
+	public var sandboxed:Bool = false;
+	public var securityModName:String = null;
+	public var securityAllowlist:Array<String> = [];
+
 	#if HSCRIPT_ALLOWED
 	public var hscript:HScript = null;
 	#end
@@ -98,36 +106,90 @@ class FunkinLua {
 
 	public function new(scriptName:String, ?scriptCode:String) {
 		#if LUA_ALLOWED
+		this.scriptName = scriptName;
+		final game:PlayState = PlayState.instance;
+
+		// Read once, scan exactly those bytes, then execute the same buffer. This
+		// avoids a scan/dofile race where a mod could change the file in between.
+		var source:String = scriptCode;
+		if(source == null)
+		{
+			#if sys
+			try
+			{
+				if(FileSystem.exists(scriptName)) source = File.getContent(scriptName);
+			}
+			catch(e:Dynamic) {}
+			#end
+		}
+
+		var security = ModSecurity.checkScript(scriptName, source, 'lua');
+		sandboxed = security.sandboxed;
+		securityModName = security.modName;
+		securityAllowlist = security.allowlist;
+		modFolder = security.modFolder;
+		ModSecurity.report(security, function(message:String) game.addTextToDebug(message, FlxColor.RED));
+		if(security.findings.length > 0)
+		{
+			closed = true;
+			return;
+		}
+
 		lua = LuaL.newstate();
 		LuaL.openlibs(lua);
 
-		//trace('Lua version: ' + Lua.version());
-		//trace("LuaJIT version: " + Lua.versionJIT());
+		// Keep the safe base/string/table/math functions required by normal mods,
+		// but replace OS, IO, package, dynamic-code, and FFI entry points.
+		if(sandboxed)
+		{
+			var bootstrapResult:Int = LuaL.dostring(lua, ModSecurity.luaBootstrap(securityAllowlist));
+			if(bootstrapResult != Lua.OK)
+			{
+				var bootstrapError:String = Lua.tostring(lua, -1);
+				reportSecurityRuntime('failed to initialise Lua sandbox: ' + bootstrapError);
+				Lua.close(lua);
+				lua = null;
+				closed = true;
+				return;
+			}
+		}
 
-		//LuaL.dostring(lua, CLENSE);
-		this.scriptName = scriptName;
-		final game:PlayState = PlayState.instance;
 		game.luaArray.push(this);
+		try
+		{
+			var result:Int;
+			if(source != null)
+			{
+				result = LuaL.loadbuffer(lua, source, haxe.io.Bytes.ofString(source).length, '@' + scriptName);
+				if(result == Lua.OK) result = Lua.pcall(lua, 0, 0, 0);
+			}
+			else result = LuaL.dofile(lua, scriptName);
 
-		var myFolder:Array<String> = this.scriptName.split('/');
-		#if MODS_ALLOWED
-		if(myFolder[0] + '/' == Paths.mods() && (Mods.currentModDirectory == myFolder[1] || Mods.getGlobalMods().contains(myFolder[1]))) //is inside mods folder
-			this.modFolder = myFolder[1];
-		#end
-		try{
-			var result:Int = scriptCode != null ? LuaL.dostring(lua, scriptCode) : LuaL.dofile(lua, scriptName);
-			var resultStr:String = Lua.tostring(lua, result);
-			if(resultStr != null && result != 0) {
+			if(result != Lua.OK)
+			{
+				var resultStr:String = Lua.tostring(lua, -1);
+				if(resultStr == null) resultStr = 'Unknown Lua load error';
+				if(sandboxed && resultStr.indexOf('[ModSecurity]') >= 0)
+					resultStr = ModSecurity.formatRuntimeBlock(securityModName, this.scriptName, resultStr);
 				trace('Error on lua script! ' + resultStr);
 				#if windows
 				lime.app.Application.current.window.alert(resultStr, 'Error on lua script!');
 				#else
 				LuaUtils.luaTrace(lua, 'Error loading lua script: "$scriptName"\n' + resultStr, true, false, FlxColor.RED);
 				#end
+				game.luaArray.remove(this);
+				Lua.close(lua);
 				lua = null;
+				closed = true;
 				return;
 			}
-		} catch(e:Dynamic) {
+		}
+		catch(e:Dynamic)
+		{
+			game.luaArray.remove(this);
+			if(lua != null) Lua.close(lua);
+			lua = null;
+			closed = true;
 			trace(e);
 			return;
 		}
@@ -321,6 +383,8 @@ class FunkinLua {
 // REFACTOR: extracted to psychlua.callbacks.MiscCallbacks
 	MiscCallbacks.register(this);
 
+// REFACTOR: extracted to psychlua.callbacks.HardwareCallbacks
+	HardwareCallbacks.register(this);
 // REFACTOR: extracted to psychlua.callbacks.WindowCallbacks
 	WindowCallbacks.register(this);
 
@@ -341,6 +405,30 @@ class FunkinLua {
 
 		call('onCreate', []);
 		#end
+	}
+
+	/** Log a runtime guard failure to both the mod console and the process log. */
+	public function reportSecurityRuntime(capability:String, ?line:Int = 0):String
+	{
+		var message:String = ModSecurity.formatRuntimeBlock(securityModName, scriptName, capability, line);
+		trace(message);
+		if(PlayState.instance != null) PlayState.instance.addTextToDebug(message, FlxColor.RED);
+		return message;
+	}
+
+	public function reportSecurityFinding(context:String, finding:ScriptSecurityFinding):Void
+	{
+		reportSecurityRuntime('$context (${finding.rule}) at embedded line ${finding.line}: ${finding.description} | ${finding.snippet}');
+	}
+
+	public inline function allowsSecurityRule(rule:String):Bool
+		return ModSecurity.isRuleAllowed(rule, securityAllowlist);
+
+	public function allowClassAccess(className:String):Bool
+	{
+		if(!sandboxed || !ModSecurity.isPrivilegedClass(className) || allowsSecurityRule('engine.native-class')) return true;
+		reportSecurityRuntime('privileged class reflection: $className');
+		return false;
 	}
 
 	public function addLocalCallback(name:String, myFunction:Dynamic)
@@ -588,6 +676,8 @@ class FunkinLua {
 			// Checks if it's not successful, then show a error.
 			if (status != Lua.OK) {
 				var error:String = LuaUtils.getErrorMessage(lua, status);
+				if(sandboxed && error != null && error.indexOf('[ModSecurity]') >= 0)
+					error = ModSecurity.formatRuntimeBlock(securityModName, scriptName, error);
 				LuaUtils.luaTrace(lua, "ERROR (" + func + "): " + error, false, false, FlxColor.RED);
 				return Function_Continue;
 			}

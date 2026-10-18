@@ -10,6 +10,9 @@ import haxe.Exception;
 import backend.Paths;
 import backend.Conductor;
 import backend.ClientPrefs;
+import backend.ModSecurity;
+import backend.Native;
+import backend.ScriptSecurityScanner;
 import objects.Character;
 import objects.Alphabet;
 import play.PlayState;
@@ -67,6 +70,38 @@ class HScript
 		#end
 		interp.variables.set('ShaderFilter', openfl.filters.ShaderFilter);
 		interp.variables.set('StringTools', StringTools);
+		// Hardware information (GPU, driver, CPU, OS), mirroring the Lua API.
+		interp.variables.set('Native', Native);
+		interp.variables.set('getSystemInfo', function():String {
+			return Native.buildSystemInfo();
+		});
+		interp.variables.set('getGPUName', function():String {
+			return Native.getGPUName();
+		});
+		interp.variables.set('getGPUVendor', function():String {
+			return Native.getGPUVendor();
+		});
+		interp.variables.set('getGPUDriverVersion', function():String {
+			return Native.getGPUDriverVersion();
+		});
+		interp.variables.set('getCPUName', function():String {
+			return Native.getCPUName();
+		});
+		interp.variables.set('getCPUVendor', function():String {
+			return Native.getCPUVendor();
+		});
+		interp.variables.set('getOSName', function():String {
+			return Native.getOSName();
+		});
+		interp.variables.set('getOSVersion', function():String {
+			return Native.getOSVersion();
+		});
+		interp.variables.set('getGraphicsApi', function():String {
+			return Native.getGraphicsApi();
+		});
+		interp.variables.set('getAudioApi', function():String {
+			return Native.getSystemInfo().audioApi;
+		});
 
 		interp.variables.set('setVar', function(name:String, value:Dynamic)
 		{
@@ -117,6 +152,7 @@ class HScript
 				var str:String = '';
 				if(libPackage.length > 0)
 					str = libPackage + '.';
+				if(!parentLua.allowClassAccess(str + libName)) return;
 
 				var resolved:Class<Dynamic> = Type.resolveClass(str + libName); // REFACTOR: legacy bare-name fallback
 				if (resolved == null) resolved = LuaUtils.resolveClassCompat(libName);
@@ -134,6 +170,15 @@ class HScript
 	#if HSCRIPT_ALLOWED
 	public function execute(codeToRun:String, ?funcToRun:String = null, ?funcArgs:Array<Dynamic>):Dynamic
 	{
+		if(parentLua != null && parentLua.sandboxed)
+		{
+			var findings = ScriptSecurityScanner.scan(codeToRun, 'haxe', parentLua.securityAllowlist);
+			if(findings.length > 0)
+			{
+				for(finding in findings) parentLua.reportSecurityFinding('embedded HScript blocked', finding);
+				return null;
+			}
+		}
 		try {
 			var expr:Expr;
 			if (_parsedCache.exists(codeToRun))
@@ -229,6 +274,7 @@ class HScript
 				var str:String = '';
 				if(libPackage.length > 0)
 					str = libPackage + '.';
+				if(!funk.allowClassAccess(str + libName)) return;
 
 				var resolved:Class<Dynamic> = Type.resolveClass(str + libName); // REFACTOR: legacy bare-name fallback
 				if (resolved == null) resolved = LuaUtils.resolveClassCompat(libName);

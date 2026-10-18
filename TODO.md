@@ -43,16 +43,16 @@ Generated from full repo audit. Priority: `[P0]` critical/blocker, `[P1]` high, 
 
 ## 2. GAMEPLAY / PSYCH SYNC (P3 imports)
 
-- **[P2] Add missing `import`s/defines for full Psych parity** — audit found non-compiling-on-clean-machine deps (`backend.MusicBeatState` in `CopyState`, `ChartingUIWaveform` AIR gating). Grep revealed: `WeekData.hx`, `MusicPlayer.hx`, `PsychLua` all fine, but verify `#if desktop` vs `#if (desktop && !air)` at the 5 leftover audit sites (see §9). ([#74](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/issues/74))
-- **[P1] Double-chart / charting BPM** `ChartingState.hx:574` TODO "expand more & port the 1.0 system" and `:617` TODO "make BPM changes work properly" — BPM-change-aware step/section math is a real gameplay-integrity gap vs Psych. ([#67](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/issues/67))
+- **[P2] ~~Add missing `import`s/defines for full Psych parity~~ DONE** — `CopyState` scopes its backend imports to mobile builds; `ChartingUIWaveform` explicitly imports its extracted dependencies and gates private native-buffer access away from AIR/Flash. The remaining target-guard decisions are documented in §9. ([#74](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/issues/74))
+- **[P1] ~~Double-chart / charting BPM~~ DONE** — Chart section/time conversions now use the BPM map and section step lengths; scrubbing, navigation, note placement and section previews stay aligned across tempo changes. ([#67](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/issues/67))
 - **[P3] Missing funkin.vis cross-target** — `SpectralAnalyzer` patched; check hacking shaders (`Glitch`, `Chromatic`, `Malmo`?) compile on flash/air (`#if desktop` guard audit, §9). ([#79](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/issues/79))
 
 ### 2.1. 4th WALL BREAKING
 
 - Port most of `META_HORROR` elements from here: [https://github.com/notmagniill/psych-engine-modified-build/blob/stable/source/backend/CoolUtil.hx](https://github.com/notmagniill/psych-engine-modified-build/blob/stable/source/backend/CoolUtil.hx) and from here [https://github.com/Dewott2501/Mario-Madness/blob/main/source/CppAPI.hx](https://github.com/Dewott2501/Mario-Madness/blob/main/source/CppAPI.hx), with credits, of course. ([#94](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/issues/94))
 - **[P2] ~~Add "Transparent Window" Haxe support~~ DONE** — `backend.FlxTransWindow` is a port of [notmagniill's `FlxTransWindow.hx`](https://github.com/notmagniill/psych-engine-modified-build/blob/stable/source/backend/FlxTransWindow.hx) (credits kept in the file) extended with whole-window alpha and click-through; `backend.TransparentWindow` is the guarded public API (`setEnabled`/`setAlpha`/`setColorKey`/`setClickThrough`), it leaves fullscreen and suspends in fullscreen, and it is a logged no-op on HTML5/Flash/mobile. Exposed to Lua (`psychlua/callbacks/WindowCallbacks.hx`) and Python (`psychlua/pystdlib/PyWindowLib.hx`) under the same names; see `docs/TRANSPARENT_WINDOW.md`. ([#95](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/issues/95))
-- Add Lua & Python basic "sandboxing" (disable by default mods with some strings and functions if they are called by a softmod script) (e.g.: [https://github.com/Psych-Plus-Team/FNF-PlusEngine/blob/main/source/backend/ModSecurity.hx](https://github.com/Psych-Plus-Team/FNF-PlusEngine/blob/main/source/backend/ModSecurity.hx)). ([#77](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/issues/77))
-- Port GPU/CPU driver/manufacter detection from Psych Plus: [https://github.com/Psych-Plus-Team/FNF-PlusEngine/blob/main/source/backend/Native.hx](https://github.com/Psych-Plus-Team/FNF-PlusEngine/blob/main/source/backend/Native.hx). ([#96](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/issues/96))
+- **~~Lua & Python basic sandboxing.~~ DONE** — softmod source scanning, runtime Lua/Hython/HScript guards, per-mod `pack.json` allowlists/opt-out, and mod/file/line block reports. ([#77](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/issues/77))
+- **~~GPU/CPU driver/manufacter detection~~ DONE** — Ported the GPU/driver sniffing from Psych Plus ([https://github.com/Psych-Plus-Team/FNF-PlusEngine/blob/main/source/backend/Native.hx](https://github.com/Psych-Plus-Team/FNF-PlusEngine/blob/main/source/backend/Native.hx)) into `backend.Native`, added the CPU/OS queries in `source/backend/native/`, exposed everything to Lua, Python and HScript, and every crash log now ends with the hardware details. ([#96](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/issues/96))
 
 ## 3. PLATFORM
 
@@ -88,7 +88,7 @@ Top 10 inventory of the engine's native window-manipulation paths and the Window
 ## 5. DEBUG / LOGGING
 
 - **[P1] `trace()` spam in production hot paths** (Flash/AIR): `source/backend/Paths.hx:61` (`trace(defaultSkin)`), `:563/:866` `trace('oh no its returning null NOOOO')` inside asset fallback — this is on EVERY lookup. Wrap in `#if MAIN_DEBUG` or a `quiet` flag; these belong in debug builds only. ([#68](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/issues/68))
-- **[P1] `BuildingEffect.addAlpha` traces every call** (`source/shaders/BuildingEffect.hx:14` `trace(shader.alphaShit.value[0])`) — 60fps spam on tank level. ([#69](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/issues/69))
+- **[P1] ~~`BuildingEffect.addAlpha` traces every call~~ DONE** — per-call `trace` removed in `b7c55dd` (PR #101); neighbouring shader classes audited for the same leftover pattern (stray traces in `PlayStateScripts.removeShaderFromCamera` removed; `MAIN_DEBUG` is now defined on debug builds so `#if MAIN_DEBUG` gates work). ([#69](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/issues/69))
 - **[P3] Leftover stray traces** — `MusicPlayer.hx:100` `trace('Time: ...')` on K key; `WeekEditorState`/`DialogueEditor` `trace("file saved")`. ([#84](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/issues/84))
 - **[P3] `DiscordClient.hx:55-56` cast-dep on success** — `request[0].username` may be null on AIR (no hxdiscord_rpc); guard. ([#85](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/issues/85))
 
@@ -105,20 +105,20 @@ Top 10 inventory of the engine's native window-manipulation paths and the Window
 
 ## 8. PERFORMANCE / MEMORY
 
-- **[P3] Alloc-per-frame** in `PlayState` hot loops (notes, sustains, `chartingEvents`) — no pooling for `FlxSprite` note graphics; Psych pooled. Watch HTML5 GC on web. ([#88](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/issues/88))
+- **[P3] ~~Alloc-per-frame~~ DONE** (notes/sustains were already served by `FlxTypedGroup.recycle()`; the remaining garbage is gone: cross fade ghosts are pooled instead of `new`+`destroy` per opponent hit, hold splashes reuse one `FlxTimer`/clip rect/callback pair per pooled sprite, rating popups are `kill()`ed in place instead of spliced out of `popUpGroup`, `killNotes` is drained with `shift()` instead of reallocated every frame, note sorting uses cached comparators, the per-frame `setOnLuas`/`callOnLuas` dispatch is skipped when no script is loaded, and recycled notes reset `sustainLength`/`noteHoldSplash`/rating state. Pool hits/misses are counted by `debug/PoolStats` and shown in the debug FPS overlay, which is the measurement available on HTML5 where `FrameProfiler` cannot read the JS heap; `chartingEvents` does not exist in Phoenix — `editors/charting/ChartingEvents.hx` is a static helper and nothing is rebuilt per frame) in `PlayState` hot loops (notes, sustains, `chartingEvents`) — no pooling for `FlxSprite` note graphics; Psych pooled. Watch HTML5 GC on web. ([#88](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/issues/88))
 - **[P3] `FlxG.watch` in FPSCounter** — verify only debug. ([#89](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/issues/89))
 - **[P3] `cast` / `Reflect.field` in per-frame paths** — `ChartChartingUI`/`Conductor` use `Reflect.field(ClientPrefs, ...)` in window accessors; cache static before loop. ([#90](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/issues/90))
 
-## 9. GUARD AUDIT — REMAINING `#if desktop` ELIGIBLE FOR `!air`
+## 9. GUARD AUDIT — RESOLVED
 
-Audited; these 5 sites were flagged but NOT changed (only 3 charting sites converted). Decide: convert or document why not. ([#91](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/issues/91))
+The remaining desktop/AIR candidates from the guard audit are now either narrowed or documented; the desktop-only resolution and waveform paths use `#if (desktop && !air)`. ([#91](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/issues/91))
 
-| Site | Why flagged |
+| Site | Decision |
 |---|---|
-| `source/utils/CoolUtil.hx` ~116 (resW/resH/resetResScale) | Flash-only-safe desktop funcs |
-| `source/play/PlayState.hx` ~465 | promote `#if desktop` music? flags |
-| `source/options/OptionsState.hx`:26 / `GraphicsSettingsSubState.hx` 73,134 | resolution list on AIR |
-| `FunkinGame.hx` 8-21 (fullscreen/window flags) | AIR window APIs differ |
+| `source/backend/CoolUtil.hx` (`resW`/`resH`/`resetResScale`) | Narrowed to `desktop && !air`; these helpers exist only for native resizable windows. |
+| `source/play/PlayState.hx` (render-mode resolution) | Narrowed to `desktop && !air`; AIR cannot use the native window-resize path. |
+| `source/options/GraphicsSettingsSubState.hx` (resolution option/callback) | Narrowed to `desktop && !air`; AIR keeps the cross-target framerate setting, but does not offer window resolution changes. `OptionsState` retains its `desktop` keyboard guard because the debug key sequence also works on AIR. |
+| `source/backend/FunkinGame.hx` | Keep the desktop constructor to forward `startFullscreen` to `FlxGame`; restrict the custom keyboard/window shortcut and its imports to `desktop && !air`. |
 
 ## 10. CI / REPO HYGIENE
 
