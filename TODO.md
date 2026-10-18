@@ -88,7 +88,7 @@ Top 10 inventory of the engine's native window-manipulation paths and the Window
 ## 5. DEBUG / LOGGING
 
 - **[P1] `trace()` spam in production hot paths** (Flash/AIR): `source/backend/Paths.hx:61` (`trace(defaultSkin)`), `:563/:866` `trace('oh no its returning null NOOOO')` inside asset fallback — this is on EVERY lookup. Wrap in `#if MAIN_DEBUG` or a `quiet` flag; these belong in debug builds only. ([#68](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/issues/68))
-- **[P1] `BuildingEffect.addAlpha` traces every call** (`source/shaders/BuildingEffect.hx:14` `trace(shader.alphaShit.value[0])`) — 60fps spam on tank level. ([#69](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/issues/69))
+- **[P1] ~~`BuildingEffect.addAlpha` traces every call~~ DONE** — per-call `trace` removed in `b7c55dd` (PR #101); neighbouring shader classes audited for the same leftover pattern (stray traces in `PlayStateScripts.removeShaderFromCamera` removed; `MAIN_DEBUG` is now defined on debug builds so `#if MAIN_DEBUG` gates work). ([#69](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/issues/69))
 - **[P3] Leftover stray traces** — `MusicPlayer.hx:100` `trace('Time: ...')` on K key; `WeekEditorState`/`DialogueEditor` `trace("file saved")`. ([#84](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/issues/84))
 - **[P3] `DiscordClient.hx:55-56` cast-dep on success** — `request[0].username` may be null on AIR (no hxdiscord_rpc); guard. ([#85](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/issues/85))
 
