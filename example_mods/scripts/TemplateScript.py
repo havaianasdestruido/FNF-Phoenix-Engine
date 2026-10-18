@@ -1,20 +1,22 @@
-# TemplateScript.py
-
-# This is a demo of the Work In progress
-# python modding experiment;
-# I recommend using python if you want to
-# make extremely advanced softmodding.
-# For anything more simpler, use Lua modding.
-
-# Drop this into mods/scripts/ (or any mod's scripts/ folder) and it will run
-# on every song. Python modding works exactly like Lua modding: define
-# top-level `def` callbacks and call the same engine functions.
+# TemplateScript.py — comprehensive Python hook demo (Lua + Python parity).
+#
+# This file used to ship as a tiny example; it is now the full template so
+# new Python mods start with the same hook coverage as Lua. Drop it into
+# mods/scripts/ (or any mod's scripts/ folder) and it will run on every song.
+# Python modding mirrors Lua: define top-level `def` callbacks and call the same
+# engine functions. See docs/TemplateScript.py and
+# website/docs/modding/script-hooks.md for the authoritative tables.
 #
 # Callbacks with no `return` are treated as Function_Continue.
-# You can return Function_Stop / Function_Continue / Function_StopAll.
+# You can return Function_Stop / Function_Continue / Function_StopLua (alias Function_StopAll).
 
 def onCreate():
-	# When the python file is started/created, some variables weren't created yet
+	# When the python file is first created; many PlayState vars do not exist yet.
+	# For a demo sprite, defer to onCreatePost.
+	pass
+
+def onCreatePost():
+	# End of create(), every PlayState field is ready — good place for setup.
 	makeLuaSprite('myLittleSprite', '', 0, 0)
 	makeGraphic('myLittleSprite', 64, 64, 'ff0000')
 	setScrollFactor('myLittleSprite', 0, 0)
@@ -24,50 +26,53 @@ def onCreate():
 	addLuaSprite('myLittleSprite', True)
 	debugPrint('Python script loaded! (create)')
 
-def onCreatePost():
-	# End of "create", all variables have already been loaded, recommended.
-	pass
-
 def onDestroy():
-	# When the python file is ended (Song fade out finished)
+	# Song fade-out finished, script is being removed.
 	pass
 
-# Gameplay/Song interactions
+# ---------------------------------------------------------------------------
+# Song flow
+# ---------------------------------------------------------------------------
+
+def onUpdate(elapsed):
+	# Start of the frame, before engine logic.
+	pass
+
+def onUpdatePost(elapsed):
+	# End of the frame.
+	pass
+
+def onStartCountdown():
+	# Before the countdown. Return Function_Stop to suppress it.
+	return Function_Continue
+
+def onCountdownStarted():
+	pass
+
+def onCountdownTick(counter):
+	# 0=Three 1=Two 2=One 3=Go! 4=none
+	pass
+
+def onSongStart():
+	pass
+
+def onEndSong():
+	return Function_Continue
+
 def onBeatHit():
-	# Triggered 4 times per section
 	doTweenX('spriteX', 'myLittleSprite', 200, 0.5, 'sineOut')
 	doTweenY('spriteY', 'myLittleSprite', 300, 0.5, 'sineOut')
 
 def onStepHit():
-	# Triggered 16 times per section
 	pass
 
-def onUpdate(elapsed):
-	# Start of "update", some variables weren't updated yet
+def onSectionHit():
 	pass
 
-def onUpdatePost(elapsed):
-	# End of "update"
-	pass
+# ---------------------------------------------------------------------------
+# Pause / game-over / dialogue
+# ---------------------------------------------------------------------------
 
-def onStartCountdown():
-	# Countdown started, duh
-	# Return Function_Stop if you want to stop the countdown from happening
-	return Function_Continue
-
-def onCountdownTick(counter):
-	# counter = 0 -> "Three", 1 -> "Two", 2 -> "One", 3 -> "Go!"
-	pass
-
-def onSongStart():
-	# Inst and Vocals start playing, songPosition = 0
-	pass
-
-def onEndSong():
-	# return Function_Stop to stop the song from ending
-	return Function_Continue
-
-# Substate interactions
 def onPause():
 	return Function_Continue
 
@@ -77,37 +82,109 @@ def onResume():
 def onGameOver():
 	return Function_Continue
 
-def onGameOverConfirm(retry):
-	# If you've pressed Esc, value "retry" will be False
+def onGameOverStart():
 	pass
 
-# Note miss/hit
+def onGameOverConfirm(retry):
+	# retry == False when Esc was pressed
+	pass
+
+def onNextDialogue(line):
+	pass
+
+def onSkipDialogue(line):
+	pass
+
+# ---------------------------------------------------------------------------
+# Notes — hit / miss / spawn
+# ---------------------------------------------------------------------------
+
+def onSpawnNote(id, noteData, noteType, isSustainNote, strumTime):
+	pass
+
 def goodNoteHit(id, direction, noteType, isSustainNote):
-	# id: the note member id
-	# direction: 0 = Left, 1 = Down, 2 = Up, 3 = Right
-	# noteType: the note type string/tag
-	# isSustainNote: True if it's a hold note
 	pass
 
 def opponentNoteHit(id, direction, noteType, isSustainNote):
 	pass
 
-def noteMissPress(direction):
+def goodNoteSkip(id, direction, noteType, isSustainNote):
+	pass
+
+def opponentNoteSkip(id, direction, noteType, isSustainNote):
 	pass
 
 def noteMiss(id, direction, noteType, isSustainNote):
 	pass
 
-# Event notes hooks
-def onEvent(name, value1, value2):
+def noteMissPress(direction):
 	pass
 
-def eventEarlyTrigger(name):
+def onGhostTap(key):
 	pass
 
-# Tween/Timer hooks
+def onKeyPress(key):
+	pass
+
+def onKeyRelease(key):
+	pass
+
+# ---------------------------------------------------------------------------
+# Camera / rating / score
+# ---------------------------------------------------------------------------
+
+def onMoveCamera(focus):
+	if focus == 'boyfriend':
+		pass
+	elif focus == 'dad':
+		pass
+	elif focus == 'gf':
+		pass
+
+def onRecalculateRating():
+	return Function_Continue
+
+def onUpdateScore(miss):
+	pass
+
+# ---------------------------------------------------------------------------
+# Events
+# ---------------------------------------------------------------------------
+
+def onEvent(name, value1, value2, strumTime):
+	pass
+
+def eventEarlyTrigger(name, value1, value2, strumTime):
+	pass
+
+# ---------------------------------------------------------------------------
+# Tweens / timers / sound
+# ---------------------------------------------------------------------------
+
 def onTweenCompleted(tag):
 	pass
 
 def onTimerCompleted(tag, loops, loopsLeft):
+	pass
+
+def onSoundFinished(tag):
+	pass
+
+# ---------------------------------------------------------------------------
+# Custom substates — opened via openCustomSubstate(name, pauseGame)
+# ---------------------------------------------------------------------------
+
+def onCustomSubstateCreate(name):
+	pass
+
+def onCustomSubstateCreatePost(name):
+	pass
+
+def onCustomSubstateUpdate(name, elapsed):
+	pass
+
+def onCustomSubstateUpdatePost(name, elapsed):
+	pass
+
+def onCustomSubstateDestroy(name):
 	pass
