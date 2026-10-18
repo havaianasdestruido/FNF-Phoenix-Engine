@@ -72,16 +72,18 @@ jobs:
           echo "=== tail of build log ==="
           tail -n 200 /tmp/build.log
 
-          # Emit the interesting lines as annotations, which are readable over
-          # the (allowed) api.github.com host.
-          n=0
-          while IFS= read -r line; do
-            [ "$n" -ge 60 ] && break
-            enc=${line//%/%25}
-            enc=${enc//$'\r'/}
-            enc=${enc//$'\n'/%0A}
-            echo "::error::${enc:0:900}"
-            n=$((n+1))
-          done < <(grep -aE "Error|error:|Fatal|Uncaught|Source|Build halted|Invalid|cannot|Unknown|Missing|not found|Warning" /tmp/build.log | tail -n 60)
+          # Emit the log tail as annotations, which are readable over the
+          # (allowed) api.github.com host.
+          emit() {
+            local title="$1"
+            local body="$2"
+            body=${body//%/%25}
+            body=${body//$'\r'/}
+            body=${body//$'\n'/%0A}
+            echo "::error title=${title}::${body:0:20000}"
+          }
+
+          emit "last 120 lines" "$(tail -n 120 /tmp/build.log)"
+          emit "matches" "$(grep -aiE 'error|fail|exception|cannot|unknown|invalid|missing' /tmp/build.log | tail -n 40)"
 
           exit $code
