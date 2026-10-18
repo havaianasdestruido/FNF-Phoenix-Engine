@@ -1,4 +1,4 @@
-﻿package options;
+package options;
 
 import flixel.input.FlxInput;
 import flixel.input.keyboard.FlxKey;
@@ -236,7 +236,7 @@ class ControlsSubState extends MusicBeatSubstate {
 			#if android
 			if (capturingHardware) {
 				if (FlxG.keys.checkStatus(BACKSPACE, JUST_PRESSED)) {
-					setBindSlot(NONE);
+					setBindSlot(FlxKey.NONE);
 					bound = true;
 				} else if (pendingHardwareKey > -1) {
 					setBindSlot(HardwareKeys.toBind(pendingHardwareKey));
@@ -290,7 +290,7 @@ class ControlsSubState extends MusicBeatSubstate {
 
 		var opposite:Int = (curAlt ? 0 : 1);
 		if(keysArray[opposite] == keysArray[1 - opposite]) {
-			keysArray[opposite] = NONE;
+			keysArray[opposite] = FlxKey.NONE;
 		}
 		ClientPrefs.keyBinds.set(menuOptions[curSelected][1], keysArray);
 	}
