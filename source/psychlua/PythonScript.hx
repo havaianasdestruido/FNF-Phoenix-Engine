@@ -20,9 +20,18 @@ import paopao.hython.Expr.Error;
 import paopao.hython.Interp;
 import paopao.hython.Parser;
 
+import backend.ClientPrefs;
+import backend.Conductor;
+import backend.CoolUtil;
+import backend.Mods;
+import objects.NoteHelpers;
 import backend.Paths;
+import backend.WeekData;
+import objects.NoteSplash;
 import play.PlayState;
+import states.MainMenuState;
 import states.substates.GameOverSubstate;
+import objects.NoteSplash;
 import psychlua.pystdlib.PyCameraLib;
 import psychlua.pystdlib.PyCharacterLib;
 import psychlua.pystdlib.PyKeyLib;
@@ -33,6 +42,7 @@ import psychlua.pystdlib.PySoundLib;
 import psychlua.pystdlib.PySpriteLib;
 import psychlua.pystdlib.PyTextLib;
 import psychlua.pystdlib.PyTimerLib;
+import utils.CoolSystemStuff;
 import psychlua.pystdlib.PyTweenLib;
 import Type.ValueType;
 
@@ -116,6 +126,171 @@ class PythonScript
 		set('Function_Continue', Function_Continue);
 		set('pythonDebugMode', false);
 		set('pythonDeprecatedWarnings', true);
+		set('inChartEditor', false);
+
+		// modFolder detection — mirrors FunkinLua's logic
+		var pyModFolder:String = null;
+		var myFolder:Array<String> = this.scriptName.split('/');
+		#if MODS_ALLOWED
+		if (myFolder[0] + '/' == Paths.mods() && (Mods.currentModDirectory == myFolder[1] || Mods.getGlobalMods().contains(myFolder[1])))
+			pyModFolder = myFolder[1];
+		#end
+		set('modFolder', pyModFolder);
+
+		// Initial engine state — mirrors FunkinLua so Python has the same starting
+		// context for onCreate (curBeat, song metadata, characters, preferences...).
+		// Each value is also kept current via PlayState.setOnScripts throughout the song.
+		if (PlayState.SONG != null)
+		{
+			set('curBpm', Conductor.bpm);
+			set('bpm', PlayState.SONG.bpm);
+			set('scrollSpeed', PlayState.SONG.speed);
+			set('crochet', Conductor.crochet);
+			set('stepCrochet', Conductor.stepCrochet);
+			set('songLength', (FlxG.sound.music != null ? FlxG.sound.music.length : 0));
+			set('songName', PlayState.SONG.song);
+			set('songPath', Paths.formatToSongPath(PlayState.SONG.song));
+			set('startedCountdown', false);
+			set('curStage', PlayState.SONG.stage);
+			set('isStoryMode', PlayState.isStoryMode);
+			set('difficulty', PlayState.storyDifficulty);
+			var difficultyName:String = CoolUtil.difficulties[PlayState.storyDifficulty];
+			set('difficultyName', difficultyName);
+			set('difficultyPath', Paths.formatToSongPath(difficultyName));
+			set('weekRaw', PlayState.storyWeek);
+			set('week', WeekData.weeksList[PlayState.storyWeek]);
+			set('seenCutscene', PlayState.seenCutscene);
+			set('boyfriendName', (PlayState.SONG.player1 != null ? PlayState.SONG.player1 : 'bf'));
+			set('dadName', (PlayState.SONG.player2 != null ? PlayState.SONG.player2 : 'dad'));
+			set('gfName', (PlayState.SONG.gfVersion != null ? PlayState.SONG.gfVersion : 'gf'));
+			set('gfVersion', (PlayState.SONG.gfVersion != null ? PlayState.SONG.gfVersion : 'gf'));
+		}
+		else
+		{
+			// Fallbacks when SONG not yet available (e.g. menus)
+			set('curBpm', Conductor.bpm);
+			set('bpm', 100);
+			set('scrollSpeed', 1);
+			set('crochet', Conductor.crochet);
+			set('stepCrochet', Conductor.stepCrochet);
+			set('songLength', 0);
+			set('songName', '');
+			set('songPath', '');
+			set('startedCountdown', false);
+			set('curStage', 'stage');
+			set('isStoryMode', PlayState.isStoryMode);
+			set('difficulty', PlayState.storyDifficulty);
+			var difficultyName:String = CoolUtil.difficulties[PlayState.storyDifficulty];
+			set('difficultyName', difficultyName);
+			set('difficultyPath', Paths.formatToSongPath(difficultyName));
+			set('weekRaw', PlayState.storyWeek);
+			set('week', WeekData.weeksList[PlayState.storyWeek]);
+			set('seenCutscene', PlayState.seenCutscene);
+			set('boyfriendName', 'bf');
+			set('dadName', 'dad');
+			set('gfName', 'gf');
+			set('gfVersion', 'gf');
+		}
+
+		set('cameraX', 0);
+		set('cameraY', 0);
+		set('screenWidth', FlxG.width);
+		set('screenHeight', FlxG.height);
+		set('curBeat', 0);
+		set('curStep', 0);
+		set('curDecBeat', 0);
+		set('curDecStep', 0);
+		set('score', 0);
+		set('misses', 0);
+		set('hits', 0);
+		set('rating', 0);
+		set('ratingName', '');
+		set('ratingFC', '');
+		set('phoenixVersion', MainMenuState.phoenixEngineVersion.trim());
+		set('version', MainMenuState.psychEngineVersion.trim());
+		set('jsVersion', MainMenuState.psychEngineJSVersion.trim());
+		set('inGameOver', false);
+		set('mustHitSection', false);
+		set('altAnim', false);
+		set('gfSection', false);
+		if (game != null)
+		{
+			set('npsSpeedMult', game.npsSpeedMult);
+			set('polyphonyOppo', game.polyphonyOppo);
+			set('polyphonyBF', game.polyphonyBF);
+			set('healthGainMult', game.healthGain);
+			set('healthLossMult', game.healthLoss);
+			set('playbackRate', game.playbackRate);
+			set('instakillOnMiss', game.instakillOnMiss);
+			set('botPlay', game.cpuControlled);
+			set('practice', game.practiceMode);
+			set('defaultBoyfriendX', game.BF_X);
+			set('defaultBoyfriendY', game.BF_Y);
+			set('defaultOpponentX', game.DAD_X);
+			set('defaultOpponentY', game.DAD_Y);
+			set('defaultGirlfriendX', game.GF_X);
+			set('defaultGirlfriendY', game.GF_Y);
+		}
+		else
+		{
+			set('npsSpeedMult', 1);
+			set('polyphonyOppo', 0);
+			set('polyphonyBF', 0);
+			set('healthGainMult', 1);
+			set('healthLossMult', 1);
+			set('playbackRate', 1);
+			set('instakillOnMiss', false);
+			set('botPlay', false);
+			set('practice', false);
+			set('defaultBoyfriendX', 0);
+			set('defaultBoyfriendY', 0);
+			set('defaultOpponentX', 0);
+			set('defaultOpponentY', 0);
+			set('defaultGirlfriendX', 0);
+			set('defaultGirlfriendY', 0);
+		}
+		for (i in 0...4)
+		{
+			set('defaultPlayerStrumX' + i, 0);
+			set('defaultPlayerStrumY' + i, 0);
+			set('defaultOpponentStrumX' + i, 0);
+			set('defaultOpponentStrumY' + i, 0);
+		}
+		set('downscroll', ClientPrefs.downScroll);
+		set('middlescroll', ClientPrefs.middleScroll);
+		set('framerate', ClientPrefs.framerate);
+		set('ghostTapping', ClientPrefs.ghostTapping);
+		set('hideHud', ClientPrefs.hideHud);
+		set('timeBarType', ClientPrefs.timeBarType);
+		set('scoreZoom', ClientPrefs.scoreZoom);
+		set('cameraZoomOnBeat', ClientPrefs.camZooms);
+		set('flashingLights', ClientPrefs.flashing);
+		set('noteOffset', ClientPrefs.noteOffset);
+		set('healthBarAlpha', ClientPrefs.healthBarAlpha);
+		set('noResetButton', ClientPrefs.noReset);
+		set('lowQuality', ClientPrefs.lowQuality);
+		set('shadersEnabled', ClientPrefs.shaders);
+		set('scriptName', scriptName);
+		set('currentModDirectory', Mods.currentModDirectory);
+		set('noteSkin', ClientPrefs.noteSkin);
+		try { set('noteSkinPostfix', objects.NoteHelpers.getNoteSkinPostfix()); } catch (e:Dynamic) { set('noteSkinPostfix', ''); }
+		set('splashSkin', ClientPrefs.splashType);
+		try { set('splashSkinPostfix', NoteSplash.getSplashSkinPostfix()); } catch (e:Dynamic) { set('splashSkinPostfix', ''); }
+		set('user_path', CoolSystemStuff.getUserPath());
+		set('user_name', CoolSystemStuff.getUsername());
+		#if windows
+		set('buildTarget', 'windows');
+		#elseif linux
+		set('buildTarget', 'linux');
+		#elseif mac
+		set('buildTarget', 'mac');
+		#elseif html5
+		set('buildTarget', 'browser');
+		#elseif android
+		set('buildTarget', 'android');
+		#else
+		set('buildTarget', 'unknown');
+		#end
 
 		// --------------------------------------------------------------------
 		// API registry (mirrors FunkinLua's constructor).
@@ -154,6 +329,9 @@ class PythonScript
 // REFACTOR: extracted to psychlua.pystdlib.PyMiscLib
 	PyMiscLib.register(this);
 
+		// Script interop — mirrors psychlua.callbacks.ScriptCallbacks for Lua (#87)
+		psychlua.pystdlib.PyScriptLib.register(this);
+
 		for (name => func in registeredFunctions) {
 			if (func != null) {
 				_missingCalls.remove(name);
@@ -166,6 +344,7 @@ class PythonScript
 		registerCustomFunctions();
 		CustomSubstate.implementPython(this);
 		#if ACHIEVEMENTS_ALLOWED Achievements.addPythonCallbacks(this); #end
+		#if DISCORD_ALLOWED DiscordClient.addPythonCallbacks(this); #end
 		#if flxanimate FlxAnimateFunctions.implementPython(this); #end
 
 		try
