@@ -425,6 +425,13 @@ same goes for *Lua Scripts*, comment out or delete the line with `LUA_ALLOWED.ap
 
 Made with [contrib.rocks](https://contrib.rocks).
 
+### 4th-wall-breaking (META_HORROR) feature credits
+
+Ported with adaptation (see `docs/META_HORROR.md`); both projects are Apache-2.0 licensed.
+
+* [notmagniill/psych-engine-modified-build](https://github.com/notmagniill/psych-engine-modified-build) — original `CoolUtil.hx` `META_HORROR` section (recorder detection, wallpaper swap, system volume/mouse/keyboard effects)
+* [Dewott2501/Mario-Madness](https://github.com/Dewott2501/Mario-Madness) — `CppAPI.hx`, `WindowsData.hx`, `Wallpaper.hx` and `Transparency.hx` (taskbar/window hiding, wallpaper capture/restore, color-key transparency, RAM query)
+
 <details>
   <summary><h2>OG Psych Engine Credits and Stuff</h2></summary>
 

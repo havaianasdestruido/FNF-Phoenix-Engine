@@ -56,6 +56,7 @@ const GROUPS = {
   PyTextLib: ['Text', 'On-screen text objects.'],
   PyTimerLib: ['Timers', 'Scheduling and cancelling timers.'],
   PyTweenLib: ['Tweens', 'Tweening object properties.'],
+  MetaHorrorCallbacks: ['4th wall breaking', 'Wallpaper, taskbar, volume and input effects for horror mods (require -DMETA_HORROR builds).'],
   WindowCallbacks: ['Window', 'Window transparency, alpha and click-through (desktop overlay mods).'],
   PyWindowLib: ['Window', 'Window transparency, alpha and click-through (desktop overlay mods).'],
 };

@@ -38,9 +38,19 @@ class PlatformUtil
 	public static function detectWine():Bool {
 		return PlatformUtilNative.detectWineNative();
 	}
+
 	
 	public static function getArch():String {
 		return PlatformUtilNative.getArchNative();
 	}
 	#end
+
+    /**
+     * Trace helper for 4th-wall-breaking (`META_HORROR`) effects called on a
+     * build without the define or on a platform where the effect does not exist.
+     * Compiled on every target so `backend.MetaHorror` no-op paths typecheck everywhere.
+     */
+    public static function unsupportedMetaHorror(fn:String):Void {
+        trace('MetaHorror.$fn requires a -DMETA_HORROR build and is not supported on this platform.');
+    }
 }

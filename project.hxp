@@ -122,6 +122,7 @@ class Project extends HXProject
 	static final TITLE_SCREEN_EASTER_EGG:FeatureFlag = "TITLE_SCREEN_EASTER_EGG";
 	static final CHECK_FOR_UPDATES:FeatureFlag = "CHECK_FOR_UPDATES";
 	static final FLASH_ALLOWED:FeatureFlag = "FLASH_ALLOWED";
+	static final META_HORROR:FeatureFlag = "META_HORROR";
 
 	/**
 	 * `-DNO_BUILTIN_CONTENT` (content-stripped / copyright-safe builds).
@@ -448,6 +449,14 @@ class Project extends HXProject
 		SHADERS_ALLOWED.apply(this, !isFlash() && !isAir());
 		FUNNY_ALLOWED.apply(this, isDesktop() && !isFlash() && !isAir());
 		// TITLE_SCREEN_EASTER_EGG.apply(this, true);
+
+		// 4th-wall-breaking ("META_HORROR") system effects: wallpaper swap,
+		// taskbar/other-window hiding, system volume, mouse/keyboard input,
+		// color-key transparency... Horror-mod tools (issue #94, ported from
+		// psych-engine-modified-build and Mario Madness with credits; see
+		// docs/META_HORROR.md). OFF by default because the effects are
+		// deliberately intrusive - opt in with -DMETA_HORROR.
+		META_HORROR.apply(this, false);
 
 		// Should be true only on web builds.
 		// Enabling embedding and preloading is required to preload assets properly.
