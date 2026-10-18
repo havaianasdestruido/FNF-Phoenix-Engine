@@ -83,7 +83,7 @@ jobs:
             echo "::error title=${title}::${body:0:20000}"
           }
 
-          emit "last 120 lines" "$(tail -n 120 /tmp/build.log)"
-          emit "matches" "$(grep -aiE 'error|fail|exception|cannot|unknown|invalid|missing' /tmp/build.log | tail -n 40)"
+          emit "haxe error context" "$(grep -aB 2 -A 12 'ERROR' /tmp/build.log | tail -n 60)"
+          emit "last 30 lines" "$(tail -n 30 /tmp/build.log)"
 
           exit $code
