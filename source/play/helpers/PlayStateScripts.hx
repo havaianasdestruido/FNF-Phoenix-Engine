@@ -154,32 +154,13 @@ class PlayStateScripts
 	public static function removeShaderFromCamera(state:PlayState, cam:String,effect:Dynamic){
 		switch(cam.toLowerCase()) {
 			case 'camhud' | 'hud':
-				if(state.camHUD.removeShader(effect.shader))
-				{
-					trace("Removed shader successfully");
-				}
-				else
-				{
-					trace("Shader wasn't found");
-				}
+				// No per-call trace here: this is reachable from update paths and mod
+				// scripts, and leftover debug traces spam the console at 60fps (#69).
+				state.camHUD.removeShader(effect.shader);
 			case 'camother' | 'other':
-				if(state.camOther.removeShader(effect.shader))
-				{
-					trace("Removed shader successfully");
-				}
-				else
-				{
-					trace("Shader wasn't found");
-				}
+				state.camOther.removeShader(effect.shader);
 			case 'camgame' | 'game':
-				if(state.camGame.removeShader(effect.shader))
-				{
-					trace("Removed shader successfully");
-				}
-				else
-				{
-					trace("Shader wasn't found");
-				}
+				state.camGame.removeShader(effect.shader);
 			default:
 				#if (LUA_ALLOWED || PYTHON_ALLOWED)
 				if(state.modchartSprites.exists(cam)) {

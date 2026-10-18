@@ -12,6 +12,9 @@ debug/log/*.log
 .vscode/*
 .haxelib/
 *.code-workspace
+# Python bytecode from the tests/ static-check harness.
+__pycache__/
+*.py[cod]
 # Local history which shouldn't be shared.
 .history
 .ionide
