@@ -10,6 +10,8 @@ import backend.Highscore;
 #end
 import backend.WeekData;
 
+import debug.PoolStats;
+
 import objects.Note;
 import objects.Popup;
 
@@ -24,6 +26,15 @@ import play.helpers.PlayStateNoteHelpers;
 @:access(backend.MusicBeatState)
 class PlayStateRating
 {
+	/**
+	 * Popup ordering comparator, cached once: the inline arrow used to allocate a
+	 * closure on every judged note. (#88)
+	 */
+	static function comparePopupTime(a:Popup, b:Popup):Int
+	{
+		return FlxSort.byValues(FlxSort.ASCENDING, a.popTime, b.popTime);
+	}
+
 	public static function cachePopUpScore(state:PlayState)
 	{
 		if (PlayState.isPixelStage)
@@ -117,18 +128,23 @@ class PlayStateRating
 
 		if (state.popUpsFrame <= 3)
 		{
-			if (!ClientPrefs.comboStacking) while (state.popUpGroup.members.length > 0)
+			if (!ClientPrefs.comboStacking)
 			{
-				var spr = state.popUpGroup.members[0];
-				if (spr == null) continue;
-
-				FlxTween.cancelTweensOf(spr);
-				state.popUpGroup.remove(spr, true);
-				spr.kill();
+				// Kill in place instead of `remove(spr, true)`: splicing a popup out of the
+				// group dropped it on the floor, so every rating/combo popup allocated a
+				// fresh sprite. Killed members stay in the group for `recycle()`. (#88)
+				for (spr in state.popUpGroup.members)
+				{
+					if (spr == null || !spr.exists) continue;
+					FlxTween.cancelTweensOf(spr);
+					spr.kill();
+				}
 			}
 
 			if (state.showRating && ClientPrefs.ratingPopups && !ClientPrefs.simplePopups) {
+				final pooled:Int = state.popUpGroup.length;
 				state.rating = state.popUpGroup.recycle(Popup);
+				PoolStats.spawn(PoolStats.POPUP, state.popUpGroup.length == pooled);
 				state.rating.setupRating(state.pixelRatingPrefix + state.daRating.image + state.pixelRatingSuffix);
 				state.rating.alphaTween();
 				state.popUpGroup.insert(0, state.rating);
@@ -139,7 +155,8 @@ class PlayStateRating
 				var tempCombo:Float = (state.combo > 0 ? state.combo : -state.combo);
 				var tempComboAlt:Float = tempCombo;
 
-				state.separatedScore = [];
+				// Reuse the array; this ran on every judged note. (#88)
+				while (state.separatedScore.length > 0) state.separatedScore.pop();
 				while(tempCombo >= 10)
 				{
 					state.separatedScore.unshift(Math.ffloor(tempCombo / 10) % 10);
@@ -151,7 +168,9 @@ class PlayStateRating
 
 				for (daLoop=>i in state.separatedScore)
 				{
+					final pooled:Int = state.popUpGroup.length;
 					state.numScore = state.popUpGroup.recycle(Popup);
+					PoolStats.spawn(PoolStats.POPUP, state.popUpGroup.length == pooled);
 					state.numScore.setupNumber(state.pixelRatingPrefix + 'num' + i + state.pixelRatingSuffix, daLoop, tempComboAlt);
 					if (miss) state.numScore.color = FlxColor.fromRGB(204, 66, 66);
 					state.numScore.alphaTween(true);
@@ -178,11 +197,8 @@ class PlayStateRating
 					playbackRate: state.playbackRate
 				});
 			}
-			if (ClientPrefs.ratingPopups && !ClientPrefs.simplePopups) state.popUpGroup.sort((o, a, b) ->
-				{
-					return FlxSort.byValues(FlxSort.ASCENDING, a.popTime, b.popTime);
-				}
-			);
+			if (ClientPrefs.ratingPopups && !ClientPrefs.simplePopups)
+				state.popUpGroup.members.sort(comparePopupTime);
 		}
 	}
 

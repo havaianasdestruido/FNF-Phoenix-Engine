@@ -90,6 +90,13 @@ class Note extends FlxSprite
 	public var ignoreNote:Bool = false;
 	public var hitByOpponent:Bool = false; //For Opponent notes
 
+	/**
+	 * Whether this note is already queued in `PlayState.killNotes`, waiting for the
+	 * end-of-frame `kill()`. Replaces an `Array.contains()` scan per note per frame,
+	 * and is reset by `setupNoteData()` so a recycled note never starts queued. (#88)
+	 */
+	public var pendingKill:Bool = false;
+
 	public var blockHit:Bool = false; // only works for player
 
 	public var noteDensity:Float = 1;
@@ -568,6 +575,13 @@ class Note extends FlxSprite
 
 		wasGoodHit = hitByOpponent = tooLate = canBeHit = false; // Don't make an update call of this for the note group
 
+		// #88: notes are pooled, so every field that is not overwritten below has to be
+		// reset here or the recycled note keeps the previous chart note's state.
+		pendingKill = false;
+		rating = 'unknown';
+		ratingMod = 0;
+		noteHoldSplash = null;
+
 		if (ns.length > 0 && ns != texture) {
 			texture = 'noteskins/' + ns;
 			useRGBShader = false;
@@ -596,6 +610,9 @@ class Note extends FlxSprite
 		isSustainEnd = chartNoteData.isSustainEnd;
 		lowPriority = chartNoteData.lowPriority;
 		multAlpha = chartNoteData.multAlpha;
+		// Was never copied over, so a pooled note kept the sustain length of whatever
+		// note it replaced (and a fresh one had 0, which suppressed its hold splash). (#88)
+		sustainLength = chartNoteData.sustainLength;
 		if (isSustainNote) {
 			parentST = chartNoteData.parentST;
 			parentSL = chartNoteData.parentSL;

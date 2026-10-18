@@ -3,6 +3,8 @@ package play.helpers;
 import backend.ClientPrefs;
 import backend.Conductor;
 
+import debug.PoolStats;
+
 import objects.Character;
 import objects.Note;
 import objects.Note.PreloadedChartNote;
@@ -14,8 +16,6 @@ import play.PlayState;
 import play.helpers.PlayStateNoteHelpers;
 import play.helpers.PlayStatePlayback;
 import play.helpers.PlayStateRating;
-
-import shaders.CrossFade;
 
 // REFACTOR: note hit/miss/spawn logic extracted from play.PlayState
 @:access(play.PlayState)
@@ -182,7 +182,13 @@ class PlayStateNotes
 			if (ClientPrefs.showNotes || !ClientPrefs.showNotes && !state.cpuControlled)
 			{
 				while (state.limitNC < state.noteLimit && state.targetNote.strumTime - Conductor.songPosition < (state.NOTE_SPAWN_TIME / state.targetNote.multSpeed)) {
-					state.spawnedNote = (state.targetNote.isSustainNote ? state.sustainNotes : state.notes).recycle(Note);
+					// Notes and sustains come out of their group pool: recycle() only
+					// grows the group when it has to construct, so the size delta is a
+					// pool miss. (#88)
+					final poolGroup:FlxTypedGroup<Note> = state.targetNote.isSustainNote ? state.sustainNotes : state.notes;
+					final poolSize:Int = poolGroup.length;
+					state.spawnedNote = poolGroup.recycle(Note);
+					PoolStats.spawn(state.targetNote.isSustainNote ? PoolStats.SUSTAIN : PoolStats.NOTE, poolGroup.length == poolSize);
 					state.spawnedNote.setupNoteData(state.targetNote);
 
 					if (!ClientPrefs.noSpawnFunc && state.hasActiveScripts()) state.callOnLuas('onSpawnNote', [(!state.spawnedNote.isSustainNote ? state.notes.members.indexOf(state.spawnedNote) : state.sustainNotes.members.indexOf(state.spawnedNote)), state.targetNote.noteData, state.targetNote.noteType, state.targetNote.isSustainNote, state.targetNote.strumTime]); // #44: documented 5th arg
@@ -328,12 +334,12 @@ class PlayStateNotes
 							case 'Cross Fade': // CF note
 								if (ClientPrefs.crossFadeMode != 'Off')
 								{
-									new CrossFade(state.boyfriend, state.grpBFCrossFade, false);
+									PlayStateNoteHelpers.spawnCrossFade(state.grpBFCrossFade, state.boyfriend, false);
 								}
 							case 'GF Cross Fade': // GFCF note
 								if (ClientPrefs.crossFadeMode != 'Off')
 								{
-									new CrossFade(state.gf, state.grpGFCrossFade, false);
+									PlayStateNoteHelpers.spawnCrossFade(state.grpGFCrossFade, state.gf, false);
 								}
 						}
 					}
@@ -346,7 +352,7 @@ class PlayStateNotes
 					{
 						if (ClientPrefs.crossFadeMode != 'Off')
 						{
-							new CrossFade(state.boyfriend, state.grpBFCrossFade, false);
+							PlayStateNoteHelpers.spawnCrossFade(state.grpBFCrossFade, state.boyfriend, false);
 						}
 					}
 				}
@@ -489,7 +495,7 @@ class PlayStateNotes
 					{
 						if (ClientPrefs.crossFadeMode != 'Off')
 						{
-							new CrossFade(state.dad, state.grpCrossFade);
+							PlayStateNoteHelpers.spawnCrossFade(state.grpCrossFade, state.dad);
 						}
 					}
 				}
@@ -498,7 +504,7 @@ class PlayStateNotes
 				{
 					if (ClientPrefs.crossFadeMode != 'Off')
 					{
-						new CrossFade(state.dad, state.grpCrossFade);
+						PlayStateNoteHelpers.spawnCrossFade(state.grpCrossFade, state.dad);
 					}
 				}
 
@@ -506,7 +512,7 @@ class PlayStateNotes
 				{
 					if (ClientPrefs.crossFadeMode != 'Off')
 					{
-						new CrossFade(state.gf, state.grpGFCrossFade, false);
+						PlayStateNoteHelpers.spawnCrossFade(state.grpGFCrossFade, state.gf, false);
 					}
 				}
 				state.oppChar = !daNote.gfNote ? !PlayState.opponentChart ? state.dad : state.boyfriend : state.gf;

@@ -79,8 +79,8 @@ class GraphicsSettingsSubState extends BaseOptionsMenu
 		// The "Memory Leaks" meme is dead...
 
 		#if !html5
-		#if desktop
-		//different res cant really be done on browser lol
+		// Native desktop window resizing is not available on AIR or HTML5.
+		#if (desktop && !air)
 		var option:Option = new Option('Resolution: ',
 			"What resolution do you want the game to run in?",
 			'resolution',
@@ -140,7 +140,8 @@ class GraphicsSettingsSubState extends BaseOptionsMenu
 		}
 	}
 	function onChangeResolution() {
-		#if desktop
+		// Keep the resize and resolution-scaling APIs out of AIR builds.
+		#if (desktop && !air)
     		var resolutionValue = cast(ClientPrefs.resolution, String); // Assuming 'clientprefs.resolution' holds the selected resolution
 
     		if (resolutionValue != null) {
