@@ -23,19 +23,14 @@
 package mobile;
 
 import backend.CoolUtil;
-
 #if android
-import android.content.Context as AndroidContext;
-import android.Permissions as AndroidPermissions;
-import android.os.Build.VERSION as AndroidVersion;
-import android.os.Build.VERSION_CODES as AndroidVersionCode;
+import lime.system.JNI;
 #end
 #if sys
+import haxe.io.Path;
 import sys.io.File;
 import sys.FileSystem;
 #end
-
-using StringTools;
 
 /**
  * A storage class for mobile.
@@ -43,54 +38,65 @@ using StringTools;
  */
 class StorageUtil
 {
-	#if sys
-	public static function getStorageDirectory():String
-		return #if android haxe.io.Path.addTrailingSlash(AndroidContext.getExternalFilesDir()) #elseif ios lime.system.System.documentsDirectory #else Sys.getCwd() #end;
+  #if sys
+  #if android
+  static var getExternalFilesDirJNI:Dynamic = null;
 
-	public static function saveContent(fileName:String, fileData:String, ?alert:Bool = true):Void
-	{
-		try
-		{
-			if (!FileSystem.exists('saves'))
-				FileSystem.createDirectory('saves');
+  static function getAndroidStorageDirectory():String
+  {
+    // PhoenixCore handles Android returning a null File. The raw Context
+    // binding would call java.io.File.getAbsolutePath on that null object.
+    if (getExternalFilesDirJNI == null) getExternalFilesDirJNI = JNI.createStaticMethod('quack.fnf.phoenix.android.PhoenixCore', 'getExternalFilesDir',
+      '()Ljava/lang/String;');
+    return getExternalFilesDirJNI();
+  }
+  #end
 
-			File.saveContent('saves/$fileName', fileData);
-			if (alert)
-				CoolUtil.showPopUp('$fileName has been saved.', "Success!");
-		}
-		catch (e:Dynamic)
-			if (alert)
-				CoolUtil.showPopUp('$fileName couldn\'t be saved.\n(${e.message})', "Error!")
-			else
-				trace('$fileName couldn\'t be saved. (${e.message})');
-	}
+  public static function getStorageDirectory():String
+  {
+    final directory:String = #if android getAndroidStorageDirectory() #elseif ios lime.system.System.documentsDirectory #else Sys.getCwd() #end;
+    // Never turn an unavailable Android directory into "/" or a relative
+    // path: that would send asset copies, mods and crash logs to the wrong root.
+    if (directory == null || directory.length == 0 || !Path.isAbsolute(directory)) throw new haxe.Exception("The app storage directory is unavailable.");
+    return Path.addTrailingSlash(directory);
+  }
 
-	#if android
-	public static function requestPermissions():Void
-	{
-		if (AndroidVersion.SDK_INT >= AndroidVersionCode.TIRAMISU)
-			AndroidPermissions.requestPermissions(['READ_MEDIA_IMAGES', 'READ_MEDIA_VIDEO', 'READ_MEDIA_AUDIO', 'READ_MEDIA_VISUAL_USER_SELECTED']);
-		else
-			AndroidPermissions.requestPermissions(['READ_EXTERNAL_STORAGE', 'WRITE_EXTERNAL_STORAGE']);
+  /**
+   * Prepares app-owned storage before any relative asset/mod access.
+   * Android's getExternalFilesDir needs no storage or media permission on our
+   * API-21+ targets. SAF handles access to user-selected files elsewhere.
+   * Returns false after showing an error so Main can stop startup safely.
+   */
+  public static function initStorageDirectory():Bool
+  {
+    try
+    {
+      final directory:String = getStorageDirectory();
+      if (!FileSystem.exists(directory)) FileSystem.createDirectory(directory);
+      if (!FileSystem.isDirectory(directory)) throw new haxe.Exception('Not a directory: $directory');
+      Sys.setCwd(directory);
+      return true;
+    }
+    catch (e:Dynamic)
+    {
+      CoolUtil.showPopUp('The game could not open its app storage.\nMake sure device storage is available, then reopen the game.\n\n${Std.string(e)}',
+        'Storage unavailable');
+      return false;
+    }
+  }
 
-		if ((AndroidVersion.SDK_INT >= AndroidVersionCode.TIRAMISU
-			&& !AndroidPermissions.getGrantedPermissions().contains('android.permission.READ_MEDIA_IMAGES'))
-			|| (AndroidVersion.SDK_INT < AndroidVersionCode.TIRAMISU
-				&& !AndroidPermissions.getGrantedPermissions().contains('android.permission.READ_EXTERNAL_STORAGE')))
-			CoolUtil.showPopUp('If you accepted the permissions you are all good!' + '\nIf you didn\'t then expect a crash' + '\nPress OK to see what happens',
-				'Notice!');
+  public static function saveContent(fileName:String, fileData:String, ?alert:Bool = true):Void
+  {
+    try
+    {
+      if (!FileSystem.exists('saves')) FileSystem.createDirectory('saves');
 
-		try
-		{
-			if (!FileSystem.exists(StorageUtil.getStorageDirectory()))
-				FileSystem.createDirectory(StorageUtil.getStorageDirectory());
-		}
-		catch (e:Dynamic)
-		{
-			CoolUtil.showPopUp('Please create directory to\n' + StorageUtil.getStorageDirectory() + '\nPress OK to close the game', 'Error!');
-			lime.system.System.exit(1);
-		}
-	}
-	#end
-	#end
+      File.saveContent('saves/$fileName', fileData);
+      if (alert) CoolUtil.showPopUp('$fileName has been saved.', "Success!");
+    }
+    catch (e:Dynamic)
+      if (alert) CoolUtil.showPopUp('$fileName couldn\'t be saved.\n(${e.message})', "Error!") else
+        trace('$fileName couldn\'t be saved. (${e.message})');
+  }
+  #end
 }

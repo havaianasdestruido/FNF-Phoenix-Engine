@@ -45,3 +45,5 @@ jobs:
         run: bash tests/haxe/run-layout.sh
       - name: Test BPM-aware chart section timing
         run: bash tests/haxe/run-charting-timing.sh
+      - name: Test mobile storage and pre-state startup resize
+        run: python3 -m unittest discover -s tests -p 'test_mobile_startup.py' -v

@@ -456,6 +456,12 @@ class FlxGame extends Sprite
 		final oldHeight:Int = FlxG.height;
 		FlxG.resizeGame(width, height);
 
+    // Main installs its scale mode while its Sprite is still being constructed.
+    // FlxG.scaleMode calls onResize immediately, before ADDED_TO_STAGE creates
+    // the first state (and debugger). Apply the viewport above, but defer state
+    // notifications until create() reapplies the resize after switchState().
+    if (_state == null) return;
+
 		// Flixel's normal resize only updates camera scale, not camera size.
 		// Resize full-viewport cameras (including HUD, overlays and touch input),
 		// but leave intentional split-screen / editor cameras alone.

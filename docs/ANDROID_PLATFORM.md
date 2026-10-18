@@ -46,7 +46,9 @@ gameplay code never needs to know about the platform layer.
   `recovery`).
 - The boot hook lives in `Main.hx`:
   `android.platform.AndroidPlatform.init()` (Android only) initializes the
-  bridge, lifecycle handling, gamepad tracking and display watching.
+  bridge, lifecycle handling, gamepad tracking and display watching from
+  Flixel's one-shot `postGameStart` signal. This is after the first state and
+  timer manager are ready, not during `Main`'s constructor before stage attachment.
 
 ### Build integration (`project.hxp`)
 
@@ -75,9 +77,11 @@ The Android pieces are injected **only for the Android target**
   GameActivity. `PhoenixMediaService` is an Android `Service` and
   `PhoenixDocumentsProvider` is a framework `DocumentsProvider`; both
   are declared directly in the manifest template.
-- `config.push("android.permission", permission, true)` — Lime's defaults plus
-  `POST_NOTIFICATIONS`, `FOREGROUND_SERVICE`,
-  `FOREGROUND_SERVICE_MEDIA_PLAYBACK`.
+- `config.push("android.permission", permission, true)` — an explicit minimal
+  list for networking, vibration, wake locks, `POST_NOTIFICATIONS`,
+  `FOREGROUND_SERVICE` and `FOREGROUND_SERVICE_MEDIA_PLAYBACK`. Broad storage
+  and media-library permissions are intentionally omitted; app-owned files
+  and SAF imports do not require them.
 - Signing: `PHOENIX_KEYSTORE`, `PHOENIX_KEYSTORE_PASSWORD`,
   `PHOENIX_KEYSTORE_ALIAS`, `PHOENIX_KEYSTORE_ALIAS_PASSWORD` env vars,
   falling back to a local `key.keystore` for development. No credentials
@@ -110,6 +114,32 @@ revocation are API-21 behaviors and are guarded where applicable; the per-path
 external-storage state check also uses an API-21 method and fails closed below
 the floor. The CI build installs
 API 36 and Build Tools 36.0.0 to match Lime's generated project.
+
+### Startup and storage permissions
+
+`Main` calls `StorageUtil.initStorageDirectory()` before checking or copying
+assets. This validates/creates the app-specific directory and changes the
+working directory inside one error boundary. If storage is unavailable, the
+engine shows a storage error and stops rather than continuing in the wrong
+directory. Existing mods and player data are not deleted or migrated.
+
+On the supported API-21+ devices, `Context.getExternalFilesDir(null)` requires
+**no runtime storage or media permissions**. Startup must not request them,
+poll an asynchronous permission request, or show the old “expect a crash”
+notice. User-selected imports/exports use SAF grants instead.
+
+`Main` is constructed before it is attached to the OpenFL stage. Installing
+`PhoenixScaleMode` immediately invokes `FlxGame.onResize`, so `resizeGame`
+applies the viewport but defers state/debugger callbacks while `_state` is
+null. `FlxGame.create()` reapplies the resize after creating the first state.
+Without this guard, startup can crash after dismissing the old notice and
+fail again without a notice on relaunch.
+
+Regression checks: `python3 -m unittest discover -s tests -p 'test_mobile_startup.py' -v`.
+With Haxe on PATH (or `HAXE` set), this also executes the production storage
+initializer and resize method against host-side boundary stubs. Device checks
+still need a rebuilt APK: test a fresh install, force-stop/relaunch, an upgrade
+preserving existing mods/saves, and background/resume during initial asset copying.
 
 ### System-visible app directories (`PhoenixDocumentsProvider`)
 
