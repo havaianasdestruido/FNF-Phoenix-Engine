@@ -45,6 +45,7 @@ import psychlua.pystdlib.PyTextLib;
 import psychlua.pystdlib.PyTimerLib;
 import utils.CoolSystemStuff;
 import psychlua.pystdlib.PyTweenLib;
+import psychlua.pystdlib.PyWindowLib;
 import Type.ValueType;
 
 import objects.Character;
@@ -358,6 +359,9 @@ class PythonScript
 
 // REFACTOR: extracted to psychlua.pystdlib.PyMiscLib
 	PyMiscLib.register(this);
+
+// REFACTOR: extracted to psychlua.pystdlib.PyWindowLib
+	PyWindowLib.register(this);
 
 		// Script interop — mirrors psychlua.callbacks.ScriptCallbacks for Lua (#87)
 		psychlua.pystdlib.PyScriptLib.register(this);

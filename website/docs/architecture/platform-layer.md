@@ -17,7 +17,7 @@ cross-platform API and compile to no-ops elsewhere.
 | Memory reporting | `utils.MemoryUtil`, `debug.Memory`, `debug/mem/` (C++ include) |
 | Mobile storage, permissions, touch | `mobile/` |
 | Android services | `android/platform/*.hx` + `android/src/quack/fnf/phoenix/android/*.java` |
-| Window behaviour | `backend.WindowBackend`, `backend.WindowColorMode`, `backend.FunkinGame` |
+| Window behaviour | `backend.WindowBackend`, `backend.WindowColorMode`, `backend.TransparentWindow`, `backend.FlxTransWindow`, `backend.FunkinGame` |
 | Library-level fixes | `source/source-haxelib-patches/` ([details](./haxelib-patches.md)) |
 
 ## Desktop
@@ -26,7 +26,12 @@ cross-platform API and compile to no-ops elsewhere.
   `DisableProcessWindowsGhosting()` through inline C++, linking `wininet.lib` and
   `dwmapi.lib` via `@:buildXml`. `WindowColorMode` applies the dark title bar through
   DWM. `utils.PlatformUtil.detectWine()` reports whether the Windows build is running
-  under Wine.
+  under Wine. `backend.TransparentWindow` drives the see-through window effect
+  through `backend.FlxTransWindow` (a port of the same class in
+  psych-engine-modified-build): it resolves the `HWND` of the **current process**
+  instead of trusting `GetActiveWindow()`, then applies `WS_EX_LAYERED` with a
+  color key and whole-window alpha in a single `SetLayeredWindowAttributes()`
+  call, plus `WS_EX_TRANSPARENT` for click-through.
 - **Linux.** `hxgamemode` is requested in `Main.__init__()` behind `GAMEMODE_ALLOWED`
   and released in `shutdownGameMode()`; both paths tolerate `gamemoded` being absent.
   `gamemode.ini` is the shipped profile. Video decoding is libvlc through `hxvlc`.

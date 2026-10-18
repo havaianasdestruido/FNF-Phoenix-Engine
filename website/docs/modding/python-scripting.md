@@ -81,7 +81,7 @@ template with every hook — Lua and Python share the same hook list; the shippe
 | Booleans | `true` / `false` | `True` / `False` |
 | Nil | `nil` | `None` |
 | Tables as arguments | `{1, 2, 3}` | `[1, 2, 3]` |
-| Function count | 244 | 159 |
+| Function count | 253 | 168 |
 | Comments | `--` | `#` |
 
 Both languages receive every hook listed in [Script hooks](./script-hooks.md);
@@ -89,7 +89,7 @@ missing hooks silently never fire, so parity is load-bearing. Python callbacks
 are dispatched through the same `PlayState.callOnScripts` path as Lua (#87).
 
 The Python library covers sprites, text, cameras, characters, properties, sound, score,
-timers, tweens, inter-script calls and Discord. Where a Lua function has no Python twin
+timers, tweens, inter-script calls, Discord and window effects. Where a Lua function has no Python twin
 yet it is explicitly unsupported — use Lua for that part, or add the twin in
 `psychlua/pystdlib/` and send a PR
 ([how](../subsystems/scripting-runtime.md#adding-a-callback)). Intentionally unsupported
@@ -132,5 +132,6 @@ difference is irrelevant.
 
 ## Next
 
-- [Python API reference](./python-api-reference.md) — all 159 functions (generated).
+- [Python API reference](./python-api-reference.md) — all 168 functions (generated).
+- [Transparent window](./transparent-window.md) — make the game window see-through.
 - [Script hooks](./script-hooks.md) — the callbacks, shared with Lua.

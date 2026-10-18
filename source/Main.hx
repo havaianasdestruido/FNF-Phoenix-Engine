@@ -17,6 +17,7 @@ import backend.Achievements;
 import backend.ClientPrefs;
 import backend.CoolUtil;
 import backend.DiscordClient;
+import backend.TransparentWindow;
 import backend.WindowColorMode;
 import play.PlayState;
 #if GAMEMODE_ALLOWED
@@ -180,6 +181,9 @@ class Main extends Sprite
     WindowColorMode.setDarkMode();
     if (CoolUtil.hasVersion("Windows 10")) WindowColorMode.redrawWindowHeader();
     #end
+
+    // Watches the window mode so transparency can be suspended in fullscreen.
+    TransparentWindow.init();
 
     #if DISCORD_ALLOWED DiscordClient.prepare(); #end
 

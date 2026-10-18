@@ -56,6 +56,8 @@ const GROUPS = {
   PyTextLib: ['Text', 'On-screen text objects.'],
   PyTimerLib: ['Timers', 'Scheduling and cancelling timers.'],
   PyTweenLib: ['Tweens', 'Tweening object properties.'],
+  WindowCallbacks: ['Window', 'Window transparency, alpha and click-through (desktop overlay mods).'],
+  PyWindowLib: ['Window', 'Window transparency, alpha and click-through (desktop overlay mods).'],
 };
 
 /** Haxe type -> script-side type name. */

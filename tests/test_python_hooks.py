@@ -17,6 +17,23 @@ ROOT = pathlib.Path(__file__).resolve().parents[1]
 def read(rel: str) -> str:
 	return (ROOT / rel).read_text(encoding="utf-8", errors="ignore")
 
+
+def python_function_count() -> int:
+	"""Unique functions registered for Python scripts (same rule as the generator).
+
+	`website/scripts/generate-script-api.mjs` builds the Python page from every
+	`registerFunction()` found under `source/psychlua/pystdlib/` plus
+	`PythonScript.hx`, deduplicated by name. Counting it here too keeps the docs
+	honest without hardcoding a number that drifts on every new function.
+	"""
+	names = set()
+	for path in sorted((ROOT / "source" / "psychlua").rglob("*.hx")):
+		rel = path.as_posix()
+		if "/pystdlib/" not in rel and not rel.endswith("/PythonScript.hx"):
+			continue
+		names.update(re.findall(r'registerFunction\(\s*["\']([A-Za-z_]\w*)["\']', read(rel[len(str(ROOT)) + 1:])))
+	return len(names)
+
 # Canonical hook list from engine dispatch (PlayState + helpers + GameOverSubstate + CustomSubstate)
 # Kept in sync with source/play/PlayState.hx and helpers.
 ENGINE_HOOKS = [
@@ -126,7 +143,9 @@ class TestPythonCallbackParity(unittest.TestCase):
 	def test_python_scripting_doc_accuracy(self):
 		doc = read("website/docs/modding/python-scripting.md")
 		self.assertNotIn("128 functions", doc)
-		self.assertIn("159 functions", doc)
+		# Counted from the engine instead of hardcoded: adding a Python function
+		# without updating the docs should fail here, not silently rot.
+		self.assertIn(f"{python_function_count()} functions", doc)
 		self.assertIn("Python callbacks", doc)
 		# Must document both sentinel names
 		self.assertIn("Function_StopLua", doc)
