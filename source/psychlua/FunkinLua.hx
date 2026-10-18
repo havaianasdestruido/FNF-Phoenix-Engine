@@ -22,6 +22,7 @@ import psychlua.callbacks.EffectCallbacks;
 import psychlua.callbacks.FileCallbacks;
 import psychlua.callbacks.GameCallbacks;
 import psychlua.callbacks.InputCallbacks;
+import psychlua.callbacks.MetaHorrorCallbacks;
 import psychlua.callbacks.MiscCallbacks;
 import psychlua.callbacks.PropertyCallbacks;
 import psychlua.callbacks.SaveDataCallbacks;
@@ -319,6 +320,9 @@ class FunkinLua {
 
 // REFACTOR: extracted to psychlua.callbacks.MiscCallbacks
 	MiscCallbacks.register(this);
+
+// 4th-wall-breaking ("META_HORROR") system effects (issue #94)
+	MetaHorrorCallbacks.register(this);
 
 	#if ACHIEVEMENTS_ALLOWED Achievements.addLuaCallbacks(lua); #end
 	#if HSCRIPT_ALLOWED HScript.implement(this); #end
