@@ -54,7 +54,7 @@ Generated from full repo audit. Priority: `[P0]` critical/blocker, `[P1]` high, 
 - **[P2] ~~Virtual pad consistency~~ DONE** — `ChartingState` (with dpad section-nav + A/B/X/Y mapped to the Enter/Backspace/Space/Esc shortcuts), `CharacterEditorState`, `DialogueCharacterEditorState`, `MenuCharacterEditorState` and `NoteSplashDebugState` now create virtual pads; `CopyState` needs no input. Verify on-device.
 - **[P2] Fix fullscreen issues on Android (and other OSes maybe)** - Phones with some cutouts currently don't launch the game with 100% fullscreen, create a toggle that can switch between "Respect cut-out" or "Real Fullscreen". Im pretty much sure this will envolve Native Kotlin/Java in order to work. ([#75](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/issues/75))
 - **[P3] iOS** — likely needs `#if ios` nuances (video/hxvlc below). ([#80](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/issues/80))
-- LOW importance menu to set in-game keybinds to fire on hardware triggers (e.g.: on VOL_UP/VOL_DOWN) ([#81](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/issues/81))
+- ~~LOW importance menu to set in-game keybinds to fire on hardware triggers (e.g.: on VOL_UP/VOL_DOWN)~~ DONE ([#81](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/issues/81)) — Android-only HARDWARE section in the Controls menu binds volume buttons to the four note lanes (unbound by default). Volume keys are only captured during gameplay (and while rebinding). Verify on-device.
 
 ### WINDOWS / LOW-LEVEL WINDOW MANAGEMENT
 

@@ -18,7 +18,7 @@ Phoenix Engine is built around two ways of modding, and tries to make both pleas
 | Distribution | zip the folder | ship a build |
 
 Most mods only need softmodding. The scripting API exposes **233 Lua functions** and
-**128 Python functions**, plus reflective `getProperty`/`setProperty` access to almost any
+**149 Python functions**, plus reflective `getProperty`/`setProperty` access to almost any
 field in the engine.
 
 ## Compatibility
@@ -101,7 +101,7 @@ mods/bf-clicker/
 | [Lua scripting](./lua-scripting.md) | how scripts are loaded, globals, patterns |
 | [Lua API reference](./lua-api-reference.md) | all 233 functions, generated from the engine |
 | [Python scripting](./python-scripting.md) | the Hython runtime and its differences |
-| [Python API reference](./python-api-reference.md) | all 128 functions |
+| [Python API reference](./python-api-reference.md) | all 149 functions |
 | [HScript](./hscript.md) | running Haxe from a Lua script |
 | [Script hooks](./script-hooks.md) | every callback the engine fires |
 | [Custom events & notetypes](./custom-events-and-notetypes.md) | chart-driven scripting |

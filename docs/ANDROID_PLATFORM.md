@@ -279,8 +279,12 @@ buttons mirroring their keyboard shortcuts:
 
 - `phoenix://` deep links reach Haxe (`AndroidIntents.onDeepLink`) but
   per-screen routing UI is not implemented yet (roadmap P3).
-- In-game keybind menu for hardware triggers (volume keys) is deferred
-  per the roadmap; `AndroidHardwareInput` is the intended backend.
+- Hardware triggers (volume keys) can be bound to the four note lanes from
+  Options -> Controls -> HARDWARE (Android only, unbound by default). They
+  are stored in the regular keybind map as `hw_note_<lane>` entries, encoded
+  with `backend.HardwareKeys`. Volume keys are only captured during gameplay
+  (not paused) and while a HARDWARE row is being rebound; taunt and other
+  actions are not bindable to hardware triggers yet.
 - Media `seek` is intentionally not applied mid-song.
 - Low-latency audio relies on Lime/SDL's Android backend (AAudio/OpenSL);
   no custom backend is provided.

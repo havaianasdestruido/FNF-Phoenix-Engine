@@ -1,5 +1,9 @@
 package backend;
 
+#if PYTHON_ALLOWED
+import psychlua.PythonScript;
+#end
+
 #if (DISCORD_ALLOWED && !android)
 #if cpp
 import cpp.ConstCharStar;
@@ -13,6 +17,9 @@ import psychlua.FunkinLua.State;
 import states.MainMenuState;
 import hxdiscord_rpc.Discord;
 import hxdiscord_rpc.Types;
+#if PYTHON_ALLOWED
+import psychlua.PythonScript;
+#end
 import lime.app.Application;
 import sys.thread.Thread;
 #end
@@ -21,6 +28,9 @@ import sys.thread.Thread;
 import android.platform.AndroidDiscord;
 #if LUA_ALLOWED
 import psychlua.FunkinLua.State;
+#end
+#if PYTHON_ALLOWED
+import psychlua.PythonScript;
 #end
 #end
 
@@ -156,6 +166,16 @@ class DiscordClient
 		});
 	}
 	#end
+	#if PYTHON_ALLOWED
+	public static function addPythonCallbacks(python:psychlua.PythonScript)
+	{
+		python.set("changeDiscordPresence", changePresence);
+		python.set("changeDiscordClientID", function(?newID:String) {
+			if(newID == null) newID = _defaultID;
+			clientID = newID;
+		});
+	}
+	#end
 	#elseif (DISCORD_ALLOWED && android)
 	// Android build: Discord's RPC SDK is desktop-only, so the same public
 	// API is routed through `AndroidDiscord`, which publishes the presence
@@ -209,6 +229,16 @@ class DiscordClient
 		});
 	}
 	#end
+	#if PYTHON_ALLOWED
+	public static function addPythonCallbacks(python:psychlua.PythonScript)
+	{
+		python.set("changeDiscordPresence", changePresence);
+		python.set("changeDiscordClientID", function(?newID:String) {
+			if(newID == null) newID = _defaultID;
+			clientID = newID;
+		});
+	}
+	#end
 	#else
 	// No-op stub for builds compiled without Discord RPC (e.g. Neko).
 	public static function check():Void {}
@@ -217,6 +247,19 @@ class DiscordClient
 	public static function initialize():Void { isInitialized = false; }
 	public static function changePresence(details:String = 'In the Menus', ?state:String, ?smallImageKey:String, ?hasStartTimestamp:Bool, ?endTimestamp:Float, largeImageKey:String = 'icon'):Void {}
 	public static function updatePresence():Void {}
+	#if PYTHON_ALLOWED
+	public static function addPythonCallbacks(python:psychlua.PythonScript)
+	{
+		python.set("changeDiscordPresence", changePresence);
+		python.set("changeDiscordClientID", function(?newID:String) {
+			if(newID == null) newID = _defaultID;
+			clientID = newID;
+		});
+	}
+	#end
+	#if LUA_ALLOWED
+	public static function addLuaCallbacks(lua:State) {}
+	#end
 	#end
 
 	inline public static function resetClientID()

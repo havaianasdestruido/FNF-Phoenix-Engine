@@ -69,7 +69,8 @@ def onDestroy():
     pass
 ```
 
-`docs/TemplateScript.py` is the commented template with every hook; the shipped
+`docs/TemplateScript.py` (and `example_mods/scripts/TemplateScript.py`) is the commented
+template with every hook — Lua and Python share the same hook list; the shipped
 `mods/bf-clicker/` mod is a complete working example.
 
 ## Differences from Lua
@@ -80,13 +81,20 @@ def onDestroy():
 | Booleans | `true` / `false` | `True` / `False` |
 | Nil | `nil` | `None` |
 | Tables as arguments | `{1, 2, 3}` | `[1, 2, 3]` |
-| Function count | 233 | 128 |
+| Function count | 233 | 149 |
 | Comments | `--` | `#` |
 
+Both languages receive every hook listed in [Script hooks](./script-hooks.md);
+missing hooks silently never fire, so parity is load-bearing. Python callbacks
+are dispatched through the same `PlayState.callOnScripts` path as Lua (#87).
+
 The Python library covers sprites, text, cameras, characters, properties, sound, score,
-timers and tweens. Where a Lua function has no Python twin yet, use Lua for that part — or
-add the twin in `psychlua/pystdlib/` and send a PR
-([how](../subsystems/scripting-runtime.md#adding-a-callback)).
+timers, tweens, inter-script calls and Discord. Where a Lua function has no Python twin
+yet it is explicitly unsupported — use Lua for that part, or add the twin in
+`psychlua/pystdlib/` and send a PR
+([how](../subsystems/scripting-runtime.md#adding-a-callback)). Intentionally unsupported
+areas remain file I/O / shader / effect helpers, which are documented as Lua-only in
+the [Python API reference](./python-api-reference.md).
 
 Function names are intentionally **identical** to Lua, including the `luaX` prefixes
 (`makeLuaSprite`, `addLuaText`, …), so that porting is mechanical.
@@ -124,5 +132,5 @@ difference is irrelevant.
 
 ## Next
 
-- [Python API reference](./python-api-reference.md) — all 128 functions.
+- [Python API reference](./python-api-reference.md) — all 149 functions (generated).
 - [Script hooks](./script-hooks.md) — the callbacks, shared with Lua.

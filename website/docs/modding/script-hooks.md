@@ -51,6 +51,8 @@ Only hooks documented as cancellable react to `Function_Stop`.
 | `onSpawnNote(id, noteData, noteType, isSustainNote, strumTime)` | | fired as a note enters play |
 | `goodNoteHit(id, direction, noteType, isSustainNote)` | | player hit a note |
 | `opponentNoteHit(id, direction, noteType, isSustainNote)` | | opponent hit a note |
+| `goodNoteSkip(id, direction, noteType, isSustainNote)` | | a player note was skipped (when `noSkipFuncs` is false) |
+| `opponentNoteSkip(id, direction, noteType, isSustainNote)` | | an opponent note was skipped (when `noSkipFuncs` is false) |
 | `noteMiss(id, direction, noteType, isSustainNote)` | | note missed by letting it pass |
 | `noteMissPress(direction)` | | ghost miss — pressed with no note |
 | `onGhostTap(key)` | | a tap that hit nothing, with ghost tapping on |
@@ -118,19 +120,17 @@ Scripts can open their own substate with `openCustomSubstate(name, pauseGame)`:
 These are the hook names `PlayState` and its helpers broadcast:
 
 ```text
-onCreate            onCreatePost        onUpdate            onUpdatePost
+onCreate            onCreatePost        onDestroy           onUpdate            onUpdatePost
 onStartCountdown    onCountdownStarted  onCountdownTick     onSongStart
 onStepHit           onBeatHit           onSectionHit        onEndSong
-onSpawnNote         noteMiss            noteMissPress       onGhostTap
-onKeyPress          onKeyRelease        onEvent             eventEarlyTrigger
-onPause             onResume            onGameOver          onGameOverStart
-onGameOverConfirm   onNextDialogue      onSkipDialogue      onMoveCamera
-onRecalculateRating onUpdateScore       onSoundFinished     onTweenCompleted
-onTimerCompleted    onCustomSubstateCreate      onCustomSubstateCreatePost
+onSpawnNote         goodNoteHit         opponentNoteHit     goodNoteSkip        opponentNoteSkip
+noteMiss            noteMissPress       onGhostTap          onKeyPress          onKeyRelease
+onEvent             eventEarlyTrigger   onPause             onResume
+onGameOver          onGameOverStart     onGameOverConfirm   onNextDialogue      onSkipDialogue
+onMoveCamera        onRecalculateRating onUpdateScore       onSoundFinished
+onTweenCompleted    onTimerCompleted    onCustomSubstateCreate      onCustomSubstateCreatePost
 onCustomSubstateUpdate  onCustomSubstateUpdatePost  onCustomSubstateDestroy
 ```
-
-Plus `goodNoteHit` / `opponentNoteHit`, which are dispatched from the note-hit path.
 
 :::tip[Keep it cheap]
 

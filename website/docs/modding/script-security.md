@@ -40,7 +40,7 @@ finding.
 | `python.dynamic-code` | `open`, `exec`, `eval`, `compile`, `__import__`, `input` |
 | `engine.file-read` | `getTextFromFile`, `checkFileExists`, `directoryFileList` |
 | `engine.file-write` | `saveFile`, `deleteFile` |
-| `engine.script-loader` | `addLuaScript` |
+| `engine.script-loader` | `addLuaScript`, `addPythonScript`, `addScript` |
 | `engine.native-class` | reflection into `Sys`, `sys.*`, `cpp.*`, `ModSecurity`, native platform classes, etc. |
 | `haxe.process` | `Sys.command`, `Sys.exit`, `sys.io.Process` in embedded HScript |
 | `haxe.filesystem` | `sys.io.File`, `sys.FileSystem` in embedded HScript |

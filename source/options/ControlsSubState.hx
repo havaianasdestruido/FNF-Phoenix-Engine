@@ -1,11 +1,19 @@
 ﻿package options;
 
+import flixel.input.FlxInput;
 import flixel.input.keyboard.FlxKey;
+import flixel.text.FlxText;
+import flixel.text.FlxText.FlxTextAlign;
+import flixel.util.FlxColor;
 
 import backend.ClientPrefs;
 import backend.Controls;
+import backend.HardwareKeys;
 import backend.InputFormatter;
 import backend.MusicBeatSubstate;
+#if android
+import android.platform.AndroidHardwareInput;
+#end
 import objects.Alphabet;
 import objects.AttachedText;
 
@@ -46,11 +54,32 @@ class ControlsSubState extends MusicBeatSubstate {
 		['Key 2', 'debug_2']
 	];
 
+	#if android
+	// Android only: volume buttons as note lanes. Rows start unbound; the section is opt-in per button.
+	static final HARDWARE_NOTE:String = 'Volume buttons play notes only during gameplay. Menus keep normal volume.';
+	static final HARDWARE_CAPTURE_NOTE:String = 'Press a volume button (Backspace clears). Volume keys are captured for 5s.';
+	var hardwareOptions:Array<Dynamic> = [
+		['HARDWARE'],
+		['Left', 'hw_note_left'],
+		['Down', 'hw_note_down'],
+		['Up', 'hw_note_up'],
+		['Right', 'hw_note_right']
+	];
+	#end
+
 	private var grpOptions:FlxTypedGroup<Alphabet>;
 	private var grpInputs:Array<AttachedText> = [];
 	private var grpInputsAlt:Array<AttachedText> = [];
 	var rebindingKey:Bool = false;
 	var nextAccept:Int = 5;
+
+	#if android
+	// Hardware capture: AndroidHardwareInput delivers the pressed trigger while a HARDWARE row is being rebound.
+	var hardwareNote:FlxText = null;
+	var hardwareKeyListener:Int->Bool->Void = null;
+	var pendingHardwareKey:Int = -1;
+	var capturingHardware:Bool = false;
+	#end
 
 	public function new() {
 		super();
@@ -64,6 +93,11 @@ class ControlsSubState extends MusicBeatSubstate {
 		grpOptions = new FlxTypedGroup<Alphabet>();
 		add(grpOptions);
 
+		#if android
+		menuOptions.push(['']);
+		for (option in hardwareOptions)
+			menuOptions.push(option);
+		#end
 		menuOptions.push(['']);
 		menuOptions.push([defaultKey]);
 
@@ -97,7 +131,64 @@ class ControlsSubState extends MusicBeatSubstate {
 		changeSelection();
 
 		addVirtualPad(LEFT_FULL, A_B);
+
+		#if android
+		if (hasHardwareRows()) {
+			hardwareNote = new FlxText(0, FlxG.height - 60, FlxG.width, HARDWARE_NOTE, 22);
+			hardwareNote.setFormat(Paths.font('vcr.ttf'), 22, FlxColor.WHITE, FlxTextAlign.CENTER);
+			hardwareNote.scrollFactor.set();
+			add(hardwareNote);
+		}
+		hardwareKeyListener = onHardwareKeyCaptured;
+		AndroidHardwareInput.onKey.add(hardwareKeyListener);
+		#end
 	}
+
+	#if android
+	function hasHardwareRows():Bool
+	{
+		for (option in menuOptions)
+			if (option.length > 1 && isHardwareBind(option[1]))
+				return true;
+		return false;
+	}
+
+	static function isHardwareBind(name:String):Bool
+		return name != null && StringTools.startsWith(name, 'hw_');
+
+	function onHardwareKeyCaptured(keyCode:Int, down:Bool):Void
+	{
+		if (down && capturingHardware)
+			pendingHardwareKey = keyCode;
+	}
+
+	function startHardwareCapture():Void
+	{
+		capturingHardware = true;
+		pendingHardwareKey = -1;
+		AndroidHardwareInput.enableVolumeKeys();
+		if (hardwareNote != null)
+			hardwareNote.text = HARDWARE_CAPTURE_NOTE;
+	}
+
+	function stopHardwareCapture():Void
+	{
+		if (capturingHardware)
+		{
+			capturingHardware = false;
+			AndroidHardwareInput.disableVolumeKeys();
+		}
+		if (hardwareNote != null)
+			hardwareNote.text = HARDWARE_NOTE;
+	}
+
+	override function destroy():Void
+	{
+		stopHardwareCapture();
+		AndroidHardwareInput.onKey.remove(hardwareKeyListener);
+		super.destroy();
+	}
+	#end
 
 	var leaving:Bool = false;
 	var bindingTime:Float = 0;
@@ -133,24 +224,41 @@ class ControlsSubState extends MusicBeatSubstate {
 					} else {
 						grpInputs[getInputTextNum()].alpha = 0.0001;
 					}
+					#if android
+					if (isHardwareBind(menuOptions[curSelected][1]))
+						startHardwareCapture();
+					#end
 					FlxG.sound.play(Paths.sound('scrollMenu'));
 				}
 			}
 		} else {
-			var keyPressed:Int = FlxG.keys.firstJustPressed();
-			if (keyPressed > -1) {
-				var keysArray:Array<FlxKey> = ClientPrefs.keyBinds.get(menuOptions[curSelected][1]);
-				keysArray[curAlt ? 1 : 0] = keyPressed;
-
-				var opposite:Int = (curAlt ? 0 : 1);
-				if(keysArray[opposite] == keysArray[1 - opposite]) {
-					keysArray[opposite] = NONE;
+			var bound:Bool = false;
+			#if android
+			if (capturingHardware) {
+				if (FlxG.keys.checkStatus(BACKSPACE, JUST_PRESSED)) {
+					setBindSlot(NONE);
+					bound = true;
+				} else if (pendingHardwareKey > -1) {
+					setBindSlot(HardwareKeys.toBind(pendingHardwareKey));
+					bound = true;
 				}
-				ClientPrefs.keyBinds.set(menuOptions[curSelected][1], keysArray);
+			} else
+			#end
+			{
+				var keyPressed:Int = FlxG.keys.firstJustPressed();
+				if (keyPressed > -1) {
+					setBindSlot(keyPressed);
+					bound = true;
+				}
+			}
 
+			if (bound) {
 				reloadKeys();
 				FlxG.sound.play(Paths.sound('confirmMenu'));
 				rebindingKey = false;
+				#if android
+				stopHardwareCapture();
+				#end
 			}
 
 			bindingTime += elapsed;
@@ -163,6 +271,9 @@ class ControlsSubState extends MusicBeatSubstate {
 				FlxG.sound.play(Paths.sound('scrollMenu'));
 				rebindingKey = false;
 				bindingTime = 0;
+				#if android
+				stopHardwareCapture();
+				#end
 			}
 		}
 
@@ -170,6 +281,18 @@ class ControlsSubState extends MusicBeatSubstate {
 			nextAccept -= 1;
 		}
 		super.update(elapsed);
+	}
+
+	/** Writes the key into the slot being rebound; the other slot is cleared if it became a duplicate. */
+	function setBindSlot(key:Int):Void {
+		var keysArray:Array<FlxKey> = ClientPrefs.keyBinds.get(menuOptions[curSelected][1]);
+		keysArray[curAlt ? 1 : 0] = key;
+
+		var opposite:Int = (curAlt ? 0 : 1);
+		if(keysArray[opposite] == keysArray[1 - opposite]) {
+			keysArray[opposite] = NONE;
+		}
+		ClientPrefs.keyBinds.set(menuOptions[curSelected][1], keysArray);
 	}
 
 	function getInputTextNum() {

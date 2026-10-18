@@ -51,7 +51,9 @@ class ModSecurity
 		'getTextFromFile' => 'engine.file-read',
 		'checkFileExists' => 'engine.file-read',
 		'directoryFileList' => 'engine.file-read',
-		'addLuaScript' => 'engine.script-loader'
+		'addLuaScript' => 'engine.script-loader',
+		'addPythonScript' => 'engine.script-loader',
+		'addScript' => 'engine.script-loader'
 	];
 
 	static var configCache:Map<String, ModSandboxConfig> = [];
