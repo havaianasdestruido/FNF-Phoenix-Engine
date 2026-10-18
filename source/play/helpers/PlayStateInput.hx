@@ -161,6 +161,9 @@ class PlayStateInput
 	{
 		// HOLDING
 		parseKeys(state, state.holdArray);
+		#if android
+		PlayStateHardwareInput.applyHeld(state);
+		#end
 		parseKeys(state, state.pressArray, '_P');
 		parseKeys(state, state.releaseArray, '_R');
 		state.strumsHeld = state.holdArray;

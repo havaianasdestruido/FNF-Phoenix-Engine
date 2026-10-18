@@ -2,6 +2,8 @@ package utils;
 
 // basically PlatformUtil but where all the code glue goes
 #if cpp
+@:buildXml('<include name="../../../../source/utils/build.xml" />')
+@:include("phoenix_desktop_dialog.h")
 #if windows
 @:cppFileCode('#include <stdlib.h>
 #include <stdio.h>
@@ -82,8 +84,16 @@ class PlatformUtilNative
             MB_OK
         );
     ')
+  #elseif linux
+  @:functionCode('
+        res = phoenixShowLinuxDesktopDialog(std::string(desc.c_str()));
+    ')
+  #elseif mac
+  @:functionCode('
+        res = phoenixShowMacDesktopDialog(std::string(desc.c_str()));
+    ')
   #end
-  static function sendFakeMsgBoxNative(desc:String = "", res:Int = 0) // TODO: Linux and macOS (will do soon)
+  static function sendFakeMsgBoxNative(desc:String = "", res:Int = 0)
   {
     return res;
   }

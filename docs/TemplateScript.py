@@ -1,164 +1,232 @@
-# Python stuff
-# The function properties still work if you change the function names.
-# For example:
-#   def onEvent(name, v1, v2, strumTime):
-#       # value 1 is the camera flash length, value 2 is the flash color
-#       if name == 'flashCamera':
-#           cameraFlash('camGame', v2, v1)
+# Python template — every hook the engine fires (Lua + Python parity).
+# See website/docs/modding/script-hooks.md for the authoritative table;
+# this file is the executable checklist. Drop it into
+# mods/<mod>/scripts/ or mods/<mod>/data/<song>/ and watch the debug overlay.
 #
-# The functions still work, its just with different function names.
+# Hooks that can cancel engine behaviour must `return Function_Stop` to do so;
+# `return Function_StopLua` (alias `Function_StopAll`) stops propagation to later scripts.
+# Hooks without a `return` are treated as `Function_Continue`.
+
+# ---------------------------------------------------------------------------
+# Lifecycle — called once per script load / unload, and every frame
+# ---------------------------------------------------------------------------
 
 def onCreate():
-	# When the python file is started/created, some variables weren't created yet
+	# When the script is first loaded; many PlayState fields do not exist yet.
+	# Prefer onCreatePost for normal setup.
 	pass
 
 def onCreatePost():
-	# End of "create", all variables have already been loaded, recommended.
+	# End of create(), every PlayState field is ready — the recommended setup point.
+	# Example: makeLuaSprite / makeLuaText + addLuaSprite / addLuaText here.
 	pass
 
 def onDestroy():
-	# When the python file is ended (Song fade out finished)
-	pass
-
-
-# Gameplay/Song interactions
-def onBeatHit():
-	# Triggered 4 times per section
-	pass
-
-def onStepHit():
-	# Triggered 16 times per section
+	# Song fade-out finished, the script is being removed.
 	pass
 
 def onUpdate(elapsed):
-	# Start of "update", some variables weren't updated yet
+	# Start of the frame, before engine logic.
 	pass
 
 def onUpdatePost(elapsed):
-	# End of "update"
+	# End of the frame.
 	pass
 
+
+# ---------------------------------------------------------------------------
+# Song flow — countdown, sections, timing
+# ---------------------------------------------------------------------------
+
 def onStartCountdown():
-	# Countdown started, duh
-	# Return Function_Stop if you want to stop the countdown from happening (Can be used to trigger dialogues and stuff! You can trigger the countdown with startCountdown())
+	# Before the countdown. Return Function_Stop to suppress it (use for dialogue),
+	# then call startCountdown() when ready.
 	return Function_Continue
 
+def onCountdownStarted():
+	# The countdown actually began.
+	pass
+
 def onCountdownTick(counter):
-	# counter = 0 -> "Three"
-	# counter = 1 -> "Two"
-	# counter = 2 -> "One"
-	# counter = 3 -> "Go!"
-	# counter = 4 -> Nothing happens lol, tho it is triggered at the same time as onSongStart i think
+	# counter = 0 -> "Three", 1 -> "Two", 2 -> "One", 3 -> "Go!"
+	# counter = 4 -> nothing (fired alongside onSongStart, rarely useful)
 	pass
 
 def onSongStart():
-	# Inst and Vocals start playing, songPosition = 0
+	# Vocals + inst started, songPosition = 0
 	pass
 
 def onEndSong():
-	# Song ended/starting transition (Will be delayed if you're unlocking an achievement)
-	# return Function_Stop to stop the song from ending for playing a cutscene or something.
+	# Song finished / transition starting.
+	# Return Function_Stop to block the transition (for cutscenes).
 	return Function_Continue
 
+def onBeatHit():
+	# Triggered 4 times per section (on every beat)
+	pass
 
-# Substate interactions
+def onStepHit():
+	# Triggered 16 times per section (on every step)
+	pass
+
+def onSectionHit():
+	# Once per section
+	pass
+
+
+# ---------------------------------------------------------------------------
+# Pause / resume / game-over / dialogue
+# ---------------------------------------------------------------------------
+
 def onPause():
-	# Called when you press Pause while not on a cutscene/etc
-	# return Function_Stop if you want to stop the player from pausing the game
+	# Pause pressed while not in a cutscene.
+	# Return Function_Stop to block pausing.
 	return Function_Continue
 
 def onResume():
-	# Called after the game has been resumed from a pause (WARNING: Not necessarily from the pause screen, but most likely is!!!)
+	# Game was resumed from pause (not necessarily the pause menu).
 	pass
 
 def onGameOver():
-	# You died! Called every single frame your health is lower (or equal to) zero
-	# return Function_Stop if you want to stop the player from going into the game over screen
+	# Fired every frame while health <= 0.
+	# Return Function_Stop to block entering the game-over screen.
 	return Function_Continue
 
-def onGameOverConfirm(retry):
-	# Called when you Press Enter/Esc on Game Over
-	# If you've pressed Esc, value "retry" will be False
+def onGameOverStart():
+	# The game-over screen just opened.
 	pass
 
+def onGameOverConfirm(retry):
+	# Player pressed Enter/Esc on game-over.
+	# retry == False when Esc was pressed; True for Enter.
+	pass
 
-# Dialogue (When a dialogue is finished, it calls startCountdown again)
 def onNextDialogue(line):
-	# Triggered when the next dialogue line starts, dialogue line starts with 1
+	# Next dialogue line is about to show; line is 1-indexed.
 	pass
 
 def onSkipDialogue(line):
-	# Triggered when you press Enter and skip a dialogue line that was still being typed, dialogue line starts with 1
+	# A line was skipped while it was still typing; line is 1-indexed.
 	pass
 
 
-# Note miss/hit
+# ---------------------------------------------------------------------------
+# Notes — hit / miss / spawn
+# ---------------------------------------------------------------------------
+
+def onSpawnNote(id, noteData, noteType, isSustainNote, strumTime):
+	# A note is entering play. id is its group index; noteData 0..3 (L/D/U/R).
+	pass
+
 def goodNoteHit(id, direction, noteType, isSustainNote):
-	# Function called when you hit a note (after note hit calculations)
-	# id: The note member id, you can get whatever variable you want from this note, example: "getPropertyFromGroup('notes', id, 'strumTime')"
-	# direction: 0 = Left, 1 = Down, 2 = Up, 3 = Right
-	# noteType: The note type string/tag
-	# isSustainNote: If it's a hold note, can be either True or False
+	# Player hit a note (after calculations)
+	# direction 0=Left 1=Down 2=Up 3=Right; noteType is the type string
 	pass
 
 def opponentNoteHit(id, direction, noteType, isSustainNote):
-	# Works the same as goodNoteHit, but for Opponent's notes being hit
+	# Opponent hit a note — same arguments as goodNoteHit
 	pass
 
-def noteMissPress(direction):
-	# Called after the note press miss calculations
-	# Player pressed a button, but there was no note to hit (ghost miss)
+def goodNoteSkip(id, direction, noteType, isSustainNote):
+	# A player note was skipped (e.g. hidden/botplay path); only when
+	# ClientPrefs.noSkipFuncs == False.
+	pass
+
+def opponentNoteSkip(id, direction, noteType, isSustainNote):
+	# Same as goodNoteSkip for the opponent side
 	pass
 
 def noteMiss(id, direction, noteType, isSustainNote):
-	# Called after the note miss calculations
-	# Player missed a note by letting it go offscreen
+	# Player missed a note by letting it pass.
+	pass
+
+def noteMissPress(direction):
+	# Ghost miss: player pressed with no note to hit.
+	pass
+
+def onGhostTap(key):
+	# A tap that hit nothing, with ghost tapping enabled (noteMissPress wrapper)
+	pass
+
+def onKeyPress(key):
+	# Raw lane input pressed; key is 0..3
+	pass
+
+def onKeyRelease(key):
+	# Raw lane input released; key is 0..3
 	pass
 
 
-# Other function hooks
-def onRecalculateRating():
-	# return Function_Stop if you want to do your own rating calculation,
-	# use setRatingPercent() to set the number on the calculation and setRatingString() to set the funny rating name
-	# NOTE: THIS IS CALLED BEFORE THE CALCULATION!!!
-	return Function_Continue
+# ---------------------------------------------------------------------------
+# Camera / rating / score
+# ---------------------------------------------------------------------------
 
 def onMoveCamera(focus):
+	# focus is 'boyfriend', 'dad' or 'gf'
 	if focus == 'boyfriend':
-		# called when the camera focus on boyfriend
 		pass
 	elif focus == 'dad':
-		# called when the camera focus on dad
+		pass
+	elif focus == 'gf':
 		pass
 
+def onRecalculateRating():
+	# Fired BEFORE the rating calculation.
+	# Return Function_Stop and use setRatingPercent() / setRatingName() / setRatingFC()
+	# to supply your own.
+	return Function_Continue
 
-# Event notes hooks
+def onUpdateScore(miss):
+	# Score text is about to update; miss == True if this was a miss update.
+	pass
+
+
+# ---------------------------------------------------------------------------
+# Events
+# ---------------------------------------------------------------------------
+
 def onEvent(name, value1, value2, strumTime):
-	# event note triggered
-	# triggerEvent() does not call this function!!
-
-	# print('Event triggered: ', name, value1, value2)
+	# An event note fired (triggerEvent() does NOT call this).
 	pass
 
 def eventEarlyTrigger(name, value1, value2, strumTime):
-	# Here's a port of the Kill Henchmen early trigger but on Python instead of Haxe:
-	#
-	# if name == 'Kill Henchmen':
-	#     return 280
-	#
-	# This makes the "Kill Henchmen" event be triggered 280 miliseconds earlier so that the kill sound is perfectly timed with the song
-
-	# write your shit under this line, the new return value will override the ones hardcoded on the engine
+	# Return a millisecond offset to fire the named event earlier.
+	# Example: if name == 'Kill Henchmen': return 280
 	pass
 
 
-# Tween/Timer hooks
+# ---------------------------------------------------------------------------
+# Tweens / timers / sound — async completions
+# ---------------------------------------------------------------------------
+
 def onTweenCompleted(tag):
-	# A tween you called has been completed, value "tag" is it's tag
+	# A tween started with doTweenX / doTweenAlpha etc. finished
 	pass
 
 def onTimerCompleted(tag, loops, loopsLeft):
-	# A loop from a timer you called has been completed, value "tag" is it's tag
-	# loops = how many loops it will have done when it ends completely
-	# loopsLeft = how many are remaining
+	# A timer loop finished; loops / loopsLeft count completed vs remaining loops
+	pass
+
+def onSoundFinished(tag):
+	# A sound started with playSound(tag) finished
+	pass
+
+
+# ---------------------------------------------------------------------------
+# Custom substates — opened from script via openCustomSubstate(name, pauseGame)
+# ---------------------------------------------------------------------------
+
+def onCustomSubstateCreate(name):
+	pass
+
+def onCustomSubstateCreatePost(name):
+	pass
+
+def onCustomSubstateUpdate(name, elapsed):
+	pass
+
+def onCustomSubstateUpdatePost(name, elapsed):
+	pass
+
+def onCustomSubstateDestroy(name):
 	pass

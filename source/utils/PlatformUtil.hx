@@ -20,7 +20,8 @@ class PlatformUtil
 		return PlatformUtilNative.getWindowsTransparentNative(res);
 	}
 
-    static public function sendFakeMsgBox(desc:String = "", res:Int = 0)    // TODO: Linux and macOS (will do soon)
+    /** Shows the native crash dialog available on the current desktop platform. */
+    static public function sendFakeMsgBox(desc:String = "", res:Int = 0)
     {
         return PlatformUtilNative.sendFakeMsgBoxNative(desc, res);
     }

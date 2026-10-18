@@ -490,6 +490,61 @@ class Paths
     #end
   }
 
+  /**
+   * Whether the instrumental for a song can actually be resolved.
+   *
+   * `inst()` hands back a loaded `Sound` on native builds (an asset URL on
+   * web), never a path -- so `FileSystem.exists(Paths.inst(...))` was false for
+   * *every* song. Freeplay's "JS Engine Anti-Crash Tool" did exactly that, so
+   * picking any song popped a bogus (and, on Windows, modal/blocking) "this
+   * song has no JSON or audio" dialog, and mod songs such as bf-clicker never
+   * got to load their scripts. Use this Bool helper for existence
+   * checks and keep `inst()` for actually loading the audio.
+   */
+  static public function instExists(song:String, ?difficulty:String = ''):Bool
+  {
+    return songAudioExists(song, 'Inst', difficulty);
+  }
+
+  /**
+   * Whether the vocal track for a song can actually be resolved.
+   * Same rationale as `instExists` -- `voices()` returns a `Sound`, not a path.
+   */
+  static public function voicesExists(song:String, ?difficulty:String = ''):Bool
+  {
+    return songAudioExists(song, 'Voices', difficulty);
+  }
+
+  /**
+   * Shared resolution check behind `instExists` / `voicesExists`: enabled mod
+   * folders first (like `modFolders`), then the raw song folder, then the song
+   * library using the same asset id `returnSound` builds.
+   */
+  static function songAudioExists(song:String, file:String, ?difficulty:String = ''):Bool
+  {
+    final formatted:String = formatToSongPath(song);
+    #if (html5 || flash)
+    return OpenFlAssets.exists('songs:assets/songs/$formatted/$file.$SOUND_EXT', SOUND);
+    #else
+    final diff:String = (difficulty != null) ? formatToSongPath(difficulty) : '';
+    final keys:Array<String> = (diff.length > 0) ? ['$formatted/$file-$diff', '$formatted/$file'] : ['$formatted/$file'];
+
+    for (key in keys)
+    {
+      #if MODS_ALLOWED
+      // modFolders() falls back to 'mods/<key>' when no enabled mod ships it.
+      if (FileSystem.exists(modFolders('songs/$key.$SOUND_EXT'))) return true;
+      #end
+      if (FileSystem.exists('assets/songs/$key.$SOUND_EXT')) return true;
+
+      var gottenPath:String = getPath('songs/$key.$SOUND_EXT', SOUND);
+      gottenPath = gottenPath.substring(gottenPath.indexOf(':') + 1, gottenPath.length);
+      if (OpenFlAssets.exists('songs:' + gottenPath, SOUND)) return true;
+    }
+    return false;
+    #end
+  }
+
   static public function playMenuMusic(force:Bool = false, volume:Float = 1):Void
   {
     if (FlxG.sound.music == null || force)

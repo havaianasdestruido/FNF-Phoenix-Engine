@@ -1,6 +1,8 @@
 package states;
 
 import backend.ClientPrefs;
+import backend.ScreenLayout;
+import backend.ViewportVisuals;
 import backend.CoolUtil;
 import backend.Conductor;
 import backend.DiscordClient;
@@ -67,9 +69,35 @@ class FreeplayState extends MusicBeatState
 	var buttonTop:FlxButton;
 
 	var player:MusicPlayer;
+	private var layoutWidth:Int = 0;
+
+	override public function onResize(width:Int, height:Int):Void
+	{
+		super.onResize(width, height);
+		ViewportVisuals.cover(bg);
+		ViewportVisuals.fill(missingTextBG);
+		ViewportVisuals.fill(bottomBG, 26);
+		if (missingText != null)
+		{
+			missingText.x = 50;
+			missingText.fieldWidth = FlxG.width - 100;
+		}
+		if (bottomText != null) bottomText.fieldWidth = FlxG.width;
+		if (songSearchText != null) songSearchText.x = FlxG.width - songSearchText.width;
+		if (buttonTop != null) buttonTop.x = FlxG.width - buttonTop.width;
+		if (searchText != null && buttonTop != null) searchText.x = buttonTop.x + 195;
+		final shift:Float = ScreenLayout.contentLeft(FlxG.width) - ScreenLayout.contentLeft(layoutWidth);
+		if (grpSongs != null)
+			grpSongs.forEach(item -> { item.startPosition.x += shift; item.x += shift; });
+		if (grpIcons != null) grpIcons.forEach(icon -> icon.x += shift);
+		layoutWidth = FlxG.width;
+		if (scoreText != null && player != null) positionHighscore();
+		if (player != null) player.onViewportResize();
+	}
 
 	override function create()
 	{
+		layoutWidth = FlxG.width;
 		Paths.clearStoredMemory();
 		Paths.clearUnusedMemory();
 		Paths.gc();
@@ -129,8 +157,8 @@ class FreeplayState extends MusicBeatState
 
 		bg = new FlxSprite().loadGraphic(Paths.image('menuDesat'));
 		bg.antialiasing = ClientPrefs.globalAntialiasing;
+		ViewportVisuals.cover(bg);
 		add(bg);
-		bg.screenCenter();
 
 		grpSongs = new FlxTypedGroup<Alphabet>();
 		add(grpSongs);
@@ -139,7 +167,7 @@ class FreeplayState extends MusicBeatState
 
 		for (i in 0...songs.length)
 		{
-			var songText:Alphabet = new Alphabet(90, 320, songs[i].songName, true);
+			var songText:Alphabet = new Alphabet(ScreenLayout.contentLeft(FlxG.width) + 90, 320, songs[i].songName, true);
 			songText.isMenuItem = true;
 			songText.targetY = i - curSelected;
 			grpSongs.add(songText);
@@ -172,7 +200,8 @@ class FreeplayState extends MusicBeatState
 
 		add(scoreText);
 
-		missingTextBG = new FlxSprite().makeGraphic(FlxG.width, FlxG.height, FlxColor.BLACK);
+		missingTextBG = new FlxSprite().makeGraphic(1, 1, FlxColor.BLACK);
+		ViewportVisuals.fill(missingTextBG);
 		missingTextBG.alpha = 0.6;
 		missingTextBG.visible = false;
 		add(missingTextBG);
@@ -200,7 +229,8 @@ class FreeplayState extends MusicBeatState
 
 		MusicBeatState.windowNameSuffix = " - Freeplay Menu";
 
-		bottomBG = new FlxSprite(0, FlxG.height - 26).makeGraphic(FlxG.width, 26, 0xFF000000);
+		bottomBG = new FlxSprite(0, FlxG.height - 26).makeGraphic(1, 1, 0xFF000000);
+		ViewportVisuals.fill(bottomBG, 26);
 		bottomBG.alpha = 0.6;
 		add(bottomBG);
 
@@ -235,7 +265,7 @@ class FreeplayState extends MusicBeatState
 		buttonTop.x = FlxG.width - buttonTop.width;
 		add(buttonTop);
 
-		searchText = new FlxText(975, 110, 100, "Search", 24);
+		searchText = new FlxText(buttonTop.x + 195, 110, 100, "Search", 24);
 		searchText.setFormat(Paths.font("vcr.ttf"), 24, FlxColor.BLACK);
 		add(searchText);
 
@@ -427,7 +457,9 @@ class FreeplayState extends MusicBeatState
 					#if MODS_ALLOWED
 					if(instPlaying != curSelected && !player.playingMusic)
 					{
-						if(sys.FileSystem.exists(Paths.inst(songLowercase, CoolUtil.difficulties[curDifficulty].toLowerCase())) || sys.FileSystem.exists(Paths.json(songLowercase + '/' + poop)) || sys.FileSystem.exists(Paths.modsJson(songLowercase + '/' + poop)))
+						// Paths.inst() returns a loaded Sound, not a path, so it must never be
+						// handed to an exists() check -- use Paths.instExists() instead.
+						if(Paths.instExists(songLowercase, CoolUtil.difficulties[curDifficulty].toLowerCase()) || sys.FileSystem.exists(Paths.json(songLowercase + '/' + poop)) || sys.FileSystem.exists(Paths.modsJson(songLowercase + '/' + poop)))
 							FreeplayStateHelpers.playSong(this);
 						else
 							FreeplayStateHelpers.songJsonPopup(this);
@@ -435,7 +467,7 @@ class FreeplayState extends MusicBeatState
 					#else
 					if(instPlaying != curSelected && !player.playingMusic)
 					{
-						if(OpenFlAssets.exists(Paths.inst(songLowercase + '/' + poop, CoolUtil.difficulties[curDifficulty].toLowerCase())) || OpenFlAssets.exists(Paths.json(songLowercase + '/' + poop)))
+						if(Paths.instExists(songLowercase, CoolUtil.difficulties[curDifficulty].toLowerCase()) || OpenFlAssets.exists(Paths.json(songLowercase + '/' + poop)))
 							FreeplayStateHelpers.playSong(this);
 						else
 							FreeplayStateHelpers.songJsonPopup(this);
@@ -485,15 +517,28 @@ class FreeplayState extends MusicBeatState
 
 					destroyFreeplayVocals();
 
-							#if sys
-							if(sys.FileSystem.exists(Paths.inst(songLowercase, CoolUtil.difficulties[curDifficulty].toLowerCase())) && !sys.FileSystem.exists(Paths.json(poop + '/' + poop))) { //the json doesn't exist, but the song files do, or you put a typo in the name
-									CoolUtil.coolError("The JSON's name does not match with  " + poop + "!\nTry making them match.", "JS Engine Anti-Crash Tool");
-							} else if(sys.FileSystem.exists(Paths.json(poop + '/' + poop)) && !sys.FileSystem.exists(Paths.inst(songLowercase, CoolUtil.difficulties[curDifficulty].toLowerCase())))  {//the json exists, but the song files don't
-									CoolUtil.coolError("Your song seems to not have an Inst.ogg, check the folder name in 'songs'!", "JS Engine Anti-Crash Tool");
-						} else if(!sys.FileSystem.exists(Paths.json(poop + '/' + poop)) && !sys.FileSystem.exists(Paths.inst(songLowercase, CoolUtil.difficulties[curDifficulty].toLowerCase()))) { //neither the json nor the song files actually exist
+						#if sys
+						// Anti-crash sanity check for the week author. Two things used to
+						// make it fire on perfectly fine songs:
+						//   * Paths.inst() returns a loaded Sound (not a path), so
+						//     FileSystem.exists() on it was always false;
+						//   * the chart lives at data/<song>/<chart>.json, not at
+						//     data/<chart>/<chart>.json, and mod charts live under mods/.
+						// The result was a bogus -- and on Windows modal, game-blocking --
+						// "this song has no JSON or audio" dialog on every song pick.
+						final chartName:String = songLowercase + '/' + poop;
+						final chartExists:Bool = sys.FileSystem.exists(Paths.modsJson(chartName)) || sys.FileSystem.exists(Paths.json(chartName))
+							|| OpenFlAssets.exists(Paths.modsJson(chartName)) || OpenFlAssets.exists(Paths.json(chartName));
+						final audioExists:Bool = Paths.instExists(songLowercase, CoolUtil.difficulties[curDifficulty].toLowerCase());
+
+						if(audioExists && !chartExists) { //the json doesn't exist, but the song files do, or you put a typo in the name
+							CoolUtil.coolError("The JSON's name does not match with  " + poop + "!\nTry making them match.", "JS Engine Anti-Crash Tool");
+						} else if(chartExists && !audioExists) {//the json exists, but the song files don't
+							CoolUtil.coolError("Your song seems to not have an Inst.ogg, check the folder name in 'songs'!", "JS Engine Anti-Crash Tool");
+						} else if(!chartExists && !audioExists) { //neither the json nor the song files actually exist
 							CoolUtil.coolError("It appears that " + poop + " doesn't actually have a JSON, nor does it actually have voices/instrumental files!\nMaybe try fixing its name in weeks/" + WeekData.getWeekFileName() + "?", "JS Engine Anti-Crash Tool");
 						}
-							#end
+						#end
 					}
 				}
 				else if ((controls.RESET || virtualPad.buttonY.justPressed) && !player.playingMusic) {
