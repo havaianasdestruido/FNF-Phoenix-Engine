@@ -499,7 +499,8 @@ class PlayState extends MusicBeatState
 		FlxG.mouse.visible = false;
 		//Stops playing on a height that isn't divisible by 2
 		if (ClientPrefs.ffmpegMode && ClientPrefs.resolution != null) {
-			#if desktop
+			// AIR does not support the native window-resize path used by render mode.
+			#if (desktop && !air)
 			var resolutionValue = cast(ClientPrefs.resolution, String);
 
 			if (resolutionValue != null) {

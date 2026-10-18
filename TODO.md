@@ -43,7 +43,7 @@ Generated from full repo audit. Priority: `[P0]` critical/blocker, `[P1]` high, 
 
 ## 2. GAMEPLAY / PSYCH SYNC (P3 imports)
 
-- **[P2] Add missing `import`s/defines for full Psych parity** — audit found non-compiling-on-clean-machine deps (`backend.MusicBeatState` in `CopyState`, `ChartingUIWaveform` AIR gating). Grep revealed: `WeekData.hx`, `MusicPlayer.hx`, `PsychLua` all fine, but verify `#if desktop` vs `#if (desktop && !air)` at the 5 leftover audit sites (see §9). ([#74](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/issues/74))
+- **[P2] ~~Add missing `import`s/defines for full Psych parity~~ DONE** — `CopyState` scopes its backend imports to mobile builds; `ChartingUIWaveform` explicitly imports its extracted dependencies and gates private native-buffer access away from AIR/Flash. The remaining target-guard decisions are documented in §9. ([#74](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/issues/74))
 - **[P1] Double-chart / charting BPM** `ChartingState.hx:574` TODO "expand more & port the 1.0 system" and `:617` TODO "make BPM changes work properly" — BPM-change-aware step/section math is a real gameplay-integrity gap vs Psych. ([#67](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/issues/67))
 - **[P3] Missing funkin.vis cross-target** — `SpectralAnalyzer` patched; check hacking shaders (`Glitch`, `Chromatic`, `Malmo`?) compile on flash/air (`#if desktop` guard audit, §9). ([#79](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/issues/79))
 
@@ -109,16 +109,16 @@ Top 10 inventory of the engine's native window-manipulation paths and the Window
 - **[P3] `FlxG.watch` in FPSCounter** — verify only debug. ([#89](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/issues/89))
 - **[P3] `cast` / `Reflect.field` in per-frame paths** — `ChartChartingUI`/`Conductor` use `Reflect.field(ClientPrefs, ...)` in window accessors; cache static before loop. ([#90](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/issues/90))
 
-## 9. GUARD AUDIT — REMAINING `#if desktop` ELIGIBLE FOR `!air`
+## 9. GUARD AUDIT — RESOLVED
 
-Audited; these 5 sites were flagged but NOT changed (only 3 charting sites converted). Decide: convert or document why not. ([#91](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/issues/91))
+The remaining desktop/AIR candidates from the guard audit are now either narrowed or documented; the desktop-only resolution and waveform paths use `#if (desktop && !air)`. ([#91](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/issues/91))
 
-| Site | Why flagged |
+| Site | Decision |
 |---|---|
-| `source/utils/CoolUtil.hx` ~116 (resW/resH/resetResScale) | Flash-only-safe desktop funcs |
-| `source/play/PlayState.hx` ~465 | promote `#if desktop` music? flags |
-| `source/options/OptionsState.hx`:26 / `GraphicsSettingsSubState.hx` 73,134 | resolution list on AIR |
-| `FunkinGame.hx` 8-21 (fullscreen/window flags) | AIR window APIs differ |
+| `source/backend/CoolUtil.hx` (`resW`/`resH`/`resetResScale`) | Narrowed to `desktop && !air`; these helpers exist only for native resizable windows. |
+| `source/play/PlayState.hx` (render-mode resolution) | Narrowed to `desktop && !air`; AIR cannot use the native window-resize path. |
+| `source/options/GraphicsSettingsSubState.hx` (resolution option/callback) | Narrowed to `desktop && !air`; AIR keeps the cross-target framerate setting, but does not offer window resolution changes. `OptionsState` retains its `desktop` keyboard guard because the debug key sequence also works on AIR. |
+| `source/backend/FunkinGame.hx` | Keep the desktop constructor to forward `startFullscreen` to `FlxGame`; restrict the custom keyboard/window shortcut and its imports to `desktop && !air`. |
 
 ## 10. CI / REPO HYGIENE
 
