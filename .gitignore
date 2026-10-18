@@ -5,6 +5,14 @@ art/build_x32-officialrelease.bat
 art/build_x64-officialrelease.bat
 art/test_x64-debug-officialrelease.bat
 
+# Local-only symlink to the sparse-checked-out psych-scripts mod
+# (mods/psych-scripts is a submodule and CI checks out only its fnf_030_ui/).
+# It must never be committed: without the submodule the link dangles, and a
+# dangling symlink aborts every engine build (#129). Create it yourself with
+# `ln -s psych-scripts/fnf_030_ui mods/fnf_030_ui` after initialising the
+# submodule -- .github/workflows/sparse-submodule.yml does the same in CI.
+mods/fnf_030_ui
+
 ### VS Code
 build/*
 export/*
@@ -32,3 +40,8 @@ website/.docusaurus/
 website/docs/reference/
 website/docs/modding/lua-api-reference.md
 website/docs/modding/python-api-reference.md
+
+### Python
+# Bytecode caches from `python3 -m unittest` / tools/check_dependencies.py.
+__pycache__/
+*.pyc
