@@ -158,6 +158,7 @@ it:
 
 ## Next
 
-- [Lua API reference](./lua-api-reference.md) — all 233 functions.
+- [Lua API reference](./lua-api-reference.md) — all 242 functions.
 - [Script hooks](./script-hooks.md) — every callback and its arguments.
 - [HScript](./hscript.md) — run Haxe when Lua is not enough.
+- [Transparent window](./transparent-window.md) — make the game window see-through.

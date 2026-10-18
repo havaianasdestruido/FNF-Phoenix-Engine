@@ -136,6 +136,7 @@ Phoenix Engine currently has those additions (and more!) that vanilla JSE (Jorda
 - **Shift-Step Multiplier**: 5x step for int options
 - **FPS Counter Border**: Outline rendering with visibility option
 - **Discord RPC**: Centralized with DISCORD_ALLOWED flag
+- **Transparent Window**: See-through (color-key) window, whole-window alpha and click-through for overlay/desktop-pet mods, exposed to Lua, Python and Haxe (`docs/TRANSPARENT_WINDOW.md`)
 
 ### **9. Lua Scripting Improvements**
 - **Lua 1.0 Chart Support**: Now handles Psych 1.0 format

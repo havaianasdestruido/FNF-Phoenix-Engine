@@ -31,6 +31,7 @@ import psychlua.callbacks.SoundCallbacks;
 import psychlua.callbacks.SpriteCallbacks;
 import psychlua.callbacks.TextCallbacks;
 import psychlua.callbacks.TweenCallbacks;
+import psychlua.callbacks.WindowCallbacks;
 
 // REFACTOR: imports for relocated root classes
 import backend.Conductor;
@@ -319,6 +320,9 @@ class FunkinLua {
 
 // REFACTOR: extracted to psychlua.callbacks.MiscCallbacks
 	MiscCallbacks.register(this);
+
+// REFACTOR: extracted to psychlua.callbacks.WindowCallbacks
+	WindowCallbacks.register(this);
 
 	#if ACHIEVEMENTS_ALLOWED Achievements.addLuaCallbacks(lua); #end
 	#if HSCRIPT_ALLOWED HScript.implement(this); #end
