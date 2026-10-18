@@ -42,3 +42,36 @@ python3 -m unittest discover -s tests -p 'test_native_system.py' -v
 The tests compile and link two translation units to verify header-only linkage,
 then check sane query results and nondecreasing time readings. Native branches
 for other operating systems should also be validated with their engine builds.
+
+## Hardware detection
+
+`backend.Native` reports the GPU, the GPU driver, the CPU and the operating
+system of the machine the game runs on. It is used by the crash handler (every
+crash log ends with the hardware details) and is exposed to Lua, Python and
+HScript scripts.
+
+```haxe
+import backend.Native;
+
+trace(Native.buildSystemInfo());
+trace(Native.getGPUName());          // "NVIDIA GeForce RTX 3060"
+trace(Native.getGPUDriverVersion());  // "535.104.05"
+trace(Native.getCPUVendor());         // "Intel"
+```
+
+The GPU part is read from the OpenGL context (`GL.VENDOR`, `GL.RENDERER`,
+`GL.VERSION`) and is ported from the Psych Plus Engine
+(`source/backend/Native.hx`, <https://github.com/Psych-Plus-Team/FNF-PlusEngine>).
+The CPU and the operating system come from the header-only native layer in
+`source/backend/native/include/phoenix_hardware.h`, which reads the Windows
+registry, `sysctl` on macOS and `/proc/cpuinfo` plus `uname` on Linux/Android.
+
+Every value degrades gracefully: without a render context or without the native
+queries the engine reports `Unknown` instead of failing, and non-C++ targets
+compile a stub that returns empty strings.
+
+Standalone C/C++ smoke tests for the native layer:
+
+```sh
+python3 -m unittest discover -s tests -p 'test_native_hardware.py' -v
+```

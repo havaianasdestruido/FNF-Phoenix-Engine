@@ -34,6 +34,7 @@ import states.MainMenuState;
 import states.substates.GameOverSubstate;
 import psychlua.pystdlib.PyCameraLib;
 import psychlua.pystdlib.PyCharacterLib;
+import psychlua.pystdlib.PyHardwareLib;
 import psychlua.pystdlib.PyKeyLib;
 import psychlua.pystdlib.PyMiscLib;
 import psychlua.pystdlib.PyPropertyLib;
@@ -360,6 +361,9 @@ class PythonScript
 
 		// Script interop — mirrors psychlua.callbacks.ScriptCallbacks for Lua (#87)
 		psychlua.pystdlib.PyScriptLib.register(this);
+
+// REFACTOR: extracted to psychlua.pystdlib.PyHardwareLib
+	PyHardwareLib.register(this);
 
 		for (name => func in registeredFunctions) {
 			if (func != null) {

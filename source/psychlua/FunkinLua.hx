@@ -23,6 +23,7 @@ import psychlua.callbacks.DeprecatedCallbacks;
 import psychlua.callbacks.EffectCallbacks;
 import psychlua.callbacks.FileCallbacks;
 import psychlua.callbacks.GameCallbacks;
+import psychlua.callbacks.HardwareCallbacks;
 import psychlua.callbacks.InputCallbacks;
 import psychlua.callbacks.MiscCallbacks;
 import psychlua.callbacks.PropertyCallbacks;
@@ -380,6 +381,9 @@ class FunkinLua {
 
 // REFACTOR: extracted to psychlua.callbacks.MiscCallbacks
 	MiscCallbacks.register(this);
+
+// REFACTOR: extracted to psychlua.callbacks.HardwareCallbacks
+	HardwareCallbacks.register(this);
 
 	#if ACHIEVEMENTS_ALLOWED Achievements.addLuaCallbacks(lua); #end
 	#if HSCRIPT_ALLOWED HScript.implement(this); #end
