@@ -26,12 +26,12 @@ import backend.CoolUtil;
 import backend.Mods;
 import objects.NoteHelpers;
 import backend.Paths;
+import backend.ModSecurity;
 import backend.WeekData;
 import objects.NoteSplash;
 import play.PlayState;
 import states.MainMenuState;
 import states.substates.GameOverSubstate;
-import objects.NoteSplash;
 import psychlua.pystdlib.PyCameraLib;
 import psychlua.pystdlib.PyCharacterLib;
 import psychlua.pystdlib.PyKeyLib;
@@ -85,9 +85,15 @@ class PythonScript
 	public static var Function_StopLua:Dynamic = "##PSYCHLUA_FUNCTIONSTOPLUA";
 
 	public var scriptName:String = '';
+	public var modFolder:String = null;
 	public var closed:Bool = false;
 	public var lastCalledFunction:String = '';
 	public static var lastCalledScript:PythonScript = null;
+
+	/** Runtime half of the softmod sandbox; set before Hython is created. */
+	public var sandboxed:Bool = false;
+	public var securityModName:String = null;
+	public var securityAllowlist:Array<String> = [];
 
 	public static var customFunctions:Map<String, Dynamic> = [];
 	public static var registeredFunctions:Map<String, Dynamic> = [];
@@ -100,22 +106,52 @@ class PythonScript
 	{
 		this.scriptName = scriptName;
 		final game:PlayState = PlayState.instance;
-		game.pythonArray.push(this);
+
+		var code:String = scriptCode;
+		if(code == null)
+		{
+			#if sys
+			try
+			{
+				if(FileSystem.exists(scriptName)) code = File.getContent(scriptName);
+			}
+			catch(e:Dynamic) {}
+			#end
+			if(code == null) code = Paths.getTextFromFile(scriptName);
+		}
+
+		// Security is intentionally checked before creating the interpreter,
+		// registering callbacks, or running any top-level Python statement.
+		var security = ModSecurity.checkScript(scriptName, code, 'python');
+		sandboxed = security.sandboxed;
+		securityModName = security.modName;
+		securityAllowlist = security.allowlist;
+		modFolder = security.modFolder;
+		ModSecurity.report(security, function(message:String) game.addTextToDebug(message, FlxColor.RED));
+		if(security.findings.length > 0)
+		{
+			closed = true;
+			return;
+		}
+		if(code == null)
+		{
+			closed = true;
+			pyTrace('Error loading python script: "$scriptName"\nSource file could not be read.', true, false, FlxColor.RED);
+			return;
+		}
 
 		interp = new Interp();
 		parser = new Parser();
-
-		var code:String = scriptCode;
-		if (code == null)
+		if(sandboxed)
 		{
-			#if sys
-			if (FileSystem.exists(scriptName))
-				code = File.getContent(scriptName);
-			else
-			#end
-				code = Paths.getTextFromFile(scriptName);
+			// Imports are syntactic and covered by the source denylist; host Haxe
+			// class resolution is dynamic, so enforce that restriction at runtime.
+			interp.allowClassResolve = false;
 		}
-		// hython's lexer miscounts indentation on CRLF files, normalize to LF
+		game.pythonArray.push(this);
+
+		// Hython's lexer miscounts indentation on CRLF files, normalize to LF.
+		// This preserves line count, as does preprocessHythonCode().
 		code = code.split("\r\n").join("\n");
 		code = preprocessHythonCode(code);
 
@@ -128,14 +164,7 @@ class PythonScript
 		set('pythonDeprecatedWarnings', true);
 		set('inChartEditor', false);
 
-		// modFolder detection — mirrors FunkinLua's logic
-		var pyModFolder:String = null;
-		var myFolder:Array<String> = this.scriptName.split('/');
-		#if MODS_ALLOWED
-		if (myFolder[0] + '/' == Paths.mods() && (Mods.currentModDirectory == myFolder[1] || Mods.getGlobalMods().contains(myFolder[1])))
-			pyModFolder = myFolder[1];
-		#end
-		set('modFolder', pyModFolder);
+		set('modFolder', modFolder);
 
 		// Initial engine state — mirrors FunkinLua so Python has the same starting
 		// context for onCreate (curBeat, song metadata, characters, preferences...).
@@ -347,6 +376,7 @@ class PythonScript
 		#if DISCORD_ALLOWED DiscordClient.addPythonCallbacks(this); #end
 		#if flxanimate FlxAnimateFunctions.implementPython(this); #end
 
+		lastCalledScript = this;
 		try
 		{
 			interp.execute(parser.parseString(code));
@@ -354,12 +384,14 @@ class PythonScript
 		catch (e:Error)
 		{
 			pyTrace('Error loading python script: "$scriptName"\n' + getErrorString(e), true, false, FlxColor.RED);
+			game.pythonArray.remove(this);
 			closed = true;
 			return;
 		}
 		catch (e:Dynamic)
 		{
 			pyTrace('Error loading python script: "$scriptName"\n' + Std.string(e), true, false, FlxColor.RED);
+			game.pythonArray.remove(this);
 			closed = true;
 			return;
 		}
@@ -408,6 +440,15 @@ class PythonScript
 		if (closed) return;
 
 		_missingCalls.remove(variable);
+		if(Reflect.isFunction(data)
+			&& ModSecurity.isRuntimeCallbackBlocked(variable, sandboxed, securityAllowlist))
+		{
+			var rule:String = ModSecurity.runtimeRuleForCallback(variable);
+			data = Reflect.makeVarArgs(function(_args:Array<Dynamic>):Dynamic
+			{
+				throw reportSecurityRuntime('$variable ($rule)');
+			});
+		}
 		try {
 			interp.setVar(variable, data);
 		}
@@ -417,6 +458,25 @@ class PythonScript
 		catch (e:Dynamic) {
 			pyTrace("ERROR (set " + variable + "): " + Std.string(e), false, false, FlxColor.RED);
 		}
+	}
+
+	/** Log a runtime guard failure to both the mod console and process log. */
+	public function reportSecurityRuntime(capability:String, ?line:Int = 0):String
+	{
+		var message:String = ModSecurity.formatRuntimeBlock(securityModName, scriptName, capability, line);
+		trace(message);
+		if(PlayState.instance != null) PlayState.instance.addTextToDebug(message, FlxColor.RED);
+		return message;
+	}
+
+	public inline function allowsSecurityRule(rule:String):Bool
+		return ModSecurity.isRuleAllowed(rule, securityAllowlist);
+
+	public function allowClassAccess(className:String):Bool
+	{
+		if(!sandboxed || !ModSecurity.isPrivilegedClass(className) || allowsSecurityRule('engine.native-class')) return true;
+		reportSecurityRuntime('privileged class reflection: $className');
+		return false;
 	}
 
 	public function get(variable:String):Dynamic {

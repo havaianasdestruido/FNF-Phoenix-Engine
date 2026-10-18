@@ -244,11 +244,34 @@ class Convert
 	private static var callbacks:Map<String, Dynamic> = new Map();
 
 	@:noCompletion
+	private static function scriptForState(l:State):FunkinLua
+	{
+		var last:FunkinLua = FunkinLua.lastCalledScript;
+		if(last != null && last.lua == l) return last;
+		if(PlayState.instance != null)
+		{
+			for(script in PlayState.instance.luaArray)
+				if(script != null && script.lua == l) return script;
+		}
+		return null;
+	}
+
+	@:noCompletion
 	private static function handleCallback(l:State):Int
 	{
 		try
 		{
 			var callbackName:String = Lua.tostring(l, Lua.upvalueindex(1));
+			var activeScript:FunkinLua = scriptForState(l);
+			if(activeScript != null && backend.ModSecurity.isRuntimeCallbackBlocked(callbackName,
+				activeScript.sandboxed, activeScript.securityAllowlist))
+			{
+				var rule:String = backend.ModSecurity.runtimeRuleForCallback(callbackName);
+				var message:String = activeScript.reportSecurityRuntime('$callbackName ($rule)');
+				LuaL.error(l, message);
+				return 0;
+			}
+
 			var callbackMethod:Dynamic = callbacks.get(callbackName);
 
 			if (callbackMethod == null)
@@ -283,6 +306,17 @@ class Convert
 			for (i in 0...nparams)
 			{
 				args[i] = fromLua(l, i + 1);
+			}
+
+			// Reflection callbacks live in a global registry, so enforce this with
+			// the script owning the current Lua state rather than a captured script.
+			if(activeScript != null && nparams > 0
+				&& (callbackName == 'getPropertyFromClass' || callbackName == 'setPropertyFromClass')
+				&& Std.isOfType(args[0], String) && !activeScript.allowClassAccess(args[0]))
+			{
+				LuaL.error(l, backend.ModSecurity.formatRuntimeBlock(activeScript.securityModName,
+					activeScript.scriptName, 'privileged class reflection: ' + args[0]));
+				return 0;
 			}
 
 			var ret:Dynamic;

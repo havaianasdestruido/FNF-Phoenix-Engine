@@ -10,6 +10,8 @@ import haxe.Exception;
 import backend.Paths;
 import backend.Conductor;
 import backend.ClientPrefs;
+import backend.ModSecurity;
+import backend.ScriptSecurityScanner;
 import objects.Character;
 import objects.Alphabet;
 import play.PlayState;
@@ -117,6 +119,7 @@ class HScript
 				var str:String = '';
 				if(libPackage.length > 0)
 					str = libPackage + '.';
+				if(!parentLua.allowClassAccess(str + libName)) return;
 
 				var resolved:Class<Dynamic> = Type.resolveClass(str + libName); // REFACTOR: legacy bare-name fallback
 				if (resolved == null) resolved = LuaUtils.resolveClassCompat(libName);
@@ -134,6 +137,15 @@ class HScript
 	#if HSCRIPT_ALLOWED
 	public function execute(codeToRun:String, ?funcToRun:String = null, ?funcArgs:Array<Dynamic>):Dynamic
 	{
+		if(parentLua != null && parentLua.sandboxed)
+		{
+			var findings = ScriptSecurityScanner.scan(codeToRun, 'haxe', parentLua.securityAllowlist);
+			if(findings.length > 0)
+			{
+				for(finding in findings) parentLua.reportSecurityFinding('embedded HScript blocked', finding);
+				return null;
+			}
+		}
 		try {
 			var expr:Expr;
 			if (_parsedCache.exists(codeToRun))
@@ -229,6 +241,7 @@ class HScript
 				var str:String = '';
 				if(libPackage.length > 0)
 					str = libPackage + '.';
+				if(!funk.allowClassAccess(str + libName)) return;
 
 				var resolved:Class<Dynamic> = Type.resolveClass(str + libName); // REFACTOR: legacy bare-name fallback
 				if (resolved == null) resolved = LuaUtils.resolveClassCompat(libName);
