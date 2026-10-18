@@ -427,7 +427,9 @@ class FreeplayState extends MusicBeatState
 					#if MODS_ALLOWED
 					if(instPlaying != curSelected && !player.playingMusic)
 					{
-						if(sys.FileSystem.exists(Paths.inst(songLowercase, CoolUtil.difficulties[curDifficulty].toLowerCase())) || sys.FileSystem.exists(Paths.json(songLowercase + '/' + poop)) || sys.FileSystem.exists(Paths.modsJson(songLowercase + '/' + poop)))
+						// Paths.inst() returns a loaded Sound, not a path, so it must never be
+						// handed to an exists() check -- use Paths.instExists() instead.
+						if(Paths.instExists(songLowercase, CoolUtil.difficulties[curDifficulty].toLowerCase()) || sys.FileSystem.exists(Paths.json(songLowercase + '/' + poop)) || sys.FileSystem.exists(Paths.modsJson(songLowercase + '/' + poop)))
 							FreeplayStateHelpers.playSong(this);
 						else
 							FreeplayStateHelpers.songJsonPopup(this);
@@ -435,7 +437,7 @@ class FreeplayState extends MusicBeatState
 					#else
 					if(instPlaying != curSelected && !player.playingMusic)
 					{
-						if(OpenFlAssets.exists(Paths.inst(songLowercase + '/' + poop, CoolUtil.difficulties[curDifficulty].toLowerCase())) || OpenFlAssets.exists(Paths.json(songLowercase + '/' + poop)))
+						if(Paths.instExists(songLowercase, CoolUtil.difficulties[curDifficulty].toLowerCase()) || OpenFlAssets.exists(Paths.json(songLowercase + '/' + poop)))
 							FreeplayStateHelpers.playSong(this);
 						else
 							FreeplayStateHelpers.songJsonPopup(this);
@@ -485,15 +487,28 @@ class FreeplayState extends MusicBeatState
 
 					destroyFreeplayVocals();
 
-							#if sys
-							if(sys.FileSystem.exists(Paths.inst(songLowercase, CoolUtil.difficulties[curDifficulty].toLowerCase())) && !sys.FileSystem.exists(Paths.json(poop + '/' + poop))) { //the json doesn't exist, but the song files do, or you put a typo in the name
-									CoolUtil.coolError("The JSON's name does not match with  " + poop + "!\nTry making them match.", "JS Engine Anti-Crash Tool");
-							} else if(sys.FileSystem.exists(Paths.json(poop + '/' + poop)) && !sys.FileSystem.exists(Paths.inst(songLowercase, CoolUtil.difficulties[curDifficulty].toLowerCase())))  {//the json exists, but the song files don't
-									CoolUtil.coolError("Your song seems to not have an Inst.ogg, check the folder name in 'songs'!", "JS Engine Anti-Crash Tool");
-						} else if(!sys.FileSystem.exists(Paths.json(poop + '/' + poop)) && !sys.FileSystem.exists(Paths.inst(songLowercase, CoolUtil.difficulties[curDifficulty].toLowerCase()))) { //neither the json nor the song files actually exist
+						#if sys
+						// Anti-crash sanity check for the week author. Two things used to
+						// make it fire on perfectly fine songs:
+						//   * Paths.inst() returns a loaded Sound (not a path), so
+						//     FileSystem.exists() on it was always false;
+						//   * the chart lives at data/<song>/<chart>.json, not at
+						//     data/<chart>/<chart>.json, and mod charts live under mods/.
+						// The result was a bogus -- and on Windows modal, game-blocking --
+						// "this song has no JSON or audio" dialog on every song pick.
+						final chartName:String = songLowercase + '/' + poop;
+						final chartExists:Bool = sys.FileSystem.exists(Paths.modsJson(chartName)) || sys.FileSystem.exists(Paths.json(chartName))
+							|| OpenFlAssets.exists(Paths.modsJson(chartName)) || OpenFlAssets.exists(Paths.json(chartName));
+						final audioExists:Bool = Paths.instExists(songLowercase, CoolUtil.difficulties[curDifficulty].toLowerCase());
+
+						if(audioExists && !chartExists) { //the json doesn't exist, but the song files do, or you put a typo in the name
+							CoolUtil.coolError("The JSON's name does not match with  " + poop + "!\nTry making them match.", "JS Engine Anti-Crash Tool");
+						} else if(chartExists && !audioExists) {//the json exists, but the song files don't
+							CoolUtil.coolError("Your song seems to not have an Inst.ogg, check the folder name in 'songs'!", "JS Engine Anti-Crash Tool");
+						} else if(!chartExists && !audioExists) { //neither the json nor the song files actually exist
 							CoolUtil.coolError("It appears that " + poop + " doesn't actually have a JSON, nor does it actually have voices/instrumental files!\nMaybe try fixing its name in weeks/" + WeekData.getWeekFileName() + "?", "JS Engine Anti-Crash Tool");
 						}
-							#end
+						#end
 					}
 				}
 				else if ((controls.RESET || virtualPad.buttonY.justPressed) && !player.playingMusic) {
