@@ -2,7 +2,7 @@
 """Static regression tests for the Arena audit fixes.
 
 No Haxe toolchain is required: these assert the exact invariants that the
-issues (#42-#55, #57-#60) were filed about, so the defects cannot silently
+issues (#42-#55, #57-#60, #69) were filed about, so the defects cannot silently
 return (a hard-coded version string, an unpinned dependency, a hook whose
 argument list drifts from its documentation, ...).
 
@@ -241,6 +241,53 @@ class TestEngineCode(unittest.TestCase):
         for tag in ("clicksTxt", "timeTxt2", "bestTxt", "missTxt", "helpTxt"):
             self.assertIn(f"makeLuaText('{tag}'", bf_clicker)
             self.assertIn(f"addLuaText('{tag}')", bf_clicker)
+
+
+class TestDebugTraceHygiene(unittest.TestCase):
+    """#69: no orphan per-call `trace()` in shader code or its plumbing.
+
+    `BuildingEffect.addAlpha()` used to `trace` its uniform on every call —
+    60fps console spam while the effect was active. The trace is gone; these
+    tests pin that invariant and the neighbouring shader classes audited as
+    part of the same issue, so the pattern cannot silently return.
+    """
+
+    TRACE = re.compile(r"(?<![A-Za-z0-9_])trace\s*\(")
+
+    @classmethod
+    def active_traces(cls, text: str) -> list:
+        """Lines with a `trace(` call, ignoring `//` line comments."""
+        hits = []
+        for line in text.splitlines():
+            if cls.TRACE.search(line.split("//", 1)[0]):
+                hits.append(line.strip())
+        return hits
+
+    def test_building_effect_add_alpha_has_no_trace(self):  # #69
+        self.assertEqual(self.active_traces(read("source/shaders/BuildingEffect.hx")), [])
+
+    def test_shader_classes_have_no_orphan_traces(self):  # #69
+        offenders = {}
+        for path in sorted((ROOT / "source" / "shaders").glob("*.hx")):
+            hits = self.active_traces(path.read_text(encoding="utf-8", errors="ignore"))
+            if path.name == "ErrorHandledShader.hx":
+                # Intentional: crashSave() reports shader compile errors once,
+                # and its alert dialog points users at the trace log.
+                hits = [h for h in hits if "trace(error)" not in h.replace(" ", "")]
+            if hits:
+                offenders[path.name] = hits
+        self.assertEqual(offenders, {})
+
+    def test_remove_shader_from_camera_is_quiet(self):  # #69
+        text = read("source/play/helpers/PlayStateScripts.hx")
+        body = text[text.index("function removeShaderFromCamera"):
+                    text.index("function clearShaderFromCamera")]
+        self.assertEqual(self.active_traces(body), [])
+
+    def test_main_debug_gate_is_defined_for_debug_builds(self):  # #69
+        project = read("project.hxp")
+        self.assertRegex(project,
+                         r"if \(isDebug\(\)\)\s*\n\s*setHaxedef\(\"MAIN_DEBUG\"\)")
 
 
 if __name__ == "__main__":

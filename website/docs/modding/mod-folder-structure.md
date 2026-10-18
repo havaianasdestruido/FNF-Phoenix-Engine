@@ -56,7 +56,9 @@ Read by `Mods.getPack(folder)`, parsed with the tolerant `tjson`:
   "description": "What it does.",
   "restart": false,
   "color": [255, 128, 0],
-  "runsGlobally": false
+  "runsGlobally": false,
+  "scriptSandbox": true,
+  "scriptSandboxAllowlist": []
 }
 ```
 
@@ -66,6 +68,12 @@ Read by `Mods.getPack(folder)`, parsed with the tolerant `tjson`:
 | `color` | accent colour in the list |
 | `restart` | ask for a restart when toggled |
 | `runsGlobally` | **important** — see below |
+| `scriptSandbox` | defaults to `true`; setting `false` gives this mod's scripts full engine privileges and prints a warning |
+| `scriptSandboxAllowlist` | exact [script-security rule IDs](./script-security.md) this trusted mod is allowed to use |
+
+Keep the sandbox enabled unless the mod is trusted and cannot use a narrower allowlist.
+See [Script security sandbox](./script-security.md) for the denylist, runtime guards and
+log format.
 
 ### Global mods
 

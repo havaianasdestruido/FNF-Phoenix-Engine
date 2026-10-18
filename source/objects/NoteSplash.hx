@@ -3,6 +3,7 @@
 import backend.FlxFixedShader;
 import backend.Paths;
 import backend.ClientPrefs;
+import debug.PoolStats;
 import play.PlayState;
 import flixel.graphics.frames.FlxFrame.FlxFrameAngle;
 import shaders.RGBPalette;
@@ -107,6 +108,21 @@ class NoteSplash extends FlxSprite
 		if (!Paths.splashSkinFramesMap.exists(skin)) Paths.initSplash(skin);
 		frames = Paths.splashSkinFramesMap.get(skin);
 		animation.copyFrom(Paths.splashSkinAnimsMap.get(skin));
+	}
+
+	/**
+	 * Returns the splash to `PlayState.grpNoteSplashes` and counts the return so the
+	 * pool hit rate stays measurable. (#88)
+	 */
+	override public function kill():Void
+	{
+		if (exists)
+		{
+			super.kill();
+			PoolStats.release(PoolStats.NOTE_SPLASH);
+			return;
+		}
+		super.kill();
 	}
 
 	static var aliveTime:Float = 0;

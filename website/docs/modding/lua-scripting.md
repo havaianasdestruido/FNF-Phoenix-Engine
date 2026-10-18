@@ -29,6 +29,16 @@ round. (Asset lookup uses the opposite order — the active mod wins there.)
 A script can also be loaded on demand from another script with
 `addLuaScript(path, ignoreAlreadyRunning)` and removed with `removeLuaScript(path)`.
 
+:::caution[Softmod sandbox]
+
+Lua files under `mods/` are source-scanned before they run, and dangerous standard
+libraries/callbacks (OS, IO, package loading, native/process/network/file access) are
+blocked at runtime by default. A finding stops that script and logs its mod, file and
+line. See [Script security sandbox](./script-security.md), including narrowly scoped
+`pack.json` allowlists for trusted mods.
+
+:::
+
 ## A minimal script
 
 ```lua
@@ -158,6 +168,7 @@ it:
 
 ## Next
 
-- [Lua API reference](./lua-api-reference.md) — all 233 functions.
+- [Lua API reference](./lua-api-reference.md) — all 273 functions.
 - [Script hooks](./script-hooks.md) — every callback and its arguments.
 - [HScript](./hscript.md) — run Haxe when Lua is not enough.
+- [Transparent window](./transparent-window.md) — make the game window see-through.

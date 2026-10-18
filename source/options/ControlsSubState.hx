@@ -292,7 +292,7 @@ class ControlsSubState extends MusicBeatSubstate {
 
 		var opposite:Int = (curAlt ? 0 : 1);
 		if(keysArray[opposite] == keysArray[1 - opposite]) {
-			keysArray[opposite] = NONE;
+			keysArray[opposite] = FlxKey.NONE;
 		}
 		ClientPrefs.keyBinds.set(menuOptions[curSelected][1], keysArray);
 	}

@@ -31,6 +31,7 @@ const GROUPS = {
   EffectCallbacks: ['Screen effects', 'Post-processing effects applied to cameras (glitch, bloom, VCR, grain, …).'],
   FileCallbacks: ['Files', 'Reading, writing and listing files relative to the mod folder.'],
   GameCallbacks: ['Game state', 'Score, health, combo, song flow and the values shown on the HUD.'],
+  HardwareCallbacks: ['Hardware', 'GPU, GPU driver, CPU and operating system information.'],
   InputCallbacks: ['Input', 'Keyboard, mouse and gamepad polling.'],
   MiscCallbacks: ['Misc', 'String helpers, random numbers, debug printing and odds and ends.'],
   PropertyCallbacks: ['Properties', 'Reflective get/set of fields on any object, class or group.'],
@@ -45,6 +46,7 @@ const GROUPS = {
   PythonScript: ['Core', 'Callbacks registered directly by the Python host.'],
   PyCameraLib: ['Cameras', 'Camera control.'],
   PyCharacterLib: ['Characters', 'Boyfriend / dad / girlfriend positioning and animation.'],
+  PyHardwareLib: ['Hardware', 'GPU, GPU driver, CPU and operating system information.'],
   PyKeyLib: ['Input', 'Keyboard and gamepad polling.'],
   PyMiscLib: ['Misc', 'Strings, randomness, debug output and helpers.'],
   PyPropertyLib: ['Properties', 'Reflective get/set of object fields.'],
@@ -54,6 +56,9 @@ const GROUPS = {
   PyTextLib: ['Text', 'On-screen text objects.'],
   PyTimerLib: ['Timers', 'Scheduling and cancelling timers.'],
   PyTweenLib: ['Tweens', 'Tweening object properties.'],
+  MetaHorrorCallbacks: ['4th wall breaking', 'Wallpaper, taskbar, volume and input effects for horror mods (require -DMETA_HORROR builds).'],
+  WindowCallbacks: ['Window', 'Window transparency, alpha and click-through (desktop overlay mods).'],
+  PyWindowLib: ['Window', 'Window transparency, alpha and click-through (desktop overlay mods).'],
 };
 
 /** Haxe type -> script-side type name. */

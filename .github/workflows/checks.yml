@@ -1,8 +1,8 @@
 name: Checks
 
-# Fast regression guards for the Arena audit fixes (#42-#55, #57-#60).
-# These need no Haxe or Android SDK; Java 17 exercises the Android-free
-# production SAF path-policy and Media3 bridge lifecycle/action classes.
+# Fast regression guards for Arena fixes and BPM-aware chart timing.
+# Python/source guards need no Haxe or Android SDK; Java 17 exercises the
+# Android-free SAF path-policy and Media3 bridge lifecycle/action classes.
 
 on:
   push:
@@ -41,5 +41,7 @@ jobs:
       - uses: krdlab/setup-haxe@master
         with:
           haxe-version: "4.3.7"
-      - name: Test viewport, touch lanes and resize rollback
+      - name: Test viewport, touch lanes, resize rollback and script scanning
         run: bash tests/haxe/run-layout.sh
+      - name: Test BPM-aware chart section timing
+        run: bash tests/haxe/run-charting-timing.sh

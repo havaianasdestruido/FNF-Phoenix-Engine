@@ -22,11 +22,10 @@
 
 package mobile;
 
+#if mobile
 import backend.CoolUtil;
 import backend.ViewportVisuals;
 import backend.MusicBeatState;
-
-#if mobile
 import lime.utils.Assets as LimeAssets;
 import openfl.utils.Assets as OpenFLAssets;
 import flixel.FlxG;

@@ -457,7 +457,7 @@ class ChartingUISections
         return;
       }
 
-      var addToTime:Float = Conductor.stepCrochet * (state.getSectionBeats() * 4 * (ChartingState.curSec - state.sectionToCopy));
+      var addToTime:Float = state.sectionStartTimeAt(ChartingState.curSec) - state.sectionStartTimeAt(state.sectionToCopy);
       // trace('Time to add: ' + addToTime);
 
       for (note in state.notesCopied)
@@ -544,12 +544,13 @@ class ChartingUISections
 
       var daSec = FlxMath.maxInt(ChartingState.curSec, value);
       if (state._song.notes[daSec - value] == null || state._song.notes[daSec] == null) return;
+      var timeOffset:Float = state.sectionStartTimeAt(daSec) - state.sectionStartTimeAt(daSec - value);
 
       if (check_notesSec.checked && state._song.notes[daSec - value] != null)
       {
         for (note in state._song.notes[daSec - value].sectionNotes)
         {
-          var strum = note[0] + Conductor.stepCrochet * (state.getSectionBeats(daSec) * 4 * value);
+          var strum = note[0] + timeOffset;
 
           var copiedNote:Array<Dynamic> = [strum, note[1], note[2], note[3]];
           state._song.notes[daSec].sectionNotes.push(copiedNote);
@@ -558,14 +559,14 @@ class ChartingUISections
 
       if (check_eventsSec.checked && state._song.notes[daSec - value] != null)
       {
-        var startThing:Float = state.sectionStartTime(-value);
-        var endThing:Float = state.sectionStartTime(-value + 1);
+        var startThing:Float = state.sectionStartTimeAt(daSec - value);
+        var endThing:Float = state.sectionStartTimeAt(daSec - value + 1);
         for (event in state._song.events)
         {
           var strumTime:Float = event[0];
           if (endThing > event[0] && event[0] >= startThing)
           {
-            strumTime += Conductor.stepCrochet * (state.getSectionBeats(daSec) * 4 * value);
+            strumTime += timeOffset;
             var copiedEventArray:Array<Dynamic> = [];
             for (i in 0...event[1].length)
             {
@@ -629,7 +630,7 @@ class ChartingUISections
       state.updateGrid(false);
     });
     var clearLeftSectionButton:FlxButton = new FlxButton(duetButton.x, duetButton.y + 30, "Clear Left Side", function() {
-      if (Conductor.songPosition >= 0) state.curSection = Math.floor(Conductor.songPosition / (Conductor.stepCrochet * 16));
+      if (Conductor.songPosition >= 0) state.curSection = state.sectionIndexAtTime(Conductor.songPosition);
 
       if (state._song.notes[state.curSection] == null || state._song.notes[state.curSection] != null && state._song.notes[state.curSection].sectionNotes == null) return;
       state.saveUndo(state._song); // this is really weird so im saving it as an undoable action just in case it does the wrong section
@@ -653,7 +654,7 @@ class ChartingUISections
       state.updateNoteUI();
     });
     var clearRightSectionButton:FlxButton = new FlxButton(clearLeftSectionButton.x + 100, clearLeftSectionButton.y, "Clear Right Side", function() {
-      if (Conductor.songPosition >= 0) state.curSection = Math.floor(Conductor.songPosition / (Conductor.stepCrochet * 16));
+      if (Conductor.songPosition >= 0) state.curSection = state.sectionIndexAtTime(Conductor.songPosition);
 
       if (state._song.notes[state.curSection] == null || state._song.notes[state.curSection] != null && state._song.notes[state.curSection].sectionNotes == null) return;
       state.saveUndo(state._song); // this is really weird so im saving it as an undoable action just in case it does the wrong section
@@ -735,9 +736,10 @@ class ChartingUISections
               trace("The number you put for value 1 would cause the game to copy notes from a negative section.");
               break;
             }
+            var timeOffset:Float = state.sectionStartTimeAt(daSec) - state.sectionStartTimeAt(daSec - value1);
             for (note in state._song.notes[daSec - value1].sectionNotes)
             {
-              var strum = note[0] + Conductor.stepCrochet * (state.getSectionBeats(daSec - value1) * 4 * value1);
+              var strum = note[0] + timeOffset;
 
               var data = note[1];
               if (swapNotes) data = Std.int(note[1] + 4) % 8;
@@ -796,9 +798,10 @@ class ChartingUISections
         }
         if (state._song.notes[ChartingState.curSec + 1] == null) state.addSection(state.getSectionBeats());
         state.changeSection(ChartingState.curSec + 1);
+        var timeOffset:Float = state.sectionStartTimeAt(ChartingState.curSec) - state.sectionStartTimeAt(ChartingState.curSec - 1);
         for (note in state._song.notes[ChartingState.curSec - 1].sectionNotes)
         {
-          var strum = note[0] + Conductor.stepCrochet * (state.getSectionBeats(ChartingState.curSec - 1) * 4);
+          var strum = note[0] + timeOffset;
 
           var data = note[1];
           if (swapNotes) data = Std.int(note[1] + 4) % 8;
