@@ -315,7 +315,7 @@ class ModSecurity
 		if(lower.startsWith('mods/')) start = 5;
 		else
 		{
-			var marker:Int = lower.indexOf('/mods/');
+			var marker:Int = lower.lastIndexOf('/mods/');
 			if(marker >= 0) start = marker + 6;
 		}
 		if(start < 0 || start > path.length) return {softmod: false, folder: null};
@@ -350,7 +350,7 @@ class ModSecurity
 		if(path == null || path.length == 0) return '<inline script>';
 		var lower:String = path.toLowerCase();
 		var marker:String = folder == null ? 'mods/' : 'mods/' + folder.toLowerCase() + '/';
-		var index:Int = lower.indexOf(marker);
+		var index:Int = lower.lastIndexOf(marker);
 		return index >= 0 ? path.substr(index + marker.length) : path;
 	}
 

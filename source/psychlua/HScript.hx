@@ -1,4 +1,4 @@
-package psychlua;
+﻿package psychlua;
 
 #if HSCRIPT_ALLOWED
 import hscript.Parser;

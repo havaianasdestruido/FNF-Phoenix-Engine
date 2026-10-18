@@ -76,6 +76,8 @@ class ModSecuritySpec
 		check(decision.modName == 'UnsafeMod', 'owning mod folder');
 		check(decision.displayPath == 'scripts/payload.lua', 'mod-relative display path');
 		check(has(decision.findings, 'lua.os', 1), 'integrated source finding');
+		var nestedRoot = ModSecurity.checkScript('/work/mods/project/mods/RealMod/scripts/test.lua', 'saveFile("x", "y")', 'lua');
+		check(nestedRoot.modName == 'RealMod', 'nearest mods root owns an absolute script path');
 		var engineDecision = ModSecurity.checkScript('assets/preload/scripts/engine.lua', "os.execute('trusted')", 'lua');
 		check(!engineDecision.softmod && engineDecision.findings.length == 0, 'engine scripts are not softmods');
 		var bootstrap = ModSecurity.luaBootstrap([]);
