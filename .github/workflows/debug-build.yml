@@ -1,0 +1,85 @@
+name: Debug build
+
+# TEMPORARY workflow used to surface the failing compile output as annotations
+# (artifact/log downloads are unavailable in this environment).
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  HAXE_VERSION: "4.3.7"
+  HAXELIB_PATH: ${{ github.workspace }}/.haxelib
+  HXCPP_COMPILE_CACHE: ${{ github.workspace }}/.hxcpp_cache
+
+jobs:
+  debug:
+    name: Debug ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Android
+            os: ubuntu-24.04
+            target: android
+            setup: android
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: krdlab/setup-haxe@master
+        with:
+          haxe-version: ${{ env.HAXE_VERSION }}
+
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Setup Android SDK & NDK
+        uses: android-actions/setup-android@v4
+        with:
+          packages: platform-tools platforms;android-36 build-tools;36.0.0 ndk;27.0.12077973
+
+      - name: Restore haxelib
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{ env.HAXELIB_PATH }}
+          key: haxelib-${{ runner.os }}-${{ matrix.setup }}-haxe-${{ env.HAXE_VERSION }}-${{ hashFiles('hmm.json') }}
+
+      - name: Configure Android
+        shell: bash
+        run: |
+          android_sdk="${ANDROID_SDK_ROOT:-$ANDROID_HOME}"
+          haxelib run lime config ANDROID_SDK "$android_sdk"
+          haxelib run lime config ANDROID_NDK_ROOT "$android_sdk/ndk/27.0.12077973"
+          haxelib run lime config JAVA_HOME "$JAVA_HOME"
+          haxelib run lime config ANDROID_SETUP true
+
+      - name: Compile (Android, verbose)
+        shell: bash
+        run: |
+          set +e
+          rm -rf "$HXCPP_COMPILE_CACHE" 2>/dev/null || true
+          haxelib run lime build ${{ matrix.target }} -verbose > /tmp/build.log 2>&1
+          code=$?
+          echo "exit code: $code"
+          echo "=== tail of build log ==="
+          tail -n 200 /tmp/build.log
+
+          # Emit the interesting lines as annotations, which are readable over
+          # the (allowed) api.github.com host.
+          n=0
+          while IFS= read -r line; do
+            [ "$n" -ge 60 ] && break
+            enc=${line//%/%25}
+            enc=${enc//$'\r'/}
+            enc=${enc//$'\n'/%0A}
+            echo "::error::${enc:0:900}"
+            n=$((n+1))
+          done < <(grep -aE "Error|error:|Fatal|Uncaught|Source|Build halted|Invalid|cannot|Unknown|Missing|not found|Warning" /tmp/build.log | tail -n 60)
+
+          exit $code
