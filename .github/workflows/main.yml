@@ -620,6 +620,7 @@ jobs:
           HXCPP_COMPILE_THREADS: 4
         run: |
           rm -rf "$HXCPP_COMPILE_CACHE" 2>/dev/null || true
+          rm -f mods/fnf_030_ui
 
           set +e
           haxelib run lime build android ${{ inputs.buildFlags != '' && format('-D {0}', inputs.buildFlags) || '' }} 2>&1 | tee /tmp/haxe-build.log
