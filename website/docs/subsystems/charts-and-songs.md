@@ -127,5 +127,8 @@ are stored per song **and** difficulty.
 ## Editing charts
 
 `editors.ChartingState` is the in-game chart editor (split into `editors/charting/*` for
-grid, sections, waveform, selection, save/load and events). It writes the same JSON format
-and keeps multiple backups — see [Editors](./editors.md).
+grid, sections, waveform, selection, save/load and events). Section starts use the same
+BPM-change map as playback and each section's step length, keeping scrubbing, navigation,
+note placement and grid previews aligned through tempo changes. The editor rebuilds that
+map after BPM or section-length edits. It writes the same JSON format and keeps multiple
+backups — see [Editors](./editors.md).

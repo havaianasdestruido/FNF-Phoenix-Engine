@@ -107,7 +107,7 @@ class Conductor
 	public static function beatToSeconds(beat:Float): Float{
 		var step = beat * 4;
 		var lastChange = getBPMFromStep(step);
-		return lastChange.songTime + ((step - lastChange.stepTime) / (lastChange.bpm / 60)/4) * 1000; // TODO: make less shit and take BPM into account PROPERLY
+		return lastChange.songTime + (step - lastChange.stepTime) * lastChange.stepCrochet;
 	}
 
 	public static function getStep(time:Float){
@@ -131,37 +131,39 @@ class Conductor
 	public static function mapBPMChanges(song:SwagSong)
 	{
 		bpmChangeMap = [];
+		// Store explicit tempo changes only; consumers provide their own base BPM fallback.
 
 		var curBPM:Float = song.bpm;
+		if (Math.isNaN(curBPM) || curBPM <= 0) curBPM = 100;
+
 		var totalSteps:Int = 0;
 		var totalPos:Float = 0;
 		for (i in 0...song.notes.length)
 		{
-			if(song.notes[i].changeBPM && song.notes[i].bpm != curBPM)
+			var section = song.notes[i];
+			if (section != null && section.changeBPM && !Math.isNaN(section.bpm) && section.bpm > 0 && section.bpm != curBPM)
 			{
-				curBPM = song.notes[i].bpm;
+				curBPM = section.bpm;
 				var event:BPMChangeEvent = {
 					stepTime: totalSteps,
 					songTime: totalPos,
 					bpm: curBPM,
-					stepCrochet: calculateCrochet(curBPM)/4
+					stepCrochet: calculateCrochet(curBPM) / 4
 				};
 				bpmChangeMap.push(event);
 			}
 
 			var deltaSteps:Int = Math.round(getSectionBeats(song, i) * 4);
 			totalSteps += deltaSteps;
-			totalPos += ((60 / curBPM) * 1000 / 4) * deltaSteps;
+			totalPos += (calculateCrochet(curBPM) / 4) * deltaSteps;
 		}
-		if (bpmChangeMap.length > 0)
-			trace("new BPM map BUDDY " + bpmChangeMap);
 	}
 
-	static function getSectionBeats(song:SwagSong, section:Int)
+	static function getSectionBeats(song:SwagSong, section:Int):Float
 	{
 		var val:Null<Float> = null;
-		if(song.notes[section] != null) val = song.notes[section].sectionBeats;
-		return val != null ? val : 4;
+		if (song.notes[section] != null) val = song.notes[section].sectionBeats;
+		return val != null && !Math.isNaN(val) && val > 0 ? val : 4;
 	}
 
 	inline public static function calculateCrochet(bpm:Float){

@@ -11,6 +11,9 @@ import flixel.util.FlxColor;
 import openfl.geom.Rectangle;
 
 // REFACTOR: imports for relocated root classes
+// Conductor stays explicitly imported: #67 moved the waveform bounds to
+// ChartingState.sectionStartTime(), which resolves through this class' explicit
+// dependency list (targeted by tests/test_psych_parity_guards.py).
 import backend.Conductor;
 
 // These private native buffer fields are used only by the desktop waveform renderer.
@@ -51,9 +54,8 @@ class ChartingUIWaveform
     state.wavData[1][0] = [];
     state.wavData[1][1] = [];
 
-    var steps:Int = Math.round(state.getSectionBeats() * 4);
     var st:Float = state.sectionStartTime();
-    var et:Float = st + (Conductor.stepCrochet * steps);
+    var et:Float = state.sectionStartTime(1);
 
     var sound:FlxSound = FlxG.sound.music;
     if (FlxG.save.data.chart_waveformVoices) sound = state.vocals;
