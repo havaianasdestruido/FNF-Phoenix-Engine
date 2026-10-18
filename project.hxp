@@ -1229,10 +1229,14 @@ class Project extends HXProject
 			// info('  Found asset path "${path}".');
 		}
 
-		for (file in sys.FileSystem.readDirectory(path))
-		{
-			if (sys.FileSystem.isDirectory('${path}/${file}'))
+			for (file in sys.FileSystem.readDirectory(path))
 			{
+				var fullPath = '${path}/${file}';
+				// Broken/optional symlinks (for example an uninitialised linked mod)
+				// must not abort project evaluation before Haxe can compile.
+				if (!sys.FileSystem.exists(fullPath)) continue;
+				if (sys.FileSystem.isDirectory(fullPath))
+				{
 				// Attempt to recursively add all assets in the directory.
 				if (this.filter(file, ["*"], exclude))
 				{
