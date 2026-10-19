@@ -96,14 +96,11 @@ class Main extends Sprite
     // scheme itself is opt-in from Options -> Misc, never done on startup.
     backend.deeplink.DeepLinks.init();
     #if mobile
-    #if android
-    mobile.StorageUtil.requestPermissions();
-    // Boots the Phoenix Android platform layer (lifecycle, media session,
-    // audio focus, gamepads, memory handling, ...). See
-    // docs/ANDROID_PLATFORM.md.
-    android.platform.AndroidPlatform.init();
-    #end
-    Sys.setCwd(mobile.StorageUtil.getStorageDirectory());
+    if (!mobile.StorageUtil.initStorageDirectory())
+    {
+      lime.system.System.exit(1);
+      return;
+    }
     #end
 
     instance = this;
@@ -153,9 +150,18 @@ class Main extends Sprite
     }
     #end
 
+    #if android
+    // Platform hooks use Flixel timers and frontends. Wait until the first
+    // state is created, not just the game constructor (which precedes stage
+    // attachment and the initial timer-manager reset).
+    FlxG.signals.postGameStart.addOnce(function() {
+      android.platform.AndroidPlatform.init();
+    });
+    #end
+
     addChild(funkinGame);
-    // FlxGame has created its initial state by now. Installing a scale mode
-    // earlier calls FlxGame.onResize before that state exists.
+    // Main itself is not on stage yet. This immediately resizes the viewport;
+    // FlxGame defers state callbacks until its ADDED_TO_STAGE initialization.
     FlxG.scaleMode = new PhoenixScaleMode();
 
     fpsVar = new FPSCounter(3, 3, 0x00FFFFFF);
