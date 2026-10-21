@@ -16,8 +16,12 @@ class MallEvil extends BaseStage
 	override function create()
 	{
 		var bg:BGSprite = new BGSprite('christmas/evilBG', -400, -500, 0.2, 0.2);
-		bg.setGraphicSize(Std.int(bg.width * 0.8));
+		// OTIMIZACAO_2X (christmas/evilBG): textura reduzida à metade (1313x807; original 2625x1613).
+		// A largura alvo é a original (Std.int(2625 * 0.8) = 2100) e o offset é o que updateHitbox()
+		// calculava para a textura original (262.5, 161.3), para não deslocar o fundo.
+		bg.setGraphicSize(Std.int(2625 * 0.8));
 		bg.updateHitbox();
+		bg.offset.set(262.5, 161.3);
 		add(bg);
 
 		var evilTree:BGSprite = new BGSprite('christmas/evilTree', 300, -300, 0.2, 0.2);

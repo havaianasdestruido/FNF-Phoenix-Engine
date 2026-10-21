@@ -37,6 +37,11 @@ class Limo extends BaseStage
 	override function create()
 	{
 		var skyBG:BGSprite = new BGSprite('limo/limoSunset', -120, -50, 0.1, 0.1);
+		// OTIMIZACAO_2X (limo/limoSunset): textura reduzida à metade (984x657, com 1 px de borda replicada).
+		// A escala 2x mantém o tamanho visual original de 1968x1313 na tela; o offset continua zero.
+		skyBG.scale.set(2, 2);
+		skyBG.updateHitbox();
+		skyBG.offset.set(0, 0);
 		add(skyBG);
 
 		if(!ClientPrefs.lowQuality) {
