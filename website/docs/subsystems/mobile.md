@@ -68,8 +68,9 @@ normal Android builds retain the previous system-visible sharing behavior.
   or subfolders.
 
 Both roots use the same app-specific external-files directory as the game's runtime
-working directory. Only these two folders are exposed. Missing directories appear as
-empty roots and are created only when the game or an explicit SAF write creates them.
+working directory. Only these two folders are exposed. Android startup creates `mods/`,
+so the Mods root is a real, writable folder from the first launch; `crash/` appears once
+`CrashHandler` writes a report. Browsing a root never creates its directory.
 If `getExternalFilesDir(null)` returns no path, or Android reports its volume as
 unavailable, no roots are returned. Mounted read-only storage remains browsable but
 cannot be written; if storage later becomes unavailable, document operations fail.
