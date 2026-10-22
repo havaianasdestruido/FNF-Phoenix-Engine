@@ -361,60 +361,61 @@ class PlayStateRating
 	{
 		if (ClientPrefs.showNPS && (state.notesHitDateArray.length > 0 || state.oppNotesHitDateArray.length > 0)) {
 			var threshold = Conductor.songPosition - 1000 * state.npsSpeedMult;
+			state.notesToRemoveCount = 0;
+			var i = 0;
 
-				if (state.notesHitDateArray.length > 0) {
-					state.notesToRemoveCount = 0;
-					var i = 0;
-					var len = state.notesHitDateArray.length;
-
-					while (i < len) {
-						var date = state.notesHitDateArray[i];
-						if (Math.isNaN(date) || date < threshold) {
-							state.notesToRemoveCount++;
-							state.nps -= state.notesHitArray[i]; // maintain running total
-						} else {
-							break;
-						}
-						i++;
+			while (i < state.notesHitDateArray.length) {
+				if (Math.isNaN(state.notesHitDateArray[i])) {
+					state.notesToRemoveCount++;
+				} else if (state.notesHitDateArray[i] < threshold) {
+					state.notesToRemoveCount++;
+				} else {
+					break;
 				}
-
-					if (state.notesToRemoveCount > 0) {
-						state.notesHitDateArray.splice(0, state.notesToRemoveCount);
-						state.notesHitArray.splice(0, state.notesToRemoveCount);
-					}
-
-					if (state.nps > state.maxNPS) {
-						state.maxNPS = state.nps;
-					}
+				i++;
 			}
 
-				if (state.oppNotesHitDateArray.length > 0) {
-					state.oppNotesToRemoveCount = 0;
-					var i = 0;
-					var len = state.oppNotesHitDateArray.length;
-
-					while (i < len) {
-						var date = state.oppNotesHitDateArray[i];
-						if (Math.isNaN(date) || date < threshold) {
-							state.oppNotesToRemoveCount++;
-							state.oppNPS -= state.oppNotesHitArray[i]; // maintain running total
-						} else {
-							break;
-						}
-						i++;
-					}
-
-					if (state.oppNotesToRemoveCount > 0) {
-						state.oppNotesHitDateArray.splice(0, state.oppNotesToRemoveCount);
-						state.oppNotesHitArray.splice(0, state.oppNotesToRemoveCount);
-				}
-
-					if (state.oppNPS > state.maxOppNPS) {
-						state.maxOppNPS = state.oppNPS;
-					}
+			if (state.notesToRemoveCount > 0) {
+				state.notesHitDateArray.splice(0, state.notesToRemoveCount);
+				state.notesHitArray.splice(0, state.notesToRemoveCount);
 			}
 
-				if (state.scoreTxtUpdateFrame <= 8 && state.scoreTxt != null) state.updateScore();
+			state.nps = 0;
+			for (value in state.notesHitArray)
+				state.nps += value;
+
+			state.oppNotesToRemoveCount = 0;
+			i = 0;
+
+			while (i < state.oppNotesHitDateArray.length) {
+				if (Math.isNaN(state.oppNotesHitDateArray[i])) {
+					state.oppNotesToRemoveCount++;
+				} else if (state.oppNotesHitDateArray[i] < threshold) {
+					state.oppNotesToRemoveCount++;
+				} else {
+					break;
+				}
+				i++;
+			}
+
+			if (state.oppNotesToRemoveCount > 0) {
+				state.oppNotesHitDateArray.splice(0, state.oppNotesToRemoveCount);
+				state.oppNotesHitArray.splice(0, state.oppNotesToRemoveCount);
+			}
+
+			state.oppNPS = 0;
+			for (value in state.oppNotesHitArray) {
+				state.oppNPS += value;
+			}
+
+			if (state.oppNPS > state.maxOppNPS) {
+				state.maxOppNPS = state.oppNPS;
+			}
+			if (state.nps > state.maxNPS) {
+				state.maxNPS = state.nps;
+			}
+
+if (state.scoreTxtUpdateFrame <= 8 && state.scoreTxt != null) state.updateScore();
 		}
 	}
 
