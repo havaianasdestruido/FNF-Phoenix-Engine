@@ -21,8 +21,12 @@ class Mall extends BaseStage
 	override function create()
 	{
 		var bg:BGSprite = new BGSprite('christmas/bgWalls', -1000, -500, 0.2, 0.2);
-		bg.setGraphicSize(Std.int(bg.width * 0.8));
+		// OTIMIZACAO_2X (christmas/bgWalls): textura reduzida à metade (1884x888; original 3767x1775).
+		// A largura alvo é a original (Std.int(3767 * 0.8) = 3013) e o offset é o que updateHitbox()
+		// calculava para a textura original (377, 177.64), para não deslocar o fundo.
+		bg.setGraphicSize(Std.int(3767 * 0.8));
 		bg.updateHitbox();
+		bg.offset.set(377, 177.64);
 		add(bg);
 
 		if(!ClientPrefs.lowQuality) {
