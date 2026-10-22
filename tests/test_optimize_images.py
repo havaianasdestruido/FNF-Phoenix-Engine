@@ -29,6 +29,19 @@ def _git(*args):
     return subprocess.run(["git", *args], cwd=REPO_ROOT, capture_output=True, text=True, check=True).stdout
 
 
+def _garantir_commit_base():
+    """Garante o commit base (5ca9689), buscando-o se o clone for raso (ex.: CI com depth 1)."""
+    def existe():
+        return subprocess.run(["git", "cat-file", "-e", f"{BASE_COMMIT}^{{commit}}"],
+                              cwd=REPO_ROOT, capture_output=True).returncode == 0
+    if existe():
+        return
+    subprocess.run(["git", "fetch", "--no-tags", "--depth=1", "origin", BASE_COMMIT],
+                   cwd=REPO_ROOT, capture_output=True)
+    if not existe():
+        raise unittest.SkipTest("commit base 5ca9689 indisponível neste clone")
+
+
 def _criar_png_sintetico(caminho, w, h):
     """PNG RGBA: bloco vermelho opaco à esquerda, bloco verde semitransparente, borda totalmente transparente."""
     subprocess.run(
@@ -197,6 +210,7 @@ class ValidacaoDoRepositorioTest(unittest.TestCase):
             self.assertEqual([info["w"], info["h"]], a["dimensoes_depois"], path)
 
     def test_somente_os_avulsos_foram_alterados_em_relacao_ao_base(self):
+        _garantir_commit_base()
         alterados = set(_git("diff", "--name-only", BASE_COMMIT, "--", "assets", "source", "tools", "tests").split())
         esperados = {
             "assets/week4/images/limo/limoSunset.png",
@@ -211,6 +225,7 @@ class ValidacaoDoRepositorioTest(unittest.TestCase):
         self.assertEqual(assets_alterados, {p for p in esperados if p.endswith(".png")})
 
     def test_nenhum_xml_foi_alterado(self):
+        _garantir_commit_base()
         xml = _git("diff", "--name-only", BASE_COMMIT, "--", "*.xml").strip()
         self.assertEqual(xml, "")
 

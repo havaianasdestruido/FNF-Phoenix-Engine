@@ -253,10 +253,10 @@ class TestPoolStatsSpec(unittest.TestCase):
 
 class TestRoadbookUpdated(unittest.TestCase):
     def test_todo_marks_the_issue_done(self):  # #88
+        # A PR #140 removeu do roadmap todos os itens concluídos (DONE). Um item concluído
+        # não deve mais aparecer como pendente; a ausência do #88 é o estado esperado.
         todo = read("TODO.md")
-        line = next(l for l in todo.splitlines() if "#88" in l)
-        self.assertIn("DONE", line)
-        self.assertIn("~~", line)
+        self.assertNotIn("#88", todo)
 
 
 if __name__ == "__main__":
