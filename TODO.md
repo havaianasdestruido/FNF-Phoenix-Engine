@@ -2,6 +2,8 @@
 
 Generated from full repo audit. Priority: `[P0]` critical/blocker, `[P1]` high, `[P2]` medium, `[P3]` nice-to-have. Sections grouped by system. Bold = biggest payoff. Section 12 is a filtered Codename Engine (CNE) comparison: only CNE differences that Phoenix has **not** implemented (or has only partially implemented) are listed there.
 
+Sections 13–20 are a second backlog pass written against the current tree. Every entry there was checked against §0–12: anything already listed is **cross-referenced, not repeated**, and each item names the file/behaviour that proves it is still missing. They target Phoenix's stated identity — low-end devices, easy Lua/Python/HScript modding, Android-first platform work and Psych/JS compatibility — rather than generic engine cloning.
+
 ---
 
 ## 0. PRIORITY-ish / UNCATEGORIZED
@@ -115,9 +117,11 @@ The remaining desktop/AIR candidates from the guard audit are now either narrowe
 
 ### MEDIA / AUDIO
 
+- **[P3] Media3 progress vs. engine clock.** `PlayStateAndroidMedia` refreshes the session once per second (`updateTimer`) and reports `PlayState.playbackRate`, so lock-screen/Android Auto progress interpolates in 1 s steps and drifts during long rate changes. Push a rate-aware position (or let the native session interpolate from `PlaybackState`) and assert it in `PhoenixMediaBridgeStateTest`.
 
 ### LIFECYCLE / BACKGROUND
 
+- **[P2] Make the process-death recovery blob an actual resume.** `PlayStateAndroidMedia.hx:88` persists `{type, song, difficulty, difficulties, mod}` and `TitleState.checkRecoveryState()` only knows how to restart that chart from the start. Store `songPosition`, `playbackRate`, practice/health state and an engine version, so "Resume" continues where the OS killed the process and a blob written by another build is rejected instead of half-applied.
 
 ### INPUT / CONTROLLERS
 
@@ -131,6 +135,7 @@ The remaining desktop/AIR candidates from the guard audit are now either narrowe
 
 ### FILES / MODS
 
+- **[P2] Install a mod from a `.zip`.** `AndroidStorage` knows the `zip` MIME type (`AndroidStorage.hx:232`) but nothing extracts it — `haxe.zip` is never used in `source/`. Add "Import mod (.zip)" to the SAF picker, extract into `mods/<folder>/`, reject traversal/absolute entries (same rules as §6 #65), validate `pack.json` before enabling, then reload the list. This is the only practical install path on a phone without a file manager.
 
 ### INTENTS / EXTERNAL INTEGRATION
 
@@ -138,12 +143,15 @@ The remaining desktop/AIR candidates from the guard audit are now either narrowe
 
 ### NOTIFICATIONS
 
+- **[P3] Finish or remove `AndroidNotification`.** It exposes a channel, `requestPermission()` for Android 13+ and `notify()/cancel()`, but no Haxe caller posts anything (only the Media3 notification is live). Either wire it to opt-in events — "chart backup saved", "crash log exported", "update available" (§12.6 auto-updater is still a non-goal) — or delete it as dead code alongside §1's Flash/AIR cleanup.
 
 ### DISCORD / EXTERNAL SERVICES
 
+- **[P3] Discord RPC reconnect.** `DiscordClient.check()` runs once from `ClientPrefs.loadPrefs()`, so if Discord starts after the game or restarts, presence stays off until Phoenix is relaunched. Add bounded reconnect/backoff on `onDisconnected` (`DiscordClient.hx:95`) with a visible toggle, and keep the `request[0].username` AIR guard from §5 #85.
 
 ### NATIVE BRIDGE / ARCHITECTURE
 
+- **[P2] Bridge contract check.** There are 64 `JNI.createStaticMethod` sites in `source/android/platform/`, each binding a Java method by string name *and* signature. A Java rename or signature edit still compiles and fails only at runtime as a silent no-op. Add a test (next to `tests/java/.../PhoenixMediaBridgeStateTest`) or a generated table that parses both sides and fails CI on a mismatch, then list every method in `docs/ANDROID_PLATFORM.md`.
 
 ## 12. CODENAME ENGINE (CNE) PARITY — DIFFERENCES NOT YET IMPLEMENTED
 
@@ -242,6 +250,100 @@ Added from the supplied CNE-vs-vanilla/Psych comparison, filtered against the cu
 - **Do not remove `Boyfriend`, sections, or `LoadingState` without shims.** These are CNE architectural differences, not automatic wins.
 - **Do not remove video support.** CNE's softcoded Week 7 cutscenes are a goal for scriptability, not a reason to delete hxvlc/MP4 support.
 - **Do not adopt an auto-updater blindly.** The old updater was intentionally removed; revisit only with a safe cross-platform design.
+
+---
+
+## 13. SAVE DATA, PROFILES & MIGRATION
+
+There is exactly one persistent store: `FlxG.save` bound as `funkin` in `InitState.hx:34`. `ClientPrefs.save()` copies every static field into it by reflection, and `Highscore` (`songScores`, `songRating`, `weekScores`), `Achievements` and the playtime counter all live in the same blob; only keyboard binds got a separate `controls_v2` file. There is no schema version, no backup, no atomic write and no export.
+
+- **[P1] Save schema version + migrations.** `ClientPrefs.loadPrefs()` reflects every class field and assigns whatever the save contains; a renamed, retyped or removed field silently keeps a stale value or falls back to the default, and the reverse direction (opening a newer save in an older build) writes unknown keys back unchanged. Add a `saveVersion` key, an ordered rename→convert→drop migration chain, and a spec that loads a fixture from each older layout.
+- **[P2] Split the monolithic save.** Prefs, highscores, achievements and playtime share one `funkin` file, so one truncated flush loses everything. `controls_v2` already proves the pattern; give scores/achievements/prefs their own FlxSaves (or namespaced keys) and make "reset only my scores" possible without wiping settings.
+- **[P2] Atomic, verified writes.** `FlxSave.flush()` rewrites in place. On Android a kill mid-flush can leave a truncated file and the next boot quietly starts from defaults. Write to a temp file, verify it parses, then rename, and keep one `.bak` so a failed boot can offer the previous save.
+- **[P2] Profile slots.** Everything is global per install. Content creators and co-op/competitive testing need named profiles under `CoolUtil.getSavePath()` (e.g. `profiles/<name>/`), with create/duplicate/rename/delete and a "current profile" indicator. Must migrate the existing save into `profiles/default/` so nobody loses progress (§13 P1).
+- **[P2] Export/import a save bundle.** A JSON (or zip) with prefs, scores, achievements, binds, engine version and mod list, so players can move Android ↔ desktop or to a new phone without root. Export is manual; import shows exactly what will be overwritten and never happens automatically.
+- **[P3] Prune orphan score entries.** `Highscore.formatSong()` keys are `songPath + difficultySuffix` only (`Highscore.hx:95`), so two mods with the same song name/difficulty share — and overwrite — one record, while deleting a mod leaves unreachable keys forever. Namespace new keys by mod id (compat-read the old ones) and add a cleanup view.
+- **[P3] Downgrade warning.** Detect `saveVersion > ENGINE_VERSION` before writing and offer "back up and continue" / "reset" instead of silently re-saving a file the older build does not fully understand.
+
+## 14. REPLAYS, DETERMINISM & SCORE TRUST
+
+There is no replay, ghost or determinism layer anywhere in the tree (the only "replay" hits are a `CharacterEditorState` key label, the Android cold-start deep-link buffer comment and a Flixel comment). Input is consumed directly from `FlxG.keys` in `PlayStateInput` and scores are written from whatever the run reports, guarded only by the `antiCheatEnable` preference flag.
+
+- **[P1] Deterministic replay recording.** One JSON per attempt: chart hash, difficulty, rate, note offsets, mod list + order, engine version and an event log. Record *resolved* gameplay events (hit/miss, hold release, pause, death, health change) from `PlayStateInput` rather than raw keys, so rebinds don't invalidate old replays. This is the missing piece for reproducible bug reports ("this pattern always drops"), score verification and no-botplay demos.
+- **[P2] Replay playback + ghost notes.** Let `PlayState` run from a replay as its input source (score writes disabled), and optionally draw the live player's notes beside it as ghost arrows — the growth path for practice and tournament use.
+- **[P2] Verify scores from the replay.** `Highscore.saveScore()` trusts the value it is handed; `ClientPrefs.antiCheatEnable` only flips a flag. Add a "verified" mark when a replay is attached and re-simulated (no accounts, no backend), and let mod packs/tourneys require it.
+- **[P3] Compatibility gates on import.** Refuse — or require an explicit "force" — when chart hash, engine chart version, rate or the mod set differ; label files with "recorded on Phoenix x.y.z".
+- **[P3] Seed the RNG.** Miss sounds, splash variance and any future RNG-driven mode all use `FlxG.random`. Store a per-attempt seed and seed `FlxG.random` when the chart starts so a replay reproduces the same run visually and logically.
+
+## 15. INPUT & CONTROLLERS
+
+`Controls` already models gamepads (`Device.Gamepad(id)`, `addGamepad`, `addDefaultGamepad`, per-action button maps), but `ControlsSubState` only captures `FlxKey` values and `controls_v2` persists `Map<String, Array<FlxKey>>`. So gamepad support today is a fixed default map: unconfigurable and unpersisted.
+
+- **[P1] Gamepad rebinding + persistence.** Add a device column to `ControlsSubState` (keyboard / gamepad slot / Android hardware keys), capture buttons and axes, serialize gamepad binds next to `customControls`, and offer "reset this device" instead of resetting all binds.
+- **[P2] Hotplug and slot assignment.** Verify a pad unplugged mid-song (or a controller that sleeps) keeps its bindings on reconnect, show "Controller 2 connected/disconnected", and let the player choose which physical pad is P1 instead of relying on `FlxG.gamepads` enumeration order.
+- **[P2] Stick deadzone + trigger threshold calibration.** A live axis readout plus per-control deadzone, remembered per controller id/vendor. Analog drift is currently unfixable without different hardware, and trigger axes vary wildly between controllers.
+- **[P2] Audio-visual latency calibration.** `NoteOffsetState` is a manual slider with no feedback loop. Add an interactive test (metronome + pulse, tap N times, median offset written to prefs) and separate offsets for wired vs Bluetooth output — Android BT adds 100–300 ms that one global offset cannot cover.
+- **[P3] Poll-rate and key-rollover audit.** `PlayStateInput` reads `FlxG.keys`/`firstJustPressed` once per frame; on high-polling keyboards and multiple keys per frame, presses can merge or drop. Test with a 1000 Hz device, document the behaviour, and avoid per-frame allocations in the hot path (§8).
+- **[P3] Android TV / remote navigation.** D-pad-only navigation and Back handling across Main Menu, Freeplay, Mods and Pause, a leanback launcher entry, and a UI that is usable without a touchscreen. TV boxes are a real low-end target for this engine.
+
+## 16. ACCESSIBILITY & COMFORT
+
+The only accessibility affordance today is `ClientPrefs.flashing`, honoured one call site at a time (`Philly.hx:84-225`, `PlayStateEvents.hx:542`), plus the once-per-install warning in `TitleState.hx:171` → `FlashingState`. Options has no accessibility category (`OptionsState.hx:35`).
+
+- **[P1] Central `reducedMotion` preference.** Gate camera bops/shakes/scroll, character screen shake (`PlayStateNotes.hx:402-405`, `:584-587`, `:631-635`), event shakes (`PlayStateEvents.hx:414`), menu tweens and stage flashes in one helper, then let stages/scripts query it. `camZooms` only covers zoom; everything else is per-site today.
+- **[P2] Add an Accessibility options category.** Split from "Visuals and UI" so flashing/reduced motion/high contrast/UI scale/hold-to-confirm are discoverable instead of buried among style options.
+- **[P2] High-contrast / colorblind note palettes.** `noteColorStyle` offers Normal/Quant-Based/Char-Based with editable `arrowRGB`/`quantRGB`, but palettes still rely on hue. Ship named presets (deuteranopia/protanopia/tritanopia), a "force luminance contrast" mode, and optionally lane glyphs/numbers so lanes never depend on colour alone.
+- **[P2] UI scale / text size.** Menus are authored at fixed pixel sizes. Add 100/115/130 % scale applied through `ScreenLayout`/`ViewportVisuals` (reused by the chart editor UI) with live preview, for 1440p desktops and small phones alike.
+- **[P2] Hold-to-confirm and larger touch targets.** Deleting a mod/save/chart, "Exit to menu" and "Reset all settings" are single taps today, several with small hitboxes on mobile. Require a held press (or a second confirmation) and enlarge the touch area without changing the art.
+- **[P3] Re-openable photosensitivity warning.** `FlashingState` only shows while `FlxG.save.data.flashing == null`, so it is once-per-install and unreachable afterwards. Add "Show warning again" in Options and a quick "Reduce flashing" toggle in the pause menu.
+- **[P3] Dialogue comfort settings.** `DialogueBoxPsych` reads a per-line `speed` (default `0.05`) and nothing else. Add a global speed multiplier, instant-advance, and dim-background / hide-box options — dialogue is where most reading happens and it currently has no user-side control.
+- **[P3] Visual beat indicator.** An optional screen-edge pulse that respects `reducedMotion`, so players who mute the game (or play on silent mobile) keep timing feedback without relying on flashes.
+
+## 17. MODDER TOOLING & SCRIPT SAFETY
+
+Modding is a core promise (Lua + Python + HScript, `ModSecurity`, `ScriptSecurityScanner`, `CustomSubstate`, custom events/notetypes), but the authoring loop is still "run the game, read a log". `Mods.getPack()` parses `pack.json` with `tjson`, and `pack.json` only understands `name`, `description`, `restart`, `color`, `runsGlobally`, `scriptSandbox` and `scriptSandboxAllowlist`.
+
+- **[P1] Script execution budget / watchdog.** Lua (`FunkinLua`), Python (`PythonScript`) and HScript (`HScript`) callbacks run inline on the main thread. A `while true do end` freezes the frame with no log, and on mobile there is no console. Add a per-callback instruction/time budget, abort with `file:line`, disable only the offending script for the session (assets stay), and surface the event in the mods menu.
+- **[P2] Mod linter CLI (`tools/`).** Validate `pack.json` schema, unknown/duplicate folders (reusing `Mods.ignoreModFolders`), assets referenced by character/stage/week JSON, duplicate achievement IDs, difficulty names, and Lua/Python/HScript syntax before shipping. This is also what makes the §20 compatibility corpus possible.
+- **[P2] Dependency and conflict metadata.** Add `id`, `version`, `requires` and `conflicts` to `pack.json`, with a resolve/report step before enabling. Without stable ids, `modsList.txt` is ordered by folder name and "requires ModX ≥ 1.2" is impossible. (Distinct from the CNE addon load-priority work in §12.6.)
+- **[P2] Script error overlay with actions.** Show `file:line`, traceback and the offending snippet, with "reload script", "disable for this session" and "open folder". Today a failing script traces to a log or takes the state down; pairs with the §19 diagnostics work.
+- **[P2] Path resolution debugger.** `Paths.modFolders()` silently returns the first hit across active mod → global mods → loose `mods/` → `assets/`. Add an overlay/console command that prints every candidate for a key, whether it exists, and which mod won, plus a grouped "missing assets" list. This is the natural complement to the trace cleanup in §5 #68.
+- **[P3] Asset hot reload (desktop).** Watch the active mod's `images/`, `sounds/`, `music/` and `data/` and reload images/audio/charts without restarting the state. Complementary to the script hot reload in §12.1 — one covers code, this covers assets.
+- **[P3] Mod scaffold generator (`tools/new-mod.py`).** Produce `pack.json`, the standard content folders and starter `scripts/`, `custom_events/`, `custom_notetypes/` from `docs/TemplateScript.lua`/`.py`, so a new mod starts valid instead of with a typo'd folder name.
+- **[P3] Per-script profiling.** Measure time per hook (`onUpdate`, `onStepHit`, `goodNoteHit`, …) and list the worst offenders in the profiler output. Three mods with 200 `onUpdate` hooks each is otherwise invisible.
+
+## 18. LOW-END PERFORMANCE & FRAME PACING
+
+Phoenix's identity is "runs on weak devices", yet configuration is manual: `ClientPrefs` defaults are desktop-oriented and Options exposes dozens of toggles. Existing infrastructure to build on: `SystemInfo` (logical CPU count, physical RAM, page size), `FrameProfiler` (F3 overlay, F6 CSV/log export, `setStateName`), `PoolStats`, `Paths.clearUnusedMemory()`/`clearStoredMemory()` and the `dumpExclusions` list.
+
+- **[P1] First-run performance profile.** Use `SystemInfo` plus the GPU/driver detection from open issue #96 to pick an initial preset (framerate, `lowQuality`, `shaders`, `cacheOnGPU`, `dynamicSpawnTime`, GC flags, splash limit), tell the player it was applied, and keep every value editable. Today a low-end phone starts with desktop defaults and the player has to find Optimization by hand.
+- **[P2] Texture/atlas memory accounting.** There is freeing logic but no visibility: add a diagnostics view listing loaded `FlxGraphic`s (size, source, owning mod/stage), total estimated VRAM/RAM and the biggest atlases, with a warning when a stage exceeds a budget. Complements the §0 downscale work — you cannot tell whether a stage is over budget today.
+- **[P2] Frame pacing and high-refresh support.** `ClientPrefs.framerate` writes both `FlxG.updateFramerate` and `drawFramerate` (`GraphicsSettingsSubState.hx:131-140`). Add display-refresh detection, recommended values (60/90/120/144) and a separate update rate, so a 120 Hz panel doesn't run gameplay logic at 120 Hz with a different feel — and so the offsync risk in §4 #83 stays measurable.
+- **[P2] Preload/streaming policy.** Preload only the active stage and its characters; add "preload next song" for week runs, and verify `Paths` tracking actually releases the previous stage (graphics *and* cached sounds) when switching mods/songs. Debug builds can assert on tracked-vs-loaded counts.
+- **[P3] Shader warm-up.** First use of a stage/song shader (including runtime shaders in `RuntimeShaders.hx`) can hitch on the first bop. Compile the shaders a stage declares on the loading screen and cache the compiled program where the backend allows it.
+- **[P3] Device benchmark mode.** A fixed, mod-free stage/chart that runs ~60 s and reports average, 1% low and worst frame plus device info — reachable without F3/F6, which do not exist on Android. Reuses `FrameProfiler.exportLog()`; this is a *test run*, not the live counter in §12.4.
+
+## 19. DIAGNOSTICS, SUPPORT & SAFE MODE
+
+`CrashHandler` catches errors, writes text logs and shows a summarized-reason screen, but recovery is still manual: the next launch re-enters the same mod/save, Android users can't easily reach `logs/`, and support requests have to ask for versions by hand.
+
+- **[P1] Safe Mode after repeated crashes.** Count unclean starts, then offer "start with all mods disabled", "start with fresh prefs", "start with default resolution/framerate" *before* `InitState` loads mods. A single bad `pack.json`/script currently turns into a crash loop the player must fix by editing files.
+- **[P2] "Copy diagnostics" action.** One button producing a redacted, pasteable block: engine version (`VERSION` in `project.hxp`), commit (`HaxeCommit`), target, `SystemInfo` CPU/RAM, GPU/driver (#96), save path, mod list + order, non-default prefs, last N log lines. Offline only — the recent update flow is deliberately repo-based (§0), so no auto-upload.
+- **[P2] Crash bundle export.** Alongside the log, write a `.zip` (crash text, `modsList.txt`, each mod's `pack.json`, prefs, screenshot) to a user-reachable folder — critical on Android where `logs/` is buried in app storage. Depends on §6 #70's target guard and pairs with §11 FILES.
+- **[P2] Log rotation and redaction.** `logs/` accumulates a file per crash and per profiler export with no cap. Rotate by size/age and strip usernames/absolute paths before a log leaves the machine.
+- **[P3] Per-mod "why did it break?" report.** In the mods menu, show last load error, invalid `pack.json`, blocked script rule (§6 sandbox) and missing-asset count per mod, instead of requiring a log read.
+- **[P3] Deep-linkable diagnostics.** Once the §11 URI routing layer lands, add a read-only `phoenix://diagnostics` route so support can ask a user to tap one link and screenshot the result.
+
+## 20. TESTING & RELEASE VERIFICATION
+
+There is real infrastructure to extend: `tests/test_*.py` (static/source guards, run in `checks.yml`), `tests/haxe/*Spec.hx` (layout, chart timing, mod security, pooling) and host-JVM Java tests for the Media3 bridge and SAF policy. There is no compatibility corpus, no save/chart round-trip guarantee and no performance gate.
+
+- **[P2] Mod compatibility corpus.** A tiny fixture set (standard-layout `pack.json` variants, a Psych chart, a shader mod, a noteskin, Lua/Python/HScript scripts, a broken mod) loaded by a headless harness in CI. Every §12.2 format change needs this to prove old mods still load.
+- **[P2] Save-migration fixtures.** Once §13 lands, ship fixture saves (old version, missing fields, truncated, newer-than-engine) and assert load/migrate/backup behaviour in the existing Python + Haxe suites.
+- **[P2] Chart round-trip golden tests.** Save → load → save must be structurally identical for notes, events, BPM changes and `mustHitSection` (including the compressed path in `ChartingSaveLoad.saveLevel`). Silent field drops currently only show up in-game, and §12.4 may replace sections entirely.
+- **[P3] Broaden the Haxe specs.** Add `Paths` resolution order, `Mods.parseList`/`updateModList`, `Highscore.formatSong` namespacing and replay determinism to the modules already covered by `run-layout.sh` / `run-charting-timing.sh` / `run-pool-stats.sh`.
+- **[P3] First-run smoke test.** Boot with an empty save path, assert Title is reached, the save is created, no mod loads, and `flashing == null` triggers `FlashingState`. Run it on the Android emulator job from §10 as well as desktop CI.
+- **[P3] Performance baseline gate.** Keep a `FrameProfiler` export for a fixed chart/build and fail when average or 1% low regress past a threshold, making the low-end promise testable instead of anecdotal.
 
 ---
 
