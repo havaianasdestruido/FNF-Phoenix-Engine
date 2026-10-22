@@ -287,6 +287,7 @@ class PlayStateNotes
 					state.totalNotesPlayed += 1 * (PlayState.opponentChart ? state.polyphonyOppo : state.polyphonyBF);
 					if (ClientPrefs.showNPS) { //i dont think we should be pushing to 2 arrays at the same time but oh well
 						state.notesHitArray.push(1 * (PlayState.opponentChart ? state.polyphonyOppo : state.polyphonyBF));
+						state.nps += 1 * (PlayState.opponentChart ? state.polyphonyOppo : state.polyphonyBF);
 						state.notesHitDateArray.push(Conductor.songPosition);
 					}
 					if (!ClientPrefs.lessBotLag) PlayStateRating.popUpScore(state, note);
@@ -462,6 +463,7 @@ class PlayStateNotes
 				state.totalNotesPlayed += 1 * (PlayState.opponentChart ? state.polyphonyOppo : state.polyphonyBF);
 				if (ClientPrefs.showNPS) { //i dont think we should be pushing to 2 arrays at the same time but oh well
 					state.notesHitArray.push(1 * (PlayState.opponentChart ? state.polyphonyOppo : state.polyphonyBF));
+						state.nps += 1 * (PlayState.opponentChart ? state.polyphonyOppo : state.polyphonyBF);
 					state.notesHitDateArray.push(Conductor.songPosition);
 				}
 				if ((PlayState.opponentChart ? state.polyphonyOppo : state.polyphonyBF) > 1) state.totalNotes += (PlayState.opponentChart ? state.polyphonyOppo : state.polyphonyBF) - 1;
@@ -541,6 +543,7 @@ class PlayStateNotes
 			{
 				if (ClientPrefs.showNPS) { //i dont think we should be pushing to 2 arrays at the same time but oh well
 					state.oppNotesHitArray.push(1 * state.polyphonyOppo);
+						state.oppNPS += 1 * state.polyphonyOppo;
 					state.oppNotesHitDateArray.push(Conductor.songPosition);
 				}
 				state.enemyHits += 1 * state.polyphonyOppo;
@@ -619,6 +622,7 @@ class PlayStateNotes
 			{
 				if (ClientPrefs.showNPS) { //i dont think we should be pushing to 2 arrays at the same time but oh well
 					state.oppNotesHitArray.push(1 * state.polyphonyOppo);
+						state.oppNPS += 1 * state.polyphonyOppo;
 					state.oppNotesHitDateArray.push(Conductor.songPosition);
 				}
 				state.enemyHits += 1 * state.polyphonyOppo;
