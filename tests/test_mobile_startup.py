@@ -159,10 +159,13 @@ class StorageStartupSpec {
     check(StorageUtil.initStorageDirectory(), "fresh installation");
     check(FileSystem.isDirectory(storage), "create app directory");
     check(Path.normalize(Sys.getCwd()) == Path.normalize(storage), "switch cwd");
+    check(FileSystem.isDirectory("mods"), "create the mods directory the SAF root exposes");
+    File.saveContent("mods/keep.txt", "keep existing mods");
     File.saveContent("player-data.txt", "keep existing data");
     Sys.setCwd(original);
     check(StorageUtil.initStorageDirectory(), "relaunch");
     check(File.getContent("player-data.txt") == "keep existing data", "preserve user data");
+    check(File.getContent("mods/keep.txt") == "keep existing mods", "preserve existing mods");
     check(CoolUtil.messages.length == 0, "no first-run permission notice");
     Sys.setCwd(original);
 
