@@ -61,6 +61,25 @@ class StorageUtil
     return Path.addTrailingSlash(directory);
   }
 
+  #if android
+  /**
+   * Keeps the runtime `mods/` directory in place. The SAF root of the same
+   * name in PhoenixDocumentsProvider is backed by this exact path, so creating
+   * it here means the Mods root is a real, writable folder from the first
+   * launch instead of appearing only after a mod is installed or an SAF write
+   * creates it. A failure must not stop startup: the engine resolves a missing
+   * mods directory to "no mods installed".
+   */
+  static function ensureModsDirectory():Void
+  {
+    try
+    {
+      if (!FileSystem.exists('mods')) FileSystem.createDirectory('mods');
+    }
+    catch (e:Dynamic) trace('Could not create the mods directory: ${e.message}');
+  }
+  #end
+
   /**
    * Prepares app-owned storage before any relative asset/mod access.
    * Android's getExternalFilesDir needs no storage or media permission on our
@@ -75,6 +94,7 @@ class StorageUtil
       if (!FileSystem.exists(directory)) FileSystem.createDirectory(directory);
       if (!FileSystem.isDirectory(directory)) throw new haxe.Exception('Not a directory: $directory');
       Sys.setCwd(directory);
+      #if android ensureModsDirectory(); #end
       return true;
     }
     catch (e:Dynamic)

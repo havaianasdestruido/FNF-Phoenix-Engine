@@ -281,6 +281,48 @@ class TestAndroidDocumentsProvider(unittest.TestCase):
         self.assertIn('"crash"', self.provider)
         self.assertNotIn('new File(storageDirectory, "logs")', self.provider)
 
+    def test_mods_root_is_the_only_writable_root_and_exists_from_startup(self):
+        """The Mods root is the write path mods are installed through.
+
+        It must be the only writable root, and its backing ``mods/`` directory
+        must exist before the player ever installs a mod, otherwise the Files
+        picker exposes a root that maps to nothing.
+        """
+        roots = re.findall(
+            r"new RootInfo\((ROOT_[A-Z]+), new File\(storageDirectory, (ROOT_[A-Z]+)\), "
+            r"\"([^\"]+)\", \"([^\"]+)\", (true|false)\)",
+            self.provider,
+        )
+        self.assertEqual(
+            roots,
+            [
+                ("ROOT_MODS", "ROOT_MODS", "Mods", "User mods", "true"),
+                ("ROOT_CRASH", "ROOT_CRASH", "Crash Logs", "Phoenix Engine crash reports", "false"),
+            ],
+            "exactly the Mods (writable) and Crash Logs (read-only) roots are exposed",
+        )
+        self.assertIn('private static final String ROOT_MODS = "mods";', self.provider)
+
+        storage = (ROOT / "source/mobile/StorageUtil.hx").read_text(encoding="utf-8")
+        self.assertIn("#if android ensureModsDirectory(); #end", storage)
+        self.assertIn("if (!FileSystem.exists('mods')) FileSystem.createDirectory('mods');", storage)
+        self.assertRegex(
+            storage,
+            r"#if android\s*\n\s*/\*\*[\s\S]*?\*/\s*\n\s*static function ensureModsDirectory\(\):Void"
+            r"[\s\S]*?#end",
+            "the mods directory helper is Android-only",
+        )
+        self.assertRegex(
+            storage,
+            r"catch \(e:Dynamic\) trace\('Could not create the mods directory",
+            "a mods-directory failure must not abort startup",
+        )
+
+        platform_docs = (ROOT / "docs/ANDROID_PLATFORM.md").read_text(encoding="utf-8")
+        website_docs = (ROOT / "website/docs/subsystems/mobile.md").read_text(encoding="utf-8")
+        self.assertIn("creates `mods/` during Android startup", platform_docs)
+        self.assertIn("Android startup creates `mods/`", website_docs)
+
     def test_root_access_policy_and_failures_are_explicit(self):
         self.assertIn('"User mods", true)', self.provider)
         self.assertIn('"Phoenix Engine crash reports", false)', self.provider)

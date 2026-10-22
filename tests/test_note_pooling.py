@@ -251,12 +251,27 @@ class TestPoolStatsSpec(unittest.TestCase):
         self.assertTrue((ROOT / "tests/haxe/PoolStatsSpec.hx").exists())
 
 
-class TestRoadbookUpdated(unittest.TestCase):
-    def test_todo_marks_the_issue_done(self):  # #88
-        # A PR #140 removeu do roadmap todos os itens concluídos (DONE). Um item concluído
-        # não deve mais aparecer como pendente; a ausência do #88 é o estado esperado.
+class TestRoadmapTracksOpenWork(unittest.TestCase):
+    """TODO.md is the open backlog, not a completion log.
+
+    #88's roadmap entry used to be asserted here. The roadmap cleanup (#140)
+    removes finished entries instead of keeping them struck through and tagged
+    DONE, so this guards that convention rather than pinning the issue number
+    that the cleanup deleted.
+    """
+
+    def test_roadmap_lists_only_outstanding_work(self):  # #88
         todo = read("TODO.md")
-        self.assertNotIn("#88", todo)
+        completed = [
+            line for line in todo.splitlines()
+            if re.search(r"\[P\d\].*\bDONE\b", line)
+        ]
+        self.assertEqual(
+            completed,
+            [],
+            "completed work belongs in THECHANGELOG.md; delete it from TODO.md",
+        )
+        self.assertTrue(todo.lstrip().startswith("#"), "TODO.md is still the roadmap")
 
 
 if __name__ == "__main__":

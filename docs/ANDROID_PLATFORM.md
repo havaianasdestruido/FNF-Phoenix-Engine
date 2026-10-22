@@ -119,7 +119,10 @@ API 36 and Build Tools 36.0.0 to match Lime's generated project.
 
 `Main` calls `StorageUtil.initStorageDirectory()` before checking or copying
 assets. This validates/creates the app-specific directory and changes the
-working directory inside one error boundary. If storage is unavailable, the
+working directory inside one error boundary. On Android it also creates the
+`mods/` directory that the `PhoenixDocumentsProvider` Mods root exposes, so the
+system Files picker always backs that root with a writable folder; a failure
+there is logged and does not abort startup. If storage is unavailable, the
 engine shows a storage error and stops rather than continuing in the wrong
 directory. Existing mods and player data are not deleted or migrated.
 
@@ -160,10 +163,13 @@ that directory as the working directory, where `Paths.mods()` resolves to
 | **Mods** | `mods/` | Read/write; create folders/files, rename files, delete files/subfolders |
 | **Crash Logs** | `crash/` | Read-only; copying reports out of the game |
 
-Only these two roots are exposed. A missing `mods/` or `crash/` directory
-remains visible as an empty SAF root and is not created just by browsing; the
-mods directory is created on its first SAF write, while `CrashHandler` creates
-`crash/` when it writes a report. If `getExternalFilesDir(null)` returns no
+Only these two roots are exposed. `mobile.StorageUtil.initStorageDirectory()`
+creates `mods/` during Android startup, so the Mods root backs onto a real,
+writable directory from the first launch; if that creation fails startup still
+continues, because the engine treats a missing mods directory as "no mods
+installed". `crash/` is created by `CrashHandler` when it writes a report.
+Browsing a root never creates its directory, and a root whose directory is
+missing simply lists no children. If `getExternalFilesDir(null)` returns no
 directory, or Android reports its volume as unavailable, no roots are returned.
 Mounted read-only storage remains browsable but cannot be written. If storage
 becomes unavailable later, document operations fail with
