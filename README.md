@@ -32,6 +32,22 @@ Run it locally with `cd website && npm install && npm start`.
 
 ---
 
+## Contributors wanted
+
+**I ([havaianasdestruido](https://github.com/havaianasdestruido)) need new contributors.** This project is open to
+new feature ideas and pull requests, for example:
+
+- New built-in game content (mods shipped with the engine, example mods)
+- New platform ports and platform-specific code
+- Backporting features/fixes from upstream (Psych, JS Engine, etc.)
+- New menu options and settings
+- Bug fixes (any size)
+
+Open an [issue](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/issues) to discuss an idea, or send a PR
+straight away if it's small. Check [`BUILDING.md`](BUILDING.md) and [`CODESTYLE.md`](CODESTYLE.md) first.
+
+---
+
 **IMPORTANT: You are in the `bleeding` branch, where you'll find bleeding-edge updates that may be experimental, unstable, or not fully tested yet. If you prefer a stable experience with changes that are 100% (okay, maybe 99.9%) guaranteed to work, stick to the `main` branch.** _Keep in mind that small patches CAN go directly to main if i think its good enough..._
 
 Phoenix Engine focuses on making both Hardmodding (Hardcoded mods, using `Haxe`) *AND* Softmodding (mods you place on `mods/` folder, made with `Lua`/`Luau` or `Python`) easier.
