@@ -30,6 +30,16 @@ Sections 13–20 are a second backlog pass written against the current tree. Eve
 
 - FIX HTML5/WEB!!!
 
+### Overly complex stuff that would take weeks of work
+
+- Making the user be able to change ALL game text to a custom font.
+
+- Adding a built-in mid download support (gamebanana browser) (just like GMod)
+
+- Rebuilding how the MODDING API works and adjusting it to be able to also support other languages (Common Modding API)
+
+- Making 99,9% of all engine aspects modifiable by softmods. (Python & Lua)
+
 ## 1. BUILD / TOOLCHAIN (all targets green)
 
 - **[P0] HashLink target blocked.** `lime.hdll` missing locally, HL wasn't verifiable, HL agent dead-ended. Install a compatible HashLink (`lime.hdll` + `lime-hdiowrap`), fix any compile errors, re-enable the `hl` CI job in `.github/workflows/main.yml`. ([#63](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/issues/63))
