@@ -205,10 +205,11 @@ def check_file(path: str, text: str) -> list[str]:
 
 def try_catch_findings(path: str, stripped: str) -> list[str]:
     """Haxe 4.3 binds a single *expression* (secure_expr) as the try body and
-    as each catch body. A brace-less body whose statement ends with `;` before
-    the `catch` orphans the catch clause ("Expected }" at the catch, as the
-    Haxe compiler reports), and a second top-level `;` in a brace-less catch
-    body silently puts statements outside the catch. Both are flagged."""
+    as each catch body. A brace-less try body whose statement ends with `;`
+    before the `catch` orphans the catch clause ("Expected }" at the catch, as
+    the Haxe compiler reports). A brace-less catch body ends at its first
+    top-level `;`, so a statement on the following same-indent line is
+    silently outside the catch. Both are flagged."""
     errors: list[str] = []
     n = len(stripped)
     line_starts = [0]
@@ -256,7 +257,10 @@ def try_catch_findings(path: str, stripped: str) -> list[str]:
                 f"body in {{ }})"
             )
 
-    # catch bodies
+    # catch bodies. A brace-less catch body is one expression ending at the
+    # first top-level ';'; a statement on the following same-indent line is
+    # almost always meant to be part of the body but is silently outside the
+    # catch. (Multi-line bodies are skipped: the intent is undecidable.)
     for m in CATCH_RE.finditer(stripped):
         j = skip_ws(m.end())
         if j >= n or stripped[j] != "(":
@@ -275,7 +279,7 @@ def try_catch_findings(path: str, stripped: str) -> list[str]:
         if j < n and stripped[j] == "{":
             continue  # braced body
         depth = 0
-        semis = 0
+        semi_line: int | None = None
         k = j
         while k < n:
             c = stripped[k]
@@ -286,15 +290,33 @@ def try_catch_findings(path: str, stripped: str) -> list[str]:
                     break  # enclosing block closer
                 depth -= 1
             elif c == ";" and depth == 0:
-                semis += 1
-                if semis >= 2:
-                    errors.append(
-                        f"{path}:{line_of(m.start())}: brace-less catch body "
-                        f"holds more than one statement; everything after the "
-                        f"first ';' is NOT caught (wrap the body in {{ }})"
-                    )
-                    break
+                semi_line = line_of(k)
+                break
             k += 1
+        if semi_line is None:
+            continue
+        if line_of(j) != semi_line:
+            continue  # body spans multiple lines
+        body_line = stripped.split("\n")[semi_line - 1]
+        body_indent = len(body_line) - len(body_line.lstrip(" \t"))
+        nxt = semi_line + 1  # 1-based line index of the next line
+        while nxt <= len(stripped.split("\n")):
+            line = stripped.split("\n")[nxt - 1]
+            content = line.strip()
+            if content == "" or content.startswith("#"):
+                nxt += 1
+                continue  # blank line or preprocessor token
+            break
+        if nxt > len(stripped.split("\n")):
+            continue
+        line = stripped.split("\n")[nxt - 1]
+        indent = len(line) - len(line.lstrip(" \t"))
+        if indent == body_indent:
+            errors.append(
+                f"{path}:{line_of(m.start())}: brace-less catch body; the "
+                f"statement on line {nxt} is at the body's indent and is NOT "
+                f"caught (wrap the body in {{ }})"
+            )
 
     return errors
 
