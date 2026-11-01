@@ -48,11 +48,14 @@ class VLogCoreTests(unittest.TestCase):
         self.assertIn("haxe.Log.trace = onTrace", self.vlog)
         for language in ("'Lua'", "'Python'", "'HScript'", "'Engine'"):
             self.assertIn(language, self.vlog)
-        # Console output must survive the hook (setting a hook replaces the
-        # default printer). The try body must be a block: Haxe 4.3 binds one
-        # expression as the try body, so a `;`-terminated brace-less body
-        # orphans the catch clause and fails to compile.
-        self.assertRegex(self.vlog, r"#if sys\s*\n\s*try\s*\n\s*\{\s*\n\s*Sys\.println\(Std\.string\(value\)\)")
+        # The rebound trace must keep the console output (rebinding replaces
+        # the default printer) — mirror it with haxe.Log.formatOutput. The
+        # try body must be a block: Haxe 4.3 binds one expression as the try
+        # body, so a `;`-terminated brace-less body orphans the catch clause
+        # and fails to compile.
+        self.assertRegex(self.vlog, r"#if sys\s*\n\s*try\s*\n\s*\{\s*\n\s*Sys\.println\(haxe\.Log\.formatOutput\(value, posInfos\)\)")
+        # …and multi-argument trace() values ride on PosInfos.customParams.
+        self.assertIn("posInfos.customParams", self.vlog)
 
     def test_frame_lines_ram_and_lag_spikes(self):
         # One line per frame with FPS, frametime, work time, heap and RSS.

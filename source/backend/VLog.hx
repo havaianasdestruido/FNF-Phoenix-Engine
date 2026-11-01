@@ -419,35 +419,43 @@ class VLog
    * (`PythonScript.pyTrace`) and HScript (the interpreter's built-in
    * `trace`) — then mirrors it to the console, because rebinding `trace`
    * replaces the default printer.
+   *
+   * The signature must match `haxe.Log.trace` exactly — Haxe 4.3 rejects a
+   * function with extra parameters. Multi-argument `trace(v, a, b)` passes
+   * the extra values through `PosInfos.customParams`.
    */
-  static function onTrace(value:Dynamic, ?posInfos:PosInfos, ?inlineParams:Array<Dynamic>):Void
+  static function onTrace(value:Dynamic, ?posInfos:PosInfos):Void
   {
     try
     {
       traceLines++;
       var message:String = Std.string(value);
-      if (inlineParams != null)
+      if (posInfos != null)
       {
-        for (param in inlineParams)
-          message += ' ' + Std.string(param);
+        if (posInfos.customParams != null)
+        {
+          for (param in posInfos.customParams)
+            message += ' ' + Std.string(param);
+        }
+        if (posInfos.fileName != null)
+          message += '  [' + posInfos.fileName + ':' + posInfos.lineNumber + ']';
       }
-      if (posInfos != null && posInfos.fileName != null)
-        message += '  [' + posInfos.fileName + ':' + posInfos.lineNumber + ']';
       log('TRACE ' + classifyTrace(posInfos), message);
     }
     catch (_:Dynamic) {}
 
-    // Keep the console output intact.
+    // Keep the console output intact: format it exactly like the default
+    // haxe.Log.trace would have.
     #if sys
     try
     {
-      Sys.println(Std.string(value));
+      Sys.println(haxe.Log.formatOutput(value, posInfos));
     }
     catch (_:Dynamic) {}
     #elseif js
     try
     {
-      js.Browser.console.log(value);
+      js.Browser.console.log(haxe.Log.formatOutput(value, posInfos));
     }
     catch (_:Dynamic) {}
     #end
