@@ -30,7 +30,7 @@ Sections 13–20 are a second backlog pass written against the current tree. Eve
 
 - FIX HTML5/WEB!!!
 
-### Overly complex stuff that would take weeks of work
+### Overly complex stuff that would take weeks of work (but that would be 100% worth the time)
 
 - Making the user be able to change ALL game text to a custom font.
 
@@ -39,6 +39,12 @@ Sections 13–20 are a second backlog pass written against the current tree. Eve
 - Rebuilding how the MODDING API works and adjusting it to be able to also support other languages (Common Modding API)
 
 - Making 99,9% of all engine aspects modifiable by softmods. (Python & Lua)
+
+- Adding all upstream-upstream Psych Engine 1.0 new features/commits, keeping in mind that our codebase was refactored.
+
+- Resizing ALL backgrounds to half it's size and just zoom them 2x (gama baja optimization)
+
+- Adjusting for lower Android SDK target (I want to play on my Android 5.0 phone), but only on a new experimental branch.
 
 ## 1. BUILD / TOOLCHAIN (all targets green)
 
