@@ -213,29 +213,52 @@ class OptionsState extends MusicBeatState
 			openSelectedSubstate(options[curSelected]);
 		}
 
-        if (virtualPad.buttonUp.justPressed || virtualPad.buttonDown.justPressed || virtualPad.buttonLeft.justPressed || virtualPad.buttonRight.justPressed || virtualPad.buttonB.justPressed || virtualPad.buttonA.justPressed) {
-			konamiCode = [virtualPad.buttonUp, virtualPad.buttonUp, virtualPad.buttonDown, virtualPad.buttonDown, virtualPad.buttonLeft, virtualPad.buttonRight, virtualPad.buttonLeft, virtualPad.buttonRight, virtualPad.buttonB, virtualPad.buttonA];
-            if (!enteringDebugMenu && checkKonamiCode()) {
-                if (konamiIndex >= konamiCode.length) enterSuperSecretDebugMenu();
-            }
+    if (virtualPad != null)
+    {
+      final padUp = virtualPad.buttonUp;
+      final padDown = virtualPad.buttonDown;
+      final padLeft = virtualPad.buttonLeft;
+      final padRight = virtualPad.buttonRight;
+      final padB = virtualPad.buttonB;
+      final padA = virtualPad.buttonA;
+
+      final anyPadJustPressed:Bool = (padUp != null && padUp.justPressed)
+        || (padDown != null && padDown.justPressed)
+        || (padLeft != null && padLeft.justPressed)
+        || (padRight != null && padRight.justPressed)
+        || (padB != null && padB.justPressed)
+        || (padA != null && padA.justPressed);
+
+      if (anyPadJustPressed)
+      {
+        konamiCode = [padUp, padUp, padDown, padDown, padLeft, padRight, padLeft, padRight, padB, padA];
+        if (!enteringDebugMenu && checkKonamiCode())
+        {
+          enterSuperSecretDebugMenu();
         }
+      }
+    }
 
-        if (FlxG.keys.justPressed.ANY) {
-            var k = keys[kId];
+    if (FlxG.keys.justPressed.ANY)
+    {
+      var k = keys[kId];
 
-            if (FlxG.keys.anyJustPressed([k])) {
-                // This keyboard-only debug sequence is valid on AIR as well as native desktop.
-                #if desktop kId++; #end
-                if (kId >= keys.length) {
-                    enterSuperSecretDebugMenu();
-                }
-            }
+      if (FlxG.keys.anyJustPressed([k]))
+      {
+        // This keyboard-only debug sequence is valid on AIR as well as native desktop.
+        #if desktop kId++; #end
+        if (kId >= keys.length)
+        {
+          enterSuperSecretDebugMenu();
         }
+      }
+    }
 
-		if (ClientPrefs.mobileCPlayStateVpad && virtualPad.buttonC.justPressed) {
-			persistentUpdate = false;
-			openSubState(new mobile.MobileControlsSelectSubState());
-		}
+    if (ClientPrefs.mobileCPlayStateVpad && virtualPad != null && virtualPad.buttonC != null && virtualPad.buttonC.justPressed)
+    {
+      persistentUpdate = false;
+      openSubState(new mobile.MobileControlsSelectSubState());
+    }
 	}
 
 	function enterSuperSecretDebugMenu():Void
@@ -289,18 +312,23 @@ class OptionsState extends MusicBeatState
 
 		FlxG.sound.play(Paths.sound('scrollMenu'));
 	}
-function checkKonamiCode():Bool {
-    if (konamiCode[konamiIndex].justPressed) {
-        konamiIndex++;
-	if (konamiIndex > 6) isEnteringKonamiCode = true;
-        if (konamiIndex >= konamiCode.length) {
-            return true;
-	    konamiIndex = 0;
-        }
-    } else { //you messed up the code
+  function checkKonamiCode():Bool
+  {
+    if (konamiCode != null && konamiIndex >= 0 && konamiIndex < konamiCode.length && konamiCode[konamiIndex] != null && konamiCode[konamiIndex].justPressed)
+    {
+      konamiIndex++;
+      if (konamiIndex > 6) isEnteringKonamiCode = true;
+      if (konamiIndex >= konamiCode.length)
+      {
         konamiIndex = 0;
-	isEnteringKonamiCode = false;
+        return true;
+      }
+    }
+    else
+    { // you messed up the code
+      konamiIndex = 0;
+      isEnteringKonamiCode = false;
     }
     return false;
-}
+  }
 }
