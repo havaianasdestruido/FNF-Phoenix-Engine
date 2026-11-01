@@ -10,7 +10,7 @@ private typedef ModSandboxConfig =
 	var allowlist:Array<String>;
 }
 
-/** Security decision made before a Lua/Python softmod script is started. */
+/** Security decision made before a Lua/Python/HScript softmod script is started. */
 typedef ModSecurityCheck =
 {
 	var scriptName:String;
@@ -26,12 +26,13 @@ typedef ModSecurityCheck =
 }
 
 /**
- * Basic defence-in-depth for untrusted Lua and Python softmod scripts.
+ * Basic defence-in-depth for untrusted Lua, Python and HScript softmod scripts.
  *
  * A source denylist stops suspicious scripts before any top-level code runs.
  * The script runtimes then apply a second layer: dangerous Lua libraries are
- * replaced, Python cannot resolve host classes, privileged engine callbacks
- * are guarded, and embedded HScript is scanned separately.
+ * replaced, Python cannot resolve host classes, standalone HScript cannot
+ * import host classes, privileged engine callbacks are guarded, and embedded
+ * HScript is scanned separately.
  *
  * This is intentionally described as a basic sandbox. It reduces the attack
  * surface of accidental or straightforward malicious scripts; it is not an
@@ -53,6 +54,7 @@ class ModSecurity
 		'directoryFileList' => 'engine.file-read',
 		'addLuaScript' => 'engine.script-loader',
 		'addPythonScript' => 'engine.script-loader',
+		'addHScript' => 'engine.script-loader',
 		'addScript' => 'engine.script-loader'
 	];
 
@@ -131,7 +133,7 @@ class ModSecurity
 		{
 			warnedOptOutMods.set(check.modName, true);
 			emit('[ModSecurity] WARNING: mod "${check.modName}" opted out of script sandboxing in pack.json. '
-				+ 'Its Lua/Python scripts run with full engine privileges.', sink);
+				+ 'Its Lua/Python/HScript scripts run with full engine privileges.', sink);
 		}
 
 		if(check.findings.length == 0) return;

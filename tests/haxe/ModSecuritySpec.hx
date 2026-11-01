@@ -64,6 +64,14 @@ class ModSecuritySpec
 		check(has(haxe, 'haxe.filesystem', 2), 'HScript file call');
 		check(has(haxe, 'haxe.reflection', 3), 'HScript class resolution');
 
+		// Standalone .hx/.hscript mods go through the same scan as Lua/Python,
+		// including the shared script-loader rule for addHScript.
+		var hxLoader = ScriptSecurityScanner.scan('addHScript("scripts/extra");', 'haxe');
+		check(has(hxLoader, 'engine.script-loader', 1), 'standalone HScript loads are sandbox-blocked');
+		var hxDecision = ModSecurity.checkScript('mods/UnsafeMod/scripts/payload.hx', 'Sys.exit(0);', 'haxe');
+		check(hxDecision.sandboxed, 'standalone HScript sandbox defaults on');
+		check(has(hxDecision.findings, 'haxe.process', 1), 'standalone HScript source finding');
+
 		var safeReflection = ScriptSecurityScanner.scan("getPropertyFromClass('flixel.FlxG', 'width')", 'python');
 		check(safeReflection.length == 0, 'normal game-state reflection stays available');
 		var unsafeReflection = ScriptSecurityScanner.scan("getPropertyFromClass('sys.io.File', 'getContent')", 'python');

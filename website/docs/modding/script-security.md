@@ -1,12 +1,13 @@
 ---
 title: Script security sandbox
 sidebar_position: 9
-description: Default Lua/Python softmod sandbox, blocked capabilities, logs, and per-mod exceptions.
+description: Default Lua/Python/HScript softmod sandbox, blocked capabilities, logs, and per-mod exceptions.
 ---
 
 # Script security sandbox
 
-Lua and Python files under `mods/` are treated as untrusted softmod scripts. Phoenix
+Lua, Python and standalone HScript (`.hx`/`.hscript`) files under `mods/` are treated
+as untrusted softmod scripts. Phoenix
 checks them **before the interpreter is created or any top-level statement runs**. A
 script with a blocked finding is not loaded, so none of its hooks run and none of its
 code can affect the game.
@@ -42,9 +43,9 @@ finding.
 | `engine.file-write` | `saveFile`, `deleteFile` |
 | `engine.script-loader` | `addLuaScript`, `addPythonScript`, `addScript` |
 | `engine.native-class` | reflection into `Sys`, `sys.*`, `cpp.*`, `ModSecurity`, native platform classes, etc. |
-| `haxe.process` | `Sys.command`, `Sys.exit`, `sys.io.Process` in embedded HScript |
-| `haxe.filesystem` | `sys.io.File`, `sys.FileSystem` in embedded HScript |
-| `haxe.native` | native library or application access in embedded HScript |
+| `haxe.process` | `Sys.command`, `Sys.exit`, `sys.io.Process` in HScript (standalone or embedded) |
+| `haxe.filesystem` | `sys.io.File`, `sys.FileSystem` in HScript (standalone or embedded) |
+| `haxe.native` | native library or application access in HScript (standalone or embedded) |
 | `haxe.reflection` | dynamic class resolution/instantiation or reflected method calls in HScript |
 | `haxe.network` | Haxe/OpenFL/Lime HTTP and network APIs in HScript |
 | `process.shell` | `python -c`, `cmd /c`, PowerShell, shell execution, `curl`, `wget` |
@@ -58,7 +59,10 @@ The source scan is backed by runtime restrictions:
 - privileged engine callbacks are checked again immediately before invocation;
 - Hython host-class resolution is disabled for sandboxed Python scripts;
 - Lua-to-HScript code is scanned when it is executed, and privileged classes cannot be
-  added to the HScript interpreter.
+  added to the HScript interpreter. Standalone HScript is scanned before its
+  interpreter is created, and while sandboxed its `import` resolution is disabled and
+  `Type`/`Reflect` are not seeded. `addHScript` is blocked by `engine.script-loader`
+  exactly like `addLuaScript`/`addPythonScript`.
 
 Gameplay APIs such as hooks, state/property access, score functions, sprites, timers,
 tweens and sound are unchanged.
@@ -117,7 +121,7 @@ A mod can explicitly disable its sandbox:
 Phoenix prints a prominent warning the first time a script from that mod is loaded:
 
 ```text
-[ModSecurity] WARNING: mod "MyMod" opted out of script sandboxing in pack.json. Its Lua/Python scripts run with full engine privileges.
+[ModSecurity] WARNING: mod "MyMod" opted out of script sandboxing in pack.json. Its Lua/Python/HScript scripts run with full engine privileges.
 ```
 
 `"allowUnsafeScripts": true` is accepted as a compatibility alias, but

@@ -19,7 +19,7 @@ class PyScriptLib
 {
 	public static function register(py:PythonScript):Void
 	{
-		// getRunningScripts():Array<String> — all currently loaded scripts (Lua + Python)
+		// getRunningScripts():Array<String> — all currently loaded scripts (Lua + Python + HScript)
 		PythonScript.registerFunction("getRunningScripts", function():Array<String>
 		{
 			var running:Array<String> = [];
@@ -29,6 +29,10 @@ class PyScriptLib
 			#end
 			#if PYTHON_ALLOWED
 			for (script in PlayState.instance.pythonArray)
+				running.push(script.scriptName);
+			#end
+			#if HSCRIPT_ALLOWED
+			for (script in PlayState.instance.hscriptArray)
 				running.push(script.scriptName);
 			#end
 			return running;
@@ -65,19 +69,14 @@ class PyScriptLib
 			return PlayState.instance.callOnScripts(funcName, args, ignoreStops, exclusions);
 		});
 
-		// callScript(path, func, args) — call a function on a specific script (Lua or Python)
+		// callScript(path, func, args) — call a function on a specific script (Lua, Python or HScript)
 		PythonScript.registerFunction("callScript", function(?file:String, ?funcName:String, ?args:Array<Dynamic>)
 		{
 			if (file == null || funcName == null) return null;
 			if (args == null) args = [];
 			var cervix = file;
 			// accept with or without extension; normalise to full path lookup
-			var candidates:Array<String> = [cervix];
-			if (!cervix.endsWith(".lua") && !cervix.endsWith(".py"))
-			{
-				candidates.push(cervix + ".lua");
-				candidates.push(cervix + ".py");
-			}
+			var candidates:Array<String> = scriptCandidates(cervix);
 			#if LUA_ALLOWED
 			for (path in candidates)
 			{
@@ -100,6 +99,17 @@ class PyScriptLib
 				}
 			}
 			#end
+			#if HSCRIPT_ALLOWED
+			for (path in candidates)
+			{
+				var resolved = resolveScriptPath(path);
+				if (resolved != null)
+				{
+					for (s in PlayState.instance.hscriptArray)
+						if (s.scriptName == resolved) return s.call(funcName, args);
+				}
+			}
+			#end
 			return null;
 		});
 
@@ -107,12 +117,7 @@ class PyScriptLib
 		PythonScript.registerFunction("getGlobalFromScript", function(?file:String, ?global:String):Dynamic
 		{
 			if (file == null || global == null) return null;
-			var candidates:Array<String> = [file];
-			if (!file.endsWith(".lua") && !file.endsWith(".py"))
-			{
-				candidates.push(file + ".lua");
-				candidates.push(file + ".py");
-			}
+			var candidates:Array<String> = scriptCandidates(file);
 			#if LUA_ALLOWED
 			for (path in candidates)
 			{
@@ -151,6 +156,15 @@ class PyScriptLib
 						if (s.scriptName == resolved) return s.get(global);
 			}
 			#end
+			#if HSCRIPT_ALLOWED
+			for (path in candidates)
+			{
+				var resolved = resolveScriptPath(path);
+				if (resolved != null)
+					for (s in PlayState.instance.hscriptArray)
+						if (s.scriptName == resolved) return s.get(global);
+			}
+			#end
 			return null;
 		});
 
@@ -158,12 +172,7 @@ class PyScriptLib
 		PythonScript.registerFunction("setGlobalFromScript", function(file:String, global:String, val:Dynamic):Void
 		{
 			if (file == null || global == null) return;
-			var candidates:Array<String> = [file];
-			if (!file.endsWith(".lua") && !file.endsWith(".py"))
-			{
-				candidates.push(file + ".lua");
-				candidates.push(file + ".py");
-			}
+			var candidates:Array<String> = scriptCandidates(file);
 			#if LUA_ALLOWED
 			for (path in candidates)
 			{
@@ -182,18 +191,22 @@ class PyScriptLib
 						if (s.scriptName == resolved) s.set(global, val);
 			}
 			#end
+			#if HSCRIPT_ALLOWED
+			for (path in candidates)
+			{
+				var resolved = resolveScriptPath(path);
+				if (resolved != null)
+					for (s in PlayState.instance.hscriptArray)
+						if (s.scriptName == resolved) s.set(global, val);
+			}
+			#end
 		});
 
 		// isRunning(path):Bool
 		PythonScript.registerFunction("isRunning", function(file:String):Bool
 		{
 			if (file == null) return false;
-			var candidates:Array<String> = [file];
-			if (!file.endsWith(".lua") && !file.endsWith(".py"))
-			{
-				candidates.push(file + ".lua");
-				candidates.push(file + ".py");
-			}
+			var candidates:Array<String> = scriptCandidates(file);
 			for (path in candidates)
 			{
 				var resolved = resolveScriptPath(path);
@@ -205,6 +218,10 @@ class PyScriptLib
 					#end
 					#if PYTHON_ALLOWED
 					for (s in PlayState.instance.pythonArray)
+						if (s.scriptName == resolved) return true;
+					#end
+					#if HSCRIPT_ALLOWED
+					for (s in PlayState.instance.hscriptArray)
 						if (s.scriptName == resolved) return true;
 					#end
 				}
@@ -234,6 +251,15 @@ class PyScriptLib
 			PlayState.instance.startPythonScriptOnFolder(cervix);
 		});
 
+		// addHScript — load a standalone HScript (.hx/.hscript) script at runtime
+		PythonScript.registerFunction("addHScript", function(file:String, ?ignoreAlreadyRunning:Bool = false):Void
+		{
+			if (file == null) return;
+			#if HSCRIPT_ALLOWED
+			PlayState.instance.startHScriptOnFolder(file);
+			#end
+		});
+
 		// Generic addScript — detects extension
 		PythonScript.registerFunction("addScript", function(file:String, ?ignoreAlreadyRunning:Bool = false):Void
 		{
@@ -246,12 +272,21 @@ class PyScriptLib
 				PlayState.instance.startLuasOnFolder(file);
 				#end
 			}
+			else if (file.toLowerCase().endsWith(".hx") || file.toLowerCase().endsWith(".hscript"))
+			{
+				#if HSCRIPT_ALLOWED
+				PlayState.instance.startHScriptOnFolder(file);
+				#end
+			}
 			else
 			{
 				#if LUA_ALLOWED
 				if (PlayState.instance.startLuasOnFolder(file + ".lua")) return;
 				#end
-				PlayState.instance.startPythonScriptOnFolder(file + ".py");
+				if (PlayState.instance.startPythonScriptOnFolder(file + ".py")) return;
+				#if HSCRIPT_ALLOWED
+				PlayState.instance.startHScriptOnFolder(file);
+				#end
 			}
 		});
 
@@ -291,10 +326,24 @@ class PyScriptLib
 				}
 		});
 
+		// removeHScript — unload a standalone HScript (.hx/.hscript) script
+		PythonScript.registerFunction("removeHScript", function(file:String):Void
+		{
+			if (file == null) return;
+			#if HSCRIPT_ALLOWED
+			PlayState.instance.removeHScript(file);
+			#end
+		});
+
 		// removeScript — generic
 		PythonScript.registerFunction("removeScript", function(file:String):Void
 		{
 			if (file == null) return;
+			#if HSCRIPT_ALLOWED
+			// .hx/.hscript (or extensionless hits) are owned by PlayState's
+			// shared HScript removal, which also fires onDestroy.
+			if (PlayState.instance.removeHScript(file)) return;
+			#end
 			// Try both
 			var luaCandidates = [file];
 			if (!file.endsWith(".lua") && !file.endsWith(".py")) luaCandidates.push(file + ".lua");
@@ -329,6 +378,21 @@ class PyScriptLib
 					}
 			}
 		});
+	}
+
+	/** Candidate file names for a script reference given with or without extension. */
+	static function scriptCandidates(file:String):Array<String>
+	{
+		var candidates:Array<String> = [file];
+		var lower:String = file.toLowerCase();
+		if (!lower.endsWith(".lua") && !lower.endsWith(".py") && !lower.endsWith(".hx") && !lower.endsWith(".hscript"))
+		{
+			candidates.push(file + ".lua");
+			candidates.push(file + ".py");
+			candidates.push(file + ".hx");
+			candidates.push(file + ".hscript");
+		}
+		return candidates;
 	}
 
 	static function resolveScriptPath(cervix:String):Null<String>

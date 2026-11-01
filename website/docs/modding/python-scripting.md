@@ -132,6 +132,6 @@ difference is irrelevant.
 
 ## Next
 
-- [Python API reference](./python-api-reference.md) — all 168 functions (generated).
+- [Python API reference](./python-api-reference.md) — all 170 functions (generated).
 - [Transparent window](./transparent-window.md) — make the game window see-through.
 - [Script hooks](./script-hooks.md) — the callbacks, shared with Lua.

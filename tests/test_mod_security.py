@@ -42,7 +42,18 @@ class ModSecurityIntegration(unittest.TestCase):
                       read("source/psychlua/pystdlib/PyPropertyLib.hx"))
         hscript = read("source/psychlua/HScript.hx")
         self.assertIn("ScriptSecurityScanner.scan(codeToRun, 'haxe'", hscript)
-        self.assertGreaterEqual(hscript.count("allowClassAccess(str + libName)"), 2)
+        # Both addHaxeLibrary surfaces (in-scope function + Lua bridge) funnel
+        # through addLibrary(), the one place the privileged-class guard runs.
+        self.assertIn("allowClassAccess(str + libName)", hscript)
+        self.assertEqual(hscript.count("addLibrary(libName, libPackage)"), 2)
+
+    def test_standalone_hscript_is_scanned_before_interpreter(self):
+        hs = read("source/psychlua/HScript.hx")
+        load = hs[hs.index("function loadStandalone"):]
+        check = load.index("ModSecurity.checkScript(scriptName, code, 'haxe')")
+        self.assertLess(check, load.index("interp = new Interp()", check))
+        self.assertLess(check, load.index("game.hscriptArray.push(this)", check))
+        self.assertIn("interp.importEnabled = !sandboxed", hs)
 
     def test_denylist_has_required_categories_and_line_reports(self):
         scanner = read("source/backend/ScriptSecurityScanner.hx")

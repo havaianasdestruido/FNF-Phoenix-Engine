@@ -118,7 +118,7 @@ class ScriptSecurityScanner
 		{
 			id: 'engine.script-loader',
 			description: 'dynamic softmod script loading',
-			pattern: ~/\b(?:addLuaScript|addPythonScript|addScript)\b/i
+			pattern: ~/\b(?:addLuaScript|addPythonScript|addHScript|addScript)\b/i
 		},
 		{
 			id: 'engine.native-class',

@@ -9,6 +9,9 @@ import backend.Paths;
 #end
 
 import play.PlayState;
+#if HSCRIPT_ALLOWED
+import psychlua.DebugLuaText;
+#end
 
 // REFACTOR: script/shader plumbing extracted from play.PlayState
 @:access(play.PlayState)
@@ -121,6 +124,22 @@ class PlayStateScripts
 			spr.y += newText.height + 2;
 		});
 		state.pythonDebugGroup.add(newText);
+
+		#if sys
+		Sys.println(text);
+		#end
+		#elseif HSCRIPT_ALLOWED
+		var newText:DebugLuaText = state.hscriptDebugGroup.recycle(DebugLuaText);
+		newText.text = text;
+		newText.color = color;
+		newText.disableTime = 6;
+		newText.alpha = 1;
+		newText.setPosition(10, 8 - newText.height);
+		newText.setFormat(Paths.font("old_windows.ttf"));
+		state.hscriptDebugGroup.forEachAlive(function(spr:DebugLuaText) {
+			spr.y += newText.height + 2;
+		});
+		state.hscriptDebugGroup.add(newText);
 
 		#if sys
 		Sys.println(text);
@@ -267,6 +286,14 @@ class PlayStateScripts
 		}
 		#end
 		return false;
+	}
+	#end
+
+	#if HSCRIPT_ALLOWED
+	public static function startHScriptOnFolder(state:PlayState, hxFile:String)
+	{
+		// Resolution/dedup lives on PlayState (shared with addHScript()).
+		return state.startHScriptOnFolder(hxFile);
 	}
 	#end
 }

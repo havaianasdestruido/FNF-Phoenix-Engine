@@ -28,6 +28,15 @@ class CustomSubstate extends MusicBeatSubstate
 		python.set("insertToCustomSubstate", insertToCustomSubstate);
 	}
 	#end
+
+	#if HSCRIPT_ALLOWED
+	public static function implementHScript(hscript:HScript)
+	{
+		hscript.set("openCustomSubstate", openCustomSubstate);
+		hscript.set("closeCustomSubstate", closeCustomSubstate);
+		hscript.set("insertToCustomSubstate", insertToCustomSubstate);
+	}
+	#end
 	
 	public static function openCustomSubstate(name:String, ?pauseGame:Bool = false)
 	{
@@ -74,7 +83,9 @@ class CustomSubstate extends MusicBeatSubstate
 	override function create()
 	{
 		instance = this;
-		// PlayState.instance.setOnHScript('customSubstate', instance);
+		#if HSCRIPT_ALLOWED
+		if(PlayState.instance != null) PlayState.instance.setOnHScript('customSubstate', instance);
+		#end
 
 		// PlayState.instance.callOnScripts('onCustomSubstateCreate', [name]);
 		PlayState.instance.callOnLuas('onCustomSubstateCreate', [name]);
@@ -86,7 +97,9 @@ class CustomSubstate extends MusicBeatSubstate
 	public function new(name:String)
 	{
 		CustomSubstate.name = name;
-		// PlayState.instance.setOnHScript('customSubstateName', name);
+		#if HSCRIPT_ALLOWED
+		if(PlayState.instance != null) PlayState.instance.setOnHScript('customSubstateName', name);
+		#end
 		super();
 		cameras = [FlxG.cameras.list[FlxG.cameras.list.length - 1]];
 	}
@@ -107,8 +120,13 @@ class CustomSubstate extends MusicBeatSubstate
 		instance = null;
 		name = 'unnamed';
 
-		// PlayState.instance.setOnHScript('customSubstate', null);
-		// PlayState.instance.setOnHScript('customSubstateName', name);
+		#if HSCRIPT_ALLOWED
+		if(PlayState.instance != null)
+		{
+			PlayState.instance.setOnHScript('customSubstate', null);
+			PlayState.instance.setOnHScript('customSubstateName', name);
+		}
+		#end
 		super.destroy();
 	}
 }
