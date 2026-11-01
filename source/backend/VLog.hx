@@ -24,8 +24,8 @@ package backend;
  *    LAG SPIKE line; over 100 ms it is called out as EXTREME;
  *  - every `trace()` in the engine and in the scripting runtimes — Lua
  *    (`luaTrace`), Python (`pyTrace`) and HScript (the interpreter's built-in
- *    `trace`) — captured through `haxe.Log.traceHook` and tagged with the
- *    originating language;
+ *    `trace`) — captured through a rebound `haxe.Log.trace` and tagged with
+ *    the originating language;
  *  - RAM asset-cache events: images cached (CPU bitmap vs GPU texture),
  *    sounds decoded, note skins, `clearStoredMemory` / `clearUnusedMemory`
  *    results and every explicit GC/compact with heap before/after;
@@ -164,7 +164,8 @@ class VLog
       log('BOOT', 'system: unavailable (' + Std.string(e) + ')');
 
     // Capture every trace() in the engine and in Lua/Python/HScript.
-    haxe.Log.traceHook = onTrace;
+    // Haxe 4.3 rebinds trace through haxe.Log.trace (no traceHook yet).
+    haxe.Log.trace = onTrace;
 
     // Session footer on exit.
     #if !flash
@@ -413,10 +414,11 @@ class VLog
   static var _exitHooked:Bool = false;
 
   /**
-   * `haxe.Log.traceHook`: records every `trace()` call from the engine,
-   * Lua (`LuaUtils.luaTrace`), Python (`PythonScript.pyTrace`) and HScript
-   * (the interpreter's built-in `trace`) — then mirrors it to the console,
-   * because installing a hook replaces the default printer.
+   * Rebound `haxe.Log.trace` (Haxe 4.3 has no `traceHook`): records every
+   * `trace()` call from the engine, Lua (`LuaUtils.luaTrace`), Python
+   * (`PythonScript.pyTrace`) and HScript (the interpreter's built-in
+   * `trace`) — then mirrors it to the console, because rebinding `trace`
+   * replaces the default printer.
    */
   static function onTrace(value:Dynamic, ?posInfos:PosInfos, ?inlineParams:Array<Dynamic>):Void
   {
@@ -470,7 +472,10 @@ class VLog
   /** Drops the oldest half of the in-memory buffer (keeps it bounded). */
   static function truncateBuffer():Void
   {
-    final keep:String = buffer.toString().substr(buffer.length - (MAX_WEB_CHARS / 2));
+    // Int / Int is a Float in Haxe, so derive the half-point explicitly as an
+    // Int before calling substr(pos:Int).
+    final half:Int = Std.int(MAX_WEB_CHARS / 2);
+    final keep:String = buffer.toString().substr(buffer.length - half);
     buffer = new StringBuf();
     buffer.add('[' + timestamp() + '] [vlog] in-memory log exceeded ' + MemoryUtil.formatMemory(MAX_WEB_CHARS) + ' — oldest lines dropped\n');
     buffer.add(keep);
@@ -485,8 +490,10 @@ class VLog
     if (!force && buffer.length < FLUSH_CHARS && nowMs() - lastFlushMs < FLUSH_INTERVAL_MS) return;
     try
     {
-      final f = File.write(FILE, true);
-      f.writeBytes(haxe.io.Bytes.ofString(buffer.toString()));
+      // File.write() truncates; File.append() keeps the previous content and
+      // starts writing at the end of the file (text mode: binary = false).
+      final f = File.append(FILE, false);
+      f.write(haxe.io.Bytes.ofString(buffer.toString()));
       f.close();
       buffer = new StringBuf();
       lastFlushMs = nowMs();
@@ -553,7 +560,14 @@ class VLog
     for (i in 0...lines.length)
     {
       if (i > 0) out.add('\n        ');
-      out.add('[').add(stamp).add('] [').add(frame).add('] [').add(tag).add('] ').add(lines[i]);
+      out.add('[');
+      out.add(stamp);
+      out.add('] [');
+      out.add(frame);
+      out.add('] [');
+      out.add(tag);
+      out.add('] ');
+      out.add(lines[i]);
     }
     out.add('\n');
     return out.toString();
@@ -562,9 +576,12 @@ class VLog
   static function timestamp():String
   {
     final d = Date.now();
+    // haxe.Date has no getMilliseconds(); derive the sub-second part from
+    // getTime() (ms since the epoch).
+    final ms:Int = Std.int(d.getTime() % 1000);
     return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()) + ' '
       + pad2(d.getHours()) + ':' + pad2(d.getMinutes()) + ':' + pad2(d.getSeconds())
-      + '.' + pad3(d.getMilliseconds());
+      + '.' + pad3(ms);
   }
 
   static function pad(value:Int, width:Int):String

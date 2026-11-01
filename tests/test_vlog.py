@@ -34,7 +34,9 @@ class VLogCoreTests(unittest.TestCase):
     def test_every_build_writes_or_buffers_the_log(self):
         # File targets create the directory and append to the file…
         self.assertRegex(self.vlog, r"if \(!FileSystem\.exists\(DIR\)\) FileSystem\.createDirectory\(DIR\)")
-        self.assertRegex(self.vlog, r"final f = File\.write\(FILE, true\)")
+        # File.write() truncates; File.append() is what keeps the log across
+        # flushes (Haxe 4.3: write(path, binary) has no append mode).
+        self.assertRegex(self.vlog, r"final f = File\.append\(FILE, false\)")
         # …web/flash builds (no writable filesystem) cap an in-memory buffer
         # and offer a browser download instead.
         self.assertIn("MAX_WEB_CHARS", self.vlog)
@@ -42,7 +44,8 @@ class VLogCoreTests(unittest.TestCase):
         self.assertIn("public static function exportText():String", self.vlog)
 
     def test_trace_hook_captures_engine_lua_python_and_hscript(self):
-        self.assertIn("haxe.Log.traceHook = onTrace", self.vlog)
+        # Haxe 4.3 has no traceHook; trace() is rebound via haxe.Log.trace.
+        self.assertIn("haxe.Log.trace = onTrace", self.vlog)
         for language in ("'Lua'", "'Python'", "'HScript'", "'Engine'"):
             self.assertIn(language, self.vlog)
         # Console output must survive the hook (setting a hook replaces the
@@ -140,7 +143,8 @@ class VLogWiringTests(unittest.TestCase):
         python = read("source/psychlua/PythonScript.hx")
         self.assertIn("backend.VLog.scriptTrace('Python', text)", python)
         # …and when debug mode IS on they go through trace(), which the
-        # traceHook records as well (classifyTrace tags by the caller file).
+        # rebound haxe.Log.trace records as well (classifyTrace tags by the
+        # caller file).
         self.assertIn("trace(text)", lua)
         self.assertIn("trace(text)", python)
         self.assertIn("LuaUtils.hx'", read("source/backend/VLog.hx"))

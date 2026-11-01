@@ -88,7 +88,7 @@ What goes in (all timestamped with the running frame index):
 - **Lag spikes** — any frame over max(2× budget, 25 ms) gets a dedicated
   `LAG SPIKE` line breaking the time into engine work vs. time outside the
   measured frame (vsync wait / system stall); over 100 ms it is `EXTREME LAG`.
-- **Every `trace()`** — captured through `haxe.Log.traceHook`, so engine
+- **Every `trace()`** — captured through a rebound `haxe.Log.trace`, so engine
   traces and all three scripting runtimes end up in the log tagged
   `[Engine]`, `[Lua]`, `[Python]` or `[HScript]`. Script traces are logged
   even when `luaDebugMode` / `pythonDebugMode` (the in-game debug console)
