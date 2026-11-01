@@ -10,6 +10,8 @@ Lua/Python/HScript trace capture.
 from __future__ import annotations
 
 import re
+import subprocess
+import sys
 from pathlib import Path
 
 import unittest
@@ -44,8 +46,10 @@ class VLogCoreTests(unittest.TestCase):
         for language in ("'Lua'", "'Python'", "'HScript'", "'Engine'"):
             self.assertIn(language, self.vlog)
         # Console output must survive the hook (setting a hook replaces the
-        # default printer).
-        self.assertRegex(self.vlog, r"#if sys\s*\n\s*try\s*\n\s*Sys\.println\(Std\.string\(value\)\)")
+        # default printer). The try body must be a block: Haxe 4.3 binds one
+        # expression as the try body, so a `;`-terminated brace-less body
+        # orphans the catch clause and fails to compile.
+        self.assertRegex(self.vlog, r"#if sys\s*\n\s*try\s*\n\s*\{\s*\n\s*Sys\.println\(Std\.string\(value\)\)")
 
     def test_frame_lines_ram_and_lag_spikes(self):
         # One line per frame with FPS, frametime, work time, heap and RSS.
@@ -126,7 +130,9 @@ class VLogWiringTests(unittest.TestCase):
 
     def test_crash_handler_mirrors_crashes_into_the_vlog(self):
         crashes = read("source/backend/CrashHandler.hx")
-        self.assertRegex(crashes, r"try\s*\n\s*VLog\.crash\(errorMessage, stackLabel\)")
+        # Braced try body: a brace-less body would not compile (see the
+        # VLog structure checker for the Haxe 4.3 try-body rule).
+        self.assertRegex(crashes, r"try\s*\n\s*\{\s*\n\s*VLog\.crash\(errorMessage, stackLabel\)")
 
     def test_lua_and_python_traces_are_captured_even_when_debug_mode_is_off(self):
         lua = read("source/psychlua/LuaUtils.hx")
@@ -148,6 +154,26 @@ class VLogWiringTests(unittest.TestCase):
             r'new RootInfo\(ROOT_VLOG, new File\(storageDirectory, ROOT_VLOG\), "VLogs", '
             r'"Phoenix Engine verbose logs", false\)',
         )
+
+
+class VLogStructureTests(unittest.TestCase):
+    def test_haxe_structure_checker_passes(self):
+        # Catches brace/paren imbalance, unbalanced #if blocks and the
+        # Haxe 4.3 brace-less try/catch-body trap (a `;`-terminated brace-less
+        # try body orphans its catch clause and fails compilation).
+        proc = subprocess.run(
+            [sys.executable, str(ROOT / "tests" / "check_vlog_haxe_structure.py"), str(ROOT)],
+            capture_output=True, text=True, timeout=300,
+        )
+        self.assertEqual(
+            proc.returncode, 0,
+            f"Haxe structure checker failed:\n{proc.stdout}\n{proc.stderr}",
+        )
+        for line in ("VLog.hx", "Main.hx", "Paths.hx", "CrashHandler.hx"):
+            self.assertIsNotNone(
+                re.search(rf"^OK\s+\S+{line}$", proc.stdout, re.MULTILINE),
+                f"checker did not report OK for {line}:\n{proc.stdout}",
+            )
 
 
 class VLogDocsTests(unittest.TestCase):

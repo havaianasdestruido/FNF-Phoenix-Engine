@@ -356,7 +356,9 @@ class VLog
   {
     #if web
     try
+    {
       OpenFlFile.download('log.txt', haxe.io.Bytes.ofString(exportText()), false);
+    }
     catch (_:Dynamic) {}
     #end
   }
@@ -436,11 +438,15 @@ class VLog
     // Keep the console output intact.
     #if sys
     try
+    {
       Sys.println(Std.string(value));
+    }
     catch (_:Dynamic) {}
     #elseif js
     try
+    {
       js.Browser.console.log(value);
+    }
     catch (_:Dynamic) {}
     #end
   }

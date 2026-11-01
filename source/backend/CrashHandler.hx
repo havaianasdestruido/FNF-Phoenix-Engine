@@ -176,7 +176,9 @@ class CrashHandler
 			// the same context as crash/; it flushes immediately because the
 			// process may exit right after.
 			try
+			{
 				VLog.crash(errorMessage, stackLabel);
+			}
 			catch (_:Dynamic) {}
 
 			#if sys

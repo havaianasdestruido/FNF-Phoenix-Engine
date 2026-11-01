@@ -12,6 +12,7 @@ reports only findings that are new relative to `git show HEAD:<file>`.
 """
 from __future__ import annotations
 
+import bisect
 import re
 import subprocess
 import sys
@@ -27,6 +28,8 @@ FILES = [
 ]
 
 PREPROC = re.compile(r"#(if|elseif|else|end)\b")
+TRY_RE = re.compile(r"\btry\b")
+CATCH_RE = re.compile(r"\bcatch\b")
 
 
 def strip_haxe(text: str) -> str:
@@ -193,6 +196,105 @@ def check_file(path: str, text: str) -> list[str]:
                 depth -= 1
     if depth != 0:
         errors.append(f"{path}: {depth} unclosed #if block(s) at EOF (last #if at line {last_if_line})")
+
+    # 3. try/catch body shape (Haxe 4.3 binds one expression per body).
+    errors.extend(try_catch_findings(path, stripped))
+
+    return errors
+
+
+def try_catch_findings(path: str, stripped: str) -> list[str]:
+    """Haxe 4.3 binds a single *expression* (secure_expr) as the try body and
+    as each catch body. A brace-less body whose statement ends with `;` before
+    the `catch` orphans the catch clause ("Expected }" at the catch, as the
+    Haxe compiler reports), and a second top-level `;` in a brace-less catch
+    body silently puts statements outside the catch. Both are flagged."""
+    errors: list[str] = []
+    n = len(stripped)
+    line_starts = [0]
+    for idx, ch in enumerate(stripped):
+        if ch == "\n":
+            line_starts.append(idx + 1)
+
+    def line_of(pos: int) -> int:
+        return bisect.bisect_right(line_starts, pos)
+
+    def skip_ws(j: int) -> int:
+        while j < n and stripped[j] in " \t\n\r":
+            j += 1
+        return j
+
+    # try bodies
+    for m in TRY_RE.finditer(stripped):
+        i = skip_ws(m.end())
+        if i < n and stripped[i] == "{":
+            continue  # braced body
+        depth = 0
+        j = i
+        semi_line: int | None = None
+        catch_found = False
+        while j < n:
+            c = stripped[j]
+            if c in "([{":
+                depth += 1
+            elif c in ")]}":
+                if c == "}" and depth == 0:
+                    break  # left the enclosing block: no catch at all
+                depth -= 1
+            elif c == ";" and depth == 0:
+                semi_line = line_of(j)
+                break
+            elif c == "c" and depth == 0 and stripped[j:j + 5] == "catch":
+                if j == 0 or not (stripped[j - 1].isalnum() or stripped[j - 1] in "_$"):
+                    catch_found = True
+                break
+            j += 1
+        if semi_line is not None and not catch_found:
+            errors.append(
+                f"{path}:{line_of(m.start())}: brace-less try body ends with ';' "
+                f"before its catch clause (Haxe binds one expression; wrap the "
+                f"body in {{ }})"
+            )
+
+    # catch bodies
+    for m in CATCH_RE.finditer(stripped):
+        j = skip_ws(m.end())
+        if j >= n or stripped[j] != "(":
+            continue
+        depth = 0
+        while j < n:
+            if stripped[j] == "(":
+                depth += 1
+            elif stripped[j] == ")":
+                depth -= 1
+                if depth == 0:
+                    j += 1
+                    break
+            j += 1
+        j = skip_ws(j)
+        if j < n and stripped[j] == "{":
+            continue  # braced body
+        depth = 0
+        semis = 0
+        k = j
+        while k < n:
+            c = stripped[k]
+            if c in "([{":
+                depth += 1
+            elif c in ")]}":
+                if depth == 0:
+                    break  # enclosing block closer
+                depth -= 1
+            elif c == ";" and depth == 0:
+                semis += 1
+                if semis >= 2:
+                    errors.append(
+                        f"{path}:{line_of(m.start())}: brace-less catch body "
+                        f"holds more than one statement; everything after the "
+                        f"first ';' is NOT caught (wrap the body in {{ }})"
+                    )
+                    break
+            k += 1
 
     return errors
 
