@@ -66,8 +66,12 @@ flowchart TD
 
 Substates: `PauseSubState`, `GameOverSubstate`, `GameplayChangersSubstate`,
 `ResetScoreSubState` (`states.substates`), `RenderingDoneSubState` (`states`),
-the options category substates (`options/`), `psychlua.CustomSubstate` for scripts, and
+the options category substates (`options/`), `psychlua.CustomSubstate` for scripts,
+`states.ModState` / `states.substates.ModSubState` for fully scripted screens, and
 `mobile.MobileControlsSelectSubState`.
+
+Every `MusicBeatState` / `MusicBeatSubstate` loads optional HScript overlays from
+`data/states/<ClassName>.hx`. Details: [Scripted states](../modding/scripted-states.md).
 
 ## The `MusicBeatState` contract
 

@@ -1,4 +1,4 @@
-﻿package psychlua;
+package psychlua;
 
 #if HSCRIPT_ALLOWED
 import hscript.Parser;
@@ -18,8 +18,7 @@ import objects.Alphabet;
 import play.PlayState;
 
 /*
-* TODO: Decouple Lua from HScript and allow for more powerful HScript
-* Add an Script Manager to manage Lua/HScript?
+* Lua-hosted HScript (runHaxeCode). File-based state scripts live in HaxeScript/StateScripts.
 */
 class HScript
 {
@@ -65,6 +64,11 @@ class HScript
 		interp.variables.set('Character', Character);
 		interp.variables.set('Alphabet', Alphabet);
 		interp.variables.set('CustomSubstate', psychlua.CustomSubstate);
+		interp.variables.set('ModState', states.ModState);
+		interp.variables.set('ModSubState', states.substates.ModSubState);
+		interp.variables.set('StateScripts', psychlua.StateScripts);
+		interp.variables.set('switchCustomState', psychlua.StateScripts.switchState);
+		interp.variables.set('openModSubState', psychlua.StateScripts.openSubState);
 		#if (sys)
 		interp.variables.set('FlxRuntimeShader', flixel.addons.display.FlxRuntimeShader);
 		#end
