@@ -30,7 +30,7 @@ Sections 13–20 are a second backlog pass written against the current tree. Eve
 
 - FIX HTML5/WEB!!!
 
-### Overly complex stuff that would take weeks of work
+### Overly complex stuff that would take weeks of work (but that would be 100% worth the time)
 
 - Making the user be able to change ALL game text to a custom font.
 
@@ -39,6 +39,12 @@ Sections 13–20 are a second backlog pass written against the current tree. Eve
 - Rebuilding how the MODDING API works and adjusting it to be able to also support other languages (Common Modding API)
 
 - Making 99,9% of all engine aspects modifiable by softmods. (Python & Lua)
+
+- Adding all upstream-upstream Psych Engine 1.0 new features/commits, keeping in mind that our codebase was refactored.
+
+- Resizing ALL backgrounds to half it's size and just zoom them 2x (gama baja optimization)
+
+- Adjusting for lower Android SDK target (I want to play on my Android 5.0 phone), but only on a new experimental branch.
 
 ## 1. BUILD / TOOLCHAIN (all targets green)
 
@@ -169,7 +175,7 @@ Added from the supplied CNE-vs-vanilla/Psych comparison, filtered against the cu
 
 ### 12.1 SCRIPTING & FULL-ENGINE SOFTCODING
 
-- **[P1] Scripted states/substates.** No `data/states/StateName.hx` loader exists. CNE can softcode every state/substate; Phoenix menus, pause, game over, transitions, credits, freeplay, etc. remain source-only. `CustomSubstate` is only a scripted substate helper, not full state replacement.
+- **[P1] Scripted states/substates.** Done: `psychlua.StateScripts` loads `data/states/<Name>.hx` (also `.hscript`/`.hxs`) onto every `MusicBeatState`/`MusicBeatSubstate`. `states.ModState` / `states.substates.ModSubState` are full replacements (`switchCustomState` / `openModSubState`). `CustomSubstate` still fires PlayState `onCustomSubstate*` hooks and now also hosts a named state script. See `website/docs/modding/scripted-states.md`.
 - **[P1] Cancellable event-object API.** Current script hooks pass raw arguments and use `Function_Stop` returns. Add CNE-style event objects (`event.note`, `event.score`, `event.cancel()`), `onGamePause` with exclusion list, `onBopZoom`, `onSplashShown`, `onHealthIconAnimChange`, input-system events, and stage/character data events.
 - **[P1] Missing script scopes.** Add scripted transitions (`MusicBeatTransition` equivalent), shader scripts, custom options/controls scripts, dialogue/cutscene scripts, and scripted asset libraries. Existing global/song/character/stage/notetype/event scripts do not cover these.
 - **[P2] HScript module system.** PARTIAL (standalone HScript landed native `import`, public/static variables, `addHaxeLibrary()` and `PlayState.variables` sharing): still missing mod-root modules/redirects and ScriptPack-like sharing.

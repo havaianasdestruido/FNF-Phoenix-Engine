@@ -17,6 +17,11 @@ class CustomSubstate extends MusicBeatSubstate
 		Convert.addCallback(lua, "openCustomSubstate", openCustomSubstate);
 		Convert.addCallback(lua, "closeCustomSubstate", closeCustomSubstate);
 		Convert.addCallback(lua, "insertToCustomSubstate", insertToCustomSubstate);
+		// Switch to a fully scripted MusicBeatState from data/states/<name>.hx
+		Convert.addCallback(lua, "switchCustomState", StateScripts.switchState);
+		// Open a fully scripted MusicBeatSubstate from data/states/<name>.hx
+		Convert.addCallback(lua, "openModSubState", StateScripts.openSubState);
+		Convert.addCallback(lua, "customStateExists", StateScripts.exists);
 	}
 	#end
 
@@ -26,6 +31,9 @@ class CustomSubstate extends MusicBeatSubstate
 		python.set("openCustomSubstate", openCustomSubstate);
 		python.set("closeCustomSubstate", closeCustomSubstate);
 		python.set("insertToCustomSubstate", insertToCustomSubstate);
+		python.set("switchCustomState", StateScripts.switchState);
+		python.set("openModSubState", StateScripts.openSubState);
+		python.set("customStateExists", StateScripts.exists);
 	}
 	#end
 
@@ -35,30 +43,35 @@ class CustomSubstate extends MusicBeatSubstate
 		hscript.set("openCustomSubstate", openCustomSubstate);
 		hscript.set("closeCustomSubstate", closeCustomSubstate);
 		hscript.set("insertToCustomSubstate", insertToCustomSubstate);
+		hscript.set("switchCustomState", StateScripts.switchState);
+		hscript.set("openModSubState", StateScripts.openSubState);
+		hscript.set("customStateExists", StateScripts.exists);
 	}
 	#end
 	
 	public static function openCustomSubstate(name:String, ?pauseGame:Bool = false)
 	{
-		if(pauseGame)
+		if (pauseGame && PlayState.instance != null)
 		{
 			FlxG.camera.followLerp = 0;
 			PlayState.instance.persistentUpdate = false;
 			PlayState.instance.persistentDraw = true;
 			PlayState.instance.paused = true;
-			if(FlxG.sound.music != null) {
+			if (FlxG.sound.music != null) {
 				FlxG.sound.music.pause();
-				PlayState.instance.vocals.pause();
+				if (PlayState.instance.vocals != null)
+					PlayState.instance.vocals.pause();
 			}
 		}
-		PlayState.instance.openSubState(new CustomSubstate(name));
+		if (FlxG.state != null)
+			FlxG.state.openSubState(new CustomSubstate(name));
 	}
 
 	public static function closeCustomSubstate()
 	{
-		if(instance != null)
+		if (instance != null)
 		{
-			PlayState.instance.closeSubState();
+			instance.close();
 			return true;
 		}
 		return false;
@@ -66,13 +79,13 @@ class CustomSubstate extends MusicBeatSubstate
 
 	public static function insertToCustomSubstate(tag:String, ?pos:Int = -1)
 	{
-		if(instance != null)
+		if (instance != null)
 		{
 			var tagObject:FlxObject = cast (MusicBeatState.getVariables().get(tag), FlxObject);
 
-			if(tagObject != null)
+			if (tagObject != null)
 			{
-				if(pos < 0) instance.add(tagObject);
+				if (pos < 0) instance.add(tagObject);
 				else instance.insert(pos, tagObject);
 				return true;
 			}
@@ -84,42 +97,37 @@ class CustomSubstate extends MusicBeatSubstate
 	{
 		instance = this;
 		#if HSCRIPT_ALLOWED
-		if(PlayState.instance != null) PlayState.instance.setOnHScript('customSubstate', instance);
+		if (PlayState.instance != null)
+		{
+			PlayState.instance.setOnHScript('customSubstate', instance);
+			PlayState.instance.setOnHScript('customSubstateName', name);
+		}
 		#end
-
-		// PlayState.instance.callOnScripts('onCustomSubstateCreate', [name]);
-		PlayState.instance.callOnLuas('onCustomSubstateCreate', [name]);
+		callPlayStateHook('onCustomSubstateCreate', [name]);
 		super.create();
-		// PlayState.instance.callOnScripts('onCustomSubstateCreatePost', [name]);
-		PlayState.instance.callOnLuas('onCustomSubstateCreatePost', [name]);
+		callPlayStateHook('onCustomSubstateCreatePost', [name]);
 	}
-	
+
 	public function new(name:String)
 	{
 		CustomSubstate.name = name;
-		#if HSCRIPT_ALLOWED
-		if(PlayState.instance != null) PlayState.instance.setOnHScript('customSubstateName', name);
-		#end
 		super();
+		this.scriptName = name;
 		cameras = [FlxG.cameras.list[FlxG.cameras.list.length - 1]];
 	}
-	
+
 	override function update(elapsed:Float)
 	{
-		// PlayState.instance.callOnScripts('onCustomSubstateUpdate', [name, elapsed]);
-		PlayState.instance.callOnLuas('onCustomSubstateUpdate', [name, elapsed]);
+		callPlayStateHook('onCustomSubstateUpdate', [name, elapsed]);
 		super.update(elapsed);
-		// PlayState.instance.callOnScripts('onCustomSubstateUpdatePost', [name, elapsed]);
-		PlayState.instance.callOnLuas('onCustomSubstateUpdatePost', [name, elapsed]);
+		callPlayStateHook('onCustomSubstateUpdatePost', [name, elapsed]);
 	}
 
 	override function destroy()
 	{
-		// PlayState.instance.callOnScripts('onCustomSubstateDestroy', [name]);
-		PlayState.instance.callOnLuas('onCustomSubstateDestroy', [name]);
+		callPlayStateHook('onCustomSubstateDestroy', [name]);
 		instance = null;
 		name = 'unnamed';
-
 		#if HSCRIPT_ALLOWED
 		if(PlayState.instance != null)
 		{
@@ -128,5 +136,11 @@ class CustomSubstate extends MusicBeatSubstate
 		}
 		#end
 		super.destroy();
+	}
+
+	static function callPlayStateHook(hook:String, args:Array<Dynamic>):Void
+	{
+		if (PlayState.instance != null)
+			PlayState.instance.callOnLuas(hook, args);
 	}
 }

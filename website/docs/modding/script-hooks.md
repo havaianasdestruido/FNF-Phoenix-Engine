@@ -109,7 +109,10 @@ end
 
 ## Custom substates
 
-Scripts can open their own substate with `openCustomSubstate(name, pauseGame)`:
+Scripts can open their own substate with `openCustomSubstate(name, pauseGame)`.
+That helper now also loads `data/states/<name>.hx` if present, and works outside
+`PlayState`. Full-screen replacements use `switchCustomState(name, data)` /
+`openModSubState(name, data)` — see [Scripted states](./scripted-states.md).
 
 | Hook |
 |---|

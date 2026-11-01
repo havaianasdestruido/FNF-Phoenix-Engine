@@ -14,7 +14,9 @@ mods/
 ├── modsList.txt is in the game root, not here
 └── MyMod/
     ├── pack.json              # metadata (optional but recommended)
-    ├── data/                  # charts, song JSON, per-song scripts
+    ├── data/                  # charts, song JSON, per-song scripts, scripted states
+    │   ├── states/            # <StateName>.hx overlay or ModState replacement
+    │   │   └── FreeplayState.hx
     │   └── mySong/
     │       ├── mySong.json
     │       ├── mySong-hard.json
@@ -121,6 +123,7 @@ and `Mods.directoriesWithFile(path, fileToFind)` finds every mod providing a giv
 | Path | When |
 |---|---|
 | `scripts/*.lua`, `*.py`, `*.hx`, `*.hscript` | every song (global scripts) |
+| `data/states/<StateName>.hx` | overlay on that state/substate, or a `ModState` replacement — see [Scripted states](./scripted-states.md) |
 | `data/<song>/*.lua` / `.py` / `.hx` / `.hscript` | that song |
 | `stages/<stage>.lua` / `.py` / `.hx` / `.hscript` | when that stage loads |
 | `characters/<name>.lua` / `.py` / `.hx` / `.hscript` | when that character is added |

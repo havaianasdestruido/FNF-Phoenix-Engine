@@ -115,7 +115,11 @@ runtime is bundled or required.
 |---|---|
 | `psychlua.ModchartSprite` | the sprite type created by `makeLuaSprite` |
 | `psychlua.ModchartAnimateSprite` | the FlxAnimate-backed variant |
-| `psychlua.CustomSubstate` | a script-defined substate |
+| `psychlua.CustomSubstate` | a script-defined substate (also loads `data/states/<name>.hx`) |
+| `psychlua.HaxeScript` | `data/states/` script runner for scripted states (PlayState-scope standalone HScript is `psychlua.HScript`) |
+| `psychlua.StateScripts` | discovers/runs `data/states/<Name>.hx` on every beat state |
+| `states.ModState` | blank state whose UI is entirely the named state script |
+| `states.substates.ModSubState` | blank substate counterpart |
 | `psychlua.DebugLuaText` | on-screen debug output |
 | `psychlua.LuaUtils` | shared helpers (property resolution, colour parsing, tweens) |
 | `psychlua.LuaFunction` | wrapper for script-provided callbacks |

@@ -56,6 +56,9 @@ using StringTools;
  * private to that script. Scripts share state explicitly through `game`
  * (the `PlayState`), `PlayState.instance.variables` (`setVar`/`getVar`) or the
  * inter-script calls seeded by `seedScriptApi()`.
+ *
+ * Not to be confused with `psychlua.HaxeScript`, the separate host for
+ * `data/states/<Name>.hx` scripted states/substates (`psychlua.StateScripts`).
  */
 class HScript
 {
@@ -573,6 +576,11 @@ class HScript
 		#if DISCORD_ALLOWED
 		interp.variables.set('DiscordClient', DiscordClient);
 		#end
+		interp.variables.set('ModState', states.ModState);
+		interp.variables.set('ModSubState', states.substates.ModSubState);
+		interp.variables.set('StateScripts', psychlua.StateScripts);
+		interp.variables.set('switchCustomState', psychlua.StateScripts.switchState);
+		interp.variables.set('openModSubState', psychlua.StateScripts.openSubState);
 		#if (sys)
 		interp.variables.set('FlxRuntimeShader', flixel.addons.display.FlxRuntimeShader);
 		#end

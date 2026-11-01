@@ -15,6 +15,7 @@ import lime.app.Application;
 #end
 
 import data.Section;
+import psychlua.StateScripts;
 
 class MusicBeatState extends FlxUIState
 {
@@ -138,6 +139,14 @@ class MusicBeatState extends FlxUIState
 
 	override function destroy():Void
 	{
+		callStateScript('onDestroy', []);
+		callStateScript('destroy', []);
+		if (stateScripts != null)
+		{
+			stateScripts.destroy();
+			stateScripts = null;
+		}
+
 		if (trackedInputsMobileControls.length > 0)
 			controls.removeVirtualControlsInput(trackedInputsMobileControls);
 
@@ -185,13 +194,36 @@ class MusicBeatState extends FlxUIState
 	public var variables:Map<String, Dynamic> = new Map<String, Dynamic>();
 	public static function getVariables()
 		return getState().variables;
+
+	/** When false, `data/states/<Name>.hx` is not loaded for this instance. */
+	public var scriptsAllowed:Bool = true;
+	/** Override the `data/states/` file stem. Defaults to the class name. */
+	public var scriptName:String = null;
+	/** HScript pack loaded from `data/states/`. */
+	public var stateScripts:StateScripts;
+	var _stateScriptsPostCreate:Bool = false;
 	
 	// this is just because FlxUIState has arguments in it's constructor
 	public function new() {
 		super();
 	}
 
+	function loadStateScripts():Void
+	{
+		if (!scriptsAllowed || stateScripts != null) return;
+		stateScripts = StateScripts.loadFor(this, scriptName);
+		if (stateScripts != null)
+			stateScripts.set('data', Reflect.field(this, 'data'));
+	}
+
+	public function callStateScript(name:String, ?args:Array<Dynamic>):Dynamic
+	{
+		if (stateScripts == null || !stateScripts.hasScripts()) return StateScripts.Function_Continue;
+		return stateScripts.call(name, args);
+	}
+
 	override function create() {
+		loadStateScripts();
 		camBeat = FlxG.camera;
 		var skip:Bool = FlxTransitionableState.skipNextTransOut;
 		super.create();
@@ -209,6 +241,9 @@ class MusicBeatState extends FlxUIState
 		#if !flash
 		Application.current.window.title = windowNamePrefix + windowNameSuffix + windowNameSuffix2;
 		#end
+
+		callStateScript('onCreate', []);
+		callStateScript('create', []);
 	}
 
 	public function initPsychCamera():PsychCamera
@@ -222,6 +257,15 @@ class MusicBeatState extends FlxUIState
 
 	override function update(elapsed:Float)
 	{
+		if (!_stateScriptsPostCreate)
+		{
+			_stateScriptsPostCreate = true;
+			callStateScript('onCreatePost', []);
+			callStateScript('postCreate', []);
+		}
+		callStateScript('onUpdate', [elapsed]);
+		callStateScript('update', [elapsed]);
+
 		oldStep = curStep;
 
 		updateCurStep();
@@ -247,6 +291,9 @@ class MusicBeatState extends FlxUIState
 		});
 
 		super.update(elapsed);
+
+		callStateScript('onUpdatePost', [elapsed]);
+		callStateScript('postUpdate', [elapsed]);
 	}
 
 	private function updateSection():Void
@@ -325,6 +372,9 @@ class MusicBeatState extends FlxUIState
 
 		if (curStep % 4 == 0)
 			beatHit();
+
+		callStateScript('onStepHit', [curStep]);
+		callStateScript('stepHit', [curStep]);
 	}
 
 	//runs whenever the game hits a beat
@@ -335,6 +385,8 @@ class MusicBeatState extends FlxUIState
 			stage.curDecBeat = curDecBeat;
 			stage.beatHit();
 		});
+		callStateScript('onBeatHit', [curBeat]);
+		callStateScript('beatHit', [curBeat]);
 	}
 
 	//runs whenever the game hits a section
@@ -344,6 +396,8 @@ class MusicBeatState extends FlxUIState
 			stage.curSection = curSection;
 			stage.sectionHit();
 		});
+		callStateScript('onSectionHit', [curSection]);
+		callStateScript('sectionHit', [curSection]);
 	}
 
 	public static function getState():MusicBeatState {

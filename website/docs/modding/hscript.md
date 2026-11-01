@@ -177,6 +177,13 @@ function onBeatHit()
 end
 ```
 
+## File-based state scripts
+
+State scripts are a different host again: `.hx` files under `data/states/` run on
+`psychlua.HaxeScript`, discovered by `psychlua.StateScripts` from
+`data/states/<Name>.hx` (not the PlayState script scopes above). Overlay every menu/pause/game
+over, or switch to a blank `ModState`. See [Scripted states](./scripted-states.md).
+
 ## Limits
 
 - HScript is **interpreted Haxe**, not compiled Haxe: no macros, no type checking,
