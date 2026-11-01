@@ -517,7 +517,15 @@ class PythonScript
 				return;
 			}
 			PlayState.instance.addTextToDebug(text, color);
+			// The traceHook in backend.VLog records this in vlog/log.txt
+			// (tagged [Python]) before it reaches the console.
 			trace(text);
+		}
+		else
+		{
+			// The in-game debug console is off, but the vlog captures
+			// everything — script traces are never lost to vlog/log.txt.
+			backend.VLog.scriptTrace('Python', text);
 		}
 	}
 

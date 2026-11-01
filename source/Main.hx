@@ -92,16 +92,22 @@ class Main extends Sprite
   public function new()
   {
     super();
-    // Only queues any phoenix:// link that launched the game; registering the
-    // scheme itself is opt-in from Options -> Misc, never done on startup.
-    backend.deeplink.DeepLinks.init();
     #if mobile
+    // The storage directory must become the working directory before the
+    // vlog opens, so vlog/ lands in the app's external files directory (the
+    // same directory the SAF VLogs root exposes).
     if (!mobile.StorageUtil.initStorageDirectory())
     {
       lime.system.System.exit(1);
       return;
     }
     #end
+    // Opens vlog/log.txt and hooks every trace() in the engine and in
+    // Lua/Python/HScript, so the verbose log sees the whole boot.
+    backend.VLog.init(game.framerate);
+    // Only queues any phoenix:// link that launched the game; registering the
+    // scheme itself is opt-in from Options -> Misc, never done on startup.
+    backend.deeplink.DeepLinks.init();
 
     instance = this;
     CrashHandler.init();

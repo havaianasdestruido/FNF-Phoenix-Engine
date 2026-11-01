@@ -1,7 +1,7 @@
 ---
 title: Debugging & crash handling
 sidebar_position: 9
-description: The FPS/memory overlay, crash handler and error state, Discord RPC and build metadata.
+description: The verbose vlog, FPS/memory overlay, crash handler and error state, Discord RPC and build metadata.
 ---
 
 # Debugging & crash handling
@@ -67,6 +67,47 @@ The same values are available to scripts through `getSystemInfo()`, `getGPUName(
 `getOSName()`, `getOSVersion()`, `getGraphicsApi()` and `getAudioApi()` (Lua, Python and
 HScript), see the [Lua](../modding/lua-api-reference.md) and
 [Python](../modding/python-api-reference.md) API references.
+
+## Verbose log (`vlog/log.txt`)
+
+`backend.VLog` records an aggressively verbose, append-only session log at
+`vlog/log.txt` in **every build**. It is initialized in `Main` before
+`CrashHandler.init`, so the whole boot is covered, and on Android the file
+lives in the app's external-files directory — the same directory the SAF
+**VLogs** root of `PhoenixDocumentsProvider` exposes, so the log can be copied
+out of the game through the system Files app exactly like `crash/` reports.
+
+What goes in (all timestamped with the running frame index):
+
+- **Session header/footer** — engine/JSE/Psych versions, target platform,
+  working directory, launch arguments, the full hardware report (same source
+  as crash logs), then duration, frame total, average FPS, peak frame/work
+  times, lag-spike counts and peak heap/RSS.
+- **One line per frame** — FPS, frametime, work time, update count, draw
+  calls, managed heap, process RSS and the current state.
+- **Lag spikes** — any frame over max(2× budget, 25 ms) gets a dedicated
+  `LAG SPIKE` line breaking the time into engine work vs. time outside the
+  measured frame (vsync wait / system stall); over 100 ms it is `EXTREME LAG`.
+- **Every `trace()`** — captured through a rebound `haxe.Log.trace`, so engine
+  traces and all three scripting runtimes end up in the log tagged
+  `[Engine]`, `[Lua]`, `[Python]` or `[HScript]`. Script traces are logged
+  even when `luaDebugMode` / `pythonDebugMode` (the in-game debug console)
+  are off.
+- **RAM asset caching** — images entering the cache (dimensions, CPU bitmap
+  vs. GPU texture), sounds decoded into RAM, decode failures, missing assets,
+  note-skin/splash loads, `clearStoredMemory` / `clearUnusedMemory` results
+  and every explicit GC/heap compact with heap size before/after.
+- **State changes and crashes** — every `FlxGame` state switch, and uncaught
+  errors mirrored from `CrashHandler` (message, stack, hardware) so the live
+  log carries the same context as the `crash/` report.
+
+The writer is fail-safe: lines are buffered and flushed at most every 250 ms,
+the live log rotates at 10 MiB (keeping `log.1.txt`/`log.2.txt`), and any
+filesystem problem disables vlog writes for the session with a console notice
+instead of affecting gameplay. Web and Flash builds have no writable
+filesystem, so the log accumulates in a capped in-memory buffer that
+`VLog.exportText()` returns; on HTML5, `VLog.download()` additionally saves
+it as `log.txt` through the browser.
 
 ## Script errors
 
