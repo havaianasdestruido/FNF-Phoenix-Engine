@@ -4,12 +4,49 @@ import flixel.FlxBasic;
 import mobile.flixel.FlxVirtualPad;
 import flixel.input.actions.FlxActionInput;
 import flixel.util.FlxDestroyUtil;
+import psychlua.StateScripts;
 
 class MusicBeatSubstate extends FlxSubState
 {
+	/** When false, `data/states/<Name>.hx` is not loaded for this instance. */
+	public var scriptsAllowed:Bool = true;
+	/** Override the `data/states/` file stem. Defaults to the class name. */
+	public var scriptName:String = null;
+	/** HScript pack loaded from `data/states/`. */
+	public var stateScripts:StateScripts;
+	var _stateScriptsPostCreate:Bool = false;
+
 	public function new()
 	{
 		super();
+	}
+
+	function loadStateScripts():Void
+	{
+		if (!scriptsAllowed || stateScripts != null) return;
+		stateScripts = StateScripts.loadFor(this, scriptName);
+		if (stateScripts != null)
+			stateScripts.set('data', Reflect.field(this, 'data'));
+	}
+
+	public function callStateScript(name:String, ?args:Array<Dynamic>):Dynamic
+	{
+		if (stateScripts == null || !stateScripts.hasScripts()) return StateScripts.Function_Continue;
+		return stateScripts.call(name, args);
+	}
+
+	override function create()
+	{
+		loadStateScripts();
+		super.create();
+		callStateScript('onCreate', []);
+		callStateScript('create', []);
+	}
+
+	override function close()
+	{
+		if (callStateScript('onClose', []) == StateScripts.Function_Stop) return;
+		super.close();
 	}
 
 	private var lastBeat:Float = 0;
@@ -81,6 +118,14 @@ class MusicBeatSubstate extends FlxSubState
 
 	override function destroy():Void
 	{
+		callStateScript('onDestroy', []);
+		callStateScript('destroy', []);
+		if (stateScripts != null)
+		{
+			stateScripts.destroy();
+			stateScripts = null;
+		}
+
 		if (trackedInputsVirtualPad.length > 0)
 			controls.removeVirtualControlsInput(trackedInputsVirtualPad);
 
@@ -96,6 +141,15 @@ class MusicBeatSubstate extends FlxSubState
 
 	override function update(elapsed:Float)
 	{
+		if (!_stateScriptsPostCreate)
+		{
+			_stateScriptsPostCreate = true;
+			callStateScript('onCreatePost', []);
+			callStateScript('postCreate', []);
+		}
+		callStateScript('onUpdate', [elapsed]);
+		callStateScript('update', [elapsed]);
+
 		if (oldStep != curStep) oldStep = curStep;
 
 		updateCurStep();
@@ -105,6 +159,9 @@ class MusicBeatSubstate extends FlxSubState
 			stepHit();
 
 		super.update(elapsed);
+
+		callStateScript('onUpdatePost', [elapsed]);
+		callStateScript('postUpdate', [elapsed]);
 	}
 
 	private function updateBeat():Void
@@ -126,10 +183,13 @@ class MusicBeatSubstate extends FlxSubState
 	{
 		if (curStep % 4 == 0)
 			beatHit();
+		callStateScript('onStepHit', [curStep]);
+		callStateScript('stepHit', [curStep]);
 	}
 
 	public function beatHit():Void
 	{
-		//do literally nothing dumbass
+		callStateScript('onBeatHit', [curBeat]);
+		callStateScript('beatHit', [curBeat]);
 	}
 }

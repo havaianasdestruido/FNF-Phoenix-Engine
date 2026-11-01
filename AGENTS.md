@@ -96,7 +96,8 @@ FNF-JS-Engine-Light/
   `SpawnedNote`... & `play/helpers/*` = lógica delegada.
 - **`states/`**: menus (`MainMenuState`, `FreeplayState`, `StoryMenuState`, `CreditState`,
   `OptionsMenuState`...), substates (`PauseSubState`, `GameOverSubstate`, `ResetScoreSubState`,
-  `GameplayChangersSubstate`, `CharacterSelector...`).
+  `GameplayChangersSubstate`, `CharacterSelector...`). `ModState` / `ModSubState` are blank
+  hosts for `data/states/<Name>.hx` (see `psychlua.StateScripts`).
 - **`objects/`**: `Note.hx`, `NoteSplash.hx`, `StrumNote.hx`, `HealthIcon.hx`, `Alphabet.hx`,
   `Character.hx`, `Boyfriend.hx`, `FlxText`, `BG`, `BGSprite`...
 - **`stages/`**: `StageData.hx` + implementações de stage por semana (`StageWeek1` etc.).

@@ -71,6 +71,13 @@ function onBeatHit()
 end
 ```
 
+## File-based state scripts
+
+`psychlua.HScript` is still the Lua-hosted interpreter (`runHaxeCode`). Standalone
+`.hx` files — no Lua parent — are `psychlua.HaxeScript`, discovered by
+`psychlua.StateScripts` from `data/states/<Name>.hx`. Overlay every menu/pause/game
+over, or switch to a blank `ModState`. See [Scripted states](./scripted-states.md).
+
 ## Limits
 
 - HScript is **interpreted Haxe**, not compiled Haxe: no macros, no type checking,
