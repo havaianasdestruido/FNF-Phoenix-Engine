@@ -76,6 +76,7 @@ class ScriptedStates(unittest.TestCase):
         self.assertNotIn("parentLua", haxe)
         self.assertIn("public function new(scriptName:String, ?parent:Dynamic, ?scriptCode:String)", haxe)
         self.assertIn("interp.scriptObject = parent", haxe)
+        self.assertNotIn("variables.set('FlxColor', flixel.util.FlxColor)", haxe)
 
     def test_docs_and_todo_record_the_loader(self):
         todo = read("TODO.md")

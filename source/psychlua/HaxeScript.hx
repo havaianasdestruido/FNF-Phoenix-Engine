@@ -109,7 +109,23 @@ class HaxeScript
 		interp.variables.set('FlxTimer', flixel.util.FlxTimer);
 		interp.variables.set('FlxTween', flixel.tweens.FlxTween);
 		interp.variables.set('FlxEase', flixel.tweens.FlxEase);
-		interp.variables.set('FlxColor', flixel.util.FlxColor);
+		// FlxColor is an abstract and cannot be stored as an interpreter value.
+		interp.variables.set('FlxColor', {
+			TRANSPARENT: 0x00000000,
+			WHITE: 0xFFFFFFFF,
+			GRAY: 0xFF808080,
+			GREY: 0xFF808080,
+			BLACK: 0xFF000000,
+			RED: 0xFFFF0000,
+			GREEN: 0xFF00FF00,
+			BLUE: 0xFF0000FF,
+			YELLOW: 0xFFFFFF00,
+			CYAN: 0xFF00FFFF,
+			PINK: 0xFFFF00FF,
+			PURPLE: 0xFF800080,
+			ORANGE: 0xFFFFA500,
+			BROWN: 0xFF8B4513
+		});
 		interp.variables.set('FlxMath', flixel.math.FlxMath);
 		interp.variables.set('FlxTypedGroup', flixel.group.FlxGroup.FlxTypedGroup);
 		interp.variables.set('FlxSpriteGroup', flixel.group.FlxSpriteGroup);
