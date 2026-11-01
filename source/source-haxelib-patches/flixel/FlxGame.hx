@@ -527,6 +527,10 @@ class FlxGame extends Sprite
 		ticks = getTicks();
 		_elapsedMS = timer - _total;
 		_total = timer;
+		// VLog (vlog/log.txt): measures the whole frame of engine work and
+		// how many state updates ran inside it for the per-frame log line.
+		final vlogWorkStart = getTimer();
+		var vlogUpdates:Int = 0;
 
 		#if FLX_SOUND_TRAY
 		if (soundTray != null && soundTray.active)
@@ -547,12 +551,14 @@ class FlxGame extends Sprite
 				while (_accumulator >= _stepMS)
 				{
 					step();
+					vlogUpdates++;
 					_accumulator -= _stepMS;
 				}
 			}
 			else
 			{
 				step();
+				vlogUpdates++;
 			}
 
 			#if FLX_DEBUG
@@ -568,6 +574,8 @@ class FlxGame extends Sprite
 		}
 
 		FrameProfiler.endFrame(FlxG.renderTile ? FlxDrawBaseItem.drawCalls : 0);
+		backend.VLog.onFrame(_elapsedMS, getTimer() - vlogWorkStart,
+			FlxG.renderTile ? FlxDrawBaseItem.drawCalls : 0, vlogUpdates, _lostFocus);
 	}
 
 	/**
@@ -614,6 +622,9 @@ class FlxGame extends Sprite
 
 		FlxG.signals.preStateSwitch.dispatch();
 
+		// VLog: capture the outgoing state name before it is destroyed.
+		final vlogOldState:String = _state != null ? Type.getClassName(Type.getClass(_state)) : null;
+
 		// Destroy the old state (if there is an old state)
 		if (_state != null)
 			_state.destroy();
@@ -625,6 +636,7 @@ class FlxGame extends Sprite
 		_state = _nextState.createInstance();
 		_isPlayState = Std.isOfType(_state, PlayState);
 		FrameProfiler.setStateName(Type.getClassName(Type.getClass(_state)));
+		backend.VLog.stateChanged(vlogOldState, Type.getClassName(Type.getClass(_state)));
 		_state._constructor = _nextState;
 		_nextState = null;
 

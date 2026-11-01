@@ -172,6 +172,13 @@ class CrashHandler
 
 			errorMessage += 'Uncaught Error: $m\n\n$stackLabel';
 
+			// Mirror the crash into the vlog so the live session log carries
+			// the same context as crash/; it flushes immediately because the
+			// process may exit right after.
+			try
+				VLog.crash(errorMessage, stackLabel);
+			catch (_:Dynamic) {}
+
 			#if sys
 			// The hardware information makes a bug report a lot more useful, but
 			// it must never keep the crash log itself from being written.
