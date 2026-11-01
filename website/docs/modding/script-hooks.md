@@ -9,7 +9,9 @@ description: Every callback the engine fires into Lua, Python and HScript, with 
 Hooks are plain functions you define in a script. The engine calls the ones it finds and
 caches the absence of the rest, so unused hooks cost nothing.
 
-Syntax below is Lua; Python is identical with `def name(args):`.
+Syntax below is Lua; Python is identical with `def name(args):`, and standalone
+HScript (`.hx`/`.hscript`) with `function name(args) { ... }` — see
+`docs/TemplateScript.hx` for the exact typed signatures.
 
 ## Return values
 
@@ -17,7 +19,7 @@ Syntax below is Lua; Python is identical with `def name(args):`.
 |---|---|
 | nothing / `Function_Continue` | the engine proceeds normally |
 | `Function_Stop` | cancels the engine's default behaviour for that hook |
-| `Function_StopLua` (Python: also `Function_StopAll`) | stops the hook propagating to further scripts |
+| `Function_StopLua` (Python/HScript: also `Function_StopAll`) | stops the hook propagating to further scripts |
 
 Only hooks documented as cancellable react to `Function_Stop`.
 

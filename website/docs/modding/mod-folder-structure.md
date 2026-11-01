@@ -40,8 +40,8 @@ mods/
     ├── fonts/                 # TTF/OTF
     ├── shaders/               # .frag / .vert for runtime shaders
     ├── scripts/               # global scripts (always loaded in gameplay)
-    ├── custom_events/         # <eventName>.lua / .py
-    ├── custom_notetypes/      # <noteType>.lua / .py
+    ├── custom_events/         # <eventName>.lua / .py / .hx / .hscript
+    ├── custom_notetypes/      # <noteType>.lua / .py / .hx / .hscript
     └── achievements/          # custom achievements
 ```
 
@@ -122,12 +122,17 @@ and `Mods.directoriesWithFile(path, fileToFind)` finds every mod providing a giv
 
 | Path | When |
 |---|---|
-| `scripts/*.lua`, `scripts/*.py` | every song (global scripts) |
+| `scripts/*.lua`, `*.py`, `*.hx`, `*.hscript` | every song (global scripts) |
 | `data/states/<StateName>.hx` | overlay on that state/substate, or a `ModState` replacement — see [Scripted states](./scripted-states.md) |
-| `data/<song>/<song>.lua` / `.py` | that song |
-| `stages/<stage>.lua` / `.py` | when that stage loads |
-| `custom_notetypes/<type>.lua` / `.py` | when a note of that type exists in the chart |
-| `custom_events/<event>.lua` / `.py` | when that event exists in the chart |
+| `data/<song>/*.lua` / `.py` / `.hx` / `.hscript` | that song |
+| `stages/<stage>.lua` / `.py` / `.hx` / `.hscript` | when that stage loads |
+| `characters/<name>.lua` / `.py` / `.hx` / `.hscript` | when that character is added |
+| `custom_notetypes/<type>.lua` / `.py` / `.hx` / `.hscript` | when a note of that type exists in the chart |
+| `custom_events/<event>.lua` / `.py` / `.hx` / `.hscript` | when that event exists in the chart |
+
+For HScript, `<name>.hx` and `<name>.hscript` are the same logical script: in the
+folder-scanned scopes the `.hx` spelling wins inside a folder, and the first folder in
+priority order wins across folders.
 
 Global scripts are deduplicated by **file name** across folders, and the first match in
 priority order wins. Global mods are checked *before* the active mod, so a global mod

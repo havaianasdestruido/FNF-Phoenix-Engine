@@ -57,6 +57,10 @@ import play.helpers.PlayStateRating;
 import play.helpers.PlayStateRender;
 import play.helpers.PlayStateScripts;
 import play.helpers.PlayStateAndroidMedia;
+#if HSCRIPT_ALLOWED
+import psychlua.HScript;
+import psychlua.DebugLuaText;
+#end
 #if android
 import android.platform.AndroidHardwareInput;
 import play.helpers.PlayStateHardwareInput;
@@ -441,6 +445,11 @@ class PlayState extends MusicBeatState
 	public var pythonArray:Array<PythonScript> = [];
 	private var pythonDebugGroup:FlxTypedGroup<DebugLuaText>;
 	#end
+	// HScript shit (standalone .hx/.hscript mods, no Lua parent required)
+	#if HSCRIPT_ALLOWED
+	public var hscriptArray:Array<HScript> = [];
+	private var hscriptDebugGroup:FlxTypedGroup<DebugLuaText>;
+	#end
 	public var introSoundsSuffix:String = '';
 
 	// Debug buttons
@@ -757,9 +766,18 @@ class PlayState extends MusicBeatState
 		add(pythonDebugGroup);
 		#end
 
+		#if HSCRIPT_ALLOWED
+		hscriptDebugGroup = new FlxTypedGroup<DebugLuaText>();
+		hscriptDebugGroup.cameras = [camOther];
+		add(hscriptDebugGroup);
+		#end
+
 		// "GLOBAL" SCRIPTS
-		#if (LUA_ALLOWED || PYTHON_ALLOWED)
+		#if (LUA_ALLOWED || PYTHON_ALLOWED || (HSCRIPT_ALLOWED && sys))
 		var filesPushed:Array<String> = [];
+		#if HSCRIPT_ALLOWED
+		var hscriptFilesPushed:Array<String> = [];
+		#end
 		var foldersToCheck:Array<String> = [Paths.getPreloadPath('scripts/')];
 
 		#if MODS_ALLOWED
@@ -775,7 +793,23 @@ class PlayState extends MusicBeatState
 		{
 			if(FileSystem.exists(folder))
 			{
-				for (file in FileSystem.readDirectory(folder))
+				var folderFiles:Array<String> = FileSystem.readDirectory(folder);
+				#if HSCRIPT_ALLOWED
+				// A .hx and a .hscript with the same base name are the same
+				// script; prefer the .hx spelling inside one folder, and let
+				// the first (highest-priority) folder win across folders.
+				var hscriptChoices:Map<String, String> = [];
+				for (file in folderFiles)
+				{
+					if(HScript.isHScriptFile(file))
+					{
+						var baseName:String = HScript.scriptBaseName(file);
+						if(!hscriptChoices.exists(baseName) || file.toLowerCase().endsWith('.hx'))
+							hscriptChoices.set(baseName, file);
+					}
+				}
+				#end
+				for (file in folderFiles)
 				{
 					#if LUA_ALLOWED
 					if(file.endsWith('.lua') && !filesPushed.contains(file))
@@ -791,6 +825,15 @@ class PlayState extends MusicBeatState
 						filesPushed.push(file);
 					}
 					#end
+					#if HSCRIPT_ALLOWED
+					if(HScript.isHScriptFile(file) && hscriptChoices.get(HScript.scriptBaseName(file)) == file
+						&& !hscriptFilesPushed.contains(HScript.scriptBaseName(file)) && !filesPushed.contains(file))
+					{
+						HScript.fromFile(folder + file);
+						hscriptFilesPushed.push(HScript.scriptBaseName(file));
+						filesPushed.push(file);
+					}
+					#end
 				}
 			}
 		}
@@ -802,6 +845,9 @@ class PlayState extends MusicBeatState
 		#end
 		#if (MODS_ALLOWED && PYTHON_ALLOWED)
 		startPythonScriptOnFolder('stages/' + curStage + '.py');
+		#end
+		#if (MODS_ALLOWED && HSCRIPT_ALLOWED)
+		startHScriptOnFolder('stages/' + curStage);
 		#end
 		var gfVersion:String = SONG.gfVersion;
 
@@ -1502,7 +1548,7 @@ class PlayState extends MusicBeatState
 		startingSong = true;
 		MusicBeatState.windowNameSuffix = " - " + SONG.song + " " + (isStoryMode ? "(Story Mode)" : "(Freeplay)");
 
-		#if (LUA_ALLOWED || PYTHON_ALLOWED)
+		#if (LUA_ALLOWED || PYTHON_ALLOWED || HSCRIPT_ALLOWED)
 		for (notetype in noteTypeMap.keys())
 		{
 			#if LUA_ALLOWED
@@ -1510,6 +1556,9 @@ class PlayState extends MusicBeatState
 			#end
 			#if PYTHON_ALLOWED
 			startPythonScriptOnFolder('custom_notetypes/' + notetype + '.py');
+			#end
+			#if HSCRIPT_ALLOWED
+			startHScriptOnFolder('custom_notetypes/' + notetype);
 			#end
 		}
 		for (event in eventPushedMap.keys())
@@ -1519,6 +1568,9 @@ class PlayState extends MusicBeatState
 			#end
 			#if PYTHON_ALLOWED
 			startPythonScriptOnFolder('custom_events/' + event + '.py');
+			#end
+			#if HSCRIPT_ALLOWED
+			startHScriptOnFolder('custom_events/' + event);
 			#end
 		}
 		#end
@@ -1534,8 +1586,11 @@ class PlayState extends MusicBeatState
 		}
 
 		// SONG SPECIFIC SCRIPTS
-		#if (LUA_ALLOWED || PYTHON_ALLOWED)
+		#if (LUA_ALLOWED || PYTHON_ALLOWED || (HSCRIPT_ALLOWED && sys))
 		var filesPushed:Array<String> = [];
+		#if HSCRIPT_ALLOWED
+		var hscriptFilesPushed:Array<String> = [];
+		#end
 		var foldersToCheck:Array<String> = [Paths.getPreloadPath('data/' + Paths.formatToSongPath(SONG.song) + '/')];
 
 		#if MODS_ALLOWED
@@ -1551,7 +1606,20 @@ class PlayState extends MusicBeatState
 		{
 			if(FileSystem.exists(folder))
 			{
-				for (file in FileSystem.readDirectory(folder))
+				var folderFiles:Array<String> = FileSystem.readDirectory(folder);
+				#if HSCRIPT_ALLOWED
+				var hscriptChoices:Map<String, String> = [];
+				for (file in folderFiles)
+				{
+					if(HScript.isHScriptFile(file))
+					{
+						var baseName:String = HScript.scriptBaseName(file);
+						if(!hscriptChoices.exists(baseName) || file.toLowerCase().endsWith('.hx'))
+							hscriptChoices.set(baseName, file);
+					}
+				}
+				#end
+				for (file in folderFiles)
 				{
 					#if LUA_ALLOWED
 					if(file.endsWith('.lua') && !filesPushed.contains(file))
@@ -1564,6 +1632,15 @@ class PlayState extends MusicBeatState
 					if(file.endsWith('.py') && !filesPushed.contains(file))
 					{
 						new PythonScript(folder + file);
+						filesPushed.push(file);
+					}
+					#end
+					#if HSCRIPT_ALLOWED
+					if(HScript.isHScriptFile(file) && hscriptChoices.get(HScript.scriptBaseName(file)) == file
+						&& !hscriptFilesPushed.contains(HScript.scriptBaseName(file)) && !filesPushed.contains(file))
+					{
+						HScript.fromFile(folder + file);
+						hscriptFilesPushed.push(HScript.scriptBaseName(file));
 						filesPushed.push(file);
 					}
 					#end
@@ -2927,13 +3004,17 @@ class PlayState extends MusicBeatState
 		PythonScript.registeredFunctions.clear();
 		#end
 
-		if (camFollow != null) camFollow.put();
-
-		/*
 		#if HSCRIPT_ALLOWED
-		if(FunkinLua.hscript != null) FunkinLua.hscript = null;
+		for (hx in hscriptArray) {
+			hx.call('onDestroy', []);
+			hx.stop();
+		}
+		hscriptArray = [];
+		HScript.customFunctions.clear();
+		HScript.registeredFunctions.clear();
 		#end
-		*/
+
+		if (camFollow != null) camFollow.put();
 
 		stagesFunc(function(stage:BaseStage) stage.destroy());
 
@@ -3163,15 +3244,86 @@ class PlayState extends MusicBeatState
 	}
 	#end
 
+	#if HSCRIPT_ALLOWED
 	/**
-	 * Dispatch a callback to every Lua AND Python script. Returns the last
-	 * non-`Function_Continue` value returned by any script.
+	 * Load a standalone HScript mod by mod-relative path. The extension is
+	 * optional: `stages/farm` tries `farm.hx` first, then `farm.hscript`,
+	 * in each case through the usual mod folders, then `assets/preload`.
+	 */
+	public function startHScriptOnFolder(hxFile:String)
+	{
+		var candidates:Array<String> = HScript.isHScriptFile(hxFile) ? [hxFile] : [hxFile + '.hx', hxFile + '.hscript'];
+		for (candidate in candidates)
+		{
+			var resolved:String = null;
+			#if MODS_ALLOWED
+			var modPath:String = Paths.modFolders(candidate);
+			if(FileSystem.exists(modPath))
+			{
+				resolved = modPath;
+			}
+			else
+			{
+				var preloadPath:String = Paths.getPreloadPath(candidate);
+				if(FileSystem.exists(preloadPath)) resolved = preloadPath;
+			}
+			#elseif sys
+			var preloadPath:String = Paths.getPreloadPath(candidate);
+			if(OpenFlAssets.exists(preloadPath)) resolved = preloadPath;
+			#end
+
+			if(resolved != null)
+			{
+				for (script in hscriptArray)
+				{
+					if(script.scriptName == resolved) return false;
+				}
+				HScript.fromFile(resolved);
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/** Stop and unload a running standalone HScript mod (extension optional). */
+	public function removeHScript(hxFile:String)
+	{
+		if(hxFile == null) return false;
+		var candidates:Array<String> = HScript.isHScriptFile(hxFile) ? [hxFile] : [hxFile + '.hx', hxFile + '.hscript', hxFile];
+		for (candidate in candidates)
+		{
+			var resolved:String = candidate;
+			#if MODS_ALLOWED
+			if(FileSystem.exists(Paths.modFolders(candidate))) resolved = Paths.modFolders(candidate);
+			else if(FileSystem.exists(Paths.getPreloadPath(candidate))) resolved = Paths.getPreloadPath(candidate);
+			#end
+			for (script in hscriptArray)
+			{
+				if(script.scriptName == resolved || script.scriptName == candidate)
+				{
+					script.call('onDestroy', []);
+					hscriptArray.remove(script);
+					script.stop();
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+	#end
+
+	/**
+	 * Dispatch a callback to every Lua, Python AND standalone HScript script
+	 * (in that order). Returns the last non-`Function_Continue` value
+	 * returned by any script.
 	 */
 	public function callOnScripts(event:String, args:Array<Dynamic> = null, ignoreStops = true, exclusions:Array<String> = null, excludeValues:Array<Dynamic> = null):Dynamic {
 		#if LUA_ALLOWED
 		var returnVal = FunkinLua.Function_Continue;
 		#elseif PYTHON_ALLOWED
 		var returnVal = PythonScript.Function_Continue;
+		#elseif HSCRIPT_ALLOWED
+		var returnVal = HScript.Function_Continue;
 		#else
 		var returnVal:Dynamic = null;
 		#end
@@ -3216,6 +3368,24 @@ class PlayState extends MusicBeatState
 			}
 		}
 		#end
+
+		#if HSCRIPT_ALLOWED
+		for (script in hscriptArray) {
+			if(stopAll) break;
+			if(exclusions.contains(script.scriptName))
+				continue;
+
+			final myValue = script.call(event, args);
+			if(myValue == HScript.Function_StopLua && !ignoreStops) {
+				stopAll = true;
+				break;
+			}
+
+			if(myValue != null && myValue != HScript.Function_Continue) {
+				returnVal = myValue;
+			}
+		}
+		#end
 		return returnVal;
 	}
 
@@ -3227,10 +3397,13 @@ class PlayState extends MusicBeatState
 		#if PYTHON_ALLOWED
 		if (pythonArray.length > 0) hasScripts = true;
 		#end
+		#if HSCRIPT_ALLOWED
+		if (hscriptArray.length > 0) hasScripts = true;
+		#end
 		return hasScripts;
 	}
 
-	// Kept for compatibility: dispatches to both Lua and Python scripts.
+	// Kept for compatibility: dispatches to Lua, Python and HScript scripts.
 	public function callOnLuas(event:String, args:Array<Dynamic> = null, ignoreStops = true, exclusions:Array<String> = null, excludeValues:Array<Dynamic> = null):Dynamic {
 		if (!hasActiveScripts()) return null;
 		return callOnScripts(event, args, ignoreStops, exclusions, excludeValues);
@@ -3248,12 +3421,40 @@ class PlayState extends MusicBeatState
 			pythonArray[i].set(variable, arg);
 		}
 		#end
+
+		#if HSCRIPT_ALLOWED
+		for (i in 0...hscriptArray.length) {
+			hscriptArray[i].set(variable, arg);
+		}
+		#end
 	}
 
-	// Kept for compatibility: dispatches to both Lua and Python scripts.
+	// Kept for compatibility: dispatches to Lua, Python and HScript scripts.
 	public function setOnLuas(variable:String, arg:Dynamic) {
 		setOnScripts(variable, arg);
 	}
+
+	#if HSCRIPT_ALLOWED
+	/** Dispatch a callback to standalone HScript scripts only. */
+	public function callOnHScript(event:String, args:Array<Dynamic> = null):Dynamic {
+		var returnVal = HScript.Function_Continue;
+		if(args == null) args = [];
+		for (script in hscriptArray) {
+			final myValue = script.call(event, args);
+			if(myValue != null && myValue != HScript.Function_Continue) {
+				returnVal = myValue;
+			}
+		}
+		return returnVal;
+	}
+
+	/** Publish a variable to standalone HScript scripts only. */
+	public function setOnHScript(variable:String, arg:Dynamic) {
+		for (i in 0...hscriptArray.length) {
+			hscriptArray[i].set(variable, arg);
+		}
+	}
+	#end
 
 	function StrumPlayAnim(isDad:Bool, id:Int, time:Float) {
 		var spr:StrumNote = isDad ? opponentStrums.members[id] : playerStrums.members[id];

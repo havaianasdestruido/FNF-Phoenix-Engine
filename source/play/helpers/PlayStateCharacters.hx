@@ -112,6 +112,12 @@ class PlayStateCharacters
 			if(!alreadyLoadedPy) new PythonScript(pyFile);
 		}
 		#end
+
+		#if HSCRIPT_ALLOWED
+		// characters/<name>.hx, falling back to characters/<name>.hscript;
+		// resolution and dedup are shared with the other script scopes.
+		state.startHScriptOnFolder('characters/$name');
+		#end
 	}
 
 	public static function startCharacterPos(state:PlayState, char:Character, ?gfCheck:Bool = false) {

@@ -5,6 +5,12 @@ The update checker polls this file in this repository and compares its first
 entry with the running Phoenix version, so keep the first entry equal to
 VERSION whenever a release is cut. Entries below this one pre-date the fork
 and describe the upstream JS Engine history they were inherited from.
+Added first-class standalone HScript mods: .hx/.hscript files dropped into any
+Lua/Python script folder (scripts/, data/<song>/, stages/, characters/,
+custom_notetypes/, custom_events/) now load directly with the full hook
+lifecycle, their own sandboxed interpreter scope, and addHScript/removeHScript
+interop from Lua, Python and HScript — no Lua parent script required. Start
+from docs/TemplateScript.hx.
 
 1.50.1;
 

@@ -740,8 +740,8 @@ class FunkinLua {
 
 		Lua.close(lua);
 		lua = null;
-		#if HSCRIPT_ALLOWED // TODO: make this not rely on Lua
-		if(hscript != null) hscript.interp = null;
+		#if HSCRIPT_ALLOWED
+		if(hscript != null) hscript.stop();
 		hscript = null;
 		#end
 		#end

@@ -37,6 +37,18 @@ class CustomSubstate extends MusicBeatSubstate
 	}
 	#end
 
+	#if HSCRIPT_ALLOWED
+	public static function implementHScript(hscript:HScript)
+	{
+		hscript.set("openCustomSubstate", openCustomSubstate);
+		hscript.set("closeCustomSubstate", closeCustomSubstate);
+		hscript.set("insertToCustomSubstate", insertToCustomSubstate);
+		hscript.set("switchCustomState", StateScripts.switchState);
+		hscript.set("openModSubState", StateScripts.openSubState);
+		hscript.set("customStateExists", StateScripts.exists);
+	}
+	#end
+	
 	public static function openCustomSubstate(name:String, ?pauseGame:Bool = false)
 	{
 		if (pauseGame && PlayState.instance != null)
@@ -84,6 +96,13 @@ class CustomSubstate extends MusicBeatSubstate
 	override function create()
 	{
 		instance = this;
+		#if HSCRIPT_ALLOWED
+		if (PlayState.instance != null)
+		{
+			PlayState.instance.setOnHScript('customSubstate', instance);
+			PlayState.instance.setOnHScript('customSubstateName', name);
+		}
+		#end
 		callPlayStateHook('onCustomSubstateCreate', [name]);
 		super.create();
 		callPlayStateHook('onCustomSubstateCreatePost', [name]);
@@ -109,6 +128,13 @@ class CustomSubstate extends MusicBeatSubstate
 		callPlayStateHook('onCustomSubstateDestroy', [name]);
 		instance = null;
 		name = 'unnamed';
+		#if HSCRIPT_ALLOWED
+		if(PlayState.instance != null)
+		{
+			PlayState.instance.setOnHScript('customSubstate', null);
+			PlayState.instance.setOnHScript('customSubstateName', name);
+		}
+		#end
 		super.destroy();
 	}
 

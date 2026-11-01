@@ -15,6 +15,10 @@ class ScriptCallbacks
 			var runningScripts:Array<String> = [];
 			for (idx in 0...PlayState.instance.luaArray.length)
 				runningScripts.push(PlayState.instance.luaArray[idx].scriptName);
+			#if HSCRIPT_ALLOWED
+			for (idx in 0...PlayState.instance.hscriptArray.length)
+				runningScripts.push(PlayState.instance.hscriptArray[idx].scriptName);
+			#end
 
 			return runningScripts;
 		});
@@ -331,6 +335,28 @@ class ScriptCallbacks
 				return;
 			}
 			LuaUtils.luaTrace(funk.lua, "removeLuaScript | Script doesn't exist!", false, false, FlxColor.RED);
+		});
+
+		// Loads a standalone HScript (.hx/.hscript) mod; extension optional.
+		FunkinLua.registerFunction("addHScript", function(hxFile:String, ?ignoreAlreadyRunning:Bool = false) {
+			#if HSCRIPT_ALLOWED
+			if(hxFile == null) return;
+			if(!PlayState.instance.startHScriptOnFolder(hxFile) && !ignoreAlreadyRunning)
+				LuaUtils.luaTrace(funk.lua, "addHScript | Script doesn't exist or is already running!", false, false, FlxColor.RED);
+			#else
+			LuaUtils.luaTrace(funk.lua, "addHScript: HScript isn't supported on this platform!", false, false, FlxColor.RED);
+			#end
+		});
+
+		// Stops a standalone HScript mod previously loaded with addHScript.
+		FunkinLua.registerFunction("removeHScript", function(hxFile:String, ?ignoreAlreadyRunning:Bool = false) {
+			#if HSCRIPT_ALLOWED
+			if(hxFile == null) return;
+			if(!PlayState.instance.removeHScript(hxFile) && !ignoreAlreadyRunning)
+				LuaUtils.luaTrace(funk.lua, "removeHScript | Script doesn't exist!", false, false, FlxColor.RED);
+			#else
+			LuaUtils.luaTrace(funk.lua, "removeHScript: HScript isn't supported on this platform!", false, false, FlxColor.RED);
+			#end
 		});
 		}
 	}

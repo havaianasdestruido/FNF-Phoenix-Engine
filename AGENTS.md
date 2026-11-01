@@ -116,7 +116,11 @@ FNF-JS-Engine-Light/
   `modding/psychlua/LuaUtils`/`FunkinLua` — engine de callbacks.
 - **Python**: igual a Lua, arquivos `.py` com `def onCreate()`, `def onUpdate(elapsed):` etc.
   Interprete **Hython** (pure-Haxe), compilado apenas quando `-DMODDING_LEVEL=2`.
-- **HScript**: arquivos `*.hscript`/blocos `-- HSCRIPT` nos scripts Lua; via `hscript-improved`.
+- **HScript**: arquivos standalone `*.hx`/`*.hscript` nos mesmos escopos de Lua/Python
+  (`scripts/`, `data/<song>/`, `stages/`, `characters/`, `custom_notetypes/`,
+  `custom_events/`), sem pai Lua — `psychlua/HScript.hx` (`PlayState.hscriptArray`,
+  `startHScriptOnFolder`, mesmos hooks/sentinelas); também embutido em Lua via
+  `runHaxeCode`/`runHaxeFunction`/`addHaxeLibrary`; via `hscript-improved`.
 - Callbacks principais (o que mods podem usar): `onCreate/onCreatePost`, `onUpdatePost`,
   `onCountdownTick`, `onStartCountdown`, `onSongStart`, `onNoteHit`, `onNoteMiss`,
   `onGoodNoteHit`, `onStepHit`, `onBeatHit`, `onSectionHit`, `onRecalculateAllScores`,

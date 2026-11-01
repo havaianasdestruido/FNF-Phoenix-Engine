@@ -15,7 +15,7 @@ This page is about the **engine side** of scripting. If you are writing a mod, s
 |---|---|---|---|
 | Lua | `psychlua.FunkinLua` | `LUA_ALLOWED` | `hxluajit` (LuaJIT) |
 | Python | `psychlua.PythonScript` | `PYTHON_ALLOWED` | `hython`, a pure-Haxe interpreter |
-| HScript | `psychlua.HScript` | `HSCRIPT_ALLOWED` | `hscript-improved` |
+| HScript | `psychlua.HScript` | `HSCRIPT_ALLOWED` | `hscript-improved` — standalone `.hx`/`.hscript` files *and* embedded in Lua |
 
 `FunkinLua` was reduced from 3455 to ~807 lines by moving the standard library into
 `psychlua/callbacks/*` (fifteen topic modules, each with a `register(funk:FunkinLua)`).
@@ -62,13 +62,15 @@ A hook returns one of these; `play.helpers.PlayStateScripts` interprets the resu
 
 ## Hook dispatch
 
-`PlayState` keeps `luaArray` and `pythonArray` and broadcasts through `PlayStateScripts`:
+`PlayState` keeps `luaArray`, `pythonArray` and `hscriptArray` and broadcasts through
+`callOnScripts`:
 
 ```haxe
-callOnScripts('onUpdate', [elapsed]);   // Lua + Python
-callOnLuas('onCreatePost', []);
-callOnHScript('onBeatHit', []);
+callOnScripts('onUpdate', [elapsed]);   // Lua + Python + HScript, in that order
+callOnLuas('onCreatePost', []);         // compatibility alias, same broadcast
+callOnHScript('onBeatHit', []);         // standalone HScript scripts only
 setOnScripts('curBeat', curBeat);       // publish a variable to every script
+setOnHScript('customSubstate', sub);    // publish to HScript scripts only
 ```
 
 Performance measures baked into the dispatcher:
@@ -82,10 +84,22 @@ Performance measures baked into the dispatcher:
 
 ## HScript
 
-`HScript.initHaxeModule(parent)` creates the interpreter lazily for a Lua script that uses
-it; `execute(code, func, args)` and `executeFunction(func, args)` run code; `implement(funk)`
-installs the `runHaxeCode` style callbacks into the Lua host. With `hscriptPos` defined
-(set by `project.hxp` when `HSCRIPT_ALLOWED` is on), errors carry line numbers.
+One class, two modes. **Standalone**: `HScript.fromFile(path, ?code)` loads a
+`.hx`/`.hscript` of its own — `PlayState` discovers them in the standard script
+scopes (`scripts/`, `data/<song>/`, `stages/`, `characters/`, `custom_notetypes/`,
+`custom_events/`), keeps them in `hscriptArray`, and drives them with the same
+`call`/`set`/`get`/`stop` host interface and missing-call caching as Python. Each
+script owns an `Interp` (native `import` support, `public`/`static` top-level
+variables in separate buckets); the scope is seeded by `seedScope()` and the flat
+engine globals by `seedInitialGlobals()`. `PlayState.startHScriptOnFolder(path)` /
+`removeHScript(path)` resolve and load/unload at runtime (extension optional).
+**Embedded**: `HScript.initHaxeModule(parent)` creates the interpreter lazily for a Lua
+script that uses it; `execute(code, func, args)` and `executeFunction(func, args)` run
+code; `implement(funk)` installs the `runHaxeCode`-style callbacks into the Lua host.
+`HScript` no longer requires Lua at compile time — `parentLua` and every Lua access is
+`LUA_ALLOWED`-guarded, so standalone HScript works at `-DMODDING_LEVEL=0`. With
+`hscriptPos` defined (set by `project.hxp` when `HSCRIPT_ALLOWED` is on), errors carry
+line numbers, and standalone files are parsed with their file path as origin.
 
 ## Python
 
@@ -102,7 +116,7 @@ runtime is bundled or required.
 | `psychlua.ModchartSprite` | the sprite type created by `makeLuaSprite` |
 | `psychlua.ModchartAnimateSprite` | the FlxAnimate-backed variant |
 | `psychlua.CustomSubstate` | a script-defined substate (also loads `data/states/<name>.hx`) |
-| `psychlua.HaxeScript` | standalone HScript file runner (no Lua parent) |
+| `psychlua.HaxeScript` | `data/states/` script runner for scripted states (PlayState-scope standalone HScript is `psychlua.HScript`) |
 | `psychlua.StateScripts` | discovers/runs `data/states/<Name>.hx` on every beat state |
 | `states.ModState` | blank state whose UI is entirely the named state script |
 | `states.substates.ModSubState` | blank substate counterpart |
