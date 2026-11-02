@@ -236,5 +236,15 @@ static PHOENIX_WINDOW_UNUSED bool phoenixWindowSetDarkMode(bool enabled)
   return SUCCEEDED(result);
 }
 
+static PHOENIX_WINDOW_UNUSED bool phoenixWindowSetFrameColor(DWORD attribute, COLORREF color)
+{
+  HWND window = phoenixWindowState().window;
+  if (window == NULL || !phoenixWindowIsGameWindow(window))
+    return false;
+  if (attribute != 34 && attribute != 35 && attribute != 36)
+    return false;
+  return SUCCEEDED(DwmSetWindowAttribute(window, attribute, &color, sizeof(color)));
+}
+
 #endif
 #endif

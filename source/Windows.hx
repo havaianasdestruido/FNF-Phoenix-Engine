@@ -36,6 +36,44 @@ class Windows
   public static function setDarkMode(enabled:Bool = true):Bool
     return prepare() && WindowNative.setDarkMode(enabled);
 
+  /** Validate an RGB triplet and convert it to Win32's COLORREF byte order. */
+  static function colorRef(color:Array<Int>):Int
+  {
+    if (color == null || color.length < 3)
+      return -1;
+    for (channel in color.slice(0, 3))
+      if (channel < 0 || channel > 255) return -1;
+    return color[0] | (color[1] << 8) | (color[2] << 16);
+  }
+
+  /** Set the Windows 11 caption and/or border color. RGB channels are 0–255. */
+  public static function setWindowBorderColor(color:Array<Int>, setHeader:Bool = true, setBorder:Bool = true):Bool
+  {
+    final value = colorRef(color);
+    if (value < 0 || !prepare()) return false;
+    var result = true;
+    if (setHeader && !WindowNative.setFrameColor(35, value)) result = false;
+    if (setBorder && !WindowNative.setFrameColor(34, value)) result = false;
+    return result && (setHeader || setBorder);
+  }
+
+  /** Set the Windows 11 title text color. RGB channels are 0–255. */
+  public static function setWindowTitleColor(color:Array<Int>):Bool
+  {
+    final value = colorRef(color);
+    return value >= 0 && prepare() && WindowNative.setFrameColor(36, value);
+  }
+
+  /** Restore the system default border, caption, and title text colors. */
+  public static function resetWindowFrameColors():Bool
+  {
+    if (!prepare()) return false;
+    var result = true;
+    for (attribute in [34, 35, 36])
+      if (!WindowNative.setFrameColor(attribute, -1)) result = false;
+    return result;
+  }
+
   /** Set whole-window opacity, from 0.0 (invisible) to 1.0 (opaque). */
   public static function __setWindowTransparencyAlpha(alpha:Float):Bool
     return prepare() && WindowNative.setOpacity(alpha);

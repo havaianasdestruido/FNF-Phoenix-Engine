@@ -75,9 +75,12 @@ class WindowColorMode
 	public static function setWindowBorderColor(color:Array<Int>, setHeader:Bool = true, setBorder:Bool = true)
     {
 #if windows
-        WindowBackend.setWindowBorderColor(((color != null) ? color : [255, 255, 255]), setHeader, setBorder);
-		if(setHeader) windowHeaderColor = ((color != null) ? color : [255, 255, 255]);
-		if(setBorder) windowBorderColor = ((color != null) ? color : [255, 255, 255]);
+        final value = color != null ? color : [255, 255, 255];
+        if (Windows.setWindowBorderColor(value, setHeader, setBorder))
+        {
+          if (setHeader) windowHeaderColor = value.copy();
+          if (setBorder) windowBorderColor = value.copy();
+        }
 		#else
 		trace('`setWindowBorderColor` is not available on this platform!');
 		#end
@@ -91,8 +94,8 @@ class WindowColorMode
 	public static function setWindowTitleColor(color:Array<Int>)
     {
 #if windows
-        WindowBackend.setWindowTitleColor(((color != null) ? color : [255, 255, 255]));
-		windowTitleColor = ((color != null) ? color : [255, 255, 255]);
+        final value = color != null ? color : [255, 255, 255];
+        if (Windows.setWindowTitleColor(value)) windowTitleColor = value.copy();
 		#else
 		trace('`setWindowTitleColor` is not available on this platform!');
 		#end
