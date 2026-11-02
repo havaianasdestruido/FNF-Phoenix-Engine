@@ -96,6 +96,12 @@ class Windows
   public static function setSquareCorners(enabled:Bool = true):Bool
     return prepare() && WindowNative.setSquareCorners(enabled);
 
+  /** Show an owned Unicode message box. Blocks until the player dismisses it. */
+  public static function alert(message:String, title:String = "Phoenix Engine"):Bool
+  {
+    return prepare() && WindowNative.messageBox(message != null ? message : "", title != null ? title : "Phoenix Engine", false, false) != 0;
+  }
+
   /** Set whole-window opacity, from 0.0 (invisible) to 1.0 (opaque). */
   public static function __setWindowTransparencyAlpha(alpha:Float):Bool
     return prepare() && WindowNative.setOpacity(alpha);

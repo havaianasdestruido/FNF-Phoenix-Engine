@@ -284,5 +284,18 @@ static PHOENIX_WINDOW_UNUSED bool phoenixWindowSetSquareCorners(bool square)
   return SUCCEEDED(DwmSetWindowAttribute(window, 33, &preference, sizeof(preference)));
 }
 
+static PHOENIX_WINDOW_UNUSED int phoenixWindowMessageBox(const char *message, const char *title, bool yesNo, bool error)
+{
+  std::vector<wchar_t> wideMessage, wideTitle;
+  if (!phoenixWindowUtf8ToWide(message != NULL ? message : "", wideMessage)
+      || !phoenixWindowUtf8ToWide(title != NULL ? title : "Phoenix Engine", wideTitle))
+    return 0;
+  HWND owner = phoenixWindowState().window;
+  if (owner != NULL && !phoenixWindowIsGameWindow(owner))
+    owner = NULL;
+  UINT flags = yesNo ? (MB_YESNO | MB_ICONQUESTION) : (MB_OK | (error ? MB_ICONERROR : MB_ICONINFORMATION));
+  return MessageBoxW(owner, &wideMessage[0], &wideTitle[0], flags);
+}
+
 #endif
 #endif

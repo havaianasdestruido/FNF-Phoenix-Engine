@@ -68,18 +68,7 @@ class PlatformUtilNative
     #end
   }
 
-  #if windows
-  @:functionCode('
-        LPCSTR lwDesc = desc.c_str();
-
-        res = MessageBox(
-            NULL,
-            lwDesc,
-            NULL,
-            MB_OK
-        );
-    ')
-  #elseif linux
+  #if linux
   @:functionCode('
         res = phoenixShowLinuxDesktopDialog(std::string(desc.c_str()));
     ')
@@ -90,7 +79,11 @@ class PlatformUtilNative
   #end
   static function sendFakeMsgBoxNative(desc:String = "", res:Int = 0)
   {
+    #if windows
+    return backend.WindowNative.messageBox(desc, "Phoenix Engine", false, true);
+    #else
     return res;
+    #end
   }
 
   static function getWindowsBackwardNative(res:Int = 0) // Only works on windows, otherwise returns 0!

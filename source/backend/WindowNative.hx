@@ -30,6 +30,10 @@ class WindowNative
   public static function setSquareCorners(square:Bool):Bool
     return false;
 
+  @:functionCode('return phoenixWindowMessageBox(message.c_str(), title.c_str(), yesNo, error);')
+  public static function messageBox(message:String, title:String, yesNo:Bool, error:Bool):Int
+    return 0;
+
   @:functionCode('return phoenixWindowSetOpacity(opacity);')
   public static function setOpacity(opacity:Float):Bool
     return false;
@@ -67,6 +71,9 @@ class WindowNative
 
   public static function setSquareCorners(square:Bool):Bool
     return false;
+
+  public static function messageBox(message:String, title:String, yesNo:Bool, error:Bool):Int
+    return 0;
 
   public static function setOpacity(opacity:Float):Bool
     return false;
