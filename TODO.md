@@ -69,9 +69,12 @@ Sections 13–20 are a second backlog pass written against the current tree. Eve
 - **[P2] Fix fullscreen issues on Android (and other OSes maybe)** - Phones with some cutouts currently don't launch the game with 100% fullscreen, create a toggle that can switch between "Respect cut-out" or "Real Fullscreen". Im pretty much sure this will envolve Native Kotlin/Java in order to work. ([#75](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/issues/75))
 - **[P3] iOS** — likely needs `#if ios` nuances (video/hxvlc below). ([#80](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/issues/80))
 
-### WINDOWS / LOW-LEVEL WINDOW MANAGEMENT
+### WINDOWS / LOW-LEVEL WINDOW MANAGEMENT — IMPLEMENTED
 
-Top 10 inventory of the engine's native window-manipulation paths and the Windows APIs they use:
+The native window-manipulation inventory below is implemented behind the shared,
+process-checked `Windows` / `backend.WindowNative` bridge. See
+[`docs/WINDOWS.md`](docs/WINDOWS.md) for the public API, platform limits, and
+validation commands. The original inventory is retained as an API reference:
 
 | # | Feature / source code | APIs / mechanisms | What it does |
 |---|---|---|---|

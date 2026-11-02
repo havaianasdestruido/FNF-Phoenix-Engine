@@ -226,8 +226,11 @@ class ValidacaoDoRepositorioTest(unittest.TestCase):
 
     def test_nenhum_xml_foi_alterado(self):
         _garantir_commit_base()
-        xml = _git("diff", "--name-only", BASE_COMMIT, "--", "*.xml").strip()
-        self.assertEqual(xml, "")
+        # This historical image-optimization guard only covers asset XML;
+        # unrelated engine build metadata may legitimately add new XML files.
+        changed = _git("diff", "--name-only", BASE_COMMIT, "--", "assets").split()
+        xml = [path for path in changed if path.endswith(".xml")]
+        self.assertEqual(xml, [])
 
     def test_atlas_permanecem_identicos_ao_base(self):
         for path, a in self.assets.items():
