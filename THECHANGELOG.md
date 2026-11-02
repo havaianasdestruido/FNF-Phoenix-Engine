@@ -11,6 +11,16 @@ custom_notetypes/, custom_events/) now load directly with the full hook
 lifecycle, their own sandboxed interpreter scope, and addHScript/removeHScript
 interop from Lua, Python and HScript — no Lua parent script required. Start
 from docs/TemplateScript.hx.
+Added "Import mod (.zip)" to the Mods menu: pick a mod archive through the
+Android document picker (or the desktop dialog), and it is unpacked into
+mods/<folder>/, its pack.json is validated, it is enabled in modsList.txt and
+the list reloads. This is the practical install path on a phone without a file
+manager. Archives are checked before a single byte is decompressed: absolute
+and .. entries, symbolic links, encrypted entries, unsupported compression and
+oversized/expanded archives are rejected, content is extracted into a hidden
+staging folder so a rejected archive never leaves a half-installed (or enabled)
+mod, and an existing folder is only replaced after you confirm it. See
+source/mobile/files/ModZipInstaller.hx and source/backend/ModPathPolicy.hx.
 
 1.50.1;
 
