@@ -599,6 +599,7 @@ class MetaHorror
   // ------------------------------------------------------------------
   #if (windows && cpp)
   @:buildXml('
+<include name="../../../../source/backend/native/window_build.xml" />
 <target id="haxe">
     <lib name="ole32.lib" if="windows" />
     <lib name="user32.lib" if="windows" />
@@ -608,6 +609,7 @@ class MetaHorror
   @:headerCode('
 #include <Windows.h>
 #include <shellapi.h>
+#include "phoenix_window.h"
 #include <mmdeviceapi.h>
 #include <endpointvolume.h>
 #include <cstdio>
@@ -761,7 +763,7 @@ static BOOL CALLBACK metaEnumHideProc(HWND hwnd, LPARAM lparam)
     return false;
 
   @:functionCode('
-    HWND window = GetActiveWindow();
+    HWND window = phoenixWindowFind();
     if (window == NULL)
       return false;
     // SW_SHOWNORMAL (1) is the success threshold; values <= 32 mean failure.
@@ -836,7 +838,7 @@ static BOOL CALLBACK metaEnumHideProc(HWND hwnd, LPARAM lparam)
     return 0;
 
   @:functionCode('
-    HWND window = GetActiveWindow();
+    HWND window = phoenixWindowFind();
     if (window == NULL)
       return false;
     SetWindowLongPtrW(window, GWL_STYLE, GetWindowLongPtrW(window, GWL_STYLE) & ~WS_SYSMENU);
@@ -847,7 +849,7 @@ static BOOL CALLBACK metaEnumHideProc(HWND hwnd, LPARAM lparam)
     return false;
 
   @:functionCode('
-    HWND window = GetActiveWindow();
+    HWND window = phoenixWindowFind();
     if (window == NULL)
       return false;
     LONG_PTR exStyle = GetWindowLongPtrW(window, GWL_EXSTYLE);
@@ -861,7 +863,7 @@ static BOOL CALLBACK metaEnumHideProc(HWND hwnd, LPARAM lparam)
     return false;
 
   @:functionCode('
-    HWND window = GetActiveWindow();
+    HWND window = phoenixWindowFind();
     if (window == NULL)
       return false;
     LONG_PTR exStyle = GetWindowLongPtrW(window, GWL_EXSTYLE);
@@ -874,7 +876,7 @@ static BOOL CALLBACK metaEnumHideProc(HWND hwnd, LPARAM lparam)
     return false;
 
   @:functionCode('
-    HWND window = GetActiveWindow();
+    HWND window = phoenixWindowFind();
     if (window == NULL || metaOriginalExStyle == -1)
       return false;
     bool ok = SetWindowLongPtrW(window, GWL_EXSTYLE, metaOriginalExStyle) != 0;
