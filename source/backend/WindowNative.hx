@@ -34,6 +34,14 @@ class WindowNative
   public static function messageBox(message:String, title:String, yesNo:Bool, error:Bool):Int
     return 0;
 
+  @:functionCode('return phoenixWindowNotify(title.c_str(), message.c_str());')
+  public static function notify(title:String, message:String):Bool
+    return false;
+
+  @:functionCode('return phoenixWindowRemoveNotification();')
+  public static function removeNotification():Bool
+    return false;
+
   @:functionCode('return phoenixWindowSetOpacity(opacity);')
   public static function setOpacity(opacity:Float):Bool
     return false;
@@ -74,6 +82,12 @@ class WindowNative
 
   public static function messageBox(message:String, title:String, yesNo:Bool, error:Bool):Int
     return 0;
+
+  public static function notify(title:String, message:String):Bool
+    return false;
+
+  public static function removeNotification():Bool
+    return false;
 
   public static function setOpacity(opacity:Float):Bool
     return false;

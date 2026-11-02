@@ -628,69 +628,16 @@ class PlayStateEvents
 		state.callOnLuas('onEvent', [eventName, value1, value2, strumTime]);
 	}
 
-	public static function sendWindowsNotification(state:PlayState, title:String, desc:String, isEvent:Bool = false) {
-		// haha i got them from slushi engine :) (by nael2xd)
-		#if (cpp && windows)
-		if (PlatformUtil.detectWine() == true){
-			trace("Wine detected!");
-			return;
-		}
-		#end
-		#if windows
-		function getWindowsVersion() {
-			var windowsVersions:Map<String, Int> = [
-				"Windows 11" => 11,
-				"Windows 10" => 10,
-				"Windows 8.1" => 8,
-				"Windows 8" => 8,
-				"Windows 7" => 7,
-			];
-
-			var platformLabel = lime.system.System.platformLabel;
-			var words = platformLabel.split(" ");
-			var windowsIndex = words.indexOf("Windows");
-			var result = "";
-			if (windowsIndex != -1 && windowsIndex < words.length - 1)
-			{
-				result = words[windowsIndex] + " " + words[windowsIndex + 1];
-			}
-
-			if (windowsVersions.exists(result)) return windowsVersions.get(result);
-
-			return 0;
-		}
-
-		var powershellCommand = "powershell -Command \"& {$ErrorActionPreference = 'Stop';"
-		+ "$title = '"
-		+ desc
-		+ "';"
-		+ "[Windows.UI.Notifications.ToastNotificationManager, Windows.UI.Notifications, ContentType = WindowsRuntime] > $null;"
-		+ "$template = [Windows.UI.Notifications.ToastNotificationManager]::GetTemplateContent([Windows.UI.Notifications.ToastTemplateType]::ToastText01);"
-		+ "$toastXml = [xml] $template.GetXml();"
-		+ "$toastXml.GetElementsByTagName('text').AppendChild($toastXml.CreateTextNode($title)) > $null;"
-		+ "$xml = New-Object Windows.Data.Xml.Dom.XmlDocument;"
-		+ "$xml.LoadXml($toastXml.OuterXml);"
-		+ "$toast = [Windows.UI.Notifications.ToastNotification]::new($xml);"
-		+ "$toast.Tag = 'Test1';"
-		+ "$toast.Group = 'Test2';"
-		+ "$notifier = [Windows.UI.Notifications.ToastNotificationManager]::CreateToastNotifier('"
-		+ title
-		+ "');"
-		+ "$notifier.Show($toast);}\"";
-
-		if (title != null && title != "" && desc != null && desc != "" && getWindowsVersion() != 7)
-			new HiddenProcess(powershellCommand);
-
-		#else
-		if (isEvent) {
-			#if linux
-			PlayStateScripts.addTextToDebug(state, 'Windows Notifications are not currently supported on Linux!', FlxColor.RED);
-			return;
+	public static function sendWindowsNotification(state:PlayState, title:String, desc:String, isEvent:Bool = false)
+	{
+		if (PlatformUtil.sendNotification(title, desc)) return;
+		if (isEvent)
+		{
+			#if (cpp && windows)
+			PlayStateScripts.addTextToDebug(state, 'Windows notification was rejected or suppressed by the shell.', FlxColor.RED);
 			#else
-			trace('Windows Notifications are not currently supported on this platform!');
-			return;
+			PlayStateScripts.addTextToDebug(state, 'Windows notifications are not supported on this platform.', FlxColor.RED);
 			#end
 		}
-		#end
 	}
 }

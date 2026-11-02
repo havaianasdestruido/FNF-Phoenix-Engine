@@ -195,6 +195,10 @@ class Main extends Sprite
     // Watches the window mode so transparency can be suspended in fullscreen.
     TransparentWindow.init();
 
+    #if (cpp && windows)
+    Application.current.onExit.add(function(_:Int) Windows.removeWindowsNotification());
+    #end
+
     #if DISCORD_ALLOWED DiscordClient.prepare(); #end
 
     #if GAMEMODE_ALLOWED

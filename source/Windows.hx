@@ -102,6 +102,21 @@ class Windows
     return prepare() && WindowNative.messageBox(message != null ? message : "", title != null ? title : "Phoenix Engine", false, false) != 0;
   }
 
+  /**
+   * Show a native notification-area balloon. Windows may route it to Action
+   * Center or suppress it under Focus Assist; true means the shell accepted it.
+   */
+  public static function sendWindowsNotification(title:String, message:String):Bool
+  {
+    if (title == null || StringTools.trim(title).length == 0 || message == null || StringTools.trim(message).length == 0)
+      return false;
+    return prepare() && WindowNative.notify(title, message);
+  }
+
+  /** Remove this game's notification-area icon. Call before the HWND is destroyed. */
+  public static function removeWindowsNotification():Bool
+    return WindowNative.removeNotification();
+
   /** Set whole-window opacity, from 0.0 (invisible) to 1.0 (opaque). */
   public static function __setWindowTransparencyAlpha(alpha:Float):Bool
     return prepare() && WindowNative.setOpacity(alpha);

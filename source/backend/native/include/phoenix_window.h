@@ -297,5 +297,81 @@ static PHOENIX_WINDOW_UNUSED int phoenixWindowMessageBox(const char *message, co
   return MessageBoxW(owner, &wideMessage[0], &wideTitle[0], flags);
 }
 
+/* One notification-area icon per game window; deleted on shutdown. */
+struct PhoenixNotificationState { HWND owner; bool added; };
+static PHOENIX_WINDOW_UNUSED PhoenixNotificationState &phoenixNotificationState()
+{
+  static PhoenixNotificationState state = {NULL, false};
+  return state;
+}
+static PHOENIX_WINDOW_UNUSED void phoenixWindowCopyNotificationText(WCHAR *destination, size_t capacity, const std::vector<wchar_t> &source)
+{
+  size_t length = source.empty() ? 0 : source.size() - 1;
+  if (length >= capacity)
+    length = capacity - 1;
+  // Do not split a UTF-16 surrogate pair at the shell's fixed buffer limit.
+  if (length > 0 && length < source.size() - 1 && source[length - 1] >= 0xD800 && source[length - 1] <= 0xDBFF)
+    --length;
+  if (length > 0)
+    memcpy(destination, &source[0], length * sizeof(WCHAR));
+  destination[length] = 0;
+}
+
+static PHOENIX_WINDOW_UNUSED bool phoenixWindowNotify(const char *title, const char *message)
+{
+  HWND window = phoenixWindowState().window;
+  if (window == NULL || !phoenixWindowIsGameWindow(window))
+    return false;
+  std::vector<wchar_t> wideTitle, wideMessage;
+  if (!phoenixWindowUtf8ToWide(title != NULL ? title : "", wideTitle)
+      || !phoenixWindowUtf8ToWide(message != NULL ? message : "", wideMessage))
+    return false;
+
+  PhoenixNotificationState &icon = phoenixNotificationState();
+  if (icon.added && icon.owner != window)
+  {
+    NOTIFYICONDATAW old = {};
+    old.cbSize = sizeof(old);
+    old.hWnd = icon.owner;
+    old.uID = 1;
+    Shell_NotifyIconW(NIM_DELETE, &old);
+    icon.added = false;
+  }
+  NOTIFYICONDATAW data = {};
+  data.cbSize = sizeof(data);
+  data.hWnd = window;
+  data.uID = 1;
+  data.uFlags = NIF_MESSAGE | NIF_ICON | NIF_TIP | NIF_INFO;
+  data.uCallbackMessage = WM_APP + 1;
+  data.hIcon = LoadIconW(NULL, MAKEINTRESOURCEW(32512));
+  phoenixWindowCopyNotificationText(data.szTip, sizeof(data.szTip) / sizeof(data.szTip[0]), wideTitle);
+  phoenixWindowCopyNotificationText(data.szInfoTitle, sizeof(data.szInfoTitle) / sizeof(data.szInfoTitle[0]), wideTitle);
+  phoenixWindowCopyNotificationText(data.szInfo, sizeof(data.szInfo) / sizeof(data.szInfo[0]), wideMessage);
+  data.dwInfoFlags = NIIF_INFO;
+  const BOOL result = Shell_NotifyIconW(icon.added ? NIM_MODIFY : NIM_ADD, &data);
+  if (result)
+  {
+    icon.added = true;
+    icon.owner = window;
+  }
+  return result != FALSE;
+}
+
+static PHOENIX_WINDOW_UNUSED bool phoenixWindowRemoveNotification()
+{
+  PhoenixNotificationState &icon = phoenixNotificationState();
+  if (!icon.added)
+    return true;
+  NOTIFYICONDATAW data = {};
+  data.cbSize = sizeof(data);
+  data.hWnd = icon.owner;
+  data.uID = 1;
+  if (!Shell_NotifyIconW(NIM_DELETE, &data))
+    return false;
+  icon.added = false;
+  icon.owner = NULL;
+  return true;
+}
+
 #endif
 #endif

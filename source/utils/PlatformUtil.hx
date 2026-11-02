@@ -20,6 +20,18 @@ class PlatformUtil
 		return PlatformUtilNative.getWindowsTransparentNative(res);
 	}
 
+    /** Windows whole-window opacity (0.0–1.0); false on unsupported targets. */
+    public static function setWindowOpacity(opacity:Float):Bool
+    {
+        return Windows.__setWindowTransparencyAlpha(opacity);
+    }
+
+    /** Show a Windows notification-area message; false on unsupported targets. */
+    public static function sendNotification(title:String, message:String):Bool
+    {
+        return Windows.sendWindowsNotification(title, message);
+    }
+
     /** Shows the native crash dialog available on the current desktop platform. */
     static public function sendFakeMsgBox(desc:String = "", res:Int = 0)
     {
