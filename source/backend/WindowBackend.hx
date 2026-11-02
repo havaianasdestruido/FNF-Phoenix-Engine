@@ -11,4 +11,9 @@ class WindowBackend
 
   public static function setWindowTitleColor(color:Array<Int>):Bool
     return Windows.setWindowTitleColor(color);
+
+  public static function updateWindow():Void
+  {
+    system.Window.redrawFrame();
+  }
 }

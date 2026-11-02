@@ -1,9 +1,5 @@
 package backend;
 
-import shaders.RainShader.Light;
-
-
-import backend.WindowBackend;
 
 class WindowColorMode
 {
@@ -105,11 +101,8 @@ class WindowColorMode
 	 * Resets the window. It is recommended to use this after running any of the functions above so the effect is drawn immediately.
 	 * (Windows 11 doesn't need this, but it's needed on Windows 10, or else the effect won't take place until you unfocus/refocus the window).
 	 */
-	public static function redrawWindowHeader()
+	public static function redrawWindowHeader():Bool
     {
-		#if !flash
-		flixel.FlxG.stage.window.borderless = true;
-		flixel.FlxG.stage.window.borderless = false;
-		#end
+        return system.Window.redrawFrame();
     }
 }

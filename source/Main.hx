@@ -184,7 +184,7 @@ class Main extends Sprite
     #end
 
     #if windows
-    Windows.setDarkMode(true);
+    system.Window.darkMode(true);
     #end
 
     #if (cpp && windows && NO_W11_CORNERS)
