@@ -82,6 +82,17 @@ class VLogCoreTests(unittest.TestCase):
         # The writer must never take the game down.
         self.assertRegex(self.vlog, r"flushFailed = true")
 
+    def test_rss_header_uses_internal_linkage(self):
+        # hxcpp includes memory.h into every generated .cpp that
+        # references debug.mem.GetTotalMemory. VLog is the second
+        # referencing module after debug.FPSCounter, so the header's
+        # definitions must have internal linkage — without `static`,
+        # the windows/android link fails with LNK2005 "multiply
+        # defined symbols" for getCurrentRSS/getPeakRSS.
+        mem = (ROOT / "source" / "debug" / "mem" / "include" / "memory.h").read_text(encoding="utf-8-sig")
+        self.assertIn("static size_t getPeakRSS()", mem)
+        self.assertIn("static size_t getCurrentRSS()", mem)
+
     def test_lag_thresholds_are_sane(self):
         # 25 ms floor (a 60 fps frame is 16.7 ms) and a 100 ms "extreme"
         # marker, both as floats so the comparison is not integer-truncated.
