@@ -220,5 +220,21 @@ static PHOENIX_WINDOW_UNUSED bool phoenixWindowResetTransparency()
   return phoenixWindowApplyTransparency();
 }
 
+/* SDK-compatible DWM attribute numbers (Windows 10 1809+ / Windows 11). */
+#define PHOENIX_DWM_DARK_MODE 20
+#define PHOENIX_DWM_DARK_MODE_LEGACY 19
+
+static PHOENIX_WINDOW_UNUSED bool phoenixWindowSetDarkMode(bool enabled)
+{
+  HWND window = phoenixWindowState().window;
+  if (window == NULL || !phoenixWindowIsGameWindow(window))
+    return false;
+  BOOL value = enabled ? TRUE : FALSE;
+  HRESULT result = DwmSetWindowAttribute(window, PHOENIX_DWM_DARK_MODE, &value, sizeof(value));
+  if (FAILED(result))
+    result = DwmSetWindowAttribute(window, PHOENIX_DWM_DARK_MODE_LEGACY, &value, sizeof(value));
+  return SUCCEEDED(result);
+}
+
 #endif
 #endif

@@ -184,8 +184,7 @@ class Main extends Sprite
     #end
 
     #if windows
-    WindowColorMode.setDarkMode();
-    if (CoolUtil.hasVersion("Windows 10")) WindowColorMode.redrawWindowHeader();
+    Windows.setDarkMode(true);
     #end
 
     // Watches the window mode so transparency can be suspended in fullscreen.

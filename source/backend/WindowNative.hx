@@ -10,6 +10,10 @@ class WindowNative
   public static function select(title:String):Bool
     return false;
 
+  @:functionCode('return phoenixWindowSetDarkMode(enabled);')
+  public static function setDarkMode(enabled:Bool):Bool
+    return false;
+
   @:functionCode('return phoenixWindowSetOpacity(opacity);')
   public static function setOpacity(opacity:Float):Bool
     return false;
@@ -31,6 +35,9 @@ class WindowNative
 class WindowNative
 {
   public static function select(title:String):Bool
+    return false;
+
+  public static function setDarkMode(enabled:Bool):Bool
     return false;
 
   public static function setOpacity(opacity:Float):Bool

@@ -32,6 +32,10 @@ class Windows
     #end
   }
 
+  /** Request a dark (or light) native frame; does not recolor game graphics. */
+  public static function setDarkMode(enabled:Bool = true):Bool
+    return prepare() && WindowNative.setDarkMode(enabled);
+
   /** Set whole-window opacity, from 0.0 (invisible) to 1.0 (opaque). */
   public static function __setWindowTransparencyAlpha(alpha:Float):Bool
     return prepare() && WindowNative.setOpacity(alpha);

@@ -35,8 +35,7 @@ class WindowColorMode
 	public static function setWindowColorMode(isDark:Bool = true)
     {
 #if windows
-        WindowBackend.setWindowColorMode(isDark);
-		isDarkMode = isDark;
+        if (Windows.setDarkMode(isDark)) isDarkMode = isDark;
 		#else
 		trace('`setWindowColorMode` is not available on this platform!');
 		#end
@@ -48,8 +47,7 @@ class WindowColorMode
 	public static function setDarkMode()
     {
 #if windows
-        WindowBackend.setWindowColorMode(true);
-		isDarkMode = true;
+        if (Windows.setDarkMode(true)) isDarkMode = true;
 		#else
 		trace('`setDarkMode` is not available on this platform!');
 		#end
@@ -61,8 +59,7 @@ class WindowColorMode
 	public static function setLightMode()
     {
 #if windows
-        WindowBackend.setWindowColorMode(false);
-		isDarkMode = false;
+        if (Windows.setDarkMode(false)) isDarkMode = false;
 		#else
 		trace('`setLightMode` is not available on this platform!');
 		#end
