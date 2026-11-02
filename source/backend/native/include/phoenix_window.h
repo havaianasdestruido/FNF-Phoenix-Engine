@@ -246,5 +246,20 @@ static PHOENIX_WINDOW_UNUSED bool phoenixWindowSetFrameColor(DWORD attribute, CO
   return SUCCEEDED(DwmSetWindowAttribute(window, attribute, &color, sizeof(color)));
 }
 
+static PHOENIX_WINDOW_UNUSED bool phoenixWindowSetCloseEnabled(bool enabled)
+{
+  HWND window = phoenixWindowState().window;
+  if (window == NULL || !phoenixWindowIsGameWindow(window))
+    return false;
+  HMENU menu = GetSystemMenu(window, FALSE);
+  if (menu == NULL)
+    return false;
+  const UINT flags = MF_BYCOMMAND | (enabled ? MF_ENABLED : MF_GRAYED);
+  if (EnableMenuItem(menu, SC_CLOSE, flags) == -1)
+    return false;
+  DrawMenuBar(window);
+  return true;
+}
+
 #endif
 #endif

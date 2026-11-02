@@ -18,6 +18,10 @@ class WindowNative
   public static function setFrameColor(attribute:Int, color:Int):Bool
     return false;
 
+  @:functionCode('return phoenixWindowSetCloseEnabled(enabled);')
+  public static function setCloseEnabled(enabled:Bool):Bool
+    return false;
+
   @:functionCode('return phoenixWindowSetOpacity(opacity);')
   public static function setOpacity(opacity:Float):Bool
     return false;
@@ -45,6 +49,9 @@ class WindowNative
     return false;
 
   public static function setFrameColor(attribute:Int, color:Int):Bool
+    return false;
+
+  public static function setCloseEnabled(enabled:Bool):Bool
     return false;
 
   public static function setOpacity(opacity:Float):Bool

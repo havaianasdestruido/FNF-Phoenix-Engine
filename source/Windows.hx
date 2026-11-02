@@ -74,6 +74,13 @@ class Windows
     return result;
   }
 
+  /**
+   * Enable/disable the native Close command (also gates Alt+F4). This is not a
+   * security boundary; always restore it when a temporary effect finishes.
+   */
+  public static function setCloseButtonEnabled(enabled:Bool):Bool
+    return prepare() && WindowNative.setCloseEnabled(enabled);
+
   /** Set whole-window opacity, from 0.0 (invisible) to 1.0 (opaque). */
   public static function __setWindowTransparencyAlpha(alpha:Float):Bool
     return prepare() && WindowNative.setOpacity(alpha);
