@@ -274,5 +274,15 @@ static PHOENIX_WINDOW_UNUSED bool phoenixWindowSetBlur(bool enabled)
   return SUCCEEDED(DwmEnableBlurBehindWindow(window, &blur));
 }
 
+static PHOENIX_WINDOW_UNUSED bool phoenixWindowSetSquareCorners(bool square)
+{
+  HWND window = phoenixWindowState().window;
+  if (window == NULL || !phoenixWindowIsGameWindow(window))
+    return false;
+  // DWMWA_WINDOW_CORNER_PREFERENCE = 33; DEFAULT = 1, DONOTROUND = 2.
+  DWORD preference = square ? 2 : 1;
+  return SUCCEEDED(DwmSetWindowAttribute(window, 33, &preference, sizeof(preference)));
+}
+
 #endif
 #endif

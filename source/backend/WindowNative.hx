@@ -26,6 +26,10 @@ class WindowNative
   public static function setBlur(enabled:Bool):Bool
     return false;
 
+  @:functionCode('return phoenixWindowSetSquareCorners(square);')
+  public static function setSquareCorners(square:Bool):Bool
+    return false;
+
   @:functionCode('return phoenixWindowSetOpacity(opacity);')
   public static function setOpacity(opacity:Float):Bool
     return false;
@@ -59,6 +63,9 @@ class WindowNative
     return false;
 
   public static function setBlur(enabled:Bool):Bool
+    return false;
+
+  public static function setSquareCorners(square:Bool):Bool
     return false;
 
   public static function setOpacity(opacity:Float):Bool

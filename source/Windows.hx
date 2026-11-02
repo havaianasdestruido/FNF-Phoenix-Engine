@@ -92,6 +92,10 @@ class Windows
   public static function test(enabled:Bool = true):Bool
     return setWindowBlur(enabled);
 
+  /** Request square corners on Windows 11; false restores the system default. */
+  public static function setSquareCorners(enabled:Bool = true):Bool
+    return prepare() && WindowNative.setSquareCorners(enabled);
+
   /** Set whole-window opacity, from 0.0 (invisible) to 1.0 (opaque). */
   public static function __setWindowTransparencyAlpha(alpha:Float):Bool
     return prepare() && WindowNative.setOpacity(alpha);

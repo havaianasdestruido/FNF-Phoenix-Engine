@@ -187,6 +187,11 @@ class Main extends Sprite
     Windows.setDarkMode(true);
     #end
 
+    #if (cpp && windows && NO_W11_CORNERS)
+    // Opt-in build flag: leave the default rounded corners untouched otherwise.
+    Windows.setSquareCorners(true);
+    #end
+
     // Watches the window mode so transparency can be suspended in fullscreen.
     TransparentWindow.init();
 
