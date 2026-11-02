@@ -200,7 +200,7 @@ a no-op outside `#if android` unless noted.
 | `AndroidHardwareInput` | Physical keys | Volume-key interception (`enableVolumeKeys()`/`disableVolumeKeys()`), `onKey(keyCode, down)` signal |
 | `AndroidHaptics` | Vibration | `vibrate(ms)`, `vibratePattern(pattern, repeat)`, `cancel()` |
 | `AndroidIntents` | System intents | `openUrl`, `openSettings`, `openFile`, `shareFile`, `shareText`, `viewContentUri`, `onDeepLink` signal (`phoenix://...`) — subscribe via `subscribeDeepLink(cb)` so a buffered cold-start link is confirmed delivered |
-| `AndroidNotification` | Notifications | `notify(id, title, text)`, `cancel(id)`, `requestPermission()` (API 33+) |
+| `AndroidNotification` | Notifications | `notify(id, title, text)`, `notifyEvent(id, title, text)` (opt-in), `cancel(id)`, `requestPermission()` (API 33+) |
 | `AndroidStorage` | SAF / content URIs | `openDocument`, `createDocument`, `openDocumentTree`, `readUriBytes/Text`, `writeUriBytes/Text`, `importUri`, `exportFileToUri`, `persistUriPermission`, `extensionToMime` |
 | `AndroidDiscord` | Presence stand-in | No-op on Android: keeps `DiscordClient` platform-agnostic without ever touching the media session, which is owned by `PlayStateAndroidMedia` (Discord RPC is desktop-only) |
 
@@ -209,6 +209,26 @@ Common Android SDK classes (`android.Permissions`, `android.Settings`,
 are provided by the Lime fork itself — the engine uses those externs
 directly instead of shipping its own copies, which would shadow Lime's
 and break `lime.system.System` on Android.
+
+### Notifications
+
+The Media3 MediaStyle notification (owned by `AndroidMedia`) is the only
+always-on notification. Simple status notifications go through
+`AndroidNotification` and are strictly opt-in: `notifyEvent(...)` no-ops
+unless `ClientPrefs.androidNotifications` is enabled (Options -> Mobile
+Options -> "Event Notifications", which also requests POST_NOTIFICATIONS on
+Android 13+ when toggled on — never unattended at startup). Wired events:
+
+- **Chart backup saved** — `editors.charting.ChartingSaveLoad.saveLevel`
+  autosave path, posted with the fixed `ID_CHART_BACKUP`.
+- **Crash log saved** — `backend.CrashHandler` after writing `crash/*.log`,
+  posted with the fixed `ID_CRASH_LOG` (wrapped so it can never interfere
+  with crash handling).
+
+Both use fixed ids and the native side sets `setOnlyAlertOnce(true)`, so
+repeated events (e.g. the 4-minute chart autosave) update the existing
+notification instead of re-alerting or stacking. "Update available" is
+deliberately not wired: the in-app auto-updater is still a non-goal (§12.6).
 
 ### Gameplay integration (`play.helpers.PlayStateAndroidMedia`)
 

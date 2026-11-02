@@ -9,6 +9,9 @@ import openfl.Lib;
 import openfl.errors.Error;
 import openfl.events.ErrorEvent;
 import openfl.events.UncaughtErrorEvent;
+#if android
+import android.platform.AndroidNotification;
+#end
 
 import objects.Note;
 
@@ -191,6 +194,16 @@ class CrashHandler
 			}
 			catch (e)
 				trace('Couldn\'t save error message. (${e.message})');
+
+			#if android
+			// Opt-in event notification (Options -> Mobile Options -> "Event
+			// Notifications"). Must never interfere with crash handling.
+			try
+			{
+				AndroidNotification.notifyEvent(AndroidNotification.ID_CRASH_LOG, 'Crash log saved', 'Saved to $path - attach it when reporting this bug.');
+			}
+			catch (e:Dynamic) {}
+			#end
 
 			Sys.println(errorMessage);
 			Sys.println("Crash dump saved in " + Path.normalize(path));
