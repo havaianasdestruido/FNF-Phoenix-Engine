@@ -77,7 +77,7 @@ class PlayStateNotes
 
 			state.stagesFunc(function(stage:BaseStage) stage.noteMiss(daNote));
 			if (state.hasActiveScripts())
-				state.callOnLuas('noteMiss', [(daNote.isSustainNote ? state.sustainNotes : state.notes).members.indexOf(daNote), daNote.noteData, daNote.noteType, daNote.isSustainNote]);
+				state.callOnLuas('noteMiss', [(daNote.isSustainNote ? state.sustainNotes : state.notes).members.indexOf(daNote), daNote.noteData, daNote.noteType, daNote.isSustainNote]); // hasActiveScripts is already checked
 			if (ClientPrefs.missRating && ClientPrefs.ratingPopups) PlayStateRating.popUpScore(state, daNote, true);
 		}
 		if (daNoteAlt != null)
@@ -113,7 +113,8 @@ class PlayStateNotes
 			}
 			if (state.scoreTxtUpdateFrame <= 4 && state.scoreTxt != null) state.updateScore();
 
-			state.callOnLuas('noteMiss', [null, daNoteAlt.noteData, daNoteAlt.noteType, daNoteAlt.isSustainNote]);
+			if (state.hasActiveScripts())
+				state.callOnLuas('noteMiss', [null, daNoteAlt.noteData, daNoteAlt.noteType, daNoteAlt.isSustainNote]);
 		}
 	}
 
@@ -155,7 +156,8 @@ class PlayStateNotes
 		if (state.scoreTxtUpdateFrame <= 4 && state.scoreTxt != null) state.updateScore();
 
 		state.stagesFunc(function(stage:BaseStage) stage.noteMissPress(direction));
-		state.callOnLuas('noteMissPress', [direction]);
+		if (state.hasActiveScripts())
+			state.callOnLuas('noteMissPress', [direction]);
 	}
 
 	public static function spawnNotes(state:PlayState)
@@ -466,7 +468,8 @@ class PlayStateNotes
 				}
 				if ((PlayState.opponentChart ? state.polyphonyOppo : state.polyphonyBF) > 1) state.totalNotes += (PlayState.opponentChart ? state.polyphonyOppo : state.polyphonyBF) - 1;
 			}
-			if (!ClientPrefs.noSkipFuncs) state.callOnLuas((state.oppTrigger ? 'opponentNoteSkip' : 'goodNoteSkip'), [null, Math.abs(noteAlt.noteData), noteAlt.noteType, noteAlt.isSustainNote]);
+			if (!ClientPrefs.noSkipFuncs && state.hasActiveScripts())
+				state.callOnLuas((state.oppTrigger ? 'opponentNoteSkip' : 'goodNoteSkip'), [null, Math.abs(noteAlt.noteData), noteAlt.noteType, noteAlt.isSustainNote]);
 			state.health += noteAlt.hitHealth * state.healthGain * (PlayState.opponentChart ? state.polyphonyOppo : state.polyphonyBF);
 			if (!state.ffmpegMode) (PlayState.opponentChart ? state.opponentVocals : state.vocals).volume = 1;
 		}
@@ -634,7 +637,8 @@ class PlayStateNotes
 				state.camGame.shake(state.oppChar.shakeIntensity, state.oppChar.shakeDuration / state.playbackRate);
 				state.camHUD.shake(state.oppChar.shakeIntensity / 2, state.oppChar.shakeDuration / state.playbackRate);
 			}
-			if (!ClientPrefs.noSkipFuncs) state.callOnLuas((!PlayState.opponentChart ? 'opponentNoteSkip' : 'goodNoteSkip'), [null, Math.abs(noteAlt.noteData), noteAlt.noteType, noteAlt.isSustainNote]);
+			if (!ClientPrefs.noSkipFuncs && state.hasActiveScripts())
+				state.callOnLuas((!PlayState.opponentChart ? 'opponentNoteSkip' : 'goodNoteSkip'), [null, Math.abs(noteAlt.noteData), noteAlt.noteType, noteAlt.isSustainNote]);
 			if (PlayState.SONG.needsVoices && !state.ffmpegMode)
 				if (!PlayState.opponentChart && state.opponentVocals != null && state.opponentVocals.volume != 1) state.opponentVocals.volume = 1;
 				else if (PlayState.opponentChart && state.vocals.volume != 1 || state.vocals.volume != 1) state.vocals.volume = 1;
