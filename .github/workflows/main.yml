@@ -199,7 +199,7 @@ jobs:
           # macOS Intel
           # =========================
           - name: macOS (Intel)
-            os: macos-15
+            os: macos-13
             target: mac
             target_dir: macos
             target_args: -64 -D HXCPP_M64
@@ -212,7 +212,7 @@ jobs:
           # macOS ARM
           # =========================
           - name: macOS (ARM)
-            os: macos-15
+            os: macos-14
             target: mac
             target_dir: macos
             target_args: -arm64 -D HXCPP_ARM64
