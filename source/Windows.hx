@@ -81,6 +81,17 @@ class Windows
   public static function setCloseButtonEnabled(enabled:Bool):Bool
     return prepare() && WindowNative.setCloseEnabled(enabled);
 
+  /**
+   * Request legacy DWM blur behind the window. Modern Windows may accept the
+   * request without drawing blur; false means the API rejected it.
+   */
+  public static function setWindowBlur(enabled:Bool = true):Bool
+    return prepare() && WindowNative.setBlur(enabled);
+
+  /** Compatibility name for setWindowBlur(). */
+  public static function test(enabled:Bool = true):Bool
+    return setWindowBlur(enabled);
+
   /** Set whole-window opacity, from 0.0 (invisible) to 1.0 (opaque). */
   public static function __setWindowTransparencyAlpha(alpha:Float):Bool
     return prepare() && WindowNative.setOpacity(alpha);

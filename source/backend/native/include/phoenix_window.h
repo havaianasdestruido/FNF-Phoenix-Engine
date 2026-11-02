@@ -261,5 +261,18 @@ static PHOENIX_WINDOW_UNUSED bool phoenixWindowSetCloseEnabled(bool enabled)
   return true;
 }
 
+static PHOENIX_WINDOW_UNUSED bool phoenixWindowSetBlur(bool enabled)
+{
+  HWND window = phoenixWindowState().window;
+  if (window == NULL || !phoenixWindowIsGameWindow(window))
+    return false;
+  DWM_BLURBEHIND blur = {};
+  blur.dwFlags = DWM_BB_ENABLE;
+  blur.fEnable = enabled ? TRUE : FALSE;
+  blur.hRgnBlur = NULL;
+  blur.fTransitionOnMaximized = FALSE;
+  return SUCCEEDED(DwmEnableBlurBehindWindow(window, &blur));
+}
+
 #endif
 #endif

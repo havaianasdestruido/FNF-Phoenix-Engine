@@ -22,6 +22,10 @@ class WindowNative
   public static function setCloseEnabled(enabled:Bool):Bool
     return false;
 
+  @:functionCode('return phoenixWindowSetBlur(enabled);')
+  public static function setBlur(enabled:Bool):Bool
+    return false;
+
   @:functionCode('return phoenixWindowSetOpacity(opacity);')
   public static function setOpacity(opacity:Float):Bool
     return false;
@@ -52,6 +56,9 @@ class WindowNative
     return false;
 
   public static function setCloseEnabled(enabled:Bool):Bool
+    return false;
+
+  public static function setBlur(enabled:Bool):Bool
     return false;
 
   public static function setOpacity(opacity:Float):Bool
