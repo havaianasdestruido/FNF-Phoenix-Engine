@@ -97,5 +97,128 @@ static PHOENIX_WINDOW_UNUSED HWND phoenixWindowFind(const char *title = NULL)
   return found;
 }
 
+
+/* Layered attributes are a single native state, not independent API calls. */
+struct PhoenixWindowState
+{
+  HWND window;
+  LONG_PTR originalStyle;
+  bool tracked;
+  bool alpha;
+  bool colorKey;
+  bool clickThrough;
+  BYTE opacity;
+  COLORREF key;
+};
+
+static PHOENIX_WINDOW_UNUSED PhoenixWindowState &phoenixWindowState()
+{
+  static PhoenixWindowState state = {NULL, 0, false, false, false, false, 255, 0};
+  return state;
+}
+
+static PHOENIX_WINDOW_UNUSED bool phoenixWindowSelect(const char *title)
+{
+  HWND window = phoenixWindowFind(title);
+  PhoenixWindowState &state = phoenixWindowState();
+  if (window != state.window)
+  {
+    state.window = window;
+    state.tracked = false;
+    state.alpha = state.colorKey = state.clickThrough = false;
+    state.opacity = 255;
+    state.key = 0;
+  }
+  return window != NULL;
+}
+
+static PHOENIX_WINDOW_UNUSED bool phoenixWindowSetStyle(HWND window, LONG_PTR style)
+{
+  SetLastError(0);
+  LONG_PTR previous = SetWindowLongPtrW(window, GWL_EXSTYLE, style);
+  if (previous == 0 && GetLastError() != 0)
+    return false;
+  SetWindowPos(window, NULL, 0, 0, 0, 0,
+    SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE | SWP_FRAMECHANGED);
+  return true;
+}
+
+static PHOENIX_WINDOW_UNUSED bool phoenixWindowApplyTransparency()
+{
+  PhoenixWindowState &state = phoenixWindowState();
+  HWND window = state.window;
+  if (window == NULL || !phoenixWindowIsGameWindow(window))
+    return false;
+  const LONG_PTR style = GetWindowLongPtrW(window, GWL_EXSTYLE);
+  if (!state.tracked)
+    state.originalStyle = style;
+  const bool layered = state.alpha || state.colorKey || state.clickThrough;
+  LONG_PTR next = style & ~(LONG_PTR)(WS_EX_LAYERED | WS_EX_TRANSPARENT);
+  if (layered)
+    next |= WS_EX_LAYERED;
+  if (state.clickThrough)
+    next |= WS_EX_TRANSPARENT;
+
+  PhoenixWindowState previous = state;
+  if (next != style && !phoenixWindowSetStyle(window, next))
+    return false;
+  if (layered)
+  {
+    DWORD flags = (state.alpha || state.clickThrough) ? LWA_ALPHA : 0;
+    if (state.colorKey)
+      flags |= LWA_COLORKEY;
+    if (!SetLayeredWindowAttributes(window, state.key, state.opacity, flags))
+    {
+      phoenixWindowSetStyle(window, style);
+      state = previous;
+      return false;
+    }
+  }
+  state.tracked = true;
+  RedrawWindow(window, NULL, NULL, RDW_INVALIDATE | RDW_UPDATENOW);
+  return true;
+}
+
+static PHOENIX_WINDOW_UNUSED bool phoenixWindowSetOpacity(double opacity)
+{
+  if (!phoenixWindowState().window)
+    return false;
+  if (!(opacity >= 0.0)) opacity = 0.0; // also handles NaN
+  if (opacity > 1.0) opacity = 1.0;
+  PhoenixWindowState &state = phoenixWindowState();
+  state.opacity = (BYTE)(opacity * 255.0 + 0.5);
+  state.alpha = state.opacity != 255;
+  return phoenixWindowApplyTransparency();
+}
+
+static PHOENIX_WINDOW_UNUSED bool phoenixWindowSetColorKey(COLORREF key, bool enabled)
+{
+  if (!phoenixWindowState().window)
+    return false;
+  PhoenixWindowState &state = phoenixWindowState();
+  state.key = key;
+  state.colorKey = enabled;
+  return phoenixWindowApplyTransparency();
+}
+
+static PHOENIX_WINDOW_UNUSED bool phoenixWindowSetClickThrough(bool enabled)
+{
+  if (!phoenixWindowState().window)
+    return false;
+  phoenixWindowState().clickThrough = enabled;
+  return phoenixWindowApplyTransparency();
+}
+
+static PHOENIX_WINDOW_UNUSED bool phoenixWindowResetTransparency()
+{
+  if (!phoenixWindowState().window)
+    return false;
+  PhoenixWindowState &state = phoenixWindowState();
+  state.alpha = state.colorKey = state.clickThrough = false;
+  state.opacity = 255;
+  state.key = 0;
+  return phoenixWindowApplyTransparency();
+}
+
 #endif
 #endif

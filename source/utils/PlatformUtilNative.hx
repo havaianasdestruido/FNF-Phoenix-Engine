@@ -39,16 +39,7 @@ package utils;
 @:allow(utils.PlatformUtil)
 class PlatformUtilNative
 {
-  #if windows
-  @:functionCode('
-        HWND hWnd = GetActiveWindow();
-        res = SetWindowLong(hWnd, GWL_EXSTYLE, GetWindowLong(hWnd, GWL_EXSTYLE) | WS_EX_LAYERED);
-        if (res)
-        {
-            SetLayeredWindowAttributes(hWnd, RGB(1, 1, 1), 0, LWA_COLORKEY);
-        }
-    ')
-  #elseif linux
+  #if linux
   /*
     REQUIRES IMPORTING X11 LIBRARIES (Xlib, Xutil, Xatom) to run, even tho it doesnt work
     @:functionCode('
@@ -70,7 +61,11 @@ class PlatformUtilNative
   #end
   static function getWindowsTransparentNative(res:Int = 0) // Only works on windows, otherwise returns 0!
   {
+    #if windows
+    return backend.FlxTransWindow.getWindowsTransparent(res);
+    #else
     return res;
+    #end
   }
 
   #if windows
@@ -98,19 +93,13 @@ class PlatformUtilNative
     return res;
   }
 
-  #if windows
-  @:functionCode('
-        HWND hWnd = GetActiveWindow();
-        res = SetWindowLong(hWnd, GWL_EXSTYLE, GetWindowLong(hWnd, GWL_EXSTYLE) ^ WS_EX_LAYERED);
-        if (res)
-        {
-            SetLayeredWindowAttributes(hWnd, RGB(1, 1, 1), 1, LWA_COLORKEY);
-        }
-    ')
-  #end
   static function getWindowsBackwardNative(res:Int = 0) // Only works on windows, otherwise returns 0!
   {
+    #if windows
+    return backend.FlxTransWindow.getWindowsbackward(res);
+    #else
     return res;
+    #end
   }
 
   #if windows

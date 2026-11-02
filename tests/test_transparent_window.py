@@ -97,19 +97,12 @@ class NativeLayerTests(unittest.TestCase):
         self.assertIn(UPSTREAM_URL, source)
         self.assertIn(UPSTREAM_AUTHOR, source)
 
-    def test_native_code_is_behind_the_windows_cpp_guard(self):
+    def test_native_code_is_centralized_in_the_shared_backend(self):
         source = read(NATIVE)
-        guards = [expr for expr, _ in conditional_blocks(source)]
-        self.assertIn("cpp && windows", guards)
-        # `@:cppFileCode` / `@:functionCode` are only legal where the C++ backend
-        # compiles them; anywhere else they would be dead metadata at best.
-        for block in re.finditer(r"@:(?:cppFileCode|functionCode)\(", source):
-            line_start = source.rfind("\n", 0, block.start()) + 1
-            preceding = source[:line_start]
-            self.assertTrue(
-                preceding.rstrip().endswith("#if (cpp && windows)"),
-                "native code found outside the `#if (cpp && windows)` guard",
-            )
+        self.assertNotIn("@:functionCode", source)
+        self.assertNotIn("@:cppFileCode", source)
+        self.assertIn("Windows.__setWindowTransparencyAlpha", source)
+        self.assertIn("Windows.resetWindowTransparency", source)
 
     def test_every_public_function_mentions_its_platform(self):
         source = read(NATIVE)

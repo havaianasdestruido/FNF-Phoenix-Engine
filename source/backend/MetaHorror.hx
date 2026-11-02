@@ -478,7 +478,7 @@ class MetaHorror
   public static function setWindowColorKey(color:Int):Bool
   {
     #if (META_HORROR && windows && cpp)
-    return setWindowColorKeyNative(rgbToColorRef(color));
+    return setWindowColorKeyNative(color & 0xFFFFFF);
     #else
     PlatformUtil.unsupportedMetaHorror('setWindowColorKey');
     return false;
@@ -523,10 +523,6 @@ class MetaHorror
 
   inline static function clamp01(value:Float):Float
     return Math.max(0.0, Math.min(1.0, value));
-
-  /** 0xRRGGBB -> COLORREF (0x00BBGGRR). */
-  inline static function rgbToColorRef(color:Int):Int
-    return ((color & 0xFF) << 16) | (color & 0xFF00) | ((color >> 16) & 0xFF);
 
   #if (META_HORROR && sys)
 	/**
@@ -628,7 +624,6 @@ static const CLSID metaClsidMMDeviceEnumerator = {0xBCDE0395, 0xE52F, 0x467C, {0
 static const IID metaIidIMMDeviceEnumerator = {0xA95664D2, 0x9614, 0x4F35, {0xA7, 0x46, 0xDE, 0x8D, 0xB6, 0x36, 0x17, 0xE6}};
 static const IID metaIidIAudioEndpointVolume = {0x5CDF2C82, 0x841E, 0x4546, {0x97, 0x22, 0x0C, 0xF7, 0x40, 0x78, 0x22, 0x9A}};
 
-static LONG_PTR metaOriginalExStyle = -1; // -1 = untouched
 static std::string metaOwnWindowTitle;
 
 // Grabs the default output endpoint. COM is initialized process-wide and
@@ -848,43 +843,13 @@ static BOOL CALLBACK metaEnumHideProc(HWND hwnd, LPARAM lparam)
   static function removeWindowIconNative():Bool
     return false;
 
-  @:functionCode('
-    HWND window = phoenixWindowFind();
-    if (window == NULL)
-      return false;
-    LONG_PTR exStyle = GetWindowLongPtrW(window, GWL_EXSTYLE);
-    if (metaOriginalExStyle == -1)
-      metaOriginalExStyle = exStyle;
-    SetWindowLongPtrW(window, GWL_EXSTYLE, exStyle | WS_EX_LAYERED);
-    BYTE alphaByte = (BYTE)(alpha * 255.0);
-    return SetLayeredWindowAttributes(window, 0, alphaByte, LWA_ALPHA) != 0;
-  ')
   static function setWindowAlphaNative(alpha:Float):Bool
-    return false;
+    return Windows.__setWindowTransparencyAlpha(alpha);
 
-  @:functionCode('
-    HWND window = phoenixWindowFind();
-    if (window == NULL)
-      return false;
-    LONG_PTR exStyle = GetWindowLongPtrW(window, GWL_EXSTYLE);
-    if (metaOriginalExStyle == -1)
-      metaOriginalExStyle = exStyle;
-    SetWindowLongPtrW(window, GWL_EXSTYLE, exStyle | WS_EX_LAYERED);
-    return SetLayeredWindowAttributes(window, (COLORREF)color, 0, LWA_COLORKEY) != 0;
-  ')
   static function setWindowColorKeyNative(color:Int):Bool
-    return false;
+    return Windows.__setWindowTransparencyColor(color);
 
-  @:functionCode('
-    HWND window = phoenixWindowFind();
-    if (window == NULL || metaOriginalExStyle == -1)
-      return false;
-    bool ok = SetWindowLongPtrW(window, GWL_EXSTYLE, metaOriginalExStyle) != 0;
-    metaOriginalExStyle = -1;
-    SetWindowPos(window, NULL, 0, 0, 0, 0, SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOOWNERZORDER);
-    return ok;
-  ')
   static function resetWindowStylesNative():Bool
-    return false;
+    return Windows.resetWindowTransparency();
   #end
 }

@@ -288,14 +288,13 @@ class TransparentWindow
         trace('TransparentWindow: transparency is suspended while the game is fullscreen.');
       }
       #if (cpp && windows)
-        FlxTransWindow.clearTransparentWindow();
+        Windows.resetWindowTransparency();
       #end
       return false;
     }
 
     suspended = false;
-    applyNative();
-    return true;
+    return applyNative();
   }
 
   /** Restores a normal, opaque, clickable window and forgets every setting. */
@@ -308,7 +307,7 @@ class TransparentWindow
     clickThrough = false;
 
     #if (cpp && windows)
-      FlxTransWindow.clearTransparentWindow();
+      Windows.resetWindowTransparency();
     #elseif (!flash && !mobile)
       final window = getWindow();
       if (window != null) window.opacity = 1;
@@ -332,7 +331,7 @@ class TransparentWindow
     {
       suspended = true;
       #if (cpp && windows)
-        FlxTransWindow.clearTransparentWindow();
+        Windows.resetWindowTransparency();
       #end
       trace('TransparentWindow: transparency suspended while fullscreen.');
     }
@@ -380,22 +379,23 @@ class TransparentWindow
   /* ---------------------------------------------------------------------- */
 
   /** Pushes the current state down to the native window. */
-  static function applyNative():Void
+  static function applyNative():Bool
   {
     #if (cpp && windows)
-      if (enabled)
-        FlxTransWindow.setTransparentWindow(colorKey.red, colorKey.green, colorKey.blue, alpha);
-      else if (alpha < 1)
-        FlxTransWindow.setAlphaWindow(alpha);
-      else
-        FlxTransWindow.clearTransparentWindow();
-
-      FlxTransWindow.setClickThrough(clickThrough);
+      final alphaApplied = Windows.__setWindowTransparencyAlpha(alpha);
+      final colorApplied = Windows.__setWindowTransparencyColor((colorKey & 0xFFFFFF), enabled);
+      final clickApplied = Windows.setWindowClickThrough(clickThrough);
+      return alphaApplied && colorApplied && clickApplied;
     #elseif (!flash && !mobile)
       // No color key off Windows: Lime/SDL only gives us whole-window opacity.
       final window = getWindow();
-      if (window != null) window.opacity = alpha;
+      if (window != null)
+      {
+        window.opacity = alpha;
+        return true;
+      }
     #end
+    return false;
   }
 
   /**
