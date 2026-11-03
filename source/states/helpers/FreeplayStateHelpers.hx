@@ -433,9 +433,9 @@ class FreeplayStateHelpers
 		state.player.pauseOrResume(true);
 	}
 
-	public static function songJsonPopup(state:FreeplayState) { //you pressed space, but the song's ogg files don't exist
+	public static function songJsonPopup(state:FreeplayState) { //you pressed space, but the song's ogg/mp3 files don't exist
 		var poop:String = Highscore.formatSong(state.songs[FreeplayState.curSelected].songName.toLowerCase(), state.curDifficulty);
-		trace(poop + '\'s .ogg does not exist!');
+		trace(poop + '\'s .ogg/.mp3 does not exist!');
 		FlxG.sound.play(Paths.sound('invalidJSON'));
 		FlxG.camera.shake(0.05, 0.05);
 		var funnyText = new FlxText(12, FlxG.height - 24, 0, "Invalid Song!");

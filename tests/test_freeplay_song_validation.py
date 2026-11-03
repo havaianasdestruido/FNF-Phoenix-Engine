@@ -49,14 +49,20 @@ class PathsAudioExistenceHelperTests(unittest.TestCase):
         paths = read("source/backend/Paths.hx")
         helper = paths[paths.index("static function songAudioExists(") :]
         helper = helper[: helper.index("static public function playMenuMusic")]
-        # mod folders first (modFolders falls back to 'mods/<key>' when absent)
-        self.assertIn("FileSystem.exists(modFolders('songs/$key.$SOUND_EXT'))", helper)
-        # then the raw song folder and the 'songs' library id returnSound builds
-        self.assertIn("FileSystem.exists('assets/songs/$key.$SOUND_EXT')", helper)
-        self.assertIn("OpenFlAssets.exists('songs:' + gottenPath, SOUND)", helper)
         # difficulty-specific audio (Inst-hard.ogg) then the plain file
         self.assertIn("'$formatted/$file-$diff'", helper)
         self.assertIn("'$formatted/$file'", helper)
+        # each candidate is probed through songKeyExists()
+        self.assertIn("if (songKeyExists(key)) return true;", helper)
+
+        # songKeyExists(): mod folders first, then the raw song folder and the
+        # 'songs' library id returnSound builds -- for every accepted container
+        exists = paths[paths.index("static function songKeyExists(") :]
+        exists = exists[: exists.index("static function songAudioExists(")]
+        self.assertIn("if (modsSounds('songs', key) != null) return true;", exists)
+        self.assertIn("for (ext in SOUND_EXTENSIONS)", exists)
+        self.assertIn("FileSystem.exists('assets/songs/$key.$ext')", exists)
+        self.assertIn("OpenFlAssets.exists('songs:assets/songs/$key.$ext', SOUND)", exists)
 
     def test_inst_and_voices_still_return_the_loadable_asset(self):
         # The Bool helpers are additive: loading must keep its old signature so

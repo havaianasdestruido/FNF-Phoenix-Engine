@@ -141,6 +141,18 @@ FNF-JS-Engine-Light/
 - Conteúdo vanilla: `assets/preload/songs`, `assets/preload/data`, `assets/week*`, `assets/songs`.
 - Se adicionar mod de exemplo: siga `mods/<mod>/{data,images,songs,weeks}` + `pack.json`.
 
+### Áudio: Ogg, uma cópia só
+
+- **Nunca** versione a mesma faixa em `.ogg` **e** `.mp3`. O engine prefere Ogg
+  (`Paths.SOUND_EXT = "ogg"`; só Flash/AIR usa MP3) porque decodifica e busca mais rápido
+  que MP3 na mesma taxa — o que importa num jogo de ritmo.
+- `Paths.SOUND_EXTENSIONS` (`ogg`, depois `mp3`) é resolvido em runtime por
+  `Paths.modsSounds()`, `Paths.resolveSoundAsset()` e `Paths.returnSound()`: mods podem
+  enviar qualquer um dos dois, mas o repositório fica **só Ogg**.
+- Ao adicionar música/SFX: `ffmpeg -i in.wav -vn -c:a libvorbis -q:a 2 out.ogg`
+  (`tools/compress-audio.sh` já faz isso em lote; `-q:a 2` ≈ 96 kbps VBR).
+- `tests/test_audio_format_policy.py` falha se um par `.ogg`/`.mp3` reaparecer.
+
 ---
 
 ## 7. Convenções de código (CODESTYLE.md + hxformat.json + checkstyle.json)
@@ -182,7 +194,9 @@ FNF-JS-Engine-Light/
 
 - **Flash/AIR**: obrigatório `-D disable-version-check`; flash usa `-D disable-version-check`
   e `-DAIR_SDK` DEVE ser **um único token** (`-DAIR_SDK=C:\AIR\...`), NÃO via env var.
-- **HTML5**: usa definições `-D analyzer-optimize` + `-D js-es=6`; exclui `.ogg`→`.mp3` (web usa mp3? não — web usa `*.mp3` na lista de exclude web: `addAssetPath ... exclude`).
+- **HTML5**: usa definições `-D analyzer-optimize` + `-D js-es=6`; o áudio é **Ogg**
+  (o exclude web não filtra `*.ogg` — filtrar isso deixaria o build web mudo). Só
+  Flash/AIR usa MP3 (`Paths.SOUND_EXT`).
 - **Linux**: instalar `libvlc` (hxvlc/hxCodec) — erro típico `libvlc.so.5 ... syntax error` → usar hxCodec 3.0.2 ou instalar VLC.
 - **MSVC Windows (LNK1181/LNK1120)**: rodar `setup/windows-msvc-fix.ps1` (ativa fork hxcpp com
   suporte `<assembler>` + J17); ou `lime test cpp -clean`/apagar `export/obj`.

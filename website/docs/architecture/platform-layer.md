@@ -87,7 +87,8 @@ Swift injections are applied by the project script, not scattered through `sourc
 
 These targets lose whole feature flags: no `MODS_ALLOWED`, no `LUA_ALLOWED` /
 `PYTHON_ALLOWED`, no `VIDEOS_ALLOWED`, and on SWF no `SHADERS_ALLOWED`. HTML5 embeds
-assets (`EMBED_ASSETS`) and uses `mp3` rather than `ogg`.
+assets (`EMBED_ASSETS`). HTML5 decodes Ogg Vorbis (`Paths.SOUND_EXT` is `ogg` there, like
+every non-SWF target); only Flash/AIR needs MP3.
 
 Flash/AIR additionally rely on the seven files in `source/source-haxelib-patches/`, which gate out
 library APIs that only exist on the Lime/OpenFL renderers.
