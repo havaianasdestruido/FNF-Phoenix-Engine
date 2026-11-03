@@ -4,17 +4,7 @@ package utils;
 #if cpp
 @:buildXml('<include name="../../../../source/utils/build.xml" />')
 @:include("phoenix_desktop_dialog.h")
-#if windows
-@:cppFileCode('#include <stdlib.h>
-#include <stdio.h>
-#include "phoenix_window.h"
-#include <iostream>
-#include <string>
-#include <strsafe.h>
-
-#pragma comment(lib, "Dwmapi")
-#pragma comment(lib, "Shell32.lib")')
-#elseif linux
+#if linux
 @:cppFileCode('
 #include <stdlib.h>
 #include <stdio.h>
@@ -92,56 +82,27 @@ class PlatformUtilNative
     #end
   }
 
-  #if windows
-  @:functionCode('
-        std::string p(getenv("APPDATA"));
-        p.append("\\\\Microsoft\\\\Windows\\\\Themes\\\\TranscodedWallpaper");
-
-        SystemParametersInfo(SPI_SETDESKWALLPAPER, 0, (PVOID)p.c_str(), SPIF_UPDATEINIFILE);
-    ')
-  #end
   static function updateWallpaperNative()
   { // Only works on windows, otherwise returns 0!
+    #if windows
+    return backend.WindowNative.updateWallpaper();
+    #else
     return null;
+    #end
   }
 
-  #if (cpp && windows) // assuming Wine sets the "windows" macro to true
-  @:functionCode('
-		HMODULE ntdll = GetModuleHandleA("ntdll.dll");
-		if (ntdll) {
-			void* wine_get_version = GetProcAddress(ntdll, "wine_get_version");
-			if (wine_get_version) return true;
-		}
-		return false;
-	')
-  #end
   static function detectWineNative():Bool
   {
+    #if windows
+    return backend.WindowNative.detectWine();
+    #else
     return false;
+    #end
   }
 
   #if windows
-  @:functionCode('
-		SYSTEM_INFO osInfo;
-
-		GetSystemInfo(&osInfo);
-
-		switch(osInfo.wProcessorArchitecture)
-		{
-			case 9:
-				return ::String("x86_64");
-			case 5:
-				return ::String("ARM");
-			case 12:
-				return ::String("ARM64");
-			case 6:
-				return ::String("IA-64");
-			case 0:
-				return ::String("x86");
-			default:
-				return ::String("Unknown");
-		}
-	')
+  static function getArchNative():String
+    return backend.WindowNative.getArch();
   #elseif (ios || mac)
   @:functionCode('
 		const NXArchInfo *archInfo = NXGetLocalArchInfo();

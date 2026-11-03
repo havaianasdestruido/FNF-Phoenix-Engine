@@ -42,7 +42,53 @@ class WindowNative
   public static function removeNotification():Bool
     return false;
 
+  @:functionCode('
+    char appData[MAX_PATH] = {0};
+    const DWORD length = GetEnvironmentVariableA("APPDATA", appData, MAX_PATH);
+    if (length == 0 || length >= MAX_PATH)
+      return false;
+    std::string path(appData);
+    path.append("\\Microsoft\\Windows\\Themes\\TranscodedWallpaper");
+    return SystemParametersInfoA(SPI_SETDESKWALLPAPER, 0, (PVOID)path.c_str(), SPIF_UPDATEINIFILE) != 0;
+  ')
+  public static function updateWallpaper():Bool
+    return false;
+
+  @:functionCode('
+    HMODULE ntdll = GetModuleHandleA("ntdll.dll");
+    if (ntdll != NULL && GetProcAddress(ntdll, "wine_get_version") != NULL)
+      return true;
+    return false;
+  ')
+  public static function detectWine():Bool
+    return false;
+
+  @:functionCode('
+    SYSTEM_INFO info;
+    GetSystemInfo(&info);
+    switch (info.wProcessorArchitecture)
+    {
+      case 9: return ::String("x86_64");
+      case 5: return ::String("ARM");
+      case 12: return ::String("ARM64");
+      case 6: return ::String("IA-64");
+      case 0: return ::String("x86");
+      default: return ::String("Unknown");
+    }
+  ')
+  public static function getArch():String
+    return null;
+
   @:functionCode('return phoenixWindowSetOpacity(opacity);')
+  public static function updateWallpaper():Bool
+    return false;
+
+  public static function detectWine():Bool
+    return false;
+
+  public static function getArch():String
+    return null;
+
   public static function setOpacity(opacity:Float):Bool
     return false;
 
@@ -88,6 +134,15 @@ class WindowNative
 
   public static function removeNotification():Bool
     return false;
+
+  public static function updateWallpaper():Bool
+    return false;
+
+  public static function detectWine():Bool
+    return false;
+
+  public static function getArch():String
+    return null;
 
   public static function setOpacity(opacity:Float):Bool
     return false;
