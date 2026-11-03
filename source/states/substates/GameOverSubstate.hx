@@ -205,7 +205,7 @@ class GameOverSubstate extends MusicBeatSubstate
 		FlxG.camera.focusOn(camFollow);
 
 		parentPlayState.setOnLuas('inGameOver', true);
-		parentPlayState.callOnLuas('onGameOverStart', []);
+		if (parentPlayState.hasActiveScripts()) parentPlayState.callOnLuas('onGameOverStart', null);
 		FlxG.sound.music.loadEmbedded(Paths.music(loopSoundName), true);
 		
 		if (usingCharacter())
@@ -270,7 +270,7 @@ class GameOverSubstate extends MusicBeatSubstate
 	{
 		super.update(elapsed);
 
-		parentPlayState.callOnLuas('onUpdate', [elapsed]);
+		if (parentPlayState.hasActiveScripts()) parentPlayState.callOnLuas('onUpdate', [elapsed]);
 
 		var justPlayedLoop:Bool = false;
 		if (usingCharacter())
@@ -314,7 +314,7 @@ class GameOverSubstate extends MusicBeatSubstate
 					FlxG.switchState(new FreeplayState());
 
 				FlxG.sound.playMusic(Paths.music('freakyMenu-' + ClientPrefs.daMenuMusic));
-				parentPlayState.callOnLuas('onGameOverConfirm', [false]);
+				if (parentPlayState.hasActiveScripts()) parentPlayState.callOnLuas('onGameOverConfirm', [false]);
 			}
 			else if (justPlayedLoop)
 			{
@@ -342,7 +342,7 @@ class GameOverSubstate extends MusicBeatSubstate
 				Conductor.songPosition = FlxG.sound.music.time;
 			}
 		}
-		parentPlayState.callOnLuas('onUpdatePost', [elapsed]);
+		if (parentPlayState.hasActiveScripts()) parentPlayState.callOnLuas('onUpdatePost', [elapsed]);
 	}
 
 	var isEnding:Bool = false;
@@ -391,7 +391,7 @@ class GameOverSubstate extends MusicBeatSubstate
 					FlxG.resetState();
 				});
 			});
-			parentPlayState.callOnLuas('onGameOverConfirm', [true]);
+			if (parentPlayState.hasActiveScripts()) parentPlayState.callOnLuas('onGameOverConfirm', [true]);
 		}
 	}
 

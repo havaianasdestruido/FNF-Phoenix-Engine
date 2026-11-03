@@ -156,21 +156,25 @@ the define omit it rather than silently enabling a new exported component.
 The provider roots resolve from the same `Context.getExternalFilesDir(null)`
 directory that `mobile.StorageUtil.getStorageDirectory()` returns. `Main` sets
 that directory as the working directory, where `Paths.mods()` resolves to
-`mods/` and `CrashHandler` writes reports under `crash/`:
+`mods/`, `CrashHandler` writes reports under `crash/` and `backend.VLog`
+writes the verbose session log to `vlog/log.txt`:
 
 | SAF root | Relative directory | Access |
 | --- | --- | --- |
 | **Mods** | `mods/` | Read/write; create folders/files, rename files, delete files/subfolders |
 | **Crash Logs** | `crash/` | Read-only; copying reports out of the game |
+| **VLogs** | `vlog/` | Read-only; copying the verbose `log.txt` out of the game |
 
-Only these two roots are exposed. `mobile.StorageUtil.initStorageDirectory()`
+Only these three roots are exposed. `mobile.StorageUtil.initStorageDirectory()`
 creates `mods/` during Android startup, so the Mods root backs onto a real,
 writable directory from the first launch; if that creation fails startup still
 continues, because the engine treats a missing mods directory as "no mods
-installed". `crash/` is created by `CrashHandler` when it writes a report.
-Browsing a root never creates its directory, and a root whose directory is
-missing simply lists no children. If `getExternalFilesDir(null)` returns no
-directory, or Android reports its volume as unavailable, no roots are returned.
+installed". `crash/` is created by `CrashHandler` when it writes a report, and
+`vlog/` is created by `backend.VLog.init()` during every launch, so the VLogs
+root backs onto a real directory from the first launch. Browsing a root never
+creates its directory, and a root whose directory is missing simply lists no
+children. If `getExternalFilesDir(null)` returns no directory, or Android
+reports its volume as unavailable, no roots are returned.
 Mounted read-only storage remains browsable but cannot be written. If storage
 becomes unavailable later, document operations fail with
 `FileNotFoundException`. Static traversal and symlink escapes are rejected,
@@ -200,7 +204,7 @@ a no-op outside `#if android` unless noted.
 | `AndroidHardwareInput` | Physical keys | Volume-key interception (`enableVolumeKeys()`/`disableVolumeKeys()`), `onKey(keyCode, down)` signal |
 | `AndroidHaptics` | Vibration | `vibrate(ms)`, `vibratePattern(pattern, repeat)`, `cancel()` |
 | `AndroidIntents` | System intents | `openUrl`, `openSettings`, `openFile`, `shareFile`, `shareText`, `viewContentUri`, `onDeepLink` signal (`phoenix://...`) — subscribe via `subscribeDeepLink(cb)` so a buffered cold-start link is confirmed delivered |
-| `AndroidNotification` | Notifications | `notify(id, title, text)`, `cancel(id)`, `requestPermission()` (API 33+) |
+| `AndroidNotification` | Notifications | `notify(id, title, text)`, `notifyEvent(id, title, text)` (opt-in), `cancel(id)`, `requestPermission()` (API 33+) |
 | `AndroidStorage` | SAF / content URIs | `openDocument`, `createDocument`, `openDocumentTree`, `readUriBytes/Text`, `writeUriBytes/Text`, `importUri`, `exportFileToUri`, `persistUriPermission`, `extensionToMime` |
 | `AndroidDiscord` | Presence stand-in | No-op on Android: keeps `DiscordClient` platform-agnostic without ever touching the media session, which is owned by `PlayStateAndroidMedia` (Discord RPC is desktop-only) |
 
@@ -209,6 +213,26 @@ Common Android SDK classes (`android.Permissions`, `android.Settings`,
 are provided by the Lime fork itself — the engine uses those externs
 directly instead of shipping its own copies, which would shadow Lime's
 and break `lime.system.System` on Android.
+
+### Notifications
+
+The Media3 MediaStyle notification (owned by `AndroidMedia`) is the only
+always-on notification. Simple status notifications go through
+`AndroidNotification` and are strictly opt-in: `notifyEvent(...)` no-ops
+unless `ClientPrefs.androidNotifications` is enabled (Options -> Mobile
+Options -> "Event Notifications", which also requests POST_NOTIFICATIONS on
+Android 13+ when toggled on — never unattended at startup). Wired events:
+
+- **Chart backup saved** — `editors.charting.ChartingSaveLoad.saveLevel`
+  autosave path, posted with the fixed `ID_CHART_BACKUP`.
+- **Crash log saved** — `backend.CrashHandler` after writing `crash/*.log`,
+  posted with the fixed `ID_CRASH_LOG` (wrapped so it can never interfere
+  with crash handling).
+
+Both use fixed ids and the native side sets `setOnlyAlertOnce(true)`, so
+repeated events (e.g. the 4-minute chart autosave) update the existing
+notification instead of re-alerting or stacking. "Update available" is
+deliberately not wired: the in-app auto-updater is still a non-goal (§12.6).
 
 ### Gameplay integration (`play.helpers.PlayStateAndroidMedia`)
 
@@ -286,6 +310,7 @@ exposes only these roots from `Context.getExternalFilesDir(null)`:
 | SAF root | Backing path | Access |
 | --- | --- | --- |
 | **Crash Logs** | `crash/` | Read-only, for copying reports out of the game |
+| **VLogs** | `vlog/` | Read-only, for copying the verbose `log.txt` out of the game |
 | **Mods** | `mods/` | Read/write; create folders/files, rename files, and delete files or subfolders |
 
 Document IDs are opaque, root-scoped path IDs. Decoded traversal, unsafe names,

@@ -9,6 +9,9 @@ import openfl.Lib;
 import openfl.errors.Error;
 import openfl.events.ErrorEvent;
 import openfl.events.UncaughtErrorEvent;
+#if android
+import android.platform.AndroidNotification;
+#end
 
 import objects.Note;
 
@@ -172,6 +175,15 @@ class CrashHandler
 
 			errorMessage += 'Uncaught Error: $m\n\n$stackLabel';
 
+			// Mirror the crash into the vlog so the live session log carries
+			// the same context as crash/; it flushes immediately because the
+			// process may exit right after.
+			try
+			{
+				VLog.crash(errorMessage, stackLabel);
+			}
+			catch (_:Dynamic) {}
+
 			#if sys
 			// The hardware information makes a bug report a lot more useful, but
 			// it must never keep the crash log itself from being written.
@@ -191,6 +203,16 @@ class CrashHandler
 			}
 			catch (e)
 				trace('Couldn\'t save error message. (${e.message})');
+
+			#if android
+			// Opt-in event notification (Options -> Mobile Options -> "Event
+			// Notifications"). Must never interfere with crash handling.
+			try
+			{
+				AndroidNotification.notifyEvent(AndroidNotification.ID_CRASH_LOG, 'Crash log saved', 'Saved to $path - attach it when reporting this bug.');
+			}
+			catch (e:Dynamic) {}
+			#end
 
 			Sys.println(errorMessage);
 			Sys.println("Crash dump saved in " + Path.normalize(path));

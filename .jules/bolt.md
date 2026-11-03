@@ -14,3 +14,7 @@
 ## 2026-10-10 - O(N) Array.indexOf overhead in callOnLuas invocations
 **Learning:** In `PlayStateNotes.hx`, callbacks to scripts (`callOnLuas('noteMiss')`, `onSpawnNote`, etc.) build argument lists that evaluate `Array.indexOf(daNote)` directly in the function arguments. Because the arguments are eagerly evaluated before `callOnLuas` is executed, these O(N) array scans occur for every note spawned, hit, and missed during gameplay—even when no Lua or Python scripts are active. This scales poorly with massive charts (100k+ notes).
 **Action:** Always wrap event dispatches that execute expensive argument evaluations in a gate check (e.g., `if (state.hasActiveScripts())`) to short-circuit the execution when the feature is completely inactive, saving O(N) operations per frame.
+
+## 2024-05-18 - Short-circuiting high-frequency script dispatches to avoid GC stutter
+**Learning:** Eagerly evaluating script arguments (e.g., dynamically allocated arrays like `[key]` or `[elapsed]`) inside high-frequency event loops like note hits, inputs, camera moves, and update functions causes noticeable garbage collection stutter in this Haxe codebase, even if the dispatch (`callOnLuas` / `callOnScripts`) does nothing because there are no active scripts.
+**Action:** Always wrap high-frequency script dispatches with `if (hasActiveScripts())` so that argument arrays are only evaluated and allocated when necessary.

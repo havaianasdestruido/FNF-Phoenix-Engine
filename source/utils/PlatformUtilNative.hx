@@ -95,6 +95,13 @@ class PlatformUtilNative
   #end
   static function sendFakeMsgBoxNative(desc:String = "", res:Int = 0)
   {
+    #if windows
+    @:functionCode('\n        LPCSTR lwDesc = desc.c_str();\n\n        res = MessageBox(\n            NULL,\n            lwDesc,\n            NULL,\n            MB_OK\n        );\n    ')
+    #elseif linux
+    @:functionCode('\n        res = phoenixShowLinuxDesktopDialog(std::string(desc.c_str()));\n    ')
+    #elseif mac
+    @:functionCode('\n        res = phoenixShowMacDesktopDialog(std::string(desc.c_str()));\n    ')
+    #end
     return res;
   }
 

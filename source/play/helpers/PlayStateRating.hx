@@ -263,7 +263,7 @@ class PlayStateRating
 
 		state.scoreTxt.text = '${state.tempScore}\n';
 
-		state.callOnLuas('onUpdateScore', [miss]);
+		if (state.hasActiveScripts()) state.callOnLuas('onUpdateScore', [miss]);
 	}
 
 	public static function RecalculateRating(state:PlayState, badHit:Bool = false) {
@@ -273,7 +273,7 @@ class PlayStateRating
 		state.setOnLuas('combo', state.combo);
 		if (badHit) state.missRecalcsPerFrame += 1;
 
-		var ret:Dynamic = state.callOnLuas('onRecalculateRating');
+		var ret:Dynamic = state.hasActiveScripts() ? state.callOnLuas('onRecalculateRating') : null;
 		#if LUA_ALLOWED
 		if(ret != FunkinLua.Function_Stop)
 		#else
