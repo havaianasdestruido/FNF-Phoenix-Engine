@@ -20,6 +20,9 @@ import sys
 FILES = [
     "source/backend/VLog.hx",
     "source/Main.hx",
+    "source/states/InitState.hx",
+    "source/backend/ClientPrefs.hx",
+    "source/options/MiscSettingsSubState.hx",
     "source/backend/Paths.hx",
     "source/backend/CrashHandler.hx",
     "source/psychlua/LuaUtils.hx",

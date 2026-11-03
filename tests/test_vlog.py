@@ -1,11 +1,12 @@
 """VLog (vlog/log.txt) wiring checks.
 
-Every build must write an aggressively verbose session log to ``vlog/log.txt``
-and expose it on Android through the SAF VLogs root, just like ``mods/`` and
-``crash/``. These source checks pin the wiring: initialization order in
-``Main``, the game-loop hooks in the patched ``FlxGame``, the RAM asset-cache
-hooks in ``Paths``, the crash mirror in ``CrashHandler`` and the
-Lua/Python/HScript trace capture.
+The vlog is opt-in (off by default, enabled from Options -> Misc). When it is
+on, it must write an aggressively verbose session log to ``vlog/log.txt`` and
+expose it on Android through the SAF VLogs root, just like ``mods/`` and
+``crash/``. These source checks pin the wiring: the default-off pref and menu
+toggle, initialization order in ``Main``, the game-loop hooks in the patched
+``FlxGame``, the RAM asset-cache hooks in ``Paths``, the crash mirror in
+``CrashHandler`` and the Lua/Python/HScript trace capture.
 """
 from __future__ import annotations
 
@@ -31,7 +32,17 @@ class VLogCoreTests(unittest.TestCase):
         self.assertIn('public static inline var DIR:String = "vlog";', self.vlog)
         self.assertIn('public static inline var FILE:String = "vlog/log.txt";', self.vlog)
 
-    def test_every_build_writes_or_buffers_the_log(self):
+    def test_opt_in_switch_and_runtime_toggle(self):
+        # Off until the player asks for it.
+        self.assertRegex(self.vlog, r"public static var enabled:Bool = false;")
+        # Options -> Misc drives it at runtime; enabling starts a session,
+        # disabling closes it and restores the original trace() printer.
+        self.assertIn("public static function setEnabled(on:Bool, ?targetFps:Float = null):Void", self.vlog)
+        self.assertIn("if (!enabled || initialized) return;", self.vlog)
+        self.assertIn("previousTrace = haxe.Log.trace;", self.vlog)
+        self.assertIn("haxe.Log.trace = previousTrace;", self.vlog)
+
+    def test_enabled_build_writes_or_buffers_the_log(self):
         # File targets create the directory and append to the file…
         self.assertRegex(self.vlog, r"if \(!FileSystem\.exists\(DIR\)\) FileSystem\.createDirectory\(DIR\)")
         # File.write() truncates; File.append() is what keeps the log across
@@ -103,13 +114,33 @@ class VLogCoreTests(unittest.TestCase):
 class VLogWiringTests(unittest.TestCase):
     def test_main_initializes_vlog_before_crash_handler_and_after_mobile_storage(self):
         main = read("source/Main.hx")
-        self.assertIn("backend.VLog.init(game.framerate)", main)
+        # The saved opt-in flag is read straight from funkin.sol because
+        # FlxG.save is only bound later, in InitState.
+        self.assertIn("backend.VLog.init(game.framerate, ClientPrefs.readSavedBool('vlogEnabled'))", main)
+        self.assertIn("public static function readSavedBool(field:String, defaultValue:Bool = false):Bool", read("source/backend/ClientPrefs.hx"))
         # Order: mobile storage (cwd) -> vlog -> crash handler.
         self.assertLess(main.index("backend.VLog.init("), main.index("CrashHandler.init()"))
         if "mobile.StorageUtil.initStorageDirectory()" in main:
             self.assertLess(main.index("mobile.StorageUtil.initStorageDirectory()"), main.index("backend.VLog.init("))
         # And it must run before setupGame so the whole boot is covered.
         self.assertLess(main.index("backend.VLog.init("), main.index("setupGame();"))
+
+    def test_misc_options_menu_exposes_the_toggle(self):
+        prefs = read("source/backend/ClientPrefs.hx")
+        # Off by default, like every other opt-in pref.
+        self.assertRegex(prefs, r"public static var vlogEnabled:Bool = false;")
+        misc = read("source/options/MiscSettingsSubState.hx")
+        self.assertIn("new Option('Enable VLog'", misc)
+        self.assertIn("'vlogEnabled'", misc)
+        # The option drives the live vlog, not just the saved pref.
+        self.assertIn("option.onChange = () -> backend.VLog.setEnabled(ClientPrefs.vlogEnabled);", misc)
+
+    def test_init_state_resyncs_the_toggle_after_load_prefs(self):
+        # Safety net: if the early raw read could not open funkin.sol, the
+        # value loadPrefs() just read is applied before anything else runs.
+        init = read("source/states/InitState.hx")
+        self.assertIn("backend.VLog.setEnabled(ClientPrefs.vlogEnabled);", init)
+        self.assertLess(init.index("ClientPrefs.loadPrefs();"), init.index("backend.VLog.setEnabled(ClientPrefs.vlogEnabled);"))
 
     def test_flxgame_reports_every_frame_and_state_change_to_vlog(self):
         flxgame = read("source/source-haxelib-patches/flixel/FlxGame.hx")

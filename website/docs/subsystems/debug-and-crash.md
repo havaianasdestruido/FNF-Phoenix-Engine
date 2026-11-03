@@ -71,11 +71,14 @@ HScript), see the [Lua](../modding/lua-api-reference.md) and
 ## Verbose log (`vlog/log.txt`)
 
 `backend.VLog` records an aggressively verbose, append-only session log at
-`vlog/log.txt` in **every build**. It is initialized in `Main` before
-`CrashHandler.init`, so the whole boot is covered, and on Android the file
-lives in the app's external-files directory — the same directory the SAF
-**VLogs** root of `PhoenixDocumentsProvider` exposes, so the log can be copied
-out of the game through the system Files app exactly like `crash/` reports.
+`vlog/log.txt`. It is **disabled by default** — nothing is written to disk
+until it is switched on in **Options → Misc → "Enable VLog"** (saved as
+`ClientPrefs.vlogEnabled`). When enabled, the log starts immediately and stays
+on for the following launches; `Main` starts it before `CrashHandler.init`, so
+the whole boot is covered, and on Android the file lives in the app's
+external-files directory — the same directory the SAF **VLogs** root of
+`PhoenixDocumentsProvider` exposes, so the log can be copied out of the game
+through the system Files app exactly like `crash/` reports.
 
 What goes in (all timestamped with the running frame index):
 
@@ -100,6 +103,10 @@ What goes in (all timestamped with the running frame index):
 - **State changes and crashes** — every `FlxGame` state switch, and uncaught
   errors mirrored from `CrashHandler` (message, stack, hardware) so the live
   log carries the same context as the `crash/` report.
+
+Unticking the option closes the session (footer + forced flush) and restores
+the default `trace()` printer, so a disabled vlog behaves exactly like a build
+without it.
 
 The writer is fail-safe: lines are buffered and flushed at most every 250 ms,
 the live log rotates at 10 MiB (keeping `log.1.txt`/`log.2.txt`), and any
