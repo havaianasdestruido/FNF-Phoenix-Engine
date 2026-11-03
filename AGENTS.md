@@ -39,8 +39,8 @@ haxelib run lime build air -Dofficial -D disable-version-check -DAIR_SDK=C:\AIR\
 lime test <platform>        # roda o teste
 ```
 `<platform>` ∈ {`windows`, `linux`, `mac`}. Para limpar: `lime test cpp -clean` ou
-apagar `export/`/`build/`. Mobile tá no CI (`mobile.yml`): Android `lime build android`,
-iOS `lime build ios -nosign`.
+apagar `export/`/`build/`. Android tá no CI (`main.yml`): `lime build android`.
+iOS é local (`lime build ios -nosign`), sem job de CI.
 
 Defines úteis: `-DofficialBuild`, `-Dofficial`, `-DULTRA_OPTIMIZED` (build velocidade máxima, WIP),
 `-DULTRA_HTML5` (WIP), `-DDEBUG_TRACY`/`FEATURE_DEBUG_TRACY`, **`-DMODDING_LEVEL=0|1|2`**
@@ -60,7 +60,7 @@ FNF-JS-Engine-Light/
 ├── mods/                  # mods carregáveis em runtime
 ├── modsList.txt           # mods embutidos no build
 ├── docs/                  # guias (TemplateScript.py/.lua, PDF de como usar)
-├── .github/workflows/     # CI: main, mobile, release, nightly, autotriage...
+├── .github/workflows/     # CI: main, checks, docs, releases, housekeeping...
 ├── BUILDING.md            # guia de build
 ├── CODESTYLE.md           # guia de estilo
 ├── checkstyle.json        # config Haxe-Checkstyle
@@ -199,16 +199,20 @@ FNF-JS-Engine-Light/
   do `VERSION` em `project.hxp` (via `meta.version`/`::APP_VERSION::`) e o versionCode do
   build number do Lime (`::APP_BUILD_NUMBER::` no template Android), não do `project.hxp`.
 - **`build/release/android`** mostrou completa artefatos `.so` + `.obj` mas **sem `.apk` final** —
-  o pipeline Gradle/APK não chegou a rodar no último build local. Use CI (`mobile.yml`) para APK.
+  o pipeline Gradle/APK não chegou a rodar no último build local. Use CI (`main.yml`) para APK.
 
 ---
 
 ## 10. CI / GitHub Actions
 
-- `.github/workflows/main.yml` — build principal: Windows/neko/html5/flash/air (+linux/mac no mobile).
-- `mobile.yml` — Android (ubuntu-24.04, Haxe 4.3.7, NDK 27.0.12077973, versionCode 2988/0.3.2)
-  e iOS (macos, `-nosign` + ldid → IPA). Trigger: `workflow_dispatch`/`push`.
-- `release.yml` — faz release com APK/IPA via `mobile-release.yml` (tag).
+- `.github/workflows/main.yml` — build compartilhado: Windows e Android (ubuntu-24.04,
+  Haxe 4.3.7, NDK 27.0.12077973). Trigger: `push`/`pull_request` em main/bleeding,
+  `workflow_dispatch` e `workflow_call`. Valida o manifesto e as libs nativas do APK.
+- `mobile-release.yml` — valida uma tag Phoenix existente e reutiliza `main.yml` com
+  apenas Android habilitado para publicar o APK. O antigo `mobile.yml` duplicava esse build.
+- `release.yml` — publica o artefato Windows de `main.yml` em uma draft release.
+- `checks.yml` — regressões Python/Java/Haxe; `docs.yml` — build e deploy do site.
+- `sparse-submodule.yml` — valida o checkout sparse e o link do mod fnf_030_ui.
 - `nightly.yml`, `autotriage.yml`, `autolock.yml` — housekeeping.
 - **Sem CodeQL:** não adicionar workflows `github/codeql-action` nem ativar o default setup
   de code scanning. O default setup é uma configuração do GitHub, separada dos arquivos de workflow.

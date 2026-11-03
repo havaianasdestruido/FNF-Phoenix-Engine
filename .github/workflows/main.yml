@@ -47,8 +47,8 @@ on:
 # Keep the haxelib installation inside the workspace so it can be restored on
 # subsequent runs instead of downloading and compiling dependencies every time.
 env:
-  # Single source of truth for the compiler version (#60); mobile.yml uses
-  # the same value and the regression tests assert the two cannot drift.
+  # Single source of truth for the compiler version (#60), including reusable
+  # builds. The regression tests assert that this version stays pinned.
   HAXE_VERSION: "4.3.7"
   HAXELIB_PATH: ${{ github.workspace }}/.haxelib
 

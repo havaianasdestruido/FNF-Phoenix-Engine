@@ -10,66 +10,74 @@ All workflows live in `.github/workflows/`.
 
 ## `main.yml` — Build
 
-The main matrix, triggered on push and manually (`workflow_dispatch`, with inputs to pick
-targets). `fail-fast` is off, so one broken target does not hide the others.
+The shared build matrix runs on pushes and pull requests targeting `main` or `bleeding`.
+It also supports manual and reusable calls (`workflow_dispatch` and `workflow_call`),
+with inputs to select targets. CI supports only Windows and Android; other Lime targets
+can still be built locally. `fail-fast` is off, so one broken target does not hide the other.
 
-| Job | Runner | Target |
-|---|---|---|
-| Windows | `windows-latest` | `windows` |
-| Linux | `ubuntu` | `linux` |
-| macOS (Intel) | `macos` | `mac` |
-| macOS (ARM) | `macos` | `mac` |
-| Android | `ubuntu-24.04` | `android` |
-| HTML5 | ubuntu | `html5` |
-| Neko | ubuntu | `neko` |
-| Flash | ubuntu | `flash` |
-| HashLink | ubuntu | `hl` |
-| AIR | ubuntu | `air` (downloads the AIR SDK) |
+| Job | Runner | Target | Artifact |
+|---|---|---|---|
+| Windows | `windows-latest` | `windows` | `windowsBuild` |
+| Android | `ubuntu-24.04` | `android` | `androidBuild` |
 
-Each job: checkout → target selection check → platform setup (Java 17, Android SDK/NDK,
-Linux packages) → restore haxelib/hxcpp caches → install `hmm.json` dependencies →
-configure Android / ensure the MSVC hxcpp checkout → compile hxcpp tools → restore the
-generated C++ cache → **compile** → save caches → publish artifacts.
+Each job: checkout → target selection check → platform setup (Java 17 and Android SDK/NDK
+for Android) → restore haxelib/hxcpp caches → install `hmm.json` dependencies → configure
+Android / ensure the MSVC hxcpp checkout → compile hxcpp tools → restore the generated
+C++ cache → **compile** → save caches → publish artifacts.
 
 Two steps worth knowing about:
 
 - **`Verify Android APK native libs`** — unzips the APK and fails the build if
   `libc++_shared.so` is missing for any ABI. This is the automated form of the
   [`dlopen` failure](../getting-started/troubleshooting.md#android-dlopen-failed-libc_sharedso-not-found).
+  The preceding manifest check also verifies Media3/SAF components and SDK levels.
 - **Cache handling** — both the haxelib/hxcpp tools and the generated C++ output are
   cached per target (`cache_name`), with proper `HXCPP_COMPILE_CACHE` detection. Cold
-  builds take 5–10 minutes; warm ones are far quicker.
+  builds take longer than warm ones.
 
-Artifacts are published per target (`windowsBuild`, `androidBuild`, …) from
-`build/release/<target>/bin`.
+Windows artifacts contain `build/release/windows/bin`. Android artifacts contain the
+APK under `build/release/android/bin/app/build/outputs/apk/debug`: the pinned Lime fork
+uses the debug flavor when no signing keystore is configured.
 
-## `mobile.yml` — Mobile
-
-A smaller matrix: Android on `ubuntu-24.04` and iOS on `macos-latest`
-(`lime build ios -nosign`). Runs on push and on demand.
+`mobile.yml` was removed because it duplicated this Android build. All Android CI and
+mobile releases now use `main.yml`, including its manifest and native-library checks.
 
 ## `mobile-release.yml` — Mobile Release
 
 Manual. Select an existing Phoenix release tag explicitly; the workflow validates the
-tag and build commit before attaching the APK. It does not use GitHub’s `latest`
-redirect, which excludes prereleases.
+tag and build commit before calling `main.yml` with `buildWindows: false` and
+`buildAndroid: true`. It attaches the resulting APK to the existing release. It does not
+use GitHub's `latest` redirect, which excludes prereleases.
 
 ## `release.yml` — Manual Release
 
-Manual, with `tag_name` and `prerelease` inputs. Validates the version, creates the tag if needed, builds and uploads to a draft
-release. GitHub-generated notes and the optional Markdown message become the
-release body; edit the release on GitHub to maintain its changelog.
+Manual, with `tag_name` and `prerelease` inputs. Validates the version, creates the tag if
+needed, calls `main.yml`, and uploads the Windows artifact to a draft release.
+GitHub-generated notes and the optional Markdown message become the release body; edit
+the release on GitHub to maintain its changelog.
+
+## `checks.yml` — Checks
+
+Runs the dependency-manifest check, Python regression tests, host-JVM Android tests,
+and isolated Haxe tests for layout, chart timing, mod imports, versions and updates.
+These checks do not require a full game build or the Android SDK.
+
+## `docs.yml` — Documentation
+
+Builds and checks the Docusaurus site, then publishes it to GitHub Pages for non-PR
+events. See [Documentation](./documentation.md).
+
+## `sparse-submodule.yml` — Sparse Submodule
+
+On changes to the submodule configuration, on demand, or as a reusable workflow, checks
+out only `fnf_030_ui` from `mods/psych-scripts`. It verifies the pinned commit and local
+mod link, then uploads the mod as an artifact. This keeps the full upstream repository
+out of the checkout.
 
 ## `nightly.yml`, `autotriage.yml`, `autolock.yml`
 
 Housekeeping: a comment on pull requests, label cleanup when issues are closed or
 commented on, and automatic closing of inactive issues.
-
-## `jekyll-gh-pages.yml`
-
-The original GitHub Pages workflow (currently only `workflow_dispatch` — its push trigger
-is commented out). The documentation site in `website/` has its own workflow,
-`docs.yml` — see [Documentation](./documentation.md).
 
 ## Dependabot
 
@@ -78,13 +86,16 @@ is commented out). The documentation site in `website/` has its own workflow,
 ## Reproducing CI locally
 
 ```bash
-# what CI effectively runs per target
-sh setup/unix.sh                       # or setup\windows.bat
-haxelib run lime build <target> -Dofficial
+# Install dependencies first: sh setup/unix.sh (or setup\windows.bat on Windows).
+haxelib run lime build windows -Dcommit
+haxelib run lime build android
+python3 tools/check_dependencies.py
+python3 -m unittest discover -s tests -p 'test_*.py' -v
 ```
 
-For the SWF targets add `-D disable-version-check` (and `-DAIR_SDK=<path>` for AIR).
 For Android make sure `lime setup android` has been run so `ANDROID_NDK_ROOT` resolves.
+Official builds use `-DofficialBuild`; see [Building](../getting-started/building.md) for
+the full setup and other locally supported targets.
 
 ## Versioning
 
