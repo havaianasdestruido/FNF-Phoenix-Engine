@@ -92,6 +92,9 @@ class PythonScript
 	public var lastCalledFunction:String = '';
 	public static var lastCalledScript:PythonScript = null;
 
+	/** Memory-ledger registration id for this interpreter's RAM (0 = unregistered). */
+	var vlogCodeId:Int = 0;
+
 	/** Runtime half of the softmod sandbox; set before Hython is created. */
 	public var sandboxed:Bool = false;
 	public var securityModName:String = null;
@@ -142,6 +145,9 @@ class PythonScript
 			return;
 		}
 
+		// Heap snapshot before the interpreter exists, so the ledger can estimate
+		// this script's footprint from the allocation delta around its load.
+		final vlogHeapBefore:Float = debug.Memory.gay();
 		interp = new Interp();
 		parser = new Parser();
 		if(sandboxed)
@@ -404,6 +410,13 @@ class PythonScript
 			return;
 		}
 
+		// Hython is pure Haxe, so its RAM lives in the managed heap and cannot be
+		// queried directly; estimate it from the load-time heap delta (floored by
+		// source size) and report it under mod code in the vlog.
+		final vlogHeapAfter:Float = debug.Memory.gay();
+		final vlogEstimate:Float = backend.MemoryLedger.estimateInterpBytes(code, vlogHeapBefore, vlogHeapAfter);
+		vlogCodeId = backend.MemoryLedger.registerCode(scriptName, 'python', modFolder, function():Float return vlogEstimate);
+
 		pyTrace('python file loaded succesfully: ' + scriptName, true);
 
 		call('onCreate', []);
@@ -501,6 +514,8 @@ class PythonScript
 	}
 
 	public function stop() {
+		backend.MemoryLedger.unregisterCode(vlogCodeId);
+		vlogCodeId = 0;
 		closed = true;
 		if (interp == null) return;
 		try {

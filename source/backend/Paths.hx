@@ -237,6 +237,7 @@ class Paths
       {
         destroyGraphic(currentTrackedAssets.get(key)); // get rid of the graphic
         currentTrackedAssets.remove(key); // and remove the key from local cache map
+        MemoryLedger.untrackAsset(key); // ...and from the per-area RAM ledger
         vlogFreed++;
       }
     }
@@ -271,6 +272,7 @@ class Paths
         // trace('test: ' + dumpExclusions, key);
         Assets.cache.clear(key);
         currentTrackedSounds.remove(key);
+        MemoryLedger.untrackAsset(key); // ...and from the per-area RAM ledger
         vlogFreedSounds++;
       }
     }
@@ -288,6 +290,9 @@ class Paths
     #if !flash
     if (graphic != null && graphic.bitmap != null && graphic.bitmap.__texture != null) graphic.bitmap.__texture.dispose();
     #end
+    // Safety net: drop the graphic from the per-area RAM ledger too (no-op when
+    // it was never tracked, e.g. engine-generated Flixel graphics).
+    if (graphic != null && graphic.key != null) MemoryLedger.untrackAsset(graphic.key);
     FlxG.bitmap.remove(graphic);
   }
 
@@ -640,9 +645,13 @@ class Paths
 
   public static function cacheBitmap(key:String, ?parentFolder:String = null, ?bitmap:BitmapData):FlxGraphic
   {
+    // Resolved path tells the memory ledger whether this is an engine or mod
+    // asset (and which mod). Falls back to the key when a bitmap is passed in.
+    var vlogSourcePath:String = key;
     if (bitmap == null)
     {
       var file:String = getPath(key, IMAGE, parentFolder, true);
+      vlogSourcePath = file;
       #if MODS_ALLOWED if (FileSystem.exists(file)) bitmap = BitmapData.fromFile(file);
       else #end if (OpenFlAssets.exists(file, IMAGE)) bitmap = OpenFlAssets.getBitmapData(file);
 
@@ -684,7 +693,9 @@ class Paths
 
     currentTrackedAssets.set(key, graph);
     localTrackedAssets.push(key);
+    MemoryLedger.trackImage(key, vlogSourcePath, bitmap, vlogGpuCached);
     VLog.assetCached('image', key, bitmap.width + 'x' + bitmap.height
+      + ' (~' + VLog.formatBytes(bitmap.width * bitmap.height * 4) + ')'
       + (vlogGpuCached ? ' | GPU texture (CPU pixels freed)' : ' | CPU bitmap in RAM'));
     return graph;
   }
@@ -958,6 +969,7 @@ class Paths
     {
       localTrackedAssets.push(file);
       currentTrackedSounds.set(file, sound);
+      MemoryLedger.trackSound(file, file, sound);
       VLog.assetCached('sound', file, 'decoded into RAM (tracked for cache clearing)');
       return sound;
     }
