@@ -139,12 +139,12 @@ class ModsMenuState extends MusicBeatState
 		var buttonWidth = Std.int(bgList.width);
 		var buttonHeight = 80;
 
-		buttonReload = new MenuButton(buttonX, bgList.y + bgList.height + 20, buttonWidth, buttonHeight, "RELOAD", reload);
+		buttonReload = new MenuButton(buttonX, bgList.y + bgList.height + 20, buttonWidth, buttonHeight, "RELOAD", null, reload);
 		add(buttonReload);
 		
 		var myY = buttonReload.y + buttonReload.bg.height + 20;
 
-		buttonEnableAll = new MenuButton(buttonX, myY, buttonWidth, buttonHeight, "ENABLE ALL", function() {
+		buttonEnableAll = new MenuButton(buttonX, myY, buttonWidth, buttonHeight, "ENABLE ALL", null, function() {
 			buttonEnableAll.ignoreCheck = false;
 			for (mod in modsGroup.members)
 			{
@@ -164,7 +164,7 @@ class ModsMenuState extends MusicBeatState
 		buttonEnableAll.focusChangeCallback = function(focus:Bool) if(!focus) buttonEnableAll.bg.color = FlxColor.GREEN;
 		add(buttonEnableAll);
 
-		buttonDisableAll = new MenuButton(buttonX, myY, buttonWidth, buttonHeight, "DISABLE ALL", function() {
+		buttonDisableAll = new MenuButton(buttonX, myY, buttonWidth, buttonHeight, "DISABLE ALL", null, function() {
 			buttonDisableAll.ignoreCheck = false;
 			for (mod in modsGroup.members)
 			{
@@ -255,19 +255,19 @@ class ModsMenuState extends MusicBeatState
 		var buttonsX = bgButtons.x + 320;
 		var buttonsY = bgButtons.y + 10;
 
-		var button = new MenuButton(buttonsX, buttonsY, 80, 80, Paths.image('modsMenuButtons', 'shared'), function() moveModToPosition(0), 54, 54); //Move to the top
+		var button = new MenuButton(buttonsX, buttonsY, 80, 80, null, Paths.image('modsMenuButtons', 'shared'), function() moveModToPosition(0), 54, 54); //Move to the top
 		button.icon.animation.add('icon', [0]);
 		button.icon.animation.play('icon', true);
 		add(button);
 		buttons.push(button);
 
-		var button = new MenuButton(buttonsX + 100, buttonsY, 80, 80, Paths.image('modsMenuButtons', 'shared'), function() moveModToPosition(curSelectedMod - 1), 54, 54); //Move up
+		var button = new MenuButton(buttonsX + 100, buttonsY, 80, 80, null, Paths.image('modsMenuButtons', 'shared'), function() moveModToPosition(curSelectedMod - 1), 54, 54); //Move up
 		button.icon.animation.add('icon', [1]);
 		button.icon.animation.play('icon', true);
 		add(button);
 		buttons.push(button);
 
-		var button = new MenuButton(buttonsX + 200, buttonsY, 80, 80, Paths.image('modsMenuButtons', 'shared'), function() moveModToPosition(curSelectedMod + 1), 54, 54); //Move down
+		var button = new MenuButton(buttonsX + 200, buttonsY, 80, 80, null, Paths.image('modsMenuButtons', 'shared'), function() moveModToPosition(curSelectedMod + 1), 54, 54); //Move down
 		button.icon.animation.add('icon', [2]);
 		button.icon.animation.play('icon', true);
 		add(button);
@@ -280,7 +280,7 @@ class ModsMenuState extends MusicBeatState
 		}
 		// not yet
 		/*
-		settingsButton = new MenuButton(buttonsX + 300, buttonsY, 80, 80, Paths.image('modsMenuButtons', 'shared'), function() //Settings
+		settingsButton = new MenuButton(buttonsX + 300, buttonsY, 80, 80, null, Paths.image('modsMenuButtons', 'shared'), function() //Settings
 		{
 			var curMod:ModItem = modsGroup.members[curSelectedMod];
 			if(curMod != null && curMod.settings != null && curMod.settings.length > 0)
@@ -298,7 +298,7 @@ class ModsMenuState extends MusicBeatState
 			settingsButton.enabled = false;
 		*/
 
-		var button = new MenuButton(buttonsX + 400, buttonsY, 80, 80, Paths.image('modsMenuButtons', 'shared'), function() //On/Off
+		var button = new MenuButton(buttonsX + 400, buttonsY, 80, 80, null, Paths.image('modsMenuButtons', 'shared'), function() //On/Off
 		{
 			var curMod:ModItem = modsGroup.members[curSelectedMod];
 			var mod:String = curMod.folder;

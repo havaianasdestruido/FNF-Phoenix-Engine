@@ -116,6 +116,20 @@ class TestArchiveSafety(unittest.TestCase):
         # A failed cleanup must never mask the original import error.
         self.assertIn("catch(cleanupError:Dynamic) {}", self.installer)
 
+    def test_menu_buttons_match_the_constructor_signature(self):
+        """`MenuButton.new(x, y, w, h, ?text, ?img, onClick, animW, animH)`.
+
+        Haxe accepts a non-unifying value in an optional slot at a call site,
+        so a callback passed one position early compiles and then silently
+        binds to `img` - the button never fires.
+        """
+        state = read("source/states/ModsMenuState.hx")
+        for label in ("RELOAD", "ENABLE ALL", "DISABLE ALL"):
+            self.assertIn('"%s", null,' % label, state, "text button must skip the image slot")
+        self.assertNotIn("80, Paths.image(", state, "icon button must pass null for the text slot")
+        self.assertIn("80, null, Paths.image(", state)
+        self.assertIn('"RELOAD", null, reload', state)
+
     def test_import_failures_are_shown_inside_the_menu(self):
         state = read("source/states/ModsMenuState.hx")
         flow = state[state.index("public function importModFromZip"):state.index("function showInstallStatus")]

@@ -21,6 +21,10 @@ oversized/expanded archives are rejected, content is extracted into a hidden
 staging folder so a rejected archive never leaves a half-installed (or enabled)
 mod, and an existing folder is only replaced after you confirm it. See
 source/mobile/files/ModZipInstaller.hx and source/backend/ModPathPolicy.hx.
+The Mods menu also builds again: every `MenuButton(...)` call now passes `null`
+for the unused text/image slot, so a callback can no longer land in the `img`
+parameter - `ModsMenuState.hx` failed to compile (`"RELOAD", reload`) whenever
+MODS_ALLOWED was on.
 
 1.50.1;
 

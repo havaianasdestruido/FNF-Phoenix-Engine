@@ -141,6 +141,8 @@ class ModPathPolicy
 	public static function isSafeFolderName(name:String):Bool
 	{
 		if(name == null || name.length == 0 || name.length > MAX_FOLDER_NAME_LENGTH) return false;
+		if(name != name.trim()) return false; // a folder never keeps stray whitespace
+		if(name.indexOf('/') >= 0 || name.indexOf('\\') >= 0) return false; // single segment only
 		if(name.startsWith('.')) return false; // staging/leftover folders are never mods
 		if(RESERVED_MOD_FOLDERS.contains(name.toLowerCase())) return false;
 		if(WINDOWS_DEVICE_NAMES.contains(baseName(name))) return false;
