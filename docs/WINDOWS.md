@@ -4,6 +4,10 @@ The `Windows` class exposes native desktop operations to Haxe. All setters
 return `true` only when the native request succeeds. Other targets return
 `false` without changing the game. These operations never change game graphics.
 
+`Windows` is a root typedef for `backend.Windows`, the implementation class.
+The split keeps hxcpp's generated `include/backend/Windows.h` away from the
+case-insensitive `windows.h` filename in the Windows SDK.
+
 ## Window ownership
 
 Native operations resolve the current Lime window by its title, SDL window

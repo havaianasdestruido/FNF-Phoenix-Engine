@@ -44,7 +44,7 @@ class NativeWindowTests(unittest.TestCase):
                                check=True, capture_output=True, text=True)
 
     def test_dark_mode_uses_dwm_and_updates_legacy_cache_only_on_success(self):
-        facade = (ROOT / "source/Windows.hx").read_text()
+        facade = (ROOT / "source/backend/Windows.hx").read_text()
         self.assertIn("WindowNative.setDarkMode(enabled)", facade)
         legacy = (ROOT / "source/backend/WindowColorMode.hx").read_text()
         self.assertIn("if (Windows.setDarkMode(isDark)) isDarkMode = isDark", legacy)
@@ -91,7 +91,7 @@ class NativeWindowTests(unittest.TestCase):
         fallback_sigs = re.findall(pattern, fallback)
         self.assertEqual(len(native_sigs), len({s[0] for s in native_sigs}))
         self.assertEqual(native_sigs, fallback_sigs)
-        facade = (ROOT / "source/Windows.hx").read_text()
+        facade = (ROOT / "source/backend/Windows.hx").read_text()
         self.assertIn("((color & 0xFF) << 16) | (color & 0xFF00) | ((color >> 16) & 0xFF)", facade)
 
     def test_legacy_backends_use_shared_lookup(self):
