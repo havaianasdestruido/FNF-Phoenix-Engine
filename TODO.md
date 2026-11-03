@@ -350,6 +350,21 @@ Phoenix's identity is "runs on weak devices", yet configuration is manual: `Clie
 - **[P3] Per-mod "why did it break?" report.** In the mods menu, show last load error, invalid `pack.json`, blocked script rule (§6 sandbox) and missing-asset count per mod, instead of requiring a log read.
 - **[P3] Deep-linkable diagnostics.** Once the §11 URI routing layer lands, add a read-only `phoenix://diagnostics` route so support can ask a user to tap one link and screenshot the result.
 
+### OPT-OUT BY DEFAULT ANALYTICS
+
+Currently, its hard to tell if anyone is having issues on Phoenix Engine, i'm developing this engine for months now and i've never got ANY issue on this github repo other than the ones Arena.AI generated for me. So, by making this optional analytics system, anyone can help me discovering bugs as fast as possible.
+
+It would collect **ONLY**
+
+- Device info (GPU/CPU specs, needed to know if someone is playing on a laggy phone or high-budget ultra gamer pc)
+- Amount of mods loaded (so its easier to tell if its a problem with the mods itself)
+- - _AND if they use the ultra mega hyper experimental WIP instable Python softmodding support_
+- Crash logs
+- Errors inside MODS scripts (so its easier to know if Phoenix engine is incompatible if some Psych engine mod)
+- - _AND if they use the ultra mega hyper experimental WIP instable Python softmodding support_
+
+Please keep in mind that im not evil and i will not steal your data, i'm just trying to improve my game.
+
 ## 20. TESTING & RELEASE VERIFICATION
 
 There is real infrastructure to extend: `tests/test_*.py` (static/source guards, run in `checks.yml`), `tests/haxe/*Spec.hx` (layout, chart timing, mod security, pooling) and host-JVM Java tests for the Media3 bridge and SAF policy. There is no compatibility corpus, no save/chart round-trip guarantee and no performance gate.
@@ -361,6 +376,11 @@ There is real infrastructure to extend: `tests/test_*.py` (static/source guards,
 - **[P3] First-run smoke test.** Boot with an empty save path, assert Title is reached, the save is created, no mod loads, and `flashing == null` triggers `FlashingState`. Run it on the Android emulator job from §10 as well as desktop CI.
 - **[P3] Performance baseline gate.** Keep a `FrameProfiler` export for a fixed chart/build and fail when average or 1% low regress past a threshold, making the low-end promise testable instead of anecdotal.
 
+## OTHER
+
+### Port other Psych Engine fork features
+
+Read `docs/research/psych-fork-engine-changes.md`.
 ---
 
 ## TOP 5 (do these first)
