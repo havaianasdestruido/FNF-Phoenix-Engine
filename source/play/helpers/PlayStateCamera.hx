@@ -19,19 +19,19 @@ class PlayStateCamera
 		if (state.gf != null && PlayState.SONG.notes[state.curSection].gfSection)
 		{
 			moveCamera(state, 'gf');
-			state.callOnLuas('onMoveCamera', ['gf']);
+			if (state.hasActiveScripts()) state.callOnLuas('onMoveCamera', ['gf']);
 			return;
 		}
 
 		if (!PlayState.SONG.notes[state.curSection].mustHitSection)
 		{
 			moveCamera(state, 'dad');
-			state.callOnLuas('onMoveCamera', ['dad']);
+			if (state.hasActiveScripts()) state.callOnLuas('onMoveCamera', ['dad']);
 		}
 		else
 		{
 			moveCamera(state, 'bf');
-			state.callOnLuas('onMoveCamera', ['boyfriend']);
+			if (state.hasActiveScripts()) state.callOnLuas('onMoveCamera', ['boyfriend']);
 		}
 	}
 

@@ -2261,7 +2261,7 @@ class PlayState extends MusicBeatState
 
 		if (controls.PAUSE && startedCountdown && canPause && !heyStopTrying)
 		{
-			final ret:Dynamic = callOnLuas('onPause', [], false);
+			final ret:Dynamic = callOnLuas('onPause', null, false);
 			#if (LUA_ALLOWED || PYTHON_ALLOWED)
 			if(ret != FunkinLua.Function_Stop)
 				openPauseMenu();
@@ -2621,7 +2621,7 @@ class PlayState extends MusicBeatState
 	function doDeathCheck(?skipHealthCheck:Bool = false) {
 		if ((skipHealthCheck || health <= 0) && !practiceMode && !isDead)
 		{
-			var ret:Dynamic = callOnLuas('onGameOver', [], false);
+			var ret:Dynamic = callOnLuas('onGameOver', null, false);
 			stagesFunc(function(stage:BaseStage) stage.onGameOver());
 			#if (LUA_ALLOWED || PYTHON_ALLOWED)
 			if(ret != FunkinLua.Function_Stop) {

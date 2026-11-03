@@ -43,12 +43,12 @@ class PlayStateCountdown
 	public static function startCountdown(state:PlayState):Void
 	{
 		if(state.startedCountdown) {
-			state.callOnLuas('onStartCountdown');
+			if (state.hasActiveScripts()) state.callOnLuas('onStartCountdown');
 			return;
 		}
 
 		state.inCutscene = false;
-		var ret:Dynamic = state.callOnLuas('onStartCountdown');
+		var ret:Dynamic = state.hasActiveScripts() ? state.callOnLuas('onStartCountdown') : null;
 
 		if (PlayState.SONG.song.toLowerCase() == 'anti-cheat-song')
 		{
@@ -84,7 +84,7 @@ class PlayStateCountdown
 			state.startedCountdown = state.mobileControls.visible = true;
 			Conductor.songPosition = -Conductor.crochet * 5;
 			state.setOnLuas('startedCountdown', true);
-			state.callOnLuas('onCountdownStarted');
+			if (state.hasActiveScripts()) state.callOnLuas('onCountdownStarted');
 
 			var swagCounter:Int = 0;
 
@@ -198,7 +198,7 @@ class PlayStateCountdown
 					}
 				});
 				state.stagesFunc(function(stage:BaseStage) stage.countdownTick(tick, swagCounter));
-				state.callOnLuas('onCountdownTick', [swagCounter]);
+				if (state.hasActiveScripts()) state.callOnLuas('onCountdownTick', [swagCounter]);
 
 				swagCounter += 1;
 			}, 5);
