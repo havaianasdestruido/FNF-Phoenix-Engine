@@ -154,15 +154,13 @@ The remaining desktop/AIR candidates from the guard audit are now either narrowe
 
 ### FILES / MODS
 
-- **[P2] Install a mod from a `.zip`.** `AndroidStorage` knows the `zip` MIME type (`AndroidStorage.hx:232`) but nothing extracts it — `haxe.zip` is never used in `source/`. Add "Import mod (.zip)" to the SAF picker, extract into `mods/<folder>/`, reject traversal/absolute entries (same rules as §6 #65), validate `pack.json` before enabling, then reload the list. This is the only practical install path on a phone without a file manager.
-
 ### INTENTS / EXTERNAL INTEGRATION
 
 - **[P3] Phoenix URI / deep-link system** — PARTIAL: Android registers the `phoenix://` scheme and forwards intents (`PhoenixCore.handleNewIntent` → `AndroidIntents.onDeepLink`); per-screen routing UI still to do — Add a platform-independent URI routing system for directly opening songs, charts, mods, replays, menus, and other engine resources (e.g. `phoenix://song/bopeebo?difficulty=hard`, `phoenix://mod/whitty/song/lo-fight`, `phoenix://screen/freeplay`). Android should register the `phoenix://` scheme and forward incoming intents to Haxe; expose parsed URI data to Haxe/Lua/HScript and keep the system extensible for other platforms. ([#93](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/issues/93))
 
 ### NOTIFICATIONS
 
-- **[P3] Finish or remove `AndroidNotification`.** It exposes a channel, `requestPermission()` for Android 13+ and `notify()/cancel()`, but no Haxe caller posts anything (only the Media3 notification is live). Either wire it to opt-in events — "chart backup saved", "crash log exported", "update available" (§12.6 auto-updater is still a non-goal) — or delete it as dead code alongside §1's Flash/AIR cleanup.
+- **[P3] Finish or remove `AndroidNotification`.** Done: wired to opt-in events instead of being deleted. `notifyEvent(id, title, text)` posts only when the new `androidNotifications` pref (Options → Mobile Options → "Event Notifications", default off) is enabled; toggling it on requests POST_NOTIFICATIONS on Android 13+ (never unattended at startup). Events wired: "chart backup saved" (`ChartingSaveLoad.saveLevel` autosave, fixed `ID_CHART_BACKUP`) and "crash log saved" (`CrashHandler`, fixed `ID_CRASH_LOG`); both reuse a fixed id with `setOnlyAlertOnce` so repeats update instead of stacking. "Update available" stays unwired because the §12.6 auto-updater is still a non-goal.
 
 ### DISCORD / EXTERNAL SERVICES
 

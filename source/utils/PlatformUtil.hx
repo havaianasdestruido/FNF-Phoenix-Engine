@@ -1,14 +1,14 @@
 package utils;
 
-/*
+    /*
     VS DAVE WINDOWS/LINUX/MACOS UTIL
     You can use this code while you give credit to it.
     65% of the code written by chromasen
     35% of the code written by Erizur (cross-platform and extra windows utils)
 
     Windows: You need the Windows SDK (any version) to compile.
-    Linux: TODO
-    macOS: TODO
+    Linux: Native zenity/kdialog implementation via phoenixShowLinuxDesktopDialog
+    macOS: Native osascript implementation via phoenixShowMacDesktopDialog
 
     credits to the vs dave team right here uh yeah i love ya guys
 */
@@ -35,6 +35,13 @@ class PlatformUtil
     /** Shows the native crash dialog available on the current desktop platform. */
     static public function sendFakeMsgBox(desc:String = "", res:Int = 0)
     {
+        #if windows
+        @:functionCode('\n            LPCSTR lwDesc = desc.c_str();\n            res = MessageBox(NULL, lwDesc, NULL, MB_OK);\n        ')
+        #elseif linux
+        @:functionCode('\n            res = phoenixShowLinuxDesktopDialog(std::string(desc.c_str()));\n        ')
+        #elseif mac
+        @:functionCode('\n            res = phoenixShowMacDesktopDialog(std::string(desc.c_str()));\n        ')
+        #end
         return PlatformUtilNative.sendFakeMsgBoxNative(desc, res);
     }
 

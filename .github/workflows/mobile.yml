@@ -1,5 +1,7 @@
 name: Mobile
 
+# CI builds and tests Android only; iOS is no longer a CI target.
+
 on:
   push:
     branches: [main, bleeding]
@@ -11,18 +13,6 @@ on:
         required: false
         type: boolean
         default: true
-
-      buildIOS:
-        description: "Build iOS"
-        required: false
-        type: boolean
-        default: false
-
-      buildAllTargets:
-        description: "Build all mobile targets"
-        required: false
-        type: boolean
-        default: false
 
   workflow_call:
     inputs:
@@ -36,18 +26,6 @@ on:
         required: false
         type: boolean
         default: true
-
-      buildIOS:
-        description: "Build iOS"
-        required: false
-        type: boolean
-        default: false
-
-      buildAllTargets:
-        description: "Build all mobile targets"
-        required: false
-        type: boolean
-        default: false
 
 
 env:
@@ -69,9 +47,6 @@ jobs:
           - os: ubuntu-24.04
             target: android
 
-          - os: macos-latest
-            target: ios
-
     steps:
 
       # ==========================================
@@ -89,29 +64,16 @@ jobs:
         shell: bash
         run: |
           BUILD_ANDROID="${{ inputs.buildAndroid }}"
-          BUILD_IOS="${{ inputs.buildIOS }}"
-          BUILD_ALL="${{ inputs.buildAllTargets }}"
 
           # Push events don't have workflow_dispatch inputs.
           # Default to Android for normal pushes.
           if [ "${{ github.event_name }}" = "push" ]; then
             BUILD_ANDROID="true"
-            BUILD_IOS="false"
-            BUILD_ALL="false"
-          fi
-
-          if [ "$BUILD_ALL" = "true" ]; then
-            echo "enabled=true" >> "$GITHUB_OUTPUT"
-            echo "All mobile targets enabled."
-            exit 0
           fi
 
           case "${{ matrix.target }}" in
             android)
               ENABLED="$BUILD_ANDROID"
-              ;;
-            ios)
-              ENABLED="$BUILD_IOS"
               ;;
             *)
               ENABLED="false"
@@ -309,50 +271,6 @@ jobs:
 
 
       # ==========================================
-      # Compile iOS
-      # ==========================================
-      - name: Compile (iOS)
-        if: steps.target-selection.outputs.enabled == 'true' && matrix.target == 'ios'
-        shell: bash
-        run: |
-          set -eux
-
-          if [ -n "${{ inputs.buildFlags }}" ]; then
-            haxelib run lime build ios \
-              -nosign \
-              -D "${{ inputs.buildFlags }}"
-          else
-            haxelib run lime build ios -nosign
-          fi
-
-
-      # ==========================================
-      # Make IPA
-      # ==========================================
-      - name: Make IPA
-        if: steps.target-selection.outputs.enabled == 'true' && matrix.target == 'ios'
-        shell: bash
-        run: |
-          set -eux
-
-          brew install ldid
-
-          cd build/release/ios/build/Release-iphoneos/FNF-Phoenix-Engine.app
-
-          ldid \
-            -S../../../FNF-Phoenix-Engine/FNF-Phoenix-Engine.entitlements \
-            FNF-Phoenix-Engine || true
-
-          cd ..
-
-          mkdir -p Payload
-
-          mv FNF-Phoenix-Engine.app Payload
-
-          zip -r FNF-Phoenix-Engine.ipa Payload
-
-
-      # ==========================================
       # Upload Android artifact
       # ==========================================
       - name: Upload Artifact (Android)
@@ -363,18 +281,4 @@ jobs:
           # `FNF-Phoenix-Engine-debug.apk`: this lime fork only runs Gradle
           # `assembleRelease` when a keystore is configured, and CI has none.
           path: build/release/android/bin/app/build/outputs/apk/debug/*.apk
-          if-no-files-found: error
-
-
-      # ==========================================
-      # Upload iOS artifact
-      # ==========================================
-      - name: Upload Artifact (iOS)
-        if: steps.target-selection.outputs.enabled == 'true' && matrix.target == 'ios'
-        uses: actions/upload-artifact@v4
-        with:
-          name: iOSBuild
-          path: |
-            FNF-Phoenix-Engine.ipa
-            build/release/ios/build/Release-iphoneos/*.ipa
           if-no-files-found: error

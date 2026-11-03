@@ -266,6 +266,7 @@ class TestAndroidDocumentsProvider(unittest.TestCase):
         main = (ROOT / "source/Main.hx").read_text(encoding="utf-8")
         paths = (ROOT / "source/backend/Paths.hx").read_text(encoding="utf-8")
         crashes = (ROOT / "source/backend/CrashHandler.hx").read_text(encoding="utf-8")
+        vlog = (ROOT / "source/backend/VLog.hx").read_text(encoding="utf-8")
 
         core = (ROOT / "source/android/src/quack/fnf/phoenix/android/PhoenixCore.java").read_text(encoding="utf-8")
         self.assertIn("'quack.fnf.phoenix.android.PhoenixCore', 'getExternalFilesDir'", storage)
@@ -277,8 +278,14 @@ class TestAndroidDocumentsProvider(unittest.TestCase):
         self.assertIn('path = "crash/FNF-Phoenix-Engine_"', crashes)
         self.assertIn('new File(storageDirectory, ROOT_MODS)', self.provider)
         self.assertIn('new File(storageDirectory, ROOT_CRASH)', self.provider)
+        self.assertIn('new File(storageDirectory, ROOT_VLOG)', self.provider)
         self.assertIn('"mods"', self.provider)
         self.assertIn('"crash"', self.provider)
+        self.assertIn('"vlog"', self.provider)
+        # The VLogs root must back onto the exact directory backend.VLog
+        # writes, relative to the working directory StorageUtil sets.
+        self.assertIn('public static inline var DIR:String = "vlog";', vlog)
+        self.assertIn('public static inline var FILE:String = "vlog/log.txt";', vlog)
         self.assertNotIn('new File(storageDirectory, "logs")', self.provider)
 
     def test_mods_root_is_the_only_writable_root_and_exists_from_startup(self):
@@ -298,10 +305,12 @@ class TestAndroidDocumentsProvider(unittest.TestCase):
             [
                 ("ROOT_MODS", "ROOT_MODS", "Mods", "User mods", "true"),
                 ("ROOT_CRASH", "ROOT_CRASH", "Crash Logs", "Phoenix Engine crash reports", "false"),
+                ("ROOT_VLOG", "ROOT_VLOG", "VLogs", "Phoenix Engine verbose logs", "false"),
             ],
-            "exactly the Mods (writable) and Crash Logs (read-only) roots are exposed",
+            "exactly the Mods (writable) and Crash Logs / VLogs (read-only) roots are exposed",
         )
         self.assertIn('private static final String ROOT_MODS = "mods";', self.provider)
+        self.assertIn('private static final String ROOT_VLOG = "vlog";', self.provider)
 
         storage = (ROOT / "source/mobile/StorageUtil.hx").read_text(encoding="utf-8")
         self.assertIn("#if android ensureModsDirectory(); #end", storage)
@@ -326,6 +335,7 @@ class TestAndroidDocumentsProvider(unittest.TestCase):
     def test_root_access_policy_and_failures_are_explicit(self):
         self.assertIn('"User mods", true)', self.provider)
         self.assertIn('"Phoenix Engine crash reports", false)', self.provider)
+        self.assertIn('"Phoenix Engine verbose logs", false)', self.provider)
         self.assertIn('if (write && !canWriteToRoot(document.root))', self.provider)
         self.assertIn('if (document.rootDocument || !canWriteToRoot(document.root))', self.provider)
         self.assertIn('if (!canWriteToRoot(parent.root))', self.provider)

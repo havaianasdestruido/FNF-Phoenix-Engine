@@ -156,21 +156,25 @@ the define omit it rather than silently enabling a new exported component.
 The provider roots resolve from the same `Context.getExternalFilesDir(null)`
 directory that `mobile.StorageUtil.getStorageDirectory()` returns. `Main` sets
 that directory as the working directory, where `Paths.mods()` resolves to
-`mods/` and `CrashHandler` writes reports under `crash/`:
+`mods/`, `CrashHandler` writes reports under `crash/` and `backend.VLog`
+writes the verbose session log to `vlog/log.txt`:
 
 | SAF root | Relative directory | Access |
 | --- | --- | --- |
 | **Mods** | `mods/` | Read/write; create folders/files, rename files, delete files/subfolders |
 | **Crash Logs** | `crash/` | Read-only; copying reports out of the game |
+| **VLogs** | `vlog/` | Read-only; copying the verbose `log.txt` out of the game |
 
-Only these two roots are exposed. `mobile.StorageUtil.initStorageDirectory()`
+Only these three roots are exposed. `mobile.StorageUtil.initStorageDirectory()`
 creates `mods/` during Android startup, so the Mods root backs onto a real,
 writable directory from the first launch; if that creation fails startup still
 continues, because the engine treats a missing mods directory as "no mods
-installed". `crash/` is created by `CrashHandler` when it writes a report.
-Browsing a root never creates its directory, and a root whose directory is
-missing simply lists no children. If `getExternalFilesDir(null)` returns no
-directory, or Android reports its volume as unavailable, no roots are returned.
+installed". `crash/` is created by `CrashHandler` when it writes a report, and
+`vlog/` is created by `backend.VLog.init()` during every launch, so the VLogs
+root backs onto a real directory from the first launch. Browsing a root never
+creates its directory, and a root whose directory is missing simply lists no
+children. If `getExternalFilesDir(null)` returns no directory, or Android
+reports its volume as unavailable, no roots are returned.
 Mounted read-only storage remains browsable but cannot be written. If storage
 becomes unavailable later, document operations fail with
 `FileNotFoundException`. Static traversal and symlink escapes are rejected,
@@ -200,7 +204,7 @@ a no-op outside `#if android` unless noted.
 | `AndroidHardwareInput` | Physical keys | Volume-key interception (`enableVolumeKeys()`/`disableVolumeKeys()`), `onKey(keyCode, down)` signal |
 | `AndroidHaptics` | Vibration | `vibrate(ms)`, `vibratePattern(pattern, repeat)`, `cancel()` |
 | `AndroidIntents` | System intents | `openUrl`, `openSettings`, `openFile`, `shareFile`, `shareText`, `viewContentUri`, `onDeepLink` signal (`phoenix://...`) — subscribe via `subscribeDeepLink(cb)` so a buffered cold-start link is confirmed delivered |
-| `AndroidNotification` | Notifications | `notify(id, title, text)`, `cancel(id)`, `requestPermission()` (API 33+) |
+| `AndroidNotification` | Notifications | `notify(id, title, text)`, `notifyEvent(id, title, text)` (opt-in), `cancel(id)`, `requestPermission()` (API 33+) |
 | `AndroidStorage` | SAF / content URIs | `openDocument`, `createDocument`, `openDocumentTree`, `readUriBytes/Text`, `writeUriBytes/Text`, `importUri`, `exportFileToUri`, `persistUriPermission`, `extensionToMime` |
 | `AndroidDiscord` | Presence stand-in | No-op on Android: keeps `DiscordClient` platform-agnostic without ever touching the media session, which is owned by `PlayStateAndroidMedia` (Discord RPC is desktop-only) |
 
@@ -209,6 +213,26 @@ Common Android SDK classes (`android.Permissions`, `android.Settings`,
 are provided by the Lime fork itself — the engine uses those externs
 directly instead of shipping its own copies, which would shadow Lime's
 and break `lime.system.System` on Android.
+
+### Notifications
+
+The Media3 MediaStyle notification (owned by `AndroidMedia`) is the only
+always-on notification. Simple status notifications go through
+`AndroidNotification` and are strictly opt-in: `notifyEvent(...)` no-ops
+unless `ClientPrefs.androidNotifications` is enabled (Options -> Mobile
+Options -> "Event Notifications", which also requests POST_NOTIFICATIONS on
+Android 13+ when toggled on — never unattended at startup). Wired events:
+
+- **Chart backup saved** — `editors.charting.ChartingSaveLoad.saveLevel`
+  autosave path, posted with the fixed `ID_CHART_BACKUP`.
+- **Crash log saved** — `backend.CrashHandler` after writing `crash/*.log`,
+  posted with the fixed `ID_CRASH_LOG` (wrapped so it can never interfere
+  with crash handling).
+
+Both use fixed ids and the native side sets `setOnlyAlertOnce(true)`, so
+repeated events (e.g. the 4-minute chart autosave) update the existing
+notification instead of re-alerting or stacking. "Update available" is
+deliberately not wired: the in-app auto-updater is still a non-goal (§12.6).
 
 ### Gameplay integration (`play.helpers.PlayStateAndroidMedia`)
 
@@ -271,8 +295,45 @@ API: `openFile(onResult, ?extensions, ?title)`,
 
 Wired into: chart import (`ChartingSaveLoad.promptBackup`), chart &
 event export (`saveLevel`/`saveEvents`), character import (the
-**Import Char** button in `CharacterEditorState`) and character export.
-Desktop keeps the traditional `FileReference` download flow.
+**Import Char** button in `CharacterEditorState`), character export and the
+mods menu's **IMPORT .ZIP** action. Desktop keeps the traditional
+`FileReference` download flow.
+
+### Installing a mod from a `.zip` (`mobile.files.ModZipInstaller`)
+
+The mods menu (`ModsMenuState`) offers **IMPORT .ZIP** - in the button strip
+next to the mod-order buttons, and as the primary button on the "no mods
+installed" screen (where it is also bound to accept/A). It opens the same
+cross-platform picker filtered to `application/zip`, reads the archive bytes,
+and hands them to `mobile.files.ModZipInstaller`, then enables the new folder
+with `Mods.registerInstalledMod()` and reloads the menu on it. On Android this
+is the only practical install path without a file manager.
+
+`backend.ModPathPolicy` owns the rules every entry must pass before anything is
+written: no absolute paths (`/…`, `C:…`, `//server`), no `..` segments, no
+NUL/control or Windows-illegal characters, no Windows device names, and bounded
+length/depth. `ModZipInstaller` then:
+
+- parses the zip **central directory** and trusts it over local headers (a
+  local name that disagrees rejects the archive) so entry names and sizes are
+  known before decompression;
+- rejects encrypted entries, symbolic links and compression methods other than
+  stored/deflate, and caps archive size, per-entry size, total expanded size and
+  entry count (zip-bomb limits);
+- finds the mod root (`pack.json` at the root, or inside a single top-level
+  folder, ignoring macOS `__MACOSX`/`._*` metadata) and derives a safe folder
+  name from it (or from the picked file name);
+- extracts into a hidden `mods/.phoenix-import-*` staging folder, validates
+  `pack.json` there, and only then swaps it into `mods/<folder>/`. A rejected or
+  interrupted import leaves no partial mod behind, and staging folders are never
+  listed as mods;
+- refuses to overwrite an installed folder unless the caller asks to replace it;
+  the menu asks with a `Prompt` before doing so.
+
+Regression checks: `tests/haxe/run-mod-zip.sh` (interpreter spec for the path
+policy, central-directory parser and extractor) and
+`python3 -m unittest discover -s tests -p 'test_mod_zip_import.py' -v` (wiring,
+security rules and docs).
 
 ### System-visible app directories (`PhoenixDocumentsProvider`)
 
@@ -286,6 +347,7 @@ exposes only these roots from `Context.getExternalFilesDir(null)`:
 | SAF root | Backing path | Access |
 | --- | --- | --- |
 | **Crash Logs** | `crash/` | Read-only, for copying reports out of the game |
+| **VLogs** | `vlog/` | Read-only, for copying the verbose `log.txt` out of the game |
 | **Mods** | `mods/` | Read/write; create folders/files, rename files, and delete files or subfolders |
 
 Document IDs are opaque, root-scoped path IDs. Decoded traversal, unsafe names,

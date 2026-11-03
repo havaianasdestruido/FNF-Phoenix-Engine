@@ -143,7 +143,7 @@ class PlayStatePlayback
 		}
 		#end
 		state.setOnLuas('songLength', state.songLength);
-		state.callOnLuas('onSongStart');
+		if (state.hasActiveScripts()) state.callOnLuas('onSongStart');
 	}
 
 	public static function lerpSongSpeed(state:PlayState, num:Float, time:Float):Void
@@ -379,7 +379,7 @@ class PlayStatePlayback
 		state.checkForAchievement([weekNoMiss, 'ur_bad', 'ur_good', 'hype', 'two_keys', 'toastie', 'debugger']);
 		#end
 
-		var ret:Dynamic = state.callOnLuas('onEndSong', [], true);
+		var ret:Dynamic = state.hasActiveScripts() ? state.callOnLuas('onEndSong', null, true) : null;
 		#if LUA_ALLOWED
 		if(ret != FunkinLua.Function_Stop && !state.transitioning) {
 		#else

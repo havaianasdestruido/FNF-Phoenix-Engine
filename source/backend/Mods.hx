@@ -6,23 +6,13 @@ import haxe.Json;
 class Mods
 {
 	static public var currentModDirectory:String = '';
-	public static var ignoreModFolders:Array<String> = [
-		'characters',
-		'custom_events',
-		'custom_notetypes',
-		'data',
-		'songs',
-		'music',
-		'sounds',
-		'shaders',
-		'videos',
-		'images',
-		'stages',
-		'weeks',
-		'fonts',
-		'scripts',
-		'achievements'
-	];
+
+	/**
+	 * Folders under `mods/` that hold loose shared assets instead of a mod.
+	 * Kept in sync with `ModPathPolicy.RESERVED_MOD_FOLDERS`, which the mod
+	 * importer also uses to reject colliding folder names.
+	 */
+	public static var ignoreModFolders:Array<String> = ModPathPolicy.RESERVED_MOD_FOLDERS.copy();
 
 	private static var globalMods:Array<String> = [];
 
@@ -74,6 +64,10 @@ class Mods
 		if(FileSystem.exists(modsFolder)) {
 			for (folder in FileSystem.readDirectory(modsFolder))
 			{
+				// Dot folders are engine scratch space (see ModZipInstaller's
+				// staging directory) and are never installable mods.
+				if (folder.startsWith('.')) continue;
+
 				var path = haxe.io.Path.join([modsFolder, folder]);
 				if (FileSystem.isDirectory(path) && !ignoreModFolders.contains(folder.toLowerCase()) && !list.contains(folder))
 					list.push(folder);
@@ -191,7 +185,64 @@ class Mods
 		#end
 		return list;
 	}
-	
+
+	/**
+	 * Enables a freshly imported mod folder in `modsList.txt`.
+	 *
+	 * The list keeps its current order: an existing entry only gets its enabled
+	 * flag updated, and a new folder is appended. The cached list is invalidated
+	 * so the next `parseList()` rescans the `mods/` folder.
+	 *
+	 * Used by the "Import mod (.zip)" flow in `ModsMenuState`; the name must
+	 * already be sanitized (`ModPathPolicy`).
+	 *
+	 * @param folder folder name under `mods/`
+	 * @param enabled whether the mod starts enabled
+	 * @return false when the name is unsafe or `modsList.txt` could not be written
+	 */
+	public static function registerInstalledMod(folder:String, enabled:Bool = true):Bool
+	{
+		if(!ModPathPolicy.isSafeFolderName(folder)) return false;
+
+		#if MODS_ALLOWED
+		var flag:String = enabled ? '1' : '0';
+		try {
+			var lines:Array<String> = [];
+			var found:Bool = false;
+			var existing:Array<String> = [];
+			try {
+				existing = CoolUtil.coolTextFile('modsList.txt');
+			} catch(e:Dynamic) {}
+
+			for (line in existing)
+			{
+				var entry:String = line.trim();
+				if(entry.length < 1) continue;
+
+				var separator:Int = entry.indexOf('|');
+				var name:String = separator < 0 ? entry : entry.substr(0, separator).trim();
+				if(name == folder)
+				{
+					lines.push(folder + '|' + flag);
+					found = true;
+				}
+				else lines.push(entry);
+			}
+
+			if(!found) lines.push(folder + '|' + flag);
+
+			File.saveContent('modsList.txt', lines.join('\n'));
+			updatedOnState = false;
+			return true;
+		} catch(e:Dynamic) {
+			trace('Could not enable the installed mod "$folder": $e');
+			return false;
+		}
+		#else
+		return false;
+		#end
+	}
+
 	private static function updateModList()
 	{
 		#if MODS_ALLOWED
@@ -203,7 +254,8 @@ class Mods
 			{
 				var dat:Array<String> = mod.split("|");
 				var folder:String = dat[0];
-				if(folder.trim().length > 0 && FileSystem.exists(Paths.mods(folder)) && FileSystem.isDirectory(Paths.mods(folder)) && !added.contains(folder))
+				if(folder.trim().length > 0 && !folder.startsWith('.') && FileSystem.exists(Paths.mods(folder))
+					&& FileSystem.isDirectory(Paths.mods(folder)) && !added.contains(folder))
 				{
 					added.push(folder);
 					list.push([folder, (dat[1] == "1")]);

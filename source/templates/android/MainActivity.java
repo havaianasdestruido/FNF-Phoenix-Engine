@@ -16,7 +16,8 @@ import quack.fnf.phoenix.android.PhoenixInput;
  *
  * Extends Lime's GameActivity with the small bits of behavior that cannot
  * live in Extension subclasses: fresh intents (deep links / shares) and
- * hardware key interception (volume buttons as game input).
+ * hardware key interception (volume buttons as game input), and the
+ * immersive/cutout display policy around Lime/SDL window setup.
  */
 public class MainActivity extends org.haxe.lime.GameActivity implements PhoenixDisplay.CutoutHost
 {
@@ -37,7 +38,7 @@ public class MainActivity extends org.haxe.lime.GameActivity implements PhoenixD
 			ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
 		super.setContentView(cutoutLayout);
 		// Also handle content replacement while the Activity is already running.
-		PhoenixDisplay.applyCutoutToActivity(this);
+		PhoenixDisplay.applyDisplayToActivity(this);
 	}
 
 	@Override public void setRespectCutoutInsets(boolean respect)
@@ -51,14 +52,14 @@ public class MainActivity extends org.haxe.lime.GameActivity implements PhoenixD
 	@Override protected void onResume()
 	{
 		super.onResume();
-		PhoenixDisplay.applyCutoutToActivity(this);
+		PhoenixDisplay.applyDisplayToActivity(this);
 	}
 
 	@Override public void onWindowFocusChanged(boolean hasFocus)
 	{
 		super.onWindowFocusChanged(hasFocus);
 		if (hasFocus)
-			PhoenixDisplay.applyCutoutToActivity(this);
+			PhoenixDisplay.applyDisplayToActivity(this);
 	}
 
 	@Override protected void onDestroy()
@@ -69,8 +70,11 @@ public class MainActivity extends org.haxe.lime.GameActivity implements PhoenixD
 
 	@Override protected void onCreate(Bundle state)
 	{
+		// Read the native mirror before SDL/Lime creates the first content view.
+		// ClientPrefs.loadPrefs() later reconciles it with the authoritative save.
+		PhoenixDisplay.restoreCutoutMode(this);
 		super.onCreate(state);
-		PhoenixDisplay.applyCutoutToActivity(this);
+		PhoenixDisplay.applyDisplayToActivity(this);
 
 		// Surface the launch intent too, so a phoenix:// deep link that
 		// started the app cold reaches the Haxe side.

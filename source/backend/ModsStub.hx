@@ -25,6 +25,8 @@ class ModsStub
 	public static var updatedOnState:Bool = false;
 	inline public static function parseList():ModsList
 		return {enabled: [], disabled: [], all: []};
+	inline public static function registerInstalledMod(folder:String, enabled:Bool = true):Bool
+		return false;
 	inline public static function loadTopMod():Void {}
 }
 

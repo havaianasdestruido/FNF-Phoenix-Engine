@@ -9,7 +9,6 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Display;
 import android.view.DisplayCutout;
-import android.view.Surface;
 import android.view.View;
 import android.view.WindowInsets;
 import android.view.WindowInsetsController;
@@ -27,7 +26,30 @@ public class PhoenixDisplay extends Extension
 {
 	private static DisplayManager.DisplayListener displayListener = null;
 	private static final String LOG_TAG = "PhoenixDisplay";
+	private static final String PREFS_NAME = "phoenix_display";
+	private static final String KEY_CUTOUT_MODE = "cutoutMode";
 	private static volatile String cutoutMode = "never";
+	private static volatile String immersiveMode = "full";
+
+	/**
+	 * Restores the last native cutout mode before SDL creates its content view.
+	 * Haxe remains the settings authority and refreshes this mirror on load.
+	 */
+	public static void restoreCutoutMode(Context context)
+	{
+		if (context == null)
+			return;
+		try
+		{
+			String mode = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+				.getString(KEY_CUTOUT_MODE, "never");
+			cutoutMode = "always".equals(mode) || "shortEdges".equals(mode) || "default".equals(mode) ? mode : "never";
+		}
+		catch (RuntimeException error)
+		{
+			Log.e(LOG_TAG, "Unable to restore cutout preference; using respect-cutout default", error);
+		}
+	}
 
 	/** Implemented by our Activity; no static Activity/view ownership. */
 	public interface CutoutHost
@@ -213,59 +235,104 @@ public class PhoenixDisplay extends Extension
 	 */
 	public static void setImmersive(final String mode)
 	{
+		immersiveMode = "off".equals(mode) || "lean".equals(mode) ? mode : "full";
 		final Activity activity = mainActivity;
 		if (activity == null)
 			return;
-
-		activity.runOnUiThread(new Runnable()
+		try
 		{
-			@Override public void run()
+			activity.runOnUiThread(new Runnable()
 			{
-				try
+				@Override public void run()
 				{
-					if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
-					{
-						WindowInsetsController controller = activity.getWindow().getInsetsController();
-						if (controller == null)
-							return;
-
-						if ("off".equals(mode))
-						{
-							controller.show(WindowInsets.Type.statusBars() | WindowInsets.Type.navigationBars());
-						}
-						else
-						{
-							controller.hide(WindowInsets.Type.statusBars() | WindowInsets.Type.navigationBars());
-							if ("full".equals(mode))
-								controller.setSystemBarsBehavior(WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
-							else
-								controller.setSystemBarsBehavior(WindowInsetsController.BEHAVIOR_SHOW_BARS_BY_SWIPE);
-						}
-					}
-					else
-					{
-						View decorView = activity.getWindow().getDecorView();
-						if ("off".equals(mode))
-						{
-							decorView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_VISIBLE);
-						}
-						else
-						{
-							int flags = View.SYSTEM_UI_FLAG_IMMERSIVE
-								| View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-								| View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-								| View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-								| View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-								| View.SYSTEM_UI_FLAG_FULLSCREEN;
-							if ("full".equals(mode))
-								flags |= View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
-							decorView.setSystemUiVisibility(flags);
-						}
-					}
+					if (activity == mainActivity)
+						applyImmersiveToActivity(activity);
 				}
-				catch (Exception ignored) {}
+			});
+		}
+		catch (RuntimeException error)
+		{
+			Log.e(LOG_TAG, "Unable to schedule immersive window update", error);
+		}
+	}
+
+	/** Called on the UI thread after creation, resume and focus restoration. */
+	public static void applyImmersiveToActivity(Activity activity)
+	{
+		if (activity == null || activity != mainActivity || activity.isFinishing() || activity.isDestroyed())
+			return;
+		try
+		{
+			android.view.Window window = activity.getWindow();
+			if (window == null)
+			{
+				Log.w(LOG_TAG, "Immersive window unavailable; will retry on resume/focus");
+				return;
 			}
-		});
+			String mode = immersiveMode;
+			boolean showBars = "off".equals(mode);
+			// SDL's fullscreen command may be queued after our first lifecycle
+			// callback. Keep the window flags in sync as well as the UI flags.
+			if (showBars)
+			{
+				window.clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+				window.addFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
+			}
+			else
+			{
+				window.addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+				window.clearFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
+			}
+
+			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
+			{
+				WindowInsetsController controller = window.getInsetsController();
+				if (controller == null)
+				{
+					Log.w(LOG_TAG, "Immersive controller unavailable; will retry on resume/focus");
+					return;
+				}
+				int bars = WindowInsets.Type.statusBars() | WindowInsets.Type.navigationBars();
+				if (showBars)
+				{
+					controller.show(bars);
+				}
+				else
+				{
+					controller.hide(bars);
+					controller.setSystemBarsBehavior("full".equals(mode)
+						? WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+						: WindowInsetsController.BEHAVIOR_SHOW_BARS_BY_SWIPE);
+				}
+			}
+			else
+			{
+				int flags = View.SYSTEM_UI_FLAG_VISIBLE;
+				if (!showBars)
+				{
+					flags = View.SYSTEM_UI_FLAG_IMMERSIVE
+						| View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+						| View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+						| View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+						| View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+						| View.SYSTEM_UI_FLAG_FULLSCREEN;
+					if ("full".equals(mode))
+						flags |= View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
+				}
+				window.getDecorView().setSystemUiVisibility(flags);
+			}
+		}
+		catch (RuntimeException error)
+		{
+			Log.e(LOG_TAG, "Unable to apply immersive window mode", error);
+		}
+	}
+
+	/** Reapply both independent display policies after Lime/SDL window setup. */
+	public static void applyDisplayToActivity(Activity activity)
+	{
+		applyImmersiveToActivity(activity);
+		applyCutoutToActivity(activity);
 	}
 
 	/**
@@ -275,6 +342,21 @@ public class PhoenixDisplay extends Extension
 	public static void setCutoutMode(final String mode)
 	{
 		cutoutMode = mode;
+		// Mirror the Haxe setting for the next cold start, before Haxe is up.
+		// apply() is asynchronous; the in-memory value above drives this session.
+		final Context context = mainContext;
+		if (context != null)
+		{
+			try
+			{
+				context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit()
+					.putString(KEY_CUTOUT_MODE, mode).apply();
+			}
+			catch (RuntimeException error)
+			{
+				Log.e(LOG_TAG, "Unable to persist cutout preference", error);
+			}
+		}
 		if (Build.VERSION.SDK_INT < 28)
 			return;
 		final Activity activity = mainActivity;

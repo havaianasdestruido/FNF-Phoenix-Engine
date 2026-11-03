@@ -90,6 +90,8 @@ class ClientPrefs { //default settings if it can't find a save file containing y
 	public static var screensaver:Bool = false;
 	public static var hitboxType:String = "Gradient";
 	public static var hitboxPos:Bool = true;
+	// Android-only opt-in: system notifications for engine events (chart backups, crash logs).
+	public static var androidNotifications:Bool = false;
 
 	//Graphics
 	// Opt in to expanding the viewport; existing 16:9 presentation is the default.

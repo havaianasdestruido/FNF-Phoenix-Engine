@@ -2,12 +2,6 @@ name: Mobile Release
 
 on:
   workflow_dispatch:
-    inputs:
-      buildAllTargets:
-        description: "Build all targets"
-        required: false
-        type: boolean
-        default: false
 
 permissions:
   contents: write
@@ -30,7 +24,6 @@ jobs:
     uses: ./.github/workflows/mobile.yml
     with:
       buildFlags: officialBuild
-      buildAllTargets: ${{ github.event.inputs.buildAllTargets == 'true' || github.event.inputs.buildAllTargets == true }}
 
   release-android:
     name: Release androidBuild
@@ -52,37 +45,4 @@ jobs:
           tag: ${{ needs.get-latest-tag.outputs.latest_tag }}
           file: ${{ env.APK_PATH }}
           asset_name: FNF-Phoenix-Engine-android.apk
-          overwrite: false
-
-  release-ios:
-    name: Release iOSBuild
-    needs: [get-latest-tag, build]
-    if: ${{ github.event.inputs.buildAllTargets == 'true' || github.event.inputs.buildAllTargets == true }}
-    runs-on: ubuntu-latest
-    steps:
-      - name: Download iOS artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: iOSBuild
-      - name: Zip For Release
-        run: |
-          if [ -f "FNF-Phoenix-Engine.ipa" ]; then
-            zip -r FNF-Phoenix-Engine-iOS.zip FNF-Phoenix-Engine.ipa
-          else
-            # try to find any ipa and zip it
-            ipa=$(find . -name "*.ipa" | head -n 1)
-            if [ -n "$ipa" ]; then
-              zip -r FNF-Phoenix-Engine-iOS.zip "$ipa"
-            else
-              echo "No IPA found to zip" >&2
-              exit 1
-            fi
-          fi
-      - name: Upload iOSBuild to release
-        uses: svenstaro/upload-release-action@2.5.0
-        with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          tag: ${{ needs.get-latest-tag.outputs.latest_tag }}
-          file: FNF-Phoenix-Engine-iOS.zip
-          asset_name: FNF-Phoenix-Engine-iOS.zip
           overwrite: false

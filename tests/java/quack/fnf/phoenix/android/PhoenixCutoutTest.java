@@ -121,8 +121,81 @@ public final class PhoenixCutoutTest
 		}
 		PhoenixDisplay.applyCutoutToActivity(null);
 	}
+	static void immersiveLifecycle() {
+		Build.VERSION.SDK_INT = 36;
+		Host host = new Host();
+		org.haxe.extension.Extension.mainActivity = host;
+		org.haxe.extension.Extension.mainContext = host;
+		PhoenixDisplay.applyDisplayToActivity(host);
+		check((host.window.attrs.flags & android.view.WindowManager.LayoutParams.FLAG_FULLSCREEN) != 0);
+		check((host.window.attrs.flags & android.view.WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN) == 0);
+		check(host.window.controller.hidden == 3 && host.window.controller.behavior == 2);
+		PhoenixDisplay.setImmersive("off");
+		check(host.window.controller.shown == 3);
+		check((host.window.attrs.flags & android.view.WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN) != 0);
+		PhoenixDisplay.applyDisplayToActivity(host); // Resume/focus keeps the latest requested mode.
+		check(host.window.controller.shown == 3);
+		PhoenixDisplay.setImmersive("lean");
+		check(host.window.controller.hidden == 3 && host.window.controller.behavior == 1);
+		PhoenixDisplay.setImmersive("full");
+		check(host.window.controller.behavior == 2);
+		// A controller can be absent before the window is attached; lifecycle retries.
+		android.view.WindowInsetsController controller = host.window.controller;
+		host.window.controller = null;
+		PhoenixDisplay.applyImmersiveToActivity(host);
+		host.window.controller = controller;
+		PhoenixDisplay.applyImmersiveToActivity(host);
+		check(controller.hidden == 3);
+		// Pre-R uses legacy UI flags, but the same window-flag contract.
+		Build.VERSION.SDK_INT = 29;
+		PhoenixDisplay.applyImmersiveToActivity(host);
+		check((host.window.decor.systemUiVisibility & android.view.View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY) != 0);
+		PhoenixDisplay.setImmersive("off");
+		check(host.window.decor.systemUiVisibility == android.view.View.SYSTEM_UI_FLAG_VISIBLE);
+		PhoenixDisplay.setImmersive("full");
+		// Stale queued work must not touch a replaced Activity.
+		host.defer = true;
+		PhoenixDisplay.setImmersive("off");
+		Runnable stale = host.queued;
+		Host replacement = new Host();
+		org.haxe.extension.Extension.mainActivity = replacement;
+		stale.run();
+		check(host.window.controller.shown == 0);
+		Build.VERSION.SDK_INT = 36;
+		PhoenixDisplay.applyDisplayToActivity(replacement);
+		check(replacement.window.controller.shown == 3);
+	}
+	static void nativePreferenceMirror() {
+		Build.VERSION.SDK_INT = 36;
+		Host host = new Host();
+		org.haxe.extension.Extension.mainActivity = host;
+		org.haxe.extension.Extension.mainContext = host;
+		PhoenixDisplay.setCutoutMode("always");
+		check("always".equals(host.preferences.value));
+		// Simulate a cold process: static mode starts safe, then native restore runs.
+		PhoenixDisplay.setCutoutMode("never");
+		host.preferences.value = "always";
+		PhoenixDisplay.restoreCutoutMode(host);
+		PhoenixDisplay.applyCutoutToActivity(host);
+		check(!host.respect);
+		// Haxe load is authoritative and repairs a stale/corrupt native mirror.
+		PhoenixDisplay.setCutoutMode("never");
+		check("never".equals(host.preferences.value));
+		host.preferences.value = "bogus";
+		PhoenixDisplay.restoreCutoutMode(host);
+		PhoenixDisplay.applyCutoutToActivity(host);
+		check(host.respect);
+		host.preferences.fail = true;
+		int errors = android.util.Log.errors;
+		PhoenixDisplay.restoreCutoutMode(host);
+		PhoenixDisplay.setCutoutMode("always");
+		check(android.util.Log.errors == errors + 2);
+		host.preferences.fail = false;
+	}
 	public static void main(String[] args) {
 		lifecycle();
+		immersiveLifecycle();
+		nativePreferenceMirror();
 		activityCallbacks();
 		for (int sdk : new int[] {21, 27, 28, 29, 30, 34, 35, 36}) {
 			check(PhoenixCutoutPolicy.windowMode(sdk, "never") == (sdk < 28 ? 0 : 2));

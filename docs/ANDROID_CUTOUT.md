@@ -5,11 +5,31 @@ keeps the game clear of the camera/notch; unchecked selects **Real Fullscreen**.
 ClientPrefs saves the boolean through its existing reflection-based persistence,
 flushes it when changed, and applies it after loading. No restart is requested.
 
+Both choices run immersive: status and navigation bars are hidden, with a
+transient swipe reveal. The toggle controls only whether the drawable surface
+may extend into the physical cutout. Android starts with `window.fullscreen`
+enabled so Lime/SDL does not queue its non-fullscreen command (which also forces
+`SHORT_EDGES`). `MainActivity` reapplies immersive mode and the cutout policy
+after creation, resume and focus restoration.
+
+## Cold-start preference mirror
+
+Haxe remains the authoritative setting. `PhoenixDisplay.setCutoutMode()` also
+mirrors the native mode into private SharedPreferences. Before `super.onCreate`
+creates SDL's first content view, `MainActivity` restores that mirror so a saved
+Real Fullscreen choice does not wait for asset loading/Haxe initialization.
+`ClientPrefs.loadPrefs()` subsequently applies the Haxe save and repairs a stale
+or corrupt mirror. An unreadable mirror falls back to the safe respect-cutout
+default. The mirror stores only the display mode, not an Activity or View.
+
 ## Native implementation
 
 - API 21–27: no cutout window API calls or extra content wrapper.
 - API 28–29: NEVER versus SHORT_EDGES (ALWAYS was added in API 30).
 - API 30–34: NEVER versus ALWAYS.
+- API 30+: `WindowInsetsController` hides status/navigation bars; pre-30 uses
+  legacy immersive UI flags. Both paths keep `FLAG_FULLSCREEN` in sync and clear
+  `FLAG_FORCE_NOT_FULLSCREEN`. A missing controller is retried on resume/focus.
 - API 35–36 with target SDK >=35: respect mode uses ALWAYS plus safe-area
   padding on a **Phoenix-owned FrameLayout**, around SDL's existing layout.
   Fullscreen uses ALWAYS with zero wrapper padding. Current project min/target
@@ -28,8 +48,8 @@ not added to prior values. Without a cutout it is zero.
 RelativeLayout. For enforced-edge-to-edge platforms we put that layout inside
 our wrapper with MATCH_PARENT dimensions. We leave SDL's `mLayout`, `mSurface`,
 SurfaceHolder, touch and mouse listeners intact. On older platforms the original
-view hierarchy is unchanged. No status/navigation visibility or decor-fitting
-flags are changed by this preference.
+view hierarchy is unchanged. The cutout preference itself does not change
+status/navigation visibility; the separate immersive policy above does.
 
 The pinned SDLSurface's `surfaceChanged` reports the resized surface dimensions
 through `nativeSetScreenResolution` / `onNativeResize`. Touch handling uses
@@ -39,7 +59,7 @@ and input, **not device verification**. FrameLayout measurement, SurfaceView
 resizing, SDL native resize delivery, and actual edge touch alignment still need
 Android runtime acceptance. No Haxe camera/input offset is introduced.
 
-Window updates run on the UI thread. Queued updates check current Activity
+Cutout window updates run on the UI thread. Queued updates check current Activity
 identity, finishing/destroyed state and use the latest requested mode. Only the
 mode is retained statically, not an Activity, View or padding. Creation, resume
 and focus restoration reapply it after Lime's initialization/window setup.
@@ -47,7 +67,7 @@ Each Activity owns its wrapper and clears its reference on destruction. Android
 inset dispatch updates safe padding after rotation/configuration changes. A
 missing window/content is retried only at those lifecycle points, without loops.
 Failures log contextual `PhoenixDisplay` diagnostics. Existing unrelated silent
-catches in immersive/refresh-rate/display-watch code are outside this change.
+catches in refresh-rate/display-watch code are outside this change.
 
 Physical cutout reporting through AndroidDisplay is unchanged. The preference
 neither stretches the logical game aspect ratio nor guarantees removal of
@@ -90,22 +110,26 @@ Inspected actual dependency revision from `hmm.json`:
 `python3 -m unittest discover -s tests -p 'test_android_cutout.py' -v`
 
 Static checks cover the Haxe default, persistence wiring, startup application,
-menu flush/application, lifecycle hooks and no shared-view listener replacement.
+menu flush/application, Android immersive startup, the native preference mirror,
+lifecycle hooks and no shared-view listener replacement.
 Host-JVM tests compile the production policy, layout, display bridge and rendered
 MainActivity template against small Android API doubles. They exercise API groups,
 repeat toggles, padding reset, changing inset edges/no cutout, Activity/view
 recreation, resume/focus calls, stale queued work, latest-mode selection, missing
-Activity/window, finishing/destroyed state and diagnostic error paths. They do
+Activity/window, finishing/destroyed state, immersive controller/legacy flags,
+preference mirror restore/reconciliation and diagnostic error paths. They do
 **not** emulate Android layout measurement, SurfaceView, SDL native code, event
 dispatch, platform enforcement or actual Haxe save-file serialization.
 
-Local audit environment: no Haxe/Lime, Android SDK/emulator or device. A temporary
-Eclipse compiler 3.32.0 and Java 17 runtime allowed all 38 repository tests,
-including the Java suites, to execute (no skips) after incorporating the PR
-branch's concurrent merge of Media3 changes from main. CI uses actual javac 17 via
-`checks.yml`; `main.yml` has the Android build with SDK 36 / NDK 27.0.12077973.
-The full local Android build cannot run (`haxelib: command not found`). Haxe
-Formatter/Checkstyle likewise require the missing toolchain.
+Local follow-up validation: `python3 -m unittest discover -s tests -p
+'test_*.py' -v` ran 244 tests with only the three existing Haxe-toolchain skips.
+A temporary Eclipse compiler 3.32.0 and Java 17 runtime executed the host-JVM
+cutout suite without skips, and the production display/cutout Java plus rendered
+MainActivity compiled against the Android 36 SDK jar at Java 8 source level
+(only existing/deprecated-API warnings). CI uses actual javac 17 via
+`checks.yml`; `main.yml` has the Android build with SDK 36 / NDK
+27.0.12077973. The full local Android build cannot run (`haxelib: command not
+found`); no Haxe Formatter/Checkstyle or device/emulator validation is claimed.
 
 ## Device acceptance still required
 
@@ -118,6 +142,8 @@ On API 28/29, 30–34 and 35/36 cutout and non-cutout displays:
 3. Rotate both landscape directions (portrait if supported), background/resume,
    and show/dismiss transient bars. Padding must follow the current cutout.
 4. Recreate Activity, force-stop/relaunch, reopen options and reset defaults:
-   saved selection must reapply; default must respect the cutout.
+   saved selection must reapply before the first SDL surface; default must
+   respect the cutout. Both choices must hide system bars and restore them only
+   transiently on swipe.
 5. Non-cutout devices must gain no cutout padding; unrelated bars/IME behavior
    and desktop/iOS behavior must remain unchanged. Inspect logcat diagnostics.

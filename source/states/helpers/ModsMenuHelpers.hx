@@ -26,8 +26,8 @@ class ModsMenuHelpers
 		button.ignoreCheck = button.onFocus = false;
 
 		state.curSelectedButton += add;
-		if(state.curSelectedButton < -2)
-			state.curSelectedButton = -2;
+		if(state.curSelectedButton < -3)
+			state.curSelectedButton = -3;
 		else if(state.curSelectedButton > max)
 			state.curSelectedButton = max;
 
@@ -36,15 +36,18 @@ class ModsMenuHelpers
 
 		var curMod:ModItem = state.modsGroup.members[state.curSelectedMod];
 		if(curMod != null) curMod.selectBg.visible = false;
-		if(state.curSelectedButton < 0)
+		if(state.bgButtons != null)
 		{
-			state.bgButtons.color = FlxColor.BLACK;
-			state.bgButtons.alpha = 0.2;
-		}
-		else
-		{
-			state.bgButtons.color = FlxColor.WHITE;
-			state.bgButtons.alpha = 0.8;
+			if(state.curSelectedButton < 0)
+			{
+				state.bgButtons.color = FlxColor.BLACK;
+				state.bgButtons.alpha = 0.2;
+			}
+			else
+			{
+				state.bgButtons.color = FlxColor.WHITE;
+				state.bgButtons.alpha = 0.8;
+			}
 		}
 
 		FlxG.sound.play(Paths.sound('scrollMenu'), 0.6);
@@ -54,6 +57,7 @@ class ModsMenuHelpers
 	{
 		switch(state.curSelectedButton)
 		{
+			case -3: return state.buttonImport;
 			case -2: return state.buttonReload;
 			case -1: return state.buttonEnableAll.enabled ? state.buttonEnableAll : state.buttonDisableAll;
 		}
@@ -224,14 +228,18 @@ class ModsMenuHelpers
 		state.buttonDisableAll.visible = state.buttonDisableAll.enabled = !state.buttonEnableAll.visible;
 	}
 
-	public static function reload(state:ModsMenuState)
+	/**
+	 * Saves the list and rebuilds the menu.
+	 * @param selectMod mod folder to highlight after the reload (defaults to the current one)
+	 */
+	public static function reload(state:ModsMenuState, ?selectMod:String = null)
 	{
 		ModsMenuHelpers.saveTxt(state);
 		FlxG.autoPause = ClientPrefs.autoPause;
 		FlxTransitionableState.skipNextTransIn = true;
 		FlxTransitionableState.skipNextTransOut = true;
 		var curMod:ModItem = state.modsGroup.members[state.curSelectedMod];
-		LoadingState.loadAndSwitchState(() -> new ModsMenuState(curMod != null ? curMod.folder : null), false);
+		LoadingState.loadAndSwitchState(() -> new ModsMenuState(selectMod != null ? selectMod : (curMod != null ? curMod.folder : null)), false);
 	}
 
 	public static function saveTxt(state:ModsMenuState)
