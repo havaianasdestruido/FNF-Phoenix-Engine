@@ -4,6 +4,7 @@ import Date;
 import DateTools;
 import Type;
 import backend.ClientPrefs;
+import backend.PhoenixVersion;
 #if ACHIEVEMENTS_ALLOWED
 import backend.Achievements;
 #end
@@ -906,7 +907,7 @@ class FrameProfiler
   {
     ensureInitialized();
     final sum = getSummary();
-    final ver = sanitizeSingleLine(engineVersion != null && engineVersion != "" ? engineVersion : getEngineVersion(), "0.3.2");
+    final ver = sanitizeSingleLine(engineVersion != null && engineVersion != "" ? engineVersion : getEngineVersion(), PhoenixVersion.current);
     final plat = sanitizeSingleLine(platformName != null && platformName != "" ? platformName : getPlatformLabel(), "Haxe");
     final safeState = sanitizeSingleLine(_currentStateName, "InitialState");
     final nowStr = DateTools.format(Date.now(), "%Y-%m-%d %H:%M:%S");
@@ -1087,17 +1088,7 @@ class FrameProfiler
 
   private static function getEngineVersion():String
   {
-    try
-    {
-      if (Application.current != null && Application.current.meta != null)
-      {
-        final v = Application.current.meta.get("version");
-        if (v != null && v != "")
-          return v;
-      }
-    }
-    catch (_:Dynamic) {}
-    return "0.3.2";
+    return PhoenixVersion.current;
   }
 
   private static function getPlatformLabel():String

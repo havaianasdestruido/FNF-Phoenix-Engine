@@ -13,13 +13,30 @@ decides where that key actually lives for the current platform, mod and week.
 ## Extensions
 
 ```haxe
-SOUND_EXT = #if (web || flash) "mp3" #else "ogg" #end;
+SOUND_EXT = #if flash "mp3" #else "ogg" #end;              // preferred container
+SOUND_EXTENSIONS = #if flash ["mp3", "ogg"] #else ["ogg", "mp3"] #end; // accepted, best first
 VIDEO_EXT = "mp4";
 IMAGE_EXT = "png";
 ```
 
-`project.hxp` excludes `*.ogg` from web builds and `*.mp3` from native builds, so the
-right file is the only one shipped.
+**One copy per track.** Ogg Vorbis is the engine's audio container everywhere `SOUND_EXT`
+says `ogg`: it decodes and seeks faster than MP3 at the same bitrate, which is what a
+rhythm game wants. Only Flash/AIR falls back to `mp3`, because the SWF audio backend
+cannot decode Ogg at all.
+
+Nothing ships both formats. Instead, every audio lookup walks `SOUND_EXTENSIONS` and uses
+the first file that exists:
+
+| Helper | Looks in |
+|---|---|
+| `Paths.modsSounds(dir, key)` | enabled mod folders (`mods/<mod>/<dir>/<key>.<ext>`) |
+| `Paths.resolveSoundAsset(dir, key, library)` | OpenFL asset libraries (returns the asset id, `null` when absent) |
+| `Paths.returnSound(dir, key, library)` | mod folders first, then the libraries |
+
+Mods may therefore ship either container; the repository never keeps `Inst.ogg` *and*
+`Inst.mp3` for the same song. `project.hxp` only excludes `*.mp3` from native builds
+(built-in content is Ogg, and native reads mods straight off disk); web builds exclude no
+audio extension, since their audio is Ogg now.
 
 ## The lookup chain
 

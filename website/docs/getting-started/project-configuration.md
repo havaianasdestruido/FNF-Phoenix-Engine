@@ -30,7 +30,7 @@ configureIcons();
 
 | Constant | Value |
 |---|---|
-| `VERSION` | `"0.3.2"` — the single source of truth; the game queries it at runtime |
+| `VERSION` | `"0.0.1"` — the single source of truth; the game queries it at runtime |
 | `TITLE` | `Friday Night Funkin' - Phoenix Engine` |
 | `EXECUTABLE_NAME` | `FNF-Phoenix-Engine` |
 | `PACKAGE_NAME` | `quack.fnf.phoenix` |
@@ -44,11 +44,10 @@ configureIcons();
 Change `VERSION` in `project.hxp` — every in-game reader (main menu, FPS
 counter, crash reports, the Lua `phoenixVersion` global) derives the Phoenix
 version from the application metadata it sets, and `project.hxp` also
-exposes it as the `ENGINE_VERSION` compile-time define. One manual step
-remains: make the first entry of `THECHANGELOG.md` the same version, because
-the update checker polls that file from this repository and compares its
-first entry against the running Phoenix version (#53, #54).
-`tests/test_arena_fixes.py` asserts the two stay equal.
+exposes it as the `ENGINE_VERSION` compile-time define. Publish a matching
+version tag and write its changelog in the GitHub release body. The update
+checker reads GitHub releases, not `THECHANGELOG.md`; stable releases are
+shown by default and prereleases can be enabled in Misc.
 
 :::
 
@@ -134,8 +133,9 @@ depending on the target (web embeds, native streams):
 | `week2` … `week7`, `weekend1` | `assets/week*` | per-week content |
 
 Global exclusions: `.*`, `cvs`, `thumbs.db`, `desktop.ini`, `*.hash`, `*.md`.
-Web builds additionally exclude `*.ogg`, native builds exclude `*.mp3` — the engine picks
-the right extension at runtime through `Paths.SOUND_EXT`.
+Native builds additionally exclude `*.mp3`: built-in audio is Ogg only, and native builds
+read mods straight off disk. Web builds exclude no audio format, because their audio is
+Ogg too (see [`Paths.SOUND_EXTENSIONS`](../architecture/assets-and-paths.md#extensions)).
 
 With `-DNO_BUILTIN_CONTENT`, the content libraries are stripped; see
 [Building](./building.md#content-stripped-builds).

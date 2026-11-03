@@ -21,18 +21,14 @@ class Project extends HXProject
 	//
 
 	/**
-	 * The game's version number, as a Semantic Versioning string with no prefix.
-	 * REMEMBER TO CHANGE THIS WHEN THE GAME UPDATES!
-	 * You only have to change it here, the rest of the game will query this value.
+	 * Phoenix Engine's own version, independent from the upstream JS Engine /
+	 * Psych Engine compatibility markers. Use the repository's release scheme:
+	 * MAJOR.MINOR.PATCH with optional -alpha, -beta, -preN or -rcN suffixes.
+	 * Git tags use the same value with a leading v (for example v0.0.1-pre1).
+	 * This is the build-time source of truth; runtime readers query the metadata
+	 * below through backend.PhoenixVersion.current.
 	 */
-	static final VERSION:String = "0.3.2";
-
-	/**
-	 * The engine's version number, as a Semantic Versioning string with no prefix.
-	 * Change this when a version is in development or release. (on function Flair)
-	 * This is just used for the function of FLAIR and is not used anywhere else.
-	 */
-	public static var ENGINE_VERSION:String = '';
+	static final VERSION:String = "0.0.1";
 
 	/**
 	 * The game's name. Used as the default window title.
@@ -92,11 +88,19 @@ class Project extends HXProject
 
 	/**
 	 * Asset path globs to exclude on web platforms.
+	 *
+	 * Intentionally empty: the repository only ships Ogg Vorbis audio (see
+	 * `Paths.SOUND_EXT` / `Paths.SOUND_EXTENSIONS`) and the HTML5 backend
+	 * decodes it, so excluding `*.ogg` here would ship a silent web build.
 	 */
-	static final EXCLUDE_ASSETS_WEB:Array<String> = ["*.ogg"];
+	static final EXCLUDE_ASSETS_WEB:Array<String> = [];
 
 	/**
 	 * Asset path globs to exclude on native platforms.
+	 *
+	 * Built-in content is Ogg only, so MP3s never need to be copied into the
+	 * asset libraries. Mods may still ship `.mp3` -- native builds read mods
+	 * straight off disk and `Paths.modsSounds()` resolves either container.
 	 */
 	static final EXCLUDE_ASSETS_NATIVE:Array<String> = ["*.mp3"];
 

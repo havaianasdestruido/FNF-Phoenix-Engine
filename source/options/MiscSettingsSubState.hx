@@ -15,6 +15,13 @@ class MiscSettingsSubState extends BaseOptionsMenu
 		title = 'Misc';
 		rpcTitle = 'Miscellaneous Settings Menu'; //for Discord Rich Presence
 
+		var option:Option = new Option('Enable pre-release updates',
+			'Include experimental pre-releases when checking for Phoenix updates.\nDisabled by default: only complete releases are shown.',
+			'enablePreReleaseUpdates',
+			'bool',
+			false);
+		addOption(option);
+
 		var option:Option = new Option('Use JS Engine Recharts', //Name
 			'If checked, songs will have an optional "JSHard" difficulty (if available.)\nUse this difficulty for the JSE-specific recharts.', //Description
 			'JSEngineRecharts', //Save data variable name

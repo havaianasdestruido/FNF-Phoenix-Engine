@@ -27,7 +27,7 @@ Two goals drive every decision in the codebase:
 | Window title | `Friday Night Funkin' - Phoenix Engine` |
 | Executable | `FNF-Phoenix-Engine` |
 | Mobile package | `quack.fnf.phoenix` |
-| Version | `0.3.2` (defined by `VERSION` in `project.hxp`) |
+| Version | `0.0.1` (defined by `VERSION` in `project.hxp`) |
 | Language | Haxe 4.2.5+ (CI builds with 4.3.x) |
 | Framework | HaxeFlixel on OpenFL / Lime |
 | Targets | Windows, Linux, macOS, Android, iOS, HTML5, Neko, Flash/AIR |

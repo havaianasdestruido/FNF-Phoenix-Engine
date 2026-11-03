@@ -231,8 +231,8 @@ class CrashHandler
 
 			#if !flash
 			CoolUtil.showPopUp(errorMessage,
-				"Error! JS Engine v"
-				+ MainMenuState.psychEngineJSVersion
+				"Error! Phoenix Engine v"
+				+ MainMenuState.phoenixEngineVersion
 				+ " ("
 				+ __superCoolErrorMessagesArray[FlxG.random.int(0, __superCoolErrorMessagesArray.length)]
 				+ ")");

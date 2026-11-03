@@ -194,7 +194,7 @@ Added from the supplied CNE-vs-vanilla/Psych comparison, filtered against the cu
 - **[P2] Global charts folder.** CNE supports global `data/charts/`; Phoenix only resolves per-song JSON paths.
 - **[P2] Custom chart/character properties.** Expose CNE-style `SONG.meta.customValues` and `char.extras`; current `SwagSong`/`CharacterFile` use fixed fields.
 - **[P2] True song variations.** `specialAudioName` only swaps an audio suffix; add variation metadata, chart selection, and freeplay preview behavior.
-- **[P2] Multi-format audio.** `Paths.SOUND_EXT` is only `mp3` on web/Flash and `ogg` elsewhere. Add flac/opus/wav (and per-format fallbacks) like CNE.
+- **[P2] Extra audio formats (flac/opus/wav).** Done: Ogg is the engine's container on every target except Flash/AIR, and `Paths.SOUND_EXTENSIONS` resolves `.ogg` → `.mp3` per file at runtime (`Paths.modsSounds`, `Paths.resolveSoundAsset`, `Paths.returnSound`), so no track ships twice. Remaining: flac/opus/wav support, which is now just another entry in that list plus a decoder check per target.
 - **[P2] Multi-extension images/paths.** `Paths.image()` hardcodes `.png`; CNE supports multiple image extensions through path resolution.
 - **[P2] Unlimited vocals per strumline.** Phoenix supports separate P1/P2 vocal files, but not CNE's arbitrary per-strumline vocals.
 - **[P2] Declarative stage node graph.** Stage JSON only stores camera/character positions. Add XML/script nodes for sprites, solids, characters, ratings/combo, zoom/scroll factors, beat intervals, colors/skew/scale, and stage extensions.

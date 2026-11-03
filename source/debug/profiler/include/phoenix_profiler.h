@@ -2262,7 +2262,7 @@ static inline int phoenixProfilerExportLog(
   phoenixProfilerComputeSummary(state, &summary);
 
   phoenixProfilerCopyString(safeEngineVer, sizeof(safeEngineVer),
-    (engineVersion != NULL && engineVersion[0] != '\0') ? engineVersion : "0.3.2");
+    (engineVersion != NULL && engineVersion[0] != '\0') ? engineVersion : "unknown");
   phoenixProfilerCopyString(safePlatform, sizeof(safePlatform),
     (platformName != NULL && platformName[0] != '\0') ? platformName : "Native");
   phoenixProfilerCopyString(safeStateName, sizeof(safeStateName), state->currentStateName);

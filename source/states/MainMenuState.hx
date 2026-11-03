@@ -28,32 +28,20 @@ class MainMenuState extends MusicBeatState
 {
   public static final gitCommit:String = HaxeCommit.getGitCommitHash();
 
-  // Phoenix's own version, derived from the application metadata, which
-  // project.hxp sets from its VERSION constant -- the single source of
-  // truth (#54). Never hard-code a release string here again; the literal
-  // below is only a fallback for the (normally impossible) case where the
-  // metadata is unavailable, and tests/test_arena_fixes.py asserts it stays
-  // equal to project.hxp's VERSION and to the top of THECHANGELOG.md.
+  // Kept as a compatibility accessor for existing callers/mods. The actual
+  // Phoenix identity and fallback live in backend.PhoenixVersion so menus,
+  // watermarks, logs and the update checker cannot drift apart.
   public static var phoenixEngineVersion(get, never):String;
 
   private static function get_phoenixEngineVersion():String
   {
-    #if !flash
-    if (Application.current != null)
-    {
-      final metaVersion:String = Application.current.meta.get('version');
-      if (metaVersion != null && metaVersion.length > 0) return metaVersion;
-    }
-    #end
-    return '0.3.2';
+    return backend.PhoenixVersion.current;
   }
 
-  // Upstream JS Engine compatibility marker: the JSE release this fork is
-  // based on. This is NOT the Phoenix version and must not be used by the
-  // update checker (#53) -- it is kept for Discord RPC / watermark labels
-  // that intentionally report the upstream base.
-  public static var psychEngineJSVersion:String = '1.51.0'; // This is also used for Discord RPC
-  public static var psychEngineVersion:String = '0.6.3'; // This is also used for Discord RPC
+  // Upstream compatibility markers only. These are NOT Phoenix versions and
+  // must never be used for update checks or Phoenix watermarks.
+  public static var psychEngineJSVersion:String = '1.51.0';
+  public static var psychEngineVersion:String = '0.6.3';
   public static var curSelected:Int = 0;
 
   var menuItems:FlxTypedGroup<FlxSprite>;
@@ -211,19 +199,17 @@ class MainMenuState extends MusicBeatState
     PhoenixVersion.scrollFactor.set();
     PhoenixVersion.setFormat("VCR OSD Mono", 16, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
     add(PhoenixVersion);
-    var JSVersion:FlxText = new FlxText(ScreenLayout.contentLeft(FlxG.width) + 12, FlxG.height - 64, 0, "JS Engine v" + psychEngineJSVersion, 12);
+    var JSVersion:FlxText = new FlxText(ScreenLayout.contentLeft(FlxG.width) + 12, FlxG.height - 64, 0, "Based on JS Engine v" + psychEngineJSVersion, 12);
     JSVersion.scrollFactor.set();
     JSVersion.setFormat("VCR OSD Mono", 16, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
     add(JSVersion);
-    var PsychVersion:FlxText = new FlxText(ScreenLayout.contentLeft(FlxG.width) + 12, FlxG.height - 44, 0, "Psych Engine v" + psychEngineVersion, 12);
+    var PsychVersion:FlxText = new FlxText(ScreenLayout.contentLeft(FlxG.width) + 12, FlxG.height - 44, 0, "Based on Psych Engine v" + psychEngineVersion, 12);
     PsychVersion.scrollFactor.set();
     PsychVersion.setFormat("VCR OSD Mono", 16, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
     add(PsychVersion);
-    #if !flash
-    var FNFVersion:FlxText = new FlxText(ScreenLayout.contentLeft(FlxG.width) + 12, FlxG.height - 24, 0, "Friday Night Funkin' v" + Application.current.meta.get('version'), 12);
-    #else
+    // The application metadata is Phoenix's version, not vanilla FNF's, so do
+    // not relabel it as a Friday Night Funkin' version here.
     var FNFVersion:FlxText = new FlxText(ScreenLayout.contentLeft(FlxG.width) + 12, FlxG.height - 24, 0, "Friday Night Funkin'", 12);
-    #end
     FNFVersion.scrollFactor.set();
     FNFVersion.setFormat("VCR OSD Mono", 16, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
     add(FNFVersion);
@@ -378,7 +364,7 @@ class MainMenuState extends MusicBeatState
       {
         if (menuOptions[curSelected] == 'donate')
         {
-          CoolUtil.browserLoad('https://github.com/JordanSantiagoYT/FNF-JS-Engine');
+          CoolUtil.browserLoad(backend.PhoenixVersion.REPOSITORY_URL);
         } 
 		else
         {

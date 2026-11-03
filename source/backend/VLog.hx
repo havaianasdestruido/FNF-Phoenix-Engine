@@ -636,20 +636,7 @@ class VLog
 
   static function engineVersion():String
   {
-    // Same source of truth as MainMenuState: the application metadata that
-    // project.hxp sets from its VERSION constant.
-    #if !flash
-    try
-    {
-      if (Application.current != null && Application.current.meta != null)
-      {
-        final v:String = Application.current.meta.get('version');
-        if (v != null && v.length > 0) return v;
-      }
-    }
-    catch (_:Dynamic) {}
-    #end
-    return '0.3.2';
+    return PhoenixVersion.current;
   }
 
   // Kept in sync with MainMenuState's upstream compatibility markers.

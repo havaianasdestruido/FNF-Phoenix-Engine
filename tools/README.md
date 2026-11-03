@@ -18,6 +18,17 @@ original file format and audio metadata where supported.
 
 Requires [FFmpeg](https://ffmpeg.org/) in `PATH`.
 
+The engine ships **one container per track, and that container is Ogg Vorbis**
+(`Paths.SOUND_EXT`; only Flash/AIR falls back to MP3). Convert a new MP3 instead
+of committing it, and never commit the same track as both `.ogg` and `.mp3`:
+
+```sh
+ffmpeg -i song.mp3 -vn -map_metadata 0 -c:a libvorbis -q:a 2 song.ogg
+```
+
+`tests/test_audio_format_policy.py` fails the suite if a duplicate pair or a
+stray MP3 ever lands in `assets/`, `mods/` or `example_mods/`.
+
 ```sh
 # All MP3/OGG files in the repository
 ./tools/compress-audio.sh

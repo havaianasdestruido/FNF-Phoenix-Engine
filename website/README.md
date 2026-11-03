@@ -35,6 +35,36 @@ markdown that builds fine but renders wrong — most often an admonition written
 To document something in the reference, write a `/** ... */` doc comment on the Haxe type
 or field, or a `//` comment directly above a `registerFunction(...)` call, and regenerate.
 
+## Dependency overrides
+
+Docusaurus pins a few transitive packages that the GitHub advisory database flags
+(worker pools, the dev-server HTTP stack, the SVG/DOMPurify/Mermaid chain). Their
+direct parents cannot move yet — `@docusaurus/core` still declares
+`tinypool: ^1.0.2` and `webpack-dev-server: ^5.2.2`, so a plain
+`npm install` keeps resolving the vulnerable versions.
+
+`package.json` therefore uses npm `overrides` to force the patched release of each
+one. The overrides are deliberate and have to stay:
+
+| Package | Override | Why the parent cannot move |
+|---|---|---|
+| `tinypool` | `2.2.0` | `@docusaurus/core` asks for `^1.0.2`; 2.x is API-compatible for the SSG pool it creates |
+| `serialize-javascript` | `7.1.4` | `copy-webpack-plugin`/`css-minimizer-webpack-plugin` ask for `^6`; 7.x keeps the same default export |
+| `minimatch` | `11.0.4` | `serve-handler@6.1.7` (latest) pins `3.1.5`; the APIs it uses are stable |
+| `uuid` | `11.1.1` | `sockjs` asks for `^8.3.2`; only `v4()` is used |
+| `postcss-selector-parser` | `6.1.5` | 6.x parents need `^6`; the `^7` copies are resolved separately and are already patched |
+| `katex` | `0.18.10` | `mermaid` asks for `^0.16.47`; 0.18.x is the first patched line (`0.18.11` was published broken) |
+| `dompurify`, `follow-redirects`, `launch-editor`, `joi`, `body-parser`, `qs`, `fast-uri` | latest patch | declared ranges are compatible, the override just skips a stale lock entry |
+
+Bumping `@docusaurus/*` can make some of these unnecessary; drop an override only
+after `npm audit --omit=dev --audit-level=low` (and the plain audit) comes back with
+nothing but `deepmerge` (no patched release exists upstream). Do not run
+`npm audit fix --force` here: it downgrades Docusaurus to 3.7.0 and breaks the build.
+
+After changing an override, verify with a clean `rm -rf node_modules && npm ci &&
+npm run build` and a quick `npm start` — the dev server is what exercises
+`webpack-dev-server` and `sockjs`.
+
 ## Layout
 
 ```text

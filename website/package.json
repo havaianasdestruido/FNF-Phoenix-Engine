@@ -26,13 +26,28 @@
     "@mdx-js/react": "^3.0.0",
     "clsx": "^2.0.0",
     "prism-react-renderer": "^2.3.0",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
     "@docusaurus/theme-mermaid": "3.10.2"
   },
   "devDependencies": {
     "@docusaurus/module-type-aliases": "3.10.2",
     "@docusaurus/types": "3.10.2"
+  },
+  "overrides": {
+    "body-parser": "1.20.9",
+    "dompurify": "3.4.17",
+    "fast-uri": "3.1.9",
+    "follow-redirects": "1.16.2",
+    "joi": "17.13.9",
+    "katex": "0.18.10",
+    "launch-editor": "2.14.2",
+    "minimatch": "11.0.4",
+    "postcss-selector-parser": "6.1.5",
+    "qs": "6.16.2",
+    "serialize-javascript": "7.1.4",
+    "tinypool": "2.2.0",
+    "uuid": "11.1.1"
   },
   "browserslist": {
     "production": [

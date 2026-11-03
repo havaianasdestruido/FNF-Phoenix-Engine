@@ -108,13 +108,14 @@ shared code is safe.
 
 ```bash
 lime build android          # runs setup/android-copy-stl.sh via project.hxp
-lime build ios -nosign      # as CI does
+lime build ios -nosign      # local iOS build; not part of CI
 ```
 
 The Android build **must** include `libc++_shared.so`; see
 [Troubleshooting](../getting-started/troubleshooting.md#android-dlopen-failed-libc_sharedso-not-found).
-CI (`.github/workflows/mobile.yml`) builds both platforms and verifies the APK's native
-libraries; `mobile-release.yml` publishes them.
+CI (`.github/workflows/main.yml`) builds Android and verifies the APK's native
+libraries. `mobile-release.yml` reuses that build to publish the APK. iOS builds
+remain local-only.
 
 ## Window and orientation
 

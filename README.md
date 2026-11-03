@@ -12,6 +12,10 @@
 </h3>
 
 <p align="center">
+  <img src="https://github.com/havaianasdestruido/FNF-Phoenix-Engine/actions/workflows/main.yml/badge.svg">
+</p>
+
+<p align="center">
 <img alt="GitHub repo size" src="https://img.shields.io/github/repo-size/havaianasdestruido/FNF-Phoenix-Engine">
 <img alt="GitHub commit activity" src="https://img.shields.io/github/commit-activity/w/havaianasdestruido/FNF-Phoenix-Engine">
 <img alt="GitHub contributors" src="https://img.shields.io/github/contributors/havaianasdestruido/FNF-Phoenix-Engine">
@@ -34,14 +38,14 @@ Run it locally with `cd website && npm install && npm start`.
 
 ## Contributors wanted
 
-**I ([havaianasdestruido](https://github.com/havaianasdestruido)) need new contributors.** This project is open to
+**I ([havaianasdestruido](https://github.com/havaianasdestruido)) need new contributors for Phoenix Engine.** This project is open to
 new feature ideas and pull requests, for example:
 
 - New built-in game content (mods shipped with the engine, example mods)
-- New platform ports and platform-specific code
-- Backporting features/fixes from upstream (Psych, JS Engine, etc.)
+- New platform ports and platform-specific code (like native ports)
+- Backporting features/fixes from upstream (Psych, JS Engine, Codename, Kade, etc.)
 - New menu options and settings
-- Bug fixes (any size)
+- Bug fixes (any size, from small visual issues, to game-breaking ones)
 
 Open an [issue](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/issues) to discuss an idea, or send a PR
 straight away if it's small. Check [`BUILDING.md`](BUILDING.md) and [`CODESTYLE.md`](CODESTYLE.md) first.
@@ -125,7 +129,7 @@ Phoenix Engine currently has those additions (and more!) that vanilla JSE (Jorda
 - **Mac/iOS Headers**: Proper sys/utsname.h includes
 
 ### **6. Asset Management**
-- **Audio Compression**: OGG/MP3 files (~50% size reduction)
+- **Audio Compression**: Ogg Vorbis only — one container per track, no duplicate `.ogg`/`.mp3` pair (~50% size reduction)
 - **JSON Minification**: Across entire codebase
 - **Image Compression**: Lossy but invisible optimization
 - **Character Icon Refresh**: Updated multiple icon PNGs

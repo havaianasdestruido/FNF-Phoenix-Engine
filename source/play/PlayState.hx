@@ -1387,13 +1387,15 @@ class PlayState extends MusicBeatState
 
 		switch(ClientPrefs.watermarkStyle)
 		{
-			case 'Vanilla': EngineWatermark.text = SONG.song + " " + CoolUtil.difficultyString() + " | JSE " + MainMenuState.psychEngineJSVersion;
+			// Keep the legacy style names for saved preferences/mods, but always
+			// report the running Phoenix version rather than the upstream base.
+			case 'Vanilla': EngineWatermark.text = SONG.song + " " + CoolUtil.difficultyString() + " | Phoenix v" + MainMenuState.phoenixEngineVersion;
 			case 'Forever Engine':
-				EngineWatermark.text = "JS Engine v" + MainMenuState.psychEngineJSVersion;
+				EngineWatermark.text = "Phoenix Engine v" + MainMenuState.phoenixEngineVersion;
 				EngineWatermark.x = ScreenLayout.contentLeft(FlxG.width) + ScreenLayout.BASE_WIDTH - EngineWatermark.width - 5;
 			case 'JS Engine':
 				if (!ClientPrefs.downScroll) EngineWatermark.y = FlxG.height * 0.1 - 70;
-				EngineWatermark.text = "Playing " + SONG.song + " on " + CoolUtil.difficultyString() + " - JSE v" + MainMenuState.psychEngineJSVersion;
+				EngineWatermark.text = "Playing " + SONG.song + " on " + CoolUtil.difficultyString() + " - Phoenix v" + MainMenuState.phoenixEngineVersion;
 			case 'Dave Engine':
 				EngineWatermark.setFormat(Paths.font("comic.ttf"), 16, FlxColor.WHITE, RIGHT, OUTLINE,FlxColor.BLACK);
 				EngineWatermark.text = SONG.song;

@@ -27,7 +27,7 @@ jobs:
                 color: "FEF2C0", description: "Inactive for 30 days",
               });
             }
-      - uses: actions/stale@v5
+      - uses: actions/stale@v11
         with:
           days-before-issue-stale: 30
           days-before-issue-close: 7

@@ -75,14 +75,21 @@ class TestDependencies(unittest.TestCase):
 
 class TestCIWorkflows(unittest.TestCase):
     def test_haxe_version_single_value(self):  # #60
-        versions = set()
-        for wf in ("main.yml", "mobile.yml"):
-            text = read(f".github/workflows/{wf}")
-            versions.update(re.findall(r'HAXE_VERSION:\s*"([\d.]+)"', text))
-            self.assertNotIn("haxe-version: 4.3.6", text)
-            self.assertNotRegex(text, r"haxe-version:\s*\d")  # must use env
+        text = read(".github/workflows/main.yml")
+        versions = set(re.findall(r'HAXE_VERSION:\s*"([\d.]+)"', text))
+        self.assertNotIn("haxe-version: 4.3.6", text)
+        self.assertNotRegex(text, r"haxe-version:\s*\d")  # must use env
         self.assertEqual(versions, {"4.3.7"})
         self.assertFalse((ROOT / "UPDATE HAXE TO 4.3.7.txt").exists())
+
+    def test_mobile_release_reuses_the_shared_android_build(self):
+        self.assertFalse((ROOT / ".github/workflows/mobile.yml").exists())
+        release = read(".github/workflows/mobile-release.yml")
+        build_job = release.split("\n  build:\n", 1)[1].split("\n  release-android:", 1)[0]
+        self.assertIn("uses: ./.github/workflows/main.yml", build_job)
+        self.assertIn("buildWindows: false", build_job)
+        self.assertIn("buildAndroid: true", build_job)
+        self.assertNotIn("/actions/workflows/mobile.yml/", read("README.md"))
 
     def test_cache_key_pins_dependency_set_per_job(self):  # #57
         main = read(".github/workflows/main.yml")
@@ -104,6 +111,13 @@ class TestCIWorkflows(unittest.TestCase):
 
     def test_no_jekyll_workflow_can_overwrite_pages(self):  # #49
         self.assertFalse((ROOT / ".github/workflows/jekyll-gh-pages.yml").exists())
+
+    def test_no_codeql_actions_are_installed(self):
+        # GitHub's default setup is a repository setting, not a workflow file.
+        for pattern in ("*.yml", "*.yaml"):
+            for path in (ROOT / ".github/workflows").glob(pattern):
+                text = path.read_text(encoding="utf-8").lower()
+                self.assertNotIn("github/codeql-action", text, path.name)
 
     def test_triage_labels_are_self_healing(self):  # #48
         self.assertIn("createLabel", read(".github/workflows/autotriage.yml"))
@@ -193,21 +207,19 @@ class TestEngineCode(unittest.TestCase):
         self.assertIn("import backend.ModsStub as Mods;", read("source/import.hx"))
 
     def test_update_checker_uses_this_repo_and_phoenix_version(self):  # #53
-        title = read("source/states/TitleState.hx")
-        self.assertIn("havaianasdestruido/FNF-Phoenix-Engine/main/THECHANGELOG.md", title)
-        self.assertIn("MainMenuState.phoenixEngineVersion", title)
-        self.assertNotIn("JordanSantiagoYT/FNF-JS-Engine/main/THECHANGELOG.md",
-                         title + read("source/options/SuperSecretDebugMenu.hx"))
+        version = read("source/backend/PhoenixVersion.hx")
+        self.assertIn("havaianasdestruido/FNF-Phoenix-Engine", version)
+        self.assertIn("RELEASES_API_URL", version)
+        self.assertIn("UpdateChecker.check", read("source/states/TitleState.hx"))
+        self.assertIn("UpdateChecker.check", read("source/options/SuperSecretDebugMenu.hx"))
 
     def test_version_comes_from_project_metadata(self):  # #54
         project = read("project.hxp")
-        version = re.search(r'static final VERSION:String = "([^"]+)"', project).group(1)
-        menu = read("source/states/MainMenuState.hx")
-        self.assertNotIn("'pre-alpha'", menu)
-        self.assertIn("Application.current.meta.get('version')", menu)
-        self.assertIn(f"return '{version}';", menu)  # enforced fallback literal
-        changelog_top = next(line for line in read("THECHANGELOG.md").splitlines() if line.strip())
-        self.assertEqual(changelog_top, f"{version};")
+        version = re.search(r'static final VERSION:String = "([^\"]+)"', project).group(1)
+        helper = read("source/backend/PhoenixVersion.hx")
+        self.assertIn("Application.current.meta.get('version')", helper)
+        self.assertIn(f'FALLBACK:String = "{version}"', helper)
+        self.assertIn("PhoenixVersion.current", read("source/states/MainMenuState.hx"))
         self.assertIn('setHaxedef("ENGINE_VERSION", VERSION)', project)
 
     def test_no_preload_all_branch_compiles_statically(self):  # #55

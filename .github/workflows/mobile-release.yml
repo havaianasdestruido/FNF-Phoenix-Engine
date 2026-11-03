@@ -2,47 +2,70 @@ name: Mobile Release
 
 on:
   workflow_dispatch:
+    inputs:
+      tag_name:
+        description: "Existing Phoenix release tag to attach the APK to (e.g. v0.0.1-pre1)"
+        required: true
 
 permissions:
   contents: write
 
 jobs:
-  get-latest-tag:
+  validate-tag:
+    name: Validate Phoenix Release Tag
     runs-on: ubuntu-latest
     outputs:
-      latest_tag: ${{ steps.get_tag.outputs.LATEST_TAG }}
+      tag_name: ${{ steps.validate.outputs.tag_name }}
     steps:
-      - name: Get latest release tag
-        id: get_tag
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate tag against project version
+        id: validate
+        env:
+          INPUT_TAG: ${{ github.event.inputs.tag_name }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          latest_tag=$(curl --silent "https://api.github.com/repos/${{ github.repository }}/releases/latest" | jq -r .tag_name)
-          echo "Latest tag is $latest_tag"
-          echo "LATEST_TAG=$latest_tag" >> $GITHUB_OUTPUT
+          python3 tools/release_version.py "$INPUT_TAG" --check-only
+          TAG_NAME=$(python3 tools/release_version.py "$INPUT_TAG" --print-tag)
+          if [ "$(git rev-list -n 1 "refs/tags/$TAG_NAME")" != "$GITHUB_SHA" ]; then
+            echo "::error::The release tag does not point to the selected build commit."
+            exit 1
+          fi
+          gh release view "$TAG_NAME" --repo "$GITHUB_REPOSITORY" >/dev/null
+          echo "tag_name=$TAG_NAME" >> "$GITHUB_OUTPUT"
 
   build:
     name: Build
-    uses: ./.github/workflows/mobile.yml
+    needs: validate-tag
+    uses: ./.github/workflows/main.yml
     with:
       buildFlags: officialBuild
+      buildWindows: false
+      buildAndroid: true
 
   release-android:
     name: Release androidBuild
-    needs: [get-latest-tag, build]
+    needs: [validate-tag, build]
     runs-on: ubuntu-latest
     steps:
       - name: Download Android artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: androidBuild
       - name: Locate APK
         run: |
           apk_path=$(find . -name "*.apk" | head -n 1)
-          echo "APK_PATH=$apk_path" >> $GITHUB_ENV
+          if [ -z "$apk_path" ]; then
+            echo "::error::No APK found in androidBuild artifact."
+            exit 1
+          fi
+          echo "APK_PATH=$apk_path" >> "$GITHUB_ENV"
       - name: Upload androidBuild to release
-        uses: svenstaro/upload-release-action@2.5.0
-        with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          tag: ${{ needs.get-latest-tag.outputs.latest_tag }}
-          file: ${{ env.APK_PATH }}
-          asset_name: FNF-Phoenix-Engine-android.apk
-          overwrite: false
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TAG: ${{ needs.validate-tag.outputs.tag_name }}
+        run: |
+          gh release upload "$RELEASE_TAG" "$APK_PATH#FNF-Phoenix-Engine-android.apk" --repo "$GITHUB_REPOSITORY"
