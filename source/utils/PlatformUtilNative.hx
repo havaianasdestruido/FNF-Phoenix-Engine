@@ -4,7 +4,11 @@ package utils;
 #if cpp
 @:buildXml('<include name="../../../../source/utils/build.xml" />')
 @:include("phoenix_desktop_dialog.h")
-#if linux
+#if windows
+// Windows native calls live in backend.WindowNative; keep this class free of
+// Windows SDK includes so hxcpp's include order cannot break the build.
+@:cppFileCode('/* Windows dialogs are provided by backend.WindowNative. */')
+#elseif linux
 @:cppFileCode('
 #include <stdlib.h>
 #include <stdio.h>
