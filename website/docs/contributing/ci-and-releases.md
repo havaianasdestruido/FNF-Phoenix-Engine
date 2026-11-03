@@ -50,13 +50,15 @@ A smaller matrix: Android on `ubuntu-24.04` and iOS on `macos-latest`
 
 ## `mobile-release.yml` — Mobile Release
 
-Manual. Resolves the latest tag, builds the mobile targets and attaches them to the
-release.
+Manual. Select an existing Phoenix release tag explicitly; the workflow validates the
+tag and build commit before attaching the APK. It does not use GitHub’s `latest`
+redirect, which excludes prereleases.
 
 ## `release.yml` — Manual Release
 
-Manual, with a `prerelease` input. Ensures the tag exists, builds and publishes the
-release.
+Manual, with `tag_name` and `prerelease` inputs. Validates the version, creates the tag if needed, builds and uploads to a draft
+release. GitHub-generated notes and the optional Markdown message become the
+release body; edit the release on GitHub to maintain its changelog.
 
 ## `nightly.yml`, `autotriage.yml`, `autolock.yml`
 
@@ -87,4 +89,8 @@ For Android make sure `lime setup android` has been run so `ANDROID_NDK_ROOT` re
 ## Versioning
 
 `VERSION` in `project.hxp` is the single source of truth and is queried at runtime. Bump
-it there, tag the commit, then run the release workflow.
+it there and run `python3 tools/release_version.py v0.0.1 --check-only`, then run
+the release workflow with the matching tag. Phoenix supports `-alpha`, `-beta`,
+`-preN`, and `-rcN`. The in-game checker displays the GitHub release body and
+checks stable releases by default. Players can include prereleases via **Misc →
+Enable pre-release updates**. Drafts are never shown.

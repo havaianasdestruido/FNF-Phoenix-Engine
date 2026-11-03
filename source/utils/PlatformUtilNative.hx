@@ -60,23 +60,15 @@ class PlatformUtilNative
   }
 
   #if linux
-  @:functionCode('
-        res = phoenixShowLinuxDesktopDialog(std::string(desc.c_str()));
-    ')
+  @:functionCode('return phoenixShowLinuxDesktopDialog(std::string(desc.c_str()));')
   #elseif mac
-  @:functionCode('
-        res = phoenixShowMacDesktopDialog(std::string(desc.c_str()));
-    ')
+  @:functionCode('return phoenixShowMacDesktopDialog(std::string(desc.c_str()));')
   #end
-  static function sendFakeMsgBoxNative(desc:String = "", res:Int = 0)
+  static function sendFakeMsgBoxNative(desc:String = "", res:Int = 0):Int
   {
     #if windows
-    @:functionCode('\n        LPCSTR lwDesc = desc.c_str();\n\n        res = MessageBox(\n            NULL,\n            lwDesc,\n            NULL,\n            MB_OK\n        );\n    ')
-    #elseif linux
-    @:functionCode('\n        res = phoenixShowLinuxDesktopDialog(std::string(desc.c_str()));\n    ')
-    #elseif mac
-    @:functionCode('\n        res = phoenixShowMacDesktopDialog(std::string(desc.c_str()));\n    ')
-    #end
+    return backend.WindowNative.messageBox(desc, "", false, false);
+    #else
     return res;
     #end
   }

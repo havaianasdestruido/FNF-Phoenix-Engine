@@ -1,5 +1,7 @@
 package debug.profiler;
 
+import backend.PhoenixVersion;
+
 #if !cpp
 import Date;
 import debug.mem.GetTotalMemory;
@@ -1077,9 +1079,10 @@ class NativeFrameProfiler
   ')
   public static function exportLog(
     requestedPath:String = "",
-    engineVersion:String = "0.3.2",
+    engineVersion:String = PhoenixVersion.FALLBACK,
     platformName:String = "C++/hxcpp"):String
   {
+    if (engineVersion == null || engineVersion.length == 0) engineVersion = PhoenixVersion.current;
     return "";
   }
 
@@ -2220,9 +2223,10 @@ class NativeFrameProfiler
 
   public static function exportLog(
     requestedPath:String = "",
-    engineVersion:String = "0.3.2",
+    engineVersion:String = PhoenixVersion.FALLBACK,
     platformName:String = "Haxe"):String
   {
+    if (engineVersion == null || engineVersion.length == 0) engineVersion = PhoenixVersion.current;
     #if sys
     if (!_initialized || _exportInProgress)
       return "";

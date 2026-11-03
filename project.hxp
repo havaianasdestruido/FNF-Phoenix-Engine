@@ -21,18 +21,14 @@ class Project extends HXProject
 	//
 
 	/**
-	 * The game's version number, as a Semantic Versioning string with no prefix.
-	 * REMEMBER TO CHANGE THIS WHEN THE GAME UPDATES!
-	 * You only have to change it here, the rest of the game will query this value.
+	 * Phoenix Engine's own version, independent from the upstream JS Engine /
+	 * Psych Engine compatibility markers. Use the repository's release scheme:
+	 * MAJOR.MINOR.PATCH with optional -alpha, -beta, -preN or -rcN suffixes.
+	 * Git tags use the same value with a leading v (for example v0.0.1-pre1).
+	 * This is the build-time source of truth; runtime readers query the metadata
+	 * below through backend.PhoenixVersion.current.
 	 */
-	static final VERSION:String = "0.3.2";
-
-	/**
-	 * The engine's version number, as a Semantic Versioning string with no prefix.
-	 * Change this when a version is in development or release. (on function Flair)
-	 * This is just used for the function of FLAIR and is not used anywhere else.
-	 */
-	public static var ENGINE_VERSION:String = '';
+	static final VERSION:String = "0.0.1";
 
 	/**
 	 * The game's name. Used as the default window title.

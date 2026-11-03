@@ -23,6 +23,10 @@ class PlatformDialogTests(unittest.TestCase):
         self.assertIn("#elseif mac", native)
         self.assertIn("phoenixShowMacDesktopDialog", native)
         self.assertNotIn("TODO: Linux and macOS", native + public)
+        self.assertIn('return backend.WindowNative.messageBox(desc, "", false, false);', native)
+        self.assertIn('return phoenixShowLinuxDesktopDialog(std::string(desc.c_str()));', native)
+        self.assertIn('return phoenixShowMacDesktopDialog(std::string(desc.c_str()));', native)
+        self.assertNotIn('@:functionCode', public)
 
     def test_dialog_commands_are_direct_argv_calls_with_console_fallback(self):
         header = HEADER.read_text(encoding="utf-8")
