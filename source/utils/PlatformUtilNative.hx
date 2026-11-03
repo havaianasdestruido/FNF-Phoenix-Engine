@@ -100,24 +100,25 @@ class PlatformUtilNative
     #end
   }
 
-  #if windows
-  static function getArchNative():String
-    return backend.WindowNative.getArch();
-  #elseif (ios || mac)
+  #if (ios || mac)
   @:functionCode('
-		const NXArchInfo *archInfo = NXGetLocalArchInfo();
+			const NXArchInfo *archInfo = NXGetLocalArchInfo();
     	return ::String(archInfo == NULL ? "Unknown" : archInfo->name);
 	')
-  #else
+  #elseif !windows
   @:functionCode('
-		struct utsname osInfo{};
-		uname(&osInfo);
-		return ::String(osInfo.machine);
+			struct utsname osInfo{};
+			uname(&osInfo);
+			return ::String(osInfo.machine);
 	')
   #end
   @:noCompletion
   static function getArchNative():String
   {
+    #if windows
+    return backend.WindowNative.getArch();
+    #else
     return null;
+    #end
   }
 }
