@@ -82,7 +82,7 @@ jobs:
     steps:
       # Needs `pages: write`, hence it lives here and not in the build job.
       - name: Setup Pages
-        uses: actions/configure-pages@v5
+        uses: actions/configure-pages@v6
 
       - name: Deploy
         id: deployment
