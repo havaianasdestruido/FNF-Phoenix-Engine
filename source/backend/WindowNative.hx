@@ -80,15 +80,6 @@ class WindowNative
     return null;
 
   @:functionCode('return phoenixWindowSetOpacity(opacity);')
-  public static function updateWallpaper():Bool
-    return false;
-
-  public static function detectWine():Bool
-    return false;
-
-  public static function getArch():String
-    return null;
-
   public static function setOpacity(opacity:Float):Bool
     return false;
 
