@@ -128,7 +128,8 @@ class TestArchiveSafety(unittest.TestCase):
             self.assertIn('"%s", null,' % label, state, "text button must skip the image slot")
         self.assertNotIn("80, Paths.image(", state, "icon button must pass null for the text slot")
         self.assertIn("80, null, Paths.image(", state)
-        self.assertIn('"RELOAD", null, reload', state)
+        # `reload(?selectMod)` is not a `Void->Void`, so it must be wrapped.
+        self.assertIn('"RELOAD", null, function() reload()', state)
 
     def test_import_failures_are_shown_inside_the_menu(self):
         state = read("source/states/ModsMenuState.hx")
