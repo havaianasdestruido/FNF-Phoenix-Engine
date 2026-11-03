@@ -611,9 +611,7 @@ jobs:
           $log = Join-Path $env:RUNNER_TEMP 'windows-build.log'
           haxelib run lime build windows -D"${{ inputs.buildFlags || 'commit' }}" ${{ env.HXCPP_DESKTOP_PERF_FLAGS }} 2>&1 | Tee-Object -FilePath $log
           if ($LASTEXITCODE -ne 0) {
-            Select-String -Path $log -Pattern 'error|Error' -Context 2,2 | Select-Object -First 2 | ForEach-Object {
-              $_.Context.PreContext + $_.Line + $_.Context.PostContext | ForEach-Object { Write-Output "::error::$_" }
-            }
+            Get-Content 'build/release/windows/obj/src/debug/profiler/NativeFrameProfiler.cpp' -TotalCount 18 -ErrorAction SilentlyContinue | ForEach-Object { Write-Output "::error::$_" }
             exit 1
           }
 
