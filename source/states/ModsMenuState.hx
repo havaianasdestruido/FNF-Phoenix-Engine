@@ -17,7 +17,11 @@ import haxe.Json;
 import flixel.util.FlxSpriteUtil;
 // import options.ModSettingsSubState;
 import flixel.addons.transition.FlxTransitionableState;
+import haxe.io.Bytes;
+import mobile.files.MobileFilePicker;
+import mobile.files.ModZipInstaller;
 import objects.Alphabet;
+import objects.Prompt;
 
 // REFACTOR: imports for relocated root classes
 import backend.Controls;
@@ -35,9 +39,17 @@ class ModsMenuState extends MusicBeatState
 
 	var bgList:FlxSprite;
 	var buttonReload:MenuButton;
+	var buttonImport:MenuButton;
 	//var buttonModFolder:MenuButton;
 	var buttonEnableAll:MenuButton;
 	var buttonDisableAll:MenuButton;
+
+	/** `true` while a `.zip` pick/extract round-trip is in flight. */
+	var importingMod:Bool = false;
+	/** Progress line shown while an archive is inspected/extracted. */
+	var installText:FlxText;
+	/** Auto-hides a failure message shown through {@link installText}. */
+	var installStatusTimer:FlxTimer;
 	var buttons:Array<MenuButton> = [];
 	var settingsButton:MenuButton;
 
@@ -66,7 +78,7 @@ class ModsMenuState extends MusicBeatState
 		if (shift != 0)
 		{
 			for (sprite in [bgList, bgTitle, bgDescription, bgButtons, icon, modName,
-				modDesc, modRestartText, noModsTxt, buttonReload, buttonEnableAll, buttonDisableAll])
+				modDesc, modRestartText, noModsTxt, buttonReload, buttonEnableAll, buttonDisableAll, buttonImport])
 				if (sprite != null) sprite.x += shift;
 			for (button in buttons) button.x += shift;
 			if (modsGroup != null && modsGroup.length > 0) updateItemPositions();
@@ -127,12 +139,12 @@ class ModsMenuState extends MusicBeatState
 		var buttonWidth = Std.int(bgList.width);
 		var buttonHeight = 80;
 
-		buttonReload = new MenuButton(buttonX, bgList.y + bgList.height + 20, buttonWidth, buttonHeight, "RELOAD", reload);
+		buttonReload = new MenuButton(buttonX, bgList.y + bgList.height + 20, buttonWidth, buttonHeight, "RELOAD", null, function() reload());
 		add(buttonReload);
 		
 		var myY = buttonReload.y + buttonReload.bg.height + 20;
 
-		buttonEnableAll = new MenuButton(buttonX, myY, buttonWidth, buttonHeight, "ENABLE ALL", function() {
+		buttonEnableAll = new MenuButton(buttonX, myY, buttonWidth, buttonHeight, "ENABLE ALL", null, function() {
 			buttonEnableAll.ignoreCheck = false;
 			for (mod in modsGroup.members)
 			{
@@ -152,7 +164,7 @@ class ModsMenuState extends MusicBeatState
 		buttonEnableAll.focusChangeCallback = function(focus:Bool) if(!focus) buttonEnableAll.bg.color = FlxColor.GREEN;
 		add(buttonEnableAll);
 
-		buttonDisableAll = new MenuButton(buttonX, myY, buttonWidth, buttonHeight, "DISABLE ALL", function() {
+		buttonDisableAll = new MenuButton(buttonX, myY, buttonWidth, buttonHeight, "DISABLE ALL", null, function() {
 			buttonDisableAll.ignoreCheck = false;
 			for (mod in modsGroup.members)
 			{
@@ -181,7 +193,7 @@ class ModsMenuState extends MusicBeatState
 			buttonEnableAll.visible = true;
 
 			var myX = bgList.x + bgList.width + 20;
-			noModsTxt = new FlxText(myX, 0, FlxG.width - myX - 20, "NO MODS INSTALLED\nPRESS BACK TO EXIT OR INSTALL A MOD", 48);
+			noModsTxt = new FlxText(myX, 0, FlxG.width - myX - 20, "NO MODS INSTALLED\nPRESS BACK TO EXIT OR IMPORT A MOD .ZIP", 48);
 			if(FlxG.random.bool(0.1)) noModsTxt.text += '\nBITCH.'; //meanie
 			noModsTxt.setFormat(Paths.font("vcr.ttf"), 32, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 			noModsTxt.borderSize = 2;
@@ -191,6 +203,13 @@ class ModsMenuState extends MusicBeatState
 			var txt = new FlxText(bgList.x + 15, bgList.y + 15, bgList.width - 30, "No Mods found.", 16);
 			txt.setFormat(Paths.font("vcr.ttf"), 16, FlxColor.WHITE);
 			add(txt);
+
+			// Installing from a .zip is the only practical way in on a phone
+			// without a file manager, so the empty list offers it front and center.
+			var importWidth:Int = 360;
+			buttonImport = new MenuButton(myX + ((FlxG.width - myX - 20) - importWidth) * 0.5, FlxG.height - 170,
+				importWidth, 80, "IMPORT .ZIP", null, importModFromZip);
+			add(buttonImport);
 
 			FlxG.autoPause = false;
 			changeSelectedMod();
@@ -229,22 +248,26 @@ class ModsMenuState extends MusicBeatState
 		bgButtons.alpha = 0.2;
 		add(bgButtons);
 
+		// Left half of the button strip is free: use it for the .zip importer.
+		buttonImport = new MenuButton(bgButtons.x + 10, bgButtons.y + 10, 290, 80, "IMPORT", null, importModFromZip);
+		add(buttonImport);
+
 		var buttonsX = bgButtons.x + 320;
 		var buttonsY = bgButtons.y + 10;
 
-		var button = new MenuButton(buttonsX, buttonsY, 80, 80, Paths.image('modsMenuButtons', 'shared'), function() moveModToPosition(0), 54, 54); //Move to the top
+		var button = new MenuButton(buttonsX, buttonsY, 80, 80, null, Paths.image('modsMenuButtons', 'shared'), function() moveModToPosition(0), 54, 54); //Move to the top
 		button.icon.animation.add('icon', [0]);
 		button.icon.animation.play('icon', true);
 		add(button);
 		buttons.push(button);
 
-		var button = new MenuButton(buttonsX + 100, buttonsY, 80, 80, Paths.image('modsMenuButtons', 'shared'), function() moveModToPosition(curSelectedMod - 1), 54, 54); //Move up
+		var button = new MenuButton(buttonsX + 100, buttonsY, 80, 80, null, Paths.image('modsMenuButtons', 'shared'), function() moveModToPosition(curSelectedMod - 1), 54, 54); //Move up
 		button.icon.animation.add('icon', [1]);
 		button.icon.animation.play('icon', true);
 		add(button);
 		buttons.push(button);
 
-		var button = new MenuButton(buttonsX + 200, buttonsY, 80, 80, Paths.image('modsMenuButtons', 'shared'), function() moveModToPosition(curSelectedMod + 1), 54, 54); //Move down
+		var button = new MenuButton(buttonsX + 200, buttonsY, 80, 80, null, Paths.image('modsMenuButtons', 'shared'), function() moveModToPosition(curSelectedMod + 1), 54, 54); //Move down
 		button.icon.animation.add('icon', [2]);
 		button.icon.animation.play('icon', true);
 		add(button);
@@ -257,7 +280,7 @@ class ModsMenuState extends MusicBeatState
 		}
 		// not yet
 		/*
-		settingsButton = new MenuButton(buttonsX + 300, buttonsY, 80, 80, Paths.image('modsMenuButtons', 'shared'), function() //Settings
+		settingsButton = new MenuButton(buttonsX + 300, buttonsY, 80, 80, null, Paths.image('modsMenuButtons', 'shared'), function() //Settings
 		{
 			var curMod:ModItem = modsGroup.members[curSelectedMod];
 			if(curMod != null && curMod.settings != null && curMod.settings.length > 0)
@@ -275,7 +298,7 @@ class ModsMenuState extends MusicBeatState
 			settingsButton.enabled = false;
 		*/
 
-		var button = new MenuButton(buttonsX + 400, buttonsY, 80, 80, Paths.image('modsMenuButtons', 'shared'), function() //On/Off
+		var button = new MenuButton(buttonsX + 400, buttonsY, 80, 80, null, Paths.image('modsMenuButtons', 'shared'), function() //On/Off
 		{
 			var curMod:ModItem = modsGroup.members[curSelectedMod];
 			var mod:String = curMod.folder;
@@ -506,13 +529,13 @@ class ModsMenuState extends MusicBeatState
 						{
 							switch(curSelectedButton)
 							{
-								case -2:
+								case -3:
 									curSelectedMod = 0;
 									hoveringOnMods = true;
 									var button = getButton();
 									button.ignoreCheck = button.onFocus = false;
 									changeSelectedMod();
-								case -1:
+								case -2, -1:
 									changeSelectedButton(-1);
 							}
 						}
@@ -520,7 +543,7 @@ class ModsMenuState extends MusicBeatState
 						{
 							switch(curSelectedButton)
 							{
-								case -2:
+								case -3, -2:
 									changeSelectedButton(1);
 								case -1:
 									curSelectedMod = 0;
@@ -549,7 +572,10 @@ class ModsMenuState extends MusicBeatState
 		{
 			noModsSine += 180 * elapsed;
 			noModsTxt.alpha = 1 - Math.sin((Math.PI * noModsSine) / 180);
-			
+
+			// Touch/gamepad shortcut for the only action available right now.
+			if(controls.ACCEPT && !importingMod) importModFromZip();
+
 			// Keep refreshing mods list every 2 seconds until you add a mod on the folder
 			nextAttempt -= elapsed;
 			if(nextAttempt < 0)
@@ -606,14 +632,183 @@ class ModsMenuState extends MusicBeatState
 		ModsMenuHelpers.checkToggleButtons(this);
 	}
 
-	function reload()
+	function reload(?selectMod:String = null)
 	{
-		ModsMenuHelpers.reload(this);
+		ModsMenuHelpers.reload(this, selectMod);
 	}
 	
 	function saveTxt()
 	{
 		ModsMenuHelpers.saveTxt(this);
+	}
+
+	/* ------------------------------------------------------------------
+	 * Mod import (.zip)
+	 * ------------------------------------------------------------------ */
+
+	/**
+	 * Opens the platform picker (SAF on Android, native dialog on desktop) and
+	 * installs the selected `.zip` as a mod folder.
+	 *
+	 * This is the practical install path on a phone: the archive is extracted
+	 * by `mobile.files.ModZipInstaller`, validated and only then enabled, and
+	 * the mods list is reloaded so the new mod shows up immediately.
+	 */
+	public function importModFromZip():Void
+	{
+		if(importingMod) return;
+		importingMod = true;
+
+		var started:Bool = MobileFilePicker.openFile(function(file) {
+			if(file == null)
+			{
+				importingMod = false; // canceled
+				return;
+			}
+			installZip(file.data, file.name);
+		}, ['zip'], 'Select a mod .zip');
+
+		if(!started)
+		{
+			importingMod = false;
+			showInstallError('This build cannot open a file picker, so mods cannot be imported here.');
+		}
+	}
+
+	/** Reads archive metadata and asks before replacing an existing mod folder. */
+	function installZip(data:Bytes, displayName:String):Void
+	{
+		if(data == null)
+		{
+			importingMod = false;
+			showInstallError('The selected file could not be read.');
+			return;
+		}
+
+		showInstallStatus('READING ARCHIVE...');
+		new FlxTimer().start(0.1, function(timer:FlxTimer) {
+			var inspection = ModZipInstaller.inspect(data, displayName, Paths.mods());
+			if(!inspection.ok)
+			{
+				importingMod = false;
+				FlxG.sound.play(Paths.sound('cancelMenu'));
+				showInstallError(inspection.error);
+				return;
+			}
+
+			if(!inspection.conflicts)
+			{
+				finishInstall(data, displayName, false);
+				return;
+			}
+
+			hideInstallStatus();
+			FlxG.sound.play(Paths.sound('scrollMenu'));
+			openSubState(new Prompt('The folder "mods/' + inspection.folder + '/" already exists.\n\nReplace it with this .zip?', 0,
+				function() {
+					finishInstall(data, displayName, true);
+				}, function() {
+					importingMod = false;
+				}));
+		});
+	}
+
+	/** Extracts, validates and enables the archive, then reloads the list. */
+	function finishInstall(data:Bytes, displayName:String, replaceExisting:Bool):Void
+	{
+		showInstallStatus('INSTALLING MOD...');
+		new FlxTimer().start(0.1, function(timer:FlxTimer) {
+			var result = ModZipInstaller.importZip(data, displayName, Paths.mods(), null, validateModPack, replaceExisting);
+			importingMod = false;
+			hideInstallStatus();
+
+			if(!result.ok)
+			{
+				FlxG.sound.play(Paths.sound('cancelMenu'));
+				showInstallError(result.error);
+				return;
+			}
+
+			if(!Mods.registerInstalledMod(result.folder))
+				trace('The imported mod "${result.folder}" could not be enabled in modsList.txt.');
+
+			// Keep the in-memory copy in sync so reload() -> saveTxt() writes it too.
+			if(!modsList.all.contains(result.folder))
+			{
+				modsList.all.push(result.folder);
+				modsList.enabled.push(result.folder);
+				modsList.disabled.remove(result.folder);
+			}
+
+			hideInstallStatus();
+			FlxG.sound.play(Paths.sound('confirmMenu'));
+			reload(result.folder);
+		});
+	}
+
+	/** `pack.json` validation for imported mods (comments/trailing commas allowed). */
+	function validateModPack(text:String):Bool
+	{
+		try
+		{
+			var pack:Dynamic = tjson.TJSON.parse(text);
+			return pack != null && !Std.isOfType(pack, Array);
+		}
+		catch(e:Dynamic)
+		{
+			return false;
+		}
+	}
+
+	function showInstallStatus(text:String):Void
+	{
+		if(installText == null)
+		{
+			installText = new FlxText(0, 0, FlxG.width, '', 24);
+			installText.setFormat(Paths.font('vcr.ttf'), 24, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+			installText.borderSize = 2;
+			add(installText);
+		}
+
+		installText.text = text;
+		installText.visible = true;
+		installText.screenCenter();
+		installText.y = FlxG.height - 60;
+	}
+
+	/**
+	 * Reports an import failure inside the state.
+	 *
+	 * A native alert is not guaranteed on every target (and blocks the game
+	 * loop where it exists), so the message is drawn in the menu itself and
+	 * only mirrored to a popup on desktop.
+	 */
+	function showInstallError(message:String):Void
+	{
+		var reason:String = message == null || message.length == 0 ? 'Unknown error.' : message;
+		showInstallStatus('IMPORT FAILED\n' + reason);
+		installText.screenCenter();
+
+		#if !android
+		CoolUtil.showPopUp(reason, 'Import mod failed');
+		#end
+
+		if(installStatusTimer != null) installStatusTimer.cancel();
+		installStatusTimer = new FlxTimer().start(6, function(timer:FlxTimer) {
+			installStatusTimer = null;
+			hideInstallStatus();
+		});
+	}
+
+	function hideInstallStatus():Void
+	{
+		if(installStatusTimer != null)
+		{
+			installStatusTimer.cancel();
+			installStatusTimer = null;
+		}
+
+		if(installText != null) installText.visible = false;
 	}
 }
 

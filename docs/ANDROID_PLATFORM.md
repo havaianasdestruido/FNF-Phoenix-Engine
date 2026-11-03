@@ -295,8 +295,45 @@ API: `openFile(onResult, ?extensions, ?title)`,
 
 Wired into: chart import (`ChartingSaveLoad.promptBackup`), chart &
 event export (`saveLevel`/`saveEvents`), character import (the
-**Import Char** button in `CharacterEditorState`) and character export.
-Desktop keeps the traditional `FileReference` download flow.
+**Import Char** button in `CharacterEditorState`), character export and the
+mods menu's **IMPORT .ZIP** action. Desktop keeps the traditional
+`FileReference` download flow.
+
+### Installing a mod from a `.zip` (`mobile.files.ModZipInstaller`)
+
+The mods menu (`ModsMenuState`) offers **IMPORT .ZIP** - in the button strip
+next to the mod-order buttons, and as the primary button on the "no mods
+installed" screen (where it is also bound to accept/A). It opens the same
+cross-platform picker filtered to `application/zip`, reads the archive bytes,
+and hands them to `mobile.files.ModZipInstaller`, then enables the new folder
+with `Mods.registerInstalledMod()` and reloads the menu on it. On Android this
+is the only practical install path without a file manager.
+
+`backend.ModPathPolicy` owns the rules every entry must pass before anything is
+written: no absolute paths (`/…`, `C:…`, `//server`), no `..` segments, no
+NUL/control or Windows-illegal characters, no Windows device names, and bounded
+length/depth. `ModZipInstaller` then:
+
+- parses the zip **central directory** and trusts it over local headers (a
+  local name that disagrees rejects the archive) so entry names and sizes are
+  known before decompression;
+- rejects encrypted entries, symbolic links and compression methods other than
+  stored/deflate, and caps archive size, per-entry size, total expanded size and
+  entry count (zip-bomb limits);
+- finds the mod root (`pack.json` at the root, or inside a single top-level
+  folder, ignoring macOS `__MACOSX`/`._*` metadata) and derives a safe folder
+  name from it (or from the picked file name);
+- extracts into a hidden `mods/.phoenix-import-*` staging folder, validates
+  `pack.json` there, and only then swaps it into `mods/<folder>/`. A rejected or
+  interrupted import leaves no partial mod behind, and staging folders are never
+  listed as mods;
+- refuses to overwrite an installed folder unless the caller asks to replace it;
+  the menu asks with a `Prompt` before doing so.
+
+Regression checks: `tests/haxe/run-mod-zip.sh` (interpreter spec for the path
+policy, central-directory parser and extractor) and
+`python3 -m unittest discover -s tests -p 'test_mod_zip_import.py' -v` (wiring,
+security rules and docs).
 
 ### System-visible app directories (`PhoenixDocumentsProvider`)
 
