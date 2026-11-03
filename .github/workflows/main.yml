@@ -1,5 +1,9 @@
 name: Build
 
+# CI builds and tests only the two supported platforms: Windows and Android.
+# Other Lime targets remain buildable locally (see BUILDING.md), but they are
+# not part of the GitHub Actions matrix.
+
 on:
   push:
     branches: [main, bleeding]
@@ -26,48 +30,6 @@ on:
         type: boolean
         default: true
 
-      buildLinux:
-        description: "Build Linux"
-        required: false
-        type: boolean
-        default: false
-
-      buildMacOS:
-        description: "Build macOS"
-        required: false
-        type: boolean
-        default: false
-
-      buildHTML5:
-        description: "Build HTML5"
-        required: false
-        type: boolean
-        default: false
-
-      buildNeko:
-        description: "Build Neko"
-        required: false
-        type: boolean
-        default: false
-
-      buildFlash:
-        description: "Build Flash"
-        required: false
-        type: boolean
-        default: false
-
-      buildAIR:
-        description: "Build AIR"
-        required: false
-        type: boolean
-        default: false
-
-      buildAllTargets:
-        description: "Build all targets"
-        required: false
-        type: boolean
-        default: false
-
   workflow_dispatch:
     inputs:
       buildWindows:
@@ -81,48 +43,6 @@ on:
         required: false
         type: boolean
         default: true
-
-      buildLinux:
-        description: "Build Linux"
-        required: false
-        type: boolean
-        default: false
-
-      buildMacOS:
-        description: "Build macOS"
-        required: false
-        type: boolean
-        default: false
-
-      buildHTML5:
-        description: "Build HTML5"
-        required: false
-        type: boolean
-        default: false
-
-      buildNeko:
-        description: "Build Neko"
-        required: false
-        type: boolean
-        default: false
-
-      buildFlash:
-        description: "Build Flash"
-        required: false
-        type: boolean
-        default: false
-
-      buildAIR:
-        description: "Build AIR"
-        required: false
-        type: boolean
-        default: false
-
-      buildAllTargets:
-        description: "Build all targets"
-        required: false
-        type: boolean
-        default: false
 
 # Keep the haxelib installation inside the workspace so it can be restored on
 # subsequent runs instead of downloading and compiling dependencies every time.
@@ -183,107 +103,6 @@ jobs:
             artifact_path: build/release/android/bin/app/build/outputs/apk/debug
             setup: android
 
-          # =========================
-          # Linux
-          # =========================
-          - name: Linux
-            os: ubuntu-latest
-            target: linux
-            target_dir: linux
-            cache_name: linux
-            artifact: linuxBuild
-            artifact_path: build/release/linux/bin
-            setup: unix
-
-          # =========================
-          # macOS Intel
-          # =========================
-          - name: macOS (Intel)
-            os: macos-13
-            target: mac
-            target_dir: macos
-            target_args: -64 -D HXCPP_M64
-            cache_name: macos-intel
-            artifact: macBuild-intel
-            artifact_path: build/release/macos/bin
-            setup: unix
-
-          # =========================
-          # macOS ARM
-          # =========================
-          - name: macOS (ARM)
-            os: macos-14
-            target: mac
-            target_dir: macos
-            target_args: -arm64 -D HXCPP_ARM64
-            cache_name: macos-arm
-            artifact: macBuild-arm
-            artifact_path: build/release/macos/bin
-            setup: unix
-
-          # =========================
-          # HTML5
-          # =========================
-          - name: HTML5
-            os: ubuntu-latest
-            target: html5
-            target_dir: html5
-            cache_name: html5
-            artifact: html5Build
-            artifact_path: build/release/html5/bin
-            setup: unix
-
-          # =========================
-          # Neko
-          # =========================
-          - name: Neko
-            os: ubuntu-latest
-            target: neko
-            target_dir: neko
-            cache_name: neko
-            artifact: nekoBuild
-            artifact_path: build/release/neko/bin
-            setup: unix
-
-          # =========================
-          # Flash
-          # =========================
-          - name: Flash
-            os: ubuntu-latest
-            target: flash
-            target_dir: flash
-            cache_name: flash
-            artifact: flashBuild
-            artifact_path: build/release/flash/bin
-            target_args: -D disable-version-check
-            setup: unix
-
-          # =========================
-          # HashLink (disabled)
-          # =========================
-          - name: HashLink
-            os: ubuntu-latest
-            target: hl
-            target_dir: hl
-            cache_name: hl
-            artifact: hlBuild
-            artifact_path: build/release/hl/bin
-            setup: unix
-            disabled: true
-
-          # =========================
-          # AIR
-          # =========================
-          - name: AIR
-            os: ubuntu-latest
-            target: air
-            target_dir: air
-            cache_name: air
-            artifact: airBuild
-            artifact_path: build/release/air/bin
-            target_args: -D disable-version-check
-            setup: unix
-
     steps:
       # ==========================================
       # Checkout
@@ -298,40 +117,14 @@ jobs:
         id: target-selection
         shell: bash
         run: |
-          # Explicitly disabled targets never build (experimental targets tracked for future enablement)
-          if [ "${{ matrix.disabled }}" = "true" ]; then
-            echo "enabled=false" >> "$GITHUB_OUTPUT"
-            echo "Target ${{ matrix.name }} is disabled (experimental)."
-            exit 0
-          fi
-
-          BUILD_ALL="${{ inputs.buildAllTargets }}"
           BUILD_WINDOWS="${{ inputs.buildWindows }}"
           BUILD_ANDROID="${{ inputs.buildAndroid }}"
-          BUILD_LINUX="${{ inputs.buildLinux }}"
-          BUILD_MACOS="${{ inputs.buildMacOS }}"
-          BUILD_HTML5="${{ inputs.buildHTML5 }}"
-          BUILD_NEKO="${{ inputs.buildNeko }}"
-          BUILD_FLASH="${{ inputs.buildFlash }}"
-          BUILD_AIR="${{ inputs.buildAIR }}"
 
           # Push / pull_request events don't provide workflow_dispatch inputs.
-          # For those events, default to Windows + Android.
+          # For those events, always build the two CI targets: Windows + Android.
           if [ "${{ github.event_name }}" = "push" ] || [ "${{ github.event_name }}" = "pull_request" ]; then
             BUILD_WINDOWS="true"
             BUILD_ANDROID="true"
-            BUILD_LINUX="false"
-            BUILD_MACOS="false"
-            BUILD_HTML5="false"
-            BUILD_NEKO="false"
-            BUILD_FLASH="false"
-            BUILD_AIR="false"
-          fi
-
-          if [ "$BUILD_ALL" = "true" ]; then
-            echo "enabled=true" >> "$GITHUB_OUTPUT"
-            echo "Build all targets enabled."
-            exit 0
           fi
 
           case "${{ matrix.target }}" in
@@ -340,24 +133,6 @@ jobs:
               ;;
             android)
               ENABLED="$BUILD_ANDROID"
-              ;;
-            linux)
-              ENABLED="$BUILD_LINUX"
-              ;;
-            mac)
-              ENABLED="$BUILD_MACOS"
-              ;;
-            html5)
-              ENABLED="$BUILD_HTML5"
-              ;;
-            neko)
-              ENABLED="$BUILD_NEKO"
-              ;;
-            flash)
-              ENABLED="$BUILD_FLASH"
-              ;;
-            air)
-              ENABLED="$BUILD_AIR"
               ;;
             *)
               ENABLED="false"
@@ -408,24 +183,6 @@ jobs:
           packages: platform-tools platforms;android-36 build-tools;36.0.0 ndk;27.0.12077973
 
       # ==========================================
-      # Linux packages
-      # ==========================================
-      - name: Install Linux packages
-        if: steps.target-selection.outputs.enabled == 'true' && matrix.target == 'linux'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            libgtk-3-dev \
-            libgl-dev \
-            libx11-dev \
-            libxi-dev \
-            libxpm-dev \
-            libxrandr-dev \
-            libncurses-dev \
-            libvlc-dev \
-            libvlccore-dev
-
-      # ==========================================
       # Restore Haxelib cache
       # ==========================================
       - name: Restore haxelib and hxcpp tools
@@ -435,17 +192,6 @@ jobs:
         with:
           path: ${{ env.HAXELIB_PATH }}
           key: haxelib-${{ runner.os }}-${{ matrix.setup }}-haxe-${{ env.HAXE_VERSION }}-${{ hashFiles('hmm.json') }}
-
-      # ==========================================
-      # Install Haxelib dependencies - Unix
-      # ==========================================
-      - name: Install haxelib dependencies (Unix)
-        if: steps.target-selection.outputs.enabled == 'true' && matrix.setup == 'unix' && steps.haxelib-cache.outputs.cache-hit != 'true'
-        shell: bash
-        run: |
-          haxelib setup "$HAXELIB_PATH"
-          chmod +x ./setup/unix.sh
-          SKIP_SYSTEM_DEPENDENCIES=1 ./setup/unix.sh
 
       # ==========================================
       # Install Haxelib dependencies - Android
@@ -493,10 +239,10 @@ jobs:
           powershell -ExecutionPolicy Bypass -File setup\windows-msvc-fix.ps1
 
       # ==========================================
-      # Compile hxcpp tools - Unix
+      # Compile hxcpp tools - Android
       # ==========================================
-      - name: Compile hxcpp tools (Unix)
-        if: steps.target-selection.outputs.enabled == 'true' && (matrix.setup == 'unix' || matrix.setup == 'android') && steps.haxelib-cache.outputs.cache-hit != 'true'
+      - name: Compile hxcpp tools (Android)
+        if: steps.target-selection.outputs.enabled == 'true' && matrix.setup == 'android' && steps.haxelib-cache.outputs.cache-hit != 'true'
         shell: bash
         run: |
           cd "$HAXELIB_PATH/hxcpp/git/tools/run"
@@ -517,26 +263,6 @@ jobs:
 
           cd /d "%HAXELIB_PATH%\hxcpp\git\tools\hxcpp"
           haxe compile.hxml
-
-      # ==========================================
-      # AIR SDK
-      # ==========================================
-      # Manual download chosen over air-sdk-setup-action: the action does not
-      # exist at the expected public path, so a known-good zip URL is used instead.
-      # The zip is extracted to RUNNER_TEMP so it is available to the compile step.
-      # AIR_SDK is written to GITHUB_ENV so subsequent steps can reference it via
-      # the standard ${{ env.AIR_SDK }} syntax.
-      - name: Download AIR SDK
-        if: steps.target-selection.outputs.enabled == 'true' && matrix.target == 'air'
-        shell: bash
-        run: |
-          AIR_SDK_URL="https://airsdk.adobe.com/air/compiler/air/air-sdk.zip"
-          AIR_SDK_DIR="$RUNNER_TEMP/air-sdk"
-          mkdir -p "$AIR_SDK_DIR"
-          curl -sL "$AIR_SDK_URL" -o "$AIR_SDK_DIR/air-sdk.zip"
-          unzip -q "$AIR_SDK_DIR/air-sdk.zip" -d "$AIR_SDK_DIR"
-          echo "AIR_SDK=$AIR_SDK_DIR" >> "$GITHUB_ENV"
-          echo "Installed AIR SDK to $AIR_SDK_DIR"
 
       # ==========================================
       # Report resolved dependency revisions (#57)
@@ -576,21 +302,6 @@ jobs:
           restore-keys: |
             hxcpp-${{ runner.os }}-${{ matrix.cache_name }}-${{ inputs.buildFlags || 'commit' }}-
             hxcpp-${{ runner.os }}-${{ matrix.cache_name }}-
-
-      # ==========================================
-      # Compile Unix / Linux / macOS
-      # ==========================================
-      - name: Compile (Unix)
-        if: steps.target-selection.outputs.enabled == 'true' && matrix.setup == 'unix'
-        shell: bash
-        env:
-          HXCPP_COMPILE_THREADS: 4
-        run: |
-          rm -f assets/preload/gameRenders/renderlol.bat
-
-          rm -rf "$HXCPP_COMPILE_CACHE" 2>/dev/null || true
-
-          haxelib run lime build ${{ matrix.target }} ${{ matrix.target_args }} -D"${{ inputs.buildFlags || 'commit' }}" ${{ env.HXCPP_DESKTOP_PERF_FLAGS }} ${AIR_SDK:+-DAIR_SDK=$AIR_SDK}
 
       # ==========================================
       # Compile Windows
