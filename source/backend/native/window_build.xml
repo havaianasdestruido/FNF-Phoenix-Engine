@@ -1,6 +1,7 @@
 <xml>
   <!-- Shared include path for the process-checked Windows window helpers. -->
+  <set name="PHOENIX_WINDOW_DIR" value="${this_dir}" />
   <files id="haxe">
-    <compilervalue name="-I" value="${this_dir}/include/" />
+    <compilervalue name="-I" value="${PHOENIX_WINDOW_DIR}/include/" />
   </files>
 </xml>
