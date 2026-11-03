@@ -210,6 +210,8 @@ FNF-JS-Engine-Light/
   e iOS (macos, `-nosign` + ldid → IPA). Trigger: `workflow_dispatch`/`push`.
 - `release.yml` — faz release com APK/IPA via `mobile-release.yml` (tag).
 - `nightly.yml`, `autotriage.yml`, `autolock.yml` — housekeeping.
+- **Sem CodeQL:** não adicionar workflows `github/codeql-action` nem ativar o default setup
+  de code scanning. O default setup é uma configuração do GitHub, separada dos arquivos de workflow.
 - Para rodar android localmente (Windows): configurar Android SDK/NDK via `haxelib run lime config`
   (ver BUILDING.md / workflows).
 

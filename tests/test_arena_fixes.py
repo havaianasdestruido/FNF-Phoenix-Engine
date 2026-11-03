@@ -105,6 +105,13 @@ class TestCIWorkflows(unittest.TestCase):
     def test_no_jekyll_workflow_can_overwrite_pages(self):  # #49
         self.assertFalse((ROOT / ".github/workflows/jekyll-gh-pages.yml").exists())
 
+    def test_no_codeql_actions_are_installed(self):
+        # GitHub's default setup is a repository setting, not a workflow file.
+        for pattern in ("*.yml", "*.yaml"):
+            for path in (ROOT / ".github/workflows").glob(pattern):
+                text = path.read_text(encoding="utf-8").lower()
+                self.assertNotIn("github/codeql-action", text, path.name)
+
     def test_triage_labels_are_self_healing(self):  # #48
         self.assertIn("createLabel", read(".github/workflows/autotriage.yml"))
         autolock = read(".github/workflows/autolock.yml")
