@@ -12,6 +12,11 @@
 </h3>
 
 <p align="center">
+  <img src="https://github.com/havaianasdestruido/FNF-Phoenix-Engine/actions/workflows/mobile.yml/badge.svg">
+  <img src="https://github.com/havaianasdestruido/FNF-Phoenix-Engine/actions/workflows/main.yml/badge.svg">
+</p>
+
+<p align="center">
 <img alt="GitHub repo size" src="https://img.shields.io/github/repo-size/havaianasdestruido/FNF-Phoenix-Engine">
 <img alt="GitHub commit activity" src="https://img.shields.io/github/commit-activity/w/havaianasdestruido/FNF-Phoenix-Engine">
 <img alt="GitHub contributors" src="https://img.shields.io/github/contributors/havaianasdestruido/FNF-Phoenix-Engine">
