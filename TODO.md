@@ -376,6 +376,11 @@ There is real infrastructure to extend: `tests/test_*.py` (static/source guards,
 - **[P3] First-run smoke test.** Boot with an empty save path, assert Title is reached, the save is created, no mod loads, and `flashing == null` triggers `FlashingState`. Run it on the Android emulator job from §10 as well as desktop CI.
 - **[P3] Performance baseline gate.** Keep a `FrameProfiler` export for a fixed chart/build and fail when average or 1% low regress past a threshold, making the low-end promise testable instead of anecdotal.
 
+## OTHER
+
+### Port other Psych Engine fork features
+
+Read `docs/research/psych-fork-engine-changes.md`.
 ---
 
 ## TOP 5 (do these first)
