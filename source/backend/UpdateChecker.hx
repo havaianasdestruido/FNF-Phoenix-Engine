@@ -84,7 +84,7 @@ class UpdateChecker
   }
 
   #if (lime && sys && target.threaded)
-  static function poll(_delta:Int):Void
+  static function poll(_delta:Float):Void
   {
     var message:Dynamic = messages.pop(false);
     if (message == null) return;
