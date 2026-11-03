@@ -1,6 +1,9 @@
 package editors.charting;
 
 // REFACTOR: extracted from editors.ChartingState (behavior-preserving)
+#if android
+import android.platform.AndroidNotification;
+#end
 import backend.CoolUtil;
 import backend.Paths;
 import data.Song;
@@ -216,6 +219,13 @@ class ChartingSaveLoad
         dateNow = dateNow.replace(":", "'");
 
         File.saveContent('backups/${gamingName}_$dateNow.json', data.trim());
+        #if android
+        // Opt-in event notification (Options -> Mobile Options -> "Event
+        // Notifications"). Fixed id: the autosave replaces the previous
+        // backup notification instead of stacking new ones.
+        AndroidNotification.notifyEvent(AndroidNotification.ID_CHART_BACKUP, 'Chart backup saved',
+          'Backed up $gamingName to backups/');
+        #end
         #end
       }
     }

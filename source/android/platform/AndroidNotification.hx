@@ -29,9 +29,21 @@ import lime.system.JNI;
 /**
  * Native Android notifications. The media (MediaStyle) notification is
  * managed by `AndroidMedia`; this module covers simple status notifications.
+ *
+ * Simple notifications are strictly opt-in: engine events go through
+ * `notifyEvent`, which no-ops unless the player enabled
+ * `ClientPrefs.androidNotifications` (Options -> Mobile Options ->
+ * "Event Notifications"). Use `notify` directly only for notifications the
+ * player explicitly asked for in the moment (e.g. a picker result).
  */
 class AndroidNotification
 {
+	/** Notification id for "chart backup saved" (fixed, so autosave replaces it). */
+	public static inline var ID_CHART_BACKUP:Int = 1001;
+
+	/** Notification id for "crash log saved". */
+	public static inline var ID_CRASH_LOG:Int = 1002;
+
 	/**
 	 * Posts a simple notification on the engine's general channel.
 	 * On Android 13+ the user must have granted POST_NOTIFICATIONS
@@ -42,6 +54,22 @@ class AndroidNotification
 		#if android
 		AndroidBridge.ensureRegistered();
 		notifySimple_jni(id, title ?? "", text ?? "");
+		#end
+	}
+
+	/**
+	 * Opt-in event notification: posts `notify(id, title, text)` only when the
+	 * player enabled `ClientPrefs.androidNotifications`. No-op on every other
+	 * platform and while the pref is off, so callers can fire events freely.
+	 * Reusing a fixed `id` updates the existing notification instead of
+	 * stacking (the native side sets `onlyAlertOnce`, so repeats don't re-alert).
+	 */
+	public static function notifyEvent(id:Int, title:String, text:String):Void
+	{
+		#if android
+		if (!backend.ClientPrefs.androidNotifications)
+			return;
+		notify(id, title, text);
 		#end
 	}
 

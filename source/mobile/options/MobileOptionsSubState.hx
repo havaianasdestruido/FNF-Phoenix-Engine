@@ -26,6 +26,9 @@ package mobile.options;
 import options.BaseOptionsMenu;
 import options.Option;
 import states.TitleState;
+#if android
+import android.platform.AndroidNotification;
+#end
 #if sys
 import sys.io.File;
 #end
@@ -88,6 +91,24 @@ class MobileOptionsSubState extends BaseOptionsMenu
 		'bool',
 		false);
 		option.onChange = () -> lime.system.System.allowScreenTimeout = curOption.getValue();
+		addOption(option);
+		#end
+
+		#if android
+		var option:Option = new Option('Event Notifications',
+			'If checked, Phoenix posts Android system notifications for engine events\n'
+			+ '(chart backups saved, crash logs saved). Enabling this on Android 13+\n'
+			+ 'asks for the notification permission.',
+			'androidNotifications',
+			'bool',
+			false);
+		option.onChange = () ->
+		{
+			// Opt-in: POST_NOTIFICATIONS is only requested when the player turns
+			// this on, never unattended at startup.
+			if (curOption.getValue())
+				AndroidNotification.requestPermission();
+		};
 		addOption(option);
 		#end
 

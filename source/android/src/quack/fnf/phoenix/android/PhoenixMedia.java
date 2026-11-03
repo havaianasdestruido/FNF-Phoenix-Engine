@@ -533,7 +533,10 @@ public class PhoenixMedia extends Extension
 			builder.setContentTitle(safeString(title))
 				.setContentText(safeString(text))
 				.setSmallIcon(android.R.drawable.stat_notify_more)
-				.setAutoCancel(true);
+				.setAutoCancel(true)
+				// Event notifications reuse a fixed id (e.g. chart autosave
+				// backups): update the existing notification without re-alerting.
+				.setOnlyAlertOnce(true);
 
 			notify(id, builder.build());
 		}
