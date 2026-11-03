@@ -6,9 +6,12 @@ repositório frente ao commit base (5ca9689). Os testes que dependem do
 ImageMagick são pulados quando ``convert``/``identify`` não estão instalados.
 """
 
+import hashlib
 import importlib.util
 import json
+import os
 import shutil
+import struct
 import subprocess
 import tempfile
 import unittest
@@ -16,6 +19,10 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 BASE_COMMIT = "5ca9689e3ece9d5ef00621c34a746740f2d98163"
+# Commit where the image-optimization report was generated (state *after* the
+# downscale PR). Later passes (palette reduction) legitimately change file
+# bytes, so the historical assertions below compare against this snapshot.
+STATE_COMMIT = "c0852013439297aa4fba5765a334bf53cb83466d"
 REPORT = REPO_ROOT / "tools" / "reports" / "image-optimization-report.json"
 
 _spec = importlib.util.spec_from_file_location("optimize_images", REPO_ROOT / "tools" / "optimize_images.py")
@@ -29,17 +36,37 @@ def _git(*args):
     return subprocess.run(["git", *args], cwd=REPO_ROOT, capture_output=True, text=True, check=True).stdout
 
 
-def _garantir_commit_base():
-    """Garante o commit base (5ca9689), buscando-o se o clone for raso (ex.: CI com depth 1)."""
+def _garantir_commit(commit):
+    """Garante um commit histórico, buscando-o se o clone for raso (ex.: CI)."""
     def existe():
-        return subprocess.run(["git", "cat-file", "-e", f"{BASE_COMMIT}^{{commit}}"],
+        return subprocess.run(["git", "cat-file", "-e", f"{commit}^{{commit}}"],
                               cwd=REPO_ROOT, capture_output=True).returncode == 0
     if existe():
         return
-    subprocess.run(["git", "fetch", "--no-tags", "--depth=1", "origin", BASE_COMMIT],
+    subprocess.run(["git", "fetch", "--no-tags", "--depth=1", "origin", commit],
                    cwd=REPO_ROOT, capture_output=True)
     if not existe():
-        raise unittest.SkipTest("commit base 5ca9689 indisponível neste clone")
+        raise unittest.SkipTest(f"commit {commit} indisponível neste clone")
+
+
+def _garantir_commit_base():
+    _garantir_commit(BASE_COMMIT)
+
+
+def _bytes_no_estado(path):
+    """Bytes de um arquivo no commit em que o relatório foi gerado."""
+    return subprocess.run(["git", "show", f"{STATE_COMMIT}:{path}"], cwd=REPO_ROOT,
+                          capture_output=True, check=True).stdout
+
+
+def _identificar_no_estado(path):
+    with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as f:
+        f.write(_bytes_no_estado(path))
+        tmp = f.name
+    try:
+        return otimizador.identificar(tmp)
+    finally:
+        os.unlink(tmp)
 
 
 def _criar_png_sintetico(caminho, w, h):
@@ -200,18 +227,39 @@ class ValidacaoDoRepositorioTest(unittest.TestCase):
             self.assertEqual(a["dimensoes_depois"][1] * 2 - h in (0, 1), True, path)
 
     def test_arquivo_gravado_corresponde_ao_relatorio(self):
+        # O relatório descreve o estado do commit STATE_COMMIT. A redução de
+        # paleta posterior troca os bytes (mas não as dimensões), então a
+        # validação histórica usa o snapshot desse commit.
+        _garantir_commit(STATE_COMMIT)
         for path, a in self.assets.items():
             if a["acao"] not in ("reduzido_2x", "recodificado_sem_perda", "mantido", "ja_processado"):
                 continue
-            f = REPO_ROOT / path
-            self.assertEqual(f.stat().st_size, a["bytes_depois"], path)
-            self.assertEqual(otimizador.sha256(f), a["sha256_depois"], path)
-            info = otimizador.identificar(f)
+            data = _bytes_no_estado(path)
+            self.assertEqual(len(data), a["bytes_depois"], path)
+            self.assertEqual(hashlib.sha256(data).hexdigest(), a["sha256_depois"], path)
+            info = _identificar_no_estado(path)
             self.assertEqual([info["w"], info["h"]], a["dimensoes_depois"], path)
+
+    def test_paleta_posterior_nao_mudou_dimensoes(self):
+        """A redução de paleta só recodifica pixels: frames de atlas continuam válidos."""
+        for path, a in self.assets.items():
+            if not a["dimensoes_depois"]:
+                continue
+            f = REPO_ROOT / path
+            if not f.is_file() or f.suffix.lower() != ".png":
+                continue
+            with f.open("rb") as fh:
+                head = fh.read(24)
+            if head[:8] != b"\x89PNG\r\n\x1a\n":
+                continue
+            w, h = struct.unpack(">II", head[16:24])
+            self.assertEqual([w, h], a["dimensoes_depois"], path)
 
     def test_somente_os_avulsos_foram_alterados_em_relacao_ao_base(self):
         _garantir_commit_base()
-        alterados = set(_git("diff", "--name-only", BASE_COMMIT, "--", "assets", "source", "tools", "tests").split())
+        _garantir_commit(STATE_COMMIT)
+        alterados = set(_git("diff", "--name-only", BASE_COMMIT, STATE_COMMIT,
+                             "--", "assets", "source", "tools", "tests").split())
         esperados = {
             "assets/week4/images/limo/limoSunset.png",
             "assets/week5/images/christmas/bgWalls.png",
@@ -226,9 +274,10 @@ class ValidacaoDoRepositorioTest(unittest.TestCase):
 
     def test_nenhum_xml_foi_alterado(self):
         _garantir_commit_base()
+        _garantir_commit(STATE_COMMIT)
         # This historical image-optimization guard only covers asset XML;
         # unrelated engine build metadata may legitimately add new XML files.
-        changed = _git("diff", "--name-only", BASE_COMMIT, "--", "assets").split()
+        changed = _git("diff", "--name-only", BASE_COMMIT, STATE_COMMIT, "--", "assets").split()
         xml = [path for path in changed if path.endswith(".xml")]
         self.assertEqual(xml, [])
 
