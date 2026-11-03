@@ -1,7 +1,9 @@
 """Minimal host-JVM API doubles, not Android layout/surface emulation."""
 STUBS = {
     'android/content/Context.java': '''package android.content; public class Context {
-        public static final String WINDOW_SERVICE="window", DISPLAY_SERVICE="display";
+        public static final String WINDOW_SERVICE="window", DISPLAY_SERVICE="display"; public static final int MODE_PRIVATE=0;
+        public static final android.content.SharedPreferences preferences=new android.content.SharedPreferences();
+        public android.content.SharedPreferences getSharedPreferences(String name,int mode){return preferences;}
         public Object getSystemService(String name){return null;}
         public android.content.res.Resources getResources(){return new android.content.res.Resources();}}''',
     'android/content/res/Resources.java': '''package android.content.res; public class Resources {
@@ -32,20 +34,22 @@ STUBS = {
         public static final int SYSTEM_UI_FLAG_VISIBLE=0,SYSTEM_UI_FLAG_IMMERSIVE=1,SYSTEM_UI_FLAG_LAYOUT_STABLE=2,
         SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION=4,SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN=8,SYSTEM_UI_FLAG_HIDE_NAVIGATION=16,
         SYSTEM_UI_FLAG_FULLSCREEN=32,SYSTEM_UI_FLAG_IMMERSIVE_STICKY=64;
-        public void setSystemUiVisibility(int flags){} public WindowInsets getRootWindowInsets(){return null;}
+        public int systemUiVisibility; public void setSystemUiVisibility(int flags){systemUiVisibility=flags;} public WindowInsets getRootWindowInsets(){return null;}
         public void requestApplyInsets(){} public void requestLayout(){}}''',
     'android/view/Window.java': '''package android.view; public class Window {
         public int updates; public boolean fail; public WindowManager.LayoutParams attrs=new WindowManager.LayoutParams();
+        public View decor=new View(); public WindowInsetsController controller=new WindowInsetsController();
         public WindowManager.LayoutParams getAttributes(){return attrs;}
         public void setAttributes(WindowManager.LayoutParams a){if(fail)throw new IllegalStateException("test");updates++;attrs=a;}
-        public View getDecorView(){return new View();} public WindowInsetsController getInsetsController(){return null;}}''',
+        public void addFlags(int flags){attrs.flags|=flags;} public void clearFlags(int flags){attrs.flags&=~flags;}
+        public View getDecorView(){return decor;} public WindowInsetsController getInsetsController(){return controller;}}''',
     'android/view/WindowManager.java': '''package android.view; public class WindowManager {
         public Display getDefaultDisplay(){return null;} public static class LayoutParams {
-        public static final int LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS=3;
-        public int layoutInDisplayCutoutMode,preferredDisplayModeId;}}''',
+        public static final int LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS=3,FLAG_FULLSCREEN=1024,FLAG_FORCE_NOT_FULLSCREEN=2048;
+        public int layoutInDisplayCutoutMode,preferredDisplayModeId,flags;}}''',
     'android/view/WindowInsetsController.java': '''package android.view; public class WindowInsetsController {
         public static final int BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE=2,BEHAVIOR_SHOW_BARS_BY_SWIPE=1;
-        public void show(int t){} public void hide(int t){} public void setSystemBarsBehavior(int b){}}''',
+        public int shown,hidden,behavior=-1; public void show(int t){shown=t;hidden=0;} public void hide(int t){hidden=t;shown=0;} public void setSystemBarsBehavior(int b){behavior=b;}}''',
     'android/hardware/display/DisplayManager.java': '''package android.hardware.display; public class DisplayManager {
         public interface DisplayListener {void onDisplayAdded(int i);void onDisplayRemoved(int i);void onDisplayChanged(int i);}
         public void registerDisplayListener(DisplayListener l,Object h){} public void unregisterDisplayListener(DisplayListener l){}}''',
@@ -71,7 +75,7 @@ STUBS.update({
         public static boolean interceptKey(int code,boolean down){return false;}}''',
     'org/haxe/lime/GameActivity.java': '''package org.haxe.lime; public class GameActivity extends android.app.Activity {
         public android.view.View content;
-        protected void onCreate(android.os.Bundle b){org.haxe.extension.Extension.mainActivity=this;setContentView(new android.view.View());}
+        protected void onCreate(android.os.Bundle b){org.haxe.extension.Extension.mainActivity=this;org.haxe.extension.Extension.mainContext=this;setContentView(new android.view.View());}
         protected void onResume(){} public void onWindowFocusChanged(boolean f){}
         protected void onDestroy(){destroyed=true;}
         public void setContentView(android.view.View v){content=v;}
@@ -101,3 +105,8 @@ STUBS.update({
         public void addView(android.view.View view,android.view.ViewGroup.LayoutParams params){}
         public void requestApplyInsets(){} public android.view.WindowInsets onApplyWindowInsets(android.view.WindowInsets i){return i;}}''',
 })
+
+STUBS['android/content/SharedPreferences.java'] = '''package android.content; public class SharedPreferences {
+    public String value; public boolean fail; public Editor edit(){return new Editor();}
+    public String getString(String key,String fallback){if(fail)throw new IllegalStateException("test");return value==null?fallback:value;}
+    public class Editor {public Editor putString(String key,String v){value=v;return this;} public void apply(){if(fail)throw new IllegalStateException("test");}}}'''

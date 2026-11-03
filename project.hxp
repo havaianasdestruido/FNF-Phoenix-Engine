@@ -274,7 +274,10 @@ class Project extends HXProject
 		if (isMobile())
 		{
 			this.window.orientation = Orientation.LANDSCAPE;
-			this.window.fullscreen = false;
+			// Android's notch policy is separate from hiding the system bars.
+			// Start immersive so SDL does not immediately apply FORCE_NOT_FULLSCREEN.
+			// Keep the existing iOS window behavior unchanged.
+			this.window.fullscreen = isAndroid();
 			this.window.resizable = false;
 			this.window.width = 0;
 			this.window.height = 0;
@@ -698,6 +701,10 @@ class Project extends HXProject
 		this.config.set("android.minimum-sdk-version", 21);
 		this.config.set("android.target-sdk-version", 36);
 		this.config.set("android.build-tools-version", "36.0.0");
+		// Match ClientPrefs.respectCutout's default until Haxe loads the save.
+		// PhoenixDisplay switches to ALWAYS (or SHORT_EDGES on API 28/29) when
+		// the player selects Real Fullscreen; Lime must not start in shortEdges.
+		this.config.set("android.layoutInDisplayCutoutMode", "never");
 
 		// Java sources of the native platform bridge (extensions). Lime copies
 		// these into the generated Gradle project's java source set.

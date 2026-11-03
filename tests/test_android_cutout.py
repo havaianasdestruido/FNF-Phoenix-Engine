@@ -31,11 +31,22 @@ class CutoutIntegration(unittest.TestCase):
         activity = (ROOT / 'source/templates/android/MainActivity.java').read_text()
         self.assertIn('onWindowFocusChanged(boolean hasFocus)', activity)
         self.assertIn('onResume()', activity)
-        self.assertIn('PhoenixDisplay.applyCutoutToActivity(this)', activity)
+        self.assertIn('PhoenixDisplay.applyDisplayToActivity(this)', activity)
+        self.assertIn('PhoenixDisplay.restoreCutoutMode(this)', activity)
         layout = (ROOT / 'source/android/src/quack/fnf/phoenix/android/PhoenixCutoutLayout.java').read_text()
         self.assertNotIn('setOnApplyWindowInsetsListener', layout + java + activity)
         self.assertNotIn('android.R.id.content', java)
         self.assertIn('ViewGroup.LayoutParams.MATCH_PARENT', activity)
+
+    def test_android_starts_immersive_and_respects_saved_cutout_early(self):
+        project = (ROOT / 'project.hxp').read_text()
+        mobile = project.split('if (isMobile())', 1)[1].split('\n\t\t}\n', 1)[0]
+        self.assertIn('this.window.fullscreen = isAndroid();', mobile)
+        self.assertIn('this.config.set("android.layoutInDisplayCutoutMode", "never");', project)
+        activity = (ROOT / 'source/templates/android/MainActivity.java').read_text()
+        create = activity.split('protected void onCreate(Bundle state)', 1)[1].split('protected void onNewIntent', 1)[0]
+        self.assertLess(create.index('restoreCutoutMode(this)'), create.index('super.onCreate(state)'))
+        self.assertLess(create.index('super.onCreate(state)'), create.index('applyDisplayToActivity(this)'))
 
     def test_production_java_policy_and_layout(self):
         """Execute real production classes, not a Python copy of their logic."""
@@ -64,7 +75,8 @@ class CutoutIntegration(unittest.TestCase):
             sources.append(str(activity))
             compilation = subprocess.run([javac, '-d', str(temp), *sources], capture_output=True, text=True, timeout=60)
             self.assertEqual(compilation.returncode, 0, compilation.stdout + compilation.stderr)
-            result = subprocess.run([java, '-cp', str(temp), 'quack.fnf.phoenix.android.PhoenixCutoutTest'], check=True, capture_output=True, text=True, timeout=60)
+            result = subprocess.run([java, '-cp', str(temp), 'quack.fnf.phoenix.android.PhoenixCutoutTest'], capture_output=True, text=True, timeout=60)
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
             self.assertIn('Cutout policy/layout tests passed', result.stdout)
 
 
