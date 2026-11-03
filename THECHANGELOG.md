@@ -25,6 +25,10 @@ The Mods menu also builds again: every `MenuButton(...)` call now passes `null`
 for the unused text/image slot, so a callback can no longer land in the `img`
 parameter - `ModsMenuState.hx` failed to compile (`"RELOAD", reload`) whenever
 MODS_ALLOWED was on.
+Reduced the colour palettes of 434 PNG assets and re-encoded one JPEG with a new
+quality-gated tool: ~5.8 MiB less to download, palettes down from 45 to 17
+entries on average, no dimension or atlas-coordinate changes. See
+tools/PALETTE_COMPRESSION.md.
 
 1.50.1;
 
