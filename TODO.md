@@ -358,8 +358,10 @@ It would collect **ONLY**
 
 - Device info (GPU/CPU specs, needed to know if someone is playing on a laggy phone or high-budget ultra gamer pc)
 - Amount of mods loaded (so its easier to tell if its a problem with the mods itself)
+- - _AND if they use the ultra mega hyper experimental WIP instable Python softmodding support_
 - Crash logs
 - Errors inside MODS scripts (so its easier to know if Phoenix engine is incompatible if some Psych engine mod)
+- - _AND if they use the ultra mega hyper experimental WIP instable Python softmodding support_
 
 Please keep in mind that im not evil and i will not steal your data, i'm just trying to improve my game.
 
