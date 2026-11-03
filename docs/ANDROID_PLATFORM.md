@@ -156,21 +156,25 @@ the define omit it rather than silently enabling a new exported component.
 The provider roots resolve from the same `Context.getExternalFilesDir(null)`
 directory that `mobile.StorageUtil.getStorageDirectory()` returns. `Main` sets
 that directory as the working directory, where `Paths.mods()` resolves to
-`mods/` and `CrashHandler` writes reports under `crash/`:
+`mods/`, `CrashHandler` writes reports under `crash/` and `backend.VLog`
+writes the verbose session log to `vlog/log.txt`:
 
 | SAF root | Relative directory | Access |
 | --- | --- | --- |
 | **Mods** | `mods/` | Read/write; create folders/files, rename files, delete files/subfolders |
 | **Crash Logs** | `crash/` | Read-only; copying reports out of the game |
+| **VLogs** | `vlog/` | Read-only; copying the verbose `log.txt` out of the game |
 
-Only these two roots are exposed. `mobile.StorageUtil.initStorageDirectory()`
+Only these three roots are exposed. `mobile.StorageUtil.initStorageDirectory()`
 creates `mods/` during Android startup, so the Mods root backs onto a real,
 writable directory from the first launch; if that creation fails startup still
 continues, because the engine treats a missing mods directory as "no mods
-installed". `crash/` is created by `CrashHandler` when it writes a report.
-Browsing a root never creates its directory, and a root whose directory is
-missing simply lists no children. If `getExternalFilesDir(null)` returns no
-directory, or Android reports its volume as unavailable, no roots are returned.
+installed". `crash/` is created by `CrashHandler` when it writes a report, and
+`vlog/` is created by `backend.VLog.init()` during every launch, so the VLogs
+root backs onto a real directory from the first launch. Browsing a root never
+creates its directory, and a root whose directory is missing simply lists no
+children. If `getExternalFilesDir(null)` returns no directory, or Android
+reports its volume as unavailable, no roots are returned.
 Mounted read-only storage remains browsable but cannot be written. If storage
 becomes unavailable later, document operations fail with
 `FileNotFoundException`. Static traversal and symlink escapes are rejected,
@@ -286,6 +290,7 @@ exposes only these roots from `Context.getExternalFilesDir(null)`:
 | SAF root | Backing path | Access |
 | --- | --- | --- |
 | **Crash Logs** | `crash/` | Read-only, for copying reports out of the game |
+| **VLogs** | `vlog/` | Read-only, for copying the verbose `log.txt` out of the game |
 | **Mods** | `mods/` | Read/write; create folders/files, rename files, and delete files or subfolders |
 
 Document IDs are opaque, root-scoped path IDs. Decoded traversal, unsafe names,

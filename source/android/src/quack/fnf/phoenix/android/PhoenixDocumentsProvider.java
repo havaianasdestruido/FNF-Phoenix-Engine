@@ -28,8 +28,8 @@ import java.util.Map;
 
 /**
  * SAF view of the user-managed files Phoenix stores in its app-specific
- * external directory. It deliberately exposes only crash logs and mods,
- * rather than the whole app-private storage tree.
+ * external directory. It deliberately exposes only crash logs, verbose logs
+ * and mods, rather than the whole app-private storage tree.
  *
  * The provider is accessed by Android's system DocumentsUI through SAF URI
  * grants; apps must not access it directly. See docs/ANDROID_PLATFORM.md.
@@ -38,6 +38,7 @@ public final class PhoenixDocumentsProvider extends DocumentsProvider
 {
 	private static final String ROOT_MODS = "mods";
 	private static final String ROOT_CRASH = "crash";
+	private static final String ROOT_VLOG = "vlog";
 	private static final int DOCUMENT_ID_FLAGS = Base64.URL_SAFE | Base64.NO_PADDING | Base64.NO_WRAP;
 	private static final String FALLBACK_MIME_TYPE = "application/octet-stream";
 	// A filesystem path is bounded to 4096 bytes on Android/Linux. Base64 URL
@@ -456,7 +457,8 @@ public final class PhoenixDocumentsProvider extends DocumentsProvider
 	{
 		return new RootInfo[] {
 			new RootInfo(ROOT_MODS, new File(storageDirectory, ROOT_MODS), "Mods", "User mods", true),
-			new RootInfo(ROOT_CRASH, new File(storageDirectory, ROOT_CRASH), "Crash Logs", "Phoenix Engine crash reports", false)
+			new RootInfo(ROOT_CRASH, new File(storageDirectory, ROOT_CRASH), "Crash Logs", "Phoenix Engine crash reports", false),
+			new RootInfo(ROOT_VLOG, new File(storageDirectory, ROOT_VLOG), "VLogs", "Phoenix Engine verbose logs", false)
 		};
 	}
 

@@ -32,8 +32,13 @@
  * Returns the peak (maximum so far) resident set size (physical
  * memory use) measured in bytes, or zero if the value cannot be
  * determined on this OS.
+ *
+ * `static` (internal linkage): hxcpp pulls this header into every
+ * generated .cpp that references debug.mem.GetTotalMemory, so external
+ * linkage would yield multiply-defined symbols (LNK2005 / duplicate
+ * symbol) the moment a second module calls the class.
  */
-size_t getPeakRSS()
+static size_t getPeakRSS()
 {
 #if defined(_WIN32)
   /* Windows -------------------------------------------------- */
@@ -60,8 +65,10 @@ size_t getPeakRSS()
 /**
  * Returns the current resident set size (physical memory use) measured
  * in bytes, or zero if the value cannot be determined on this OS.
+ *
+ * `static` — see getPeakRSS above.
  */
-size_t getCurrentRSS()
+static size_t getCurrentRSS()
 {
 #if defined(_WIN32)
   /* Windows -------------------------------------------------- */

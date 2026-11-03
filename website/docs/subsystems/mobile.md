@@ -57,20 +57,24 @@ Menus add a virtual pad; `PlayState` adds the hitbox. Both route into the same
 `mobile.files.MobileFilePicker` bridges to the platform picker, used by the editors for
 loading and saving charts and characters on device.
 
-On Android, `PhoenixDocumentsProvider` adds two roots to the system Files picker
+On Android, `PhoenixDocumentsProvider` adds three roots to the system Files picker
 when Lime's existing `SHARE_FILES` feature is enabled. Lime derives this from the
 `SHARE_MOBILE_FILES` Haxe define, which `project.hxp` sets for mobile builds, so
 normal Android builds retain the previous system-visible sharing behavior.
 
 - **Crash Logs** — read-only access to crash reports written in `crash/`.
+- **VLogs** — read-only access to the verbose session log `backend.VLog` writes
+  to `vlog/log.txt` (RAM usage, per-frame timings, lag spikes, asset-cache
+  events, Lua/Python/HScript traces).
 - **Mods** — browse and manage the runtime `mods/` directory; the provider supports
   creating folders/files, reading and writing files, renaming files, and deleting files
   or subfolders.
 
-Both roots use the same app-specific external-files directory as the game's runtime
-working directory. Only these two folders are exposed. Android startup creates `mods/`,
-so the Mods root is a real, writable folder from the first launch; `crash/` appears once
-`CrashHandler` writes a report. Browsing a root never creates its directory.
+All three roots use the same app-specific external-files directory as the game's
+runtime working directory. Only these three folders are exposed. Android startup creates `mods/`
+so the Mods root is a real, writable folder from the first launch; `crash/` appears
+once `CrashHandler` writes a report; `vlog/` is created by `VLog.init()` during
+every launch. Browsing a root never creates its directory.
 If `getExternalFilesDir(null)` returns no path, or Android reports its volume as
 unavailable, no roots are returned. Mounted read-only storage remains browsable but
 cannot be written; if storage later becomes unavailable, document operations fail.

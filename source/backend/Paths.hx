@@ -80,6 +80,7 @@ class Paths
     }
     noteSkinFramesMap.set(noteSkin, spr.frames);
     noteSkinAnimsMap.set(noteSkin, spr.animation);
+    VLog.assetCached('noteskin', noteSkin, 'atlas + note animations cached in RAM');
   }
 
   // Note Splash initialization
@@ -123,6 +124,7 @@ class Paths
     splashSkinFramesMap.set(splashSkin, splashFrames);
     splashSkinAnimsMap.set(splashSkin, splashAnimation);
     splashAnimCountMap.set(splashSkin, maxAnims);
+    VLog.assetCached('noteskin', 'splash: ' + skin, maxAnims + ' splash animations cached in RAM');
   }
 
   public static function addAnimAndCheck(name:String, anim:String, ?framerate:Int = 24, ?loop:Bool = false)
@@ -181,26 +183,38 @@ class Paths
   @:noCompletion private inline static function _gc(major:Bool)
   {
     #if cpp
+    final vlogHeapBefore:Float = Gc.memInfo64(Gc.MEM_INFO_USAGE);
     debug.FrameProfiler.beginGC(major);
     Gc.run(major);
     debug.FrameProfiler.endGC();
+    VLog.memoryEvent('explicit GC ' + (major ? 'major' : 'minor') + ': heap ' + VLog.formatBytes(vlogHeapBefore) + ' -> ' + VLog.formatBytes(Gc.memInfo64(Gc.MEM_INFO_USAGE)));
     #elseif hl
+    final vlogStatsBefore = Gc.stats();
+    final vlogHeapBefore:Float = vlogStatsBefore != null ? vlogStatsBefore.currentMemory : -1.0;
     debug.FrameProfiler.beginGC(major);
     Gc.major();
     debug.FrameProfiler.endGC();
+    final vlogStatsAfter = Gc.stats();
+    VLog.memoryEvent('explicit GC ' + (major ? 'major' : 'minor') + ' (hl): heap ' + VLog.formatBytes(vlogHeapBefore) + ' -> ' + (vlogStatsAfter != null ? VLog.formatBytes(vlogStatsAfter.currentMemory) : 'n/a'));
     #end
   }
 
   @:noCompletion public inline static function compress()
   {
     #if cpp
+    final vlogHeapBefore:Float = Gc.memInfo64(Gc.MEM_INFO_USAGE);
     debug.FrameProfiler.beginGC(true);
     Gc.compact();
     debug.FrameProfiler.endGC();
+    VLog.memoryEvent('heap compact: ' + VLog.formatBytes(vlogHeapBefore) + ' -> ' + VLog.formatBytes(Gc.memInfo64(Gc.MEM_INFO_USAGE)));
     #elseif hl
+    final vlogStatsBefore = Gc.stats();
+    final vlogHeapBefore:Float = vlogStatsBefore != null ? vlogStatsBefore.currentMemory : -1.0;
     debug.FrameProfiler.beginGC(true);
     Gc.major();
     debug.FrameProfiler.endGC();
+    final vlogStatsAfter = Gc.stats();
+    VLog.memoryEvent('heap compact (hl): ' + VLog.formatBytes(vlogHeapBefore) + ' -> ' + (vlogStatsAfter != null ? VLog.formatBytes(vlogStatsAfter.currentMemory) : 'n/a'));
     #end
   }
 
@@ -213,6 +227,8 @@ class Paths
   /// haya I love you for the base cache dump I took to the max
   public static function clearUnusedMemory()
   {
+    var vlogFreed:Int = 0;
+    final vlogHeapBefore:Float = VLog.heapUsedBytes();
     // clear non local assets in the tracked assets list
     for (key in currentTrackedAssets.keys())
     {
@@ -221,11 +237,13 @@ class Paths
       {
         destroyGraphic(currentTrackedAssets.get(key)); // get rid of the graphic
         currentTrackedAssets.remove(key); // and remove the key from local cache map
+        vlogFreed++;
       }
     }
     // run the garbage collector for good measure lmfao
     compress();
     gc(true);
+    VLog.memoryEvent('clearUnusedMemory: freed ' + vlogFreed + ' tracked images | heap ' + VLog.formatBytes(vlogHeapBefore) + ' -> ' + VLog.formatBytes(VLog.heapUsedBytes()));
   }
 
   // define the locally tracked assets
@@ -234,10 +252,16 @@ class Paths
   @:access(flixel.system.frontEnds.BitmapFrontEnd._cache)
   public static function clearStoredMemory(?cleanUnused:Bool = false)
   {
+    var vlogFreedBitmaps:Int = 0;
+    var vlogFreedSounds:Int = 0;
     // clear anything not in the tracked assets list
     for (key in FlxG.bitmap._cache.keys())
     {
-      if (!currentTrackedAssets.exists(key)) destroyGraphic(FlxG.bitmap.get(key));
+      if (!currentTrackedAssets.exists(key))
+      {
+        destroyGraphic(FlxG.bitmap.get(key));
+        vlogFreedBitmaps++;
+      }
     }
     // clear all sounds that are cached
     for (key in currentTrackedSounds.keys())
@@ -247,8 +271,10 @@ class Paths
         // trace('test: ' + dumpExclusions, key);
         Assets.cache.clear(key);
         currentTrackedSounds.remove(key);
+        vlogFreedSounds++;
       }
     }
+    VLog.memoryEvent('clearStoredMemory: freed ' + vlogFreedBitmaps + ' bitmap cache entries and ' + vlogFreedSounds + ' cached sounds');
     // flags everything to be cleared out next unused memory clear
     localTrackedAssets = [];
     #if !html5 openfl.Assets.cache.clear("songs"); #end
@@ -633,9 +659,11 @@ class Paths
       }
     }
 
+    var vlogGpuCached:Bool = false;
     #if !flash
     if (ClientPrefs.cacheOnGPU && bitmap.image != null)
     {
+      vlogGpuCached = true;
       bitmap.lock();
       if (bitmap.__texture == null)
       {
@@ -656,6 +684,8 @@ class Paths
 
     currentTrackedAssets.set(key, graph);
     localTrackedAssets.push(key);
+    VLog.assetCached('image', key, bitmap.width + 'x' + bitmap.height
+      + (vlogGpuCached ? ' | GPU texture (CPU pixels freed)' : ' | CPU bitmap in RAM'));
     return graph;
   }
 
@@ -900,6 +930,7 @@ class Paths
       }
       catch (e)
       {
+        VLog.assetCached('sound', file, 'DECODE FAILED: ' + Std.string(e));
         throw 'Cannot load sound file: $file\nMake sure it is a properly encoded .ogg file.\nError: $e';
       }
     } else
@@ -927,9 +958,11 @@ class Paths
     {
       localTrackedAssets.push(file);
       currentTrackedSounds.set(file, sound);
+      VLog.assetCached('sound', file, 'decoded into RAM (tracked for cache clearing)');
       return sound;
     }
 
+    VLog.assetCached('sound', file, 'MISSING — not found on disk or in the asset libraries');
     #if MAIN_DEBUG
     trace('Missing asset: $file');
     #end
