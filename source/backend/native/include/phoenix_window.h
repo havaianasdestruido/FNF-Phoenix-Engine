@@ -26,6 +26,11 @@
 #include <windows.h>
 #include <dwmapi.h>
 #include <shellapi.h>
+#if defined(_MSC_VER)
+#pragma comment(lib, "dwmapi.lib")
+#pragma comment(lib, "user32.lib")
+#pragma comment(lib, "shell32.lib")
+#endif
 #include <string>
 #include <vector>
 

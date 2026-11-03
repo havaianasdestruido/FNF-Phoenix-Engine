@@ -3,11 +3,4 @@
   <files id="haxe">
     <compilervalue name="-I" value="${this_dir}/include/" />
   </files>
-  <target id="haxe">
-    <section if="windows">
-      <lib name="dwmapi.lib" />
-      <lib name="user32.lib" />
-      <lib name="shell32.lib" />
-    </section>
-  </target>
 </xml>
