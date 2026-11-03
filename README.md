@@ -34,14 +34,14 @@ Run it locally with `cd website && npm install && npm start`.
 
 ## Contributors wanted
 
-**I ([havaianasdestruido](https://github.com/havaianasdestruido)) need new contributors.** This project is open to
+**I ([havaianasdestruido](https://github.com/havaianasdestruido)) need new contributors for Phoenix Engine.** This project is open to
 new feature ideas and pull requests, for example:
 
 - New built-in game content (mods shipped with the engine, example mods)
-- New platform ports and platform-specific code
-- Backporting features/fixes from upstream (Psych, JS Engine, etc.)
+- New platform ports and platform-specific code (like native ports)
+- Backporting features/fixes from upstream (Psych, JS Engine, Codename, Kade, etc.)
 - New menu options and settings
-- Bug fixes (any size)
+- Bug fixes (any size, from small visual issues, to game-breaking ones)
 
 Open an [issue](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/issues) to discuss an idea, or send a PR
 straight away if it's small. Check [`BUILDING.md`](BUILDING.md) and [`CODESTYLE.md`](CODESTYLE.md) first.
