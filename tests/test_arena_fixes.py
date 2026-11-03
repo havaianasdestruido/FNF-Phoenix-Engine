@@ -75,14 +75,21 @@ class TestDependencies(unittest.TestCase):
 
 class TestCIWorkflows(unittest.TestCase):
     def test_haxe_version_single_value(self):  # #60
-        versions = set()
-        for wf in ("main.yml", "mobile.yml"):
-            text = read(f".github/workflows/{wf}")
-            versions.update(re.findall(r'HAXE_VERSION:\s*"([\d.]+)"', text))
-            self.assertNotIn("haxe-version: 4.3.6", text)
-            self.assertNotRegex(text, r"haxe-version:\s*\d")  # must use env
+        text = read(".github/workflows/main.yml")
+        versions = set(re.findall(r'HAXE_VERSION:\s*"([\d.]+)"', text))
+        self.assertNotIn("haxe-version: 4.3.6", text)
+        self.assertNotRegex(text, r"haxe-version:\s*\d")  # must use env
         self.assertEqual(versions, {"4.3.7"})
         self.assertFalse((ROOT / "UPDATE HAXE TO 4.3.7.txt").exists())
+
+    def test_mobile_release_reuses_the_shared_android_build(self):
+        self.assertFalse((ROOT / ".github/workflows/mobile.yml").exists())
+        release = read(".github/workflows/mobile-release.yml")
+        build_job = release.split("\n  build:\n", 1)[1].split("\n  release-android:", 1)[0]
+        self.assertIn("uses: ./.github/workflows/main.yml", build_job)
+        self.assertIn("buildWindows: false", build_job)
+        self.assertIn("buildAndroid: true", build_job)
+        self.assertNotIn("/actions/workflows/mobile.yml/", read("README.md"))
 
     def test_cache_key_pins_dependency_set_per_job(self):  # #57
         main = read(".github/workflows/main.yml")

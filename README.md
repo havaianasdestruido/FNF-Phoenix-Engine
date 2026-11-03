@@ -12,7 +12,6 @@
 </h3>
 
 <p align="center">
-  <img src="https://github.com/havaianasdestruido/FNF-Phoenix-Engine/actions/workflows/mobile.yml/badge.svg">
   <img src="https://github.com/havaianasdestruido/FNF-Phoenix-Engine/actions/workflows/main.yml/badge.svg">
 </p>
 

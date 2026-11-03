@@ -40,9 +40,11 @@ jobs:
   build:
     name: Build
     needs: validate-tag
-    uses: ./.github/workflows/mobile.yml
+    uses: ./.github/workflows/main.yml
     with:
       buildFlags: officialBuild
+      buildWindows: false
+      buildAndroid: true
 
   release-android:
     name: Release androidBuild
