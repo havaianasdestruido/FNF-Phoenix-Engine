@@ -55,9 +55,11 @@ class CustomSoundTray extends FlxSoundTray
 		y = -height;
 		screenCenter();
 
-    volumeUpSound = Paths.getPath("sounds/soundtray/Volup.ogg", 'shared');
-    volumeDownSound = Paths.getPath("sounds/soundtray/Voldown.ogg", 'shared');
-    volumeMaxSound = Paths.getPath("sounds/soundtray/VolMAX.ogg", 'shared');
+    // Resolve whichever audio container the build ships (ogg preferred), so
+    // the tray keeps working on Flash/AIR builds that only decode MP3.
+    volumeUpSound = Paths.resolveSoundAsset("sounds/soundtray/Volup", null, 'shared');
+    volumeDownSound = Paths.resolveSoundAsset("sounds/soundtray/Voldown", null, 'shared');
+    volumeMaxSound = Paths.resolveSoundAsset("sounds/soundtray/VolMAX", null, 'shared');
 
 		// trace('Custom Sound Tray Added!');
 	}

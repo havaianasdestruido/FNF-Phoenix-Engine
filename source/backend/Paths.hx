@@ -31,7 +31,26 @@ import hl.Gc;
 // @:nullSafety // not yet
 class Paths
 {
-  inline public static var SOUND_EXT = #if (web || flash) "mp3" #else "ogg" #end;
+  /**
+   * Audio container the engine prefers (and the one built-in content ships as).
+   *
+   * Ogg Vorbis decodes faster and seeks more accurately than MP3 for the same
+   * bitrate, which is exactly what a rhythm game needs, so it wins on desktop,
+   * mobile and HTML5 alike. Only Flash/AIR is stuck with MP3, because the SWF
+   * audio backend cannot decode Ogg at all.
+   */
+  inline public static var SOUND_EXT = #if flash "mp3" #else "ogg" #end;
+
+  /**
+   * Every audio container the engine can load, best first.
+   *
+   * Sound resolution (`returnSound`, `inst`, `voices`, `modsSounds`, ...)
+   * walks this list and uses the first file that actually exists, so a mod may
+   * ship either format -- and the repository never needs to keep an OGG *and*
+   * an MP3 copy of the same track. See also `resolveSoundAsset`.
+   */
+  public static var SOUND_EXTENSIONS:Array<String> = #if flash ["mp3", "ogg"] #else ["ogg", "mp3"] #end;
+
   inline public static var VIDEO_EXT = "mp4";
   inline public static var IMAGE_EXT = "png";
 
@@ -471,24 +490,18 @@ class Paths
     var formattedDifficulty:String = formatToSongPath(difficulty);
     if (difficulty.contains(' ')) difficulty = formattedDifficulty;
     #if (html5 || flash)
-    return 'songs:assets/songs/${formatToSongPath(song)}/Voices.$SOUND_EXT';
+    return songAudioAsset(formatToSongPath(song), 'Voices');
     #else
     if (difficulty != null)
     {
       var songKey:String = '${formatToSongPath(song)}/Voices';
       if (postfix != null) songKey += '-' + postfix;
       songKey += '-$difficulty';
-      if (FileSystem.exists(Paths.modFolders('songs/' + songKey + '.$SOUND_EXT'))
-        || FileSystem.exists('assets/songs/' + songKey + '.$SOUND_EXT'))
-      {
-        var voices = returnSound('songs', songKey);
-        return voices;
-      }
+      if (songKeyExists(songKey)) return returnSound('songs', songKey);
     }
     var songKey:String = '${formatToSongPath(song)}/Voices';
     if (postfix != null) songKey += '-' + postfix;
-    var voices = returnSound('songs', songKey);
-    return voices;
+    return returnSound('songs', songKey);
     #end
   }
 
@@ -498,22 +511,54 @@ class Paths
     var formattedDifficulty:String = formatToSongPath(difficulty);
     if (difficulty.contains(' ')) difficulty = formattedDifficulty;
     #if (html5 || flash)
-    return 'songs:assets/songs/${formatToSongPath(song)}/Inst.$SOUND_EXT';
+    return songAudioAsset(formatToSongPath(song), 'Inst');
     #else
     if (difficulty != null)
     {
       var songKey:String = '${formatToSongPath(song)}/Inst-$difficulty';
-      if (FileSystem.exists(Paths.modFolders('songs/' + songKey + '.$SOUND_EXT'))
-        || FileSystem.exists('assets/songs/' + songKey + '.$SOUND_EXT'))
-      {
-        var inst = returnSound('songs', songKey);
-        return inst;
-      }
+      if (songKeyExists(songKey)) return returnSound('songs', songKey);
     }
-    var songKey:String = '${formatToSongPath(song)}/Inst';
-    var inst = returnSound('songs', songKey);
-    return inst;
+    return returnSound('songs', '${formatToSongPath(song)}/Inst');
     #end
+  }
+
+  /**
+   * Asset id (`songs:` library) of a song track for the web targets, which
+   * play the file straight out of the asset library instead of loading it from
+   * disk. Tries every container in `SOUND_EXTENSIONS` so a song may ship as
+   * `.ogg` or `.mp3`, and falls back to the preferred extension when the song
+   * has no audio at all (the caller then fails like it always did).
+   */
+  static function songAudioAsset(songPath:String, file:String):String
+  {
+    for (ext in SOUND_EXTENSIONS)
+    {
+      final assetId:String = 'songs:assets/songs/$songPath/$file.$ext';
+      if (OpenFlAssets.exists(assetId, SOUND)) return assetId;
+    }
+    return 'songs:assets/songs/$songPath/$file.$SOUND_EXT';
+  }
+
+  /**
+   * Whether `songs/<key>` resolves to a supported audio container.
+   * Checks enabled mod folders first (like `modFolders`), then the raw
+   * `assets/songs` folder, then the `songs` asset library, and tries every
+   * extension in `SOUND_EXTENSIONS`. Ogg and MP3 content are both valid, so
+   * nobody has to keep two copies of the same track around.
+   */
+  static function songKeyExists(key:String):Bool
+  {
+    #if MODS_ALLOWED
+    // modsSounds() falls back to 'mods/<key>' and returns null when missing.
+    if (modsSounds('songs', key) != null) return true;
+    #end
+    #if sys
+    for (ext in SOUND_EXTENSIONS)
+      if (FileSystem.exists('assets/songs/$key.$ext')) return true;
+    #end
+    for (ext in SOUND_EXTENSIONS)
+      if (OpenFlAssets.exists('songs:assets/songs/$key.$ext', SOUND)) return true;
+    return false;
   }
 
   /**
@@ -544,31 +589,19 @@ class Paths
   /**
    * Shared resolution check behind `instExists` / `voicesExists`: enabled mod
    * folders first (like `modFolders`), then the raw song folder, then the song
-   * library using the same asset id `returnSound` builds.
+   * library using the same asset id `returnSound` builds. Both the
+   * difficulty-specific file (`Inst-hard`) and the plain one are probed, with
+   * every container in `SOUND_EXTENSIONS`.
    */
   static function songAudioExists(song:String, file:String, ?difficulty:String = ''):Bool
   {
     final formatted:String = formatToSongPath(song);
-    #if (html5 || flash)
-    return OpenFlAssets.exists('songs:assets/songs/$formatted/$file.$SOUND_EXT', SOUND);
-    #else
     final diff:String = (difficulty != null) ? formatToSongPath(difficulty) : '';
     final keys:Array<String> = (diff.length > 0) ? ['$formatted/$file-$diff', '$formatted/$file'] : ['$formatted/$file'];
 
     for (key in keys)
-    {
-      #if MODS_ALLOWED
-      // modFolders() falls back to 'mods/<key>' when no enabled mod ships it.
-      if (FileSystem.exists(modFolders('songs/$key.$SOUND_EXT'))) return true;
-      #end
-      if (FileSystem.exists('assets/songs/$key.$SOUND_EXT')) return true;
-
-      var gottenPath:String = getPath('songs/$key.$SOUND_EXT', SOUND);
-      gottenPath = gottenPath.substring(gottenPath.indexOf(':') + 1, gottenPath.length);
-      if (OpenFlAssets.exists('songs:' + gottenPath, SOUND)) return true;
-    }
+      if (songKeyExists(key)) return true;
     return false;
-    #end
   }
 
   static public function playMenuMusic(force:Bool = false, volume:Float = 1):Void
@@ -897,6 +930,35 @@ class Paths
     return hideChars.split(path).join("").toLowerCase();
   }
 
+  inline static function isOggFile(file:String):Bool
+  {
+    return file != null && file.toLowerCase().endsWith('.ogg');
+  }
+
+  /**
+   * Resolves the asset-library id of a sound.
+   *
+   * `dir` is the asset folder (`sounds`, `music`, `songs`, ...) and `key` the
+   * file name *without* extension; `library` optionally names an asset library
+   * (`shared`, `songs`, ...). Every container in `SOUND_EXTENSIONS` is probed
+   * in order (ogg first), so content may ship either format -- the engine no
+   * longer needs an OGG *and* an MP3 copy of the same audio.
+   *
+   * Returns `null` when no supported container exists.
+   */
+  public static function resolveSoundAsset(dir:String, key:String, ?library:String):String
+  {
+    for (ext in SOUND_EXTENSIONS)
+    {
+      var assetId:String = getPath('$dir/$key.$ext', SOUND, library);
+      // The songs library is namespaced ('songs:assets/songs/...'), while
+      // getPath() drops the prefix when it resolves through a level folder.
+      if (dir == 'songs' && !assetId.startsWith('songs:')) assetId = 'songs:' + assetId;
+      if (OpenFlAssets.exists(assetId, SOUND)) return assetId;
+    }
+    return null;
+  }
+
   // completely rewritten asset loading? fuck!
   public static var currentTrackedSounds:Map<String, Sound> = [];
 
@@ -907,12 +969,14 @@ class Paths
     var file:String = null;
 
     #if MODS_ALLOWED
+    // modsSounds() walks SOUND_EXTENSIONS and returns null when the mod ships
+    // neither .ogg nor .mp3, in which case we fall through to the libraries.
     file = modsSounds(path, key);
-    if (currentTrackedSounds.exists(file))
+    if (file != null && currentTrackedSounds.exists(file))
     {
       localTrackedAssets.push(file);
       return currentTrackedSounds.get(file);
-    } else if (FileSystem.exists(file))
+    } else if (file != null && FileSystem.exists(file))
     {
       #if lime_vorbis
       if (stream) sound = Sound.fromAudioBuffer(AudioBuffer.fromVorbisFile(VorbisFile.fromFile(file)));
@@ -920,10 +984,15 @@ class Paths
       #end
       try
       {
-        final header:Bytes = File.getBytes(file).sub(0, 4);
-        if (header.toString() != "OggS" && file != null)
+        // Only Ogg files get the container sanity check; MP3 is decoded by
+        // OpenFL/Windows/Android natively and has no magic header to look for.
+        if (isOggFile(file))
         {
-          throw 'The file "$file" is not a valid OGG file (missing OggS header). It may have been renamed from another format like MP3.';
+          final header:Bytes = File.getBytes(file).sub(0, 4);
+          if (header.toString() != "OggS")
+          {
+            throw 'The file "$file" is not a valid OGG file (missing OggS header). It may have been renamed from another format like MP3 -- either rename it back to .mp3 or re-encode it as Ogg.';
+          }
         }
 
         sound = Sound.fromFile(file);
@@ -931,21 +1000,27 @@ class Paths
       catch (e)
       {
         VLog.assetCached('sound', file, 'DECODE FAILED: ' + Std.string(e));
-        throw 'Cannot load sound file: $file\nMake sure it is a properly encoded .ogg file.\nError: $e';
+        throw 'Cannot load sound file: $file\nMake sure it is a properly encoded .ogg (or .mp3) file.\nError: $e';
       }
-    } else
+    }
     #end
+
+    if (sound == null)
     {
       // I hate this so god damn much
-      var gottenPath:String = getPath('$path/$key.$SOUND_EXT', SOUND, library);
-      file = gottenPath.substring(gottenPath.indexOf(':') + 1, gottenPath.length);
-      if (path == 'songs') gottenPath = 'songs:' + gottenPath;
-      if (currentTrackedSounds.exists(file))
+      final gottenPath:String = resolveSoundAsset(path, key, library);
+      if (gottenPath == null)
       {
-        localTrackedAssets.push(file);
-        return currentTrackedSounds.get(file);
-      } else if (OpenFlAssets.exists(gottenPath, SOUND))
+        file = '$path/$key.$SOUND_EXT';
+      }
+      else
       {
+        file = gottenPath.substring(gottenPath.indexOf(':') + 1, gottenPath.length);
+        if (currentTrackedSounds.exists(file))
+        {
+          localTrackedAssets.push(file);
+          return currentTrackedSounds.get(file);
+        }
         #if lime_vorbis
         if (stream) sound = OpenFlAssets.getMusic(gottenPath);
         else
@@ -994,10 +1069,22 @@ class Paths
     return modFolders('videos/' + key + '.' + VIDEO_EXT);
   }
 
-  // Loads sounds in mods/sounds.
-  inline static public function modsSounds(path:String, key:String)
+  /**
+   * Resolves a sound inside the enabled mod folders, e.g.
+   * `modsSounds('songs', 'bopeebo/Inst')`.
+   *
+   * Returns the first existing container from `SOUND_EXTENSIONS` (ogg, then
+   * mp3), or `null` when the mod ships neither -- callers then fall back to the
+   * engine's own asset libraries.
+   */
+  static public function modsSounds(path:String, key:String):String
   {
-    return modFolders(path + '/' + key + '.' + SOUND_EXT);
+    for (ext in SOUND_EXTENSIONS)
+    {
+      final candidate:String = modFolders(path + '/' + key + '.' + ext);
+      if (FileSystem.exists(candidate)) return candidate;
+    }
+    return null;
   }
 
   // Loads images in mods/images.
@@ -1023,20 +1110,18 @@ class Paths
 
   public static function playModMusic(file:String, fallback:String, volume:Float = 1):Void
   {
-    final moddedNew = Paths.modFolders('music/' + file + '.ogg');
-    final moddedLegacy = Paths.modFolders('music/${fallback}.ogg');
-    for (track in [moddedNew, moddedLegacy])
+    // modsSounds() already walks SOUND_EXTENSIONS (ogg then mp3) and returns
+    // null when the track is absent, so menu themes can ship either format.
+    for (key in [file, fallback])
     {
-      // trace('track: ' + track);
-      if (FileSystem.exists(track))
+      final track:String = Paths.modsSounds('music', key);
+      if (track != null)
       {
         FlxG.sound.playMusic(Sound.fromFile(track), volume, true);
-        // trace('curTrack: ' + track);
         return;
       }
     }
-    final basePath = Paths.getPath('music/' + file + '.ogg', SOUND);
-    if (OpenFlAssets.exists(basePath))
+    if (Paths.resolveSoundAsset('music', file) != null)
     {
       FlxG.sound.playMusic(Paths.music(file), volume);
       trace('fallback to base selected theme: ' + file);

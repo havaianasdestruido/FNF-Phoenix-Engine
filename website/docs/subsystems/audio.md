@@ -8,21 +8,38 @@ description: Song audio, the freeplay music player, the sound tray, hitsounds an
 
 ## Formats
 
-`Paths.SOUND_EXT` is `ogg` on native targets and `mp3` on web/Flash.
-`project.hxp` excludes the unused format from each build, so only one copy ships.
-Audio assets were re-encoded for roughly 50 % size reduction without a quality change
-that matters at game volume.
+**Ogg Vorbis is the audio container.** `Paths.SOUND_EXT` is `ogg` on every target except
+Flash/AIR, whose SWF backend cannot decode Vorbis and therefore falls back to `mp3`.
+Vorbis decodes faster, seeks more precisely and is smaller than MP3 at a comparable
+quality, which matters when a chart has to stay locked to the instrumental.
+
+Each track exists **once**. There is no `.ogg` + `.mp3` pair anywhere in `assets/`:
+`Paths.SOUND_EXTENSIONS` (`["ogg", "mp3"]`, reversed on Flash) is the list of formats the
+engine will accept, and sound lookups use the first file that actually exists — so a mod
+can ship either container while the repository stays Ogg-only. Audio assets were
+re-encoded for roughly 50 % size reduction without a quality change that matters at game
+volume.
 
 | Kind | Path |
 |---|---|
-| Instrumental | `songs/<song>/Inst.<ext>` |
-| Vocals | `songs/<song>/Voices.<ext>` (loaded only when `needsVoices`) |
-| Music | `music/<key>.<ext>` |
-| SFX | `sounds/<key>.<ext>` |
+| Instrumental | `songs/<song>/Inst.ogg` |
+| Vocals | `songs/<song>/Voices.ogg` (loaded only when `needsVoices`) |
+| Music | `music/<key>.ogg` |
+| SFX | `sounds/<key>.ogg` |
 
 `Paths.inst(song, difficulty)` and `Paths.voices(song, difficulty, postfix)` handle
 difficulty-specific and postfixed variants (used by per-character vocal tracks via the
-character JSON's `vocals_file`).
+character JSON's `vocals_file`). Both go through the extension resolver, so a
+`Voices-Player.mp3` in a mod folder still loads.
+
+:::note[Browser support]
+
+HTML5 plays Ogg Vorbis in Chrome, Edge and Firefox. Safari's Web Audio backend has no
+Vorbis decoder, so a Safari-facing distribution would have to ship MP3s; nothing in the
+code needs to change for that, because `Paths.modsSounds()` and
+`Paths.resolveSoundAsset()` already fall back to `.mp3` when it is what the build has.
+
+:::
 
 ## Playback during a song
 
@@ -49,8 +66,8 @@ gives `FlxSound` a store-only `pitch` property so the code compiles there, and
 
 `Paths.playMenuMusic(force, volume)` plays the menu theme, and
 `Paths.playModMusic(file, fallback, volume)` lets a mod replace it: it tries
-`mods/<mod>/music/<file>.ogg`, then the legacy name, then the base theme, then the
-default. This is what makes "modified `freakyMenu` names" work — a mod can ship its own
+`mods/<mod>/music/<file>.ogg` (or `.mp3`), then the legacy name, then the base theme,
+then the default. This is what makes "modified `freakyMenu` names" work — a mod can ship its own
 menu track without renaming engine assets. `ClientPrefs.daMenuMusic` and
 `ClientPrefs.pauseMusic` choose between shipped variants.
 

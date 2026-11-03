@@ -534,7 +534,7 @@ class FreeplayState extends MusicBeatState
 						if(audioExists && !chartExists) { //the json doesn't exist, but the song files do, or you put a typo in the name
 							CoolUtil.coolError("The JSON's name does not match with  " + poop + "!\nTry making them match.", "JS Engine Anti-Crash Tool");
 						} else if(chartExists && !audioExists) {//the json exists, but the song files don't
-							CoolUtil.coolError("Your song seems to not have an Inst.ogg, check the folder name in 'songs'!", "JS Engine Anti-Crash Tool");
+							CoolUtil.coolError("Your song seems to not have an Inst.ogg (or Inst.mp3), check the folder name in 'songs'!", "JS Engine Anti-Crash Tool");
 						} else if(!chartExists && !audioExists) { //neither the json nor the song files actually exist
 							CoolUtil.coolError("It appears that " + poop + " doesn't actually have a JSON, nor does it actually have voices/instrumental files!\nMaybe try fixing its name in weeks/" + WeekData.getWeekFileName() + "?", "JS Engine Anti-Crash Tool");
 						}

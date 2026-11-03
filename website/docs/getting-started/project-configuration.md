@@ -133,8 +133,9 @@ depending on the target (web embeds, native streams):
 | `week2` … `week7`, `weekend1` | `assets/week*` | per-week content |
 
 Global exclusions: `.*`, `cvs`, `thumbs.db`, `desktop.ini`, `*.hash`, `*.md`.
-Web builds additionally exclude `*.ogg`, native builds exclude `*.mp3` — the engine picks
-the right extension at runtime through `Paths.SOUND_EXT`.
+Native builds additionally exclude `*.mp3`: built-in audio is Ogg only, and native builds
+read mods straight off disk. Web builds exclude no audio format, because their audio is
+Ogg too (see [`Paths.SOUND_EXTENSIONS`](../architecture/assets-and-paths.md#extensions)).
 
 With `-DNO_BUILTIN_CONTENT`, the content libraries are stripped; see
 [Building](./building.md#content-stripped-builds).

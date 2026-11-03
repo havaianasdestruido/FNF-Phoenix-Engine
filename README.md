@@ -129,7 +129,7 @@ Phoenix Engine currently has those additions (and more!) that vanilla JSE (Jorda
 - **Mac/iOS Headers**: Proper sys/utsname.h includes
 
 ### **6. Asset Management**
-- **Audio Compression**: OGG/MP3 files (~50% size reduction)
+- **Audio Compression**: Ogg Vorbis only — one container per track, no duplicate `.ogg`/`.mp3` pair (~50% size reduction)
 - **JSON Minification**: Across entire codebase
 - **Image Compression**: Lossy but invisible optimization
 - **Character Icon Refresh**: Updated multiple icon PNGs
