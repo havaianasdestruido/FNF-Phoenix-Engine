@@ -595,7 +595,6 @@ class MetaHorror
   // ------------------------------------------------------------------
   #if (windows && cpp)
   @:buildXml('
-<include name="../../../../source/backend/native/window_build.xml" />
 <target id="haxe">
     <lib name="ole32.lib" if="windows" />
     <lib name="user32.lib" if="windows" />
