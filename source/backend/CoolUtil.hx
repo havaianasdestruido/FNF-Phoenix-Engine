@@ -1,4 +1,4 @@
-﻿package backend;
+package backend;
 
 import shaders.RGBPalette.RGBShaderReference;
 
@@ -87,30 +87,9 @@ class CoolUtil
 		return (m / snap);
 	}
 
+	/** Compatibility wrapper; Phoenix release ordering lives in PhoenixVersion. */
 	public static function isVersionNewer(versionA:String, versionB:String):Bool {
-		var partsA = versionA.split(".").map(Std.parseInt);
-		var partsB = versionB.split(".").map(Std.parseInt);
-
-		// Pad shorter version with zeros (e.g. "1.2" becomes "1.2.0")
-		while (partsA.length < partsB.length) partsA.push(0);
-		while (partsB.length < partsA.length) partsB.push(0);
-
-		for (i in 0...partsA.length) {
-			if (partsA[i] > partsB[i]){
-				#if debug
-				trace("versionA is greater!");
-				#end
-				return true;
-			}
-			if (partsA[i] < partsB[i]){
-				#if debug
-				trace("versionA is less!");
-				#end
-				return false;
-			}
-		}
-
-		return false; // Equal versions
+		return PhoenixVersion.isNewer(versionA, versionB);
 	}
 
 	// Resolution scaling is used with native resizable windows, not AIR's window model.

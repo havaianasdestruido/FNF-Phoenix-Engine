@@ -139,14 +139,14 @@ class DiscordClient
 		presence.details = details;
 		presence.smallImageKey = smallImageKey;
 		presence.largeImageKey = largeImageKey;
-		presence.largeImageText = "Engine Version: " + MainMenuState.psychEngineJSVersion;
+		presence.largeImageText = "Phoenix Engine v" + PhoenixVersion.current;
 		// Obtained times are in milliseconds so they are divided so Discord can use it
 		presence.startTimestamp = Std.int(startTimestamp / 1000);
 		presence.endTimestamp = Std.int(endTimestamp / 1000);
 
 		final button:DiscordButton = new DiscordButton();
 		button.label = "Engine Source Code";
-		button.url = "https://github.com/JordanSantiagoYT/FNF-JS-Engine";
+		button.url = PhoenixVersion.REPOSITORY_URL;
 		presence.buttons[0] = button;
 		updatePresence();
 	}

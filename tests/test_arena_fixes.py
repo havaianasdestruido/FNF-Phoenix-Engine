@@ -193,21 +193,19 @@ class TestEngineCode(unittest.TestCase):
         self.assertIn("import backend.ModsStub as Mods;", read("source/import.hx"))
 
     def test_update_checker_uses_this_repo_and_phoenix_version(self):  # #53
-        title = read("source/states/TitleState.hx")
-        self.assertIn("havaianasdestruido/FNF-Phoenix-Engine/main/THECHANGELOG.md", title)
-        self.assertIn("MainMenuState.phoenixEngineVersion", title)
-        self.assertNotIn("JordanSantiagoYT/FNF-JS-Engine/main/THECHANGELOG.md",
-                         title + read("source/options/SuperSecretDebugMenu.hx"))
+        version = read("source/backend/PhoenixVersion.hx")
+        self.assertIn("havaianasdestruido/FNF-Phoenix-Engine", version)
+        self.assertIn("RELEASES_API_URL", version)
+        self.assertIn("UpdateChecker.check", read("source/states/TitleState.hx"))
+        self.assertIn("UpdateChecker.check", read("source/options/SuperSecretDebugMenu.hx"))
 
     def test_version_comes_from_project_metadata(self):  # #54
         project = read("project.hxp")
-        version = re.search(r'static final VERSION:String = "([^"]+)"', project).group(1)
-        menu = read("source/states/MainMenuState.hx")
-        self.assertNotIn("'pre-alpha'", menu)
-        self.assertIn("Application.current.meta.get('version')", menu)
-        self.assertIn(f"return '{version}';", menu)  # enforced fallback literal
-        changelog_top = next(line for line in read("THECHANGELOG.md").splitlines() if line.strip())
-        self.assertEqual(changelog_top, f"{version};")
+        version = re.search(r'static final VERSION:String = "([^\"]+)"', project).group(1)
+        helper = read("source/backend/PhoenixVersion.hx")
+        self.assertIn("Application.current.meta.get('version')", helper)
+        self.assertIn(f'FALLBACK:String = "{version}"', helper)
+        self.assertIn("PhoenixVersion.current", read("source/states/MainMenuState.hx"))
         self.assertIn('setHaxedef("ENGINE_VERSION", VERSION)', project)
 
     def test_no_preload_all_branch_compiles_statically(self):  # #55

@@ -13,7 +13,7 @@ apenas redirecionam para cá — não duplique instruções em outros arquivos.
 **Phoenix Engine** — um Friday Night Funkin’ engine em **Haxe → OpenFL/Lime/Flixel**,
 fork do *JS Engine* (Jordan Santiago), que por sua vez é um fork otimizado do
 *Psych Engine*. Nome de janela: *“Friday Night Funkin' - Phoenix Engine”*;
-executável: `FNF-Phoenix-Engine`; package mobile: `quack.fnf.phoenix`; versão `0.3.2`
+executável: `FNF-Phoenix-Engine`; package mobile: `quack.fnf.phoenix`; versão `0.0.1`
 (definida em `project.hxp`, `VERSION`).
 
 Propósito: **performance em devices fracos + modding fácil** (Lua, e extensão

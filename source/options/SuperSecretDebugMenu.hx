@@ -6,10 +6,9 @@ import flixel.input.keyboard.FlxKey;
 import haxe.Exception;
 
 import backend.ClientPrefs;
+import backend.UpdateChecker;
 import objects.Prompt;
-import states.MainMenuState;
 import states.OutdatedState;
-import states.TitleState;
 
 class SuperSecretDebugMenu extends BaseOptionsMenu
 {
@@ -125,30 +124,20 @@ class SuperSecretDebugMenu extends BaseOptionsMenu
     nextMessage();
 	}
 	function doDaUpdate():Void {
-		if(ClientPrefs.checkForUpdates) {
-			trace('checking for update');
-			var http = new haxe.Http("https://raw.githubusercontent.com/havaianasdestruido/FNF-Phoenix-Engine/main/THECHANGELOG.md");
-			var returnedData:Array<String> = [];
-
-			http.onData = function (data:String)
+		UpdateChecker.check(function(result) {
+			if (!exists) return;
+			switch (result)
 			{
-    				var versionEndIndex:Int = data.indexOf(';');
-    				returnedData[0] = data.substring(0, versionEndIndex);
-
-    				// Extract the changelog after the version number
-    				returnedData[1] = data.substring(versionEndIndex + 1, data.length);
-				TitleState.updateVersion = returnedData[0];
-				var curVersion:String = MainMenuState.phoenixEngineVersion.trim();
-					OutdatedState.currChanges = returnedData[1];
+				case Available(release):
+					FlxG.switchState(() -> new OutdatedState(release));
+				case UpToDate(version):
+					openSubState(new Prompt('Phoenix Engine is up to date (v$version).', 0, null, null, false, "OK", "Close"));
+				case NoReleases:
+					openSubState(new Prompt('No published Phoenix Engine releases were found.', 0, null, null, false, "OK", "Close"));
+				case Failed(message):
+					final shortMessage:String = message.length > 180 ? message.substr(0, 180) + "..." : message;
+					openSubState(new Prompt('Update check failed: $shortMessage', 0, null, null, false, "OK", "Close"));
 			}
-
-			http.onError = function (error) {
-				trace('error: $error');
-			}
-
-			http.request();
-		}
-
-    		FlxG.switchState(OutdatedState.new);
+		}, true);
 	}
 }

@@ -8,6 +8,7 @@ import backend.CoolUtil;
 import backend.Highscore;
 import backend.MusicBeatState;
 import backend.Paths;
+import backend.UpdateChecker;
 // import flixel.graphics.FlxGraphic;
 import flixel.graphics.frames.FlxFrame;
 import flixel.group.FlxGroup;
@@ -66,8 +67,6 @@ class TitleState extends MusicBeatState
 
   public static var titleJSON:TitleData;
 
-  public static var updateVersion:String = '';
-
   override public function onResize(width:Int, height:Int):Void
   {
     super.onResize(width, height);
@@ -104,43 +103,21 @@ class TitleState extends MusicBeatState
     #if CHECK_FOR_UPDATES
     if (ClientPrefs.checkForUpdates && !closedState && !Main.askedToUpdate)
     {
-      trace('Checking for a update...');
-      var http = new haxe.Http("https://raw.githubusercontent.com/havaianasdestruido/FNF-Phoenix-Engine/main/THECHANGELOG.md");
-      var returnedData:Array<String> = [];
-
-      http.onData = function(data:String) {
-        var versionEndIndex:Int = data.indexOf(';');
-        returnedData[0] = data.substring(0, versionEndIndex);
-
-        // Extract the changelog after the version number
-        returnedData[1] = data.substring(versionEndIndex + 1, data.length);
-        updateVersion = returnedData[0];
-        final curVersion:String = MainMenuState.phoenixEngineVersion.trim(); // Phoenix version, not the JSE marker (#53)
-        final cleanVersion:String = curVersion.split(" (")[0]; // Removes everything after " ("
-		#if debug
-        trace(cleanVersion);
-		#end
-        trace('Current version online: ' + updateVersion + ', your version: ' + cleanVersion);
-        if (updateVersion != cleanVersion && CoolUtil.isVersionNewer(updateVersion, cleanVersion))
+      UpdateChecker.check(function(result) {
+        switch (result)
         {
-          trace("Versions don't match!");
-          OutdatedState.currChanges = returnedData[1];
-          mustUpdate = true;
-          Main.askedToUpdate = true;
+          case Available(release):
+            if (FlxG.state == this)
+              mustUpdate = true;
+            else if (Std.isOfType(FlxG.state, MainMenuState) && !Main.askedToUpdate)
+            {
+              // The player may reach the menu before a slow request finishes.
+              Main.askedToUpdate = true;
+              FlxG.switchState(() -> new OutdatedState(release));
+            }
+          default: {}
         }
-        if (updateVersion == curVersion)
-        {
-          trace('The versions match!');
-        }
-        else
-          trace('$updateVersion is less than $cleanVersion. Skipping update as it\'s likely a nightly version');
-      }
-
-      http.onError = function(error) {
-        trace("[ERROR] it's a error $error");
-      }
-
-      http.request();
+      });
     }
     #end
 
@@ -481,9 +458,11 @@ class TitleState extends MusicBeatState
         transitioning = true;
 
         new FlxTimer().start(1, function(tmr:FlxTimer) {
-          if (mustUpdate)
+          if (mustUpdate && UpdateChecker.latestRelease != null)
           {
-            FlxG.switchState(OutdatedState.new);
+            Main.askedToUpdate = true;
+            final release = UpdateChecker.latestRelease;
+            FlxG.switchState(() -> new OutdatedState(release));
           }
           else
           {
