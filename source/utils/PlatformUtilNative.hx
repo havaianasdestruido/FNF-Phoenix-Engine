@@ -7,13 +7,10 @@ package utils;
 #if windows
 @:cppFileCode('#include <stdlib.h>
 #include <stdio.h>
-#include <windows.h>
-#include <winuser.h>
-#include <dwmapi.h>
-#include <strsafe.h>
-#include <shellapi.h>
+#include "phoenix_window.h"
 #include <iostream>
 #include <string>
+#include <strsafe.h>
 
 #pragma comment(lib, "Dwmapi")
 #pragma comment(lib, "Shell32.lib")')
