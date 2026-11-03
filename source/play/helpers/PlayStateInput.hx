@@ -77,7 +77,7 @@ class PlayStateInput
 			}
 		}
 		else {
-			state.callOnLuas('onGhostTap', [key]);
+			if (state.hasActiveScripts()) state.callOnLuas('onGhostTap', [key]);
 			if (!PlayState.opponentChart && ClientPrefs.ghostTapAnim && ClientPrefs.charsAndBG)
 			{
 				state.boyfriend.playAnim(state.singAnimations[Std.int(Math.abs(key))], true);
@@ -104,7 +104,7 @@ class PlayStateInput
 			spr.playAnim('pressed');
 			spr.resetAnim = 0;
 		}
-		state.callOnLuas('onKeyPress', [key]);
+		if (state.hasActiveScripts()) state.callOnLuas('onKeyPress', [key]);
 	}
 
 	public static function sortHitNotes(a:Dynamic, b:Dynamic):Int
@@ -138,7 +138,7 @@ class PlayStateInput
 			spr.playAnim('static');
 			spr.resetAnim = 0;
 		}
-		state.callOnLuas('onKeyRelease', [key]);
+		if (state.hasActiveScripts()) state.callOnLuas('onKeyRelease', [key]);
 	}
 
 	public static function getKeyFromEvent(state:PlayState, key:FlxKey):Int
