@@ -596,6 +596,17 @@ class CoolUtil
 		}
 	}
 
+	/** Show a native message box; Windows uses the owned Unicode dialog backend. */
+	public static function sendMsgBox(message:String, title:String = "Phoenix Engine"):Bool
+	{
+		#if (cpp && windows)
+		return Windows.alert(message, title);
+		#else
+		showPopUp(message, title);
+		return false;
+		#end
+	}
+
 	public static function showPopUp(message:String, title:String):Void
 	{
 		#if ((!ios || !iphonesim) && !flash)

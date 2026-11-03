@@ -5,18 +5,9 @@ package utils;
 @:buildXml('<include name="../../../../source/utils/build.xml" />')
 @:include("phoenix_desktop_dialog.h")
 #if windows
-@:cppFileCode('#include <stdlib.h>
-#include <stdio.h>
-#include <windows.h>
-#include <winuser.h>
-#include <dwmapi.h>
-#include <strsafe.h>
-#include <shellapi.h>
-#include <iostream>
-#include <string>
-
-#pragma comment(lib, "Dwmapi")
-#pragma comment(lib, "Shell32.lib")')
+// Windows native calls live in backend.WindowNative; keep this class free of
+// Windows SDK includes so hxcpp's include order cannot break the build.
+@:cppFileCode('/* Windows dialogs are provided by backend.WindowNative. */')
 #elseif linux
 @:cppFileCode('
 #include <stdlib.h>
@@ -39,16 +30,7 @@ package utils;
 @:allow(utils.PlatformUtil)
 class PlatformUtilNative
 {
-  #if windows
-  @:functionCode('
-        HWND hWnd = GetActiveWindow();
-        res = SetWindowLong(hWnd, GWL_EXSTYLE, GetWindowLong(hWnd, GWL_EXSTYLE) | WS_EX_LAYERED);
-        if (res)
-        {
-            SetLayeredWindowAttributes(hWnd, RGB(1, 1, 1), 0, LWA_COLORKEY);
-        }
-    ')
-  #elseif linux
+  #if linux
   /*
     REQUIRES IMPORTING X11 LIBRARIES (Xlib, Xutil, Xatom) to run, even tho it doesnt work
     @:functionCode('
@@ -70,21 +52,14 @@ class PlatformUtilNative
   #end
   static function getWindowsTransparentNative(res:Int = 0) // Only works on windows, otherwise returns 0!
   {
+    #if windows
+    return backend.FlxTransWindow.getWindowsTransparent(res);
+    #else
     return res;
+    #end
   }
 
-  #if windows
-  @:functionCode('
-        LPCSTR lwDesc = desc.c_str();
-
-        res = MessageBox(
-            NULL,
-            lwDesc,
-            NULL,
-            MB_OK
-        );
-    ')
-  #elseif linux
+  #if linux
   @:functionCode('
         res = phoenixShowLinuxDesktopDialog(std::string(desc.c_str()));
     ')
@@ -103,88 +78,55 @@ class PlatformUtilNative
     @:functionCode('\n        res = phoenixShowMacDesktopDialog(std::string(desc.c_str()));\n    ')
     #end
     return res;
+    #end
   }
 
-  #if windows
-  @:functionCode('
-        HWND hWnd = GetActiveWindow();
-        res = SetWindowLong(hWnd, GWL_EXSTYLE, GetWindowLong(hWnd, GWL_EXSTYLE) ^ WS_EX_LAYERED);
-        if (res)
-        {
-            SetLayeredWindowAttributes(hWnd, RGB(1, 1, 1), 1, LWA_COLORKEY);
-        }
-    ')
-  #end
   static function getWindowsBackwardNative(res:Int = 0) // Only works on windows, otherwise returns 0!
   {
+    #if windows
+    return backend.FlxTransWindow.getWindowsbackward(res);
+    #else
     return res;
+    #end
   }
 
-  #if windows
-  @:functionCode('
-        std::string p(getenv("APPDATA"));
-        p.append("\\\\Microsoft\\\\Windows\\\\Themes\\\\TranscodedWallpaper");
-
-        SystemParametersInfo(SPI_SETDESKWALLPAPER, 0, (PVOID)p.c_str(), SPIF_UPDATEINIFILE);
-    ')
-  #end
   static function updateWallpaperNative()
   { // Only works on windows, otherwise returns 0!
+    #if windows
+    return backend.WindowNative.updateWallpaper();
+    #else
     return null;
+    #end
   }
 
-  #if (cpp && windows) // assuming Wine sets the "windows" macro to true
-  @:functionCode('
-		HMODULE ntdll = GetModuleHandleA("ntdll.dll");
-		if (ntdll) {
-			void* wine_get_version = GetProcAddress(ntdll, "wine_get_version");
-			if (wine_get_version) return true;
-		}
-		return false;
-	')
-  #end
   static function detectWineNative():Bool
   {
+    #if windows
+    return backend.WindowNative.detectWine();
+    #else
     return false;
+    #end
   }
 
-  #if windows
+  #if (ios || mac)
   @:functionCode('
-		SYSTEM_INFO osInfo;
-
-		GetSystemInfo(&osInfo);
-
-		switch(osInfo.wProcessorArchitecture)
-		{
-			case 9:
-				return ::String("x86_64");
-			case 5:
-				return ::String("ARM");
-			case 12:
-				return ::String("ARM64");
-			case 6:
-				return ::String("IA-64");
-			case 0:
-				return ::String("x86");
-			default:
-				return ::String("Unknown");
-		}
-	')
-  #elseif (ios || mac)
-  @:functionCode('
-		const NXArchInfo *archInfo = NXGetLocalArchInfo();
+			const NXArchInfo *archInfo = NXGetLocalArchInfo();
     	return ::String(archInfo == NULL ? "Unknown" : archInfo->name);
 	')
-  #else
+  #elseif !windows
   @:functionCode('
-		struct utsname osInfo{};
-		uname(&osInfo);
-		return ::String(osInfo.machine);
+			struct utsname osInfo{};
+			uname(&osInfo);
+			return ::String(osInfo.machine);
 	')
   #end
   @:noCompletion
   static function getArchNative():String
   {
+    #if windows
+    return backend.WindowNative.getArch();
+    #else
     return null;
+    #end
   }
 }

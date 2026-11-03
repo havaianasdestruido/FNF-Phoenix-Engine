@@ -190,12 +190,20 @@ class Main extends Sprite
     #end
 
     #if windows
-    WindowColorMode.setDarkMode();
-    if (CoolUtil.hasVersion("Windows 10")) WindowColorMode.redrawWindowHeader();
+    system.Window.darkMode(true);
+    #end
+
+    #if (cpp && windows && NO_W11_CORNERS)
+    // Opt-in build flag: leave the default rounded corners untouched otherwise.
+    Windows.setSquareCorners(true);
     #end
 
     // Watches the window mode so transparency can be suspended in fullscreen.
     TransparentWindow.init();
+
+    #if (cpp && windows)
+    Application.current.onExit.add(function(_:Int) Windows.removeWindowsNotification());
+    #end
 
     #if DISCORD_ALLOWED DiscordClient.prepare(); #end
 

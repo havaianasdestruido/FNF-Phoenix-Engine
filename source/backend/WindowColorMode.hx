@@ -1,9 +1,5 @@
 package backend;
 
-import shaders.RainShader.Light;
-
-
-import backend.WindowBackend;
 
 class WindowColorMode
 {
@@ -35,8 +31,7 @@ class WindowColorMode
 	public static function setWindowColorMode(isDark:Bool = true)
     {
 #if windows
-        WindowBackend.setWindowColorMode(isDark);
-		isDarkMode = isDark;
+        if (Windows.setDarkMode(isDark)) isDarkMode = isDark;
 		#else
 		trace('`setWindowColorMode` is not available on this platform!');
 		#end
@@ -48,8 +43,7 @@ class WindowColorMode
 	public static function setDarkMode()
     {
 #if windows
-        WindowBackend.setWindowColorMode(true);
-		isDarkMode = true;
+        if (Windows.setDarkMode(true)) isDarkMode = true;
 		#else
 		trace('`setDarkMode` is not available on this platform!');
 		#end
@@ -61,8 +55,7 @@ class WindowColorMode
 	public static function setLightMode()
     {
 #if windows
-        WindowBackend.setWindowColorMode(false);
-		isDarkMode = false;
+        if (Windows.setDarkMode(false)) isDarkMode = false;
 		#else
 		trace('`setLightMode` is not available on this platform!');
 		#end
@@ -78,9 +71,12 @@ class WindowColorMode
 	public static function setWindowBorderColor(color:Array<Int>, setHeader:Bool = true, setBorder:Bool = true)
     {
 #if windows
-        WindowBackend.setWindowBorderColor(((color != null) ? color : [255, 255, 255]), setHeader, setBorder);
-		if(setHeader) windowHeaderColor = ((color != null) ? color : [255, 255, 255]);
-		if(setBorder) windowBorderColor = ((color != null) ? color : [255, 255, 255]);
+        final value = color != null ? color : [255, 255, 255];
+        if (Windows.setWindowBorderColor(value, setHeader, setBorder))
+        {
+          if (setHeader) windowHeaderColor = value.copy();
+          if (setBorder) windowBorderColor = value.copy();
+        }
 		#else
 		trace('`setWindowBorderColor` is not available on this platform!');
 		#end
@@ -94,8 +90,8 @@ class WindowColorMode
 	public static function setWindowTitleColor(color:Array<Int>)
     {
 #if windows
-        WindowBackend.setWindowTitleColor(((color != null) ? color : [255, 255, 255]));
-		windowTitleColor = ((color != null) ? color : [255, 255, 255]);
+        final value = color != null ? color : [255, 255, 255];
+        if (Windows.setWindowTitleColor(value)) windowTitleColor = value.copy();
 		#else
 		trace('`setWindowTitleColor` is not available on this platform!');
 		#end
@@ -105,11 +101,8 @@ class WindowColorMode
 	 * Resets the window. It is recommended to use this after running any of the functions above so the effect is drawn immediately.
 	 * (Windows 11 doesn't need this, but it's needed on Windows 10, or else the effect won't take place until you unfocus/refocus the window).
 	 */
-	public static function redrawWindowHeader()
+	public static function redrawWindowHeader():Bool
     {
-		#if !flash
-		flixel.FlxG.stage.window.borderless = true;
-		flixel.FlxG.stage.window.borderless = false;
-		#end
+        return system.Window.redrawFrame();
     }
 }
