@@ -8,6 +8,21 @@
  */
 #if defined(_WIN32)
 
+/* hxcpp can include native metadata before its own target-architecture
+ * defines. Seed the macro Windows headers expect so winnt.h does not emit
+ * "No Target Architecture" when this header is seen first. */
+#if !defined(_AMD64_) && !defined(_X86_) && !defined(_ARM_) && !defined(_ARM64_)
+#if defined(_M_X64) || defined(__x86_64__)
+#define _AMD64_
+#elif defined(_M_IX86) || defined(__i386__)
+#define _X86_
+#elif defined(_M_ARM64) || defined(__aarch64__)
+#define _ARM64_
+#elif defined(_M_ARM) || defined(__arm__)
+#define _ARM_
+#endif
+#endif
+
 #include <windows.h>
 #include <dwmapi.h>
 #include <shellapi.h>
