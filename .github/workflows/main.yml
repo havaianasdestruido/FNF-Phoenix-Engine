@@ -608,12 +608,7 @@ jobs:
 
           Remove-Item -Force assets/preload/gameRenders/renderlinux.sh
 
-          $log = Join-Path $env:RUNNER_TEMP 'windows-build.log'
-          haxelib run lime build windows -D"${{ inputs.buildFlags || 'commit' }}" ${{ env.HXCPP_DESKTOP_PERF_FLAGS }} 2>&1 | Tee-Object -FilePath $log
-          if ($LASTEXITCODE -ne 0) {
-            Get-Content 'build/release/windows/obj/src/debug/profiler/NativeFrameProfiler.cpp' -TotalCount 18 -ErrorAction SilentlyContinue | ForEach-Object { Write-Output "::error::$_" }
-            exit 1
-          }
+          haxelib run lime build windows -D"${{ inputs.buildFlags || 'commit' }}" ${{ env.HXCPP_DESKTOP_PERF_FLAGS }}
 
       # ==========================================
       # Compile Android
