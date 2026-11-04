@@ -1,4 +1,4 @@
-﻿package shaders;
+package shaders;
 
 
 import flixel.system.FlxAssets.FlxShader;
@@ -30,19 +30,26 @@ class VCRDistortionShader extends FlxShader // https://www.shadertoy.com/view/ld
     	return (1.0-fact) * inside;
     }
 
+    // Time-only terms of getVideo()/random(), computed once per fragment in
+    // main(). getVideo() runs seven times per pixel and re-derived all of
+    // these (about ten sin/cos calls) on every invocation, even though none
+    // of them depend on its uv argument. The multiplication order in
+    // getVideo() is unchanged, so the distorted coordinates are identical.
+    float windowPhase;
+    float onOffDistort;
+    float cosTimeFast;
+    float glitchDouble;
+    float vShiftAmt;
+    float sinTimeSlow;
+
     vec4 getVideo(vec2 uv)
     {
     	vec2 look = uv;
         if(distortionOn){
-        	// FIX: 1./(1.+20.*... -> 1.0/(1.0+20.0*..., mod(iTime/4.,1.) -> mod(iTime/4.0,1.0)
-        	float window = 1.0/(1.0+20.0*(look.y-mod(iTime/4.0,1.0))*(look.y-mod(iTime/4.0,1.0)));
-        	// FIX: 10. -> 10.0, /50. -> /50.0, onOff(4.,4.,.3) -> onOff(4.0,4.0,0.3), 1.+ -> 1.0+, *2) -> *2.0)
-        	look.x = look.x + (sin(look.y*10.0 + iTime)/50.0*onOff(4.0,4.0,0.3)*(1.0+cos(iTime*80.0))*window)*(glitchModifier*2.0);
-        	// FIX: onOff(2.,3.,.9) -> onOff(2.0,3.0,0.9)
-        	float vShift = 0.4*onOff(2.0,3.0,0.9)*(sin(iTime)*sin(iTime*20.0) +
-        									 (0.5 + 0.1*sin(iTime*200.0)*cos(iTime)));
-        	// FIX: mod(..., 1.) -> mod(..., 1.0)
-        	look.y = mod(look.y + vShift*glitchModifier, 1.0);
+        	float yTerm = look.y - windowPhase;
+        	float window = 1.0/(1.0+20.0*yTerm*yTerm);
+        	look.x = look.x + (sin(look.y*10.0 + iTime)/50.0*onOffDistort*cosTimeFast*window)*glitchDouble;
+        	look.y = mod(look.y + vShiftAmt, 1.0);
         }
     	vec4 video = flixel_texture2D(bitmap,look);
     	return video;
@@ -64,7 +71,7 @@ class VCRDistortionShader extends FlxShader // https://www.shadertoy.com/view/ld
 
     float random(vec2 uv)
     {
-     	return fract(sin(dot(uv, vec2(15.5151, 42.2561))) * 12341.14122 * sin(iTime * 0.03));
+     	return fract(sin(dot(uv, vec2(15.5151, 42.2561))) * 12341.14122 * sinTimeSlow);
     }
 
     float noise(vec2 uv)
@@ -84,21 +91,23 @@ class VCRDistortionShader extends FlxShader // https://www.shadertoy.com/view/ld
         return mix(a,b, u.x) + (c - a) * u.y * (1.0 - u.x) + (d - b) * u.x * u.y;
     }
 
-    vec2 scandistort(vec2 uv) {
-    	float scan1 = clamp(cos(uv.y * 2.0 + iTime), 0.0, 1.0);
-    	float scan2 = clamp(cos(uv.y * 2.0 + iTime + 4.0) * 10.0, 0.0, 1.0);
-    	float amount = scan1 * scan2 * uv.x;
-    	return uv;
-    }
-
     void main()
     {
+      // Hoisted time-only terms (see the globals above getVideo()).
+      windowPhase = mod(iTime/4.0,1.0);
+      onOffDistort = onOff(4.0,4.0,0.3);
+      cosTimeFast = 1.0+cos(iTime*80.0);
+      glitchDouble = glitchModifier*2.0;
+      vShiftAmt = 0.4*onOff(2.0,3.0,0.9)*(sin(iTime)*sin(iTime*20.0) +
+      									 (0.5 + 0.1*sin(iTime*200.0)*cos(iTime)))*glitchModifier;
+      sinTimeSlow = sin(iTime * 0.03);
+
     	vec2 uv = openfl_TextureCoordv;
       vec2 curUV = screenDistort(uv);
-    	uv = scandistort(curUV);
+    	// scandistort() was called here, but it only computed two unused
+    	// cosines and returned its input unchanged, so it is gone.
+    	uv = curUV;
     	vec4 video = getVideo(uv);
-      float vigAmt = 1.0;
-      // FIX: 0. -> 0.0
       float x = 0.0;
 
       video.r = getVideo(vec2(x+uv.x+0.001,uv.y+0.001)).x+0.05;
@@ -111,15 +120,16 @@ class VCRDistortionShader extends FlxShader // https://www.shadertoy.com/view/ld
       video.b += 0.08*getVideo(0.75*vec2(x-0.02, -0.018)+vec2(uv.x-0.002,uv.y+0.000)).z;
 
       video = clamp(video*0.6+0.4*video*video*1.0,0.0,1.0);
-      if(vignetteMoving)
-    	  // FIX: 3.+ -> 3.0+, .3* -> 0.3*, 5.* -> 5.0*, iTime*5. -> iTime*5.0
-    	  vigAmt = 3.0+0.3*sin(iTime + 5.0*cos(iTime*5.0));
-
-    	// FIX: 1.- -> 1.0-, .5 -> 0.5
-    	float vignette = (1.0-vigAmt*(uv.y-0.5)*(uv.y-0.5))*(1.0-vigAmt*(uv.x-0.5)*(uv.x-0.5));
-
+      // The vignette amount/coverage were computed even with vignetteOn off.
       if(vignetteOn)
-    	 video *= vignette;
+      {
+        float vigAmt = 1.0;
+        if(vignetteMoving)
+          vigAmt = 3.0+0.3*sin(iTime + 5.0*cos(iTime*5.0));
+
+        float vignette = (1.0-vigAmt*(uv.y-0.5)*(uv.y-0.5))*(1.0-vigAmt*(uv.x-0.5)*(uv.x-0.5));
+        video *= vignette;
+      }
 
       // FIX: 75. -> 75.0, .05 -> 0.05
       gl_FragColor = mix(video, vec4(noise(uv * 75.0)), 0.05);

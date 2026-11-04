@@ -79,13 +79,10 @@ class ColorSwapShader extends FlxFixedShader {
 
 			color = vec4(color.rgb / color.a, color.a);
 
-			mat4 colorMultiplier = mat4(0);
-			colorMultiplier[0][0] = openfl_ColorMultiplierv.x;
-			colorMultiplier[1][1] = openfl_ColorMultiplierv.y;
-			colorMultiplier[2][2] = openfl_ColorMultiplierv.z;
-			colorMultiplier[3][3] = openfl_ColorMultiplierv.w;
-
-			color = clamp(openfl_ColorOffsetv + (color * colorMultiplier), 0.0, 1.0);
+			// The color multiplier was applied by building a diagonal mat4 on
+			// every call; a component-wise multiply by the same diagonal
+			// (v * diag(m) == v * m) gives identical results for one op.
+			color = clamp(openfl_ColorOffsetv + (color * openfl_ColorMultiplierv), 0.0, 1.0);
 
 			if (color.a > 0.0)
 			{
@@ -98,14 +95,6 @@ class ColorSwapShader extends FlxFixedShader {
 		uniform bool awesomeOutline;
 
 		const float offset = 1.0 / 128.0;
-		vec3 normalizeColor(vec3 color)
-		{
-			return vec3(
-				color[0] / 255.0,
-				color[1] / 255.0,
-				color[2] / 255.0
-			);
-		}
 
 		vec3 rgb2hsv(vec3 c)
 		{
@@ -129,23 +118,24 @@ class ColorSwapShader extends FlxFixedShader {
 		{
 			vec4 color = flixel_texture2D(bitmap, openfl_TextureCoordv);
 
-			vec4 swagColor = vec4(rgb2hsv(vec3(color[0], color[1], color[2])), color[3]);
-
-			// [0] is the hue???
-			swagColor[0] = swagColor[0] + uTime[0];
-			swagColor[1] = swagColor[1] + uTime[1];
-			swagColor[2] = swagColor[2] * (1.0 + uTime[2]);
-
-			if(swagColor[1] < 0.0)
+			// Most sprites using this shader never change hue/saturation/
+			// brightness (uTime stays at its 0,0,0 default), but every pixel
+			// still paid for a full RGB->HSV->RGB round-trip that only
+			// reproduces the input. Skip it when there is nothing to swap
+			// and no outline to draw; the branch is uniform-coherent.
+			if (!awesomeOutline && uTime == vec3(0.0))
 			{
-				swagColor[1] = 0.0;
-			}
-			else if(swagColor[1] > 1.0)
-			{
-				swagColor[1] = 1.0;
+				gl_FragColor = color;
+				return;
 			}
 
-			color = vec4(hsv2rgb(vec3(swagColor[0], swagColor[1], swagColor[2])), swagColor[3]);
+			// uTime is (hue, saturation, brightness) despite the name.
+			vec3 hsv = rgb2hsv(color.rgb);
+			hsv.x += uTime.x;
+			hsv.y = clamp(hsv.y + uTime.y, 0.0, 1.0);
+			hsv.z *= (1.0 + uTime.z);
+
+			color = vec4(hsv2rgb(hsv), color.a);
 
 			if (awesomeOutline)
 			{

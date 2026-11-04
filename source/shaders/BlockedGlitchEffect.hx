@@ -28,28 +28,40 @@ class BlockedGlitchEffect
   public function set_resolution(v:Float):Float
   {
     resolution = v;
-    shader.screenSize.value = [resolution];
+    if (shader.screenSize.value == null)
+      shader.screenSize.value = [resolution];
+    else
+      shader.screenSize.value[0] = resolution;
     return this.resolution;
   }
 
   function set_hasColorTransform(value:Bool):Bool
   {
     this.hasColorTransform = value;
-    shader.hasColorTransform.value = [hasColorTransform];
+    if (shader.hasColorTransform.value == null)
+      shader.hasColorTransform.value = [hasColorTransform];
+    else
+      shader.hasColorTransform.value[0] = hasColorTransform;
     return hasColorTransform;
   }
 
   function set_colorMultiplier(value:Float):Float
   {
     this.colorMultiplier = value;
-    shader.colorMultiplier.value = [value];
+    if (shader.colorMultiplier.value == null)
+      shader.colorMultiplier.value = [value];
+    else
+      shader.colorMultiplier.value[0] = value;
     return this.colorMultiplier;
   }
 
   function set_time(value:Float):Float
   {
     this.time = value;
-    shader.time.value = [value];
+    if (shader.time.value == null)
+      shader.time.value = [value];
+    else
+      shader.time.value[0] = value;
     return this.time;
   }
 }

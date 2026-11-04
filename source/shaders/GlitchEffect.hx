@@ -27,21 +27,30 @@ class GlitchEffect extends Effect
   function set_waveSpeed(v:Float):Float
   {
     waveSpeed = v;
-    shader.uSpeed.value = [waveSpeed];
+    if (shader.uSpeed.value == null)
+      shader.uSpeed.value = [waveSpeed];
+    else
+      shader.uSpeed.value[0] = waveSpeed;
     return v;
   }
 
   function set_waveFrequency(v:Float):Float
   {
     waveFrequency = v;
-    shader.uFrequency.value = [waveFrequency];
+    if (shader.uFrequency.value == null)
+      shader.uFrequency.value = [waveFrequency];
+    else
+      shader.uFrequency.value[0] = waveFrequency;
     return v;
   }
 
   function set_waveAmplitude(v:Float):Float
   {
     waveAmplitude = v;
-    shader.uWaveAmplitude.value = [waveAmplitude];
+    if (shader.uWaveAmplitude.value == null)
+      shader.uWaveAmplitude.value = [waveAmplitude];
+    else
+      shader.uWaveAmplitude.value[0] = waveAmplitude;
     return v;
   }
 }
