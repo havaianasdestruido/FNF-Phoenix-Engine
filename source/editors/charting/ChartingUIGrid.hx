@@ -1,6 +1,5 @@
 package editors.charting;
 
-// REFACTOR: extracted from editors.ChartingState (behavior-preserving)
 import backend.ClientPrefs;
 import backend.Conductor;
 import backend.CoolUtil;
@@ -12,7 +11,6 @@ import editors.charting.AttachedFlxText;
 import objects.Note;
 import play.PlayState;
 
-// REFACTOR: imports for relocated root classes
 import shaders.CrossFade;
 
 @:access(editors.ChartingState)

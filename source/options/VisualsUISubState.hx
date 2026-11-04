@@ -1,6 +1,5 @@
 package options;
 
-// REFACTOR: explicit imports for shader subtypes
 import shaders.RainShader.Light;
 
 
@@ -11,7 +10,6 @@ import objects.StrumNote;
 import flixel.graphics.FlxGraphic;
 import flixel.input.keyboard.FlxKey;
 
-// REFACTOR: imports for relocated root classes
 import backend.ClientPrefs;
 import data.Song;
 

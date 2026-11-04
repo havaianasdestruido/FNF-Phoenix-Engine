@@ -8,7 +8,6 @@ import objects.Character;
 
 import play.PlayState;
 
-// REFACTOR: camera / icon / dance logic extracted from play.PlayState
 @:access(play.PlayState)
 @:access(backend.MusicBeatState)
 class PlayStateCamera
@@ -257,7 +256,6 @@ class PlayStateCamera
 		state.iconP2.updateHitbox();
 	}
 
-	// REFACTOR: tankman ascend sequence extracted from PlayState.stepHit
 	public static function tankmanStep(state:PlayState)
 	{
 		if (state.curStep >= 896 && state.curStep <= 1152) moveCameraSection(state);

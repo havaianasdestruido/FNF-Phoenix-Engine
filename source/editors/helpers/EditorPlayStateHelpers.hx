@@ -1,6 +1,5 @@
 package editors.helpers;
 
-// REFACTOR: explicit imports for relocated static helpers
 import backend.ClientPrefs;
 import backend.ScreenLayout;
 import backend.Conductor;
@@ -29,7 +28,6 @@ import play.objects.SustainSplash;
 
 import states.LoadingState;
 
-// REFACTOR: chart/input/note/popup/gameplay helpers extracted from editors.EditorPlayState (behavior-preserving)
 @:access(editors.EditorPlayState)
 @:access(backend.MusicBeatState)
 class EditorPlayStateHelpers

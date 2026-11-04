@@ -6,7 +6,6 @@ import flixel.graphics.FlxGraphic;
 import flixel.input.keyboard.FlxKey;
 import flixel.ui.FlxButton;
 
-// REFACTOR: imports for relocated root classes
 import backend.ClientPrefs;
 import backend.ScreenLayout;
 import backend.ViewportVisuals;

@@ -762,7 +762,7 @@ class HScript
 			str = libPackage + '.';
 		if(!allowClassAccess(str + libName)) return false;
 
-		var resolved:Class<Dynamic> = Type.resolveClass(str + libName); // REFACTOR: legacy bare-name fallback
+		var resolved:Class<Dynamic> = Type.resolveClass(str + libName);
 		if (resolved == null) resolved = LuaUtils.resolveClassCompat(libName);
 		interp.variables.set(libName, resolved);
 		_missingCalls.remove(libName);

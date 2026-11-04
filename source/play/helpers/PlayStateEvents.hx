@@ -15,11 +15,9 @@ import play.helpers.PlayStateCharacters;
 import play.helpers.PlayStatePlayback;
 import play.helpers.PlayStateScripts;
 
-// REFACTOR: imports for relocated root classes
 import data.Song;
 import objects.Note;
 
-// REFACTOR: event handling extracted from play.PlayState
 @:access(play.PlayState)
 @:access(backend.MusicBeatState)
 class PlayStateEvents

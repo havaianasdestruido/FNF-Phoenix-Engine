@@ -17,7 +17,6 @@ using StringTools;
 
 @:allow(psychlua.FunkinLua)
 class LuaUtils {
-	// REFACTOR: root classes moved into packages; resolve legacy bare class names from scripts
 	public static function resolveClassCompat(className:String):Class<Dynamic>
 	{
 		if (className == null || className.length < 1) return null;
@@ -208,7 +207,6 @@ class LuaUtils {
 		#end
 	}
 
-	// REFACTOR: moved from FunkinLua; pure/stateless helpers
 	public static function typeToString(type:Int):String
 	{
 		#if LUA_ALLOWED

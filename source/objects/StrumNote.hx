@@ -2,7 +2,6 @@ package objects;
 
 import backend.ScreenLayout;
 
-// REFACTOR: explicit imports for shader subtypes
 import shaders.RGBPalette.RGBShaderReference;
 
 import backend.Paths;

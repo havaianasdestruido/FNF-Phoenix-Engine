@@ -54,7 +54,6 @@ Sections 13–20 are a second backlog pass written against the current tree. Eve
   - Or fix the NDK 28 header conflict (locale redefinition) instead of pinning old NDK.
   - Re-run android build to green, then commit + push.
 - **[P1] macOS/Linux `sendFakeMsgBox` are TODO** (`source/backend/PlatformUtil.hx:10-11`, `source/utils/PlatformUtilNative.hx:86`). Add native `osascript`/`zenity`/`kdialog`-based implementations so crash dialogs work on all desktops; remove the `trace('not available')` stubs. ([#66](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/issues/66))
-- **[P2] Refactor relic `REFACTOR:` comments** — dozens across `source/editors/`, `source/headers/`, `options/`. They document relocations but say nothing actionable. Fold into proper file headers or delete. ([#73](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/issues/73))
 - **[P3] Remove dead Flash/Air code paths** — `officialBuild` feature flag never applied (`project.hxp`), unused `renderAll`/`ULTRA_OPTIMIZED` experiments, `WindowColorMode` flash stubs (trace-only). ([#78](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/issues/78))
 
 ## 2. GAMEPLAY / PSYCH SYNC (P3 imports)

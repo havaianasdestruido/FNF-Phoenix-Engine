@@ -6,7 +6,6 @@ import play.PlayState;
 import psychlua.FunkinLua;
 import headers.PsychLua;
 
-// REFACTOR: extracted from psychlua.FunkinLua (createCamera/addCamera/removeCamera)
 class CameraCallbacks
 {
 	public static function register(funk:FunkinLua):Void {

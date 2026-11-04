@@ -21,10 +21,8 @@ import play.PlayState;
 import states.substates.GameplayChangersSubstate;
 import states.substates.ResetScoreSubState;
 
-// REFACTOR: helpers for relocated logic
 import headers.States;
 
-// REFACTOR: imports for relocated root classes
 import backend.Controls;
 import data.Section;
 import objects.Character;
