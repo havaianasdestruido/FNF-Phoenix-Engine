@@ -204,6 +204,11 @@ class Main extends Sprite
     // Watches the window mode so transparency can be suspended in fullscreen.
     TransparentWindow.init();
 
+    // 4th-wall-breaking effects must never outlive the game process: this
+    // restores wallpaper/taskbar/window styles on exit and counts launches.
+    // A no-op on builds without -DMETA_HORROR.
+    backend.MetaHorror.installExitCleanup();
+
     #if (cpp && windows)
     Application.current.onExit.add(function(_:Int) Windows.removeWindowsNotification());
     #end

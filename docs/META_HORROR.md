@@ -98,13 +98,69 @@ needed). Everything compiles on every target; platform support is noted.
 | `duplicateImage(imageFile, finalFileName, ?fileType = 'png', ?location):Null<String>` | Write a copy of an embedded/mod image to disk ("leaking" art). Returns the written path. Default location: `<temp>/phoenix_horror` | desktop |
 | `getSystemRAM():Int` | Physically installed RAM in MB (upstream `obtainRAM`) | C++ targets |
 
+### Second pass: the player, memory and cleanup
+
+These effects were added on top of the upstream port. They share the same
+`-DMETA_HORROR` gate and every one of them degrades to the "failure value"
+listed below on normal builds.
+
+| Function | Effect | Platforms |
+| --- | --- | --- |
+| `getDesktopUsername():String` | The OS account name of the player (`USERNAME` / `USER`), for "the character says your name" lines. Only the short account name is read. Returns `"player"` when unknown | all |
+| `getSystemUptime():Int` | Seconds since the machine booted (`GetTickCount64`, `/proc/uptime`, `kern.boottime`). `0` when unknown | Windows / Linux / macOS |
+| `getLocalHour():Int` / `getLocalTimeString():String` | The player's local clock hour (`0`-`23`) and `HH:MM` | all |
+| `isLateNight(?fromHour = 0, ?toHour = 5):Bool` | Whether the local hour is inside `[from, to)`; the range may wrap midnight (`isLateNight(23, 4)`). `false` without the define | all |
+| `getLaunchCount():Int` | How many times this install has been launched, including this one. Incremented once per process and persisted. `0` without the define | desktop |
+| `getPersistentValue(key, ?default = 0):Float` | Read a number that survives restarts. `default` without the define | desktop |
+| `setPersistentValue(key, value):Bool` | Store such a number. Keys are `[A-Za-z0-9_]`, max 64 chars, may not start with `_` | desktop |
+| `hasPersistentValue(key):Bool` / `addPersistentValue(key, ?amount = 1):Float` | Test for / increment a persisted counter (returns the new total) | desktop |
+| `clearPersistentValues():Bool` | Delete every persisted value | desktop |
+| `getClipboardText():String` / `setClipboardText(text):Bool` | Read the OS clipboard / leave a message on it. `""` / `false` without the define | desktop |
+| `setWindowTitle(title):Bool` | Rename the game window ("I CAN SEE YOU"). The original title *and* the `MusicBeatState` `windowNamePrefix`/`windowNameSuffix`/`windowNameSuffix2` values are saved | desktop |
+| `restoreWindowTitle():Bool` | Put the pre-effect title and the saved suffixes back | desktop |
+| `setAlwaysOnTop(enable):Bool` / `isAlwaysOnTop():Bool` | Keep the game above every other window (`HWND_TOPMOST`), so it cannot be hidden behind a browser | Windows |
+| `flashTaskbar(?times = 3):Bool` / `stopTaskbarFlash():Void` | Flash the game's taskbar button (1-10 flashes) / cancel it | Windows |
+| `getOpenWindowTitles():Array<String>` | Titles of the other visible windows, sorted and excluding the game and the shell. Metadata only: no window contents are read | Windows |
+| `captureDesktop(?fileName = 'desktop', ?location):Null<String>` | Screenshot every monitor's desktop to `<location>/<fileName>.png` and return the path. `null` (and no file) when the capture fails. Default location: `<temp>/phoenix_horror` | Windows |
+| `restoreAll():Void` | Undo everything at once (below) | all |
+| `installExitCleanup():Void` | Hook `restoreAll` into the app exit signal and count this launch. Called by `Main`; idempotent | desktop |
+
+#### `restoreAll()` and the exit hook
+
+`restoreAll()` calls `restoreWallpaper`, `restoreTaskbar`,
+`restoreAllWindows`, `resetWindowEffects`, `restoreWindowTitle`,
+`stopTaskbarFlash`, `setAlwaysOnTop(false)` and cancels a pending `typeText`.
+
+`Main` calls `MetaHorror.installExitCleanup()` at startup, so even a crash or
+an alt-F4 restores the wallpaper, taskbar and window styles before the process
+exits. Mods should still call `restoreAllMetaEffects()` from `onSongEnd`,
+`onGameOver` and `onDestroy`, because the engine only cleans up when the whole
+game exits - not when a song ends.
+
+#### Persistence is deliberately separate
+
+`setPersistentValue` writes into its own `FlxSave` slot (`meta_horror`, in the
+normal save folder) instead of `FlxG.save`. A mod can therefore never corrupt
+options, keybinds or achievements, and deleting that single file resets every
+META_HORROR counter.
+
+
 ## Script API (Lua / Python / HScript)
 
-`psychlua.callbacks.MetaHorrorCallbacks` registers the same surface for
-softmods (names identical to the Haxe API except `setSysVolume`/`setSysMute`
-for `setSysAudioVolume`/`setSysAudioMute`). HScript sees them through the
-shared registered-function map, and can also call `backend.MetaHorror`
-directly via `runHaxeCode`.
+`psychlua.callbacks.MetaHorrorCallbacks` (Lua) and
+`psychlua.pystdlib.PyMetaHorrorLib` (Python) register the same surface for
+softmods. Names are identical to the Haxe API except:
+
+| Haxe | Script name | Why |
+| --- | --- | --- |
+| `setSysAudioVolume` / `setSysAudioMute` | `setSysVolume` / `setSysMute` | shorter upstream-compatible spelling |
+| `restoreAll` | `restoreAllMetaEffects` | says what it touches |
+| `setWindowAlpha` / `setWindowColorKey` / `resetWindowEffects` | `setMetaWindowAlpha` / `setMetaWindowColorKey` / `resetMetaWindowEffects` | `WindowCallbacks` already owns `setWindowAlpha`; see below |
+
+HScript seeds `MetaHorror` (the whole class) plus `isRecording` into every
+interpreter, so standalone and embedded scripts can call
+`MetaHorror.captureDesktop()` directly. The Lua/Python names also work in HScript
+through the shared registered-function map.
 
 ```lua
 function onCreatePost()
@@ -115,20 +171,51 @@ function onCreatePost()
     -- spooky part: the game "leaks" itself onto the desktop
     setWallpaper('spooky/wallpaper', false) -- mods/images/spooky/wallpaper.png
     hideTaskbar()
-    setWindowAlpha(0.9)
+    setMetaWindowAlpha(0.9)
+    setWindowTitle('I CAN SEE YOU')
+    -- ...and it knows who is playing
+    debugPrint('hello ' .. getDesktopUsername())
+    debugPrint('launch #' .. getLaunchCount())
+    if isLateNight() then
+        debugPrint('it is ' .. getLocalTimeString() .. ', go to sleep')
+    end
+    addPersistentValue('songsSeen')
 end
 
 function onSongEnd()
     -- always clean up after the effect
-    restoreWallpaper()
-    restoreTaskbar()
-    resetWindowEffects()
+    restoreAllMetaEffects()
 end
 ```
+
+:::warning[Don't shadow the transparent-window API]
+
+`WindowCallbacks` registers `setWindowAlpha` (whole-window opacity via
+`backend.TransparentWindow`) and `MetaHorrorCallbacks` is registered *after* it,
+so reusing that name here would silently replace a working function with a
+no-op on normal builds. The META_HORROR window-style functions are therefore
+prefixed with `Meta`.
+
+:::
 
 On builds without `-DMETA_HORROR` each call prints
 `<name>: 4th-wall-breaking effects require a -DMETA_HORROR build of Phoenix
 Engine.` to the debug text, so mod authors can tell why nothing happened.
+
+### Sandbox rules
+
+The calls that inspect or modify the player's machine beyond the game window
+are gated by the softmod sandbox like file access is (`backend.ModSecurity`):
+
+| Script call | Rule required in `scriptSandboxAllowlist` |
+| --- | --- |
+| `getClipboardText`, `setClipboardText` | `engine.clipboard` |
+| `getOpenWindowTitles` | `engine.window-list` |
+| `captureDesktop` | `engine.screen-capture` |
+
+A sandboxed mod calling them without the rule gets a runtime error instead of
+the data. The other effects are still noisy but are scoped to the game window
+and its own save slot, so they keep working.
 
 ## Enabling the define
 

@@ -1,5 +1,7 @@
 package backend;
 
+using StringTools;
+
 /*
  * 4th-wall-breaking ("META_HORROR") system effects for horror mods.
  *
@@ -62,6 +64,24 @@ class MetaHorror
   static var hiddenWindowTitles:Array<String> = [];
   static var taskbarWasVisible:Bool = true;
   static var typeToken:Int = 0;
+
+  /** Title the window had before `setWindowTitle`; `null` when unchanged. */
+  static var originalWindowTitle:Null<String> = null;
+  /** The `MusicBeatState` suffix/prefix values `setWindowTitle` replaced. */
+  static var originalTitlePrefix:Null<String> = null;
+  static var originalTitleSuffix:Null<String> = null;
+  static var originalTitleSuffix2:Null<String> = null;
+  /** `true` while `setAlwaysOnTop(true)` owns the window's topmost state. */
+  static var alwaysOnTop:Bool = false;
+  /** Save slot for the "the game remembers you" persistent values. */
+  static var sessionSave:FlxSave = null;
+  /** Keys `installExitCleanup` has already applied. */
+  static var exitCleanupInstalled:Bool = false;
+
+  /** Save-file key holding the launch counter. */
+  static inline var LAUNCH_COUNT_KEY:String = 'launchCount';
+  /** Save slot name; shares the engine's save folder but not its data. */
+  static inline var PERSISTENT_SAVE_NAME:String = 'meta_horror';
 
   /**
    * True when recording/streaming software from `programList` seems to be
@@ -500,6 +520,605 @@ class MetaHorror
   }
 
   // ------------------------------------------------------------------
+  // The player ("who is on the other side of the screen")
+  // ------------------------------------------------------------------
+
+  /**
+   * The OS account name of whoever is playing (`USERNAME` / `USER`).
+   *
+   * This is the classic "the character says your name" effect: a mod can put
+   * the player's own Windows/Linux/macOS login name in a dialogue line. Only
+   * the short account name is read - never a full name, home path or email.
+   *
+   * @return The account name, or `"player"` when it cannot be read.
+   */
+  public static function getDesktopUsername():String
+  {
+    #if META_HORROR
+    var name:String = CoolSystemStuff.getUsername();
+    if (name == null || StringTools.trim(name).length == 0)
+      return 'player';
+    return StringTools.trim(name);
+    #else
+    return 'player';
+    #end
+  }
+
+  /**
+   * Seconds since the machine booted, useful for "your PC has been on for
+   * 14 hours"-style lines.
+   *
+   * Windows reads `GetTickCount64`; Linux reads `/proc/uptime`; macOS reads
+   * `kern.boottime`. Other targets (and HTML5) report `0`.
+   *
+   * @return Uptime in whole seconds, or `0` when it cannot be read.
+   */
+  public static function getSystemUptime():Int
+  {
+    #if (META_HORROR && sys)
+    #if (windows && cpp)
+    var seconds:Float = getSystemUptimeNative();
+    if (seconds > 0)
+      return Std.int(seconds);
+    #elseif linux
+    try
+    {
+      var uptime:String = sys.io.File.getContent('/proc/uptime');
+      var seconds:Float = Std.parseFloat(uptime.split(' ')[0]);
+      if (!Math.isNaN(seconds) && seconds > 0)
+        return Std.int(seconds);
+    }
+    catch (e:Dynamic) {}
+    #elseif mac
+    try
+    {
+      var boot:String = new sys.io.Process('sysctl', ['-n', 'kern.boottime']).stdout.readAll().toString();
+      // "kern.boottime: { sec = 1712345678, usec = 0 } Sat Apr  6 ..."
+      var match:EReg = ~/sec\s*=\s*(\d+)/;
+      if (match.match(boot))
+        return Std.int(Math.max(0, Date.now().getTime() / 1000 - Std.parseInt(match.matched(1))));
+    }
+    catch (e:Dynamic) {}
+    #end
+    return 0;
+    #else
+    return 0;
+    #end
+  }
+
+  /**
+   * The player's local clock hour (0-23), for "it is 3 AM, why are you still
+   * playing?" lines. Never blocks; falls back to `0` on targets without a
+   * real clock.
+   */
+  public static function getLocalHour():Int
+  {
+    #if META_HORROR
+    return Date.now().getHours();
+    #else
+    return 0;
+    #end
+  }
+
+  /**
+   * The player's local time as `HH:MM` (24-hour clock).
+   */
+  public static function getLocalTimeString():String
+  {
+    #if META_HORROR
+    var now:Date = Date.now();
+    return twoDigits(now.getHours()) + ':' + twoDigits(now.getMinutes());
+    #else
+    return '00:00';
+    #end
+  }
+
+  /**
+   * `true` when the player's local hour is inside `[fromHour, toHour)`.
+   *
+   * The default `0`-`5` window is "late night"; the range may wrap past
+   * midnight (`isLateNight(23, 4)`).
+   *
+   * @param fromHour Inclusive start hour (0-23).
+   * @param toHour   Exclusive end hour (0-24); `0` is treated as `24`.
+   */
+  public static function isLateNight(fromHour:Int = 0, toHour:Int = 5):Bool
+  {
+    #if META_HORROR
+    var hour:Int = getLocalHour();
+    var from:Int = fromHour % 24;
+    var to:Int = (toHour == 0 || toHour >= 24) ? 24 : toHour;
+    if (from < 0)
+      from += 24;
+    if (from == to)
+      return false;
+    if (from < to)
+      return hour >= from && hour < to;
+    // Wraps midnight: 23 -> 4 means [23, 24) + [0, 4).
+    return hour >= from || hour < to;
+    #else
+    return false;
+    #end
+  }
+
+  // ------------------------------------------------------------------
+  // Memory across sessions (the game remembering the player)
+  // ------------------------------------------------------------------
+
+  /**
+   * How many times this engine install has been launched, including this one.
+   *
+   * Counted once per process and stored next to the normal save file, so a mod
+   * can say "this is your 12th time here". Values survive restarts, mod
+   * switches and crashes.
+   */
+  public static function getLaunchCount():Int
+  {
+    #if META_HORROR
+    return Std.int(persistentNumber(LAUNCH_COUNT_KEY, 0));
+    #else
+    return 0;
+    #end
+  }
+
+  /**
+   * Reads a number a mod stored with `setPersistentValue`.
+   * @return The stored value, or `defaultValue` when the key is unknown.
+   */
+  public static function getPersistentValue(key:String, ?defaultValue:Float = 0):Float
+  {
+    #if META_HORROR
+    if (!validPersistentKey(key))
+      return defaultValue;
+    return persistentNumber(key, defaultValue);
+    #else
+    return defaultValue;
+    #end
+  }
+
+  /**
+   * Stores a number that survives game restarts (playthrough counters,
+   * "how many times has the player seen this", ...).
+   *
+   * @return `true` when the value was written.
+   */
+  public static function setPersistentValue(key:String, value:Float):Bool
+  {
+    #if META_HORROR
+    if (!validPersistentKey(key))
+    {
+      trace('MetaHorror.setPersistentValue: invalid key "$key"');
+      return false;
+    }
+    var save:FlxSave = getSessionSave();
+    if (save == null || save.data == null)
+      return false;
+    var values:Dynamic = save.data.metaHorrorValues;
+    if (values == null)
+    {
+      values = {};
+      save.data.metaHorrorValues = values;
+    }
+    Reflect.setField(values, key, value);
+    save.flush();
+    return true;
+    #else
+    return false;
+    #end
+  }
+
+  /**
+   * @return Whether `setPersistentValue` has ever stored `key`.
+   */
+  public static function hasPersistentValue(key:String):Bool
+  {
+    #if META_HORROR
+    if (!validPersistentKey(key))
+      return false;
+    var save:FlxSave = getSessionSave();
+    if (save == null || save.data == null)
+      return false;
+    var values:Dynamic = save.data.metaHorrorValues;
+    return values != null && Reflect.hasField(values, key);
+    #else
+    return false;
+    #end
+  }
+
+  /**
+   * Adds `amount` to a persistent counter and returns the new total.
+   *
+   * Handy for "you have died 37 times" style callbacks without the mod having
+   * to read-modify-write the value itself.
+   */
+  public static function addPersistentValue(key:String, ?amount:Float = 1):Float
+  {
+    #if META_HORROR
+    var total:Float = getPersistentValue(key) + amount;
+    return setPersistentValue(key, total) ? total : getPersistentValue(key);
+    #else
+    return 0;
+    #end
+  }
+
+  /** Removes every value stored by `setPersistentValue`. */
+  public static function clearPersistentValues():Bool
+  {
+    #if META_HORROR
+    var save:FlxSave = getSessionSave();
+    if (save == null || save.data == null)
+      return false;
+    save.data.metaHorrorValues = null;
+    save.flush();
+    return true;
+    #else
+    return false;
+    #end
+  }
+
+  // ------------------------------------------------------------------
+  // Clipboard
+  // ------------------------------------------------------------------
+
+  /**
+   * The current OS clipboard text - the game reading what the player copied.
+   *
+   * @return The clipboard contents, or `""` when empty/unavailable.
+   */
+  public static function getClipboardText():String
+  {
+    #if META_HORROR
+    try
+    {
+      var text:String = lime.system.Clipboard.text;
+      return text == null ? '' : text;
+    }
+    catch (e:Dynamic)
+    {
+      return '';
+    }
+    #else
+    return '';
+    #end
+  }
+
+  /**
+   * Puts `text` on the OS clipboard, so the player finds a message waiting
+   * for them in whatever they paste into next.
+   *
+   * @return `true` when the clipboard was updated.
+   */
+  public static function setClipboardText(text:String):Bool
+  {
+    #if META_HORROR
+    if (text == null)
+      return false;
+    try
+    {
+      lime.system.Clipboard.text = text;
+      return true;
+    }
+    catch (e:Dynamic)
+    {
+      return false;
+    }
+    #else
+    return false;
+    #end
+  }
+
+  // ------------------------------------------------------------------
+  // Window title & focus games
+  // ------------------------------------------------------------------
+
+  /**
+   * Renames the game window ("Friday Night Funkin' - Phoenix Engine" becomes
+   * "I CAN SEE YOU"). The original title is remembered for
+   * `restoreWindowTitle`, and any title `MusicBeatState` applies afterwards
+   * replaces this one, so call it again after a state change if the effect
+   * must persist.
+   *
+   * @return `true` when the title changed.
+   */
+  public static function setWindowTitle(title:String):Bool
+  {
+    #if (META_HORROR && !flash)
+    if (title == null)
+      return false;
+    var window:Dynamic = currentWindow();
+    if (window == null)
+      return false;
+    if (originalWindowTitle == null)
+    {
+      originalWindowTitle = window.title;
+      // Remember the parts MusicBeatState rebuilds the title from, so
+      // restoreWindowTitle can put the exact same string back later.
+      originalTitlePrefix = MusicBeatState.windowNamePrefix;
+      originalTitleSuffix = MusicBeatState.windowNameSuffix;
+      originalTitleSuffix2 = MusicBeatState.windowNameSuffix2;
+    }
+    window.title = title;
+    return window.title == title;
+    #else
+    PlatformUtil.unsupportedMetaHorror('setWindowTitle');
+    return false;
+    #end
+  }
+
+  /**
+   * Puts back the window title from before the first `setWindowTitle`.
+   * @return `true` when a title was restored.
+   */
+  public static function restoreWindowTitle():Bool
+  {
+    #if (META_HORROR && !flash)
+    if (originalWindowTitle == null)
+      return true;
+    var window:Dynamic = currentWindow();
+    var restored:Bool = false;
+    if (window != null)
+    {
+      window.title = originalWindowTitle;
+      restored = window.title == originalWindowTitle;
+    }
+    if (originalTitlePrefix != null)
+      MusicBeatState.windowNamePrefix = originalTitlePrefix;
+    if (originalTitleSuffix != null)
+      MusicBeatState.windowNameSuffix = originalTitleSuffix;
+    if (originalTitleSuffix2 != null)
+      MusicBeatState.windowNameSuffix2 = originalTitleSuffix2;
+    originalWindowTitle = null;
+    originalTitlePrefix = null;
+    originalTitleSuffix = null;
+    originalTitleSuffix2 = null;
+    return restored;
+    #else
+    PlatformUtil.unsupportedMetaHorror('restoreWindowTitle');
+    return false;
+    #end
+  }
+
+  /**
+   * Keeps the game window above every other window (`HWND_TOPMOST`), so the
+   * player cannot hide it behind a browser. Windows only.
+   *
+   * @return `true` when the window is now (or already was) always on top.
+   */
+  public static function setAlwaysOnTop(enabled:Bool):Bool
+  {
+    #if (META_HORROR && windows && cpp)
+    var applied:Bool = setAlwaysOnTopNative(enabled);
+    if (applied)
+      alwaysOnTop = enabled;
+    return applied;
+    #else
+    PlatformUtil.unsupportedMetaHorror('setAlwaysOnTop');
+    return false;
+    #end
+  }
+
+  /**
+   * @return Whether this session currently pins the window on top.
+   */
+  public static function isAlwaysOnTop():Bool
+  {
+    #if (META_HORROR && windows && cpp)
+    return alwaysOnTop;
+    #else
+    return false;
+    #end
+  }
+
+  /**
+   * Flashes the game's taskbar button `times` times, the way a chat app
+   * demands attention. The flash stops by itself; `stopTaskbarFlash` cancels
+   * it early.
+   *
+   * @param times How many flashes (clamped to 1-10). Windows only.
+   * @return `true` when the flash request reached the shell.
+   */
+  public static function flashTaskbar(?times:Int = 3):Bool
+  {
+    #if (META_HORROR && windows && cpp)
+    var count:Int = Std.int(Math.max(1, Math.min(10, times)));
+    return flashTaskbarNative(count);
+    #else
+    PlatformUtil.unsupportedMetaHorror('flashTaskbar');
+    return false;
+    #end
+  }
+
+  /** Stops a `flashTaskbar` request that is still running. Windows only. */
+  public static function stopTaskbarFlash():Void
+  {
+    #if (META_HORROR && windows && cpp)
+    stopTaskbarFlashNative();
+    #else
+    PlatformUtil.unsupportedMetaHorror('stopTaskbarFlash');
+    #end
+  }
+
+  // ------------------------------------------------------------------
+  // Looking at the desktop
+  // ------------------------------------------------------------------
+
+  /**
+   * Titles of the other visible windows on the desktop, so a mod can react to
+   * what the player has open ("you left Discord open while playing?").
+   *
+   * Only window *titles* are read - never their contents. The game's own
+   * window and the shell are excluded, and the list is sorted for stable
+   * output.
+   *
+   * @return The titles, or `[]` on unsupported targets. Windows only.
+   */
+  public static function getOpenWindowTitles():Array<String>
+  {
+    #if (META_HORROR && windows && cpp)
+    var ownTitle:String = '';
+    var window:Dynamic = currentWindow();
+    if (window != null)
+      ownTitle = window.title;
+    var titles:Array<String> = listWindowsNative(ownTitle);
+    titles.sort(function(a:String, b:String):Int return Reflect.compare(a, b));
+    return titles;
+    #else
+    PlatformUtil.unsupportedMetaHorror('getOpenWindowTitles');
+    return [];
+    #end
+  }
+
+  /**
+   * Takes a PNG screenshot of the *whole desktop* (every monitor's current
+   * desktop, including other applications) and writes it to disk, so the mod
+   * can `openFile` it or leak it somewhere.
+   *
+   * This is the single most invasive effect in this class: it captures the
+   * player's screen. `captureDesktop()` returns `null` (and writes nothing)
+   * whenever the platform cannot do it.
+   *
+   * @param fileName File name without extension. Default: `desktop`.
+   * @param location Target directory. Default: `<temp>/phoenix_horror`.
+   * @return The written file path, or `null` on failure. Windows only.
+   */
+  public static function captureDesktop(?fileName:String = 'desktop', ?location:String):Null<String>
+  {
+    #if (META_HORROR && windows && cpp)
+    if (location == null || location.length == 0)
+    {
+      location = CoolSystemStuff.getTempPath();
+      if (location == null || location.length == 0)
+        location = Sys.getCwd();
+      location = haxe.io.Path.join([location, 'phoenix_horror']);
+    }
+    var name:String = (fileName == null || fileName.length == 0) ? 'desktop' : fileName;
+    var outPath:String = haxe.io.Path.join([location, '$name.png']);
+
+    // The capture itself is native and writes a 24-bit BMP: pixel buffers
+    // never cross the hxcpp boundary, so there is no per-byte marshalling and
+    // no multi-hundred-megabyte Haxe array for a 4K desktop. OpenFL then
+    // decodes that BMP and re-encodes it as PNG.
+    var rawPath:String = haxe.io.Path.join([location, '.meta_horror_capture.bmp']);
+    if (!captureDesktopToBmpNative(rawPath))
+    {
+      trace('MetaHorror.captureDesktop: the desktop could not be captured');
+      return null;
+    }
+
+    var bitmap:openfl.display.BitmapData = null;
+    try
+    {
+      bitmap = openfl.display.BitmapData.fromFile(rawPath);
+      if (bitmap == null)
+      {
+        trace('MetaHorror.captureDesktop: the capture could not be decoded');
+        return null;
+      }
+
+      var png:openfl.utils.ByteArray = bitmap.encode(bitmap.rect, new openfl.display.PNGEncoderOptions(true));
+      if (png == null)
+        return null;
+
+      var directory:String = haxe.io.Path.directory(outPath);
+      if (!sys.FileSystem.exists(directory))
+        sys.FileSystem.createDirectory(directory);
+      png.position = 0;
+      sys.io.File.saveBytes(outPath, png);
+      return outPath;
+    }
+    catch (e:Dynamic)
+    {
+      trace('MetaHorror.captureDesktop: failed to write "$outPath" - $e');
+      return null;
+    }
+    finally
+    {
+      if (bitmap != null)
+        bitmap.dispose();
+      // The intermediate BMP is an implementation detail, never a deliverable.
+      try
+        sys.FileSystem.deleteFile(rawPath)
+      catch (e:Dynamic) {}
+    }
+    #else
+    PlatformUtil.unsupportedMetaHorror('captureDesktop');
+    return null;
+    #end
+  }
+
+  // ------------------------------------------------------------------
+  // Undo everything
+  // ------------------------------------------------------------------
+
+  /**
+   * Undoes every effect this class can apply: the wallpaper, the taskbar, the
+   * hidden windows, window style/alpha/color-key, always-on-top, the window
+   * title and a running taskbar flash.
+   *
+   * A mod should call this from `onSongEnd`, `onGameOver` and `onDestroy`.
+   * The engine also calls it automatically when the application exits, so a
+   * crash or alt-F4 never leaves the player's desktop modified (see
+   * `installExitCleanup`).
+   */
+  public static function restoreAll():Void
+  {
+    #if META_HORROR
+    typeToken++; // cancel any unfinished typeText
+
+    // Portable: the window title is a Lime property on every desktop target.
+    restoreWindowTitle();
+
+    #if windows
+    // Windows-only effects, grouped so a Linux/macOS build does not print six
+    // "not supported on this platform" traces every time the game exits.
+    restoreWallpaper();
+    restoreTaskbar();
+    restoreAllWindows();
+    resetWindowEffects();
+    stopTaskbarFlash();
+    if (alwaysOnTop)
+      setAlwaysOnTop(false);
+    #end
+    #else
+    PlatformUtil.unsupportedMetaHorror('restoreAll');
+    #end
+  }
+
+  /**
+   * Hooks `restoreAll` into the application exit signal and counts this
+   * launch. Idempotent: the engine calls it once at startup, and calling it
+   * again is harmless.
+   */
+  public static function installExitCleanup():Void
+  {
+    #if (META_HORROR && !flash)
+    if (exitCleanupInstalled)
+      return;
+    exitCleanupInstalled = true;
+
+    // Remember this launch for getLaunchCount(). Reading + writing once at
+    // startup is cheap and keeps the counter correct even if the game crashes
+    // before the player finishes a song.
+    var save:FlxSave = getSessionSave();
+    if (save != null && save.data != null)
+    {
+      var launches:Float = persistentNumber(LAUNCH_COUNT_KEY, 0) + 1;
+      var values:Dynamic = save.data.metaHorrorValues;
+      if (values == null)
+      {
+        values = {};
+        save.data.metaHorrorValues = values;
+      }
+      Reflect.setField(values, LAUNCH_COUNT_KEY, launches);
+      save.flush();
+    }
+
+    if (lime.app.Application.current != null && lime.app.Application.current.onExit != null)
+      lime.app.Application.current.onExit.add(function(_:Int) restoreAll());
+    #end
+  }
+
+  // ------------------------------------------------------------------
   // System info
   // ------------------------------------------------------------------
 
@@ -523,6 +1142,99 @@ class MetaHorror
 
   inline static function clamp01(value:Float):Float
     return Math.max(0.0, Math.min(1.0, value));
+
+  /** Two-digit zero padding for `HH:MM` strings. */
+  inline static function twoDigits(value:Int):String
+    return (value < 10 ? '0' : '') + value;
+
+  /**
+   * The live Lime window, or `null` on targets without one. Typed `Dynamic`
+   * because `lime.ui.Window` has no Flash implementation.
+   */
+  static function currentWindow():Dynamic
+  {
+    #if flash
+    return null;
+    #else
+    var app:lime.app.Application = lime.app.Application.current;
+    return app == null ? null : app.window;
+    #end
+  }
+
+  /**
+   * Persistent-value keys become object fields in the save file, so they are
+   * restricted to `[A-Za-z0-9_]` (and a leading `_` is refused, since those
+   * names are reserved for engine internals).
+   */
+  static function validPersistentKey(key:String):Bool
+  {
+    if (key == null)
+      return false;
+    var trimmed:String = StringTools.trim(key);
+    if (trimmed.length == 0 || trimmed.length > 64 || StringTools.startsWith(trimmed, '_'))
+      return false;
+    for (i in 0...trimmed.length)
+    {
+      var code:Int = trimmed.charCodeAt(i);
+      var isDigit:Bool = code >= 0x30 && code <= 0x39;
+      var isUpper:Bool = code >= 0x41 && code <= 0x5A;
+      var isLower:Bool = code >= 0x61 && code <= 0x7A;
+      if (!isDigit && !isUpper && !isLower && code != 0x5F)
+        return false;
+    }
+    return true;
+  }
+
+  /**
+   * The persistent save slot, opened on first use.
+   *
+   * It is a separate `FlxSave` (still in the engine's save folder) so a mod
+   * writing a counter can never corrupt `FlxG.save` or the controls file.
+   * Returns `null` when the save system is unavailable.
+   */
+  static function getSessionSave():Null<FlxSave>
+  {
+    #if META_HORROR
+    if (sessionSave != null)
+      return sessionSave;
+    try
+    {
+      var save:FlxSave = new FlxSave();
+      save.bind(PERSISTENT_SAVE_NAME, CoolUtil.getSavePath());
+      sessionSave = save;
+      return save;
+    }
+    catch (e:Dynamic)
+    {
+      trace('MetaHorror: persistent values unavailable - $e');
+      return null;
+    }
+    #else
+    return null;
+    #end
+  }
+
+  /** Reads one persisted number without creating the key. */
+  static function persistentNumber(key:String, defaultValue:Float):Float
+  {
+    #if META_HORROR
+    var save:FlxSave = getSessionSave();
+    if (save == null || save.data == null)
+      return defaultValue;
+    var values:Dynamic = save.data.metaHorrorValues;
+    if (values == null || !Reflect.hasField(values, key))
+      return defaultValue;
+    var value:Dynamic = Reflect.field(values, key);
+    if (value == null)
+      return defaultValue;
+    if (Std.isOfType(value, Int) || Std.isOfType(value, Float))
+      return value;
+    var parsed:Float = Std.parseFloat(Std.string(value));
+    return Math.isNaN(parsed) ? defaultValue : parsed;
+    #else
+    return defaultValue;
+    #end
+  }
 
   #if (META_HORROR && sys)
 	/**
@@ -657,6 +1369,19 @@ static BOOL CALLBACK metaEnumHideProc(HWND hwnd, LPARAM lparam)
   }
   return TRUE;
 }
+
+// EnumWindows callback: collect the titles of the other visible top-level
+// windows. Read-only: nothing is hidden, moved or activated.
+static BOOL CALLBACK metaEnumListProc(HWND hwnd, LPARAM lparam)
+{
+  std::vector<std::string> *titles = reinterpret_cast<std::vector<std::string> *>(lparam);
+  char titleBuffer[512] = {0};
+  int ret = GetWindowTextA(hwnd, titleBuffer, 512);
+  if (IsWindowVisible(hwnd) && ret > 0 && std::string(titleBuffer) != metaOwnWindowTitle
+    && std::string(titleBuffer) != "Program Manager" && std::string(titleBuffer) != "Setup")
+    titles->push_back(std::string(titleBuffer));
+  return TRUE;
+}
 ')
 
   @:functionCode('
@@ -765,6 +1490,176 @@ static BOOL CALLBACK metaEnumHideProc(HWND hwnd, LPARAM lparam)
     return reinterpret_cast<INT_PTR>(result) > 32;
   ')
   static function openFileNative(path:String):Bool
+    return false;
+
+  @:functionCode('
+    ULONGLONG milliseconds = GetTickCount64();
+    return (Float)((double)milliseconds / 1000.0);
+  ')
+  static function getSystemUptimeNative():Float
+    return 0.0;
+
+  @:functionCode('
+    HWND window = phoenixWindowFind();
+    if (window == NULL)
+      return false;
+    // Keep the current position/size/visibility; only change the Z order.
+    return SetWindowPos(window, top ? HWND_TOPMOST : HWND_NOTOPMOST, 0, 0, 0, 0,
+      SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE | SWP_NOOWNERZORDER) != 0;
+  ')
+  static function setAlwaysOnTopNative(top:Bool):Bool
+    return false;
+
+  @:functionCode('
+    HWND window = phoenixWindowFind();
+    if (window == NULL)
+      return false;
+    FLASHWINFO info;
+    memset(&info, 0, sizeof(info));
+    info.cbSize = sizeof(FLASHWINFO);
+    info.hwnd = window;
+    info.dwFlags = FLASHW_TRAY;
+    info.uCount = (UINT)(count > 0 ? count : 1);
+    info.dwTimeout = 0;
+    return FlashWindowEx(&info) != 0;
+  ')
+  static function flashTaskbarNative(count:Int):Bool
+    return false;
+
+  @:functionCode('
+    HWND window = phoenixWindowFind();
+    if (window == NULL)
+      return false;
+    FLASHWINFO info;
+    memset(&info, 0, sizeof(info));
+    info.cbSize = sizeof(FLASHWINFO);
+    info.hwnd = window;
+    info.dwFlags = FLASHW_STOP;
+    FlashWindowEx(&info);
+    return true;
+  ')
+  static function stopTaskbarFlashNative():Bool
+    return false;
+
+  @:functionCode('
+    std::vector<std::string> titles;
+    metaOwnWindowTitle = ownTitle.c_str();
+    EnumWindows(metaEnumListProc, reinterpret_cast<LPARAM>(&titles));
+    metaOwnWindowTitle.clear();
+
+    Array_obj<String> *out = new Array_obj<String>(titles.size(), titles.size());
+    for (size_t i = 0; i < titles.size(); i++)
+      out->Item(i) = String(titles[i].c_str());
+    return out;
+  ')
+  static function listWindowsNative(ownTitle:String):Array<String>
+    return [];
+
+
+  @:functionCode('
+    const int left = GetSystemMetrics(SM_XVIRTUALSCREEN);
+    const int top = GetSystemMetrics(SM_YVIRTUALSCREEN);
+    const int width = GetSystemMetrics(SM_CXVIRTUALSCREEN);
+    const int height = GetSystemMetrics(SM_CYVIRTUALSCREEN);
+    if (width <= 0 || height <= 0)
+      return false;
+
+    HDC screen = GetDC(NULL);
+    if (screen == NULL)
+      return false;
+
+    // A bottom-up 32bpp DIB section: GDI writes the rows in exactly the order
+    // a 24-bit BMP stores them, so the pixels can be copied out verbatim.
+    BITMAPINFO info;
+    memset(&info, 0, sizeof(info));
+    info.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+    info.bmiHeader.biWidth = width;
+    info.bmiHeader.biHeight = height;
+    info.bmiHeader.biPlanes = 1;
+    info.bmiHeader.biBitCount = 32;
+    info.bmiHeader.biCompression = BI_RGB;
+
+    void *bits = NULL;
+    HBITMAP dib = CreateDIBSection(screen, &info, DIB_RGB_COLORS, &bits, NULL, 0);
+    HDC memory = CreateCompatibleDC(screen);
+    if (dib == NULL || memory == NULL || bits == NULL)
+    {
+      if (memory != NULL) DeleteDC(memory);
+      if (dib != NULL) DeleteObject(dib);
+      ReleaseDC(NULL, screen);
+      return false;
+    }
+
+    HGDIOBJ previous = SelectObject(memory, dib);
+    // SRCCOPY | CAPTUREBLT also grabs layered windows (tooltips, overlays).
+    const BOOL copied = BitBlt(memory, 0, 0, width, height, screen, left, top, SRCCOPY | CAPTUREBLT);
+    SelectObject(memory, previous);
+    DeleteDC(memory);
+    ReleaseDC(NULL, screen);
+
+    if (!copied)
+    {
+      DeleteObject(dib);
+      return false;
+    }
+
+    // 24-bit BI_RGB BMP: BMP rows are padded to a 4-byte boundary.
+    const int rowBytes = width * 3;
+    const int padding = (4 - (rowBytes % 4)) % 4;
+
+    FILE *file = _wfopen(path.wchar_str(), L"wb");
+    if (file == NULL)
+    {
+      DeleteObject(dib);
+      return false;
+    }
+
+    BITMAPFILEHEADER header;
+    memset(&header, 0, sizeof(header));
+    header.bfType = 0x4D42; // "BM"
+    header.bfOffBits = (DWORD)(sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER));
+    header.bfSize = (DWORD)(header.bfOffBits + (DWORD)(rowBytes + padding) * (DWORD)height);
+
+    BITMAPINFOHEADER pixelInfo;
+    memset(&pixelInfo, 0, sizeof(pixelInfo));
+    pixelInfo.biSize = sizeof(BITMAPINFOHEADER);
+    pixelInfo.biWidth = width;
+    pixelInfo.biHeight = height;
+    pixelInfo.biPlanes = 1;
+    pixelInfo.biBitCount = 24;
+    pixelInfo.biCompression = BI_RGB;
+    pixelInfo.biSizeImage = (DWORD)(rowBytes + padding) * (DWORD)height;
+
+    bool ok = fwrite(&header, sizeof(header), 1, file) == 1
+      && fwrite(&pixelInfo, sizeof(pixelInfo), 1, file) == 1;
+
+    const unsigned char *source = (const unsigned char *)bits;
+    const unsigned char pad[3] = {0, 0, 0};
+    std::vector<unsigned char> row;
+    if (ok)
+      row.resize((size_t)rowBytes);
+
+    for (int y = 0; ok && y < height; y++)
+    {
+      const unsigned char *pixel = source + (size_t)y * (size_t)width * 4;
+      for (int x = 0; x < width; x++)
+      {
+        // DIB pixels are BGRA; BMP stores BGR, so alpha is dropped (a screen
+        // capture has no meaningful alpha and 0 would read as transparent).
+        row[(size_t)x * 3] = pixel[(size_t)x * 4];
+        row[(size_t)x * 3 + 1] = pixel[(size_t)x * 4 + 1];
+        row[(size_t)x * 3 + 2] = pixel[(size_t)x * 4 + 2];
+      }
+      ok = fwrite(&row[0], 1, (size_t)rowBytes, file) == (size_t)rowBytes;
+      if (ok && padding > 0)
+        ok = fwrite(pad, 1, (size_t)padding, file) == (size_t)padding;
+    }
+
+    fclose(file);
+    DeleteObject(dib);
+    return ok;
+  ')
+  static function captureDesktopToBmpNative(path:String):Bool
     return false;
 
   @:functionCode('

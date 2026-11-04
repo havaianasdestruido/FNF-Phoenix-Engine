@@ -92,29 +92,35 @@ class MetaHorrorCallbacks
       #end
     });
 
-    FunkinLua.registerFunction("setWindowAlpha", function(alpha:Float):Bool {
+    // Namespaced: `WindowCallbacks` already owns the script-side
+    // `setWindowAlpha` (the transparent-window feature) and this class is
+    // registered after it, so registering the same name here would silently
+    // replace the working implementation with a no-op on normal builds.
+    FunkinLua.registerFunction("setMetaWindowAlpha", function(alpha:Float):Bool {
       #if META_HORROR
       return MetaHorror.setWindowAlpha(alpha);
       #else
-      metaHorrorWarning(funk, 'setWindowAlpha');
+      metaHorrorWarning(funk, 'setMetaWindowAlpha');
       return false;
       #end
     });
 
-    FunkinLua.registerFunction("setWindowColorKey", function(color:Int):Bool {
+    FunkinLua.registerFunction("setMetaWindowColorKey", function(color:Int):Bool {
       #if META_HORROR
       return MetaHorror.setWindowColorKey(color);
       #else
-      metaHorrorWarning(funk, 'setWindowColorKey');
+      metaHorrorWarning(funk, 'setMetaWindowColorKey');
       return false;
       #end
     });
 
-    FunkinLua.registerFunction("resetWindowEffects", function():Bool {
+    // Restores the window style after the two effects above (the
+    // transparent-window feature has `applyWindowTransparency` instead).
+    FunkinLua.registerFunction("resetMetaWindowEffects", function():Bool {
       #if META_HORROR
       return MetaHorror.resetWindowEffects();
       #else
-      metaHorrorWarning(funk, 'resetWindowEffects');
+      metaHorrorWarning(funk, 'resetMetaWindowEffects');
       return false;
       #end
     });
@@ -196,6 +202,235 @@ class MetaHorrorCallbacks
       #else
       metaHorrorWarning(funk, 'getSystemRAM');
       return 0;
+      #end
+    });
+
+    // ------------------------------------------------------------------
+    // The player: "the character says your name"
+    // ------------------------------------------------------------------
+
+    // OS account name, or "player" when it cannot be read.
+    FunkinLua.registerFunction("getDesktopUsername", function():String {
+      #if META_HORROR
+      return MetaHorror.getDesktopUsername();
+      #else
+      metaHorrorWarning(funk, 'getDesktopUsername');
+      return 'player';
+      #end
+    });
+
+    // Seconds since the machine booted (0 when unknown).
+    FunkinLua.registerFunction("getSystemUptime", function():Int {
+      #if META_HORROR
+      return MetaHorror.getSystemUptime();
+      #else
+      metaHorrorWarning(funk, 'getSystemUptime');
+      return 0;
+      #end
+    });
+
+    // The player's local clock hour, 0-23.
+    FunkinLua.registerFunction("getLocalHour", function():Int {
+      #if META_HORROR
+      return MetaHorror.getLocalHour();
+      #else
+      metaHorrorWarning(funk, 'getLocalHour');
+      return 0;
+      #end
+    });
+
+    // The player's local time as "HH:MM".
+    FunkinLua.registerFunction("getLocalTimeString", function():String {
+      #if META_HORROR
+      return MetaHorror.getLocalTimeString();
+      #else
+      metaHorrorWarning(funk, 'getLocalTimeString');
+      return '00:00';
+      #end
+    });
+
+    // True inside the [fromHour, toHour) window; default 0-5 ("late night").
+    FunkinLua.registerFunction("isLateNight", function(?fromHour:Int = 0, ?toHour:Int = 5):Bool {
+      #if META_HORROR
+      return MetaHorror.isLateNight(fromHour, toHour);
+      #else
+      metaHorrorWarning(funk, 'isLateNight');
+      return false;
+      #end
+    });
+
+    // 1 on the first ever launch, then 2, 3, ... (persisted across restarts).
+    FunkinLua.registerFunction("getLaunchCount", function():Int {
+      #if META_HORROR
+      return MetaHorror.getLaunchCount();
+      #else
+      metaHorrorWarning(funk, 'getLaunchCount');
+      return 0;
+      #end
+    });
+
+    // ------------------------------------------------------------------
+    // Persistent values ("the game remembers you")
+    // ------------------------------------------------------------------
+
+    FunkinLua.registerFunction("getPersistentValue", function(key:String, ?defaultValue:Float = 0):Float {
+      #if META_HORROR
+      return MetaHorror.getPersistentValue(key, defaultValue);
+      #else
+      metaHorrorWarning(funk, 'getPersistentValue');
+      return defaultValue;
+      #end
+    });
+
+    FunkinLua.registerFunction("setPersistentValue", function(key:String, value:Float):Bool {
+      #if META_HORROR
+      return MetaHorror.setPersistentValue(key, value);
+      #else
+      metaHorrorWarning(funk, 'setPersistentValue');
+      return false;
+      #end
+    });
+
+    FunkinLua.registerFunction("hasPersistentValue", function(key:String):Bool {
+      #if META_HORROR
+      return MetaHorror.hasPersistentValue(key);
+      #else
+      metaHorrorWarning(funk, 'hasPersistentValue');
+      return false;
+      #end
+    });
+
+    FunkinLua.registerFunction("addPersistentValue", function(key:String, ?amount:Float = 1):Float {
+      #if META_HORROR
+      return MetaHorror.addPersistentValue(key, amount);
+      #else
+      metaHorrorWarning(funk, 'addPersistentValue');
+      return 0;
+      #end
+    });
+
+    FunkinLua.registerFunction("clearPersistentValues", function():Bool {
+      #if META_HORROR
+      return MetaHorror.clearPersistentValues();
+      #else
+      metaHorrorWarning(funk, 'clearPersistentValues');
+      return false;
+      #end
+    });
+
+    // ------------------------------------------------------------------
+    // Clipboard
+    // ------------------------------------------------------------------
+
+    FunkinLua.registerFunction("getClipboardText", function():String {
+      #if META_HORROR
+      return MetaHorror.getClipboardText();
+      #else
+      metaHorrorWarning(funk, 'getClipboardText');
+      return '';
+      #end
+    });
+
+    FunkinLua.registerFunction("setClipboardText", function(text:String):Bool {
+      #if META_HORROR
+      return MetaHorror.setClipboardText(text);
+      #else
+      metaHorrorWarning(funk, 'setClipboardText');
+      return false;
+      #end
+    });
+
+    // ------------------------------------------------------------------
+    // Window title & focus games
+    // ------------------------------------------------------------------
+
+    FunkinLua.registerFunction("setWindowTitle", function(title:String):Bool {
+      #if META_HORROR
+      return MetaHorror.setWindowTitle(title);
+      #else
+      metaHorrorWarning(funk, 'setWindowTitle');
+      return false;
+      #end
+    });
+
+    FunkinLua.registerFunction("restoreWindowTitle", function():Bool {
+      #if META_HORROR
+      return MetaHorror.restoreWindowTitle();
+      #else
+      metaHorrorWarning(funk, 'restoreWindowTitle');
+      return false;
+      #end
+    });
+
+    FunkinLua.registerFunction("setAlwaysOnTop", function(enable:Bool = true):Bool {
+      #if META_HORROR
+      return MetaHorror.setAlwaysOnTop(enable);
+      #else
+      metaHorrorWarning(funk, 'setAlwaysOnTop');
+      return false;
+      #end
+    });
+
+    FunkinLua.registerFunction("isAlwaysOnTop", function():Bool {
+      #if META_HORROR
+      return MetaHorror.isAlwaysOnTop();
+      #else
+      metaHorrorWarning(funk, 'isAlwaysOnTop');
+      return false;
+      #end
+    });
+
+    FunkinLua.registerFunction("flashTaskbar", function(?times:Int = 3):Bool {
+      #if META_HORROR
+      return MetaHorror.flashTaskbar(times);
+      #else
+      metaHorrorWarning(funk, 'flashTaskbar');
+      return false;
+      #end
+    });
+
+    FunkinLua.registerFunction("stopTaskbarFlash", function() {
+      #if META_HORROR
+      MetaHorror.stopTaskbarFlash();
+      #else
+      metaHorrorWarning(funk, 'stopTaskbarFlash');
+      #end
+    });
+
+    // ------------------------------------------------------------------
+    // Looking at the desktop
+    // ------------------------------------------------------------------
+
+    // Titles of the other visible windows (never their contents).
+    FunkinLua.registerFunction("getOpenWindowTitles", function():Array<String> {
+      #if META_HORROR
+      return MetaHorror.getOpenWindowTitles();
+      #else
+      metaHorrorWarning(funk, 'getOpenWindowTitles');
+      return [];
+      #end
+    });
+
+    // Screenshots the whole desktop to <temp>/phoenix_horror/<name>.png.
+    FunkinLua.registerFunction("captureDesktop", function(?fileName:String = 'desktop', ?location:String):String {
+      #if META_HORROR
+      return MetaHorror.captureDesktop(fileName, location);
+      #else
+      metaHorrorWarning(funk, 'captureDesktop');
+      return null;
+      #end
+    });
+
+    // ------------------------------------------------------------------
+    // Cleanup
+    // ------------------------------------------------------------------
+
+    // Undoes every effect at once; call it from onSongEnd/onGameOver.
+    FunkinLua.registerFunction("restoreAllMetaEffects", function() {
+      #if META_HORROR
+      MetaHorror.restoreAll();
+      #else
+      metaHorrorWarning(funk, 'restoreAllMetaEffects');
       #end
     });
 

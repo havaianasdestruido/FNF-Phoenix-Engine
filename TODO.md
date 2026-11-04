@@ -63,6 +63,31 @@ Sections 13–20 are a second backlog pass written against the current tree. Eve
 
 ### 2.1. 4th WALL BREAKING
 
+**IMPLEMENTED** behind the opt-in `-DMETA_HORROR` define: `backend.MetaHorror`
+plus the Lua / Python / HScript bridges. Upstream system effects (wallpaper,
+taskbar, other windows, window styles, system volume, mouse/keyboard, file
+spoofing) come from the #94 port; the second pass added the "it knows you"
+effects (desktop username, machine uptime, local clock, launch counter),
+persistent mod counters in their own save slot, clipboard access, window title
+rewriting, always-on-top, taskbar flashing, open-window titles and a
+whole-desktop screenshot. See [`docs/META_HORROR.md`](docs/META_HORROR.md) and
+[`tests/test_meta_horror.py`](tests/test_meta_horror.py).
+
+Remaining:
+
+- **[P3] Node-level audio effects.** Per-application (session) volume instead of
+  only the master endpoint, so the game can duck the player's music player
+  rather than muting everything.
+- **[P3] Fake "your system is updating" overlays.** A full-screen borderless
+  window drawn over the desktop with click-through off; needs the transparent
+  window work in `docs/TRANSPARENT_WINDOW.md` to be reliable in fullscreen.
+- **[P3] Reading the desktop wallpaper into the game.** `setWallpaper` and
+  `restoreWallpaper` exist, but there is no "show the player's own wallpaper as
+  the stage background" helper.
+- **[P3] Launch warning UI.** The define is documented as opt-in and mods are
+  told to warn players, but the engine does not force a one-time in-game
+  warning when a mod calls a desktop effect. A settings toggle ("allow 4th-wall
+  effects") would make the trust boundary explicit.
 
 ## 3. PLATFORM
 
