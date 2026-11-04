@@ -226,3 +226,34 @@ and its own save slot, so they keep working.
 
 Release builds should keep it off; distribution sites and antivirus vendors
 treat wallpaper/taskbar/input manipulation without user warning as scareware.
+
+## Native layout (for engine contributors)
+
+All Win32/WASAPI code lives in
+`source/backend/native/include/phoenix_meta_horror.h`, and
+`source/backend/native/meta_horror_build.xml` registers its include folder plus
+the `ole32` / `user32` / `shell32` / `gdi32` import libraries.
+`MetaHorror.hx` keeps only thin `@:functionCode` snippets that call the
+`phoenixMeta*` helpers, so the C++ can be compiled and unit-tested on its own.
+
+Two rules keep the Windows build green:
+
+1. **The header is injected with `@:cppFileCode`, not `@:headerCode`.** `MetaHorror`
+   is an all-static class, so hxcpp never emits `#include "MetaHorror.h"` into the
+   generated `MetaHorror.cpp`: a `@:headerCode` block would sit in a header nobody
+   includes, and every snippet would compile against undefined
+   `IMMDeviceEnumerator`, `POINT`, `INPUT`, `SUCCEEDED`, ... .
+2. **That annotation must be written at file level, above `class MetaHorror`.**
+   Written inside the class body it attaches to the next field declaration
+   instead of the class, and hxcpp ignores it silently — same failure, no warning.
+   `tests/test_meta_horror.py` (`NativeIncludeTests`) enforces both rules.
+
+Every helper is `static` (`PHOENIX_META_UNUSED`), because hxcpp includes native
+metadata in more than one translation unit; external linkage would break the
+link step. Snippets pass UTF-8 (`String.c_str()`) and the header converts to
+UTF-16 with `MultiByteToWideChar`, matching hxcpp's own `String` encoding.
+
+The header is verified without a Windows SDK by `tests/native/windows/`, a
+Win32/WASAPI test double, in `tests/test_meta_horror_native.py` — including a
+real `g++` build of the full header, a two-translation-unit link check and a
+byte-level BMP check of `captureDesktop`.

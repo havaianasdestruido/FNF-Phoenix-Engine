@@ -25,6 +25,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 
 BACKEND = "source/backend/MetaHorror.hx"
+HEADER = "source/backend/native/include/phoenix_meta_horror.h"
+BUILD = "source/backend/native/meta_horror_build.xml"
 LUA = "source/psychlua/callbacks/MetaHorrorCallbacks.hx"
 PYTHON = "source/psychlua/pystdlib/PyMetaHorrorLib.hx"
 WINDOW_LUA = "source/psychlua/callbacks/WindowCallbacks.hx"
@@ -207,6 +209,95 @@ class SafetyTests(unittest.TestCase):
                 self.assertIn(field, restorer)
 
 
+class NativeIncludeTests(unittest.TestCase):
+    """The Windows CI build failed because the native code was unreachable.
+
+    `MetaHorror` is an all-static class with no instance methods, so hxcpp
+    never emits `#include "MetaHorror.h"` into the generated `MetaHorror.cpp`.
+    A `@:headerCode` block therefore left every `@:functionCode` body
+    compiling against undefined `IMMDeviceEnumerator`, `POINT`, `INPUT`, ...
+    The fix is the repo-standard `@:cppFileCode` + dedicated header, and these
+    tests keep it that way.
+    """
+
+    def test_native_code_is_injected_into_the_translation_unit(self):
+        source = read(BACKEND)
+        self.assertIn('@:cppFileCode(\'#include "phoenix_meta_horror.h"\')', source)
+        # `@:headerCode` only reaches the .h, which this class never includes.
+        # Match the annotation itself, not the comment that explains it.
+        self.assertNotRegex(source, r"(?m)^\s*@:headerCode")
+
+    def test_injection_metadata_is_attached_to_the_class(self):
+        """The metadata must be at file level, immediately above `class`.
+
+        Indented inside the class body both annotations would attach to the
+        next field declaration instead of the class, and hxcpp would ignore
+        them: no include, no build-XML include, and the Windows build fails
+        with exactly the "undefined IMMDeviceEnumerator" errors this PR fixes.
+        """
+        lines = read(BACKEND).splitlines()
+        class_at = next(i for i, line in enumerate(lines) if line.startswith("class MetaHorror"))
+        preceding = [line for line in lines[:class_at] if line.strip()]
+        self.assertTrue(preceding, "class has nothing above it?")
+        # Walk back over the `#end`/`#if` guard to find the annotations.
+        window = lines[max(0, class_at - 12):class_at]
+        found = {meta: False for meta in ("@:buildXml", "@:cppFileCode")}
+        for line in window:
+            for meta in found:
+                if line.startswith(meta):
+                    found[meta] = True
+                elif line.lstrip().startswith(meta):
+                    self.fail(f"{meta} is indented inside the class body: {line!r}")
+        self.assertEqual({m: True for m in found}, found)
+
+    def test_header_lives_under_the_shared_native_include_folder(self):
+        header = read(HEADER)
+        self.assertIn("#ifndef PHOENIX_META_HORROR_H", header)
+        self.assertIn("#if defined(_WIN32)", header)
+        # The game-window lookup every helper depends on.
+        self.assertIn('#include "phoenix_window.h"', header)
+
+    def test_header_provides_the_types_the_function_bodies_use(self):
+        header = read(HEADER)
+        for include in ("<windows.h>", "<shellapi.h>", "<mmdeviceapi.h>", "<endpointvolume.h>"):
+            with self.subTest(include=include):
+                self.assertIn(include, header)
+        # WASAPI needs Vista+ symbols.
+        self.assertIn("_WIN32_WINNT 0x0600", header)
+
+    def test_function_bodies_only_call_declared_helpers(self):
+        """Every `phoenixMeta*` symbol a snippet calls must exist in the header."""
+        header = read(HEADER)
+        source = read(BACKEND)
+        declared = set(re.findall(r"static\s+(?:PHOENIX_META_UNUSED\s+)?[\w:<>*&]+\s+(phoenixMeta\w+)\s*\(", header))
+        called = set()
+        for snippet in re.findall(r"@:functionCode\('(.*?)'\)", source, re.S):
+            called.update(re.findall(r"(phoenixMeta\w+)\s*\(", snippet))
+        self.assertTrue(called, "no native snippets found")
+        missing = called - declared
+        self.assertEqual(set(), missing, f"undeclared native helpers: {sorted(missing)}")
+
+    def test_build_config_adds_include_path_and_libs(self):
+        build = read(BUILD)
+        self.assertIn('name="-I"', build)
+        self.assertIn("include/", build)
+        for lib in ("ole32.lib", "user32.lib", "shell32.lib", "gdi32.lib"):
+            with self.subTest(lib=lib):
+                self.assertIn(f'<lib name="{lib}"', build)
+        # Same conditional shape as the other build files in the engine.
+        self.assertIn('<section if="windows">', build)
+        self.assertIn("meta_horror_build.xml", read(BACKEND))
+
+    def test_snippets_stay_portable_for_the_mock_build(self):
+        """No snippet may depend on a header the mock test cannot provide."""
+        source = read(BACKEND)
+        for snippet in re.findall(r"@:functionCode\('(.*?)'\)", source, re.S):
+            with self.subTest(snippet=snippet.strip()[:40]):
+                # File I/O and wide-string conversion belong in the header.
+                self.assertNotIn("_wfopen", snippet)
+                self.assertNotIn("ShellExecuteW", snippet)
+
+
 class NativeTests(unittest.TestCase):
     def test_native_helpers_are_windows_only(self):
         source = read(BACKEND)
@@ -222,10 +313,7 @@ class NativeTests(unittest.TestCase):
                 self.assertIn(f"static function {name}(", source)
 
     def test_enumeration_helper_is_read_only(self):
-        source = read(BACKEND)
-        start = source.index("static BOOL CALLBACK metaEnumListProc")
-        end = source.index("')", start)
-        block = source[start:end]
+        block = body(read(HEADER), "phoenixMetaListProc(")
         self.assertIn("GetWindowTextA", block)
         # Reading the window list must never hide, move or focus anything.
         for forbidden in ("ShowWindow", "SetWindowPos", "SetForegroundWindow"):
@@ -233,15 +321,12 @@ class NativeTests(unittest.TestCase):
                 self.assertNotIn(forbidden, block)
 
     def test_desktop_capture_uses_the_virtual_screen(self):
-        source = read(BACKEND)
-        # The C++ body lives in the `@:functionCode` block above the stub.
-        marker = "static function captureDesktopToBmpNative("
-        start = source.rindex("@:functionCode(", 0, source.index(marker))
-        block = source[start : source.index(marker)]
+        source = read(HEADER)
+        block = body(source, "phoenixMetaCaptureDesktopToBmp(")
         # Multi-monitor: the virtual-screen origin can be negative, so the
         # copy must be given a left/top rather than assuming 0,0.
-        self.assertIn("SM_XVIRTUALSCREEN", block)
-        self.assertIn("SM_YVIRTUALSCREEN", block)
+        self.assertIn("SM_XVIRTUALSCREEN", source)
+        self.assertIn("SM_YVIRTUALSCREEN", source)
         self.assertIn("BitBlt", block)
         self.assertIn("CAPTUREBLT", block)
         # 24-bit BGR rows with 4-byte padding, and alpha dropped (a screen

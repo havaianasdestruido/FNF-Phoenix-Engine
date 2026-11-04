@@ -25,6 +25,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 BACKEND = ROOT / "source/backend/MetaHorror.hx"
+HEADER = ROOT / "source/backend/native/include/phoenix_meta_horror.h"
 
 MOCK_HEADER = r"""
 #ifndef PHOENIX_MH_MOCK_H
@@ -38,7 +39,7 @@ MOCK_HEADER = r"""
 
 typedef void *HDC; typedef void *HBITMAP; typedef void *HGDIOBJ;
 typedef int BOOL; typedef unsigned char BYTE; typedef unsigned short WORD;
-typedef unsigned int DWORD;
+typedef unsigned int DWORD; typedef unsigned int UINT; typedef wchar_t WCHAR;
 
 #pragma pack(push, 2)
 struct BITMAPFILEHEADER
@@ -63,6 +64,8 @@ struct BITMAPINFO { BITMAPINFOHEADER bmiHeader; };
 #define DIB_RGB_COLORS 0
 #define SRCCOPY 0x00CC0020
 #define CAPTUREBLT 0x40000000
+#define CP_UTF8 65001
+#define MB_ERR_INVALID_CHARS 8
 #define SM_XVIRTUALSCREEN 76
 #define SM_YVIRTUALSCREEN 77
 #define SM_CXVIRTUALSCREEN 78
@@ -80,6 +83,26 @@ inline int GetSystemMetrics(int index)
   if (index == SM_XVIRTUALSCREEN) return -100; /* secondary monitor left of primary */
   if (index == SM_YVIRTUALSCREEN) return 0;
   return 0;
+}
+inline int MultiByteToWideChar(UINT, DWORD, const char *text, int, WCHAR *out, int cap)
+{
+  if (text == NULL) return 0;
+  int length = (int)strlen(text) + 1;
+  if (cap == 0) return length;
+  if (cap < length) return 0;
+  for (int i = 0; i < length; i++) out[i] = (WCHAR)text[i];
+  return length;
+}
+inline int WideCharToMultiByte(UINT, DWORD, const WCHAR *text, int, char *out, int cap, const char *, BOOL *)
+{
+  if (text == NULL) return 0;
+  int length = 0;
+  while (text[length] != 0) length++;
+  length++;
+  if (cap == 0) return length;
+  if (cap < length) return 0;
+  for (int i = 0; i < length; i++) out[i] = (char)text[i];
+  return length;
 }
 inline HDC GetDC(void *) { return (HDC)1; }
 static std::vector<BYTE> gPixels;
@@ -109,9 +132,28 @@ HARNESS = r"""
 
 static std::string gPath;
 /* Stand-in for hxcpp's String: only wchar_str() is used by the helper. */
-struct MockString { const char *c_str() const { return gPath.c_str(); } };
+struct MockString
+{
+  const char *c_str() const { return gPath.c_str(); }
+  /* hxcpp's String converts implicitly to std::string, which is what the
+   * header's UTF-8 helpers take. */
+  operator std::string() const { return gPath; }
+};
 #define path MockString()
-#define _wfopen(p, mode) fopen(p, "wb")
+/* The header converts hxcpp's UTF-8 path to UTF-16 before opening it. */
+static inline std::wstring phoenixMetaUtf8ToWide(const std::string &text)
+{
+  std::wstring wide(text.begin(), text.end());
+  return wide;
+}
+#define _wfopen(p, mode) mock_wfopen(p, mode)
+static inline FILE *mock_wfopen(const wchar_t *widePath, const wchar_t *)
+{
+  std::string narrow;
+  for (size_t i = 0; widePath[i] != 0; i++) narrow += (char)widePath[i];
+  return fopen(narrow.c_str(), "wb");
+}
+#include <string>
 
 static bool captureDesktopToBmpNative_impl()
 {
@@ -134,16 +176,26 @@ def compiler() -> str | None:
     return shutil.which("c++") or shutil.which("g++") or shutil.which("clang++")
 
 
+def body(source: str, signature: str) -> str:
+    """The brace-delimited body of the first definition matching `signature`."""
+    start = source.index(signature)
+    brace = source.index("{", start)
+    depth = 0
+    for i in range(brace, len(source)):
+        if source[i] == "{":
+            depth += 1
+        elif source[i] == "}":
+            depth -= 1
+            if depth == 0:
+                return source[brace + 1 : i]
+    raise AssertionError(f"unbalanced braces after {signature!r}")
+
+
 def extract_capture_body() -> str:
-    """The C++ inside the `@:functionCode` block of the capture helper."""
-    source = BACKEND.read_text(encoding="utf-8")
-    marker = "static function captureDesktopToBmpNative("
-    annotation = source.rindex("@:functionCode('", 0, source.index(marker))
-    start = annotation + len("@:functionCode('")
-    end = source.index("')", start)
-    body = source[start:end]
-    # hxcpp's String exposes wchar_str(); the Linux mock only has c_str().
-    return body.replace("path.wchar_str()", "path.c_str()")
+    """The body of `phoenixMetaCaptureDesktopToBmp` from the native header."""
+    source = HEADER.read_text(encoding="utf-8")
+    signature = "static PHOENIX_META_UNUSED bool phoenixMetaCaptureDesktopToBmp("
+    return body(source, "phoenixMetaCaptureDesktopToBmp(")
 
 
 class CaptureBmpTests(unittest.TestCase):
@@ -230,6 +282,49 @@ class CaptureBmpTests(unittest.TestCase):
         self.assertEqual(source.count("fclose(file)"), 1)
 
 
+class HeaderCompileTests(unittest.TestCase):
+    """The header must be self-sufficient for a translation unit that includes it.
+
+    On Windows the generated `MetaHorror.cpp` gets the header injected through
+    `@:cppFileCode`; here the same translation unit is built against the Win32
+    test double, which catches missing includes, undeclared helpers and
+    signature drift before CI does.
+    """
+
+    def test_header_compiles_and_every_helper_runs(self):
+        compiler = shutil.which("c++") or shutil.which("g++")
+        if not compiler:
+            self.skipTest("no C++ compiler available")
+        mock = ROOT / "tests" / "native" / "windows"
+        include = ROOT / "source" / "backend" / "native" / "include"
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            # Two translation units verify the header-only (static) linkage,
+            # which hxcpp requires because it includes native metadata twice.
+            (root / "other.cpp").write_text(
+                '#include <windows.h>\n#include "phoenix_meta_horror.h"\n'
+                'double otherUptime() { return phoenixMetaSystemUptime(); }\n'
+            )
+            source = (ROOT / "tests" / "native" / "test_meta_horror_header.cpp").read_text()
+            source = source.replace("int main()", "extern double otherUptime();\nint main()")
+            (root / "main.cpp").write_text(source)
+            binary = root / "meta-horror-header"
+            subprocess.run(
+                [compiler, "-std=c++11", "-Wall", "-Wextra", "-Werror", "-D_WIN32",
+                 "-I", str(mock), "-I", str(include),
+                 str(root / "main.cpp"), str(root / "other.cpp"), "-o", str(binary)],
+                check=True, capture_output=True, text=True,
+            )
+            subprocess.run([str(binary)], check=True, capture_output=True, text=True)
+
+    def test_minGW_style_wfopen_is_available(self):
+        """`_wfopen` is used by the capture; the SDK must provide it."""
+        header = HEADER.read_text(encoding="utf-8")
+        self.assertIn("_wfopen", header)
+        mock = (ROOT / "tests" / "native" / "windows" / "windows.h").read_text(encoding="utf-8")
+        self.assertIn("_wfopen", mock, "the Win32 test double must declare _wfopen")
+
+
 class CrossCompileTests(unittest.TestCase):
     def test_real_windows_header_compiles(self):
         target = os.environ.get("PHOENIX_WINDOWS_CXX")
@@ -240,10 +335,10 @@ class CrossCompileTests(unittest.TestCase):
             (root / "capture.cpp").write_text(
                 '#include <windows.h>\n#include <cstdio>\n#include <cstring>\n#include <string>\n'
                 '#include <vector>\n'
-                'static bool captureDesktopToBmpNative(const std::wstring &path)\n{\n'
+                'static bool captureDesktopToBmpNative(const std::string &path)\n{\n'
                 + extract_capture_body()
                 + '\n}\n'
-                'int main() { (void)captureDesktopToBmpNative(L"x.bmp"); return 0; }\n'
+                'int main() { (void)captureDesktopToBmpNative("x.bmp"); return 0; }\n'
             )
             subprocess.run(
                 [target, "-std=c++11", "-Wall", "-Wextra", "-Werror",

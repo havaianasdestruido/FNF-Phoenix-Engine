@@ -30,6 +30,16 @@ using StringTools;
  * hiding, system volume/mouse/keyboard control). Mods that use them MUST warn
  * the player up front — see docs/META_HORROR.md.
  */
+#if (windows && cpp)
+// Both of these MUST sit at file level, directly above the class. Written
+// inside the class body they would annotate the *next field* instead of the
+// class, and hxcpp would silently ignore them: `phoenix_meta_horror.h` would
+// never be included and every `@:functionCode` body below would compile
+// against undefined Win32/WASAPI types. This mirrors NativeHardware/
+// WindowNative, which are the working examples in this repo.
+@:buildXml('<include name="../../../../source/backend/native/meta_horror_build.xml" />')
+@:cppFileCode('#include "phoenix_meta_horror.h"')
+#end
 class MetaHorror
 {
   /**
@@ -1304,436 +1314,131 @@ class MetaHorror
 
   // ------------------------------------------------------------------
   // Windows native implementation (Win32 / WASAPI)
+  //
+  // The C++ itself lives in source/backend/native/include/phoenix_meta_horror.h.
+  // The file-level `@:cppFileCode` above this class (see the top of the file)
+  // injects that header straight into the generated MetaHorror.cpp, which is
+  // what makes the Win32/WASAPI types visible to the snippets below.
+  // `@:headerCode` could not do it, for two reasons: MetaHorror is all-static,
+  // so hxcpp never includes MetaHorror.h in the generated MetaHorror.cpp, and
+  // metadata written inside a class body binds to the next field, not to the
+  // class, so hxcpp would ignore it entirely.
   // ------------------------------------------------------------------
   #if (windows && cpp)
-  @:buildXml('
-<target id="haxe">
-    <lib name="ole32.lib" if="windows" />
-    <lib name="user32.lib" if="windows" />
-    <lib name="shell32.lib" if="windows" />
-</target>
-')
-  @:headerCode('
-#include <Windows.h>
-#include <shellapi.h>
-#include "phoenix_window.h"
-#include <mmdeviceapi.h>
-#include <endpointvolume.h>
-#include <cstdio>
-#include <cstring>
-#include <iostream>
-#include <string>
-#include <vector>
-#undef TRUE
-#undef FALSE
-#undef NO_ERROR
 
-// --- MetaHorror native helpers (file scope: statics with internal linkage) ---
-
-// WASAPI GUIDs, defined here so no import library is needed.
-static const CLSID metaClsidMMDeviceEnumerator = {0xBCDE0395, 0xE52F, 0x467C, {0x8E, 0x3D, 0xC4, 0x57, 0x92, 0x91, 0x69, 0x2E}};
-static const IID metaIidIMMDeviceEnumerator = {0xA95664D2, 0x9614, 0x4F35, {0xA7, 0x46, 0xDE, 0x8D, 0xB6, 0x36, 0x17, 0xE6}};
-static const IID metaIidIAudioEndpointVolume = {0x5CDF2C82, 0x841E, 0x4546, {0x97, 0x22, 0x0C, 0xF7, 0x40, 0x78, 0x22, 0x9A}};
-
-static std::string metaOwnWindowTitle;
-
-// Grabs the default output endpoint. COM is initialized process-wide and
-// intentionally left initialized (other engine systems use it too).
-static bool metaAudioEndpoint(IMMDeviceEnumerator **enumerator, IMMDevice **device, IAudioEndpointVolume **endpoint)
-{
-  CoInitializeEx(NULL, COINIT_APARTMENTTHREADED);
-  *enumerator = NULL;
-  *device = NULL;
-  *endpoint = NULL;
-  if (FAILED(CoCreateInstance(metaClsidMMDeviceEnumerator, NULL, CLSCTX_ALL, metaIidIMMDeviceEnumerator, (void **)enumerator)))
-    return false;
-  if (FAILED((*enumerator)->GetDefaultAudioEndpoint(eRender, eMultimedia, device)))
-    return false;
-  if (FAILED((*device)->Activate(metaIidIAudioEndpointVolume, CLSCTX_ALL, NULL, (void **)endpoint)))
-    return false;
-  return true;
-}
-
-// EnumWindows callback: hide every visible titled window except the game
-// itself and the shell, remembering titles for restoration.
-static BOOL CALLBACK metaEnumHideProc(HWND hwnd, LPARAM lparam)
-{
-  std::vector<std::string> *hidden = reinterpret_cast<std::vector<std::string> *>(lparam);
-  char titleBuffer[512] = {0};
-  int ret = GetWindowTextA(hwnd, titleBuffer, 512);
-  if (IsWindowVisible(hwnd) && ret > 0 && std::string(titleBuffer) != metaOwnWindowTitle
-    && std::string(titleBuffer) != "Program Manager" && std::string(titleBuffer) != "Setup")
-  {
-    ShowWindow(hwnd, SW_HIDE);
-    hidden->push_back(std::string(titleBuffer));
-  }
-  return TRUE;
-}
-
-// EnumWindows callback: collect the titles of the other visible top-level
-// windows. Read-only: nothing is hidden, moved or activated.
-static BOOL CALLBACK metaEnumListProc(HWND hwnd, LPARAM lparam)
-{
-  std::vector<std::string> *titles = reinterpret_cast<std::vector<std::string> *>(lparam);
-  char titleBuffer[512] = {0};
-  int ret = GetWindowTextA(hwnd, titleBuffer, 512);
-  if (IsWindowVisible(hwnd) && ret > 0 && std::string(titleBuffer) != metaOwnWindowTitle
-    && std::string(titleBuffer) != "Program Manager" && std::string(titleBuffer) != "Setup")
-    titles->push_back(std::string(titleBuffer));
-  return TRUE;
-}
-')
-
-  @:functionCode('
-    float scalar = (float)volume;
-    IMMDeviceEnumerator *enumerator = NULL;
-    IMMDevice *device = NULL;
-    IAudioEndpointVolume *endpoint = NULL;
-    if (!metaAudioEndpoint(&enumerator, &device, &endpoint))
-      return false;
-    bool ok = SUCCEEDED(endpoint->SetMasterVolumeLevelScalar(scalar, NULL));
-    if (endpoint != NULL) endpoint->Release();
-    if (device != NULL) device->Release();
-    if (enumerator != NULL) enumerator->Release();
-    return ok;
-  ')
+  @:functionCode('return phoenixMetaSetMasterVolume(volume);')
   static function setMasterVolumeNative(volume:Float):Bool
     return false;
 
-  @:functionCode('
-    IMMDeviceEnumerator *enumerator = NULL;
-    IMMDevice *device = NULL;
-    IAudioEndpointVolume *endpoint = NULL;
-    if (!metaAudioEndpoint(&enumerator, &device, &endpoint))
-      return false;
-    bool ok = SUCCEEDED(endpoint->SetMute(mute ? 1 : 0, NULL));
-    if (endpoint != NULL) endpoint->Release();
-    if (device != NULL) device->Release();
-    if (enumerator != NULL) enumerator->Release();
-    return ok;
-  ')
+  @:functionCode('return phoenixMetaSetMasterMute(mute);')
   static function setMasterMuteNative(mute:Bool):Bool
     return false;
 
-  @:functionCode('
-    IMMDeviceEnumerator *enumerator = NULL;
-    IMMDevice *device = NULL;
-    IAudioEndpointVolume *endpoint = NULL;
-    if (!metaAudioEndpoint(&enumerator, &device, &endpoint))
-      return -1.0;
-    float level = -1.0;
-    endpoint->GetMasterVolumeLevelScalar(&level);
-    if (endpoint != NULL) endpoint->Release();
-    if (device != NULL) device->Release();
-    if (enumerator != NULL) enumerator->Release();
-    return (Float)level;
-  ')
+  // hxcpp's Float is `double` unless HXCPP_FLOAT32 is set, so cast explicitly
+  // instead of narrowing a double return value implicitly.
+  @:functionCode('return (Float)phoenixMetaGetMasterVolume();')
   static function getMasterVolumeNative():Float
     return -1.0;
 
-  @:functionCode('
-    IMMDeviceEnumerator *enumerator = NULL;
-    IMMDevice *device = NULL;
-    IAudioEndpointVolume *endpoint = NULL;
-    if (!metaAudioEndpoint(&enumerator, &device, &endpoint))
-      return false;
-    BOOL muted = FALSE;
-    endpoint->GetMute(&muted);
-    if (endpoint != NULL) endpoint->Release();
-    if (device != NULL) device->Release();
-    if (enumerator != NULL) enumerator->Release();
-    return muted != 0;
-  ')
+  @:functionCode('return phoenixMetaGetMasterMute();')
   static function getMasterMuteNative():Bool
     return false;
 
-  @:functionCode('
-    POINT point;
-    if (!GetCursorPos(&point))
-      return false;
-    return SetCursorPos(point.x + dx, point.y + dy) != 0;
-  ')
+  @:functionCode('return phoenixMetaMoveMouse(dx, dy);')
   static function moveMouseNative(dx:Int, dy:Int):Bool
     return false;
 
-  @:functionCode('
-    INPUT input;
-    memset(&input, 0, sizeof(INPUT));
-    input.type = INPUT_KEYBOARD;
-    input.ki.wVk = vk;
-    input.ki.dwFlags = up ? KEYEVENTF_KEYUP : 0;
-    return SendInput(1, &input, sizeof(INPUT)) == 1;
-  ')
+  @:functionCode('return phoenixMetaSendVirtualKey((UINT)vk, up);')
   static function sendVirtualKeyNative(vk:Int, up:Bool = false):Bool
     return false;
 
-  @:functionCode('
-    INPUT inputs[2];
-    memset(inputs, 0, sizeof(inputs));
-    inputs[0].type = INPUT_KEYBOARD;
-    inputs[0].ki.dwFlags = KEYEVENTF_UNICODE;
-    inputs[0].ki.wScan = (WORD)charCode;
-    inputs[1].type = INPUT_KEYBOARD;
-    inputs[1].ki.dwFlags = KEYEVENTF_UNICODE | KEYEVENTF_KEYUP;
-    inputs[1].ki.wScan = (WORD)charCode;
-    return SendInput(2, inputs, sizeof(INPUT)) == 2;
-  ')
+  @:functionCode('return phoenixMetaSendUnicodeChar((unsigned int)charCode);')
   static function sendUnicodeCharNative(charCode:Int):Bool
     return false;
 
-  @:functionCode('
-    HWND window = phoenixWindowFind();
-    if (window == NULL)
-      return false;
-    // SW_SHOWNORMAL (1) is the success threshold; values <= 32 mean failure.
-    HINSTANCE result = ShellExecuteW(window, L"open", path.wchar_str(), NULL, NULL, SW_SHOWNORMAL);
-    return reinterpret_cast<INT_PTR>(result) > 32;
-  ')
+  @:functionCode('return phoenixMetaOpenFile(path.c_str(), phoenixWindowFind());')
   static function openFileNative(path:String):Bool
     return false;
 
-  @:functionCode('
-    ULONGLONG milliseconds = GetTickCount64();
-    return (Float)((double)milliseconds / 1000.0);
-  ')
+  @:functionCode('return (Float)phoenixMetaSystemUptime();')
   static function getSystemUptimeNative():Float
     return 0.0;
 
-  @:functionCode('
-    HWND window = phoenixWindowFind();
-    if (window == NULL)
-      return false;
-    // Keep the current position/size/visibility; only change the Z order.
-    return SetWindowPos(window, top ? HWND_TOPMOST : HWND_NOTOPMOST, 0, 0, 0, 0,
-      SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE | SWP_NOOWNERZORDER) != 0;
-  ')
+  @:functionCode('return phoenixMetaSetAlwaysOnTop(phoenixWindowFind(), top);')
   static function setAlwaysOnTopNative(top:Bool):Bool
     return false;
 
-  @:functionCode('
-    HWND window = phoenixWindowFind();
-    if (window == NULL)
-      return false;
-    FLASHWINFO info;
-    memset(&info, 0, sizeof(info));
-    info.cbSize = sizeof(FLASHWINFO);
-    info.hwnd = window;
-    info.dwFlags = FLASHW_TRAY;
-    info.uCount = (UINT)(count > 0 ? count : 1);
-    info.dwTimeout = 0;
-    return FlashWindowEx(&info) != 0;
-  ')
+  @:functionCode('return phoenixMetaFlashTaskbar(phoenixWindowFind(), count);')
   static function flashTaskbarNative(count:Int):Bool
     return false;
 
-  @:functionCode('
-    HWND window = phoenixWindowFind();
-    if (window == NULL)
-      return false;
-    FLASHWINFO info;
-    memset(&info, 0, sizeof(info));
-    info.cbSize = sizeof(FLASHWINFO);
-    info.hwnd = window;
-    info.dwFlags = FLASHW_STOP;
-    FlashWindowEx(&info);
-    return true;
-  ')
+  @:functionCode('phoenixMetaStopTaskbarFlash(phoenixWindowFind()); return true;')
   static function stopTaskbarFlashNative():Bool
     return false;
 
   @:functionCode('
-    std::vector<std::string> titles;
-    metaOwnWindowTitle = ownTitle.c_str();
-    EnumWindows(metaEnumListProc, reinterpret_cast<LPARAM>(&titles));
-    metaOwnWindowTitle.clear();
+    std::vector<std::string> listed = phoenixMetaEnumerateWindows(std::string(ownTitle.c_str()), true);
 
-    Array_obj<String> *out = new Array_obj<String>(titles.size(), titles.size());
-    for (size_t i = 0; i < titles.size(); i++)
-      out->Item(i) = String(titles[i].c_str());
+    Array<String> out = Array_obj<String>::__new(0, (int)listed.size());
+    for (size_t i = 0; i < listed.size(); i++)
+      out->push(String(listed[i].c_str()));
     return out;
   ')
   static function listWindowsNative(ownTitle:String):Array<String>
     return [];
 
-
-  @:functionCode('
-    const int left = GetSystemMetrics(SM_XVIRTUALSCREEN);
-    const int top = GetSystemMetrics(SM_YVIRTUALSCREEN);
-    const int width = GetSystemMetrics(SM_CXVIRTUALSCREEN);
-    const int height = GetSystemMetrics(SM_CYVIRTUALSCREEN);
-    if (width <= 0 || height <= 0)
-      return false;
-
-    HDC screen = GetDC(NULL);
-    if (screen == NULL)
-      return false;
-
-    // A bottom-up 32bpp DIB section: GDI writes the rows in exactly the order
-    // a 24-bit BMP stores them, so the pixels can be copied out verbatim.
-    BITMAPINFO info;
-    memset(&info, 0, sizeof(info));
-    info.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
-    info.bmiHeader.biWidth = width;
-    info.bmiHeader.biHeight = height;
-    info.bmiHeader.biPlanes = 1;
-    info.bmiHeader.biBitCount = 32;
-    info.bmiHeader.biCompression = BI_RGB;
-
-    void *bits = NULL;
-    HBITMAP dib = CreateDIBSection(screen, &info, DIB_RGB_COLORS, &bits, NULL, 0);
-    HDC memory = CreateCompatibleDC(screen);
-    if (dib == NULL || memory == NULL || bits == NULL)
-    {
-      if (memory != NULL) DeleteDC(memory);
-      if (dib != NULL) DeleteObject(dib);
-      ReleaseDC(NULL, screen);
-      return false;
-    }
-
-    HGDIOBJ previous = SelectObject(memory, dib);
-    // SRCCOPY | CAPTUREBLT also grabs layered windows (tooltips, overlays).
-    const BOOL copied = BitBlt(memory, 0, 0, width, height, screen, left, top, SRCCOPY | CAPTUREBLT);
-    SelectObject(memory, previous);
-    DeleteDC(memory);
-    ReleaseDC(NULL, screen);
-
-    if (!copied)
-    {
-      DeleteObject(dib);
-      return false;
-    }
-
-    // 24-bit BI_RGB BMP: BMP rows are padded to a 4-byte boundary.
-    const int rowBytes = width * 3;
-    const int padding = (4 - (rowBytes % 4)) % 4;
-
-    FILE *file = _wfopen(path.wchar_str(), L"wb");
-    if (file == NULL)
-    {
-      DeleteObject(dib);
-      return false;
-    }
-
-    BITMAPFILEHEADER header;
-    memset(&header, 0, sizeof(header));
-    header.bfType = 0x4D42; // "BM"
-    header.bfOffBits = (DWORD)(sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER));
-    header.bfSize = (DWORD)(header.bfOffBits + (DWORD)(rowBytes + padding) * (DWORD)height);
-
-    BITMAPINFOHEADER pixelInfo;
-    memset(&pixelInfo, 0, sizeof(pixelInfo));
-    pixelInfo.biSize = sizeof(BITMAPINFOHEADER);
-    pixelInfo.biWidth = width;
-    pixelInfo.biHeight = height;
-    pixelInfo.biPlanes = 1;
-    pixelInfo.biBitCount = 24;
-    pixelInfo.biCompression = BI_RGB;
-    pixelInfo.biSizeImage = (DWORD)(rowBytes + padding) * (DWORD)height;
-
-    bool ok = fwrite(&header, sizeof(header), 1, file) == 1
-      && fwrite(&pixelInfo, sizeof(pixelInfo), 1, file) == 1;
-
-    const unsigned char *source = (const unsigned char *)bits;
-    const unsigned char pad[3] = {0, 0, 0};
-    std::vector<unsigned char> row;
-    if (ok)
-      row.resize((size_t)rowBytes);
-
-    for (int y = 0; ok && y < height; y++)
-    {
-      const unsigned char *pixel = source + (size_t)y * (size_t)width * 4;
-      for (int x = 0; x < width; x++)
-      {
-        // DIB pixels are BGRA; BMP stores BGR, so alpha is dropped (a screen
-        // capture has no meaningful alpha and 0 would read as transparent).
-        row[(size_t)x * 3] = pixel[(size_t)x * 4];
-        row[(size_t)x * 3 + 1] = pixel[(size_t)x * 4 + 1];
-        row[(size_t)x * 3 + 2] = pixel[(size_t)x * 4 + 2];
-      }
-      ok = fwrite(&row[0], 1, (size_t)rowBytes, file) == (size_t)rowBytes;
-      if (ok && padding > 0)
-        ok = fwrite(pad, 1, (size_t)padding, file) == (size_t)padding;
-    }
-
-    fclose(file);
-    DeleteObject(dib);
-    return ok;
-  ')
+  @:functionCode('return phoenixMetaCaptureDesktopToBmp(path.c_str());')
   static function captureDesktopToBmpNative(path:String):Bool
     return false;
 
-  @:functionCode('
-    wchar_t *wallpath = const_cast<wchar_t *>(path.wchar_str());
-    return SystemParametersInfoW(SPI_SETDESKWALLPAPER, 0, reinterpret_cast<void *>(wallpath), SPIF_UPDATEINIFILE | SPIF_SENDCHANGE) != 0;
-  ')
+  @:functionCode('return phoenixMetaSetWallpaper(path.c_str());')
   static function setWallpaperNative(path:String):Bool
     return false;
 
   @:functionCode('
-    WCHAR buffer[1024] = {0};
-    if (!SystemParametersInfoW(SPI_GETDESKWALLPAPER, 1024, buffer, 0))
+    const std::string current = phoenixMetaGetWallpaper();
+    if (current.empty())
       return String();
-    return String(buffer);
+    // The header returns UTF-8, matching hxcpp's own String encoding.
+    return String(current.c_str());
   ')
   static function getWallpaperNative():String
     return null;
 
-  @:functionCode('
-    HWND taskbar = FindWindowW(L"Shell_TrayWnd", NULL);
-    if (taskbar == NULL)
-      return true; // pretend it was visible so restore is a harmless no-op
-    BOOL wasVisible = IsWindowVisible(taskbar);
-    ShowWindow(taskbar, SW_HIDE);
-    return wasVisible != 0;
-  ')
+  @:functionCode('return phoenixMetaHideTaskbar();')
   static function hideTaskbarNative():Bool
     return false;
 
-  @:functionCode('
-    if (!wasVisible)
-      return;
-    HWND taskbar = FindWindowW(L"Shell_TrayWnd", NULL);
-    if (taskbar == NULL)
-      return;
-    ShowWindow(taskbar, SW_SHOWNOACTIVATE);
-  ')
+  @:functionCode('phoenixMetaRestoreTaskbar(wasVisible);')
   static function restoreTaskbarNative(wasVisible:Bool):Void {}
 
   @:functionCode('
-    std::vector<std::string> hidden;
-    metaOwnWindowTitle = ownTitle.c_str();
-    EnumWindows(metaEnumHideProc, reinterpret_cast<LPARAM>(&hidden));
-    metaOwnWindowTitle.clear();
+    std::vector<std::string> hidden = phoenixMetaEnumerateWindows(std::string(ownTitle.c_str()), false);
 
-    Array_obj<String> *out = new Array_obj<String>(hidden.size(), hidden.size());
+    Array<String> out = Array_obj<String>::__new(0, (int)hidden.size());
     for (size_t i = 0; i < hidden.size(); i++)
-      out->Item(i) = String(hidden[i].c_str());
+      out->push(String(hidden[i].c_str()));
     return out;
   ')
   static function hideWindowsNative(ownTitle:String):Array<String>
     return [];
 
+  // Early-return on an empty array instead of passing NULL, and keep the
+  // per-title char pointers alive for the duration of the call.
   @:functionCode('
-    int restored = 0;
-    for (int i = 0; i < prevHidden->length; i++)
-    {
-      HWND hwnd = FindWindowA(NULL, prevHidden[i].c_str());
-      if (hwnd != NULL && ShowWindow(hwnd, SW_SHOWNA))
-        restored++;
-    }
-    return restored;
+    const int count = prevHidden->length;
+    if (count <= 0)
+      return 0;
+    std::vector<const char *> titles;
+    titles.reserve((size_t)count);
+    for (int i = 0; i < count; i++)
+      titles.push_back(prevHidden->Item(i).c_str());
+    return phoenixMetaRestoreWindows(&titles[0], count);
   ')
   static function restoreWindowsNative(prevHidden:Array<String>):Int
     return 0;
 
-  @:functionCode('
-    HWND window = phoenixWindowFind();
-    if (window == NULL)
-      return false;
-    SetWindowLongPtrW(window, GWL_STYLE, GetWindowLongPtrW(window, GWL_STYLE) & ~WS_SYSMENU);
-    SetWindowPos(window, NULL, 0, 0, 0, 0, SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOOWNERZORDER);
-    return true;
-  ')
+  @:functionCode('return phoenixMetaRemoveWindowIcon(phoenixWindowFind());')
   static function removeWindowIconNative():Bool
     return false;
 
