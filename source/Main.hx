@@ -102,9 +102,12 @@ class Main extends Sprite
       return;
     }
     #end
-    // Opens vlog/log.txt and hooks every trace() in the engine and in
-    // Lua/Python/HScript, so the verbose log sees the whole boot.
-    backend.VLog.init(game.framerate);
+    // The verbose vlog is opt-in (Options -> Misc -> 'Enable VLog'), so a
+    // normal session writes nothing to disk. FlxG.save is only bound later in
+    // InitState, so the saved flag is read straight from funkin.sol here —
+    // when it is on, vlog/log.txt opens before CrashHandler.init and hooks
+    // every trace() for the whole boot.
+    backend.VLog.init(game.framerate, ClientPrefs.readSavedBool('vlogEnabled'));
     // Only queues any phoenix:// link that launched the game; registering the
     // scheme itself is opt-in from Options -> Misc, never done on startup.
     backend.deeplink.DeepLinks.init();
@@ -227,6 +230,10 @@ class Main extends Sprite
 
       if (FlxG.game != null) resetSpriteCache(FlxG.game);
     });
+
+    // Engine + libs are fully initialised but no song/mod content is loaded yet:
+    // snapshot the boot heap as the memory ledger's "engine code" baseline.
+    backend.MemoryLedger.captureEngineBaseline();
   }
 
   public static function getTime():Float

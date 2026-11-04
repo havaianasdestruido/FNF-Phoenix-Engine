@@ -157,7 +157,8 @@ The provider roots resolve from the same `Context.getExternalFilesDir(null)`
 directory that `mobile.StorageUtil.getStorageDirectory()` returns. `Main` sets
 that directory as the working directory, where `Paths.mods()` resolves to
 `mods/`, `CrashHandler` writes reports under `crash/` and `backend.VLog`
-writes the verbose session log to `vlog/log.txt`:
+writes the verbose session log to `vlog/log.txt` when it is enabled in
+Options → Misc:
 
 | SAF root | Relative directory | Access |
 | --- | --- | --- |
@@ -170,9 +171,10 @@ creates `mods/` during Android startup, so the Mods root backs onto a real,
 writable directory from the first launch; if that creation fails startup still
 continues, because the engine treats a missing mods directory as "no mods
 installed". `crash/` is created by `CrashHandler` when it writes a report, and
-`vlog/` is created by `backend.VLog.init()` during every launch, so the VLogs
-root backs onto a real directory from the first launch. Browsing a root never
-creates its directory, and a root whose directory is missing simply lists no
+`vlog/` is created by `backend.VLog` once the player enables
+**Options → Misc → "Enable VLog"** (the vlog is off by default), so the VLogs
+root backs onto a real directory from the first enabled session. Browsing a
+root never creates its directory, and a root whose directory is missing simply lists no
 children. If `getExternalFilesDir(null)` returns no directory, or Android
 reports its volume as unavailable, no roots are returned.
 Mounted read-only storage remains browsable but cannot be written. If storage

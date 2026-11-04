@@ -62,6 +62,8 @@ release; just re-run the fix script to restore the git checkout.
 ---
 ### Linux Distributions
 
+> **Agentes em Linux x86_64 sem Haxe:** consulte [Haxe no Linux dos agentes](docs/HAXE_LINUX.md) para a instalação sem sudo que foi testada neste ambiente, incluindo os sete testes Haxe isolados. Esse guia instala a toolchain; as dependências e os passos de build abaixo continuam necessários para compilar o jogo.
+
 # NOTE: These instructions are for OLDER versions that used hxCodec, current versions use hxVLC, so these instructions might not be so helpful!
 ### If you're getting errors like `libvlc.so.5: file format not recognized; treating as linker script` and then `libvlc.so.5:0: syntax error` then you're probably using hxCodec!
 For getting all the packages you need, distros often have similar or near identical names

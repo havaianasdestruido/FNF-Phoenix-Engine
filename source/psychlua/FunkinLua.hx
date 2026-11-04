@@ -88,6 +88,9 @@ class FunkinLua {
 	public var modFolder:String = null;
 	public var closed:Bool = false;
 
+	/** Memory-ledger registration id for this Lua state's RAM (0 = unregistered). */
+	var vlogCodeId:Int = 0;
+
 	/** Runtime half of the softmod sandbox; populated before Lua is created. */
 	public var sandboxed:Bool = false;
 	public var securityModName:String = null;
@@ -405,6 +408,18 @@ class FunkinLua {
 				Convert.addCallback(lua, name, func);
 			}
 		}
+
+		// Register this Lua state with the per-area RAM ledger. lua_gc(GCCOUNT)
+		// is an O(1) read of the Lua allocator total, re-sampled every frame, so
+		// mod-code RAM in the vlog is exact rather than estimated.
+		vlogCodeId = backend.MemoryLedger.registerCode(scriptName, 'lua', modFolder, function():Float {
+			if(closed || lua == null) return 0.0;
+			try {
+				return Lua.gc(lua, Lua.GCCOUNT, 0) * 1024.0 + Lua.gc(lua, Lua.GCCOUNTB, 0);
+			} catch(e:Dynamic) {
+				return 0.0;
+			}
+		});
 
 		call('onCreate', []);
 		#end
@@ -733,6 +748,10 @@ class FunkinLua {
 
 	public function stop() {
 		#if LUA_ALLOWED
+		// Drop the ledger registration before the state is freed so its
+		// byte-count provider is never called against a closed Lua state.
+		backend.MemoryLedger.unregisterCode(vlogCodeId);
+		vlogCodeId = 0;
 		closed = true;
 		if(lua == null) {
 			return;

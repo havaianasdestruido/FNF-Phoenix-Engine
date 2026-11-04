@@ -26,9 +26,9 @@ haxelib git hxcpp https://github.com/FunkinCrew/hxcpp d5bda40ac13f2823fe1bdcb547
 # The FunkinCrew hxcpp checkout is a source/development version, so its
 # command-line tools must be built before they can drive the C++ compiler.
 HXCMP_PATH=$(haxelib path hxcpp 2>/dev/null | head -n 1)
-if [ -n "$HXCMP_PATH" ] && [ -d "$HXCMP_PATH/git/tools" ]; then
-  (cd "$HXCMP_PATH/git/tools/run" && haxe compile.hxml)
-  (cd "$HXCMP_PATH/git/tools/hxcpp" && haxe compile.hxml)
+if [ -n "$HXCMP_PATH" ] && [ -d "$HXCMP_PATH/tools" ]; then
+  (cd "$HXCMP_PATH/tools/run" && haxe compile.hxml)
+  (cd "$HXCMP_PATH/tools/hxcpp" && haxe compile.hxml)
 fi
 haxelib git flxanimate https://github.com/Dot-Stuff/flxanimate 768740a56b26aa0c072720e0d1236b94afe68e3e --quiet
 haxelib install hython 0.0.352-beta --quiet

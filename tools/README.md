@@ -139,3 +139,21 @@ Rendering needs [Pillow](https://pypi.org/project/Pillow/) (`pip install Pillow`
 the parser underneath is plain stdlib and is reused by
 `tests/test_platform_icons.py`. The generated sheet is scratch output - don't
 commit it. See `docs/PLATFORM_ICONS.md` for the feature itself.
+## Deeper palette reduction (`reduce_image_palettes.py`)
+
+For the aggressive, quality-gated pass applied to this repository see
+[`PALETTE_COMPRESSION.md`](PALETTE_COMPRESSION.md). It requantizes every PNG to
+the smallest palette that passes measured fidelity gates, writes 1/2/4/8 bpp
+indexed PNGs (with multi-level `tRNS` alpha), and re-optimizes with `oxipng`.
+Unlike `compress-images.sh` it also fixes the common case of a 16-colour image
+wasting 8 bits per pixel.
+
+```sh
+pip install -r tools/requirements-image-palette.txt
+python3 tools/reduce_image_palettes.py --dry-run
+python3 tools/reduce_image_palettes.py --profile aggressive
+python3 tools/reduce_image_palettes.py --check
+```
+
+Requirements, profiles, caveats and the measured results live in that
+document; the per-file numbers are in `tools/reports/palette-reduction-report.json`.

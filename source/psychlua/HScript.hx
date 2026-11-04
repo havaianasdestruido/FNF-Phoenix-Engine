@@ -87,6 +87,9 @@ class HScript
 	public var closed:Bool = false;
 	/** `true` when this interpreter was loaded from its own `.hx`/`.hscript` file. */
 	public var standalone:Bool = false;
+
+	/** Memory-ledger registration id for this interpreter's RAM (0 = unregistered). */
+	var vlogCodeId:Int = 0;
 	public var lastCalledFunction:String = '';
 	public static var lastCalledScript:HScript = null;
 
@@ -220,6 +223,9 @@ class HScript
 			return;
 		}
 
+		// Heap snapshot before the interpreter exists, so the ledger can estimate
+		// this script's footprint from the allocation delta around its load.
+		final vlogHeapBefore:Float = debug.Memory.gay();
 		interp = new Interp();
 		// `public var`/`static var` at the top level keep their own buckets so
 		// the host (and `get()`) can tell shared state from private state.
@@ -265,6 +271,13 @@ class HScript
 			closed = true;
 			return;
 		}
+
+		// hscript-improved is pure Haxe, so estimate this interpreter's heap
+		// footprint from the load-time delta (floored by source size) and report
+		// it under mod code in the vlog.
+		final vlogHeapAfter:Float = debug.Memory.gay();
+		final vlogEstimate:Float = backend.MemoryLedger.estimateInterpBytes(code, vlogHeapBefore, vlogHeapAfter);
+		vlogCodeId = backend.MemoryLedger.registerCode(scriptName, 'hscript', modFolder, function():Float return vlogEstimate);
 
 		hxTrace('hscript file loaded succesfully: ' + scriptName, true);
 
@@ -837,6 +850,8 @@ class HScript
 
 	public function stop()
 	{
+		backend.MemoryLedger.unregisterCode(vlogCodeId);
+		vlogCodeId = 0;
 		closed = true;
 		interp = null;
 		_parsedCache.clear();

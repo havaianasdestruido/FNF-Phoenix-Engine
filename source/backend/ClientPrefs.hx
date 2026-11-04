@@ -75,6 +75,7 @@ class ClientPrefs { //default settings if it can't find a save file containing y
 	public static var checkForUpdates:Bool = true;
 	public static var comboStacking = true;
 	public static var showRamUsage:Bool = true;
+	public static var showRamGraph:Bool = false;
 	public static var showMaxRamUsage:Bool = true;
 	public static var debugInfo:Bool = false;
 	public static var frameProfiler:Bool = false;
@@ -193,6 +194,9 @@ class ClientPrefs { //default settings if it can't find a save file containing y
 	public static var autosaveTime:Int = 240;
 	// Whether this copy claimed the phoenix:// scheme (Windows: Options -> Misc).
 	public static var deeplinkEnabled:Bool = false;
+	// Opt-in verbose session log (Options -> Misc): disabled by default so a
+	// normal session writes nothing to disk (see backend.VLog).
+	public static var vlogEnabled:Bool = false;
 
 	//Gameplay Modifiers
 	public static var gameplaySettings:Map<String, Dynamic> = [
@@ -375,6 +379,23 @@ class ClientPrefs { //default settings if it can't find a save file containing y
 			}
 			reloadControls();
 		}
+	}
+
+	/**
+	 * Reads one saved boolean straight from `funkin.sol`.
+	 *
+	 * `Main` has to know a couple of opt-in flags (the vlog, ...) before
+	 * `InitState` binds `FlxG.save` and `loadPrefs()` runs, so this opens the
+	 * same save file ahead of time instead of waiting for the full load. Any
+	 * problem (missing file, web storage blocked, ...) yields `defaultValue`.
+	 */
+	public static function readSavedBool(field:String, defaultValue:Bool = false):Bool {
+		try {
+			final save:FlxSave = new FlxSave();
+			if (!save.bind('funkin', CoolUtil.getSavePath())) return defaultValue;
+			final value:Dynamic = Reflect.field(save.data, field);
+			return (value == null) ? defaultValue : (value == true);
+		} catch (_:Dynamic) return defaultValue;
 	}
 
   /** Apply immediately; Android owns window layout and inset recomputation. */
