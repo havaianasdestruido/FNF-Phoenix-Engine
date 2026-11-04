@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
-"""Python callback parity + smoke-test coverage (#87).
+"""Python callback parity, runtime smoke tests and docs coverage (#87).
 
-These are static checks (no Haxe toolchain needed): they assert that
-* every hook PlayState broadcasts reaches Python scripts,
-* docs/TemplateScript.py and the new smoke test define each hook, and
-* docs/python-scripting.md and script-hooks.md accurately describe the system.
+The suite needs no Haxe toolchain: it statically checks engine wiring and
+executes the shipped Python smoke/example scripts against small engine stubs.
 """
 from __future__ import annotations
 
+import inspect
 import pathlib
 import re
+import runpy
 import unittest
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
@@ -106,6 +106,19 @@ class TestPythonCallbackParity(unittest.TestCase):
 		self.assertIn('Function_StopLua:Dynamic = "##PSYCHLUA_FUNCTIONSTOPLUA"', py)
 		self.assertIn("PythonScript.Function_StopAll", play)
 
+	def test_python_runtime_errors_do_not_disable_future_callbacks(self):
+		py = read("source/psychlua/PythonScript.hx")
+		call_body = py.split("public function call(func:String", 1)[1].split("public function set(variable:String", 1)[0]
+		self.assertIn("_missingCalls.set(func, true);", call_body)  # only the missing-function path
+		for catch_block in re.findall(r"catch \(e:(?:Error|Dynamic)\)\s*\{(.*?)\n\t\t\}", call_body, re.S):
+			self.assertNotIn("_missingCalls.set(func, true)", catch_block)
+
+	def test_python_script_removal_runs_on_destroy(self):
+		lib = read("source/psychlua/pystdlib/PyScriptLib.hx")
+		self.assertIn("static function unloadPythonScript(script:PythonScript)", lib)
+		self.assertIn("script.call('onDestroy', []);", lib)
+		self.assertEqual(lib.count("unloadPythonScript(s);"), 2)
+
 	def test_template_python_defines_every_hook(self):
 		tmpl = read("docs/TemplateScript.py")
 		for hook in ENGINE_HOOKS:
@@ -158,6 +171,99 @@ class TestPythonCallbackParity(unittest.TestCase):
 		chars = read("source/play/helpers/PlayStateCharacters.hx")
 		self.assertIn("'characters/$name.py'", chars)
 		self.assertIn("new PythonScript(pyFile)", chars)
+
+	def test_hook_smoke_script_runs_every_callback(self):
+		"""Execute the shipped hook smoke script with a fake engine debug API."""
+		printed = []
+		smoke = ROOT / "docs/python-hook-smoke-test.py"
+		scope = runpy.run_path(str(smoke), init_globals={
+			"debugPrint": printed.append,
+			"Function_Continue": "continue",
+			"Function_Stop": "stop",
+		})
+		for hook_name in ENGINE_HOOKS:
+			hook = scope[hook_name]
+			hook(*([None] * len(inspect.signature(hook).parameters)))
+		for hook_name in ENGINE_HOOKS:
+			self.assertTrue(any(hook_name in line for line in printed), f"{hook_name} did not run")
+		self.assertEqual(scope["onStartCountdown"](), "continue")
+		self.assertEqual(scope["onEndSong"](), "continue")
+
+	def test_bf_clicker_python_mod_runs_gameplay_lifecycle(self):
+		"""Dynamically exercise the example mod against a deterministic engine stub."""
+		mod_path = ROOT / "mods/bf-clicker/data/bf-clicker/bf-clicker.py"
+		source = mod_path.read_text(encoding="utf-8")
+		values = {
+			"boyfriend.x": 100.0, "boyfriend.y": 100.0,
+			"boyfriend.width": 100.0, "boyfriend.height": 100.0,
+			"boyfriend.offset.x": 0.0, "boyfriend.offset.y": 0.0,
+			"boyfriend.scale.x": 2.0, "boyfriend.scale.y": 2.0,
+			"camGame.scroll.x": 0.0, "camGame.scroll.y": 0.0,
+		}
+		classVars = {
+			("play.PlayState", "instance.paused"): False,
+			("flixel.FlxG", "width"): 1280,
+			("flixel.FlxG", "height"): 720,
+			("flixel.FlxG", "sound.music.volume"): 0.8,
+			("flixel.FlxG", "mouse.visible"): False,
+			("flixel.FlxG", "save.data.bfClickerBest"): None,
+		}
+		calls = []
+		def get_property(path):
+			return values.get(path)
+		def set_property(path, value):
+			values[path] = value
+		def get_property_from_class(class_name, path):
+			return classVars.get((class_name, path))
+		def set_property_from_class(class_name, path, value):
+			classVars[(class_name, path)] = value
+		def api(name):
+			def invoke(*args):
+				calls.append((name, args))
+				if name == "getProperty":
+					return get_property(*args)
+				if name == "setProperty":
+					return set_property(*args)
+				if name == "getPropertyFromClass":
+					return get_property_from_class(*args)
+				if name == "setPropertyFromClass":
+					return set_property_from_class(*args)
+				if name == "mouseClicked":
+					return False
+				return None
+			return invoke
+		python_builtins = {"str", "int", "float", "bool", "len", "range", "min", "max", "sum", "round", "abs"}
+		call_names = set(re.findall(r"\b([A-Za-z_]\w*)\s*\(", source)) - python_builtins
+		engine_api = {name: api(name) for name in call_names}
+		# Hython shares captured module variables across callbacks without Python's
+		# `global` statement. Add those declarations only in this CPython test shim
+		# so the same script's intended state transitions can run on stock Python.
+		module_state = sorted(re.findall(r"(?m)^([a-z][A-Za-z0-9_]*)\s*=", source))
+		adapted_lines = []
+		for line in source.splitlines():
+			adapted_lines.append(line)
+			if line.startswith("def ") and line.rstrip().endswith(":"):
+				adapted_lines.append("\tglobal " + ", ".join(module_state))
+		exec(compile("\n".join(adapted_lines), str(mod_path), "exec"), engine_api)
+		scope = engine_api
+
+		scope["onCreatePost"]()
+		scope["onSongStart"]()
+		scope["onUpdate"](0.5)
+		self.assertAlmostEqual(scope["g_roundElapsed"], 0.5)
+		scope["onResume"]()
+		scope["onUpdate"](10.0)  # discard the pause/resume frame
+		self.assertAlmostEqual(scope["g_roundElapsed"], 0.5)
+		classVars[("play.PlayState", "instance.paused")] = True
+		scope["onUpdate"](1.0)
+		self.assertAlmostEqual(scope["g_roundElapsed"], 0.5)
+		classVars[("play.PlayState", "instance.paused")] = False
+		scope["onUpdate"](45.0)
+		self.assertTrue(scope["g_finished"])
+		self.assertIn(("endSong", ()), calls)
+		scope["onDestroy"]()
+		self.assertEqual(classVars[("flixel.FlxG", "sound.music.volume")], 0.8)
+		self.assertFalse(classVars[("flixel.FlxG", "mouse.visible")])
 
 def _count_call_args(source: str, hook: str) -> int:
 	start = source.index(f"'{hook}'")

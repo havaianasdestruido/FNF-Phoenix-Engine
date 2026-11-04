@@ -446,13 +446,15 @@ class PythonScript
 			return result;
 		}
 		catch (e:Error) {
+			// Only genuinely absent callbacks are cached above. A callback that
+			// raises during one frame must remain callable on later frames (for
+			// example, while an object is still being initialized).
 			pyTrace("ERROR (" + func + "): " + getErrorString(e), false, false, FlxColor.RED);
-			_missingCalls.set(func, true);
 			return Function_Continue;
 		}
 		catch (e:Dynamic) {
+			// Keep dispatch alive after runtime errors, matching the Lua host.
 			pyTrace("ERROR (" + func + "): " + Std.string(e), false, false, FlxColor.RED);
-			_missingCalls.set(func, true);
 			return Function_Continue;
 		}
 	}
