@@ -65,5 +65,7 @@ jobs:
         run: bash tests/haxe/run-memory-ledger.sh
       - name: Test settings backup format (export/import .json)
         run: bash tests/haxe/run-settings-backup.sh
+      - name: Test crash bundle export (zip format, caps, retention)
+        run: bash tests/haxe/run-crash-bundle.sh
       - name: Test mobile storage and pre-state startup resize
         run: python3 -m unittest discover -s tests -p 'test_mobile_startup.py' -v

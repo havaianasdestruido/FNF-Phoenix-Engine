@@ -68,6 +68,31 @@ The same values are available to scripts through `getSystemInfo()`, `getGPUName(
 HScript), see the [Lua](../modding/lua-api-reference.md) and
 [Python](../modding/python-api-reference.md) API references.
 
+### Crash bundle (`.zip`)
+
+Alongside the log, every crash also writes a **crash bundle** —
+`crash/FNF-Phoenix-Engine_crash-bundle_<date>.zip` — collecting everything a bug
+report needs in one file: the crash text, `modsList.txt`, each mod's `pack.json`,
+the preferences (in the settings-backup format, see `docs/SETTINGS_BACKUP.md`),
+a screenshot of the crashed frame, the vlog tail when enabled, and a
+`bundle.json` manifest (versions, commit, target, mod list, file list, notes).
+
+- `backend.CrashBundle` collects the pieces best-effort — a missing screenshot or
+  an unreadable `pack.json` is noted in the manifest and never stops the bundle,
+  and the bundle never stops the crash handler.
+- `backend.CrashBundleWriter` (Flixel-free) builds the zip: entry names are
+  validated with `backend.ModPathPolicy`, entries are capped (8 MB each, 32 MB
+  total, 512 entries), text is deflated while media is stored, the write is
+  atomic (`.tmp` + rename), and only the newest 3 bundles are kept.
+- On Android the bundle lands in the SAF **"Crash Logs"** root, and the crash
+  screen's **Export crash bundle** action (`[E]` on desktop, a tap button on
+  mobile) saves it anywhere through `MobileFilePicker` — e.g. Downloads — so it
+  is reachable even though `Android/data` is buried. Mobile also gets a touch
+  **Restart** button.
+
+See `docs/CRASH_BUNDLE.md` in the repository for the full format and safety
+rules.
+
 ## Verbose log (`vlog/log.txt`)
 
 `backend.VLog` records an aggressively verbose, append-only session log at
