@@ -48,10 +48,11 @@ class VLogCoreTests(unittest.TestCase):
         # File.write() truncates; File.append() is what keeps the log across
         # flushes (Haxe 4.3: write(path, binary) has no append mode).
         self.assertRegex(self.vlog, r"final f = File\.append\(FILE, false\)")
-        # …web/flash builds (no writable filesystem) cap an in-memory buffer
-        # and offer a browser download instead.
+        # …web builds (no writable filesystem) cap an in-memory buffer and
+        # offer a browser download instead.
         self.assertIn("MAX_WEB_CHARS", self.vlog)
-        self.assertIn("OpenFlFile.download('log.txt'", self.vlog)
+        self.assertIn("new js.html.Blob([exportText()]", self.vlog)
+        self.assertIn("anchor.download = 'log.txt';", self.vlog)
         self.assertIn("public static function exportText():String", self.vlog)
 
     def test_trace_hook_captures_engine_lua_python_and_hscript(self):
