@@ -2412,6 +2412,11 @@ class PlayState extends MusicBeatState
 						Conductor.songPosition = Conductor.songPosition + 1000 * FlxMath.signOf(timeDiff);
 				}
 				if (Conductor.songPosition < 200 && Math.abs(vocals.time - FlxG.sound.music.time) >= 20) setVocalsTime(FlxG.sound.music.time);
+
+				// Global stem volume overrides (Options -> Gameplay Settings) stay authoritative while the
+				// chart plays: stages, events and scripts writing the stem volumes cannot defeat them.
+				if (!endingSong && !inCutscene && !transitioning && !heyStopTrying && finishTimer == null)
+					PlayStatePlayback.enforceStemVolumes(this);
 			}
 			debug.FrameProfiler.endAudio();
 		}
