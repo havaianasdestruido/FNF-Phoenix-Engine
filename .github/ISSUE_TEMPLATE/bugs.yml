@@ -1,0 +1,112 @@
+name: Bug report
+description: "Report bugs with the engine here"
+labels: [bug, "status: pending triage"]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: "Describe your bug here."
+    validations:
+      required: true
+
+  - type: textarea
+    id: buildVersion
+    attributes:
+      label: "What version did the bug occur?"
+      description: "You HAVE to answer this. Copy the version from the bottom-left of the main menu (the 'Phoenix Engine v...' line; the FPS counter shows the same value)."
+    validations:
+      required: true
+
+  - type: dropdown
+    id: currentBuildCheck
+    attributes:
+      label: "Did you check if the problem occurs in the latest build?"
+      description: "You don't need to answer this if this is happening on the latest version."
+      options:
+        - "No"
+        - "Yes"
+    validations:
+      required: false
+
+  - type: dropdown
+    id: commitBuildCheck
+    attributes:
+      label: "Commit build or Release build?"
+      options:
+        - "Release build"
+        - "Commit Build of latest version."
+        - "Older commit build of the latest version."
+    validations:
+      required: true
+
+  - type: dropdown
+    id: knownIssueCheck
+    attributes:
+      label: "Did you check if this issue is already known?"
+      description: "[Search the known Phoenix Engine issues first](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/issues?q=is%3Aissue+is%3Aopen+label%3Abug). Reports that skip this may be closed as duplicates after a maintainer check."
+      options:
+        - "No"
+        - "Yes"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: dupeCheck
+    attributes:
+      label: "Did you check for any similar issues?"
+      description: "Check if there is one. Don't report the issue if you find an issue related to this one, or it may be closed as a duplicate after a maintainer check."
+      options:
+        - "No"
+        - "Yes"
+    validations:
+      required: true
+
+  - type: textarea
+    id: terminal
+    attributes:
+      label: "Command Prompt/Terminal/Crash logs (if existing)"
+    validations:
+      required: false
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: "Have you identified any steps to reproduce the bug?"
+      description: "If there is, please describe them below in as much detail as possible. Use images if possible."
+    validations:
+      required: false
+
+  - type: dropdown
+    id: modding
+    attributes:
+      label: "Are you modding a build from source or with Lua?"
+      options:
+        - "I'm not modding (Base game issue)"
+        - "Lua"
+        - "Source"
+        - "I'm not modding (Downloaded Modpack Issue)"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: btarget
+    attributes:
+      label: "What is your build target?"
+      options:
+        - "Windows"
+        - "Linux"
+        - "Mac"
+        - "Mobile | Android"
+        - "Mobile | iOS"
+        - "Flash/Air-based target" #the fuck is this one????
+        - "Neko, HashLink, or other build system"
+    validations:
+      required: true
+
+  - type: input
+    id: buildsummary
+    attributes:
+      label: "Did you edit anything in this build? If so, mention or summarize your changes."
+      placeholder: "Yes, I edited ClientPrefs.hx and tried to add a new setting"
+    validations:
+      required: true

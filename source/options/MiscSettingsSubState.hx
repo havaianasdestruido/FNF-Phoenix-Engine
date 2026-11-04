@@ -1,0 +1,110 @@
+﻿package options;
+
+import backend.ClientPrefs;
+import backend.Controls;
+import flixel.graphics.FlxGraphic;
+import flixel.input.keyboard.FlxKey;
+import openfl.Lib;
+
+import data.Song;
+import objects.Note;
+
+class MiscSettingsSubState extends BaseOptionsMenu
+{
+	public function new()
+	{
+		title = 'Misc';
+		rpcTitle = 'Miscellaneous Settings Menu'; //for Discord Rich Presence
+
+		var option:Option = new Option('Enable pre-release updates',
+			'Include experimental pre-releases when checking for Phoenix updates.\nDisabled by default: only complete releases are shown.',
+			'enablePreReleaseUpdates',
+			'bool',
+			false);
+		addOption(option);
+
+		var option:Option = new Option('Use JS Engine Recharts', //Name
+			'If checked, songs will have an optional "JSHard" difficulty (if available.)\nUse this difficulty for the JSE-specific recharts.', //Description
+			'JSEngineRecharts', //Save data variable name
+			'bool', //Variable type
+			false); //Default value
+		addOption(option);
+
+		var option:Option = new Option('Always Play Cutscenes', //Name
+			'If checked, cutscenes will always play even if you\nenter the song through Freeplay.', //Description
+			'alwaysTriggerCutscene', //Save data variable name
+			'bool', //Variable type
+			false); //Default value
+		addOption(option);
+
+		var option:Option = new Option('Disable Splash Screen', //Name
+			'If checked, the splash screen gets disabled on startup.', //Description
+			'disableSplash', //Save data variable name
+			'bool', //Variable type
+			false); //Default value
+		addOption(option);
+
+		//credit to Nael2xd for the idea
+		var option:Option = new Option('Rainbow Note Shift Speed', //Name
+			'Changes the amount of time between 1 cycle for Rainbow Notes.\n(Make sure you have your note colors set to "Rainbow" to see this in action!)', //Description
+			'rainbowTime', //Save data variable name
+			'float', //Variable type
+			5.0); //Default value
+		option.scrollSpeed = 4;
+		option.minValue = 0.01;
+		option.maxValue = 100;
+		option.changeValue = 0.01;
+		option.decimals = 2; //lol
+		option.displayFormat = '%vs';
+		addOption(option);
+
+		var option:Option = new Option('Autosave',
+			'If checked, the Chart Editor will autosave.',
+			'autosaveCharts',
+			'bool',
+			true);
+		addOption(option);
+
+		var option:Option = new Option('Autosave Time: ',
+			'Change the amount of time for a chart to autosave.', 
+			'autosaveTime',
+			'int',
+			240);
+		option.scrollSpeed = 30;
+		option.minValue = 30;
+		option.maxValue = 600;
+		option.changeValue = 1;
+		option.displayFormat = '%vs';
+		addOption(option);
+
+		var option:Option = new Option('Enable VLog', //Name
+			'If checked, the engine keeps a very verbose session log at\n'
+			+ 'vlog/log.txt (per-frame timings, lag spikes, memory, every trace).\n'
+			+ 'Disabled by default; takes effect immediately and is kept on\n'
+			+ 'the next launches until unchecked.', //Description
+			'vlogEnabled', //Save data variable name
+			'bool', //Variable type
+			false); //Default value
+		option.onChange = () -> backend.VLog.setEnabled(ClientPrefs.vlogEnabled);
+		addOption(option);
+
+		#if (windows && sys) // Only Windows registers at runtime; mobile gets the scheme from the build.
+		var option:Option = new Option('Toggle Deeplink', //Name
+			'If checked, this copy of the game registers the phoenix:// link\n'
+			+ 'scheme, so links like phoenix://menu/misc can open the game.\n'
+			+ 'Unchecking removes that registration again.\n'
+			+ 'Nothing is ever written when the game launches.', //Description
+			'deeplinkEnabled', //Save data variable name
+			'bool', //Variable type
+			false); //Default value
+		option.onChange = backend.deeplink.DeepLinks.applyRegistration;
+		addOption(option);
+		#end
+
+		cameras = [FlxG.cameras.list[FlxG.cameras.list.length-1]];
+
+		addBackupOptions();
+
+		super();
+	}
+}

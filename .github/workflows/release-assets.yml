@@ -1,0 +1,167 @@
+name: Release Assets
+
+# Attaches the CI builds to a GitHub release automatically. Publishing a release
+# on the Releases page (a brand-new release or a draft promoted to published)
+# builds the tagged commit through main.yml with the officialBuild flag and
+# uploads the artifacts to the release page as FNF-Phoenix-Engine-windows.zip
+# and FNF-Phoenix-Engine-android.apk.
+#
+# Assets already attached to the release are skipped, so publishing a draft
+# prepared by release.yml only builds what is missing. A manual dispatch with an
+# explicit tag backfills or re-attaches artifacts on any existing release.
+
+on:
+  release:
+    types: [published]
+
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: "Existing Phoenix release tag to attach artifacts to (e.g. v0.0.2)"
+        required: true
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-assets-${{ github.event.release.tag_name || github.event.inputs.tag_name }}
+  cancel-in-progress: false
+
+jobs:
+  plan:
+    name: Plan Missing Assets
+    runs-on: ubuntu-latest
+    outputs:
+      tag_name: ${{ steps.plan.outputs.tag_name }}
+      need_windows: ${{ steps.plan.outputs.need_windows }}
+      need_android: ${{ steps.plan.outputs.need_android }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Resolve release and existing assets
+        id: plan
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          EVENT_TAG: ${{ github.event.release.tag_name }}
+          INPUT_TAG: ${{ github.event.inputs.tag_name }}
+        run: |
+          TAG_NAME="${EVENT_TAG:-$INPUT_TAG}"
+          if [ -z "$TAG_NAME" ]; then
+            echo "::error::No release tag resolved from the event or inputs."
+            exit 1
+          fi
+
+          # The tag must name an existing release to attach assets to.
+          gh release view "$TAG_NAME" --repo "$GITHUB_REPOSITORY" >/dev/null
+
+          if [ -n "$INPUT_TAG" ]; then
+            # Manual backfill must run from the tagged commit so the build
+            # below produces the release's code (same rule as
+            # mobile-release.yml).
+            if [ "$(git rev-list -n 1 "refs/tags/$TAG_NAME")" != "$GITHUB_SHA" ]; then
+              echo "::error::The release tag does not point to the selected build commit. Run this workflow from $TAG_NAME."
+              exit 1
+            fi
+          fi
+
+          # The Phoenix version check is advisory here: the release is already
+          # public, so refusing to attach would only leave it empty. The manual
+          # release.yml / mobile-release.yml flows still gate tag creation on
+          # tools/release_version.py.
+          if [ -f tools/release_version.py ]; then
+            if ! python3 tools/release_version.py "$TAG_NAME" --check-only; then
+              echo "::warning::Tag $TAG_NAME does not match the project.hxp VERSION. Attaching artifacts anyway."
+            fi
+          fi
+
+          existing=$(gh release view "$TAG_NAME" --repo "$GITHUB_REPOSITORY" \
+            --json assets --jq '.assets[] | .name, (.label // "")')
+
+          need_windows=true
+          need_android=true
+          # windowsBuild.zip is the asset name the Manual Release workflow
+          # uploads (labeled FNF-Phoenix-Engine-windows.zip).
+          if grep -qxF 'FNF-Phoenix-Engine-windows.zip' <<<"$existing" \
+            || grep -qxF 'windowsBuild.zip' <<<"$existing"; then
+            need_windows=false
+            echo "The Windows build is already attached to $TAG_NAME."
+          fi
+          # Any attached APK counts as the Android build.
+          if grep -qE '\.apk$' <<<"$existing"; then
+            need_android=false
+            echo "An APK is already attached to $TAG_NAME."
+          fi
+
+          {
+            echo "tag_name=$TAG_NAME"
+            echo "need_windows=$need_windows"
+            echo "need_android=$need_android"
+          } >> "$GITHUB_OUTPUT"
+
+  build:
+    name: Build Artifacts
+    needs: plan
+    if: needs.plan.outputs.need_windows == 'true' || needs.plan.outputs.need_android == 'true'
+    uses: ./.github/workflows/main.yml
+    with:
+      buildFlags: officialBuild
+      buildWindows: ${{ needs.plan.outputs.need_windows == 'true' }}
+      buildAndroid: ${{ needs.plan.outputs.need_android == 'true' }}
+
+  attach-windows:
+    name: Attach windowsBuild
+    needs: [plan, build]
+    if: needs.plan.outputs.need_windows == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Windows artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: windowsBuild
+          path: build
+
+      - name: Compress build
+        run: |
+          sudo apt-get install -y p7zip-full
+          cd build && 7z a -tzip ../FNF-Phoenix-Engine-windows.zip .
+
+      - name: Upload to release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TAG: ${{ needs.plan.outputs.tag_name }}
+        run: |
+          gh release upload "$RELEASE_TAG" \
+            'FNF-Phoenix-Engine-windows.zip#FNF-Phoenix-Engine-windows.zip' \
+            --repo "$GITHUB_REPOSITORY" --clobber
+
+  attach-android:
+    name: Attach androidBuild
+    needs: [plan, build]
+    if: needs.plan.outputs.need_android == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Android artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: androidBuild
+
+      - name: Locate APK
+        run: |
+          apk_path=$(find . -name "*.apk" | head -n 1)
+          if [ -z "$apk_path" ]; then
+            echo "::error::No APK found in androidBuild artifact."
+            exit 1
+          fi
+          cp "$apk_path" FNF-Phoenix-Engine-android.apk
+
+      - name: Upload to release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TAG: ${{ needs.plan.outputs.tag_name }}
+        run: |
+          gh release upload "$RELEASE_TAG" \
+            'FNF-Phoenix-Engine-android.apk#FNF-Phoenix-Engine-android.apk' \
+            --repo "$GITHUB_REPOSITORY" --clobber

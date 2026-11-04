@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project>
+	<!-- _________________________ Application Settings _________________________ -->
+
+	<app title="Friday Night Funkin' - Phoenix Engine" file="FNF-Phoenix-Engine" packageName="quack.fnf.phoenix" package="quack.fnf.phoenix" main="Main" version="0.3.0" company="JordanSantiago" />
+	<app preloader="flixel.system.FlxPreloader" />
+
+	<!-- ____________________________ Window Settings ___________________________ -->
+
+	<!--These window settings apply to all targets-->
+	<window width="1280" height="720" background="#000000" hardware="true" vsync="false" />
+
+	<!--HTML5-specific-->
+	<window if="html5" resizable="true" />
+
+	<!--Desktop-specific-->
+	<window if="desktop" orientation="landscape" fullscreen="false" resizable="true" vsync="false"/>
+
+	<!--Mobile-specific-->
+	<window if="mobile" orientation="landscape" fullscreen="false" width="1280" height="720" resizable="false"/>
+
+	<!-- _____________________________ Path Settings ____________________________ -->
+
+	<set name="BUILD_DIR" value="export/debug" if="debug" />
+	<set name="BUILD_DIR" value="export/release" unless="debug" />
+	<set name="BUILD_DIR" value="export/32bit" if="32bits" />
+	<!-- because you need to rebuild the game everytime you enable tracy -->
+	<set name="BUILD_DIR" value="export/tracy" if="TRACY_ENABLED" />
+
+	<classpath name="source" />
+
+	<!-- PSYCH ENGINE CUSTOMIZATION -->
+	<define name="MODS_ALLOWED" if="desktop || mobile" unless="web" />
+	<define name="LUA_ALLOWED" if="desktop || mobile" unless="web || hl" />
+	<define name="HSCRIPT_ALLOWED" if="desktop || mobile || web" />
+	<define name="ACHIEVEMENTS_ALLOWED" />
+	<define name="SHADERS_ALLOWED" unless="flash"/>
+	<define name="FUNNY_ALLOWED" /> <!-- allows any joke related shit -->
+	<define name="VIDEOS_ALLOWED" if="desktop || mobile" unless="32bits || web"/>
+	<define name="PSYCH_WATERMARKS"/> <!-- DELETE THIS TO REMOVE WATERMARKS/DEV NAMES ON TITLE SCREEN -->
+	<define name="DISCORD_ALLOWED" if="desktop || mobile" unless="web" />
+
+	<assets path="assets/preload" rename="assets" exclude="*.ogg" if="web"/>
+	<assets path="assets/preload" rename="assets" exclude="*.mp3" unless="web"/>
+	<assets path="assets/embed"  exclude="*.ogg" if="web" embed="true"/>
+	<assets path="assets/embed"  exclude="*.mp3" unless="web" embed="true"/>
+	<assets path='art/debugThingyMajiggy.bat' rename='Open me to use the debug terminal.bat' />
+
+	<!-- DONT ENABLE THIS!! shut up shadowmario ill enable whatever i want-->
+	<define name="CHECK_FOR_UPDATES" />
+
+	<define name="PRELOAD_ALL" unless="web" />
+	<define name="NO_PRELOAD_ALL" unless="PRELOAD_ALL"/>
+
+	<library name="videos"        preload="true" />
+	<library name="splash"        preload="true" />
+	<section if="PRELOAD_ALL">
+		<library name="songs"         preload="true" />
+		<library name="shared"        preload="true" />
+		<library name="week2"         preload="true" />
+		<library name="week3"         preload="true" />
+		<library name="week4"         preload="true" />
+		<library name="week5"         preload="true" />
+		<library name="week6"         preload="true" />
+		<library name="week7"         preload="true" />
+		<library name="weekend1"      preload="true" />
+	</section>
+
+	<section if="NO_PRELOAD_ALL">
+		<library name="songs"         preload="false" />
+		<library name="shared"        preload="false" />
+		<library name="week2"         preload="false" />
+		<library name="week3"         preload="false" />
+		<library name="week4"         preload="false" />
+		<library name="week5"         preload="false" />
+		<library name="week6"         preload="false" />
+		<library name="week7"         preload="false" />
+		<library name="weekend1"      preload="false" />
+	</section>
+
+	<assets path="assets/videos"        library="videos"        if="VIDEOS_ALLOWED"/>
+	<assets path="assets/songs"         library="songs"         exclude="*.ogg" if="web"/>
+	<assets path="assets/songs"         library="songs"         exclude="*.mp3" unless="web"/>
+	<assets path="assets/shared"        library="shared"        exclude="*.ogg" if="web"/>
+	<assets path="assets/shared"        library="shared"        exclude="*.mp3" unless="web"/>
+	<assets path="assets/splash"        library="splash"        exclude="*.ogg" if="web"/>
+	<assets path="assets/splash"        library="splash"        exclude="*.mp3" unless="web"/>
+	<assets path="assets/week2"         library="week2"         exclude="*.ogg" if="web"/>
+	<assets path="assets/week2"         library="week2"         exclude="*.mp3" unless="web"/>
+	<assets path="assets/week3"         library="week3"         exclude="*.ogg" if="web"/>
+	<assets path="assets/week3"         library="week3"         exclude="*.mp3" unless="web"/>
+	<assets path="assets/week4"         library="week4"         exclude="*.ogg" if="web"/>
+	<assets path="assets/week4"         library="week4"         exclude="*.mp3" unless="web"/>
+	<assets path="assets/week5"         library="week5"         exclude="*.ogg" if="web"/>
+	<assets path="assets/week5"         library="week5"         exclude="*.mp3" unless="web"/>
+	<assets path="assets/week6"         library="week6"         exclude="*.ogg" if="web"/>
+	<assets path="assets/week6"         library="week6"         exclude="*.mp3" unless="web"/>
+	<assets path="assets/week7"         library="week7"         exclude="*.ogg" if="web"/>
+	<assets path="assets/week7"         library="week7"         exclude="*.mp3" unless="web"/>
+	<assets path="assets/weekend1"      library="weekend1"      exclude="*.mp3" unless="web"/>
+	
+	<assets path="gamemode.ini" if="linux" unless="debug"/>
+
+	<assets path="assets/soundtray" embed="true" />
+
+	<haxelib name="grig.audio"/>
+	<haxelib name="funkin.vis"/>
+
+	<section if="MODS_ALLOWED">
+		<assets path='mods' rename='mods' embed='false'/>
+	</section>
+
+	<assets path="assets/fonts"/>
+	<!-- _______________________________ Libraries ______________________________ -->
+
+	<haxelib name="lime" />
+	<haxelib name="flixel" />
+	<haxelib name="flixel-ui" version="2.6.0" />
+	<haxelib name="flixel-addons" />
+
+	<!--JS stuff needed-->
+	<haxelib name="hscript" />
+	<haxedef name="hscriptPos" />
+	<haxelib name="hxluajit" if="LUA_ALLOWED"/>
+	<haxelib name="tjson" />
+	<haxelib name="hxvlc" if="VIDEOS_ALLOWED"/>
+
+	<haxelib name="hxdiscord_rpc" if="DISCORD_ALLOWED" />
+	<!-- openfls folder dialog is an pain in the ass -->
+	<haxelib name="hxnativefiledialog" if="cpp" unless="hl || neko"/>
+	<haxelib name="hxgamemode" if="linux" unless="debug"/>
+	<haxelib name="flxanimate"/>
+
+	<!-- Enables a terminal log prompt on debug builds -->
+	<haxelib name="hxcpp-debug-server" if="debug" optional="true"/>
+	<haxedef name="HXVLC_NO_SHARE_DIRECTORY" if="VIDEOS_ALLOWED" />
+
+	<!--Disable the Flixel core focus lost screen-->
+	<haxedef name="FLX_NO_FOCUS_LOST_SCREEN" />
+
+	<!--Allow working memory greater than 1 Gig. NOTE: i recommend using Flixel 5.2.2 for this to work!-->
+	<haxedef name="HXCPP_GC_BIG_BLOCKS" if="cpp"/>
+	<!--also fixes like any "Memory Exhausted" issues you might get when compiling-->
+
+	<!--Disable the Flixel core debugger. Automatically gets set whenever you compile in release mode!-->
+	<haxedef name="FLX_NO_DEBUG" unless="debug" />
+
+	<!--Used for the engine's crash handler-->
+	<haxedef name="HXCPP_CHECK_POINTER"/>
+	<haxedef name="HXCPP_STACK_LINE"/>
+	<haxedef name="HXCPP_STACK_TRACE"/>
+	<haxedef name="HXCPP_CATCH_SEGV" />
+
+	<section if="TRACY_ENABLED">
+		<haxedef name="HXCPP_TELEMETRY"/>
+		<haxedef name="HXCPP_TRACY"/>
+		<haxedef name="HXCPP_TRACY_MEMORY"/>
+		<haxedef name="HXCPP_TRACY_ON_DEMAND"/>
+	</section>
+
+	<!-- Javascript breaks with inline for reasons unknown -->
+	<haxedef name="no-inline" if="html5"/>
+
+	<haxedef name='no-deprecation-warnings' unless="debug" />
+	<!-- for lime to not recompile asset cache on every build-->
+	<haxedef name='lime_disable_assets_version' />
+	<!--Disable deprecated warnings-->
+	<haxedef name='no_ssl' if="hl" />
+
+	<!-- back in my day we used to have errors that gave little info -->
+	<haxedef name="message.reporting" value="pretty" unless="{haxe &lt; 4.3.1}"/>
+	<haxedef name="message.log-format" value="pretty" unless="{haxe &lt; 4.3.1}"/>
+
+	<!-- Disable Discord IO Thread -->
+	<haxedef name="DISCORD_DISABLE_IO_THREAD" if="hxdiscord_rpc" />
+	<haxedef name="NO_PRECOMPILED_HEADERS" />
+
+	<!--This fixes compiling with macros according to official PE source code-->
+	<haxeflag name="--macro" value="allowPackage('flash')" />
+	<haxeflag name="--macro" value="include('my.pack')" />
+
+	<!-- _________________________________ Custom _______________________________ -->
+
+	<!--Place custom nodes like icons here (higher priority to override the HaxeFlixel icon)-->
+	<assets path='art/iconOG.png' rename='icon.png' if="linux || mac" />
+
+	<icon path="art/icon16.png" size='16'/>
+	<icon path="art/icon32.png" size='32'/>
+	<icon path="art/icon64.png" size='64'/>
+	<icon path="art/iconOG.png" />
+</project>

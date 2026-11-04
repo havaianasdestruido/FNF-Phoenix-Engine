@@ -1,0 +1,69 @@
+name: Checks
+
+# Fast regression guards for Arena fixes and BPM-aware chart timing.
+# Python/source guards need no Haxe or Android SDK; Java 17 exercises the
+# Android-free SAF path-policy and Media3 bridge lifecycle/action classes.
+
+on:
+  push:
+    branches: [main, bleeding]
+  pull_request:
+    branches: [main, bleeding]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  static-checks:
+    name: Regression tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Dependency manifests agree and are pinned
+        run: python3 tools/check_dependencies.py
+
+      - name: Setup Java 17 for host-JVM regression tests
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Run regression tests
+        run: python3 -m unittest discover -s tests -p 'test_*.py' -v
+
+  widescreen-layout:
+    name: Widescreen geometry (Haxe)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: krdlab/setup-haxe@master
+        with:
+          haxe-version: "4.3.7"
+      - name: Test viewport, touch lanes, resize rollback and script scanning
+        run: bash tests/haxe/run-layout.sh
+      - name: Typecheck platform native dialog bridge
+        run: bash tests/haxe/run-platform-util-native.sh
+      - name: Test Phoenix version and release selection
+        run: bash tests/haxe/run-phoenix-version.sh
+      - name: Test watermark platform badge (detection, density, artwork)
+        run: bash tests/haxe/run-platform-icons.sh
+      - name: Typecheck threaded update checker
+        run: bash tests/haxe/run-update-checker-typecheck.sh
+      - name: Test RAM graph history and interpolation
+        run: bash tests/haxe/run-ram-graph.sh
+      - name: Test BPM-aware chart section timing
+        run: bash tests/haxe/run-charting-timing.sh
+      - name: Test JSON chart parsing and legacy event compaction
+        run: bash tests/haxe/run-chart-loading.sh
+      - name: Test gameplay chart note/event conversion
+        run: bash tests/haxe/run-chart-loader.sh
+      - name: Test .zip mod import (path policy, archive parsing, extraction)
+        run: bash tests/haxe/run-mod-zip.sh
+      - name: Test per-area RAM ledger (vlog memory attribution)
+        run: bash tests/haxe/run-memory-ledger.sh
+      - name: Test settings backup format (export/import .json)
+        run: bash tests/haxe/run-settings-backup.sh
+      - name: Test mobile storage and pre-state startup resize
+        run: python3 -m unittest discover -s tests -p 'test_mobile_startup.py' -v

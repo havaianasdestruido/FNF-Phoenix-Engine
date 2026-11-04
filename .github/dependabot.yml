@@ -1,0 +1,28 @@
+# Dependabot version updates.
+# Docs: https://docs.github.com/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
+#
+# Security alerts/updates are enabled from the repository settings and do not
+# depend on this file; it only keeps the manifests fresh on a schedule.
+#
+# The website's build chain is pinned with npm `overrides` (see
+# website/README.md#dependency-overrides). Dependabot updates the direct
+# dependencies; re-check the overrides when it bumps `@docusaurus/*`.
+
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/website"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    groups:
+      docusaurus:
+        patterns:
+          - "@docusaurus/*"
+      dev-dependencies:
+        dependency-type: "development"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"

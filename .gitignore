@@ -1,0 +1,47 @@
+### FNF-Specific
+# File used for the NG API. Should not be shared with others.
+APIStuff.hx
+art/build_x32-officialrelease.bat
+art/build_x64-officialrelease.bat
+art/test_x64-debug-officialrelease.bat
+
+# Local-only symlink to the sparse-checked-out psych-scripts mod
+# (mods/psych-scripts is a submodule and CI checks out only its fnf_030_ui/).
+# It must never be committed: without the submodule the link dangles, and a
+# dangling symlink aborts every engine build (#129). Create it yourself with
+# `ln -s psych-scripts/fnf_030_ui mods/fnf_030_ui` after initialising the
+# submodule -- .github/workflows/sparse-submodule.yml does the same in CI.
+mods/fnf_030_ui
+
+### VS Code
+build/*
+export/*
+debug/log/*.log
+.vscode/*
+.haxelib/
+*.code-workspace
+# Local history which shouldn't be shared.
+.history
+.ionide
+# macOS file attribute which can cause problems when uploading.
+*.DS_Store
+# ! means a file should be added regardless of it it gets ignored prior.
+# Including to allow others to use already set-up configuration tweaked for the project.
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+### Documentation site (website/)
+website/node_modules/
+website/build/
+website/.docusaurus/
+# Generated from source/ by website/scripts/ on every build — never committed.
+website/docs/reference/
+website/docs/modding/lua-api-reference.md
+website/docs/modding/python-api-reference.md
+
+### Python
+# Bytecode caches from `python3 -m unittest` / tools/check_dependencies.py.
+__pycache__/
+*.pyc

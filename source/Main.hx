@@ -1,0 +1,299 @@
+package;
+
+import backend.SSPlugin as ScreenShotPlugin;
+import debug.FPSCounter;
+import debug.FrameProfiler;
+import backend.FunkinGame;
+import flixel.system.scaleModes.PhoenixScaleMode;
+// REFACTOR: relocated root classes
+import backend.CrashHandler;
+import states.InitState;
+import lime.app.Application;
+import openfl.Lib;
+import openfl.display.Sprite;
+
+// REFACTOR: imports for relocated root classes
+import backend.Achievements;
+import backend.ClientPrefs;
+import backend.CoolUtil;
+import backend.DiscordClient;
+import backend.TransparentWindow;
+import backend.WindowColorMode;
+import play.PlayState;
+#if GAMEMODE_ALLOWED
+import hxgamemode.GamemodeClient;
+#end
+#if ((linux || mac) && !flash)
+import lime.graphics.Image;
+#end
+
+#if windows
+@:buildXml('
+<target id="haxe">
+	<lib name="wininet.lib" if="windows" />
+	<lib name="dwmapi.lib" if="windows" />
+</target>
+')
+@:cppFileCode('
+#include <windows.h>
+#include <winuser.h>
+#include <string>
+')
+#end
+class Main extends Sprite
+{
+  final game =
+    {
+      width: 1280,
+      height: 720,
+      initialState: InitState,
+      zoom: -1.0,
+      framerate: 60,
+      skipSplash: true,
+      startFullscreen: false
+    };
+
+  public static var fpsVar:FPSCounter;
+  public static var instance:Main;
+
+  public static final superDangerMode:Bool = #if sys Sys.args().contains("-troll") #else false #end;
+
+  // You can pretty much ignore everything from here on - your code should go in your states.
+
+  @:noCompletion
+  private static function __init__():Void
+  {
+    #if GAMEMODE_ALLOWED
+    // Request we start game mode. Non-fatal: gamemoded may simply not be
+    // installed, and the header-only client fails gracefully in that case.
+    if (GamemodeClient.request_start() != 0)
+      Sys.println('Failed to request gamemode start: ${GamemodeClient.error_string()}...');
+    else
+      Sys.println('Successfully requested gamemode to start...');
+    #end
+  }
+
+  /**
+   * Best-effort GameMode cleanup. Called on application exit; the daemon also
+   * unregisters the process automatically when it terminates.
+   */
+  public static function shutdownGameMode():Void
+  {
+    #if GAMEMODE_ALLOWED
+    if (GamemodeClient.query_status() > 0 && GamemodeClient.request_end() != 0)
+      Sys.println('Failed to request gamemode end: ${GamemodeClient.error_string()}...');
+    #end
+  }
+
+  public static function main():Void
+  {
+    #if (cpp && windows)
+    restoreBuildFolderIcon();
+    #end
+    Lib.current.addChild(new Main());
+  }
+
+  #if (cpp && windows)
+  // Archives commonly lose Windows directory attributes. Restore only the
+  // executable's own folder, and only when both packaged icon files exist.
+  @:functionCode('
+    wchar_t executable[32768];
+    DWORD length = GetModuleFileNameW(NULL, executable, 32768);
+    if (length == 0 || length >= 32768) return;
+    std::wstring folder(executable, length);
+    size_t separator = folder.find_last_of(L"\\\\/");
+    if (separator == std::wstring::npos) return;
+    folder.resize(separator);
+    DWORD ini = GetFileAttributesW((folder + L"\\\\desktop.ini").c_str());
+    DWORD icon = GetFileAttributesW((folder + L"\\\\phoenix.ico").c_str());
+    DWORD attributes = GetFileAttributesW(folder.c_str());
+    if (ini == INVALID_FILE_ATTRIBUTES || (ini & FILE_ATTRIBUTE_DIRECTORY) ||
+        icon == INVALID_FILE_ATTRIBUTES || (icon & FILE_ATTRIBUTE_DIRECTORY) ||
+        attributes == INVALID_FILE_ATTRIBUTES || (attributes & FILE_ATTRIBUTE_READONLY)) return;
+    SetFileAttributesW(folder.c_str(), attributes | FILE_ATTRIBUTE_READONLY);
+  ')
+  private static function restoreBuildFolderIcon():Void {}
+  #end
+
+  public function new()
+  {
+    super();
+    #if mobile
+    // The storage directory must become the working directory before the
+    // vlog opens, so vlog/ lands in the app's external files directory (the
+    // same directory the SAF VLogs root exposes).
+    if (!mobile.StorageUtil.initStorageDirectory())
+    {
+      lime.system.System.exit(1);
+      return;
+    }
+    #end
+    // The verbose vlog is opt-in (Options -> Misc -> 'Enable VLog'), so a
+    // normal session writes nothing to disk. FlxG.save is only bound later in
+    // InitState, so the saved flag is read straight from funkin.sol here —
+    // when it is on, vlog/log.txt opens before CrashHandler.init and hooks
+    // every trace() for the whole boot.
+    backend.VLog.init(game.framerate, ClientPrefs.readSavedBool('vlogEnabled'));
+    // Only queues any phoenix:// link that launched the game; registering the
+    // scheme itself is opt-in from Options -> Misc, never done on startup.
+    backend.deeplink.DeepLinks.init();
+
+    instance = this;
+    CrashHandler.init();
+    #if (cpp && windows)
+    untyped __cpp__("
+		SetProcessDPIAware(); // allows for more crisp visuals
+		SetConsoleOutputCP(CP_UTF8);
+		DisableProcessWindowsGhosting(); // lets you move the window and such if it's not responding
+	");
+    #end
+    setupGame();
+  }
+
+  public static var askedToUpdate:Bool = false;
+
+  public static function isPlayState():Bool
+    return Std.isOfType(FlxG.state, play.PlayState);
+
+  private function setupGame():Void
+  {
+    var stageWidth:Int = Lib.current.stage.stageWidth;
+    var stageHeight:Int = Lib.current.stage.stageHeight;
+    #if ((openfl <= "9.2.0") && !flash)
+    if (game.zoom == -1.0)
+    {
+      var ratioX:Float = stageWidth / game.width;
+      var ratioY:Float = stageHeight / game.height;
+      game.zoom = Math.min(ratioX, ratioY);
+      // Keep the logical 1280x720 base even on older OpenFL. PhoenixScaleMode
+      // decides whether the extra physical width is exposed or letterboxed.
+    };
+    #end
+    ClientPrefs.loadDefaultStuff();
+    FrameProfiler.init(game.framerate);
+    #if ACHIEVEMENTS_ALLOWED AchievementsSave.instance.load(); #end
+
+    final funkinGame:FunkinGame = new FunkinGame(game.width, game.height, #if (mobile && MODS_ALLOWED) !mobile.CopyState.checkExistingFiles() ? mobile.CopyState : #end game.initialState, #if (flixel < "5.0.0") game.zoom, #end game.framerate, game.framerate,
+      game.skipSplash, game.startFullscreen);
+    // Literally just from Vanilla FNF but I implemented it my own way. -Torch
+    // torch is my friend btw :3 -moxie
+    #if !FLX_NO_SOUND_TRAY
+    @:privateAccess {
+      final soundFrontEnd:flixel.system.frontEnds.SoundFrontEnd = new objects.CustomSoundTray.CustomSoundFrontEnd();
+      FlxG.sound = soundFrontEnd;
+      funkinGame._customSoundTray = objects.CustomSoundTray.CustomSoundTray;
+    }
+    #end
+
+    #if android
+    // Platform hooks use Flixel timers and frontends. Wait until the first
+    // state is created, not just the game constructor (which precedes stage
+    // attachment and the initial timer-manager reset).
+    FlxG.signals.postGameStart.addOnce(function() {
+      android.platform.AndroidPlatform.init();
+    });
+    #end
+    #if ios
+    FlxG.signals.postGameStart.addOnce(function() {
+      ios.platform.IOSPlatform.init();
+    });
+    #end
+
+    addChild(funkinGame);
+    // Main itself is not on stage yet. This immediately resizes the viewport;
+    // FlxGame defers state callbacks until its ADDED_TO_STAGE initialization.
+    FlxG.scaleMode = new PhoenixScaleMode();
+
+    fpsVar = new FPSCounter(3, 3, 0x00FFFFFF);
+    addChild(fpsVar);
+
+    if (fpsVar != null)
+    {
+      fpsVar.visible = ClientPrefs.showFPS;
+    }
+
+    #if (!web && !flash)
+    FlxG.plugins.addIfUniqueType(new ScreenShotPlugin());
+    #end
+
+    FlxG.autoPause = false;
+
+    #if ((linux || mac) && !flash)
+    var icon = Image.fromFile("icon.png");
+    Lib.current.stage.window.setIcon(icon);
+    #end
+
+    #if windows
+    system.Window.darkMode(true);
+    #end
+
+    #if (cpp && windows && NO_W11_CORNERS)
+    // Opt-in build flag: leave the default rounded corners untouched otherwise.
+    Windows.setSquareCorners(true);
+    #end
+
+    // Watches the window mode so transparency can be suspended in fullscreen.
+    TransparentWindow.init();
+
+    #if (cpp && windows)
+    Application.current.onExit.add(function(_:Int) Windows.removeWindowsNotification());
+    #end
+
+    #if DISCORD_ALLOWED DiscordClient.prepare(); #end
+
+    #if GAMEMODE_ALLOWED
+    Application.current.onExit.add(function(_:Int) shutdownGameMode());
+    #end
+
+    #if !flash
+    FrameProfiler.registerExitHook();
+    #end
+
+    // shader coords fix
+    FlxG.signals.gameResized.add(function(w, h) {
+      if (FlxG.cameras != null)
+      {
+        for (cam in FlxG.cameras.list)
+        {
+          if (cam != null && cam.filters != null) resetSpriteCache(cam.flashSprite);
+        }
+      }
+
+      if (FlxG.game != null) resetSpriteCache(FlxG.game);
+    });
+
+    // Engine + libs are fully initialised but no song/mod content is loaded yet:
+    // snapshot the boot heap as the memory ledger's "engine code" baseline.
+    backend.MemoryLedger.captureEngineBaseline();
+  }
+
+  public static function getTime():Float
+  {
+    #if ((js && !nodejs) || electron)
+    return js.Browser.window.performance.now();
+    #elseif sys
+    return Sys.time() * 1000;
+    #elseif (lime_cffi && !macro) @:privateAccess
+    return cast lime._internal.backend.native.NativeCFFI.lime_system_get_timer();
+    #elseif cpp
+    return untyped __global__.__time_stamp() * 1000;
+    #else
+    return 0;
+    #end
+  }
+
+  static function resetSpriteCache(sprite:Sprite):Void
+  {
+    #if !flash
+    @:privateAccess {
+      sprite.__cacheBitmap = null;
+      sprite.__cacheBitmapData = null;
+    }
+    #end
+  }
+
+  public static function changeFPSColor(color:FlxColor)
+  {
+    fpsVar.textColor = color;
+  }
+}

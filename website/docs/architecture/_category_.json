@@ -1,0 +1,9 @@
+{
+  "label": "Architecture",
+  "position": 3,
+  "link": {
+    "type": "generated-index",
+    "title": "Architecture",
+    "description": "How the engine is wired together: boot sequence, state flow, asset resolution, timing, preferences and the platform layer."
+  }
+}

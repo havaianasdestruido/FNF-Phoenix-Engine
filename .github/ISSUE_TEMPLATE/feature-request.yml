@@ -1,0 +1,25 @@
+name: Feature Request
+description: "Make an issue to either add or fix something."
+labels: [enhancement, "status: pending triage"]
+body:
+  - type: textarea
+    attributes:
+      label: What feature do you want to get added on the **base** engine?
+    validations:
+      required: true
+  - type: dropdown
+    id: eyetest
+    attributes:
+      label: To test your sight, and reliability, please select the option of what should NOT be requested.
+      description: "If it's code optimization, and the optimization is yours, make a [Pull Request](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/pulls) please."
+      options:
+        - Proper credit that was forgotten.
+        - Thing that would not cause problems.
+        - Useful feature.
+        - Actual feedback.
+        - A good idea.
+        - Stage Editor.
+        - Better LUA mod support idea.
+        - Code optimization that would make the game faster.
+    validations:
+      required: true

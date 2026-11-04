@@ -1,0 +1,491 @@
+package quack.fnf.phoenix.android;
+
+import android.app.Activity;
+import android.content.Context;
+import android.graphics.Point;
+import android.hardware.display.DisplayManager;
+import android.os.Build;
+import android.util.DisplayMetrics;
+import android.util.Log;
+import android.view.Display;
+import android.view.DisplayCutout;
+import android.view.View;
+import android.view.WindowInsets;
+import android.view.WindowInsetsController;
+import android.view.WindowManager;
+
+import org.haxe.extension.Extension;
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+/**
+ * Native display information plus immersive/edge-to-edge handling for the
+ * Phoenix Android platform layer. See docs/ANDROID_PLATFORM.md.
+ */
+public class PhoenixDisplay extends Extension
+{
+	private static DisplayManager.DisplayListener displayListener = null;
+	private static final String LOG_TAG = "PhoenixDisplay";
+	private static final String PREFS_NAME = "phoenix_display";
+	private static final String KEY_CUTOUT_MODE = "cutoutMode";
+	private static volatile String cutoutMode = "never";
+	private static volatile String immersiveMode = "full";
+
+	/**
+	 * Restores the last native cutout mode before SDL creates its content view.
+	 * Haxe remains the settings authority and refreshes this mirror on load.
+	 */
+	public static void restoreCutoutMode(Context context)
+	{
+		if (context == null)
+			return;
+		try
+		{
+			String mode = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+				.getString(KEY_CUTOUT_MODE, "never");
+			cutoutMode = "always".equals(mode) || "shortEdges".equals(mode) || "default".equals(mode) ? mode : "never";
+		}
+		catch (RuntimeException error)
+		{
+			Log.e(LOG_TAG, "Unable to restore cutout preference; using respect-cutout default", error);
+		}
+	}
+
+	/** Implemented by our Activity; no static Activity/view ownership. */
+	public interface CutoutHost
+	{
+		void setRespectCutoutInsets(boolean respect);
+	}
+
+	/** Called on the UI thread after creation, resume and focus restoration. */
+	public static void applyCutoutToActivity(Activity activity)
+	{
+		if (Build.VERSION.SDK_INT < 28 || activity == null || activity != mainActivity
+			|| activity.isFinishing() || activity.isDestroyed())
+			return;
+		String stage = "obtaining window";
+		try
+		{
+			android.view.Window window = activity.getWindow();
+			if (window == null)
+			{
+				Log.w(LOG_TAG, "Cutout window unavailable; will retry on resume/focus");
+				return;
+			}
+			String mode = cutoutMode;
+			boolean inset = PhoenixCutoutPolicy.needsSafeInsets(Build.VERSION.SDK_INT,
+				activity.getApplicationInfo().targetSdkVersion, mode);
+			stage = "updating cutout attributes";
+			WindowManager.LayoutParams attributes = window.getAttributes();
+			// Explicit ALWAYS prevents platform letterboxing plus our padding
+			// from both reserving the same cutout on enforced-edge-to-edge builds.
+			attributes.layoutInDisplayCutoutMode = inset
+				? WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS
+				: PhoenixCutoutPolicy.windowMode(Build.VERSION.SDK_INT, mode);
+			window.setAttributes(attributes);
+			stage = "updating native content insets";
+			if (activity instanceof CutoutHost)
+				((CutoutHost) activity).setRespectCutoutInsets(inset);
+			else if (inset)
+				Log.e(LOG_TAG, "Respect cutout requires the Phoenix MainActivity content host");
+			stage = "requesting window insets/layout";
+			window.getDecorView().requestApplyInsets();
+			window.getDecorView().requestLayout();
+		}
+		catch (RuntimeException error)
+		{
+			Log.e(LOG_TAG, "Cutout failed while " + stage, error);
+		}
+	}
+
+	/**
+	 * Returns display information as a JSON object:
+	 * { width, height, densityDpi, xdpi, ydpi, rotation, refreshRate,
+	 *   supportedRefreshRates: [..], cutout: [left, top, right, bottom] }
+	 */
+	public static String getDisplayInfo()
+	{
+		try
+		{
+			JSONObject info = new JSONObject();
+			Context context = mainContext;
+			Activity activity = mainActivity;
+			if (context == null)
+				return "{}";
+
+			DisplayMetrics metrics = context.getResources().getDisplayMetrics();
+			Display display = null;
+
+			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && activity != null)
+				display = activity.getDisplay();
+			if (display == null)
+			{
+				WindowManager windowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
+				if (windowManager != null)
+					display = windowManager.getDefaultDisplay();
+			}
+
+			int width = metrics.widthPixels;
+			int height = metrics.heightPixels;
+			if (display != null)
+			{
+				Point size = new Point();
+				display.getRealSize(size);
+				width = size.x;
+				height = size.y;
+			}
+
+			info.put("width", width);
+			info.put("height", height);
+			info.put("densityDpi", metrics.densityDpi);
+			info.put("xdpi", metrics.xdpi);
+			info.put("ydpi", metrics.ydpi);
+			info.put("rotation", display == null ? 0 : display.getRotation());
+			info.put("refreshRate", display == null ? 60.0 : display.getRefreshRate());
+
+			JSONArray rates = new JSONArray();
+			if (display != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
+			{
+				for (Display.Mode mode : display.getSupportedModes())
+				{
+					float rate = mode.getRefreshRate();
+					boolean duplicate = false;
+					for (int i = 0; i < rates.length(); i++)
+					{
+						if (Math.abs(rates.getDouble(i) - rate) < 0.01)
+						{
+							duplicate = true;
+							break;
+						}
+					}
+					if (!duplicate)
+						rates.put(rate);
+				}
+			}
+			if (rates.length() == 0)
+				rates.put(info.optDouble("refreshRate", 60.0));
+			info.put("supportedRefreshRates", rates);
+
+			info.put("cutout", getCutoutInsetsArray());
+
+			return info.toString();
+		}
+		catch (Exception e)
+		{
+			return "{}";
+		}
+	}
+
+	/** @return cutout safe insets as [left, top, right, bottom]. */
+	private static JSONArray getCutoutInsetsArray() throws Exception
+	{
+		JSONArray cutout = new JSONArray();
+		int left = 0, top = 0, right = 0, bottom = 0;
+
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P && mainActivity != null)
+		{
+			try
+			{
+				WindowInsets insets = mainActivity.getWindow().getDecorView().getRootWindowInsets();
+				if (insets != null)
+				{
+					DisplayCutout displayCutout = insets.getDisplayCutout();
+					if (displayCutout != null)
+					{
+						left = displayCutout.getSafeInsetLeft();
+						top = displayCutout.getSafeInsetTop();
+						right = displayCutout.getSafeInsetRight();
+						bottom = displayCutout.getSafeInsetBottom();
+					}
+				}
+			}
+			catch (RuntimeException error)
+			{
+				Log.e(LOG_TAG, "Unable to retrieve physical cutout insets", error);
+			}
+		}
+
+		cutout.put(left);
+		cutout.put(top);
+		cutout.put(right);
+		cutout.put(bottom);
+		return cutout;
+	}
+
+	/** @return cutout insets as a CSV string "left,top,right,bottom". */
+	public static String getCutoutInsets()
+	{
+		try
+		{
+			JSONArray array = getCutoutInsetsArray();
+			return array.get(0) + "," + array.get(1) + "," + array.get(2) + "," + array.get(3);
+		}
+		catch (Exception e)
+		{
+			Log.e(LOG_TAG, "Unable to serialize physical cutout insets", e);
+			return "0,0,0,0";
+		}
+	}
+
+	/**
+	 * Applies an immersive mode:
+	 *   "full"   - hide status + navigation bars, re-show on swipe (sticky)
+	 *   "lean"   - hide bars, any swipe re-shows them
+	 *   "off"    - show all system bars
+	 */
+	public static void setImmersive(final String mode)
+	{
+		immersiveMode = "off".equals(mode) || "lean".equals(mode) ? mode : "full";
+		final Activity activity = mainActivity;
+		if (activity == null)
+			return;
+		try
+		{
+			activity.runOnUiThread(new Runnable()
+			{
+				@Override public void run()
+				{
+					if (activity == mainActivity)
+						applyImmersiveToActivity(activity);
+				}
+			});
+		}
+		catch (RuntimeException error)
+		{
+			Log.e(LOG_TAG, "Unable to schedule immersive window update", error);
+		}
+	}
+
+	/** Called on the UI thread after creation, resume and focus restoration. */
+	public static void applyImmersiveToActivity(Activity activity)
+	{
+		if (activity == null || activity != mainActivity || activity.isFinishing() || activity.isDestroyed())
+			return;
+		try
+		{
+			android.view.Window window = activity.getWindow();
+			if (window == null)
+			{
+				Log.w(LOG_TAG, "Immersive window unavailable; will retry on resume/focus");
+				return;
+			}
+			String mode = immersiveMode;
+			boolean showBars = "off".equals(mode);
+			// SDL's fullscreen command may be queued after our first lifecycle
+			// callback. Keep the window flags in sync as well as the UI flags.
+			if (showBars)
+			{
+				window.clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+				window.addFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
+			}
+			else
+			{
+				window.addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+				window.clearFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
+			}
+
+			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
+			{
+				WindowInsetsController controller = window.getInsetsController();
+				if (controller == null)
+				{
+					Log.w(LOG_TAG, "Immersive controller unavailable; will retry on resume/focus");
+					return;
+				}
+				int bars = WindowInsets.Type.statusBars() | WindowInsets.Type.navigationBars();
+				if (showBars)
+				{
+					controller.show(bars);
+				}
+				else
+				{
+					controller.hide(bars);
+					controller.setSystemBarsBehavior("full".equals(mode)
+						? WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+						: WindowInsetsController.BEHAVIOR_SHOW_BARS_BY_SWIPE);
+				}
+			}
+			else
+			{
+				int flags = View.SYSTEM_UI_FLAG_VISIBLE;
+				if (!showBars)
+				{
+					flags = View.SYSTEM_UI_FLAG_IMMERSIVE
+						| View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+						| View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+						| View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+						| View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+						| View.SYSTEM_UI_FLAG_FULLSCREEN;
+					if ("full".equals(mode))
+						flags |= View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
+				}
+				window.getDecorView().setSystemUiVisibility(flags);
+			}
+		}
+		catch (RuntimeException error)
+		{
+			Log.e(LOG_TAG, "Unable to apply immersive window mode", error);
+		}
+	}
+
+	/** Reapply both independent display policies after Lime/SDL window setup. */
+	public static void applyDisplayToActivity(Activity activity)
+	{
+		applyImmersiveToActivity(activity);
+		applyCutoutToActivity(activity);
+	}
+
+	/**
+	 * Sets the display cutout behavior: "default", "shortEdges", "always" or
+	 * "never" (mirrors android.layoutInDisplayCutoutMode values).
+	 */
+	public static void setCutoutMode(final String mode)
+	{
+		cutoutMode = mode;
+		// Mirror the Haxe setting for the next cold start, before Haxe is up.
+		// apply() is asynchronous; the in-memory value above drives this session.
+		final Context context = mainContext;
+		if (context != null)
+		{
+			try
+			{
+				context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit()
+					.putString(KEY_CUTOUT_MODE, mode).apply();
+			}
+			catch (RuntimeException error)
+			{
+				Log.e(LOG_TAG, "Unable to persist cutout preference", error);
+			}
+		}
+		if (Build.VERSION.SDK_INT < 28)
+			return;
+		final Activity activity = mainActivity;
+		if (activity == null || activity.isFinishing() || activity.isDestroyed())
+		{
+			Log.w(LOG_TAG, "Cutout Activity unavailable; preference retained for creation/resume");
+			return;
+		}
+		try
+		{
+			activity.runOnUiThread(new Runnable()
+			{
+				@Override public void run()
+				{
+					// Revalidate identity and use the latest preference, not a stale queued value.
+					applyCutoutToActivity(activity);
+				}
+			});
+		}
+		catch (RuntimeException error)
+		{
+			Log.e(LOG_TAG, "Unable to schedule cutout window update", error);
+		}
+	}
+
+	/**
+	 * Requests a preferred refresh rate on API 23+ (best-effort; the system
+	 * may ignore it). Pass 0 to clear the preference.
+	 */
+	public static void setPreferredRefreshRate(float rate)
+	{
+		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M)
+			return;
+
+		final Activity activity = mainActivity;
+		if (activity == null)
+			return;
+
+		final float preferred = rate;
+		activity.runOnUiThread(new Runnable()
+		{
+			@Override public void run()
+			{
+				try
+				{
+					WindowManager.LayoutParams attributes = activity.getWindow().getAttributes();
+					attributes.preferredDisplayModeId = 0;
+
+					if (preferred > 0 && mainActivity != null)
+					{
+						Display display = null;
+						if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
+							display = mainActivity.getDisplay();
+						if (display == null)
+						{
+							WindowManager windowManager = (WindowManager) mainActivity.getSystemService(Context.WINDOW_SERVICE);
+							if (windowManager != null)
+								display = windowManager.getDefaultDisplay();
+						}
+						if (display != null)
+						{
+							int bestId = 0;
+							float bestDelta = Float.MAX_VALUE;
+							for (Display.Mode mode : display.getSupportedModes())
+							{
+								float delta = Math.abs(mode.getRefreshRate() - preferred);
+								if (delta < bestDelta)
+								{
+									bestDelta = delta;
+									bestId = mode.getModeId();
+								}
+							}
+							attributes.preferredDisplayModeId = bestId;
+						}
+					}
+
+					mainActivity.getWindow().setAttributes(attributes);
+				}
+				catch (Exception ignored) {}
+			}
+		});
+	}
+
+	/** Starts listening for display changes (rotation/refresh); events arrive as "display"/"changed". */
+	public static void registerDisplayListener()
+	{
+		if (mainContext == null)
+			return;
+
+		unregisterDisplayListener();
+		try
+		{
+			DisplayManager manager = (DisplayManager) mainContext.getSystemService(Context.DISPLAY_SERVICE);
+			if (manager == null)
+				return;
+
+			displayListener = new DisplayManager.DisplayListener()
+			{
+				@Override public void onDisplayAdded(int displayId) {}
+
+				@Override public void onDisplayRemoved(int displayId) {}
+
+				@Override public void onDisplayChanged(int displayId)
+				{
+					PhoenixCore.dispatch("display", "changed");
+				}
+			};
+			manager.registerDisplayListener(displayListener, null);
+		}
+		catch (Exception ignored) {}
+	}
+
+	public static void unregisterDisplayListener()
+	{
+		if (mainContext == null || displayListener == null)
+			return;
+
+		try
+		{
+			DisplayManager manager = (DisplayManager) mainContext.getSystemService(Context.DISPLAY_SERVICE);
+			if (manager != null)
+				manager.unregisterDisplayListener(displayListener);
+		}
+		catch (Exception ignored) {}
+		displayListener = null;
+	}
+
+	@Override public void onDestroy()
+	{
+		unregisterDisplayListener();
+	}
+}

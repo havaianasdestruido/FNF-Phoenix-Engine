@@ -1,0 +1,98 @@
+name: Manual Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: "Phoenix release tag (e.g. v0.0.1, v0.0.2-alpha, v0.0.2-pre1)"
+        required: true
+      prerelease:
+        description: "Mark as prerelease (alpha/beta/pre/rc releases should be true)"
+        required: true
+        type: boolean
+      custom_message:
+        description: "Optional Markdown prepended to GitHub-generated release notes"
+        required: false
+
+permissions:
+  contents: write
+
+env:
+  RELEASE_TITLE: Phoenix Engine - ${{ github.event.inputs.tag_name }} Release
+
+jobs:
+  ensure-tag:
+    name: Validate and Create Tag
+    runs-on: ubuntu-latest
+    outputs:
+      tag_name: ${{ steps.tagger.outputs.tag_name }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate Phoenix version
+        env:
+          INPUT_TAG: ${{ github.event.inputs.tag_name }}
+        run: |
+          TAG_NAME=$(python3 tools/release_version.py "$INPUT_TAG" --print-tag)
+          echo "TAG_NAME=$TAG_NAME" >> "$GITHUB_ENV"
+
+      - name: Set validated tag name
+        id: tagger
+        run: echo "tag_name=$TAG_NAME" >> "$GITHUB_OUTPUT"
+
+      - name: Create tag only when it points at this commit
+        run: |
+          git config --global user.name "${{ github.actor }}"
+          git config --global user.email "${{ github.actor }}@users.noreply.github.com"
+          if git rev-parse -q --verify "refs/tags/$TAG_NAME" >/dev/null; then
+            EXISTING_COMMIT=$(git rev-list -n 1 "$TAG_NAME")
+            if [ "$EXISTING_COMMIT" != "$GITHUB_SHA" ]; then
+              echo "::error::Tag $TAG_NAME already exists at $EXISTING_COMMIT, not $GITHUB_SHA. Refusing to move a published tag."
+              exit 1
+            fi
+            echo "Tag $TAG_NAME already points at this commit."
+          else
+            git tag "$TAG_NAME" "$GITHUB_SHA"
+            git push origin "refs/tags/$TAG_NAME"
+          fi
+
+  build:
+    name: Build Artifacts
+    needs: ensure-tag
+    uses: ./.github/workflows/main.yml
+    with:
+      buildFlags: officialBuild
+
+  release-windows:
+    name: Release windowsBuild
+    needs: [ensure-tag, build]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Windows artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: windowsBuild
+          path: build
+
+      - name: Compress build
+        run: |
+          sudo apt-get install -y p7zip-full
+          7z a -tzip windowsBuild.zip -w ./build/.
+
+      - name: Create draft and upload artifact
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TAG: ${{ needs.ensure-tag.outputs.tag_name }}
+          RELEASE_BODY: ${{ github.event.inputs.custom_message }}
+          IS_PRERELEASE: ${{ github.event.inputs.prerelease }}
+        run: |
+          printf '%s\n' "$RELEASE_BODY" > release-notes.md
+          if ! gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            flags=(--draft --title "$RELEASE_TITLE" --generate-notes --notes-file release-notes.md)
+            if [ "$IS_PRERELEASE" = "true" ]; then flags+=(--prerelease); fi
+            gh release create "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" "${flags[@]}"
+          fi
+          gh release upload "$RELEASE_TAG" 'windowsBuild.zip#FNF-Phoenix-Engine-windows.zip' --repo "$GITHUB_REPOSITORY" --clobber

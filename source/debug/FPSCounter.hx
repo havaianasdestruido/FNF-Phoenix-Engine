@@ -1,0 +1,202 @@
+package debug;
+
+import debug.FrameProfiler;
+import debug.PoolStats;
+import debug.mem.GetTotalMemory;
+import lime.system.System as LimeSystem;
+import openfl.events.Event;
+import openfl.text.TextField;
+import openfl.text.TextFormat;
+import openfl.text.TextFormatAlign;
+
+import backend.ClientPrefs;
+import play.PlayState;
+import states.MainMenuState;
+
+class FPSCounter extends TextField
+{
+  public var currentFPS(default, null):Float;
+
+  var lastText:String = "";
+  var outlineDirty:Bool = true;
+  var _outlineTimer:Float = 0;
+
+  /*
+   * The current memory usage (WARNING: This might NOT your total memory usage, rather it might show the garbage collector memory if you aren't running on a C++ platform.)
+   */
+  public var memory(get, never):Float;
+
+  inline function get_memory():Float
+    return GetTotalMemory.getCurrentRSS();
+
+  var mempeak(get, never):Float;
+
+  inline function get_mempeak():Float
+    return GetTotalMemory.getPeakRSS();
+
+  private var _framesPassed:Int = 0;
+  private var _updateClock:Float = 0;
+  private var _previousTime:Float = 0;
+
+  public var align(default, set):TextFormatAlign;
+
+  public function new(x:Float = 10, y:Float = 10, color:Int = 0x00000000)
+  {
+    super();
+
+    this.x = x;
+    this.y = y;
+
+    currentFPS = 0;
+    selectable = false;
+    mouseEnabled = false;
+    defaultTextFormat = new TextFormat("VCR OSD Mono", 14, color);
+    autoSize = LEFT;
+    multiline = true;
+    text = "FPS: ";
+
+    _previousTime = Main.getTime();
+
+    FlxG.signals.gameResized.add(function(w, h) {
+      align = align;
+    });
+
+    addEventListener(Event.ADDED_TO_STAGE, (e:Event) -> {
+      if (align == null) align = #if mobile CENTER #else LEFT #end;
+    });
+
+    addEventListener(Event.ENTER_FRAME, onEnterFrame);
+  }
+
+  var timeColor:Float = 0.0;
+  var _lastRainbowPhase:Float = -1.0;
+
+  var fpsMultiplier:Float = 1.0;
+  var deltaTimeout:Float = 0.0;
+
+  public var timeoutDelay:Float = 50;
+
+  var now:Float = 0;
+
+  // Event Handlers
+  private function onEnterFrame(e:Event):Void
+  {
+    if (!ClientPrefs.showFPS) return;
+
+    final now = Main.getTime();
+    final deltaTime = Math.max(now - _previousTime, 0);
+    _previousTime = now;
+
+    _framesPassed++;
+    _updateClock += deltaTime;
+
+    if (_updateClock >= 1000)
+    {
+      var multiplier:Float = 1.0;
+
+      if (Std.isOfType(FlxG.state, PlayState) && !PlayState.instance.trollingMode)
+      {
+        try
+        {
+          multiplier = PlayState.instance.playbackRate;
+        }
+        catch (e:Dynamic)
+          multiplier = 1.0;
+      }
+
+      currentFPS = (_framesPassed / multiplier);
+      currentFPS = Math.min(currentFPS, FlxG.drawFramerate);
+
+      updateText();
+
+      _framesPassed = 0;
+      _updateClock = 0;
+    }
+
+    updateColors();
+  }
+
+  public dynamic function updateColors():Void
+  {
+    if (ClientPrefs.ffmpegMode) return;
+
+    if (ClientPrefs.rainbowFPS)
+    {
+      timeColor = (timeColor % 360.0) + (1.0 / (ClientPrefs.framerate / 120));
+      if (timeColor != _lastRainbowPhase)
+      {
+        _lastRainbowPhase = timeColor;
+        var newColor:Int = FlxColor.fromHSB(timeColor, 1, 1);
+        #if flash
+        var newColorUInt:UInt = newColor;
+        if (newColorUInt != textColor) textColor = newColorUInt;
+        #else
+        if (newColor != textColor) textColor = newColor;
+        #end
+      }
+    } else
+    {
+      var newColor:Int = textColor;
+      if (currentFPS <= ClientPrefs.framerate / 4) newColor = 0xFFFF0000;
+      else if (currentFPS <= ClientPrefs.framerate / 3) newColor = 0xFFFF8000;
+      else if (currentFPS <= ClientPrefs.framerate / 2) newColor = 0xFFFFFF00;
+      else newColor = 0xFFFFFFFF;
+
+      #if flash
+      var newColorUInt:UInt = newColor;
+      if (newColorUInt != textColor) textColor = newColorUInt;
+      #else
+      if (newColor != textColor) textColor = newColor;
+      #end
+    }
+  }
+
+  public dynamic function updateText():Void // so people can override it in hscript
+  {
+    text = "FPS: " + (ClientPrefs.ffmpegMode ? ClientPrefs.targetFPS : Math.round(currentFPS));
+    if (ClientPrefs.ffmpegMode) text += " (Rendering Mode)";
+
+    if (ClientPrefs.showRamUsage) text += "\nMemory: "
+      + MemoryUtil.formatMemory(memory)
+      + (ClientPrefs.showMaxRamUsage ? " / " + MemoryUtil.formatMemory(mempeak) : "");
+    if (ClientPrefs.frameProfiler || ClientPrefs.debugInfo)
+      text += "\n" + FrameProfiler.getOverlayText();
+    // #88: pool hit rates for the gameplay pools. HTML5 has no readable managed heap,
+    // so this is the allocation signal available on web (built once a second, off the hot path).
+    if (ClientPrefs.debugInfo && PoolStats.totalSpawned() > 0)
+      text += "\nPools: " + PoolStats.summary();
+    if (ClientPrefs.debugInfo)
+    {
+      text += '\nCurrent state: ${Type.getClassName(Type.getClass(FlxG.state))}';
+      if (FlxG.state.subState != null) text += '\nCurrent substate: ${Type.getClassName(Type.getClass(FlxG.state.subState))}';
+      if (LimeSystem.platformName == LimeSystem.platformVersion
+        || LimeSystem.platformVersion == null) text += '\nOS: ${LimeSystem.platformName}' #if cpp + ' ${PlatformUtil.getArch()}' #end;
+    else
+      text += '\nOS: ${LimeSystem.platformName}' #if cpp + ' ${PlatformUtil.getArch()}' #end + ' - ${LimeSystem.platformVersion}';
+
+      text += '\nPhoenix Engine: v${MainMenuState.phoenixEngineVersion} | JSE: v${MainMenuState.psychEngineJSVersion}' #if commit + '(Commit ${MainMenuState.gitCommit})' #end;
+    }
+  }
+
+  @:noCompletion
+  private function set_align(val)
+  {
+    return align = defaultTextFormat.align = switch (val)
+    {
+      default:
+        this.x = 10;
+        autoSize = LEFT;
+        LEFT;
+
+      case CENTER:
+        this.x = (this.stage.stageWidth - this.textWidth) * 0.5;
+        autoSize = CENTER;
+        CENTER;
+
+      case RIGHT:
+        this.x = (this.stage.stageWidth - this.textWidth) - 10;
+        autoSize = RIGHT;
+        RIGHT;
+    }
+  }
+}

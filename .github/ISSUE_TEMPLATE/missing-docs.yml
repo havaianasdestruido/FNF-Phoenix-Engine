@@ -1,0 +1,22 @@
+name: Missing Documentation
+description: Ask for documentation if something is missing.
+labels: ["documentation", "status: pending triage"]
+body:
+  - type: dropdown
+    attributes:
+      label: "Which tab of the repository?"
+      options:
+        - "Issues"
+        - "Pull request"
+        - "Wiki"
+        - "Discussions"
+        - "Other"
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: 'What needs to be documented?'
+      description: 'If you choose the "Other" option above, please specify on what tab you are talking about.'
+    validations:
+      required: true

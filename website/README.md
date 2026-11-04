@@ -1,0 +1,89 @@
+# Phoenix Engine documentation site
+
+[Docusaurus 3](https://docusaurus.io/) site documenting the FNF Phoenix Engine codebase.
+Published to GitHub Pages by `.github/workflows/docs.yml`.
+
+## Run it
+
+```bash
+cd website
+npm install
+npm start          # dev server (regenerates the reference first)
+npm run build      # production build into website/build (also runs lint:docs)
+npm run serve      # serve the production build
+npm run lint:docs  # check the markdown conventions the site needs to render
+```
+
+Node 20+ is required.
+
+## What is generated
+
+Two parts of the site are produced from the Haxe sources and are **git-ignored** — never
+edit them by hand:
+
+| Command | Reads | Writes |
+|---|---|---|
+| `npm run gen:api` | `source/**/*.hx` | `docs/reference/**` — one page per type, one index per package |
+| `npm run gen:scripts` | `source/psychlua/**` | `docs/modding/lua-api-reference.md`, `docs/modding/python-api-reference.md` |
+| `npm run gen` | both | both |
+
+`npm start` and `npm run build` run `npm run gen` first, so the reference is always in
+sync with the code. `npm run build` additionally runs `npm run lint:docs`, which rejects
+markdown that builds fine but renders wrong — most often an admonition written as
+`:::note Title` instead of `:::note[Title]`.
+
+To document something in the reference, write a `/** ... */` doc comment on the Haxe type
+or field, or a `//` comment directly above a `registerFunction(...)` call, and regenerate.
+
+## Dependency overrides
+
+Docusaurus pins a few transitive packages that the GitHub advisory database flags
+(worker pools, the dev-server HTTP stack, the SVG/DOMPurify/Mermaid chain). Their
+direct parents cannot move yet — `@docusaurus/core` still declares
+`tinypool: ^1.0.2` and `webpack-dev-server: ^5.2.2`, so a plain
+`npm install` keeps resolving the vulnerable versions.
+
+`package.json` therefore uses npm `overrides` to force the patched release of each
+one. The overrides are deliberate and have to stay:
+
+| Package | Override | Why the parent cannot move |
+|---|---|---|
+| `tinypool` | `2.2.0` | `@docusaurus/core` asks for `^1.0.2`; 2.x is API-compatible for the SSG pool it creates |
+| `serialize-javascript` | `7.1.4` | `copy-webpack-plugin`/`css-minimizer-webpack-plugin` ask for `^6`; 7.x keeps the same default export |
+| `minimatch` | `11.0.4` | `serve-handler@6.1.7` (latest) pins `3.1.5`; the APIs it uses are stable |
+| `uuid` | `11.1.1` | `sockjs` asks for `^8.3.2`; only `v4()` is used |
+| `postcss-selector-parser` | `6.1.5` | 6.x parents need `^6`; the `^7` copies are resolved separately and are already patched |
+| `katex` | `0.18.10` | `mermaid` asks for `^0.16.47`; 0.18.x is the first patched line (`0.18.11` was published broken) |
+| `dompurify`, `follow-redirects`, `launch-editor`, `joi`, `body-parser`, `qs`, `fast-uri` | latest patch | declared ranges are compatible, the override just skips a stale lock entry |
+
+Bumping `@docusaurus/*` can make some of these unnecessary; drop an override only
+after `npm audit --omit=dev --audit-level=low` (and the plain audit) comes back with
+nothing but `deepmerge` (no patched release exists upstream). Do not run
+`npm audit fix --force` here: it downgrades Docusaurus to 3.7.0 and breaks the build.
+
+After changing an override, verify with a clean `rm -rf node_modules && npm ci &&
+npm run build` and a quick `npm start` — the dev server is what exercises
+`webpack-dev-server` and `sockjs`.
+
+## Layout
+
+```text
+docs/
+├── intro.md
+├── getting-started/   requirements, building, running, project.hxp, troubleshooting
+├── architecture/      overview, source tree, boot, state flow, paths, timing, patches
+├── subsystems/        gameplay, charts, characters, shaders, options, editors, audio, mobile…
+├── modding/           folder layout, Lua, Python, HScript, hooks, events/notetypes
+├── contributing/      workflow, code style, CI, docs
+└── reference/         GENERATED
+scripts/
+├── haxe-parser.mjs          dependency-free Haxe parser
+├── generate-api-docs.mjs    code reference generator
+├── generate-script-api.mjs  Lua/Python API generator
+└── check-doc-syntax.mjs     markdown/admonition lint
+```
+
+`sidebars.js` autogenerates one sidebar from the folder tree; ordering comes from
+`sidebar_position` front matter and `_category_.json` files.
+
+More detail: [Contributing → Documentation](./docs/contributing/documentation.md).

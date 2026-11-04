@@ -1,0 +1,9 @@
+{
+  "label": "Subsystems",
+  "position": 4,
+  "link": {
+    "type": "generated-index",
+    "title": "Subsystems",
+    "description": "Area-by-area documentation of the engine: gameplay, charts, characters, shaders, options, editors, audio, mobile and debugging."
+  }
+}

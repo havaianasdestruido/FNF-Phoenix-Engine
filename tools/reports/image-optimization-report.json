@@ -1,0 +1,1411 @@
+{
+  "descricao": "Relatório do otimizador de imagens grandes (tools/optimize_images.py). Bytes medidos nos arquivos finais.",
+  "limiar_bytes": 204800,
+  "resumo": {
+    "candidatos_acima_de_200kib": 51,
+    "reduzidos_2x": 3,
+    "recodificados_sem_perda": 0,
+    "avulsos_otimizados": 3,
+    "otimizados_apenas_por_codificacao": 0,
+    "xml_atualizados": 0,
+    "excluidos_ou_mantidos": 48,
+    "falhas": 0,
+    "bytes_antes": 35430135,
+    "bytes_depois": 34874696,
+    "bytes_economizados": 555439,
+    "reducao_percentual": 1.57,
+    "referencias_xml_quebradas": 0
+  },
+  "falhas": [],
+  "assets": [
+    {
+      "path": ".github/res/deeplink.gif",
+      "bytes_antes": 481994,
+      "sha256_antes": "d2c59996a3cf91a9e35967c2ba2ccd4d20762152c13a28c352b92089d47e73b0",
+      "dimensoes_antes": [
+        448,
+        252
+      ],
+      "dimensoes_depois": null,
+      "bytes_depois": null,
+      "sha256_depois": null,
+      "categoria": "fora_do_escopo",
+      "metadados_atlas": [],
+      "consumidores": [],
+      "acao": "excluido",
+      "motivo": "fora do escopo: GIF de documentação do GitHub (.github/res), não é asset do jogo",
+      "modo_png": null,
+      "xml_atualizados": [],
+      "validacao": null
+    },
+    {
+      "path": "assets/preload/images/gfDanceTitle.png",
+      "bytes_antes": 320844,
+      "sha256_antes": "c32ce31dc5367f5c12799d94ca1dafdeefa2e6d80848411f1117d9b74a19b35c",
+      "dimensoes_antes": [
+        3660,
+        2670
+      ],
+      "dimensoes_depois": [
+        3660,
+        2670
+      ],
+      "bytes_depois": 320844,
+      "sha256_depois": "c32ce31dc5367f5c12799d94ca1dafdeefa2e6d80848411f1117d9b74a19b35c",
+      "categoria": "atlas_spritesheet",
+      "metadados_atlas": [
+        "assets/preload/images/gfDanceTitle.json",
+        "assets/preload/images/gfDanceTitle.xml"
+      ],
+      "consumidores": [],
+      "acao": "mantido",
+      "motivo": "recodificação de atlas desativada (use --recodificar-atlas)",
+      "modo_png": null,
+      "xml_atualizados": [],
+      "validacao": null,
+      "motivo_geometria": "atlas com coordenadas ímpares: a redução 2x exige arredondar frames e não é feita; apenas a codificação PNG é otimizada",
+      "reaproveitado_do_relatorio_anterior": true
+    },
+    {
+      "path": "assets/preload/images/menucharacters/nene.png",
+      "bytes_antes": 233202,
+      "sha256_antes": "57308fc9e23536de6f55bc2cf28ea10955409600f7e514464696a5174f8e2f0e",
+      "dimensoes_antes": [
+        2015,
+        2402
+      ],
+      "dimensoes_depois": [
+        2015,
+        2402
+      ],
+      "bytes_depois": 233202,
+      "sha256_depois": "57308fc9e23536de6f55bc2cf28ea10955409600f7e514464696a5174f8e2f0e",
+      "categoria": "atlas_spritesheet",
+      "metadados_atlas": [
+        "assets/preload/images/menucharacters/nene.json",
+        "assets/preload/images/menucharacters/nene.xml"
+      ],
+      "consumidores": [],
+      "acao": "mantido",
+      "motivo": "recodificação de atlas desativada (use --recodificar-atlas)",
+      "modo_png": null,
+      "xml_atualizados": [],
+      "validacao": null,
+      "motivo_geometria": "atlas com coordenadas ímpares: a redução 2x exige arredondar frames e não é feita; apenas a codificação PNG é otimizada",
+      "reaproveitado_do_relatorio_anterior": true
+    },
+    {
+      "path": "assets/shared/images/caseys.jpg",
+      "bytes_antes": 754767,
+      "sha256_antes": "cc18a86302bb879273e7445fab051a911d07aec0fc7ed1d8e7a8b2ae5db3baae",
+      "dimensoes_antes": [
+        4080,
+        1836
+      ],
+      "dimensoes_depois": null,
+      "bytes_depois": null,
+      "sha256_depois": null,
+      "categoria": "fora_do_escopo",
+      "metadados_atlas": [],
+      "consumidores": [],
+      "acao": "excluido",
+      "motivo": "fora do escopo: fotografia não referenciada por código, JSON ou XML do jogo",
+      "modo_png": null,
+      "xml_atualizados": [],
+      "validacao": null
+    },
+    {
+      "path": "assets/shared/images/characters/BOYFRIEND.png",
+      "bytes_antes": 594043,
+      "sha256_antes": "5d8be94e5bb911db30d748071ec66305fe1546db832d48903401a8bc6cae7755",
+      "dimensoes_antes": [
+        4096,
+        2820
+      ],
+      "dimensoes_depois": [
+        4096,
+        2820
+      ],
+      "bytes_depois": 594043,
+      "sha256_depois": "5d8be94e5bb911db30d748071ec66305fe1546db832d48903401a8bc6cae7755",
+      "categoria": "atlas_spritesheet",
+      "metadados_atlas": [
+        "assets/shared/images/characters/BOYFRIEND.xml"
+      ],
+      "consumidores": [],
+      "acao": "mantido",
+      "motivo": "recodificação de atlas desativada (use --recodificar-atlas)",
+      "modo_png": null,
+      "xml_atualizados": [],
+      "validacao": null,
+      "motivo_geometria": "atlas com coordenadas ímpares: a redução 2x exige arredondar frames e não é feita; apenas a codificação PNG é otimizada",
+      "reaproveitado_do_relatorio_anterior": true
+    },
+    {
+      "path": "assets/shared/images/characters/BOYFRIEND_DEAD.png",
+      "bytes_antes": 534684,
+      "sha256_antes": "cf96f16fd3561bbea180511c7722f617086f2ab65bee2ceae2c6609f85001532",
+      "dimensoes_antes": [
+        4096,
+        3750
+      ],
+      "dimensoes_depois": [
+        4096,
+        3750
+      ],
+      "bytes_depois": 534684,
+      "sha256_depois": "cf96f16fd3561bbea180511c7722f617086f2ab65bee2ceae2c6609f85001532",
+      "categoria": "atlas_spritesheet",
+      "metadados_atlas": [
+        "assets/shared/images/characters/BOYFRIEND_DEAD.xml"
+      ],
+      "consumidores": [],
+      "acao": "mantido",
+      "motivo": "recodificação de atlas desativada (use --recodificar-atlas)",
+      "modo_png": null,
+      "xml_atualizados": [],
+      "validacao": null,
+      "motivo_geometria": "atlas com coordenadas ímpares: a redução 2x exige arredondar frames e não é feita; apenas a codificação PNG é otimizada",
+      "reaproveitado_do_relatorio_anterior": true
+    },
+    {
+      "path": "assets/shared/images/characters/DADDY_DEAREST.png",
+      "bytes_antes": 236867,
+      "sha256_antes": "fb860bf5717caf4268a788b65cc1d0f145ef26dd653e7a872e39a826c4c88be8",
+      "dimensoes_antes": [
+        3950,
+        1680
+      ],
+      "dimensoes_depois": [
+        3950,
+        1680
+      ],
+      "bytes_depois": 236867,
+      "sha256_depois": "fb860bf5717caf4268a788b65cc1d0f145ef26dd653e7a872e39a826c4c88be8",
+      "categoria": "atlas_spritesheet",
+      "metadados_atlas": [
+        "assets/shared/images/characters/DADDY_DEAREST.xml"
+      ],
+      "consumidores": [],
+      "acao": "mantido",
+      "motivo": "recodificação de atlas desativada (use --recodificar-atlas)",
+      "modo_png": null,
+      "xml_atualizados": [],
+      "validacao": null,
+      "motivo_geometria": "atlas com coordenadas ímpares: a redução 2x exige arredondar frames e não é feita; apenas a codificação PNG é otimizada",
+      "reaproveitado_do_relatorio_anterior": true
+    },
+    {
+      "path": "assets/shared/images/characters/GF_assets.png",
+      "bytes_antes": 1417000,
+      "sha256_antes": "b4290dbdfc7eae1a65a8e0d7abb81844b628b3199d9ca26af1fb752a3bbf077f",
+      "dimensoes_antes": [
+        8000,
+        6000
+      ],
+      "dimensoes_depois": [
+        8000,
+        6000
+      ],
+      "bytes_depois": 1417000,
+      "sha256_depois": "b4290dbdfc7eae1a65a8e0d7abb81844b628b3199d9ca26af1fb752a3bbf077f",
+      "categoria": "atlas_spritesheet",
+      "metadados_atlas": [
+        "assets/shared/images/characters/GF_assets.xml"
+      ],
+      "consumidores": [],
+      "acao": "mantido",
+      "motivo": "recodificação de atlas desativada (use --recodificar-atlas)",
+      "modo_png": null,
+      "xml_atualizados": [],
+      "validacao": null,
+      "motivo_geometria": "atlas com coordenadas ímpares: a redução 2x exige arredondar frames e não é feita; apenas a codificação PNG é otimizada",
+      "reaproveitado_do_relatorio_anterior": true
+    },
+    {
+      "path": "assets/shared/images/characters/Mom_Assets.png",
+      "bytes_antes": 373444,
+      "sha256_antes": "3e1724502a303250f1d5acafe9ac5561622db9e63d881fedcf6d408adbda611e",
+      "dimensoes_antes": [
+        4096,
+        2560
+      ],
+      "dimensoes_depois": [
+        4096,
+        2560
+      ],
+      "bytes_depois": 373444,
+      "sha256_depois": "3e1724502a303250f1d5acafe9ac5561622db9e63d881fedcf6d408adbda611e",
+      "categoria": "atlas_spritesheet",
+      "metadados_atlas": [
+        "assets/shared/images/characters/Mom_Assets.xml"
+      ],
+      "consumidores": [],
+      "acao": "mantido",
+      "motivo": "recodificação de atlas desativada (use --recodificar-atlas)",
+      "modo_png": null,
+      "xml_atualizados": [],
+      "validacao": null,
+      "motivo_geometria": "atlas com coordenadas ímpares: a redução 2x exige arredondar frames e não é feita; apenas a codificação PNG é otimizada",
+      "reaproveitado_do_relatorio_anterior": true
+    },
+    {
+      "path": "assets/shared/images/characters/Monster_Assets.png",
+      "bytes_antes": 462362,
+      "sha256_antes": "7804185f844dc08847e323647c56338d3e22465d870e9510b94d21363acba471",
+      "dimensoes_antes": [
+        8000,
+        2900
+      ],
+      "dimensoes_depois": [
+        8000,
+        2900
+      ],
+      "bytes_depois": 462362,
+      "sha256_depois": "7804185f844dc08847e323647c56338d3e22465d870e9510b94d21363acba471",
+      "categoria": "atlas_spritesheet",
+      "metadados_atlas": [
+        "assets/shared/images/characters/Monster_Assets.xml"
+      ],
+      "consumidores": [],
+      "acao": "mantido",
+      "motivo": "recodificação de atlas desativada (use --recodificar-atlas)",
+      "modo_png": null,
+      "xml_atualizados": [],
+      "validacao": null,
+      "motivo_geometria": "atlas com coordenadas ímpares: a redução 2x exige arredondar frames e não é feita; apenas a codificação PNG é otimizada",
+      "reaproveitado_do_relatorio_anterior": true
+    },
+    {
+      "path": "assets/shared/images/characters/Nene.png",
+      "bytes_antes": 809976,
+      "sha256_antes": "22f01d5c762621a0a8dbd8fa800f213dab587e3ba6c85ce67c9b2a1391be274a",
+      "dimensoes_antes": [
+        4079,
+        3412
+      ],
+      "dimensoes_depois": [
+        4079,
+        3412
+      ],
+      "bytes_depois": 809976,
+      "sha256_depois": "22f01d5c762621a0a8dbd8fa800f213dab587e3ba6c85ce67c9b2a1391be274a",
+      "categoria": "atlas_spritesheet",
+      "metadados_atlas": [
+        "assets/shared/images/characters/Nene.xml"
+      ],
+      "consumidores": [],
+      "acao": "mantido",
+      "motivo": "recodificação de atlas desativada (use --recodificar-atlas)",
+      "modo_png": null,
+      "xml_atualizados": [],
+      "validacao": null,
+      "motivo_geometria": "atlas com coordenadas ímpares: a redução 2x exige arredondar frames e não é feita; apenas a codificação PNG é otimizada",
+      "reaproveitado_do_relatorio_anterior": true
+    },
+    {
+      "path": "assets/shared/images/characters/Pico_Death.png",
+      "bytes_antes": 1229888,
+      "sha256_antes": "2f6da6c0d0cfdb7a25170d0780b45820cb8d61e4f81d01684f8cdb50ce347602",
+      "dimensoes_antes": [
+        8053,
+        2860
+      ],
+      "dimensoes_depois": [
+        8053,
+        2860
+      ],
+      "bytes_depois": 1229888,
+      "sha256_depois": "2f6da6c0d0cfdb7a25170d0780b45820cb8d61e4f81d01684f8cdb50ce347602",
+      "categoria": "atlas_spritesheet",
+      "metadados_atlas": [
+        "assets/shared/images/characters/Pico_Death.xml"
+      ],
+      "consumidores": [],
+      "acao": "mantido",
+      "motivo": "recodificação de atlas desativada (use --recodificar-atlas)",
+      "modo_png": null,
+      "xml_atualizados": [],
+      "validacao": null,
+      "motivo_geometria": "atlas com coordenadas ímpares: a redução 2x exige arredondar frames e não é feita; apenas a codificação PNG é otimizada",
+      "reaproveitado_do_relatorio_anterior": true
+    },
+    {
+      "path": "assets/shared/images/characters/Pico_FNF_assetss.png",
+      "bytes_antes": 388207,
+      "sha256_antes": "827f33aa641894a6a2aa698e2432978ff055d304d6899fd736badb1cc7167920",
+      "dimensoes_antes": [
+        3720,
+        2040
+      ],
+      "dimensoes_depois": [
+        3720,
+        2040
+      ],
+      "bytes_depois": 388207,
+      "sha256_depois": "827f33aa641894a6a2aa698e2432978ff055d304d6899fd736badb1cc7167920",
+      "categoria": "atlas_spritesheet",
+      "metadados_atlas": [
+        "assets/shared/images/characters/Pico_FNF_assetss.xml"
+      ],
+      "consumidores": [],
+      "acao": "mantido",
+      "motivo": "recodificação de atlas desativada (use --recodificar-atlas)",
+      "modo_png": null,
+      "xml_atualizados": [],
+      "validacao": null,
+      "motivo_geometria": "atlas com coordenadas ímpares: a redução 2x exige arredondar frames e não é feita; apenas a codificação PNG é otimizada",
+      "reaproveitado_do_relatorio_anterior": true
+    },
+    {
+      "path": "assets/shared/images/characters/bfAndGF.png",
+      "bytes_antes": 893622,
+      "sha256_antes": "bb8a72000fe636112530093ef415f053b3b50b4317dd5b2eef4de1eb8242a4bb",
+      "dimensoes_antes": [
+        3980,
+        3760
+      ],
+      "dimensoes_depois": [
+        3980,
+        3760
+      ],
+      "bytes_depois": 893622,
+      "sha256_depois": "bb8a72000fe636112530093ef415f053b3b50b4317dd5b2eef4de1eb8242a4bb",
+      "categoria": "atlas_spritesheet",
+      "metadados_atlas": [
+        "assets/shared/images/characters/bfAndGF.xml"
+      ],
+      "consumidores": [],
+      "acao": "mantido",
+      "motivo": "recodificação de atlas desativada (use --recodificar-atlas)",
+      "modo_png": null,
+      "xml_atualizados": [],
+      "validacao": null,
+      "motivo_geometria": "atlas com coordenadas ímpares: a redução 2x exige arredondar frames e não é feita; apenas a codificação PNG é otimizada",
+      "reaproveitado_do_relatorio_anterior": true
+    },
+    {
+      "path": "assets/shared/images/characters/bfCar.png",
+      "bytes_antes": 427519,
+      "sha256_antes": "9a3d9b4b14333520ee74c612d1f7f2593b773c7a11ba8318257882cb2f840f7c",
+      "dimensoes_antes": [
+        4064,
+        2200
+      ],
+      "dimensoes_depois": [
+        4064,
+        2200
+      ],
+      "bytes_depois": 427519,
+      "sha256_depois": "9a3d9b4b14333520ee74c612d1f7f2593b773c7a11ba8318257882cb2f840f7c",
+      "categoria": "atlas_spritesheet",
+      "metadados_atlas": [
+        "assets/shared/images/characters/bfCar.xml"
+      ],
+      "consumidores": [],
+      "acao": "mantido",
+      "motivo": "recodificação de atlas desativada (use --recodificar-atlas)",
+      "modo_png": null,
+      "xml_atualizados": [],
+      "validacao": null,
+      "motivo_geometria": "atlas com coordenadas ímpares: a redução 2x exige arredondar frames e não é feita; apenas a codificação PNG é otimizada",
+      "reaproveitado_do_relatorio_anterior": true
+    },
+    {
+      "path": "assets/shared/images/characters/bfChristmas.png",
+      "bytes_antes": 373906,
+      "sha256_antes": "2ab80f549760eeccbbba880317fbd45f620fc7e3514a054db5d5853effe87763",
+      "dimensoes_antes": [
+        4000,
+        1350
+      ],
+      "dimensoes_depois": [
+        4000,
+        1350
+      ],
+      "bytes_depois": 373906,
+      "sha256_depois": "2ab80f549760eeccbbba880317fbd45f620fc7e3514a054db5d5853effe87763",
+      "categoria": "atlas_spritesheet",
+      "metadados_atlas": [
+        "assets/shared/images/characters/bfChristmas.xml"
+      ],
+      "consumidores": [],
+      "acao": "mantido",
+      "motivo": "recodificação de atlas desativada (use --recodificar-atlas)",
+      "modo_png": null,
+      "xml_atualizados": [],
+      "validacao": null,
+      "motivo_geometria": "atlas com coordenadas ímpares: a redução 2x exige arredondar frames e não é feita; apenas a codificação PNG é otimizada",
+      "reaproveitado_do_relatorio_anterior": true
+    },
+    {
+      "path": "assets/shared/images/characters/bfHoldingGF-DEAD.png",
+      "bytes_antes": 600611,
+      "sha256_antes": "d83445e3dbb7cc4ec5c3389001ee81c772c37439a63e4f4a6ae015c000f55b62",
+      "dimensoes_antes": [
+        8000,
+        2430
+      ],
+      "dimensoes_depois": [
+        8000,
+        2430
+      ],
+      "bytes_depois": 600611,
+      "sha256_depois": "d83445e3dbb7cc4ec5c3389001ee81c772c37439a63e4f4a6ae015c000f55b62",
+      "categoria": "atlas_spritesheet",
+      "metadados_atlas": [
+        "assets/shared/images/characters/bfHoldingGF-DEAD.xml"
+      ],
+      "consumidores": [],
+      "acao": "mantido",
+      "motivo": "recodificação de atlas desativada (use --recodificar-atlas)",
+      "modo_png": null,
+      "xml_atualizados": [],
+      "validacao": null,
+      "motivo_geometria": "atlas com coordenadas ímpares: a redução 2x exige arredondar frames e não é feita; apenas a codificação PNG é otimizada",
+      "reaproveitado_do_relatorio_anterior": true
+    },
+    {
+      "path": "assets/shared/images/characters/darnell.png",
+      "bytes_antes": 1023630,
+      "sha256_antes": "82b5416af485b5f93d3d69db3782518c823561fe0f2eb9f57fa62c8b9cfb61fe",
+      "dimensoes_antes": [
+        4788,
+        4061
+      ],
+      "dimensoes_depois": [
+        4788,
+        4061
+      ],
+      "bytes_depois": 1023630,
+      "sha256_depois": "82b5416af485b5f93d3d69db3782518c823561fe0f2eb9f57fa62c8b9cfb61fe",
+      "categoria": "atlas_spritesheet",
+      "metadados_atlas": [
+        "assets/shared/images/characters/darnell.xml"
+      ],
+      "consumidores": [],
+      "acao": "mantido",
+      "motivo": "recodificação de atlas desativada (use --recodificar-atlas)",
+      "modo_png": null,
+      "xml_atualizados": [],
+      "validacao": null,
+      "motivo_geometria": "atlas com coordenadas ímpares: a redução 2x exige arredondar frames e não é feita; apenas a codificação PNG é otimizada",
+      "reaproveitado_do_relatorio_anterior": true
+    },
+    {
+      "path": "assets/shared/images/characters/darnellBlazin/spritemap1.png",
+      "bytes_antes": 360547,
+      "sha256_antes": "9a8b86aeba8bb4f07ce0c8505bd53c74d2881a121e9ca4963686971fbc087ee7",
+      "dimensoes_antes": [
+        4096,
+        1416
+      ],
+      "dimensoes_depois": [
+        4096,
+        1416
+      ],
+      "bytes_depois": 360547,
+      "sha256_depois": "9a8b86aeba8bb4f07ce0c8505bd53c74d2881a121e9ca4963686971fbc087ee7",
+      "categoria": "atlas_spritesheet",
+      "metadados_atlas": [
+        "assets/shared/images/characters/darnellBlazin/spritemap1.json"
+      ],
+      "consumidores": [],
+      "acao": "mantido",
+      "motivo": "recodificação de atlas desativada (use --recodificar-atlas)",
+      "modo_png": null,
+      "xml_atualizados": [],
+      "validacao": null,
+      "motivo_geometria": "atlas com coordenadas ímpares: a redução 2x exige arredondar frames e não é feita; apenas a codificação PNG é otimizada",
+      "reaproveitado_do_relatorio_anterior": true
+    },
+    {
+      "path": "assets/shared/images/characters/gfCar.png",
+      "bytes_antes": 412695,
+      "sha256_antes": "0ef76f87ab73795bde6bb1c6910a241919b5f7c814a628d6e7a9bcc4ccf51e96",
+      "dimensoes_antes": [
+        3800,
+        3950
+      ],
+      "dimensoes_depois": [
+        3800,
+        3950
+      ],
+      "bytes_depois": 412695,
+      "sha256_depois": "0ef76f87ab73795bde6bb1c6910a241919b5f7c814a628d6e7a9bcc4ccf51e96",
+      "categoria": "atlas_spritesheet",
+      "metadados_atlas": [
+        "assets/shared/images/characters/gfCar.xml"
+      ],
+      "consumidores": [],
+      "acao": "mantido",
+      "motivo": "recodificação de atlas desativada (use --recodificar-atlas)",
+      "modo_png": null,
+      "xml_atualizados": [],
+      "validacao": null,
+      "motivo_geometria": "atlas com coordenadas ímpares: a redução 2x exige arredondar frames e não é feita; apenas a codificação PNG é otimizada",
+      "reaproveitado_do_relatorio_anterior": true
+    },
+    {
+      "path": "assets/shared/images/characters/gfChristmas.png",
+      "bytes_antes": 3738848,
+      "sha256_antes": "ea568c8bdbfbcfb88cd44758ccacda8b9df9074c010f6a634eb81dc631b92e63",
+      "dimensoes_antes": [
+        7500,
+        6500
+      ],
+      "dimensoes_depois": [
+        7500,
+        6500
+      ],
+      "bytes_depois": 3738848,
+      "sha256_depois": "ea568c8bdbfbcfb88cd44758ccacda8b9df9074c010f6a634eb81dc631b92e63",
+      "categoria": "atlas_spritesheet",
+      "metadados_atlas": [
+        "assets/shared/images/characters/gfChristmas.xml"
+      ],
+      "consumidores": [],
+      "acao": "mantido",
+      "motivo": "recodificação de atlas desativada (use --recodificar-atlas)",
+      "modo_png": null,
+      "xml_atualizados": [],
+      "validacao": null,
+      "motivo_geometria": "atlas com coordenadas ímpares: a redução 2x exige arredondar frames e não é feita; apenas a codificação PNG é otimizada",
+      "reaproveitado_do_relatorio_anterior": true
+    },
+    {
+      "path": "assets/shared/images/characters/gfTankmen.png",
+      "bytes_antes": 563095,
+      "sha256_antes": "165f53262094cb43dd7f799d12c9f6c07cd32af18be2d55ebf9225be73631514",
+      "dimensoes_antes": [
+        7500,
+        2580
+      ],
+      "dimensoes_depois": [
+        7500,
+        2580
+      ],
+      "bytes_depois": 563095,
+      "sha256_depois": "165f53262094cb43dd7f799d12c9f6c07cd32af18be2d55ebf9225be73631514",
+      "categoria": "atlas_spritesheet",
+      "metadados_atlas": [
+        "assets/shared/images/characters/gfTankmen.xml"
+      ],
+      "consumidores": [],
+      "acao": "mantido",
+      "motivo": "recodificação de atlas desativada (use --recodificar-atlas)",
+      "modo_png": null,
+      "xml_atualizados": [],
+      "validacao": null,
+      "motivo_geometria": "atlas com coordenadas ímpares: a redução 2x exige arredondar frames e não é feita; apenas a codificação PNG é otimizada",
+      "reaproveitado_do_relatorio_anterior": true
+    },
+    {
+      "path": "assets/shared/images/characters/momCar.png",
+      "bytes_antes": 589377,
+      "sha256_antes": "8a6a96352f7df103405b4e26629b64579d1abef702e915b1d990ef6385e95f2d",
+      "dimensoes_antes": [
+        8000,
+        2560
+      ],
+      "dimensoes_depois": [
+        8000,
+        2560
+      ],
+      "bytes_depois": 589377,
+      "sha256_depois": "8a6a96352f7df103405b4e26629b64579d1abef702e915b1d990ef6385e95f2d",
+      "categoria": "atlas_spritesheet",
+      "metadados_atlas": [
+        "assets/shared/images/characters/momCar.xml"
+      ],
+      "consumidores": [],
+      "acao": "mantido",
+      "motivo": "recodificação de atlas desativada (use --recodificar-atlas)",
+      "modo_png": null,
+      "xml_atualizados": [],
+      "validacao": null,
+      "motivo_geometria": "atlas com coordenadas ímpares: a redução 2x exige arredondar frames e não é feita; apenas a codificação PNG é otimizada",
+      "reaproveitado_do_relatorio_anterior": true
+    },
+    {
+      "path": "assets/shared/images/characters/mom_dad_christmas_assets.png",
+      "bytes_antes": 1696746,
+      "sha256_antes": "406f1f32cebc9dacea7f82c8e18023149f021e8bcc5c96556597c85c5c88ae88",
+      "dimensoes_antes": [
+        8192,
+        5800
+      ],
+      "dimensoes_depois": [
+        8192,
+        5800
+      ],
+      "bytes_depois": 1696746,
+      "sha256_depois": "406f1f32cebc9dacea7f82c8e18023149f021e8bcc5c96556597c85c5c88ae88",
+      "categoria": "atlas_spritesheet",
+      "metadados_atlas": [
+        "assets/shared/images/characters/mom_dad_christmas_assets.xml"
+      ],
+      "consumidores": [],
+      "acao": "mantido",
+      "motivo": "recodificação de atlas desativada (use --recodificar-atlas)",
+      "modo_png": null,
+      "xml_atualizados": [],
+      "validacao": null,
+      "motivo_geometria": "atlas com coordenadas ímpares: a redução 2x exige arredondar frames e não é feita; apenas a codificação PNG é otimizada",
+      "reaproveitado_do_relatorio_anterior": true
+    },
+    {
+      "path": "assets/shared/images/characters/monsterChristmas.png",
+      "bytes_antes": 596864,
+      "sha256_antes": "36e26369eb9580c1b0ea6e4eee59103106fe9c017a7e0eb5d116860f3a4ef84f",
+      "dimensoes_antes": [
+        8190,
+        3600
+      ],
+      "dimensoes_depois": [
+        8190,
+        3600
+      ],
+      "bytes_depois": 596864,
+      "sha256_depois": "36e26369eb9580c1b0ea6e4eee59103106fe9c017a7e0eb5d116860f3a4ef84f",
+      "categoria": "atlas_spritesheet",
+      "metadados_atlas": [
+        "assets/shared/images/characters/monsterChristmas.xml"
+      ],
+      "consumidores": [],
+      "acao": "mantido",
+      "motivo": "recodificação de atlas desativada (use --recodificar-atlas)",
+      "modo_png": null,
+      "xml_atualizados": [],
+      "validacao": null,
+      "motivo_geometria": "atlas com coordenadas ímpares: a redução 2x exige arredondar frames e não é feita; apenas a codificação PNG é otimizada",
+      "reaproveitado_do_relatorio_anterior": true
+    },
+    {
+      "path": "assets/shared/images/characters/picoAnims/Pico_Intro.png",
+      "bytes_antes": 791029,
+      "sha256_antes": "ca947c3627b9301ae4393e0b25911367768ec1c4f362c78920f1dab45fc9371c",
+      "dimensoes_antes": [
+        3628,
+        3769
+      ],
+      "dimensoes_depois": [
+        3628,
+        3769
+      ],
+      "bytes_depois": 791029,
+      "sha256_depois": "ca947c3627b9301ae4393e0b25911367768ec1c4f362c78920f1dab45fc9371c",
+      "categoria": "atlas_spritesheet",
+      "metadados_atlas": [
+        "assets/shared/images/characters/picoAnims/Pico_Intro.xml"
+      ],
+      "consumidores": [],
+      "acao": "mantido",
+      "motivo": "recodificação de atlas desativada (use --recodificar-atlas)",
+      "modo_png": null,
+      "xml_atualizados": [],
+      "validacao": null,
+      "motivo_geometria": "atlas com coordenadas ímpares: a redução 2x exige arredondar frames e não é feita; apenas a codificação PNG é otimizada",
+      "reaproveitado_do_relatorio_anterior": true
+    },
+    {
+      "path": "assets/shared/images/characters/picoAnims/Pico_Shooting.png",
+      "bytes_antes": 295320,
+      "sha256_antes": "3b4c1af1eb939d3f41665e827a90b20bdf388435a0ad8cf20ccef54ef697f291",
+      "dimensoes_antes": [
+        2684,
+        1875
+      ],
+      "dimensoes_depois": [
+        2684,
+        1875
+      ],
+      "bytes_depois": 295320,
+      "sha256_depois": "3b4c1af1eb939d3f41665e827a90b20bdf388435a0ad8cf20ccef54ef697f291",
+      "categoria": "atlas_spritesheet",
+      "metadados_atlas": [
+        "assets/shared/images/characters/picoAnims/Pico_Shooting.xml"
+      ],
+      "consumidores": [],
+      "acao": "mantido",
+      "motivo": "recodificação de atlas desativada (use --recodificar-atlas)",
+      "modo_png": null,
+      "xml_atualizados": [],
+      "validacao": null,
+      "motivo_geometria": "atlas com coordenadas ímpares: a redução 2x exige arredondar frames e não é feita; apenas a codificação PNG é otimizada",
+      "reaproveitado_do_relatorio_anterior": true
+    },
+    {
+      "path": "assets/shared/images/characters/picoBlazin/spritemap1.png",
+      "bytes_antes": 555155,
+      "sha256_antes": "6eb48b88b2f747a65b54712e0a1139f575c87023e7aabba142e9aff160e4ca0e",
+      "dimensoes_antes": [
+        4096,
+        2430
+      ],
+      "dimensoes_depois": [
+        4096,
+        2430
+      ],
+      "bytes_depois": 555155,
+      "sha256_depois": "6eb48b88b2f747a65b54712e0a1139f575c87023e7aabba142e9aff160e4ca0e",
+      "categoria": "atlas_spritesheet",
+      "metadados_atlas": [
+        "assets/shared/images/characters/picoBlazin/spritemap1.json"
+      ],
+      "consumidores": [],
+      "acao": "mantido",
+      "motivo": "recodificação de atlas desativada (use --recodificar-atlas)",
+      "modo_png": null,
+      "xml_atualizados": [],
+      "validacao": null,
+      "motivo_geometria": "atlas com coordenadas ímpares: a redução 2x exige arredondar frames e não é feita; apenas a codificação PNG é otimizada",
+      "reaproveitado_do_relatorio_anterior": true
+    },
+    {
+      "path": "assets/shared/images/characters/picoExplosionDeath/spritemap1.png",
+      "bytes_antes": 726105,
+      "sha256_antes": "5871f36e4b09b45c3091e5108f2437d9532ffa9c21f8264b816889e93aa999eb",
+      "dimensoes_antes": [
+        8187,
+        5374
+      ],
+      "dimensoes_depois": [
+        8187,
+        5374
+      ],
+      "bytes_depois": 726105,
+      "sha256_depois": "5871f36e4b09b45c3091e5108f2437d9532ffa9c21f8264b816889e93aa999eb",
+      "categoria": "atlas_spritesheet",
+      "metadados_atlas": [
+        "assets/shared/images/characters/picoExplosionDeath/spritemap1.json"
+      ],
+      "consumidores": [],
+      "acao": "mantido",
+      "motivo": "recodificação de atlas desativada (use --recodificar-atlas)",
+      "modo_png": null,
+      "xml_atualizados": [],
+      "validacao": null,
+      "motivo_geometria": "atlas com coordenadas ímpares: a redução 2x exige arredondar frames e não é feita; apenas a codificação PNG é otimizada",
+      "reaproveitado_do_relatorio_anterior": true
+    },
+    {
+      "path": "assets/shared/images/characters/picoSpeaker.png",
+      "bytes_antes": 1147505,
+      "sha256_antes": "2462178f8c299f82a05df85dd2d8daacc4e1c11201be21c3c2cafdbe27d589fe",
+      "dimensoes_antes": [
+        8192,
+        3500
+      ],
+      "dimensoes_depois": [
+        8192,
+        3500
+      ],
+      "bytes_depois": 1147505,
+      "sha256_depois": "2462178f8c299f82a05df85dd2d8daacc4e1c11201be21c3c2cafdbe27d589fe",
+      "categoria": "atlas_spritesheet",
+      "metadados_atlas": [
+        "assets/shared/images/characters/picoSpeaker.xml"
+      ],
+      "consumidores": [],
+      "acao": "mantido",
+      "motivo": "recodificação de atlas desativada (use --recodificar-atlas)",
+      "modo_png": null,
+      "xml_atualizados": [],
+      "validacao": null,
+      "motivo_geometria": "atlas com coordenadas ímpares: a redução 2x exige arredondar frames e não é feita; apenas a codificação PNG é otimizada",
+      "reaproveitado_do_relatorio_anterior": true
+    },
+    {
+      "path": "assets/shared/images/characters/spooky_kids_assets.png",
+      "bytes_antes": 219173,
+      "sha256_antes": "6076dce2408ef485e5932cfaadd32071faca37e4e178c84fc48df83173494811",
+      "dimensoes_antes": [
+        4024,
+        1700
+      ],
+      "dimensoes_depois": [
+        4024,
+        1700
+      ],
+      "bytes_depois": 219173,
+      "sha256_depois": "6076dce2408ef485e5932cfaadd32071faca37e4e178c84fc48df83173494811",
+      "categoria": "atlas_spritesheet",
+      "metadados_atlas": [
+        "assets/shared/images/characters/spooky_kids_assets.xml"
+      ],
+      "consumidores": [],
+      "acao": "mantido",
+      "motivo": "recodificação de atlas desativada (use --recodificar-atlas)",
+      "modo_png": null,
+      "xml_atualizados": [],
+      "validacao": null,
+      "motivo_geometria": "atlas com coordenadas ímpares: a redução 2x exige arredondar frames e não é feita; apenas a codificação PNG é otimizada",
+      "reaproveitado_do_relatorio_anterior": true
+    },
+    {
+      "path": "assets/shared/images/characters/tankmanCaptain.png",
+      "bytes_antes": 398942,
+      "sha256_antes": "537c9626099172e89da83aa5d7af33e012f3dacbd35cdb4cf42fcf63a2296e6b",
+      "dimensoes_antes": [
+        4096,
+        4096
+      ],
+      "dimensoes_depois": [
+        4096,
+        4096
+      ],
+      "bytes_depois": 398942,
+      "sha256_depois": "537c9626099172e89da83aa5d7af33e012f3dacbd35cdb4cf42fcf63a2296e6b",
+      "categoria": "atlas_spritesheet",
+      "metadados_atlas": [
+        "assets/shared/images/characters/tankmanCaptain.xml"
+      ],
+      "consumidores": [],
+      "acao": "mantido",
+      "motivo": "recodificação de atlas desativada (use --recodificar-atlas)",
+      "modo_png": null,
+      "xml_atualizados": [],
+      "validacao": null,
+      "motivo_geometria": "atlas com coordenadas ímpares: a redução 2x exige arredondar frames e não é feita; apenas a codificação PNG é otimizada",
+      "reaproveitado_do_relatorio_anterior": true
+    },
+    {
+      "path": "assets/shared/images/dialogue/BF_Dialogue.png",
+      "bytes_antes": 245156,
+      "sha256_antes": "69cf6a7b1685884db1a1bd2c16f1b8f34310aec6b7b2524734c26d479cde9678",
+      "dimensoes_antes": [
+        4096,
+        1280
+      ],
+      "dimensoes_depois": [
+        4096,
+        1280
+      ],
+      "bytes_depois": 245156,
+      "sha256_depois": "69cf6a7b1685884db1a1bd2c16f1b8f34310aec6b7b2524734c26d479cde9678",
+      "categoria": "atlas_spritesheet",
+      "metadados_atlas": [
+        "assets/shared/images/dialogue/BF_Dialogue.xml"
+      ],
+      "consumidores": [],
+      "acao": "mantido",
+      "motivo": "recodificação de atlas desativada (use --recodificar-atlas)",
+      "modo_png": null,
+      "xml_atualizados": [],
+      "validacao": null,
+      "motivo_geometria": "atlas com coordenadas ímpares: a redução 2x exige arredondar frames e não é feita; apenas a codificação PNG é otimizada",
+      "reaproveitado_do_relatorio_anterior": true
+    },
+    {
+      "path": "assets/week2/images/halloween_bg.png",
+      "bytes_antes": 1752451,
+      "sha256_antes": "08c391077821ca685339647ea057cd3b5d55dd5129e30fd601facc81a5ca0cc9",
+      "dimensoes_antes": [
+        6420,
+        7800
+      ],
+      "dimensoes_depois": [
+        6420,
+        7800
+      ],
+      "bytes_depois": 1752451,
+      "sha256_depois": "08c391077821ca685339647ea057cd3b5d55dd5129e30fd601facc81a5ca0cc9",
+      "categoria": "atlas_spritesheet",
+      "metadados_atlas": [
+        "assets/week2/images/halloween_bg.xml"
+      ],
+      "consumidores": [],
+      "acao": "mantido",
+      "motivo": "recodificação de atlas desativada (use --recodificar-atlas)",
+      "modo_png": null,
+      "xml_atualizados": [],
+      "validacao": null,
+      "motivo_geometria": "atlas com coordenadas ímpares: a redução 2x exige arredondar frames e não é feita; apenas a codificação PNG é otimizada",
+      "reaproveitado_do_relatorio_anterior": true
+    },
+    {
+      "path": "assets/week4/images/limo/limoSunset.png",
+      "bytes_antes": 332954,
+      "sha256_antes": "94a127c8e220cbfbdffe9aecaefb33acd4f05575d0b2fca8c8ff9266496b960a",
+      "dimensoes_antes": [
+        1968,
+        1313
+      ],
+      "dimensoes_depois": [
+        984,
+        657
+      ],
+      "bytes_depois": 126063,
+      "sha256_depois": "5e2fd4b1fd51a28282a65d2764331ff117b110b62808193875aacda47e8bc11f",
+      "categoria": "imagem_avulsa",
+      "metadados_atlas": [],
+      "consumidores": [
+        "source/stages/Limo.hx"
+      ],
+      "acao": "reduzido_2x",
+      "motivo": null,
+      "modo_png": "PNG8 (256 cores)",
+      "xml_atualizados": [],
+      "validacao": {
+        "psnr_premultiplicado_db": 36.08,
+        "erro_max_alfa": 163,
+        "limiar_psnr_db": 35.0,
+        "alfa_preservado": true,
+        "borda_replicada_px": [
+          0,
+          1
+        ]
+      },
+      "reaproveitado_do_relatorio_anterior": true
+    },
+    {
+      "path": "assets/week5/images/christmas/bgWalls.png",
+      "bytes_antes": 308283,
+      "sha256_antes": "f73a14d7bab1a755c0d898ea80731687cf0d17fdc18eb935392ffa57ca1dd5f8",
+      "dimensoes_antes": [
+        3767,
+        1775
+      ],
+      "dimensoes_depois": [
+        1884,
+        888
+      ],
+      "bytes_depois": 140780,
+      "sha256_depois": "5c9d4f89c57f7eb43ffbf2d7858ebabaf8b507e62ee0df93a7c33d6e46633af0",
+      "categoria": "imagem_avulsa",
+      "metadados_atlas": [],
+      "consumidores": [
+        "source/stages/Mall.hx"
+      ],
+      "acao": "reduzido_2x",
+      "motivo": null,
+      "modo_png": "PNG8 (256 cores)",
+      "xml_atualizados": [],
+      "validacao": {
+        "psnr_premultiplicado_db": 36.85,
+        "erro_max_alfa": 130,
+        "limiar_psnr_db": 35.0,
+        "alfa_preservado": true,
+        "borda_replicada_px": [
+          1,
+          1
+        ]
+      },
+      "reaproveitado_do_relatorio_anterior": true
+    },
+    {
+      "path": "assets/week5/images/christmas/bottomBop.png",
+      "bytes_antes": 417980,
+      "sha256_antes": "b91049f32211996c8cbcdc70c5f2e83a09a8d0cedee348b78825c1dec4d77a5f",
+      "dimensoes_antes": [
+        3980,
+        2800
+      ],
+      "dimensoes_depois": [
+        3980,
+        2800
+      ],
+      "bytes_depois": 417980,
+      "sha256_depois": "b91049f32211996c8cbcdc70c5f2e83a09a8d0cedee348b78825c1dec4d77a5f",
+      "categoria": "atlas_spritesheet",
+      "metadados_atlas": [
+        "assets/week5/images/christmas/bottomBop.xml"
+      ],
+      "consumidores": [],
+      "acao": "mantido",
+      "motivo": "recodificação de atlas desativada (use --recodificar-atlas)",
+      "modo_png": null,
+      "xml_atualizados": [],
+      "validacao": null,
+      "motivo_geometria": "atlas com coordenadas ímpares: a redução 2x exige arredondar frames e não é feita; apenas a codificação PNG é otimizada",
+      "reaproveitado_do_relatorio_anterior": true
+    },
+    {
+      "path": "assets/week5/images/christmas/evilBG.png",
+      "bytes_antes": 435862,
+      "sha256_antes": "98bd053e1582307c2ef8acb52ad4ce73ca43698f00ebd420122f0e2148538cce",
+      "dimensoes_antes": [
+        2625,
+        1613
+      ],
+      "dimensoes_depois": [
+        1313,
+        807
+      ],
+      "bytes_depois": 254817,
+      "sha256_depois": "d9967de93974f61307c91a09b1091249c0539dd528dd564b8718999817468126",
+      "categoria": "imagem_avulsa",
+      "metadados_atlas": [],
+      "consumidores": [
+        "source/stages/MallEvil.hx"
+      ],
+      "acao": "reduzido_2x",
+      "motivo": null,
+      "modo_png": "PNG8 (256 cores)",
+      "xml_atualizados": [],
+      "validacao": {
+        "psnr_premultiplicado_db": 41.76,
+        "erro_max_alfa": 127,
+        "limiar_psnr_db": 35.0,
+        "alfa_preservado": true,
+        "borda_replicada_px": [
+          1,
+          1
+        ]
+      },
+      "reaproveitado_do_relatorio_anterior": true
+    },
+    {
+      "path": "assets/week5/images/christmas/santa.png",
+      "bytes_antes": 287112,
+      "sha256_antes": "c994c69d1f5eb917222daddb6d5b99ded2bc6d4b1220d9ec973fd6f342bb1d7f",
+      "dimensoes_antes": [
+        4096,
+        1550
+      ],
+      "dimensoes_depois": [
+        4096,
+        1550
+      ],
+      "bytes_depois": 287112,
+      "sha256_depois": "c994c69d1f5eb917222daddb6d5b99ded2bc6d4b1220d9ec973fd6f342bb1d7f",
+      "categoria": "atlas_spritesheet",
+      "metadados_atlas": [
+        "assets/week5/images/christmas/santa.xml"
+      ],
+      "consumidores": [],
+      "acao": "mantido",
+      "motivo": "recodificação de atlas desativada (use --recodificar-atlas)",
+      "modo_png": null,
+      "xml_atualizados": [],
+      "validacao": null,
+      "motivo_geometria": "atlas com coordenadas ímpares: a redução 2x exige arredondar frames e não é feita; apenas a codificação PNG é otimizada",
+      "reaproveitado_do_relatorio_anterior": true
+    },
+    {
+      "path": "assets/week7/images/cutscenes/guns.png",
+      "bytes_antes": 462761,
+      "sha256_antes": "cef268cc708451d335f0fc0f5dfb2f9405a5f7f52fc7a6e022491392942b1e46",
+      "dimensoes_antes": [
+        4096,
+        7600
+      ],
+      "dimensoes_depois": [
+        4096,
+        7600
+      ],
+      "bytes_depois": 462761,
+      "sha256_depois": "cef268cc708451d335f0fc0f5dfb2f9405a5f7f52fc7a6e022491392942b1e46",
+      "categoria": "atlas_spritesheet",
+      "metadados_atlas": [
+        "assets/week7/images/cutscenes/guns.xml"
+      ],
+      "consumidores": [],
+      "acao": "mantido",
+      "motivo": "recodificação de atlas desativada (use --recodificar-atlas)",
+      "modo_png": null,
+      "xml_atualizados": [],
+      "validacao": null,
+      "motivo_geometria": "atlas com coordenadas ímpares: a redução 2x exige arredondar frames e não é feita; apenas a codificação PNG é otimizada",
+      "reaproveitado_do_relatorio_anterior": true
+    },
+    {
+      "path": "assets/week7/images/cutscenes/picoAppears/spritemap.png",
+      "bytes_antes": 252074,
+      "sha256_antes": "a28b869ed28fffe83748e9505f0736c07f35cb74de1c51ca9241a8ef36b1a84b",
+      "dimensoes_antes": [
+        4096,
+        1969
+      ],
+      "dimensoes_depois": [
+        4096,
+        1969
+      ],
+      "bytes_depois": 252074,
+      "sha256_depois": "a28b869ed28fffe83748e9505f0736c07f35cb74de1c51ca9241a8ef36b1a84b",
+      "categoria": "atlas_spritesheet",
+      "metadados_atlas": [
+        "assets/week7/images/cutscenes/picoAppears/spritemap.json"
+      ],
+      "consumidores": [],
+      "acao": "mantido",
+      "motivo": "recodificação de atlas desativada (use --recodificar-atlas)",
+      "modo_png": null,
+      "xml_atualizados": [],
+      "validacao": null,
+      "motivo_geometria": "atlas com coordenadas ímpares: a redução 2x exige arredondar frames e não é feita; apenas a codificação PNG é otimizada",
+      "reaproveitado_do_relatorio_anterior": true
+    },
+    {
+      "path": "assets/week7/images/cutscenes/stress.png",
+      "bytes_antes": 825299,
+      "sha256_antes": "2fc746faa5bb5d7709392bcebd554a538aaebf131d45adbfd1e679aa86fdc213",
+      "dimensoes_antes": [
+        8192,
+        6420
+      ],
+      "dimensoes_depois": [
+        8192,
+        6420
+      ],
+      "bytes_depois": 825299,
+      "sha256_depois": "2fc746faa5bb5d7709392bcebd554a538aaebf131d45adbfd1e679aa86fdc213",
+      "categoria": "atlas_spritesheet",
+      "metadados_atlas": [
+        "assets/week7/images/cutscenes/stress.xml"
+      ],
+      "consumidores": [],
+      "acao": "mantido",
+      "motivo": "recodificação de atlas desativada (use --recodificar-atlas)",
+      "modo_png": null,
+      "xml_atualizados": [],
+      "validacao": null,
+      "motivo_geometria": "atlas com coordenadas ímpares: a redução 2x exige arredondar frames e não é feita; apenas a codificação PNG é otimizada",
+      "reaproveitado_do_relatorio_anterior": true
+    },
+    {
+      "path": "assets/week7/images/cutscenes/stress2.png",
+      "bytes_antes": 700187,
+      "sha256_antes": "45b69c23a84e934c0c8f972bf07d137f5371e334292283b7b716c3ebbcb55ced",
+      "dimensoes_antes": [
+        8192,
+        5310
+      ],
+      "dimensoes_depois": [
+        8192,
+        5310
+      ],
+      "bytes_depois": 700187,
+      "sha256_depois": "45b69c23a84e934c0c8f972bf07d137f5371e334292283b7b716c3ebbcb55ced",
+      "categoria": "atlas_spritesheet",
+      "metadados_atlas": [
+        "assets/week7/images/cutscenes/stress2.xml"
+      ],
+      "consumidores": [],
+      "acao": "mantido",
+      "motivo": "recodificação de atlas desativada (use --recodificar-atlas)",
+      "modo_png": null,
+      "xml_atualizados": [],
+      "validacao": null,
+      "motivo_geometria": "atlas com coordenadas ímpares: a redução 2x exige arredondar frames e não é feita; apenas a codificação PNG é otimizada",
+      "reaproveitado_do_relatorio_anterior": true
+    },
+    {
+      "path": "assets/week7/images/cutscenes/stressGF.png",
+      "bytes_antes": 3648086,
+      "sha256_antes": "b5e42133678c81b5a99a6faeaa951b0fea813eef58e42d60b0f4b9f6380299fc",
+      "dimensoes_antes": [
+        7455,
+        5259
+      ],
+      "dimensoes_depois": [
+        7455,
+        5259
+      ],
+      "bytes_depois": 3648086,
+      "sha256_depois": "b5e42133678c81b5a99a6faeaa951b0fea813eef58e42d60b0f4b9f6380299fc",
+      "categoria": "atlas_spritesheet",
+      "metadados_atlas": [
+        "assets/week7/images/cutscenes/stressGF.xml"
+      ],
+      "consumidores": [],
+      "acao": "mantido",
+      "motivo": "recodificação de atlas desativada (use --recodificar-atlas)",
+      "modo_png": null,
+      "xml_atualizados": [],
+      "validacao": null,
+      "motivo_geometria": "atlas com coordenadas ímpares: a redução 2x exige arredondar frames e não é feita; apenas a codificação PNG é otimizada",
+      "reaproveitado_do_relatorio_anterior": true
+    },
+    {
+      "path": "assets/week7/images/cutscenes/stressPico/spritemap.png",
+      "bytes_antes": 242342,
+      "sha256_antes": "9c74c9115a6f163339beca92414e97a3d241617c97d2b20a33c5d6ab45de9f61",
+      "dimensoes_antes": [
+        4096,
+        4096
+      ],
+      "dimensoes_depois": [
+        4096,
+        4096
+      ],
+      "bytes_depois": 242342,
+      "sha256_depois": "9c74c9115a6f163339beca92414e97a3d241617c97d2b20a33c5d6ab45de9f61",
+      "categoria": "atlas_spritesheet",
+      "metadados_atlas": [
+        "assets/week7/images/cutscenes/stressPico/spritemap.json"
+      ],
+      "consumidores": [],
+      "acao": "mantido",
+      "motivo": "recodificação de atlas desativada (use --recodificar-atlas)",
+      "modo_png": null,
+      "xml_atualizados": [],
+      "validacao": null,
+      "motivo_geometria": "atlas com coordenadas ímpares: a redução 2x exige arredondar frames e não é feita; apenas a codificação PNG é otimizada",
+      "reaproveitado_do_relatorio_anterior": true
+    },
+    {
+      "path": "assets/week7/images/cutscenes/ugh.png",
+      "bytes_antes": 506344,
+      "sha256_antes": "7c5c1de99f2d29cda2c8f2182e469fe6b888510208da8e592c18521056ff39ea",
+      "dimensoes_antes": [
+        4096,
+        7600
+      ],
+      "dimensoes_depois": [
+        4096,
+        7600
+      ],
+      "bytes_depois": 506344,
+      "sha256_depois": "7c5c1de99f2d29cda2c8f2182e469fe6b888510208da8e592c18521056ff39ea",
+      "categoria": "atlas_spritesheet",
+      "metadados_atlas": [
+        "assets/week7/images/cutscenes/ugh.xml"
+      ],
+      "consumidores": [],
+      "acao": "mantido",
+      "motivo": "recodificação de atlas desativada (use --recodificar-atlas)",
+      "modo_png": null,
+      "xml_atualizados": [],
+      "validacao": null,
+      "motivo_geometria": "atlas com coordenadas ímpares: a redução 2x exige arredondar frames e não é feita; apenas a codificação PNG é otimizada",
+      "reaproveitado_do_relatorio_anterior": true
+    },
+    {
+      "path": "assets/week7/images/smokeLeft.png",
+      "bytes_antes": 229996,
+      "sha256_antes": "635c242443677e8fd601f16d9a2b36386380f9db4cf96b8f6cc76eae831a2373",
+      "dimensoes_antes": [
+        4096,
+        1600
+      ],
+      "dimensoes_depois": [
+        4096,
+        1600
+      ],
+      "bytes_depois": 229996,
+      "sha256_depois": "635c242443677e8fd601f16d9a2b36386380f9db4cf96b8f6cc76eae831a2373",
+      "categoria": "atlas_spritesheet",
+      "metadados_atlas": [
+        "assets/week7/images/smokeLeft.xml"
+      ],
+      "consumidores": [],
+      "acao": "mantido",
+      "motivo": "recodificação de atlas desativada (use --recodificar-atlas)",
+      "modo_png": null,
+      "xml_atualizados": [],
+      "validacao": null,
+      "motivo_geometria": "atlas com coordenadas ímpares: a redução 2x exige arredondar frames e não é feita; apenas a codificação PNG é otimizada",
+      "reaproveitado_do_relatorio_anterior": true
+    },
+    {
+      "path": "assets/week7/images/smokeRight.png",
+      "bytes_antes": 249408,
+      "sha256_antes": "7d1408feabf440f09a92e09357406052697046d19b492ccf5cda699cff7e6ce4",
+      "dimensoes_antes": [
+        3280,
+        2800
+      ],
+      "dimensoes_depois": [
+        3280,
+        2800
+      ],
+      "bytes_depois": 249408,
+      "sha256_depois": "7d1408feabf440f09a92e09357406052697046d19b492ccf5cda699cff7e6ce4",
+      "categoria": "atlas_spritesheet",
+      "metadados_atlas": [
+        "assets/week7/images/smokeRight.xml"
+      ],
+      "consumidores": [],
+      "acao": "mantido",
+      "motivo": "recodificação de atlas desativada (use --recodificar-atlas)",
+      "modo_png": null,
+      "xml_atualizados": [],
+      "validacao": null,
+      "motivo_geometria": "atlas com coordenadas ímpares: a redução 2x exige arredondar frames e não é feita; apenas a codificação PNG é otimizada",
+      "reaproveitado_do_relatorio_anterior": true
+    },
+    {
+      "path": "assets/week7/images/tankmanKilled1.png",
+      "bytes_antes": 347255,
+      "sha256_antes": "97295107befbe507891915f1423068fa36941ac90ea447b8d2298e893dd0e7f3",
+      "dimensoes_antes": [
+        4096,
+        3600
+      ],
+      "dimensoes_depois": [
+        4096,
+        3600
+      ],
+      "bytes_depois": 347255,
+      "sha256_depois": "97295107befbe507891915f1423068fa36941ac90ea447b8d2298e893dd0e7f3",
+      "categoria": "atlas_spritesheet",
+      "metadados_atlas": [
+        "assets/week7/images/tankmanKilled1.xml"
+      ],
+      "consumidores": [],
+      "acao": "mantido",
+      "motivo": "recodificação de atlas desativada (use --recodificar-atlas)",
+      "modo_png": null,
+      "xml_atualizados": [],
+      "validacao": null,
+      "motivo_geometria": "atlas com coordenadas ímpares: a redução 2x exige arredondar frames e não é feita; apenas a codificação PNG é otimizada",
+      "reaproveitado_do_relatorio_anterior": true
+    },
+    {
+      "path": "assets/weekend1/images/Pico_Death_Retry.png",
+      "bytes_antes": 700102,
+      "sha256_antes": "159549319174783aad6bbc2f0bc3bacb058858a342e85de8b70d1e642ad68aa4",
+      "dimensoes_antes": [
+        2002,
+        2805
+      ],
+      "dimensoes_depois": [
+        2002,
+        2805
+      ],
+      "bytes_depois": 700102,
+      "sha256_depois": "159549319174783aad6bbc2f0bc3bacb058858a342e85de8b70d1e642ad68aa4",
+      "categoria": "atlas_spritesheet",
+      "metadados_atlas": [
+        "assets/weekend1/images/Pico_Death_Retry.xml"
+      ],
+      "consumidores": [],
+      "acao": "mantido",
+      "motivo": "recodificação de atlas desativada (use --recodificar-atlas)",
+      "modo_png": null,
+      "xml_atualizados": [],
+      "validacao": null,
+      "motivo_geometria": "atlas com coordenadas ímpares: a redução 2x exige arredondar frames e não é feita; apenas a codificação PNG é otimizada",
+      "reaproveitado_do_relatorio_anterior": true
+    },
+    {
+      "path": "assets/weekend1/images/spraycanAtlas/spritemap1.png",
+      "bytes_antes": 238516,
+      "sha256_antes": "7961cbc4d65b94d9d31192e4f7bea2b21e0b008cbac731dac0618d466c2f688b",
+      "dimensoes_antes": [
+        8187,
+        2907
+      ],
+      "dimensoes_depois": [
+        8187,
+        2907
+      ],
+      "bytes_depois": 238516,
+      "sha256_depois": "7961cbc4d65b94d9d31192e4f7bea2b21e0b008cbac731dac0618d466c2f688b",
+      "categoria": "atlas_spritesheet",
+      "metadados_atlas": [
+        "assets/weekend1/images/spraycanAtlas/spritemap1.json"
+      ],
+      "consumidores": [],
+      "acao": "mantido",
+      "motivo": "recodificação de atlas desativada (use --recodificar-atlas)",
+      "modo_png": null,
+      "xml_atualizados": [],
+      "validacao": null,
+      "motivo_geometria": "atlas com coordenadas ímpares: a redução 2x exige arredondar frames e não é feita; apenas a codificação PNG é otimizada",
+      "reaproveitado_do_relatorio_anterior": true
+    }
+  ]
+}

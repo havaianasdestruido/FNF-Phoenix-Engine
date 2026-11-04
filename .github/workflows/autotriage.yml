@@ -1,0 +1,57 @@
+name: Remove Label on Close or Comment
+
+on:
+  issues:
+    types: [closed]
+  issue_comment:
+    types: [created]
+
+permissions:
+  issues: write
+
+jobs:
+  remove-label:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Remove label
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const labelToRemove = "status: pending triage";
+            // #48: the label must exist or this workflow silently does
+            // nothing. Create it if missing (self-healing) and warn loudly.
+            try {
+              await github.rest.issues.getLabel({
+                owner: context.repo.owner, repo: context.repo.repo, name: labelToRemove,
+              });
+            } catch (error) {
+              if (error.status !== 404) throw error;
+              core.warning(`Label "${labelToRemove}" did not exist; creating it (#48).`);
+              await github.rest.issues.createLabel({
+                owner: context.repo.owner, repo: context.repo.repo,
+                name: labelToRemove, color: "B60205",
+                description: "Awaiting first maintainer response",
+              });
+            }
+
+            // Check if it's an issue (not a PR)
+            if (context.payload.issue.pull_request) {
+              console.log("This is a pull request, skipping.");
+              return;
+            }
+
+            const issue_number = context.payload.issue.number;
+            const labels = context.payload.issue.labels.map(l => l.name);
+
+            if (labels.includes(labelToRemove)) {
+              console.log(`Removing label "${labelToRemove}" from issue #${issue_number}`);
+              await github.rest.issues.removeLabel({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number,
+                name: labelToRemove,
+              });
+            } else {
+              core.warning(`Label "${labelToRemove}" not found on issue #${issue_number}`);
+            }

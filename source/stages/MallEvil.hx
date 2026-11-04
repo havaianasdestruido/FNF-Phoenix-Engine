@@ -1,0 +1,84 @@
+package stages;
+import backend.Paths;
+import backend.ViewportVisuals;
+import objects.BGSprite;
+import play.BaseStage;
+import play.PlayState;
+
+import stages.objects.*;
+
+class MallEvil extends BaseStage
+{
+	var blackout:FlxSprite;
+	override public function onViewportResize():Void
+		ViewportVisuals.overscan(blackout);
+
+	override function create()
+	{
+		var bg:BGSprite = new BGSprite('christmas/evilBG', -400, -500, 0.2, 0.2);
+		// OTIMIZACAO_2X (christmas/evilBG): textura reduzida à metade (1313x807; original 2625x1613).
+		// A largura alvo é a original (Std.int(2625 * 0.8) = 2100) e o offset é o que updateHitbox()
+		// calculava para a textura original (262.5, 161.3), para não deslocar o fundo.
+		bg.setGraphicSize(Std.int(2625 * 0.8));
+		bg.updateHitbox();
+		bg.offset.set(262.5, 161.3);
+		add(bg);
+
+		var evilTree:BGSprite = new BGSprite('christmas/evilTree', 300, -300, 0.2, 0.2);
+		add(evilTree);
+
+		var evilSnow:BGSprite = new BGSprite('christmas/evilSnow', -200, 700);
+		add(evilSnow);
+		setDefaultGF('gf-christmas');
+
+		//Winter Horrorland cutscene
+		if (isStoryMode && !seenCutscene)
+		{
+			switch(songName)
+			{
+				case 'winter-horrorland':
+					setStartCallback(winterHorrorlandCutscene);
+			}
+		}
+	}
+
+	function winterHorrorlandCutscene()
+	{
+		camHUD.visible = false;
+		inCutscene = true;
+
+		FlxG.sound.play(Paths.sound('Lights_Turn_On'));
+		FlxG.camera.zoom = 1.5;
+		FlxG.camera.follow(new FlxObject(400, -2050));
+
+		// blackout at the start
+		blackout = new FlxSprite().makeGraphic(1, 1, FlxColor.BLACK);
+		ViewportVisuals.overscan(blackout);
+		blackout.scrollFactor.set();
+		add(blackout);
+
+		FlxTween.tween(blackout, {alpha: 0}, 0.7, {
+			ease: FlxEase.linear,
+			onComplete: function(twn:FlxTween) {
+				remove(blackout);
+				blackout.destroy();
+				blackout = null;
+			}
+		});
+
+		// zoom out
+		new FlxTimer().start(0.8, function(tmr:FlxTimer)
+		{
+			camHUD.visible = true;
+			FlxTween.tween(FlxG.camera, {zoom: defaultCamZoom}, 2.5, {
+				ease: FlxEase.quadInOut,
+				onComplete: function(twn:FlxTween)
+				{
+					startCountdown();
+					FlxG.camera.follow(PlayState.instance.camFollowPos);
+					FlxG.camera.focusOn(camFollow);
+				}
+			});
+		});
+	}
+}

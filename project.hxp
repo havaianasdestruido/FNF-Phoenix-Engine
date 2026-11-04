@@ -1,0 +1,1553 @@
+package;
+
+import hxp.*;
+import lime.tools.*;
+import sys.FileSystem;
+
+using StringTools;
+
+/**
+ * This HXP performs the functions of a Lime `project.xml` file,
+ * but it's written in Haxe rather than XML!
+ *
+ * This makes it far easier to organize, reuse, and refactor,
+ * and improves management of feature flag logic.
+ */
+@:nullSafety
+class Project extends HXProject
+{
+	//
+	// METADATA
+	//
+
+	/**
+	 * Phoenix Engine's own version, independent from the upstream JS Engine /
+	 * Psych Engine compatibility markers. Use the repository's release scheme:
+	 * MAJOR.MINOR.PATCH with optional -alpha, -beta, -preN or -rcN suffixes.
+	 * Git tags use the same value with a leading v (for example v0.0.1-pre1).
+	 * This is the build-time source of truth; runtime readers query the metadata
+	 * below through backend.PhoenixVersion.current.
+	 */
+	static final VERSION:String = "0.0.1";
+
+	/**
+	 * The game's name. Used as the default window title.
+	 */
+	static final TITLE:String = "Friday Night Funkin' - Phoenix Engine";
+
+	/**
+	 * The name of the generated executable file.
+	 * For example, `"Funkin"` will create a file called `Funkin.exe`.
+	 */
+	static final EXECUTABLE_NAME:String = "FNF-Phoenix-Engine";
+
+	/**
+	 * The codename of the engine.
+	 */
+	static final CODE_NAME:String = ""; // put your codename here idfk
+
+	/**
+	 * The relative location of the source code.
+	 */
+	static final SOURCE_DIR:String = "source";
+
+	/**
+	 * The fully qualified class path for the game's preloader.
+	 * Particularly important on HTML5 but we use it on all platforms.
+	 */
+	static final PRELOADER:String = "flixel.system.FlxPreloader";
+
+	/**
+	 * A package name used for identifying the app on various app stores.
+	 */
+	static final PACKAGE_NAME:String = "quack.fnf.phoenix";
+
+	/**
+	 * The fully qualified class path for the entry point class to execute when launching the game.
+	 * It's where `public static function main():Void` goes.
+	 */
+	static final MAIN_CLASS:String = "Main";
+
+	/**
+	 * The company name for the game.
+	 * This appears in metadata in places I think.
+	 */
+	static final COMPANY:String = "JordanSantiago";
+
+	/**
+	 * Scripts that copy the NDK's `libc++_shared.so` into the generated Gradle
+	 * project on Android. See `configureAndroidRuntime`.
+	 */
+	static final ANDROID_STL_SCRIPT_UNIX:String = "setup/android-copy-stl.sh";
+	static final ANDROID_STL_SCRIPT_WINDOWS:String = "setup/android-copy-stl.bat";
+
+	/**
+	 * Asset path globs to always exclude from asset libraries.
+	 */
+	static final EXCLUDE_ASSETS:Array<String> = [".*", "cvs", "thumbs.db", "desktop.ini", "*.hash", "*.md"];
+
+	/**
+	 * Asset path globs to exclude on web platforms.
+	 *
+	 * Intentionally empty: the repository only ships Ogg Vorbis audio (see
+	 * `Paths.SOUND_EXT` / `Paths.SOUND_EXTENSIONS`) and the HTML5 backend
+	 * decodes it, so excluding `*.ogg` here would ship a silent web build.
+	 */
+	static final EXCLUDE_ASSETS_WEB:Array<String> = [];
+
+	/**
+	 * Asset path globs to exclude on native platforms.
+	 *
+	 * Built-in content is Ogg only, so MP3s never need to be copied into the
+	 * asset libraries. Mods may still ship `.mp3` -- native builds read mods
+	 * straight off disk and `Paths.modsSounds()` resolves either container.
+	 */
+	static final EXCLUDE_ASSETS_NATIVE:Array<String> = ["*.mp3"];
+
+	//
+	// FEATURES
+	//
+	static final officialBuild:FeatureFlag = "officialBuild";
+	static final MODS_ALLOWED:FeatureFlag = "MODS_ALLOWED";
+	static final LUA_ALLOWED:FeatureFlag = "LUA_ALLOWED";
+	static final PYTHON_ALLOWED:FeatureFlag = "PYTHON_ALLOWED";
+	static final VIDEOS_ALLOWED:FeatureFlag = "VIDEOS_ALLOWED";
+	static final FEATURE_DEBUG_FUNCTIONS:FeatureFlag = "FEATURE_DEBUG_FUNCTIONS";
+	static final FUNNY_ALLOWED:FeatureFlag = "FUNNY_ALLOWED";
+	static final HSCRIPT_ALLOWED:FeatureFlag = "HSCRIPT_ALLOWED";
+	static final SHADERS_ALLOWED:FeatureFlag = "SHADERS_ALLOWED";
+	static final DISCORD_ALLOWED:FeatureFlag = "DISCORD_ALLOWED";
+	static final GAMEMODE_ALLOWED:FeatureFlag = "GAMEMODE_ALLOWED";
+	static final PRELOAD_ALL:FeatureFlag = "PRELOAD_ALL";
+	static final EMBED_ASSETS:FeatureFlag = "EMBED_ASSETS";
+	static final FEATURE_FILE_DROP:FeatureFlag = "FEATURE_FILE_DROP";
+	static final ACHIEVEMENTS_ALLOWED:FeatureFlag = "ACHIEVEMENTS_ALLOWED";
+	static final CRASH_HANDLER:FeatureFlag = "CRASH_HANDLER";
+	static final TITLE_SCREEN_EASTER_EGG:FeatureFlag = "TITLE_SCREEN_EASTER_EGG";
+	static final CHECK_FOR_UPDATES:FeatureFlag = "CHECK_FOR_UPDATES";
+	static final FLASH_ALLOWED:FeatureFlag = "FLASH_ALLOWED";
+	static final META_HORROR:FeatureFlag = "META_HORROR";
+
+	/**
+	 * `-DNO_BUILTIN_CONTENT` (content-stripped / copyright-safe builds).
+	 * When enabled, `configureAssets()` drops every built-in song, week and
+	 * character asset (charts, song audio, week libraries, character JSONs
+	 * and sprites, stage art, cutscene videos) and only keeps SFX, menu /
+	 * pause / game-over music, engine UI art, fonts and the bundled mods
+	 * (e.g. bf-clicker). The game code has fallbacks (placeholder
+	 * characters/icons, hidden title dancer, empty-week handling) so these
+	 * builds still boot and can play mod content.
+	 * This flag is intentionally NOT applied with a default in
+	 * `configureFeatureFlags()` (there is no meaningful inverse default);
+	 * pass `-DNO_BUILTIN_CONTENT` explicitly to strip a build.
+	 */
+	static final NO_BUILTIN_CONTENT:FeatureFlag = "NO_BUILTIN_CONTENT";
+
+	/**
+	 * `-DULTRA_OPTIMIZED` (WIP / EXPERIMENTAL max-speed build flag).
+	 * Strips debug instrumentation and forces the fastest codegen the
+	 * installed toolchain supports. Enabled with `-DULTRA_OPTIMIZED`.
+	 * Defines this flag toggles (see the ULTRA_OPTIMIZED block in
+	 * configureCompileDefines):
+	 *   ON:  analyzer-optimize; desktop-only HXCPP_OPTIMIZE_LINK
+	 *        (/GL + /LTCG or -flto)
+	 *   OFF: HXCPP_CHECK_POINTER, HXCPP_STACK_LINE, HXCPP_STACK_TRACE,
+	 *        HXCPP_GC_CHECK_LEAKS, HXCPP_FAST_LINK
+	 *   KEPT: HXCPP_CATCH_SEGV (CrashHandler needs it), fast GC defines,
+	 *        HXCPP_CPP17, HXCPP_NO_ARCH_LEVEL, -dce no
+	 * WIP: may crash code that relied on null-pointer checks / stack traces.
+	 * See ULTRA_BUILD.md.
+	 */
+	static final ULTRA_OPTIMIZED:FeatureFlag = "ULTRA_OPTIMIZED";
+
+	/**
+	 * `-DULTRA_HTML5` (WIP / EXPERIMENTAL max-speed HTML5/JS build flag).
+	 * Sets analyzer-optimize + js-es=6 for the web target only. Independent
+	 * of ULTRA_OPTIMIZED (which is for native). See ULTRA_BUILD.md.
+	 */
+	static final ULTRA_HTML5:FeatureFlag = "ULTRA_HTML5";
+
+	/**
+	 * `-DFEATURE_DEBUG_TRACY`
+	 * If this flag is enabled, the game will have the necessary hooks for the Tracy profiler.
+	 * Only enable this if you're using the correct fork of Haxe to support this.
+	 * @see https://github.com/HaxeFoundation/hxcpp/pull/1153
+	 */
+	static final FEATURE_DEBUG_TRACY:FeatureFlag = "FEATURE_DEBUG_TRACY";
+
+	public function new()
+	{
+		super();
+
+		setenv('HAXEPATH', './'); // Fixes an issue for haxelibs that use native C++ files until Haxe 5 releases.
+
+		haxe.Log.trace = (v:Dynamic, ?info:haxe.PosInfos) ->
+		{
+			if (!isDisplay())
+				Sys.println(v);
+		};
+
+		flair();
+		configureApp();
+
+		displayTarget();
+		configureCompileDefines();
+		configureFeatureFlags();
+		configureOutputDir();
+		configureAndroidRuntime();
+		configureHaxelibs();
+		configureAssets();
+		configureIcons();
+	}
+
+	function flair()
+	{
+		info("Friday Night Funkin' - Phoenix Engine");
+		info("Initializing build...");
+
+		// info("Target Version: " + ENGINE_VERSION);
+		var branch = getGitBranch();
+
+		if (branch != null && branch != "")
+		{
+			info("Git Branch:     " + branch);
+			info("Git Commit:     " + getGitCommit());
+			info("Git Modified?   " + getGitModified());
+		}
+		else Log.info("[WARN] Git information unavailable. Is this a proper Git repository?");
+
+		info("Display?        " + isDisplay());
+	}
+
+	/**
+	 * Apply basic project metadata, such as the game title and version number,
+	 * as well as info like the package name and company (used by various app stores).
+	 */
+	function configureApp()
+	{
+		this.meta.title = TITLE;
+		this.meta.version = VERSION;
+		// Single source of truth for the engine version (#54): the game
+		// reads it back via Application.current.meta (and MainMenuState).
+		setHaxedef("ENGINE_VERSION", VERSION);
+		this.meta.packageName = PACKAGE_NAME;
+		this.meta.company = COMPANY;
+
+		this.app.main = MAIN_CLASS;
+		this.app.file = EXECUTABLE_NAME;
+		this.app.preloader = PRELOADER;
+
+		// Tell Lime where to look for the game's source code.
+		// If for some reason we have multiple source directories, we can add more entries here.
+		this.sources.push(SOURCE_DIR);
+
+    if (isIOS()) this.templatePaths.push("source/templates");
+    if (isWindows())
+      addAssetPath("setup/uri", "uri", "default", ["*.ps1"]);
+
+		// Haxelib classpath overrides (shadow machine-local haxelib edits for CI/fresh builds).
+		this.sources.push("source/source-haxelib-patches");
+
+		// Configure the window.
+		// Automatically configure FPS.
+		this.window.fps = 60;
+		// Set the window size.
+		this.window.width = 1280;
+		this.window.height = 720;
+
+		// Sets the window background.
+		// Probably fixes white borders.
+		this.window.background = 0x000000;
+
+		this.window.hardware = true;
+		this.window.vsync = false;
+
+		if (isWeb())
+		{
+			this.window.resizable = true;
+		}
+
+		if (isDesktop())
+		{
+			this.window.orientation = Orientation.LANDSCAPE;
+			this.window.fullscreen = false;
+			this.window.resizable = true;
+			this.window.vsync = false;
+		}
+
+		if (isMobile())
+		{
+			this.window.orientation = Orientation.LANDSCAPE;
+			// Android's notch policy is separate from hiding the system bars.
+			// Start immersive so SDL does not immediately apply FORCE_NOT_FULLSCREEN.
+			// Keep the existing iOS window behavior unchanged.
+			this.window.fullscreen = isAndroid();
+			this.window.resizable = false;
+			this.window.width = 0;
+			this.window.height = 0;
+		}
+	}
+
+	/**
+	 * Log information about the configured target platform.
+	 */
+	function displayTarget()
+	{
+		// Display the target operating system.
+		switch (this.target)
+		{
+			case Platform.WINDOWS:
+				info('Target Platform: Windows');
+			case Platform.MAC:
+				info('Target Platform: MacOS');
+			case Platform.LINUX:
+				info('Target Platform: Linux');
+			case Platform.ANDROID:
+				info('Target Platform: Android');
+			case Platform.IOS:
+				info('Target Platform: IOS');
+			case Platform.HTML5:
+				info('Target Platform: HTML5');
+			case Platform.FLASH:
+				info('Target Platform: Flash');
+			case Platform.AIR:
+				info('Target Platform: Adobe AIR');
+			default:
+				error('Unsupported platform! (got ${target})');
+		}
+
+		switch (this.platformType)
+		{
+			case PlatformType.DESKTOP:
+				info('Platform Type: Desktop');
+			case PlatformType.MOBILE:
+				info('Platform Type: Mobile');
+			case PlatformType.WEB:
+				info('Platform Type: Web');
+			case PlatformType.CONSOLE:
+				info('Platform Type: Console');
+			default:
+				error('Unknown platform type! (got ${platformType})');
+		}
+
+		// Print whether we are using HXCPP, HashLink, or something else.
+		if (isFlash())
+			info('Target Language: ActionScript 3 (Flash)');
+		else if (isAir())
+			info('Target Language: ActionScript 3 (AIR)');
+		else if (isWeb())
+			info('Target Language: JavaScript (HTML5)');
+		else if (isHashLink())
+			info('Target Language: HashLink');
+		else if (isNeko())
+			info('Target Language: Neko');
+		else if (isJava())
+			info('Target Language: Java');
+		else if (isNodeJS())
+			info('Target Language: JavaScript (NodeJS)');
+		else if (isCSharp())
+			info('Target Language: C#');
+		else
+			info('Target Language: C++');
+
+		for (arch in this.architectures)
+		{
+			// Display the list of target architectures.
+			switch (arch)
+			{
+				case Architecture.X86:
+					info('Architecture: x86');
+				case Architecture.X64:
+					info('Architecture: x64');
+				case Architecture.ARMV5:
+					info('Architecture: ARMv5');
+				case Architecture.ARMV6:
+					info('Architecture: ARMv6');
+				case Architecture.ARMV7:
+					info('Architecture: ARMv7');
+				case Architecture.ARMV7S:
+					info('Architecture: ARMv7S');
+				case Architecture.ARM64:
+					info('Architecture: ARMx64');
+				case Architecture.MIPS:
+					info('Architecture: MIPS');
+				case Architecture.MIPSEL:
+					info('Architecture: MIPSEL');
+				case null:
+					if (!isWeb())
+					{
+						error('Unsupported architecture (got null on non-web platform)');
+					}
+					else
+					{
+						info('Architecture: Web');
+					}
+				default:
+					error('Unsupported architecture (got ${arch})');
+			}
+		}
+	}
+
+	/**
+	 * Read the `-DMODDING_LEVEL` define (0/1/2). Returns -1 when unset,
+	 * in which case the platform defaults are used instead.
+	 */
+	function getModdingLevel():Int
+	{
+		var levelStr:Null<String> = null;
+		if (haxedefs.exists('MODDING_LEVEL'))
+			levelStr = haxedefs.get('MODDING_LEVEL');
+		else if (defines.exists('MODDING_LEVEL'))
+			levelStr = defines.get('MODDING_LEVEL');
+
+		if (levelStr == null || levelStr.length < 1)
+			return -1;
+
+		var level:Null<Int> = Std.parseInt(levelStr);
+		if (level == null)
+			return 2;
+		return level;
+	}
+
+	/**
+	 * Apply various feature flags based on the target platform and the user-provided build flags.
+	 */
+	function configureFeatureFlags()
+	{
+		// You can explicitly override any of these.
+		// For example, `-DMODS_ALLOWED` or `-DVIDEOS_ALLOWED`
+
+		// Should be true unless explicitly requested.
+		MODS_ALLOWED.apply(this, (isDesktop() || isMobile()) && !isWeb() && !isFlash() && !isAir());
+
+		// Script modding level. Pass `-DMODDING_LEVEL=0|1|2` to force:
+		//   0 = no Lua/Python scripts, 1 = Lua only, 2 = Lua + Python
+		var moddingLevel:Int = getModdingLevel();
+		if (moddingLevel >= 0)
+		{
+			switch (moddingLevel)
+			{
+				case 0:
+					LUA_ALLOWED.disable(this, false);
+					PYTHON_ALLOWED.disable(this, false);
+				case 1:
+					LUA_ALLOWED.enable(this, false);
+					PYTHON_ALLOWED.disable(this, false);
+				default:
+					LUA_ALLOWED.enable(this, false);
+					PYTHON_ALLOWED.enable(this, false);
+			}
+		}
+		else
+		{
+			LUA_ALLOWED.apply(this, (isDesktop() || isMobile()) && (!isWeb() || !isHashLink()) && !isFlash() && !isAir() && isCPP());
+			PYTHON_ALLOWED.apply(this, (isDesktop() || isMobile()) && (!isWeb() || !isHashLink()) && !isFlash() && !isAir() && isCPP());
+		}
+
+		VIDEOS_ALLOWED.apply(this, (isDesktop() || isMobile()) && (!isWeb() || !is32Bit()) && !isFlash() && !isAir() && isCPP());
+		// Feral GameMode integration (Linux only). Degrades gracefully when
+		// gamemode isn't installed, so it is safe to enable on all Linux builds.
+		GAMEMODE_ALLOWED.apply(this, isDesktop() && isLinux());
+		CRASH_HANDLER.apply(this, true);
+		ACHIEVEMENTS_ALLOWED.apply(this, true);
+		CHECK_FOR_UPDATES.apply(this, true);
+		HSCRIPT_ALLOWED.apply(this, (isDesktop() || isMobile() || isWeb()) && !isFlash() && !isAir());
+		DISCORD_ALLOWED.apply(this, (isDesktop() || isMobile()) && !isFlash() && !isAir() && isCPP());
+		SHADERS_ALLOWED.apply(this, !isFlash() && !isAir());
+		FUNNY_ALLOWED.apply(this, isDesktop() && !isFlash() && !isAir());
+		// TITLE_SCREEN_EASTER_EGG.apply(this, true);
+
+		// 4th-wall-breaking ("META_HORROR") system effects: wallpaper swap,
+		// taskbar/other-window hiding, system volume, mouse/keyboard input,
+		// color-key transparency... Horror-mod tools (issue #94, ported from
+		// psych-engine-modified-build and Mario Madness with credits; see
+		// docs/META_HORROR.md). OFF by default because the effects are
+		// deliberately intrusive - opt in with -DMETA_HORROR.
+		META_HORROR.apply(this, false);
+
+		// Should be true only on web builds.
+		// Enabling embedding and preloading is required to preload assets properly.
+		EMBED_ASSETS.apply(this, isWeb());
+		PRELOAD_ALL.apply(this, true);
+
+		// Should be true except on MacOS.
+		// File drop doesn't work there.
+		FEATURE_FILE_DROP.apply(this, !isMac() && !isFlash() && !isAir());
+
+		FLASH_ALLOWED.apply(this, isFlash());
+	}
+
+	/**
+	 * Set compilation flags which are not feature flags.
+	 */
+	function configureCompileDefines()
+	{
+		// Enable OpenFL's error handler. Required for the crash logger.
+		setHaxedef("openfl-enable-handle-error");
+
+		// Enable stack trace tracking. Good for debugging but has a (minor) performance impact. (and also the crash handler)
+		setHaxedef("HXCPP_CHECK_POINTER");
+		setHaxedef("HXCPP_STACK_LINE");
+		setHaxedef("HXCPP_STACK_TRACE");
+		setHaxedef("HXCPP_CATCH_SEGV");
+		if (HSCRIPT_ALLOWED.isEnabled(this))
+			setHaxedef("hscriptPos");
+
+		setHaxedef("no-deprecation-warnings");
+		setHaxedef("FLX_NO_FOCUS_LOST_SCREEN"); // I FORGOT LMAFOAOO
+
+		// Disable features unsupported on flash/air
+		if (isFlash() || isAir()) {
+			setHaxedef("FLX_NO_PITCH");
+			setHaxedef("FLX_NO_SOUND_TRAY");
+			// Suppress OpenFL's Haxe-4.3/Lime-8.0.2+ compatibility check
+			// (include.xml line 38: unless="setup || create || disable-version-check || display").
+			// Without this, the build aborts with "Lime version X is not compatible
+			// with OpenFL when targeting flash or air with Haxe 4.3+".
+			this.defines.set("disable-version-check", "1");
+		}
+
+		// setHaxedef("NO_PRECOMPILED_HEADERS");
+
+		// Allow memory to go above 1GB.
+		setHaxedef("HXCPP_GC_BIG_BLOCKS");
+
+        // HXCPP configuration options
+        setHaxedef("HXCPP_GC_GENERATIONAL");
+        setHaxedef("HXCPP_GC_DYNAMIC_SIZE");
+        setHaxedef("HXCPP_CPP17");
+        // setHaxedef("HXCPP_ALIGN_ALLOC");
+        setHaxedef("HXCPP_FAST_LINK");
+		// this is part of ShadowEngines HXCPP
+		// should be fine to keep if you don't use it, but makes it so it doesn't use AVX2
+        setHaxedef("HXCPP_NO_ARCH_LEVEL");
+
+		// If we aren't using the Flixel debugger, strip it out.
+		if (!isDebug())
+		{
+			setHaxedef("FLX_NO_DEBUG");
+			setHaxedef("analyzer-optimize");
+		}
+
+		// Diagnostics gated behind `#if MAIN_DEBUG` (Paths asset fallback, shader
+		// helpers, etc.) must stay silent in production but exist in debug builds.
+		// Without this define the gate compiles away on every configuration.
+		if (isDebug())
+			setHaxedef("MAIN_DEBUG");
+		// addHaxeFlag("-dce full");
+		addHaxeFlag("-dce no");
+
+		// Disable the built in pause screen when unfocusing the game.
+		setHaxedef("FLX_NO_FOCUS_LOST_SCREEN");
+
+		// Cleaner looking compiler errors.
+		setHaxedef("message.reporting", "pretty");
+		
+		// HaxeUI configuration.
+		if (isMobile())
+		{
+			setHaxedef("SHARE_MOBILE_FILES");
+		}
+
+		setHaxedef("haxeui_no_mouse_reset");
+		setHaxedef("haxeui_focus_out_on_click"); // Unfocus a dialog when clicking out of it
+		setHaxedef("haxeui_dont_impose_base_class"); // Suppress a macro error
+
+		if (FEATURE_DEBUG_TRACY.isEnabled(this))
+		{
+			setHaxedef("HXCPP_TELEMETRY"); // Enable telemetry
+			setHaxedef("HXCPP_TRACY"); // Enable Tracy telemetry
+			setHaxedef("HXCPP_TRACY_MEMORY"); // Track memory allocations
+			setHaxedef("HXCPP_TRACY_ON_DEMAND"); // Only collect telemetry when Tracy is open and reachable
+			// setHaxedef("HXCPP_TRACY_INCLUDE_CALLSTACKS"); // Inspect callstacks per zone, inflating telemetry data
+
+			setHaxedef("absolute-paths"); // Fix source locations so Tracy can see them
+		}
+		
+		// setHaxedef("HXCPP_PROFILER");
+		setHaxedef("HXCPP_GC_CHECK_LEAKS"); // Idk if this does anything
+
+		if (ULTRA_OPTIMIZED.isEnabled(this) && !isWeb())
+		{
+			// WIP: experimental max-speed build. See the flag doc above.
+			// hxcpp 4.3.2 has NO HXCPP_OPTIMIZE_SPEED/SIZE/O3 defines (grep
+			// toolchain + tools = zero hits): MSVC already emits /O2 in
+			// release (msvc-toolchain.xml:67,79) which is max-speed for cl,
+			// and gcc/clang already use -O2 (linux-toolchain.xml:35). So the
+			// real speed levers are: enable whole-program link-time codegen
+			// (HXCPP_OPTIMIZE_LINK → /GL + /LTCG, or -flto) and drop the
+			// fast-link default that forces INCREMENTAL LTCG.
+
+			// UNSET: debug instrumentation overhead (hxcpp toolchain applies
+			// each by emitting -D flags to haxe in common-defines.xml).
+			unsetHaxedef("HXCPP_CHECK_POINTER"); // null-pointer checks
+			unsetHaxedef("HXCPP_STACK_LINE"); // line info in stack traces
+			unsetHaxedef("HXCPP_STACK_TRACE"); // stack frame tracking
+			unsetHaxedef("HXCPP_GC_CHECK_LEAKS"); // GC leak scanning
+
+			// KEEP: HXCPP_CATCH_SEGV — CrashHandler.init() registers
+			// __hxcpp_set_critical_error_handler and CallStack.exceptionStack()
+			// in onUncaughtError; HXCPP_CATCH_SEGV enables SEH translation
+			// in hxcpp (Debug.cpp:273-279, StackContext.h:448) that keeps
+			// segfaults catchable as haxe exceptions instead of hard crashes.
+			// Removing it would crash the game instead of showing the crash
+			// screen; the overhead is negligible so we keep it.
+
+			// ENABLE link-time codegen (whole-program LTCG/LTO) on desktop only.
+			// msvc-toolchain.xml:83 → -GL (compile), :123/:148 → -LTCG (link).
+			// linux-toolchain.xml:31, mac-toolchain.xml:51 → -flto. Android NDK
+			// LTO cannot resolve hxcpp's __tls_get_addr helper, so don't enable it
+			// for mobile targets.
+			if (!isMobile())
+			{
+				// HXCPP_FAST_LINK must be unset first so hxcpp uses full LTCG rather
+				// than HXCPP_LTCG_INCREMENTAL (finish-setup.xml:34).
+				unsetHaxedef("HXCPP_FAST_LINK");
+				setHaxedef("HXCPP_OPTIMIZE_LINK");
+			}
+
+			// FORCE: analyzer-optimize is normally only set in !isDebug(); ensure it
+			// regardless of build type when ULTRA is on.
+			setHaxedef("analyzer-optimize");
+
+			// DCE: keep "-dce no" (already in haxeflags above). This game
+			// is moddable with heavy runtime reflection (128+ Reflect.* calls
+			// across 15+ source files, plus hscript-improved dynamic dispatch).
+			// -dce full would strip dead code that mods may reference via
+			// Reflect.field/callMethod at runtime → null-access crashes.
+			// Safer to keep -dce no and rely on analyzer-optimize instead.
+
+			info("ULTRA_OPTIMIZED: experimental max-speed build enabled (native target)");
+		}
+
+		if (ULTRA_HTML5.isEnabled(this) && isWeb())
+		{
+			// WIP: experimental max-speed build for the HTML5/JS target.
+			// The JS backend ignores the hxcpp defines above; it has its own
+			// speed knobs (DCE, JS ES level, analyzer).
+			setHaxedef("analyzer-optimize");
+			setHaxedef("js-es", "6");
+			// -dce std is the safest DCE for the JS target: removes truly
+			// unreachable code without stripping the reflection-accessed
+			// surface that ClientPrefs/HScript/Lua depend on.
+			// Keep "no" if you need full mod safety; switch to "std" if your
+			// mod library is small / static. WIP.
+			// addHaxeFlag("-dce std");  // uncomment when you're sure
+
+			info("ULTRA_HTML5: experimental max-speed HTML5 build enabled");
+		}
+	}
+
+	function configureOutputDir()
+	{
+		// Set the output directory. Depends on the target platform and build type.
+
+		var buildDir = 'build/${isDebug() ? 'debug' : 'release'}';
+
+		// we use a dedicated 'tracy' folder, since it generally needs a recompile when in use
+		if (FEATURE_DEBUG_TRACY.isEnabled(this))
+			buildDir += "-tracy";
+
+		// trailing slash might not be needed, works fine on macOS without it, but I haven't tested on Windows!
+		buildDir += "/";
+
+		info('Output directory: $buildDir');
+		// setenv('BUILD_DIR', buildDir);
+		app.path = buildDir;
+	}
+
+	/**
+	 * The Android ABIs this build produces, mirroring the selection Lime's
+	 * `AndroidPlatform` performs (default architectures plus the `-ONLY_*`
+	 * overrides and the simulator defaults).
+	 */
+	function androidAbis():Array<String>
+	{
+		if (targetFlags.exists("ONLY_ARMV7"))
+			return ["armeabi-v7a"];
+		if (targetFlags.exists("ONLY_ARM64"))
+			return ["arm64-v8a"];
+		if (targetFlags.exists("ONLY_X86"))
+			return ["x86"];
+		if (targetFlags.exists("ONLY_X86_64"))
+			return ["x86_64"];
+		if (targetFlags.exists("simulator") || targetFlags.exists("emulator"))
+			return ["x86_64", "arm64-v8a"];
+		return ["armeabi-v7a", "arm64-v8a"];
+	}
+
+	/**
+	 * Android: make the APK ship the NDK's `libc++_shared.so`.
+	 *
+	 * The prebuilt `liblime.so` NDLL that Lime copies into the app is linked
+	 * against the *shared* C++ runtime (`readelf -d` reports
+	 * `NEEDED: libc++_shared.so`), but neither Lime's Android target nor the
+	 * Gradle project it generates ever copies that runtime into `jniLibs`.
+	 * The resulting APK fails before the first frame with:
+	 *
+	 *     dlopen failed: library "libc++_shared.so" not found: needed by
+	 *     /data/app/.../lib/arm64/liblime.so in namespace clns-N
+	 *
+	 * Lime runs pre-build callbacks after it creates the Gradle project
+	 * (`update`) and before it copies the NDLLs and invokes Gradle (`build`),
+	 * so this is the last moment the file can be dropped into the right place.
+	 * It also survives `lime build android -clean`, which wipes the target
+	 * directory before `update` recreates it.
+	 */
+	function configureAndroidRuntime()
+	{
+		if (!isAndroid())
+			return;
+
+		// Pin the supported Android SDK contract instead of relying on Lime's
+		// latest-installed Build Tools discovery. These values match the
+		// pinned Lime 8.1.2 defaults for min/target SDK and the Android CI image.
+		this.config.set("android.minimum-sdk-version", 21);
+		this.config.set("android.target-sdk-version", 36);
+		this.config.set("android.build-tools-version", "36.0.0");
+		// Match ClientPrefs.respectCutout's default until Haxe loads the save.
+		// PhoenixDisplay switches to ALWAYS (or SHORT_EDGES on API 28/29) when
+		// the player selects Real Fullscreen; Lime must not start in shortEdges.
+		this.config.set("android.layoutInDisplayCutoutMode", "never");
+
+		// Java sources of the native platform bridge (extensions). Lime copies
+		// these into the generated Gradle project's java source set.
+		this.javaPaths.push("source/android/src");
+
+		// Lime treats a directory containing build.gradle as an Android library
+		// dependency and wires it into the generated app module. Keep Media3 in
+		// this tiny Android-only shim rather than copying/owning Lime's app
+		// build.gradle template, so normal Lime template updates keep applying.
+		this.dependencies.push(new Dependency("phoenix-media3", "source/android/media3"));
+
+		// Engine platform templates (MainActivity, AndroidManifest overrides).
+		// Pushed so they take priority over haxelib template paths.
+		this.templatePaths.push("source/templates");
+
+		// Register the native bridge extensions with Lime's Android build.
+		// Each one extends org.haxe.extension.Extension and is instantiated by
+		// the generated GameActivity, which forwards lifecycle/intent/result
+		// callbacks to them. PhoenixMediaService is an Android Service declared
+		// in the manifest template, not an extension.
+		//
+		// NB: use config.push() per item. ConfigData only tracks lists through
+		// its companion `___array` bucket that push() maintains; config.set()
+		// with a Haxe Array stores one value that lime's getArrayString()
+		// stringifies into "[a,b,c]" (invalid Java in GameActivity).
+		for (extension in [
+			"quack.fnf.phoenix.android.PhoenixCore",
+			"quack.fnf.phoenix.android.PhoenixDisplay",
+			"quack.fnf.phoenix.android.PhoenixInput",
+			"quack.fnf.phoenix.android.PhoenixMedia",
+			"quack.fnf.phoenix.android.PhoenixStorage"
+		])
+			config.push("android.extension", extension, true);
+
+    // Only the permissions used by the platform bridge. App-specific storage
+    // needs no READ/WRITE_EXTERNAL_STORAGE or READ_MEDIA_* permissions; files
+    // outside it are accessed through SAF grants, not broad media access.
+    // Setting `android.permission` replaces Lime's defaults entirely. Push
+    // individually for the same reason as the extensions above.
+    for (permission in [
+      "android.permission.WAKE_LOCK",
+      "android.permission.INTERNET",
+      "android.permission.VIBRATE",
+      "android.permission.ACCESS_NETWORK_STATE",
+      "android.permission.POST_NOTIFICATIONS",
+      "android.permission.FOREGROUND_SERVICE",
+      "android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK"
+    ])
+      config.push("android.permission", permission, true);
+
+		var abis = androidAbis();
+		if (abis.length == 0)
+			return;
+
+		// Lime writes the Gradle project to `<app.path>/android/bin`.
+		var jniLibsDir = '${app.path}android/bin/app/src/main/jniLibs';
+
+		// Pass what we know to the script; it falls back to ANDROID_NDK_ROOT and
+		// then to Lime's config file when this is empty. `Map.get` is nullable and
+		// this file is @:nullSafety, so coalesce instead of assigning directly.
+		var ndkRoot:String = environment.get("ANDROID_NDK_ROOT") ?? "";
+
+		// NB: `Sys.systemName` is a function, not a property (Haxe 4.3 std/Sys.hx).
+		var isWindows = (Sys.systemName() == "Windows");
+		var command:String = isWindows ? "cmd" : "sh";
+		var args:Array<String> = isWindows ? ["/c", ANDROID_STL_SCRIPT_WINDOWS] : [ANDROID_STL_SCRIPT_UNIX];
+
+		args.push("--ndk");
+		args.push(ndkRoot);
+		args.push(jniLibsDir);
+		for (abi in abis)
+			args.push(abi);
+
+		info('Android: packaging libc++_shared.so for ${abis.join(", ")}');
+
+		this.preBuildCallbacks.push(new CLICommand(command, args));
+	}
+
+	function configureHaxelibs()
+	{
+		addHaxelib('lime'); // Game engine backend
+		addHaxelib('openfl'); // Game engine backend
+
+		addHaxelib('flixel'); // Game engine
+
+		addHaxelib('flixel-addons'); // Additional utilities for Flixel
+		if (HSCRIPT_ALLOWED.isEnabled(this))
+			addHaxelib('hscript'); // Scripting
+
+		addHaxelib('flixel-ui'); // UI framework
+		addHaxelib('grig.audio');
+		addHaxelib('funkin.vis');
+		if (!isFlash() && !isAir())
+			addHaxelib('flxanimate'); // Texture atlas rendering
+		// Native file dialogs are desktop-only; its NDLL ships no mobile
+		// binaries, so keep it off mobile classpaths entirely.
+		if (isDesktop() && !isFlash() && !isWeb() && isCPP())
+			addHaxelib('hxnativefiledialog');
+		addHaxelib('tjson');
+
+		if (isDesktop() && DISCORD_ALLOWED.isEnabled(this))
+			addHaxelib('hxdiscord_rpc'); // Discord API
+
+		if (isDesktop() && LUA_ALLOWED.isEnabled(this))
+			addHaxelib('hxluajit'); // Lua API
+
+		if (PYTHON_ALLOWED.isEnabled(this))
+			addHaxelib('hython'); // Python API (pure Haxe interpreter)
+
+		if (isDebug() && isCPP())
+			addHaxelib("hxcpp-debug-server");
+
+		if (GAMEMODE_ALLOWED.isEnabled(this))
+			addHaxelib("hxgamemode");
+
+		if (isDesktop() && VIDEOS_ALLOWED.isEnabled(this))
+			addHaxelib('hxvlc');
+	}
+
+	function configureAssets()
+	{
+		var exclude = EXCLUDE_ASSETS.concat(isWeb() ? EXCLUDE_ASSETS_WEB : EXCLUDE_ASSETS_NATIVE);
+		var shouldPreload = PRELOAD_ALL.isEnabled(this);
+		var shouldEmbed = EMBED_ASSETS.isEnabled(this);
+		// Content-stripped build: drop built-in songs/weeks/characters, keep only
+		// SFX, menu music, engine UI shell and bundled mods. See NO_BUILTIN_CONTENT.
+		var stripped:Bool = NO_BUILTIN_CONTENT.isEnabled(this);
+
+		if (shouldEmbed)
+		{
+			info('Embedding assets into executable...');
+		}
+		else
+		{
+			info('Including assets alongside executable...');
+		}
+
+		if (stripped)
+		{
+			info('NO_BUILTIN_CONTENT: stripping built-in songs, weeks and characters (keeping SFX + menu music)...');
+		}
+
+		// Default asset library
+		var shouldPreloadDefault = true;
+		addAssetLibrary("default", shouldEmbed, shouldPreloadDefault);
+		if (!stripped)
+		{
+			addAssetPath("assets/preload", "assets", "default", ["*"], exclude, shouldEmbed);
+		}
+		else
+		{
+			// Stripped: SFX + menu music only. Song charts (data/<song>/),
+			// character JSONs (characters/), week JSONs (weeks/) and stage
+			// JSONs (stages/) are all dropped.
+			addAssetPath("assets/preload/sounds", "assets/sounds", "default", ["*"], exclude, shouldEmbed);
+			addAssetPath("assets/preload/music", "assets/music", "default", ["*"], exclude, shouldEmbed);
+			addAssetPath("assets/preload/gameRenders", "assets/gameRenders", "default", ["*"], exclude, shouldEmbed);
+			// Flavor text the engine reads at runtime (countdown popups,
+			// loading tips, rating quotes, window titles). NOT song charts.
+			addAsset("assets/preload/data/introText.txt", "assets/data/introText.txt", "default", shouldEmbed);
+			addAsset("assets/preload/data/funnyTips.txt", "assets/data/funnyTips.txt", "default", shouldEmbed);
+			addAsset("assets/preload/data/windowTitleBase.txt", "assets/data/windowTitleBase.txt", "default", shouldEmbed);
+			addAssetPath("assets/preload/data/ratingQuotes", "assets/data/ratingQuotes", "default", ["*"], exclude, shouldEmbed);
+			// Menu/UI shell art only. Built-in character, week and dialogue
+			// art is dropped (the game falls back to generated placeholders).
+			var excludePreloadImages:Array<String> = exclude.concat([
+				"icons", // character health icons (incl. icon-face fallback)
+				"menucharacters", // story menu dancers
+				"storymenu", // week title cards
+				"dialogue", // dialogue portraits + character JSONs
+				"menubackgrounds", // per-week story menu backdrops
+				"week1_nomiss.png", // built-in week achievement art ...
+				"week2_nomiss.png",
+				"week3_nomiss.png",
+				"week4_nomiss.png",
+				"week5_nomiss.png",
+				"week6_nomiss.png",
+				"week7_nomiss.png",
+				"weekend1_nomiss.png", // ... (generic achievement icons stay)
+				"gfDanceTitle.*" // title screen dancer (+ its .json/.xml)
+			]);
+			addAssetPath("assets/preload/images", "assets/images", "default", ["*"], excludePreloadImages, shouldEmbed);
+		}
+
+		// Font assets
+		var shouldEmbedFonts = true;
+		addAssetPath("assets/fonts", null, "default", ["*"], exclude, shouldEmbedFonts);
+
+		// Volume stuff
+		var shouldEmbedVolume = true;
+		addAssetPath("assets/soundtray", null, "default", ["*"], exclude, shouldEmbedVolume);
+
+		// splash stuff
+		// var shouldEmbedSplash = true;
+		addAssetPath("assets/splash", null, "default", ["*"], exclude, false);
+
+		addAssetPath("assets/embed", "assets", "default", ["*"], exclude, true);
+
+		// Shared asset libraries
+		addAssetLibrary("songs", shouldEmbed, shouldPreload);
+		if (!stripped)
+			addAssetPath("assets/songs", "assets/songs", "songs", ["*"], exclude, shouldEmbed);
+		addAssetLibrary("shared", shouldEmbed, shouldPreload);
+		if (!stripped)
+		{
+			addAssetPath("assets/shared", "assets/shared", "shared", ["*"], exclude, shouldEmbed);
+		}
+		else
+		{
+			// Stripped: SFX + menu/pause/game-over music only.
+			addAssetPath("assets/shared/sounds", "assets/shared/sounds", "shared", ["*"], exclude, shouldEmbed);
+			addAssetPath("assets/shared/music", "assets/shared/music", "shared", ["*"], exclude, shouldEmbed);
+			// Engine UI art only (noteskins, ratings, splash, dialogue box,
+			// pixel UI theme, ...). Character sprites/portraits, dialogue
+			// portraits and week stage art are dropped.
+			var excludeSharedImages:Array<String> = exclude.concat([
+				"characters", // every character sprite + the game-over placeholder
+				"dialogue", // BF/GF dialogue portraits
+				"weeb", // week 6 school stage art
+				"stageback.png", // week 1 stage art ...
+				"stagefront.png",
+				"stagecurtains.png",
+				"stage_light.png",
+				"spotlight.png", // ... incl. Dadbattle Spotlight event art
+				"smoke.png" // Dadbattle fog art
+			]);
+			addAssetPath("assets/shared/images", "assets/shared/images", "shared", ["*"], excludeSharedImages, shouldEmbed);
+		}
+		if (VIDEOS_ALLOWED.isEnabled(this) && !stripped)
+		{
+			// var shouldEmbedVideos = false;
+			addAssetLibrary("videos", false, shouldPreload);
+			addAssetPath("assets/videos", "assets/videos", "videos", ["*"], exclude, false);
+		}
+
+		// Level asset libraries (dropped entirely in stripped builds: each one
+		// is stage art + stage SFX for a built-in week).
+		addAssetLibrary("week2", shouldEmbed, shouldPreload);
+		if (!stripped)
+			addAssetPath("assets/week2", "assets/week2", "week2", ["*"], exclude, shouldEmbed);
+		addAssetLibrary("week3", shouldEmbed, shouldPreload);
+		if (!stripped)
+			addAssetPath("assets/week3", "assets/week3", "week3", ["*"], exclude, shouldEmbed);
+		addAssetLibrary("week4", shouldEmbed, shouldPreload);
+		if (!stripped)
+			addAssetPath("assets/week4", "assets/week4", "week4", ["*"], exclude, shouldEmbed);
+		addAssetLibrary("week5", shouldEmbed, shouldPreload);
+		if (!stripped)
+			addAssetPath("assets/week5", "assets/week5", "week5", ["*"], exclude, shouldEmbed);
+		addAssetLibrary("week6", shouldEmbed, shouldPreload);
+		if (!stripped)
+			addAssetPath("assets/week6", "assets/week6", "week6", ["*"], exclude, shouldEmbed);
+		addAssetLibrary("week7", shouldEmbed, shouldPreload);
+		if (!stripped)
+			addAssetPath("assets/week7", "assets/week7", "week7", ["*"], exclude, shouldEmbed);
+		addAssetLibrary("weekend1", shouldEmbed, shouldPreload);
+		if (!stripped)
+			addAssetPath("assets/weekend1", "assets/weekend1", "weekend1", ["*"], exclude, shouldEmbed);
+
+		// Art asset library (where README and CHANGELOG pull from)
+		var shouldEmbedArt = false;
+		var shouldPreloadArt = false;
+		// addAsset("art/readme.txt", "do NOT readme.txt", "art", shouldEmbedArt);
+		// addAsset("CHANGELOG.md", "changelog.txt", "/", shouldEmbedArt);
+		// Ship the built-in mods alongside native binaries so they are available
+		// from the game's mods directory in CI artifacts and release archives.
+		addAssetPath("mods", "mods", "default", ["*"], exclude, shouldEmbed);
+
+		if (GAMEMODE_ALLOWED.isEnabled(this))
+			addAsset("gamemode.ini");
+	}
+
+	/**
+	 * Configure the application's favicon and executable icon.
+	 */
+	function configureIcons()
+	{
+		for (size in [16, 32, 64])
+			addIcon('art/icon${size}.png', size);
+		addIcon("art/iconOG.png");
+
+		if (isWindows())
+		{
+			// Keep these next to the executable, even when game assets are embedded.
+			addAsset("art/windows/phoenix.ico", "phoenix.ico", "default", false);
+			addAsset("art/windows/desktop.ini", "desktop.ini", "default", false);
+
+			// Explorer only reads desktop.ini for folders marked read-only or system.
+			// ZIP extraction can discard this attribute; the Windows game restores it
+			// on startup as well. Do not touch the host filesystem for other targets.
+			if (Sys.systemName() == "Windows" && (this.command == "build" || this.command == "test"))
+			{
+				try
+				{
+					var folder = app.path + "windows/bin";
+					FileSystem.createDirectory(folder);
+					if (Sys.command("attrib", ["+r", folder]) != 0)
+						info('Could not set the Windows folder icon attribute on $folder');
+				}
+				catch (error:Dynamic)
+				{
+					info('Could not set the Windows folder icon attribute: $error');
+				}
+			}
+		}
+
+		if (isAndroid())
+		{
+			// Signing key resolution order:
+			// 1. PHOENIX_KEYSTORE env var (plus PHOENIX_KEYSTORE_PASSWORD /
+			//    PHOENIX_KEYSTORE_ALIAS / PHOENIX_KEYSTORE_ALIAS_PASSWORD).
+			// 2. Local development keystore `key.keystore` with the legacy
+			//    javascriptengine credentials.
+			// If neither exists the build produces an unsigned/debug APK.
+			var keystorePath:Null<String> = Sys.getEnv("PHOENIX_KEYSTORE");
+			if (keystorePath == null || keystorePath == "")
+				keystorePath = sys.FileSystem.exists("key.keystore") ? "key.keystore" : null;
+
+			if (keystorePath != null && sys.FileSystem.exists(keystorePath))
+			{
+				var password:String = Sys.getEnv("PHOENIX_KEYSTORE_PASSWORD") ?? "javascriptengine";
+				var alias:String = Sys.getEnv("PHOENIX_KEYSTORE_ALIAS") ?? "jsport";
+				var aliasPassword:String = Sys.getEnv("PHOENIX_KEYSTORE_ALIAS_PASSWORD") ?? password;
+				this.keystore = new Keystore(keystorePath, password, alias, aliasPassword);
+				info('Android: signing with keystore "$keystorePath"');
+			}
+		}
+	}
+
+	//
+	// HELPER FUNCTIONS
+	// Easy functions to make the code more readable.
+	//
+
+	public function isWeb():Bool
+	{
+		return this.platformType == PlatformType.WEB || isFlash();
+	}
+
+	public function isMobile():Bool
+	{
+		return this.platformType == PlatformType.MOBILE;
+	}
+
+	public function isDesktop():Bool
+	{
+		return this.platformType == PlatformType.DESKTOP;
+	}
+
+	public function isConsole():Bool
+	{
+		return this.platformType == PlatformType.CONSOLE;
+	}
+
+	public function is32Bit():Bool
+	{
+		return this.architectures.contains(Architecture.X86);
+	}
+
+	public function is64Bit():Bool
+	{
+		return this.architectures.contains(Architecture.X64);
+	}
+
+	public function isWindows():Bool
+	{
+		return this.target == Platform.WINDOWS;
+	}
+
+	public function isMac():Bool
+	{
+		return this.target == Platform.MAC;
+	}
+
+	public function isLinux():Bool
+	{
+		return this.target == Platform.LINUX;
+	}
+
+	public function isAndroid():Bool
+	{
+		return this.target == Platform.ANDROID;
+	}
+
+	public function isIOS():Bool
+	{
+		return this.target == Platform.IOS;
+	}
+
+	public function isFlash():Bool
+	{
+		return this.target == Platform.FLASH;
+	}
+
+	public function isAir():Bool
+	{
+		return this.target == Platform.AIR;
+	}
+
+	public function isHashLink():Bool
+	{
+		return this.targetFlags.exists("hl");
+	}
+
+	public function isNeko():Bool
+	{
+		return this.targetFlags.exists("neko");
+	}
+
+	public function isJava():Bool
+	{
+		return this.targetFlags.exists("java");
+	}
+
+	public function isNodeJS():Bool
+	{
+		return this.targetFlags.exists("nodejs");
+	}
+
+	inline function isCPP():Bool
+	{
+		return this.targetFlags.exists("cpp");
+	}
+
+	public function isCSharp():Bool
+	{
+		return this.targetFlags.exists("cs");
+	}
+
+	public function isDisplay():Bool
+	{
+		return this.command == "display";
+	}
+
+	public function isDebug():Bool
+	{
+		return this.debug;
+	}
+
+	public function isRelease():Bool
+	{
+		return !isDebug();
+	}
+
+	public function getHaxedef(name:String):Null<Dynamic>
+	{
+		return this.haxedefs.get(name);
+	}
+
+	public function setHaxedef(name:String, ?value:String):Void
+	{
+		if (value == null)
+			value = "";
+		this.haxedefs.set(name, value);
+	}
+
+	public function unsetHaxedef(name:String):Void
+	{
+		this.haxedefs.remove(name);
+	}
+
+	public function getDefine(name:String):Null<Dynamic>
+	{
+		return this.defines.get(name);
+	}
+
+	public function hasDefine(name:String):Bool
+	{
+		return this.defines.exists(name);
+	}
+
+	/**
+	 * Add a library to the list of dependencies for the project.
+	 * @param name The name of the library to add.
+	 * @param version The version of the library to add. Optional.
+	 */
+	public function addHaxelib(name:String, version:String = ""):Void
+	{
+		this.haxelibs.push(new Haxelib(name, version));
+	}
+
+	/**
+	 * Add a `haxeflag` to the project.
+	 */
+	public function addHaxeFlag(value:String):Void
+	{
+		this.haxeflags.push(value);
+	}
+
+	/**
+	 * Call a Haxe build macro.
+	 */
+	public function addHaxeMacro(value:String):Void
+	{
+		addHaxeFlag('--macro ${value}');
+	}
+
+	/**
+	 * Add an icon to the project.
+	 * @param icon The path to the icon.
+	 * @param size The size of the icon. Optional.
+	 */
+	public function addIcon(icon:String, ?size:Int):Void
+	{
+		this.icons.push(new Icon(icon, size));
+	}
+
+	/**
+	 * Add an asset to the game build.
+	 * @param path The path the asset is located at.
+	 * @param rename The path the asset should be placed.
+	 * @param library The asset library to add the asset to. `null` = "default"
+	 * @param embed Whether to embed the asset in the executable.
+	 */
+	public function addAsset(path:String, ?rename:String, ?library:String, embed:Bool = false):Void
+	{
+		// path, rename, type, embed, setDefaults
+		var asset = new Asset(path, rename, null, embed, true);
+		@:nullSafety(Off)
+		{
+			asset.library = library ?? "default";
+		}
+		this.assets.push(asset);
+	}
+
+	/**
+	 * Add an entire path of assets to the game build.
+	 * @param path The path the assets are located at.
+	 * @param rename The path the assets should be placed.
+	 * @param library The asset library to add the assets to. `null` = "default"
+	 * @param include An optional array to include specific asset names.
+	 * @param exclude An optional array to exclude specific asset names.
+	 * @param embed Whether to embed the assets in the executable.
+	 */
+	public function addAssetPath(path:String, ?rename:String, library:String, ?include:Array<String>, ?exclude:Array<String>, embed:Bool = false):Void
+	{
+		// Argument parsing.
+		if (path == "")
+			return;
+
+		if (include == null)
+			include = [];
+
+		if (exclude == null)
+			exclude = [];
+
+		var targetPath = rename ?? path;
+		if (targetPath != "")
+			targetPath += "/";
+
+		// Validate path.
+		if (!sys.FileSystem.exists(path))
+		{
+			error('Could not find asset path "${path}".');
+		}
+		else if (!sys.FileSystem.isDirectory(path))
+		{
+			error('Could not parse asset path "${path}", expected a directory.');
+		}
+		else
+		{
+			// info('  Found asset path "${path}".');
+		}
+
+		for (file in sys.FileSystem.readDirectory(path))
+		{
+			var fullPath = '${path}/${file}';
+
+			// Resolve the entry before typing it: on HashLink/Neko
+			// `FileSystem.isDirectory()` throws `std@sys_file_type` when the path
+			// cannot be stat()ed, and a dangling symlink is enough to trigger it
+			// (e.g. `mods/fnf_030_ui` pointing inside the `mods/psych-scripts`
+			// submodule, which a plain `actions/checkout` never populates).
+			// That exception aborted *every* Windows/Android build (#129), so a
+			// missing target is now a warning instead of a dead build.
+			if (!sys.FileSystem.exists(fullPath))
+			{
+				Log.warn('Skipping asset "${fullPath}": the path does not exist (broken symlink?).');
+			}
+			else if (sys.FileSystem.isDirectory(fullPath))
+			{
+				// Attempt to recursively add all assets in the directory.
+				if (this.filter(file, ["*"], exclude))
+				{
+					addAssetPath(fullPath, '${targetPath}${file}', library, include, exclude, embed);
+				}
+			}
+			else
+			{
+				if (this.filter(file, include, exclude))
+				{
+					addAsset(fullPath, '${targetPath}${file}', library, embed);
+				}
+			}
+		}
+	}
+
+	/**
+	 * Add an asset library to the game build.
+	 * @param name The name of the library.
+	 * @param embed
+	 * @param preload
+	 */
+	public function addAssetLibrary(name:String, embed:Bool = false, preload:Bool = false):Void
+	{
+		// sourcePath, name, type, embed, preload, generate, prefix
+		var sourcePath = '';
+		this.libraries.push(new Library(sourcePath, name, null, embed, preload, false, ""));
+	}
+
+	/**
+	 * A CLI command to run a command in the shell.
+	 */
+	public function buildCLICommand(cmd:String):CLICommand
+	{
+		return CommandHelper.fromSingleString(cmd);
+	}
+
+	/**
+	 * A CLI command to run a Haxe script via `--interp`.
+	 */
+	public function buildHaxeCLICommand(path:String):CLICommand
+	{
+		return CommandHelper.interpretHaxe(path);
+	}
+
+	public function getGitCommit():String
+	{
+		// Cannibalized from GitCommit.hx
+		var process = new sys.io.Process('git', ['rev-parse', 'HEAD']);
+		if (process.exitCode() != 0)
+		{
+			var message = process.stderr.readAll().toString();
+		}
+
+		var commitHash:String = process.stdout.readLine();
+		var commitHashSplice:String = commitHash.substr(0, 7);
+
+		process.close();
+
+		return commitHashSplice;
+	}
+
+	public function getGitBranch():String
+	{
+		// Cannibalized from GitCommit.hx
+		var branchProcess = new sys.io.Process('git', ['rev-parse', '--abbrev-ref', 'HEAD']);
+
+		if (branchProcess.exitCode() != 0)
+			var message = branchProcess.stderr.readAll().toString();
+
+		var branchName:String = '';
+
+		// Try to read the output line. If it errors out, return an empty string.
+		// This cancels the other Git commands in the event that the user isn't compiling in a Git repository.
+		try { branchName = branchProcess.stdout.readLine(); }
+		catch (e) {branchName = '';}
+
+		branchProcess.close();
+
+		return branchName;
+	}
+
+	public function getGitModified():Bool
+	{
+		var branchProcess = new sys.io.Process('git', ['status', '--porcelain']);
+
+		if (branchProcess.exitCode() != 0)
+		{
+			var message = branchProcess.stderr.readAll().toString();
+		}
+
+		var output:String = '';
+		try
+		{
+			output = branchProcess.stdout.readLine();
+		}
+		catch (e)
+		{
+			if (e.message == 'Eof')
+			{
+				// Do nothing.
+				// Eof = No output.
+			}
+			else
+			{
+				// Rethrow other exceptions.
+				throw e;
+			}
+		}
+
+		branchProcess.close();
+
+		return output.length > 0;
+	}
+
+	//
+	// LOGGING FUNCTIONS
+	//
+
+	/**
+	 * Display an error message. This should stop the build process.
+	 */
+	public function error(message:String):Void
+	{
+		Log.error('${message}');
+	}
+
+	/**
+	 * Display an info message. This should not interfere with the build process.
+	 */
+	public function info(message:String):Void
+	{
+		// CURSED: We have to disable info() log calls because of a bug.
+		// Hi EliteMasterEric can you push this fix onto the Funkin repo?
+		// https://github.com/haxelime/lime-vscode-extension/issues/88
+
+		if (command != "display")
+		{
+			Log.info('[INFO] ${message}');
+		}
+	}
+}
+
+/**
+ * An object representing a feature flag, which can be enabled or disabled.
+ * Includes features such as automatic generation of compile defines and inversion.
+ */
+abstract FeatureFlag(String)
+{
+	static final INVERSE_PREFIX:String = "NO_";
+
+	public function new(input:String)
+	{
+		this = input;
+	}
+
+	@:from
+	public static function fromString(input:String):FeatureFlag
+	{
+		return new FeatureFlag(input);
+	}
+
+	/**
+	 * Enable/disable a feature flag if it is unset, and handle the inverse flag.
+	 * Doesn't override a feature flag that was set explicitly.
+	 * @param enableByDefault Whether to enable this feature flag if it is unset.
+	 */
+	public function apply(project:Project, enableByDefault:Bool = false):Void
+	{
+		// TODO: Name this function better?
+
+		if (isEnabled(project))
+		{
+			// If this flag was already enabled, disable the inverse.
+			// project.info('Enabling feature flag ${this}');
+			getInverse().disable(project, false);
+		}
+		else if (getInverse().isEnabled(project))
+		{
+			// If the inverse flag was already enabled, disable this flag.
+			// project.info('Disabling feature flag ${this}');
+			disable(project, false);
+		}
+		else
+		{
+			if (enableByDefault)
+			{
+				// Enable this flag if it was unset, and disable the inverse.
+				// project.info('Enabling feature flag ${this}');
+				enable(project, true);
+			}
+			else
+			{
+				// Disable this flag if it was unset, and enable the inverse.
+				// project.info('Disabling feature flag ${this}');
+				disable(project, true);
+			}
+		}
+	}
+
+	/**
+	 * Enable this feature flag by setting the appropriate compile define.
+	 *
+	 * @param project The project to modify.
+	 * @param andInverse Also disable the feature flag's inverse.
+	 */
+	public function enable(project:Project, andInverse:Bool = true)
+	{
+		project.setHaxedef(this, "");
+		if (andInverse)
+		{
+			getInverse().disable(project, false);
+		}
+	}
+
+	/**
+	 * Disable this feature flag by removing the appropriate compile define.
+	 *
+	 * @param project The project to modify.
+	 * @param andInverse Also enable the feature flag's inverse.
+	 */
+	public function disable(project:Project, andInverse:Bool = true)
+	{
+		project.unsetHaxedef(this);
+		if (andInverse)
+		{
+			getInverse().enable(project, false);
+		}
+	}
+
+	/**
+	 * Query if this feature flag is enabled.
+	 * @param project The project to query.
+	 */
+	public function isEnabled(project:Project):Bool
+	{
+		// Check both Haxedefs and Defines for this flag.
+		return project.haxedefs.exists(this) || project.defines.exists(this);
+	}
+
+	/**
+	 * Query if this feature flag's inverse is enabled.
+	 */
+	public function isDisabled(project:Project):Bool
+	{
+		return getInverse().isEnabled(project);
+	}
+
+	/**
+	 * Return the inverse of this feature flag.
+	 * @return A new feature flag that is the inverse of this one.
+	 */
+	public function getInverse():FeatureFlag
+	{
+		if (this.startsWith(INVERSE_PREFIX))
+		{
+			return this.substring(INVERSE_PREFIX.length);
+		}
+		return INVERSE_PREFIX + this;
+	}
+}

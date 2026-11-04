@@ -1,0 +1,19 @@
+# Maintenance-only dependencies for tools/reduce_image_palettes.py.
+# None of these are needed to build or run the game.
+#
+#   pip install -r tools/requirements-image-palette.txt
+#
+# oxipng is an optional native binary used only as a lossless final PNG
+# optimizer. Install it with your package manager, `cargo install oxipng`, or
+# extract the bundled Linux binary from the npm package:
+#
+#   npm pack oxipng@1.0.1
+#   tar xzf oxipng-1.0.1.tgz package/bin/oxipng-4.0.3-x86_64-unknown-linux-musl/oxipng
+#   # put that binary in PATH, or pass --oxipng /path/to/oxipng
+#
+# Without oxipng the tool still works: it writes indexed PNGs with Pillow and
+# keeps only results that are smaller than the originals.
+
+Pillow>=9.0
+numpy>=1.23
+imagequant>=1.1.5

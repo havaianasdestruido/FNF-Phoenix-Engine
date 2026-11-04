@@ -1,0 +1,412 @@
+name: Build
+
+# CI builds and tests only the two supported platforms: Windows and Android.
+# Other Lime targets remain buildable locally (see BUILDING.md), but they are
+# not part of the GitHub Actions matrix.
+
+on:
+  push:
+    branches: [main, bleeding]
+
+  pull_request:
+    branches: [main, bleeding]
+
+  workflow_call:
+    inputs:
+      buildFlags:
+        required: false
+        type: string
+        default: ""
+
+      buildWindows:
+        description: "Build Windows"
+        required: false
+        type: boolean
+        default: true
+
+      buildAndroid:
+        description: "Build Android"
+        required: false
+        type: boolean
+        default: true
+
+  workflow_dispatch:
+    inputs:
+      buildWindows:
+        description: "Build Windows"
+        required: false
+        type: boolean
+        default: true
+
+      buildAndroid:
+        description: "Build Android"
+        required: false
+        type: boolean
+        default: true
+
+# Keep the haxelib installation inside the workspace so it can be restored on
+# subsequent runs instead of downloading and compiling dependencies every time.
+env:
+  # Single source of truth for the compiler version (#60), including reusable
+  # builds. The regression tests assert that this version stays pinned.
+  HAXE_VERSION: "4.3.7"
+  HAXELIB_PATH: ${{ github.workspace }}/.haxelib
+
+  # Must be named HXCPP_COMPILE_CACHE - that's the variable hxcpp itself reads
+  # to enable its object cache.
+  HXCPP_COMPILE_CACHE: ${{ github.workspace }}/.hxcpp_cache
+
+  # Desktop hxcpp performance optimization. Android NDK's LTO link does not
+  # resolve hxcpp's TLS runtime helper (__tls_get_addr), so it must not use it.
+  HXCPP_DESKTOP_PERF_FLAGS: "-D HXCPP_OPTIMIZE_LINK"
+
+# Cancel previous runs for the same branch/PR concurrency:
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+
+      matrix:
+        include:
+          # =========================
+          # Windows
+          # =========================
+          - name: Windows
+            os: windows-latest
+            target: windows
+            target_dir: windows
+            cache_name: windows
+            artifact: windowsBuild
+            artifact_path: build/release/windows/bin
+            setup: windows
+
+          # =========================
+          # Android
+          # =========================
+          - name: Android
+            os: ubuntu-24.04
+            target: android
+            target_dir: android
+            cache_name: android
+            artifact: androidBuild
+            # This lime fork runs Gradle `assembleRelease` only when a keystore is
+            # configured (see lime's AndroidHelper). CI has no keystore, so the APK
+            # lands in the `debug` flavor folder even though the build config is
+            # release (output dir is still build/release/...).
+            artifact_path: build/release/android/bin/app/build/outputs/apk/debug
+            setup: android
+
+    steps:
+      # ==========================================
+      # Checkout
+      # ==========================================
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # ==========================================
+      # Determine whether this target is enabled
+      # ==========================================
+      - name: Check target selection
+        id: target-selection
+        shell: bash
+        run: |
+          BUILD_WINDOWS="${{ inputs.buildWindows }}"
+          BUILD_ANDROID="${{ inputs.buildAndroid }}"
+
+          # Push / pull_request events don't provide workflow_dispatch inputs.
+          # For those events, always build the two CI targets: Windows + Android.
+          if [ "${{ github.event_name }}" = "push" ] || [ "${{ github.event_name }}" = "pull_request" ]; then
+            BUILD_WINDOWS="true"
+            BUILD_ANDROID="true"
+          fi
+
+          case "${{ matrix.target }}" in
+            windows)
+              ENABLED="$BUILD_WINDOWS"
+              ;;
+            android)
+              ENABLED="$BUILD_ANDROID"
+              ;;
+            *)
+              ENABLED="false"
+              ;;
+          esac
+
+          echo "enabled=$ENABLED" >> "$GITHUB_OUTPUT"
+
+          if [ "$ENABLED" = "true" ]; then
+            echo "Target ${{ matrix.name }} is enabled."
+          else
+            echo "Target ${{ matrix.name }} is disabled."
+          fi
+
+      # ==========================================
+      # Skip step for non-selected targets
+      # ==========================================
+      - name: Skip ${{ matrix.name }} (not selected)
+        if: steps.target-selection.outputs.enabled != 'true'
+        run: echo "⊘ Skipped (target not selected for this build)"
+        continue-on-error: true
+
+      # ==========================================
+      # Haxe
+      # ==========================================
+      - uses: krdlab/setup-haxe@master
+        if: steps.target-selection.outputs.enabled == 'true'
+        with:
+          haxe-version: ${{ env.HAXE_VERSION }}
+
+      # ==========================================
+      # Java 17 - Android
+      # ==========================================
+      - name: Setup Java 17
+        if: steps.target-selection.outputs.enabled == 'true' && matrix.target == 'android'
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      # ==========================================
+      # Android SDK / NDK
+      # ==========================================
+      - name: Setup Android SDK & NDK
+        if: steps.target-selection.outputs.enabled == 'true' && matrix.target == 'android'
+        uses: android-actions/setup-android@v4
+        with:
+          packages: platform-tools platforms;android-36 build-tools;36.0.0 ndk;27.0.12077973
+
+      # ==========================================
+      # Restore Haxelib cache
+      # ==========================================
+      - name: Restore haxelib and hxcpp tools
+        id: haxelib-cache
+        if: steps.target-selection.outputs.enabled == 'true'
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{ env.HAXELIB_PATH }}
+          key: haxelib-${{ runner.os }}-${{ matrix.setup }}-haxe-${{ env.HAXE_VERSION }}-${{ hashFiles('hmm.json') }}
+
+      # ==========================================
+      # Install Haxelib dependencies - Android
+      # ==========================================
+      - name: Install haxelib dependencies (Android)
+        if: steps.target-selection.outputs.enabled == 'true' && matrix.setup == 'android' && steps.haxelib-cache.outputs.cache-hit != 'true'
+        shell: bash
+        run: |
+          haxelib setup "$HAXELIB_PATH"
+          chmod +x ./setup/unix.sh
+          SKIP_SYSTEM_DEPENDENCIES=1 ./setup/unix.sh
+
+      # ==========================================
+      # Install Haxelib dependencies - Windows
+      # ==========================================
+      - name: Install haxelib dependencies (Windows)
+        if: steps.target-selection.outputs.enabled == 'true' && matrix.setup == 'windows' && steps.haxelib-cache.outputs.cache-hit != 'true'
+        shell: cmd
+        run: |
+          haxelib setup "%HAXELIB_PATH%"
+          call setup\windows.bat
+
+      # ==========================================
+      # Android configuration
+      # ==========================================
+      - name: Configure Android
+        if: steps.target-selection.outputs.enabled == 'true' && matrix.target == 'android'
+        shell: bash
+        run: |
+          android_sdk="${ANDROID_SDK_ROOT:-$ANDROID_HOME}"
+          echo "ANDROID_SDK_ROOT=$android_sdk"
+
+          haxelib run lime config ANDROID_SDK "$android_sdk"
+          haxelib run lime config ANDROID_NDK_ROOT "$android_sdk/ndk/27.0.12077973"
+          haxelib run lime config JAVA_HOME "$JAVA_HOME"
+          haxelib run lime config ANDROID_SETUP true
+
+      # ==========================================
+      # Windows MSVC fix
+      # ==========================================
+      - name: Ensure MSVC hxcpp git checkout (Windows)
+        if: steps.target-selection.outputs.enabled == 'true' && matrix.setup == 'windows'
+        shell: pwsh
+        run: |
+          powershell -ExecutionPolicy Bypass -File setup\windows-msvc-fix.ps1
+
+      # ==========================================
+      # Compile hxcpp tools - Android
+      # ==========================================
+      - name: Compile hxcpp tools (Android)
+        if: steps.target-selection.outputs.enabled == 'true' && matrix.setup == 'android' && steps.haxelib-cache.outputs.cache-hit != 'true'
+        shell: bash
+        run: |
+          cd "$HAXELIB_PATH/hxcpp/git/tools/run"
+          haxe compile.hxml
+
+          cd "$HAXELIB_PATH/hxcpp/git/tools/hxcpp"
+          haxe compile.hxml
+
+      # ==========================================
+      # Compile hxcpp tools - Windows
+      # ==========================================
+      - name: Compile hxcpp tools (Windows)
+        if: steps.target-selection.outputs.enabled == 'true' && matrix.setup == 'windows' && steps.haxelib-cache.outputs.cache-hit != 'true'
+        shell: cmd
+        run: |
+          cd /d "%HAXELIB_PATH%\hxcpp\git\tools\run"
+          haxe compile.hxml
+
+          cd /d "%HAXELIB_PATH%\hxcpp\git\tools\hxcpp"
+          haxe compile.hxml
+
+      # ==========================================
+      # Report resolved dependency revisions (#57)
+      # ==========================================
+      - name: Report resolved dependency revisions
+        if: steps.target-selection.outputs.enabled == 'true'
+        shell: bash
+        run: |
+          for checkout in "$HAXELIB_PATH"/*/git; do
+            [ -d "$checkout/.git" ] || continue
+            echo "$(basename "$(dirname "$checkout")") $(git -C "$checkout" rev-parse HEAD 2>/dev/null || echo unknown)"
+          done
+
+      # ==========================================
+      # Save haxelib cache
+      # ==========================================
+      - name: Save haxelib and hxcpp tools
+        if: success() && steps.target-selection.outputs.enabled == 'true' && steps.haxelib-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ env.HAXELIB_PATH }}
+          key: ${{ steps.haxelib-cache.outputs.cache-primary-key }}
+
+      # ==========================================
+      # Restore generated C++ cache
+      # ==========================================
+      - name: Restore generated C++ cache
+        id: build-cache
+        if: steps.target-selection.outputs.enabled == 'true'
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            build/release/${{ matrix.target_dir }}/haxe
+            build/release/${{ matrix.target_dir }}/obj
+            ${{ env.HXCPP_COMPILE_CACHE }}
+          key: hxcpp-${{ runner.os }}-${{ matrix.cache_name }}-${{ inputs.buildFlags || 'commit' }}-${{ hashFiles('project.hxp', 'source/**') }}
+          restore-keys: |
+            hxcpp-${{ runner.os }}-${{ matrix.cache_name }}-${{ inputs.buildFlags || 'commit' }}-
+            hxcpp-${{ runner.os }}-${{ matrix.cache_name }}-
+
+      # ==========================================
+      # Compile Windows
+      # ==========================================
+      - name: Compile (Windows)
+        if: steps.target-selection.outputs.enabled == 'true' && matrix.setup == 'windows'
+        shell: pwsh
+        # Limiting parallel C++ compilation keeps Windows runners below their memory limit.
+        env:
+          HXCPP_COMPILE_THREADS: 4
+        run: |
+          if (Test-Path $env:HXCPP_COMPILE_CACHE) {
+            Remove-Item $env:HXCPP_COMPILE_CACHE -Recurse -Force
+          }
+
+          Remove-Item -Force assets/preload/gameRenders/renderlinux.sh
+
+          haxelib run lime build windows -D"${{ inputs.buildFlags || 'commit' }}" ${{ env.HXCPP_DESKTOP_PERF_FLAGS }}
+
+      # ==========================================
+      # Compile Android
+      # ==========================================
+      - name: Compile (Android)
+        if: steps.target-selection.outputs.enabled == 'true' && matrix.target == 'android'
+        shell: bash
+        env:
+          HXCPP_COMPILE_THREADS: 4
+        run: |
+          rm -rf "$HXCPP_COMPILE_CACHE" 2>/dev/null || true
+
+          haxelib run lime build android ${{ inputs.buildFlags != '' && format('-D {0}', inputs.buildFlags) || '' }}
+
+      # ==========================================
+      # Verify the actual merged Android manifest
+      # ==========================================
+      - name: Verify Android Media3/SAF manifest and SDK levels
+        if: steps.target-selection.outputs.enabled == 'true' && matrix.target == 'android'
+        shell: bash
+        run: |
+          set -euo pipefail
+          app_dir="build/release/android/bin/app"
+          merged_manifest=$(find "$app_dir/build/intermediates" -type f -name AndroidManifest.xml \
+            \( -path '*/merged_manifest/*' -o -path '*/merged_manifests/*' \) \
+            -path '*/debug/*' -print -quit)
+          if [ -z "$merged_manifest" ]; then
+            echo "::error::Could not find the merged debug AndroidManifest.xml under $app_dir/build/intermediates"
+            find "$app_dir/build/intermediates" -type f -name AndroidManifest.xml -print
+            exit 1
+          fi
+          python3 tools/check_android_documents_manifest.py "$merged_manifest" \
+            --provider present --media-service present --minimum-sdk 21 --target-sdk 36
+
+      # ==========================================
+      # Verify the APK ships the NDK C++ runtime
+      # ==========================================
+      # liblime.so is linked against the shared C++ runtime, so the APK must
+      # contain lib/<abi>/libc++_shared.so next to it or the app dies on launch
+      # with "dlopen failed: library libc++_shared.so not found".
+      - name: Verify Android APK native libs
+        if: steps.target-selection.outputs.enabled == 'true' && matrix.target == 'android'
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          apk=$(ls build/release/android/bin/app/build/outputs/apk/*/*.apk | head -n 1)
+          echo "Checking native libraries in $apk"
+
+          entries=$(unzip -Z1 "$apk" | grep -E '^lib/[^/]+/[^/]+$' || true)
+          echo "$entries"
+
+          if [ -z "$entries" ]; then
+            echo "::error::$apk contains no native libraries at all"
+            exit 1
+          fi
+
+          missing=0
+          for abi in $(printf '%s\n' "$entries" | cut -d/ -f2 | sort -u); do
+            if ! printf '%s\n' "$entries" | grep -qxF "lib/$abi/libc++_shared.so"; then
+              echo "::error::$apk is missing lib/$abi/libc++_shared.so, so liblime.so cannot be loaded at runtime"
+              missing=1
+            fi
+          done
+
+          [ "$missing" -eq 0 ]
+
+      # ==========================================
+      # Save generated C++ cache
+      # ==========================================
+      - name: Save generated C++ cache
+        if: success() && steps.target-selection.outputs.enabled == 'true' && steps.build-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            build/release/${{ matrix.target_dir }}/haxe
+            build/release/${{ matrix.target_dir }}/obj
+            ${{ env.HXCPP_COMPILE_CACHE }}
+          key: ${{ steps.build-cache.outputs.cache-primary-key }}
+
+      # ==========================================
+      # Publish artifact
+      # ==========================================
+      - name: Publish artifact
+        if: steps.target-selection.outputs.enabled == 'true'
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ matrix.artifact }}
+          path: ${{ matrix.artifact_path }}
+          if-no-files-found: error

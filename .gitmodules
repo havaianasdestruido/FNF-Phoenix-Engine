@@ -1,0 +1,3 @@
+[submodule "mods/psych-scripts"]
+	path = mods/psych-scripts
+	url = https://github.com/inky03/psych-scripts.git

@@ -1,0 +1,9 @@
+{
+  "label": "Modding",
+  "position": 5,
+  "link": {
+    "type": "generated-index",
+    "title": "Modding",
+    "description": "Build mods without touching engine code: folder layout, Lua, Python, HScript, hooks, custom events and notetypes."
+  }
+}

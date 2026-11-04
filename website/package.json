@@ -1,0 +1,68 @@
+{
+  "name": "fnf-phoenix-engine-docs",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "docusaurus": "docusaurus",
+    "gen:api": "node scripts/generate-api-docs.mjs",
+    "gen:scripts": "node scripts/generate-script-api.mjs",
+    "gen": "npm run gen:api && npm run gen:scripts",
+    "lint:docs": "node scripts/check-doc-syntax.mjs",
+    "prestart": "npm run gen",
+    "start": "docusaurus start --host 0.0.0.0",
+    "prebuild": "npm run gen && npm run lint:docs",
+    "build": "docusaurus build",
+    "swizzle": "docusaurus swizzle",
+    "deploy": "docusaurus deploy",
+    "clear": "docusaurus clear",
+    "serve": "docusaurus serve --host 0.0.0.0",
+    "write-translations": "docusaurus write-translations",
+    "write-heading-ids": "docusaurus write-heading-ids"
+  },
+  "dependencies": {
+    "@docusaurus/core": "3.10.2",
+    "@docusaurus/faster": "3.10.2",
+    "@docusaurus/preset-classic": "3.10.2",
+    "@mdx-js/react": "^3.0.0",
+    "clsx": "^2.0.0",
+    "prism-react-renderer": "^2.3.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "@docusaurus/theme-mermaid": "3.10.2"
+  },
+  "devDependencies": {
+    "@docusaurus/module-type-aliases": "3.10.2",
+    "@docusaurus/types": "3.10.2"
+  },
+  "overrides": {
+    "body-parser": "1.20.9",
+    "dompurify": "3.4.17",
+    "fast-uri": "3.1.9",
+    "follow-redirects": "1.16.2",
+    "joi": "17.13.9",
+    "katex": "0.18.10",
+    "launch-editor": "2.14.2",
+    "minimatch": "11.0.4",
+    "postcss-selector-parser": "6.1.5",
+    "qs": "6.16.2",
+    "serialize-javascript": "7.1.4",
+    "tinypool": "2.2.0",
+    "uuid": "11.1.1"
+  },
+  "browserslist": {
+    "production": [
+      ">0.5%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 3 chrome version",
+      "last 3 firefox version",
+      "last 5 safari version"
+    ]
+  },
+  "engines": {
+    "node": ">=20.0"
+  },
+  "description": "Codebase documentation for the FNF Phoenix Engine"
+}
