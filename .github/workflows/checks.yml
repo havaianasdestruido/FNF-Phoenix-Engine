@@ -69,5 +69,7 @@ jobs:
         run: bash tests/haxe/run-settings-backup.sh
       - name: Test shader warm-up (declaration plan, program cache, per-song wiring)
         run: bash tests/haxe/run-shader-warmup.sh
+      - name: Test alphabet font model (style/font resolution, cache keys, glyph support)
+        run: bash tests/haxe/run-alphabet-font.sh
       - name: Test mobile storage and pre-state startup resize
         run: python3 -m unittest discover -s tests -p 'test_mobile_startup.py' -v
