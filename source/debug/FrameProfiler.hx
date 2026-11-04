@@ -1045,7 +1045,7 @@ class FrameProfiler
       buf.add('${s.frameIndex},${roundDec(s.timestampMs, 4)},${roundDec(s.frameTimeMs, 4)},${roundDec(s.workTimeMs, 4)},${roundDec(s.fps, 2)},${roundDec(s.rollingFps, 2)},${roundDec(s.updateTimeMs, 4)},${roundDec(s.renderTimeMs, 4)},${roundDec(s.audioTimeMs, 4)},${roundDec(s.gcPauseMs, 4)},${roundDec(s.otherTimeMs, 4)},${Std.int(s.allocBytes)},${s.allocCount},${Std.int(s.gcReclaimedBytes)},${Std.int(s.netHeapDeltaBytes)},${Std.int(s.heapUsedBytes)},${Std.int(s.heapReservedBytes)},${Std.int(s.rssBytes)},${Std.int(s.peakRssBytes)},${s.gcCount},${s.explicitGcCount},${s.implicitGcCount},${s.drawCalls},${s.updateSteps},${csvState}\n');
     }
 
-    return buf.toString();
+    return backend.LogUtils.redact(buf.toString());
   }
 
   /**
@@ -1058,7 +1058,13 @@ class FrameProfiler
     ensureInitialized();
     if (exportInProgress)
       return "";
-    final requested = fileName != null ? fileName : "";
+    var requested:String = "";
+    if (fileName != null)
+    {
+      final pathParts:Array<String> = StringTools.replace(fileName, "\\", "/").split("/");
+      final requestedName:String = pathParts[pathParts.length - 1];
+      requested = backend.LogUtils.safeFileName(backend.LogUtils.redact(requestedName));
+    }
     final ver = getEngineVersion();
     final plat = getPlatformLabel();
 
@@ -1096,6 +1102,17 @@ class FrameProfiler
             trace('[FrameProfiler] Could not append hotspot details: ${e}');
           }
           #end
+          if (!backend.LogUtils.sanitizeFile(exported))
+          {
+            // Do not hand off an export that could not be redacted safely.
+            try
+            {
+              if (FileSystem.exists(exported) && !FileSystem.isDirectory(exported))
+                FileSystem.deleteFile(exported);
+            }
+            catch (_:Dynamic) {}
+            return "";
+          }
           lastExportedLogPath = exported;
           trace('[FrameProfiler] Exported frame profile log to: ${exported}');
           return exported;

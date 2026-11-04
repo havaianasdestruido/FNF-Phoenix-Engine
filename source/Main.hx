@@ -128,6 +128,9 @@ class Main extends Sprite
       return;
     }
     #end
+    // Apply retention and privacy cleanup to any reports left by an older
+    // build before a log can be copied out through Android's document roots.
+    backend.LogUtils.cleanup();
     // The verbose vlog is opt-in (Options -> Misc -> 'Enable VLog'), so a
     // normal session writes nothing to disk. FlxG.save is only bound later in
     // InitState, so the saved flag is read straight from funkin.sol here —

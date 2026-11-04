@@ -166,8 +166,9 @@ class HardwareWiringTests(unittest.TestCase):
     def test_crash_log_contains_the_hardware(self):
         source = read("source/backend/CrashHandler.hx")
         self.assertIn("Native.buildSystemInfo()", source)
-        # The crash log must still be written when the hardware query fails.
-        self.assertIn("File.saveContent(path,", source)
+        # The crash log still uses the shared fail-safe writer when the
+        # hardware query fails; that writer redacts and applies retention.
+        self.assertIn("LogUtils.saveLog(path,", source)
 
 
 if __name__ == "__main__":

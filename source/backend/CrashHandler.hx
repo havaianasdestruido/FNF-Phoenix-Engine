@@ -197,12 +197,14 @@ class CrashHandler
 
 			try
 			{
-				if (!FileSystem.exists("crash/"))
-					FileSystem.createDirectory("crash/");
-				File.saveContent(path, '$errorMessage\n\nCrash Happened on Phoenix Engine v${MainMenuState.phoenixEngineVersion} (JSE v${MainMenuState.psychEngineJSVersion})!\n\n$systemInfo');
+				final crashReport:String = '$errorMessage\n\n'
+					+ 'Crash Happened on Phoenix Engine v${MainMenuState.phoenixEngineVersion} (JSE v${MainMenuState.psychEngineJSVersion})!'
+					+ '\n\n$systemInfo';
+				if (!LogUtils.saveLog(path, crashReport))
+					trace('Couldn\'t save error message.');
 			}
-			catch (e)
-				trace('Couldn\'t save error message. (${e.message})');
+			catch (_:Dynamic)
+				trace('Couldn\'t save error message.');
 
 			#if android
 			// Opt-in event notification (Options -> Mobile Options -> "Event
