@@ -9,6 +9,7 @@ import flixel.ui.FlxButton;
 // REFACTOR: imports for relocated root classes
 import backend.ClientPrefs;
 import backend.ScreenLayout;
+import backend.SettingsBackup;
 import backend.ViewportVisuals;
 import backend.DiscordClient;
 import backend.MusicBeatSubstate;
@@ -16,6 +17,7 @@ import objects.Alphabet;
 import objects.AttachedText;
 import objects.Character;
 import objects.CheckboxThingie;
+import objects.Prompt;
 import headers.Options;
 
 class BaseOptionsMenu extends MusicBeatSubstate
@@ -135,6 +137,82 @@ class BaseOptionsMenu extends MusicBeatSubstate
 	public function addOption(option:Option) {
 		if(optionsArray == null || optionsArray.length < 1) optionsArray = [];
 		optionsArray.push(option);
+	}
+
+	/**
+	 * Appends the settings-backup actions ("Export/Import Settings (.json)")
+	 * to the end of the list.
+	 *
+	 * Every settings list calls this right before `super()`, so all of them
+	 * end with the same two entries, whatever options they hold. Both are
+	 * `link` options: pressing ACCEPT runs them instead of toggling a value.
+	 */
+	public function addBackupOptions():Void
+	{
+		var option:Option = new Option('Export Settings (.json)',
+			'Save every preference (all lists, keybinds, note colors and audio)\n'
+			+ 'to a .json backup file you can keep or copy to another device.',
+			'exportSettingsBackup',
+			'link',
+			false);
+		option.onChange = exportBackup;
+		addOption(option);
+
+		option = new Option('Import Settings (.json)',
+			'Load a backup made with the option above and apply every\n'
+			+ 'preference it contains. This overwrites your current setup,\n'
+			+ 'so you are asked to confirm first.',
+			'importSettingsBackup',
+			'link',
+			false);
+		option.onChange = askImportBackup;
+		addOption(option);
+	}
+
+	function exportBackup():Void
+	{
+		SettingsBackup.exportToFile(showBackupMessage);
+	}
+
+	function askImportBackup():Void
+	{
+		openSubState(new Prompt('Importing a settings backup overwrites\nall of your current options and keybinds.\n\nContinue?', 0, function() {
+			SettingsBackup.importFromFile(function(message:String) {
+				if (message == null) return; // player canceled the file picker
+				syncOptionIndices();
+				regenList(); // show the imported values right away
+				showBackupMessage(message);
+			});
+		}, null, false, 'Import', 'Cancel'));
+	}
+
+	/** Re-points `string` options at the entry an imported value landed on. */
+	function syncOptionIndices():Void
+	{
+		for (option in optionsArray)
+		{
+			if (option.type != 'string' || option.options == null) continue;
+			final index:Int = option.options.indexOf(option.getValue());
+			if (index > -1) option.curOption = index;
+		}
+	}
+
+	/**
+	 * Shows the result of an import/export, or nothing when it was canceled.
+	 *
+	 * Deferred by a frame because the picker can answer from inside the confirm
+	 * prompt's callback; by then that prompt is closed and the menu is free to
+	 * open the result prompt on top of itself.
+	 */
+	function showBackupMessage(message:String):Void
+	{
+		if (message == null || message.length == 0) return;
+		new FlxTimer().start(0.05, function(_) {
+			if (FlxG.state == null) return;
+			final prompt:Prompt = new Prompt(message, 0, null, null, false, 'OK', 'Close');
+			if (FlxG.state.subState == this) openSubState(prompt);
+			else FlxG.state.openSubState(prompt);
+		});
 	}
 
 	var originalOptionsArray:Array<Option> = [];

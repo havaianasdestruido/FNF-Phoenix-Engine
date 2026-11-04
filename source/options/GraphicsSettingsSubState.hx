@@ -109,6 +109,8 @@ class GraphicsSettingsSubState extends BaseOptionsMenu
 
 		cameras = [FlxG.cameras.list[FlxG.cameras.list.length-1]];
 
+		addBackupOptions();
+
 		super();
 	}
 
