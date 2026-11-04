@@ -113,6 +113,42 @@ class Artwork(unittest.TestCase):
         self.assertNotIn("import lime", ARTWORK)
 
 
+class Detection(unittest.TestCase):
+    """The order of the ``#if`` ladder in ``detect()`` is the whole contract.
+
+    Several defines are set at once on real builds - an AIR build also defines
+    ``flash``, Lime sets ``windows``/``mac``/``linux`` next to ``android`` on
+    some host setups - so the first matching branch decides the badge. The Haxe
+    spec asserts the returned value on every target it can run (``--interp``),
+    but ``flash`` is a reserved compiler flag that cannot be set with ``-D``
+    and a SWF cannot be executed on CI, so the Flash/AIR ordering is pinned
+    here instead.
+    """
+
+    LADDER = ["android", "ios", "html5", "air", "flash", "windows", "mac", "linux", "sys"]
+
+    def setUp(self):
+        body = re.search(r"function detect\(\):PlatformKind\s*\{(.*?)\n  \}", ARTWORK, re.S)
+        self.assertIsNotNone(body, "detect() not found")
+        self.branches = re.findall(r"#(?:else)?if (\w+)", body.group(1))
+
+    def test_every_target_the_engine_ships_is_in_the_ladder(self):
+        self.assertEqual(self.branches, self.LADDER)
+
+    def test_air_is_checked_before_flash(self):
+        self.assertLess(self.branches.index("air"), self.branches.index("flash"))
+
+    def test_mobile_targets_are_checked_before_the_desktop_defines(self):
+        for mobile in ("android", "ios"):
+            for desktop in ("windows", "mac", "linux", "sys"):
+                self.assertLess(self.branches.index(mobile), self.branches.index(desktop))
+
+    def test_system_name_is_the_last_resort(self):
+        self.assertEqual(self.branches[-1], "sys")
+        self.assertIn("return fromSystemName(Sys.systemName());", ARTWORK)
+        self.assertIn("return PlatformKind.UNKNOWN;", ARTWORK)
+
+
 class Renderer(unittest.TestCase):
     def test_three_passes_in_order(self):
         silhouette = RENDERER.index("lineStyle(outline * 2, OUTLINE_COLOR, 1)")
