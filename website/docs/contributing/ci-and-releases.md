@@ -56,6 +56,19 @@ needed, calls `main.yml`, and uploads the Windows artifact to a draft release.
 GitHub-generated notes and the optional Markdown message become the release body; edit
 the release on GitHub to maintain its changelog.
 
+## `release-assets.yml` — Release Assets
+
+Automatic. When a release is published on the Releases page — a brand-new release or a
+draft promoted to published — this workflow builds the tagged commit through `main.yml`
+with `buildFlags: officialBuild` and attaches `FNF-Phoenix-Engine-windows.zip` and
+`FNF-Phoenix-Engine-android.apk` to the release page. Assets already attached to the
+release are skipped, so publishing a draft prepared by `release.yml` only builds what is
+missing (typically the APK). The `tools/release_version.py` check is advisory here
+because the release is already public; the manual workflows above still gate tag creation
+on it. A manual dispatch with an explicit `tag_name` backfills or re-attaches artifacts
+for an existing release and must be run from the tagged commit. The workflow has to exist
+in the commit a release points at, so release from up-to-date `main`.
+
 ## `checks.yml` — Checks
 
 Runs the dependency-manifest check, Python regression tests, host-JVM Android tests,

@@ -47,5 +47,18 @@ class ReleaseNotesTests(unittest.TestCase):
         self.assertNotIn('THECHANGELOG.md', release + mobile)
         self.assertNotIn('generate_release_notes:', release)
 
+    def test_release_assets_attach_on_published_release(self):
+        assets = (ROOT / '.github/workflows/release-assets.yml').read_text()
+        self.assertIn('types: [published]', assets)
+        self.assertIn('uses: ./.github/workflows/main.yml', assets)
+        self.assertIn('buildFlags: officialBuild', assets)
+        self.assertIn('tools/release_version.py', assets)
+        self.assertIn('FNF-Phoenix-Engine-windows.zip', assets)
+        self.assertIn('FNF-Phoenix-Engine-android.apk', assets)
+        self.assertIn('gh release upload', assets)
+        self.assertIn('contents: write', assets)
+        self.assertNotIn('/releases/latest', assets)
+        self.assertNotIn('THECHANGELOG.md', assets)
+
 if __name__ == '__main__':
     unittest.main()
