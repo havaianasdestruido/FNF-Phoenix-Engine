@@ -216,3 +216,28 @@ trace('loaded ${notes.length} notes');
 
 `backend.Screenshot` plus the `backend.SSPlugin` Flixel plugin (added in
 `Main.setupGame()`) capture the window to disk without going through the OS.
+
+### Frame profiler hotspots
+
+The F6 frame-profiler export in `debug/log/` includes a **HOTSPOTS** section,
+ranked by total time. It breaks gameplay into Flixel state/group updates, note
+spawning, input, note update/sorting and destruction, and identifies dispatched
+Lua, Python and standalone HScript callbacks by script and event. Only calls
+inside recorded frames are included; the table is bounded to 256 names and
+reports omitted calls. Resetting the profiler clears it. Calls from other
+states and uninstrumented work remain in the broad update/render/audio totals.
+
+The hotspot percentage is inclusive **wall time divided by recorded frame-time
+sum**, not process CPU utilization. Nested scopes overlap and their percentages
+must not be added. Waiting, scheduling and measurement overhead can affect wall
+time; asynchronous rendering and other threads are not attributed. Process CPU
+is separately reported when supported, but cannot be apportioned to these
+scopes with these timers. Average and maximum call times help locate spikes.
+
+The heap columns are summed signed and positive *changes in total managed heap*
+across calls, not allocations or RAM owned by a function. GC, nested work and
+other threads can change them; native allocations and Lua's heap are excluded.
+Unavailable heap measurements are shown as N/A. The export also includes a
+current MemoryLedger area snapshot and top mods for context; those numbers are
+estimates and are not the memory retained by a hotspot. GPU memory is separate
+from process RSS. See the ledger limitations above before comparing areas.
