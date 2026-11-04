@@ -65,5 +65,9 @@ jobs:
         run: bash tests/haxe/run-memory-ledger.sh
       - name: Test settings backup format (export/import .json)
         run: bash tests/haxe/run-settings-backup.sh
+      - name: Test diagnostics report text and the phoenix://diagnostics page
+        run: bash tests/haxe/run-diagnostics-report.sh
+      - name: Test the phoenix:// URI parser and its route allowlists
+        run: python3 tests/uri/run.py
       - name: Test mobile storage and pre-state startup resize
         run: python3 -m unittest discover -s tests -p 'test_mobile_startup.py' -v
