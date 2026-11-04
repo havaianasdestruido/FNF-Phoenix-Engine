@@ -59,7 +59,7 @@ class LuaUtils {
 		return FlxTweenType.ONESHOT;
 	}
 
-    //Better optimized than using some getProperty shit or idk
+    //Better optimized than using some getProperty call or idk
 	public static inline function getFlxEaseByString(?ease:String = '') {
 		return switch(ease.toLowerCase().trim()) {
 			case 'backin': return FlxEase.backIn;

@@ -480,7 +480,7 @@ class CoolUtil
 	}
 
 	/**
-		Funny handler for `Application.current.window.alert` that *doesn't* crash on Linux and shit.
+		Funny handler for `Application.current.window.alert` that *doesn't* crash on Linux or other platforms.
 
 		@param message Message of the error.
 		@param title Title of the error.

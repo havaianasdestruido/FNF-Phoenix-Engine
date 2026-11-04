@@ -101,7 +101,7 @@ class GlslWorkTests(unittest.TestCase):
         self.assertNotIn("float width = openfl_TextureSize", src)
 
     def test_triangle_defines_its_helpers_and_hoists_mvp(self):
-        src = shader("FuckingTriangle.hx")
+        src = shader("TriangleShader.hx")
         for fn in ("mat4 perspective", "mat4 translate", "mat4 rotateX",
                    "mat4 rotateY", "vec3 bary", "float baryLerp", "vec2 uvLerp"):
             self.assertIn(fn, src, fn)

@@ -66,7 +66,7 @@ class CreditsState extends MusicBeatState
 		for (mod in Mods.parseList().enabled) pushModCreditsToList(mod);
 		#end
 
-		var pisspoop:Array<Array<String>> = [ //Name - Icon name - Description - Link - BG Color
+		var creditsEntries:Array<Array<String>> = [ //Name - Icon name - Description - Link - BG Color
 			['JS Engine People'],
 			['Jordan Santiago',			'jor',				'Coded everything into JS Engine',								'https://twitter.com/JordansTweetsYT',			'FF9300'],
 			['Stinko',			'stinkern',				'Coder, a very stupid one..',								'https://stinkernn.carrd.co/',			'555555'],
@@ -109,7 +109,7 @@ class CreditsState extends MusicBeatState
 			['kawaisprite',			'kawaisprite',		"Composer of Friday Night Funkin'",								'https://twitter.com/kawaisprite',		'378FC7']
 		];
 
-		for(i in pisspoop){
+		for(i in creditsEntries){
 			creditsStuff.push(i);
 		}
 

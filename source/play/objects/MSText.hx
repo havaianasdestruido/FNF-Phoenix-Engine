@@ -126,7 +126,7 @@ class MSText extends FlxText
         color = FlxColor.LIME;
       case 'bad':
         color = FlxColor.ORANGE;
-      case 'shit':
+      case 'poor':
         color = FlxColor.RED;
       default:
         color = FlxColor.WHITE;

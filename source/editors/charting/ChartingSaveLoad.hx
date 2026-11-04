@@ -103,7 +103,7 @@ class ChartingSaveLoad
 
   public static function loadJson(state:ChartingState, song:String, ?diff:String = ''):Void
   {
-    // shitty null fix, i fucking hate it when this happens
+    // awkward null fix, i very hate it when this happens
     // make it look sexier if possible
     var songName:String = Paths.formatToSongPath(state._song.song);
     #if sys

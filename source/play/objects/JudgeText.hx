@@ -116,7 +116,7 @@ class JudgeText extends FlxText
       case 'bad':
         color = FlxColor.ORANGE;
         text = PlayState.instance.hitStrings[3] + '\n' + PlayState.formatNumber(combo);
-      case 'crap':
+      case 'poor':
         color = FlxColor.RED;
         text = PlayState.instance.hitStrings[4] + '\n' + PlayState.formatNumber(combo);
       default:

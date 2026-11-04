@@ -95,7 +95,7 @@ class TitleState extends MusicBeatState
 
     curWacky = FlxG.random.getObject(getIntroText());
 
-    // DEBUG BULLSHIT
+    // DEBUG NONSENSE
 
     swagShader = new ColorSwap();
     super.create();

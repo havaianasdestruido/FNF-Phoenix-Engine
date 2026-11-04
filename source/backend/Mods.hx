@@ -273,7 +273,7 @@ class Mods
 			{
 				added.push(folder);
 				list.push([folder, true]); //i like it false by default. -bb //Well, i like it True! -Shadow Mario (2022)
-				//Shadow Mario (2023): What the fuck was bb thinking
+				//Shadow Mario (2023): What was bb thinking
 			}
 		}
 

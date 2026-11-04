@@ -112,7 +112,7 @@ class CrossFade extends FlxSprite
 				antialiasing = ClientPrefs.globalAntialiasing;
 		}
 
-		var fuck = FlxG.random.bool(70);
+		var shouldUseAlternateDirection = FlxG.random.bool(70);
 
 		var velo = 12 * 5;
 		switch (curCrossFadeMode)
@@ -120,14 +120,14 @@ class CrossFade extends FlxSprite
 			case 'Mid-Fight Masses':
 				if (isDad)
 				{
-					if (fuck)
+					if (shouldUseAlternateDirection)
 						velocity.x = -velo;
 					else
 						velocity.x = velo;
 				}
 				else
 				{
-					if (fuck)
+					if (shouldUseAlternateDirection)
 						velocity.x = velo;
 					else
 						velocity.x = -velo;
@@ -135,14 +135,14 @@ class CrossFade extends FlxSprite
 			case 'Static':
 				if (isDad)
 				{
-					if (fuck)
+					if (shouldUseAlternateDirection)
 						velocity.x = 0;
 					else
 						velocity.x = 0;
 				}
 				else
 				{
-					if (fuck)
+					if (shouldUseAlternateDirection)
 						velocity.x = 0;
 					else
 						velocity.x = 0;
@@ -151,14 +151,14 @@ class CrossFade extends FlxSprite
 				velo = 12 * 8;
 				if (isDad)
 				{
-					if (fuck)
+					if (shouldUseAlternateDirection)
 						velocity.x = -velo;
 					else
 						velocity.x = velo;
 				}
 				else
 				{
-					if (fuck)
+					if (shouldUseAlternateDirection)
 						velocity.x = velo;
 					else
 						velocity.x = -velo;
@@ -166,14 +166,14 @@ class CrossFade extends FlxSprite
 			default:
 				if (isDad)
 				{
-					if (fuck)
+					if (shouldUseAlternateDirection)
 						velocity.x = -velo;
 					else
 						velocity.x = velo;
 				}
 				else
 				{
-					if (fuck)
+					if (shouldUseAlternateDirection)
 						velocity.x = velo;
 					else
 						velocity.x = -velo;

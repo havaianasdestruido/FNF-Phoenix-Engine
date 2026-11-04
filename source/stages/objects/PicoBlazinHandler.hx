@@ -333,7 +333,7 @@ class PicoBlazinHandler
 
 	function wasNoteHitPoorly(rating:String)
 	{
-		return (rating == "bad" || rating == "shit");
+		return (rating == "bad" || rating == "poor");
 	}
 
 	function isPlayerLowHealth()

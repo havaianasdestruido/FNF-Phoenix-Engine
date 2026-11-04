@@ -52,7 +52,7 @@ class PlayStateRating
 		Paths.image(state.pixelRatingPrefix + "sick" + state.pixelRatingSuffix);
 		Paths.image(state.pixelRatingPrefix + "good" + state.pixelRatingSuffix);
 		Paths.image(state.pixelRatingPrefix + "bad" + state.pixelRatingSuffix);
-		Paths.image(state.pixelRatingPrefix + "shit" + state.pixelRatingSuffix);
+		Paths.image(state.pixelRatingPrefix + "poor" + state.pixelRatingSuffix);
 		Paths.image(state.pixelRatingPrefix + "miss" + state.pixelRatingSuffix);
 
 		for (i in 0...10) Paths.image(state.pixelRatingPrefix + 'num' + i + state.pixelRatingSuffix);

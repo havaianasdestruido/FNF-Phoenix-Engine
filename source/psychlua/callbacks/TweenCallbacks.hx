@@ -12,7 +12,7 @@ class TweenCallbacks
 {
 	public static function register(funk:FunkinLua):Void {
 		@:privateAccess {
-		// gay ass tweens
+		// Tween callbacks
 		FunkinLua.registerFunction("startTween", function(tag:String, vars:String, values:Any = null, duration:Float, ?options:Any = null) {
 			var penisExam:Dynamic = funk.tweenPrepare(tag, vars);
 			if(penisExam != null)
@@ -169,7 +169,7 @@ class TweenCallbacks
 			}
 		});
 
-		//Tween shit, but for strums
+		// Tween helpers for strums
 		FunkinLua.registerFunction("noteTweenX", function(tag:String, note:Int, value:Dynamic, duration:Float, ease:String) {
 			funk.cancelTween(tag);
 			if(note < 0) note = 0;

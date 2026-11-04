@@ -1,8 +1,8 @@
 package shaders;
 
-class FuckingTriangleEffect extends Effect
+class TriangleEffect extends Effect
 {
-  public var shader:FuckingTriangle = new FuckingTriangle();
+  public var shader:TriangleShader = new TriangleShader();
 
   public function new(rotx:Float, roty:Float)
   {

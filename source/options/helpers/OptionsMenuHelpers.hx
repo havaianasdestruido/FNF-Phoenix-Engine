@@ -42,7 +42,7 @@ class OptionsMenuHelpers
 				state.grpTexts.add(valueText);
 				optionsArray[i].setChild(valueText);
 			}
-			//optionText.snapToPosition(); //Don't ignore me when i ask for not making a fucking pull request to uncomment this line ok
+			//optionText.snapToPosition(); //Don't ignore me when i ask for not making a very pull request to uncomment this line ok
 
 			if(optionsArray[i].showBoyfriend && state.boyfriend == null)
 			{

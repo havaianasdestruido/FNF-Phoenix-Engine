@@ -661,7 +661,7 @@ class Paths
 
   // Loads images.
   public static var currentTrackedAssets:Map<String, FlxGraphic> = [];
-  // because the trace is so damn annoying sometimes
+  // because the trace is so very annoying sometimes
   public static var warnedMissingAssets:Map<String, Bool> = [];
 
   static public function image(key:String, ?parentFolder:String = null):FlxGraphic
@@ -798,7 +798,7 @@ class Paths
     return false;
   }
 
-  // temp shit lol
+  // Temporary asset lookup helper.
   inline static public function exists(key:String, type:AssetType = null, ?library:String)
   {
     #if sys
@@ -970,7 +970,7 @@ class Paths
     return null;
   }
 
-  // completely rewritten asset loading? fuck!
+  // Asset loading has been rewritten.
   public static var currentTrackedSounds:Map<String, Sound> = [];
 
   // Returns sounds which is useful for all the sfx
@@ -1018,7 +1018,7 @@ class Paths
 
     if (sound == null)
     {
-      // I hate this so god damn much
+      // This fallback avoids repeated sound lookup failures.
       final gottenPath:String = resolveSoundAsset(path, key, library);
       if (gottenPath == null)
       {

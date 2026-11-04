@@ -53,17 +53,17 @@ class CameraCallbacks
 				camera.zoom = config.zoom ??= 0.0;
 				camera.active = true;
 				// just make *sure* there isn't an camera name of an existing variable
-				final fucker = PlayState.instance.variables;
-				final safeName = getUniqueName(cameraName, fucker);
-				if (!fucker.exists(cameraName))
-					fucker.set(cameraName, camera);
+				final variables = PlayState.instance.variables;
+				final safeName = getUniqueName(cameraName, variables);
+				if (!variables.exists(cameraName))
+					variables.set(cameraName, camera);
 				else if (safeName != cameraName) {
 					LuaUtils.luaTrace(
 						funk.lua,
 						'An object of $cameraName exists, renaming to $safeName to avoid conflict.',
 						false, false, FlxColor.RED
 					);
-					fucker.set(safeName, camera);
+					variables.set(safeName, camera);
 				}
 		});
 

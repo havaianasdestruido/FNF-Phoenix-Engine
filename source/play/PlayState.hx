@@ -299,7 +299,7 @@ class PlayState extends MusicBeatState
 	public var shownScore:Float = 0;
 
 	public var fcStrings:Array<String> = ['No Play', 'PFC', 'SFC', 'GFC', 'BFC', 'FC', 'SDCB', 'Clear', 'TDCB', 'QDCB'];
-	public var hitStrings:Array<String> = ['Perfect!!!', 'Sick!!', 'Good!', 'Bad.', 'Shit.', 'Miss..'];
+	public var hitStrings:Array<String> = ['Perfect!!!', 'Sick!!', 'Good!', 'Bad.', 'Poor.', 'Miss..'];
 
 	var charChangeTimes:Array<Float> = [];
 	var charChangeNames:Array<String> = [];
@@ -380,12 +380,12 @@ class PlayState extends MusicBeatState
 
 	public var singDurMult:Int = 1;
 
-	//ms timing popup shit
+	// Timing popup
 	public var msTxt:MSText;
 	public var msTimer:FlxTimer = null;
 	public var restartTimer:FlxTimer = null;
 
-	//ms timing popup shit except for simplified ratings
+	// Timing popup for simplified ratings
 	public var judgeTxt:JudgeText;
 	public var judgeTxtTimer:FlxTimer = null;
 
@@ -435,23 +435,23 @@ class PlayState extends MusicBeatState
 	var detailsPausedText:String = "";
 	#end
 
-	//Achievement shit
+	// Achievement tracking
 	var keysPressed:Array<Bool> = [];
 	var boyfriendIdleTime:Float = 0.0;
 	var boyfriendIdled:Bool = false;
 
-	// Lua shit
+	// Lua integration
 	#if LUA_ALLOWED
 	public var luaArray:Array<FunkinLua> = [];
 	private var luaDebugGroup:FlxTypedGroup<DebugLuaText>;
 	#end
 
-	// Python shit
+	// Python integration
 	#if PYTHON_ALLOWED
 	public var pythonArray:Array<PythonScript> = [];
 	private var pythonDebugGroup:FlxTypedGroup<DebugLuaText>;
 	#end
-	// HScript shit (standalone .hx/.hscript mods, no Lua parent required)
+	// HScript integration (standalone .hx/.hscript mods, no Lua parent required)
 	#if HSCRIPT_ALLOWED
 	public var hscriptArray:Array<HScript> = [];
 	private var hscriptDebugGroup:FlxTypedGroup<DebugLuaText>;
@@ -692,7 +692,7 @@ class PlayState extends MusicBeatState
 			cameraSpeed = stageData.camera_speed;
 
 		boyfriendCameraOffset = stageData.camera_boyfriend;
-		if(boyfriendCameraOffset == null) //Fucks sake should have done it since the start :rolling_eyes:
+		if(boyfriendCameraOffset == null) //I should have done this from the start :rolling_eyes:
 			boyfriendCameraOffset = [0, 0];
 
 		opponentCameraOffset = stageData.camera_opponent;
@@ -901,8 +901,8 @@ class PlayState extends MusicBeatState
 			ratingQuoteStuff = [
 				['How are you this bad?', 0.1],
 				['You Suck!', 0.2],
-				['Horribly Shit', 0.3],
-				['Shit', 0.4],
+				['Very Poor', 0.3],
+				['Poor', 0.4],
 				['Bad', 0.5],
 				['Bruh', 0.6],
 				['Meh', 0.69],

@@ -142,7 +142,7 @@ class PropertyCallbacks
 			return true;
 		});
 
-		//shitass stuff for epic coders like me B)  *image of obama giving himself a medal*
+		//clever helper for epic coders like me B)  *image of obama giving himself a medal*
 		FunkinLua.registerFunction("getObjectOrder", function(obj:String) {
 			var killMe:Array<String> = obj.split('.');
 			var leObj:FlxBasic = FunkinLua.getObjectDirectly(killMe[0]);

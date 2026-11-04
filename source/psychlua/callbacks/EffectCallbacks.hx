@@ -24,7 +24,7 @@ class EffectCallbacks
 {
 	public static function register(funk:FunkinLua):Void {
 		@:privateAccess {
-		//SHADER SHIT
+		//SHADER EFFECTS
 		if (ClientPrefs.shaders) {
 			FunkinLua.registerFunction("addChromaticAbberationEffect", function(camera:String,chromeOffset:Float = 0.005) {
 

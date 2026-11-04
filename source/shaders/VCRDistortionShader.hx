@@ -182,7 +182,7 @@ class VCRDistortionShader extends FlxShader // https://www.shadertoy.com/view/ld
   }
 
   // Converts color from RGB to YIQ, blur the I and Q, then apply a dot crawl effect
-  vec3 VHS_effect(vec2 fragCoord, float color_fuckery)
+  vec3 VHS_effect(vec2 fragCoord, float colorDistortion)
   {
     vec2    IQ = vec2(0,0),
             blur_size = vec2(16, 4),
@@ -207,7 +207,7 @@ class VCRDistortionShader extends FlxShader // https://www.shadertoy.com/view/ld
     vec3 color = vec3
     (
         RGB_to_YIQ(texture(iChannel0, UV_Y).xyz).r,
-        IQ * (1.f + color_fuckery)
+        IQ * (1.f + colorDistortion)
     );
 
     // NTSC Dot Crawl

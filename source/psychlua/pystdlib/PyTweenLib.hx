@@ -117,7 +117,7 @@ class PyTweenLib
 			}
 		});
 
-		// Tween shit, but for strums
+		// Tween helpers for strums
 		PythonScript.registerFunction("noteTweenX", function(tag:String, note:Int, value:Dynamic, duration:Float, ease:String) {
 			py.cancelTween(tag);
 			if(note < 0) note = 0;

@@ -1,7 +1,7 @@
 How are you this bad?, 0.1
 You Suck!, 0.2
-Horribly Shit, 0.3
-Shit, 0.4
+Very Poor, 0.3
+Poor, 0.4
 Bad, 0.5
 Bruh, 0.6
 Meh, 0.69

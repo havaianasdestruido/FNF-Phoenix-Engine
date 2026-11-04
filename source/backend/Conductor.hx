@@ -56,8 +56,8 @@ class Conductor
 	public static function judgeNote(note:Note, diff:Float=0, ?botplay:Bool = false, ?missedNote:Bool = false):Rating // die
 	{
 		if (botplay || missedNote) return PlayState.instance.ratingsData[0];
-		var data:Array<Rating> = PlayState.instance.ratingsData; //shortening cuz fuck u
-		for(i in 0...data.length-1) //skips last window (Shit)
+		var data:Array<Rating> = PlayState.instance.ratingsData; //short name for the ratings list
+		for(i in 0...data.length-1) //skips last window (Poor)
 		{
 			if (diff <= data[i].hitWindow)
 			{
@@ -193,12 +193,10 @@ class Rating
 	{
 		this.name = name;
 		this.image = name;
-		// PlayState has no `shits` field: shit-rated hits are tallied in
-		// `poorRatings` (read back by the FC conditions in
-		// PlayStateRating.RecalculateRating). Counter-deriving `shit + "s"`
-		// made Reflect.setField() throw "Invalid field:shits" on hxcpp,
-		// crashing gameplay the first time a shit note was hit.
-		this.counter = (name == 'shit') ? 'poorRatings' : name + 's';
+		// The lowest rating increments `poorRatings`, used by the FC conditions in
+		// `PlayStateRating.RecalculateRating`. Keep this mapping explicit: deriving
+		// a counter from the rating name would target a nonexistent field on hxcpp.
+		this.counter = (name == 'poor') ? 'poorRatings' : name + 's';
 		this.hitWindow = Reflect.field(ClientPrefs, name + 'Window');
 		if(hitWindow == null)
 		{
@@ -233,7 +231,7 @@ class Rating
 		rating.noteSplash = false;
 		ratingsData.push(rating);
 
-		var rating:Rating = new Rating('shit');
+		var rating:Rating = new Rating('poor');
 		rating.ratingMod = 0;
 		rating.score = 50;
 		rating.noteSplash = false;

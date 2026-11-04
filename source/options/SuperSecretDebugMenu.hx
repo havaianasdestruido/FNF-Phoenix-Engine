@@ -94,7 +94,7 @@ class SuperSecretDebugMenu extends BaseOptionsMenu
 			"select no if you're sure about it.",
 			"are you really really sure?",
 			"there may be something left unsaved. Are you really really really sure?",
-			"i think they want me to stfu",
+			"i think they want me to be quiet",
 			"yeah they do.",
 			"really really really sure????",
 			"really sure? last warning",
