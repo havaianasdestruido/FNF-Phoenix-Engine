@@ -2235,7 +2235,9 @@ class PlayState extends MusicBeatState
 		// dispatch when no script is loaded removes a per-frame array (plus the two
 		// more that callOnScripts builds for its default arguments).
 		if (hasActiveScripts()) callOnLuas('onUpdate', [elapsed]);
+		final stateUpdateHotspot = debug.profiler.HotspotProfiler.begin("PlayState: Flixel state/group update");
 		super.update(elapsed);
+		debug.profiler.HotspotProfiler.end(stateUpdateHotspot);
 
 		if (tankmanAscend && curStep > 895 && curStep < 1151) camGame.zoom = 0.8;
 
@@ -2467,26 +2469,34 @@ class PlayState extends MusicBeatState
 
 		skippedCount = 0;
 
+		final spawnHotspot = debug.profiler.HotspotProfiler.begin("PlayState: spawn notes");
 		spawnNotes();
+		debug.profiler.HotspotProfiler.end(spawnHotspot);
 
 		if (generatedMusic)
 		{
 			if(!inCutscene)
 			{
 				if(!cpuControlled) {
+					final inputHotspot = debug.profiler.HotspotProfiler.begin("PlayState: note input");
 					handleKeyInput();
+					debug.profiler.HotspotProfiler.end(inputHotspot);
 				}
 				else if (ClientPrefs.charsAndBG) playerDance();
 
+				final notesHotspot = debug.profiler.HotspotProfiler.begin("PlayState: note update and sort");
 				amountOfRenderedNotes = 0;
 				notes.forEach(updateNote);
 				// #88: cached comparators — FlxTypedGroup.sort() binds a new closure per call.
 				PlayStateNoteHelpers.sortNoteGroup(notes);
 				sustainNotes.forEach(updateNote);
 				PlayStateNoteHelpers.sortNoteGroup(sustainNotes);
+				debug.profiler.HotspotProfiler.end(notesHotspot);
 			}
 
+			final destroyHotspot = debug.profiler.HotspotProfiler.begin("PlayState: destroy notes");
 			destroyNotes();
+			debug.profiler.HotspotProfiler.end(destroyHotspot);
 
 			while(eventNotes.length > 0 && eventNotes[eventIndex] != null && Conductor.songPosition > eventNotes[eventIndex].strumTime) {
 				var value1:String = '';
@@ -3367,7 +3377,9 @@ class PlayState extends MusicBeatState
 			if(exclusions.contains(script.scriptName))
 				continue;
 
+			final hotspot = debug.profiler.HotspotProfiler.begin(debug.FrameProfiler.enabled ? "Lua: " + script.scriptName + " / " + event : "");
 			final myValue = script.call(event, args);
+			debug.profiler.HotspotProfiler.end(hotspot);
 			if(myValue == FunkinLua.Function_StopLua && !ignoreStops) {
 				stopAll = true;
 				break;
@@ -3385,7 +3397,9 @@ class PlayState extends MusicBeatState
 			if(exclusions.contains(script.scriptName))
 				continue;
 
+			final hotspot = debug.profiler.HotspotProfiler.begin(debug.FrameProfiler.enabled ? "Python: " + script.scriptName + " / " + event : "");
 			final myValue = script.call(event, args);
+			debug.profiler.HotspotProfiler.end(hotspot);
 			if(myValue == PythonScript.Function_StopAll && !ignoreStops) {
 				stopAll = true;
 				break;
@@ -3403,7 +3417,9 @@ class PlayState extends MusicBeatState
 			if(exclusions.contains(script.scriptName))
 				continue;
 
+			final hotspot = debug.profiler.HotspotProfiler.begin(debug.FrameProfiler.enabled ? "HScript: " + script.scriptName + " / " + event : "");
 			final myValue = script.call(event, args);
+			debug.profiler.HotspotProfiler.end(hotspot);
 			if(myValue == HScript.Function_StopLua && !ignoreStops) {
 				stopAll = true;
 				break;
