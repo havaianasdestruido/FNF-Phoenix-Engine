@@ -9,7 +9,9 @@ package backend.deeplink;
  *   - phoenix://song/<song>?difficulty=<diff>
  *   - phoenix://mod/<modId>/song/<song>
  *   - phoenix://screen/<freeplay|mods|options|...>
- *   - phoenix://diagnostics
+ *   - phoenix://diagnostics (also screen/diagnostics) — read-only report page,
+ *     no parameters: a fixed destination takes nothing to configure, so a link
+ *     that carries a query or a path segment is malformed rather than narrowed
  *   - phoenix://replay/<id>
  *
  * All inputs are bounded (256 chars), validated against an allowlist, and
@@ -85,7 +87,10 @@ class PhoenixURI
 				mk(Menu(host), query);
 			case "screen":
 				if (pathParts.length != 1) return null;
-				mk(Screen(pathParts[0]), query);
+				// The diagnostics page is a destination, not a menu, so its alias
+				// normalises to the same kind the canonical link produces.
+				if (pathParts[0] == "diagnostics") mk(Diagnostics, query);
+				else mk(Screen(pathParts[0]), query);
 			case "song":
 				if (pathParts.length != 1) return null;
 				mk(Song(pathParts[0], query.get("difficulty")), query);
@@ -115,10 +120,19 @@ class PhoenixURI
 			case Song(_, diff):
 				if (diff != null && diff.length > 0 && !~/^[a-z0-9_-]+$/i.match(diff))
 					return null;
+			case Diagnostics:
+				// A read-only page with nothing to configure: a link carrying a
+				// query is treated as malformed instead of silently narrowed.
+				if (hasParams(query))
+					return null;
 			default:
 		}
 		return {kind: kind, query: query};
 	}
+
+	/** True when the link carried at least one (therefore unusable) parameter. */
+	static inline function hasParams(query:Map<String, String>):Bool
+		return query != null && query.keys().hasNext();
 
 	static function parseQuery(raw:Null<String>):Map<String, String>
 	{
