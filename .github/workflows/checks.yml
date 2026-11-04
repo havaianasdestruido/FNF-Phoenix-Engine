@@ -47,6 +47,8 @@ jobs:
         run: bash tests/haxe/run-platform-util-native.sh
       - name: Test Phoenix version and release selection
         run: bash tests/haxe/run-phoenix-version.sh
+      - name: Test watermark platform badge (detection, density, artwork)
+        run: bash tests/haxe/run-platform-icons.sh
       - name: Typecheck threaded update checker
         run: bash tests/haxe/run-update-checker-typecheck.sh
       - name: Test BPM-aware chart section timing

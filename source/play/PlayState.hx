@@ -365,6 +365,9 @@ class PlayState extends MusicBeatState
 
 	var EngineWatermark:FlxText;
 
+	/** Platform badge drawn on top of the watermark; null when turned off. */
+	public var platformIcon:PlatformIcon;
+
 	public static var screenshader:PulseEffectAlt;
 
 	var disableTheTripper:Bool = false;
@@ -1406,6 +1409,19 @@ class PlayState extends MusicBeatState
 
 		if (ClientPrefs.watermarkStyle == 'Hide' && EngineWatermark != null) EngineWatermark.visible = false;
 
+		// Little platform badge riding on top of the watermark, so a clip or a
+		// screenshot says which build it came from. It redraws itself for the
+		// screen density it ends up on (see objects/PlatformIcon.hx), and the
+		// 'Forever Engine' style hugs the right edge, so the badge follows the
+		// text's right edge there instead of its left.
+		if (ClientPrefs.platformWatermark && EngineWatermark != null)
+		{
+			platformIcon = new PlatformIcon();
+			platformIcon.visible = EngineWatermark.visible;
+			platformIcon.placeAbove(EngineWatermark, 3, ClientPrefs.watermarkStyle == 'Forever Engine');
+			add(platformIcon);
+		}
+
 		// TODO: cleanup playstate, by moving most of this and other duplicate functions like healthbop, etc
 		scoreTxt = new FlxText(0, healthBarBG.y + 50, FlxG.width, "", 20);
 		scoreTxt.setFormat(Paths.font("vcr.ttf"), 16, FlxColor.WHITE, CENTER, OUTLINE,FlxColor.BLACK);
@@ -1540,6 +1556,7 @@ class PlayState extends MusicBeatState
 		iconP1.cameras = [camHUD];
 		iconP2.cameras = [camHUD];
 		if (EngineWatermark != null) EngineWatermark.cameras = [camHUD];
+		if (platformIcon != null) platformIcon.cameras = [camHUD];
 		if (scoreTxt != null) scoreTxt.cameras = [camHUD];
 		if (botplayTxt != null) botplayTxt.cameras = [camHUD];
 		timeBar.cameras = [camHUD];

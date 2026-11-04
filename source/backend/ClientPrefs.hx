@@ -54,6 +54,7 @@ class ClientPrefs { //default settings if it can't find a save file containing y
 	public static var timeBarStyle:String = 'Vanilla';
 	public static var healthBarStyle:String = 'Vanilla';
 	public static var watermarkStyle:String = 'Vanilla';
+	public static var platformWatermark:Bool = true;
 	public static var botTxtStyle:String = 'Vanilla';
 	public static var strumLitStyle:String = 'Full Anim';
 	public static var bfIconStyle:String = 'Default';

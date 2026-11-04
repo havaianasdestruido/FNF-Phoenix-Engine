@@ -118,3 +118,24 @@ or `choco install pngquant oxipng jpegoptim`.
 The quantization step is lossy: run `--dry-run` / `-DryRun` first if you are
 unsure, spot-check a few spritesheets in-game, and use `--lossless` /
 `-Lossless` for assets that must stay bit-exact.
+
+# Other tools
+
+## Platform badge preview (`platform_icon_preview.py`)
+
+Rasterises the watermark platform badges straight out of
+`source/backend/PlatformIcons.hx`, with the same three-pass recipe the engine
+uses, so artwork edits can be eyeballed without a `lime test` cycle. The Haxe
+file stays the single source of truth: the script parses it instead of keeping
+its own copy of the shapes.
+
+```sh
+python3 tools/platform_icon_preview.py                       # sheet in tools/reports/
+python3 tools/platform_icon_preview.py --sizes 16 24 48 128
+python3 tools/platform_icon_preview.py --out /tmp/badges.png --background 1a1a1a
+```
+
+Rendering needs [Pillow](https://pypi.org/project/Pillow/) (`pip install Pillow`);
+the parser underneath is plain stdlib and is reused by
+`tests/test_platform_icons.py`. The generated sheet is scratch output - don't
+commit it. See `docs/PLATFORM_ICONS.md` for the feature itself.

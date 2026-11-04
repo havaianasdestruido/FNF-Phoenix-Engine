@@ -271,7 +271,7 @@ class PlayStateCamera
 								FlxTween.tween(daNote, {alpha: 0}, 0.5, {ease: FlxEase.expoOut,});
 							});
 						}
-					for (i in [state.EngineWatermark, state.timeBarBG, state.timeTxt, state.timeBarBG, state.scoreTxt, state.healthBarBG, state.healthBar, state.iconP1, state.iconP2]) {
+					for (i in [state.EngineWatermark, state.platformIcon, state.timeBarBG, state.timeTxt, state.timeBarBG, state.scoreTxt, state.healthBarBG, state.healthBar, state.iconP1, state.iconP2]) {
 						if (i != null) FlxTween.tween(i, {alpha: 0}, 0.5, {ease: FlxEase.expoOut});
 					}
 					state.dad.velocity.y = -35;
@@ -322,7 +322,7 @@ class PlayStateCamera
 			case 1152:
 				{
 					FlxG.camera.flash(FlxColor.WHITE, 1);
-					for (i in [state.EngineWatermark, state.timeBarBG, state.timeTxt, state.timeBarBG, state.scoreTxt, state.healthBarBG, state.healthBar, state.iconP1, state.iconP2]) {
+					for (i in [state.EngineWatermark, state.platformIcon, state.timeBarBG, state.timeTxt, state.timeBarBG, state.scoreTxt, state.healthBarBG, state.healthBar, state.iconP1, state.iconP2]) {
 						if (i != null) FlxTween.tween(i, {alpha: 1}, 0.5, {ease: FlxEase.expoOut});
 					}
 					state.opponentStrums.forEachAlive(function(daNote:FlxSprite)

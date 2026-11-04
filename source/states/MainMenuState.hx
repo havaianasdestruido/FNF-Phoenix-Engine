@@ -10,6 +10,7 @@ import backend.DiscordClient;
 import backend.HaxeCommit;
 import backend.MusicBeatState;
 import backend.Paths;
+import backend.ScreenDensity;
 import editors.MasterEditorMenu;
 import flixel.effects.FlxFlicker;
 import flixel.input.keyboard.FlxKey;
@@ -19,6 +20,7 @@ import lime.app.Application;
 
 import backend.Controls;
 import objects.MenuItem;
+import objects.PlatformIcon;
 #if FUNNY_ALLOWED
 import openfl.display.BlendMode;
 import flixel.addons.plugin.screengrab.FlxScreenGrab;
@@ -61,6 +63,7 @@ class MainMenuState extends MusicBeatState
   var magenta:FlxSprite;
   var menuBackground:FlxSprite;
   var versionLabels:Array<FlxText> = [];
+  var platformIcon:PlatformIcon;
   var layoutWidth:Int = 0;
   var camFollow:FlxObject;
   var camFollowPos:FlxObject;
@@ -88,6 +91,14 @@ class MainMenuState extends MusicBeatState
     if (tipBackground != null) ViewportVisuals.fill(tipBackground, Std.int(tipBackground.height));
     final shift:Float = ScreenLayout.contentLeft(FlxG.width) - ScreenLayout.contentLeft(layoutWidth);
     for (label in versionLabels) label.x += shift;
+    if (platformIcon != null)
+    {
+      // Another window size can mean another monitor: redraw the badge for
+      // the density it is on now, then follow the label it sits on.
+      ScreenDensity.invalidate();
+      platformIcon.refresh();
+      platformIcon.reposition();
+    }
     layoutWidth = FlxG.width;
     if (menuItems != null) menuItems.forEach(item -> item.screenCenter(X));
   }
@@ -214,6 +225,14 @@ class MainMenuState extends MusicBeatState
     FNFVersion.setFormat("VCR OSD Mono", 16, FlxColor.WHITE, LEFT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
     add(FNFVersion);
     versionLabels = [PhoenixVersion, JSVersion, PsychVersion, FNFVersion];
+
+    // Same badge the gameplay watermark gets, on top of the version stack.
+    if (ClientPrefs.platformWatermark)
+    {
+      platformIcon = new PlatformIcon();
+      platformIcon.placeAbove(PhoenixVersion, 4);
+      add(platformIcon);
+    }
 
     tipBackground = new FlxSprite();
     tipBackground.scrollFactor.set();

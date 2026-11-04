@@ -1,6 +1,7 @@
 package play.helpers;
 
 import backend.ClientPrefs;
+import backend.ScreenDensity;
 import backend.ScreenLayout;
 import objects.Note;
 import objects.Popup;
@@ -13,6 +14,15 @@ class PlayStateLayout
 {
 	public static function resize(state:PlayState, oldWidth:Int):Void
 	{
+		// Runs before the early return: a resize that keeps the logical width
+		// can still mean a new window scale or another monitor, and the badge
+		// is rasterised for whatever density it ends up on.
+		if (state.platformIcon != null)
+		{
+			ScreenDensity.invalidate();
+			state.platformIcon.refresh();
+		}
+
 		if (oldWidth == FlxG.width) return;
 		final shift:Float = ScreenLayout.contentLeft(FlxG.width) - ScreenLayout.contentLeft(oldWidth);
 
@@ -39,6 +49,7 @@ class PlayStateLayout
 			if (state.energyTxt != null) state.energyTxt.x += shift;
 			if (state.botplayTxt != null) state.botplayTxt.x += shift;
 			if (state.EngineWatermark != null) state.EngineWatermark.x += shift;
+			if (state.platformIcon != null) state.platformIcon.reposition();
 			if (state.msTxt != null && state.msTxt.visible) state.msTxt.x += shift;
 			if (state.healthBar != null && state.iconP1 != null && state.iconP2 != null)
 				PlayStateCamera.updateIconsPosition(state);
