@@ -1,8 +1,8 @@
 name: Checks
 
-# Fast regression guards for Arena fixes and BPM-aware chart timing.
-# Python/source guards need no Haxe or Android SDK; Java 17 exercises the
-# Android-free SAF path-policy and Media3 bridge lifecycle/action classes.
+# Fast regression guards: dependency manifests, host-JVM Android bridge/policy
+# classes, standalone native C/C++ smoke tests, and isolated Haxe specs.
+# None of these need a full game build or the Android SDK.
 
 on:
   push:
@@ -30,8 +30,11 @@ jobs:
           distribution: temurin
           java-version: "17"
 
-      - name: Run regression tests
-        run: python3 -m unittest discover -s tests -p 'test_*.py' -v
+      - name: Run host-JVM Android bridge/policy tests
+        run: bash tests/java/run.sh
+
+      - name: Run native C/C++ smoke tests
+        run: bash tests/native/run.sh
 
   widescreen-layout:
     name: Widescreen geometry (Haxe)
@@ -59,5 +62,7 @@ jobs:
         run: bash tests/haxe/run-mod-zip.sh
       - name: Test per-area RAM ledger (vlog memory attribution)
         run: bash tests/haxe/run-memory-ledger.sh
-      - name: Test mobile storage and pre-state startup resize
-        run: python3 -m unittest discover -s tests -p 'test_mobile_startup.py' -v
+      - name: Test pooled-sprite accounting
+        run: bash tests/haxe/run-pool-stats.sh
+      - name: Test phoenix:// URI parser
+        run: bash tests/uri/run.sh

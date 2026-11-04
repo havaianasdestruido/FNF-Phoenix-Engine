@@ -71,9 +71,10 @@ in the commit a release points at, so release from up-to-date `main`.
 
 ## `checks.yml` — Checks
 
-Runs the dependency-manifest check, Python regression tests, host-JVM Android tests,
-and isolated Haxe tests for layout, chart timing, mod imports, versions and updates.
-These checks do not require a full game build or the Android SDK.
+Runs the dependency-manifest check, host-JVM Android tests, standalone native
+C/C++ smoke tests, and isolated Haxe tests for layout, chart timing, mod imports,
+versions and updates. These checks do not require a full game build or the
+Android SDK.
 
 ## `docs.yml` — Documentation
 
@@ -103,7 +104,8 @@ commented on, and automatic closing of inactive issues.
 haxelib run lime build windows -Dcommit
 haxelib run lime build android
 python3 tools/check_dependencies.py
-python3 -m unittest discover -s tests -p 'test_*.py' -v
+bash tests/java/run.sh
+bash tests/native/run.sh
 ```
 
 For Android make sure `lime setup android` has been run so `ANDROID_NDK_ROOT` resolves.

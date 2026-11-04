@@ -138,11 +138,9 @@ null. `FlxGame.create()` reapplies the resize after creating the first state.
 Without this guard, startup can crash after dismissing the old notice and
 fail again without a notice on relaunch.
 
-Regression checks: `python3 -m unittest discover -s tests -p 'test_mobile_startup.py' -v`.
-With Haxe on PATH (or `HAXE` set), this also executes the production storage
-initializer and resize method against host-side boundary stubs. Device checks
-still need a rebuilt APK: test a fresh install, force-stop/relaunch, an upgrade
-preserving existing mods/saves, and background/resume during initial asset copying.
+Device checks need a rebuilt APK: test a fresh install, force-stop/relaunch, an
+upgrade preserving existing mods/saves, and background/resume during initial
+asset copying.
 
 ### System-visible app directories (`PhoenixDocumentsProvider`)
 
@@ -333,9 +331,7 @@ length/depth. `ModZipInstaller` then:
   the menu asks with a `Prompt` before doing so.
 
 Regression checks: `tests/haxe/run-mod-zip.sh` (interpreter spec for the path
-policy, central-directory parser and extractor) and
-`python3 -m unittest discover -s tests -p 'test_mod_zip_import.py' -v` (wiring,
-security rules and docs).
+policy, central-directory parser and extractor).
 
 ### System-visible app directories (`PhoenixDocumentsProvider`)
 

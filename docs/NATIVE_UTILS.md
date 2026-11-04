@@ -36,12 +36,13 @@ background.
 Standalone Linux C/C++ smoke tests (no engine dependencies):
 
 ```sh
-python3 -m unittest discover -s tests -p 'test_native_system.py' -v
+bash tests/native/run.sh
 ```
 
-The tests compile and link two translation units to verify header-only linkage,
-then check sane query results and nondecreasing time readings. Native branches
-for other operating systems should also be validated with their engine builds.
+The runner compiles and links two translation units to verify header-only
+linkage, then checks sane query results and nondecreasing time readings. Native
+branches for other operating systems should also be validated with their engine
+builds.
 
 ## Hardware detection
 
@@ -73,5 +74,5 @@ compile a stub that returns empty strings.
 Standalone C/C++ smoke tests for the native layer:
 
 ```sh
-python3 -m unittest discover -s tests -p 'test_native_hardware.py' -v
+bash tests/native/run.sh
 ```

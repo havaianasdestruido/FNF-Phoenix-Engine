@@ -13,7 +13,7 @@ import openfl.geom.Rectangle;
 // REFACTOR: imports for relocated root classes
 // Conductor stays explicitly imported: #67 moved the waveform bounds to
 // ChartingState.sectionStartTime(), which resolves through this class' explicit
-// dependency list (targeted by tests/test_psych_parity_guards.py).
+// dependency list.
 import backend.Conductor;
 
 // These private native buffer fields are used only by the desktop waveform renderer.
