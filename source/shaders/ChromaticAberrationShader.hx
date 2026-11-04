@@ -1,7 +1,6 @@
-﻿package shaders;
+package shaders;
 
 import flixel.system.FlxAssets.FlxShader;
-
 
 class ChromaticAberrationShader extends FlxShader
 {
@@ -14,15 +13,18 @@ class ChromaticAberrationShader extends FlxShader
 
 		void main()
 		{
-			vec4 col1 = texture2D(bitmap, openfl_TextureCoordv.st - vec2(rOffset, 0.0));
-			vec4 col2 = texture2D(bitmap, openfl_TextureCoordv.st - vec2(gOffset, 0.0));
-			vec4 col3 = texture2D(bitmap, openfl_TextureCoordv.st - vec2(bOffset, 0.0));
-			vec4 toUse = texture2D(bitmap, openfl_TextureCoordv);
-			toUse.r = col1.r;
-			toUse.g = col2.g;
-			toUse.b = col3.b;
-
-			gl_FragColor = toUse;
+			vec2 uv = openfl_TextureCoordv.st;
+			vec4 col2 = texture2D(bitmap, uv - vec2(gOffset, 0.0));
+			// The fourth, centered fetch only supplied the alpha channel. When
+			// gOffset is 0 (what ChromaticAberrationEffect always sets), col2 is
+			// already the centered texel, so reuse its alpha and skip the fetch.
+			// The branch is on a uniform, so it costs nothing per-pixel.
+			float alpha = (gOffset == 0.0) ? col2.a : texture2D(bitmap, uv).a;
+			gl_FragColor = vec4(
+				texture2D(bitmap, uv - vec2(rOffset, 0.0)).r,
+				col2.g,
+				texture2D(bitmap, uv - vec2(bOffset, 0.0)).b,
+				alpha);
 		}')
   public function new()
   {

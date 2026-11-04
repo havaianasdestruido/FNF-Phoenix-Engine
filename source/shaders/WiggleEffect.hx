@@ -27,7 +27,9 @@ class WiggleEffect
 		this.waveSpeed = waveSpeed;
 		this.waveFrequency = waveFrequency;
 		this.waveAmplitude = waveAmplitude;
-		this.effectType = effectType;
+		// Was `this.effectType = effectType`, which re-assigned the field's
+		// own DREAMY default and silently ignored the typeOfEffect argument.
+		this.effectType = typeOfEffect;
 	}
 
 	public function update(elapsed:Float):Void
@@ -40,31 +42,48 @@ class WiggleEffect
 		shader.uTime.value[0] = value;
 	}
 
+	// Type.enumIndex() is the same declaration-order index the old
+	// getConstructors().indexOf(Std.string(v)) computed through reflection
+	// (which also allocated the constructor array and a String per call).
+	// The float setters likewise write into the existing uniform array
+	// after the first assignment instead of allocating [v] every time.
 	function set_effectType(v:WiggleEffectType):WiggleEffectType
 	{
 		effectType = v;
-		shader.effectType.value = [WiggleEffectType.getConstructors().indexOf(Std.string(v))];
+		if (shader.effectType.value == null)
+			shader.effectType.value = [Type.enumIndex(v)];
+		else
+			shader.effectType.value[0] = Type.enumIndex(v);
 		return v;
 	}
 
 	function set_waveSpeed(v:Float):Float
 	{
 		waveSpeed = v;
-		shader.uSpeed.value = [waveSpeed];
+		if (shader.uSpeed.value == null)
+			shader.uSpeed.value = [waveSpeed];
+		else
+			shader.uSpeed.value[0] = waveSpeed;
 		return v;
 	}
 
 	function set_waveFrequency(v:Float):Float
 	{
 		waveFrequency = v;
-		shader.uFrequency.value = [waveFrequency];
+		if (shader.uFrequency.value == null)
+			shader.uFrequency.value = [waveFrequency];
+		else
+			shader.uFrequency.value[0] = waveFrequency;
 		return v;
 	}
 
 	function set_waveAmplitude(v:Float):Float
 	{
 		waveAmplitude = v;
-		shader.uWaveAmplitude.value = [waveAmplitude];
+		if (shader.uWaveAmplitude.value == null)
+			shader.uWaveAmplitude.value = [waveAmplitude];
+		else
+			shader.uWaveAmplitude.value[0] = waveAmplitude;
 		return v;
 	}
 }
@@ -142,7 +161,12 @@ class WiggleShader extends FlxFixedShader
 
 		void main()
 		{
-			vec2 uv = sineWave(openfl_TextureCoordv);
+			// Every effect type scales its offset by uWaveAmplitude, so at
+			// zero amplitude sineWave() returns the coord unchanged. Skip
+			// the sin() calls entirely in that (common, disabled) state.
+			vec2 uv = openfl_TextureCoordv;
+			if (uWaveAmplitude != 0.0)
+				uv = sineWave(uv);
 			gl_FragColor = texture2D(bitmap, uv);
 		}')
 	public function new()

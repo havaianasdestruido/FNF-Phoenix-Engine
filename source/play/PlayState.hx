@@ -2572,10 +2572,14 @@ class PlayState extends MusicBeatState
 			callOnLuas('onUpdatePost', [elapsed]);
 		}
 
-		if (shaderUpdates.length > 0)
-			for (i in shaderUpdates){
-				i(elapsed);
-			}
+		// Indexed loop: `for (i in shaderUpdates)` allocated an Array
+		// iterator on every frame for as long as any shader effect is alive.
+		var shaderUpdateIndex:Int = 0;
+		while (shaderUpdateIndex < shaderUpdates.length)
+		{
+			shaderUpdates[shaderUpdateIndex](elapsed);
+			shaderUpdateIndex++;
+		}
 
 		if (ffmpegMode)
 		{
