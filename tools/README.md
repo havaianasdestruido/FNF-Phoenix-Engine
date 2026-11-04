@@ -119,6 +119,25 @@ The quantization step is lossy: run `--dry-run` / `-DryRun` first if you are
 unsure, spot-check a few spritesheets in-game, and use `--lossless` /
 `-Lossless` for assets that must stay bit-exact.
 
+## Deeper palette reduction (`reduce_image_palettes.py`)
+
+For the aggressive, quality-gated pass applied to this repository see
+[`PALETTE_COMPRESSION.md`](PALETTE_COMPRESSION.md). It requantizes every PNG to
+the smallest palette that passes measured fidelity gates, writes 1/2/4/8 bpp
+indexed PNGs (with multi-level `tRNS` alpha), and re-optimizes with `oxipng`.
+Unlike `compress-images.sh` it also fixes the common case of a 16-colour image
+wasting 8 bits per pixel.
+
+```sh
+pip install -r tools/requirements-image-palette.txt
+python3 tools/reduce_image_palettes.py --dry-run
+python3 tools/reduce_image_palettes.py --profile aggressive
+python3 tools/reduce_image_palettes.py --check
+```
+
+Requirements, profiles, caveats and the measured results live in that
+document; the per-file numbers are in `tools/reports/palette-reduction-report.json`.
+
 # Other tools
 
 ## Platform badge preview (`platform_icon_preview.py`)

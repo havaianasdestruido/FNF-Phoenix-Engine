@@ -1,4 +1,4 @@
-﻿package states;
+package states;
 
 import backend.ClientPrefs;
 import backend.Conductor;
@@ -43,6 +43,10 @@ class InitState extends FlxState {
 
         // ClientPrefs.loadDefaultKeys();
 		ClientPrefs.loadPrefs();
+		// Opt-in vlog (Options -> Misc): Main already restored it from the raw
+		// save, this re-syncs with the value loadPrefs() just read in case the
+		// early read could not open funkin.sol.
+		backend.VLog.setEnabled(ClientPrefs.vlogEnabled);
 		Conductor.recalculateTimings(); // #43: apply the saved safeFrames before any song starts
 
 		#if ACHIEVEMENTS_ALLOWED

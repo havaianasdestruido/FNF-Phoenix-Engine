@@ -3,13 +3,13 @@ package utils;
 // basically PlatformUtil but where all the code glue goes
 #if cpp
 @:buildXml('<include name="../../../../source/utils/build.xml" />')
-@:include("phoenix_desktop_dialog.h")
 #if windows
 // Windows native calls live in backend.WindowNative; keep this class free of
 // Windows SDK includes so hxcpp's include order cannot break the build.
 @:cppFileCode('/* Windows dialogs are provided by backend.WindowNative. */')
 #elseif linux
 @:cppFileCode('
+#include "phoenix_desktop_dialog.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <iostream>
@@ -18,6 +18,7 @@ package utils;
 ')
 #elseif (ios || mac)
 @:cppFileCode('
+#include "phoenix_desktop_dialog.h"
 #include <mach-o/arch.h>
 #include <sys/utsname.h>
 ')

@@ -69,3 +69,11 @@ Conclusão medida: não há ganho sem perdas nesses atlas com as ferramentas dis
   alguns pixels de borda semitransparente mudam o alfa em até 127–163 níveis. Ver os
   valores por arquivo no relatório (`validacao`).
 - Atlas com coordenadas ímpares continuam com o tamanho original.
+
+## Otimização posterior (paleta)
+
+Depois deste trabalho, `tools/reduce_image_palettes.py` reduziu as paletas de
+quase todos os PNGs sem alterar dimensões (inclusive os atlas acima). Os bytes
+e hashes registrados neste relatório histórico correspondem ao commit
+`c085201`; a validação em `tests/test_optimize_images.py` compara esse snapshot,
+e não a árvore de trabalho atual. Detalhes em `tools/PALETTE_COMPRESSION.md`.

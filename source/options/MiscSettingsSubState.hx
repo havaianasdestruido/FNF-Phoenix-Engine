@@ -1,5 +1,6 @@
 ﻿package options;
 
+import backend.ClientPrefs;
 import backend.Controls;
 import flixel.graphics.FlxGraphic;
 import flixel.input.keyboard.FlxKey;
@@ -74,6 +75,17 @@ class MiscSettingsSubState extends BaseOptionsMenu
 		option.maxValue = 600;
 		option.changeValue = 1;
 		option.displayFormat = '%vs';
+		addOption(option);
+
+		var option:Option = new Option('Enable VLog', //Name
+			'If checked, the engine keeps a very verbose session log at\n'
+			+ 'vlog/log.txt (per-frame timings, lag spikes, memory, every trace).\n'
+			+ 'Disabled by default; takes effect immediately and is kept on\n'
+			+ 'the next launches until unchecked.', //Description
+			'vlogEnabled', //Save data variable name
+			'bool', //Variable type
+			false); //Default value
+		option.onChange = () -> backend.VLog.setEnabled(ClientPrefs.vlogEnabled);
 		addOption(option);
 
 		#if (windows && sys) // Only Windows registers at runtime; mobile gets the scheme from the build.

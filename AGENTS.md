@@ -24,6 +24,7 @@ própria: **Python/Hython**), mantendo compatibilidade com mods Psych/JS Engine.
 ## 2. Stack & requisitos (segundo BUILDING.md — real)
 
 - **Haxe 4.2.5+** (CI usa 4.3.x). `haxelib setup` / `mkdir ~/haxelib && haxelib setup ~/haxelib`.
+- Agentes em Linux x86_64 sem Haxe: instalação sem sudo e testes isolados validados no [guia Haxe para Linux](docs/HAXE_LINUX.md). Cobre a toolchain, não o build completo nem as haxelibs do jogo.
 - **git**, e (Windows) **Visual Studio Community** — instalação recomendada:
   `curl -# -O <url vs_Community.exe>` + `vs_Community.exe --add Microsoft.VisualStudio.Component.VC.Tools.x86.x64 --add Microsoft.VisualStudio.Component.Windows10SDK.19041 -p`.
 - (Linux) VLC/libvlc; (Win) opcional MSVC fix (ver §9 gotchas).
