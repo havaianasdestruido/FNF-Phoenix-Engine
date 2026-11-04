@@ -17,7 +17,7 @@ class PlatformDialogTests(unittest.TestCase):
     def test_platform_bridge_uses_native_linux_and_macos_dialogs(self):
         native = NATIVE.read_text(encoding="utf-8")
         public = PUBLIC.read_text(encoding="utf-8")
-        self.assertIn('@:include("phoenix_desktop_dialog.h")', native)
+        self.assertIn('#include "phoenix_desktop_dialog.h"', native)
         self.assertIn("#elseif linux", native)
         self.assertIn("phoenixShowLinuxDesktopDialog", native)
         self.assertIn("#elseif mac", native)
