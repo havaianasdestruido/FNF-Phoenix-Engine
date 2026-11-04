@@ -193,7 +193,12 @@ class Rating
 	{
 		this.name = name;
 		this.image = name;
-		this.counter = name + 's';
+		// PlayState has no `shits` field: shit-rated hits are tallied in
+		// `poorRatings` (read back by the FC conditions in
+		// PlayStateRating.RecalculateRating). Counter-deriving `shit + "s"`
+		// made Reflect.setField() throw "Invalid field:shits" on hxcpp,
+		// crashing gameplay the first time a shit note was hit.
+		this.counter = (name == 'shit') ? 'poorRatings' : name + 's';
 		this.hitWindow = Reflect.field(ClientPrefs, name + 'Window');
 		if(hitWindow == null)
 		{
@@ -238,6 +243,16 @@ class Rating
 	
 	public function increase(blah:Int = 1)
 	{
-		Reflect.setField(PlayState.instance, counter, Reflect.field(PlayState.instance, counter) + blah);
+		var state = PlayState.instance;
+		// On hxcpp Reflect.setField() throws "Invalid field:<name>" when the
+		// target has no such field, which takes the whole game down mid-note.
+		// Verify the counter maps onto a real PlayState field first so a bad
+		// mapping can only cost one counted hit, never a crash.
+		if (state == null || !Reflect.hasField(state, counter))
+		{
+			trace('Rating.increase: no PlayState field for counter "$counter", skipping');
+			return;
+		}
+		Reflect.setField(state, counter, Reflect.field(state, counter) + blah);
 	}
 }

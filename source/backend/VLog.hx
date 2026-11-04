@@ -99,6 +99,14 @@ class VLog
   static var frameIndex:Int = 0;
   static var targetMs:Float = 1000.0 / 60.0;
   static var sessionStartMs:Float = 0.0;
+  /**
+   * Work time of the previous frame callback. `elapsedMs` runs from the
+   * previous callback's start to this one's, so when the previous callback
+   * overran (a long state create(), a GC storm) its cost lands in this
+   * frame's elapsed time — subtracting it is the only way to report the
+   * real vsync/pump wait instead of blaming the innocent frame.
+   */
+  static var prevWorkMs:Float = 0.0;
 
   // Rolling FPS over a one-second window.
   static var fpsFrames:Int = 0;
@@ -296,7 +304,8 @@ class VLog
    * Called once per frame by the game loop (`FlxGame.onEnterFrame`). Records
    * the per-frame line, updates the rolling FPS and detects lag spikes.
    *
-   * @param elapsedMs wall time since the previous frame (the vsync interval)
+   * @param elapsedMs wall time since the previous frame callback started
+   *                  (start-to-start: includes the previous callback's runtime)
    * @param workMs    time spent in update + draw this frame
    * @param drawCalls draw calls issued this frame
    * @param updates   state updates executed this frame (fixed timestep > 1)
@@ -324,6 +333,17 @@ class VLog
     if (++rssFrames >= RSS_EVERY_N_FRAMES)
     {
       rssFrames = 0;
+      sampleRss();
+    }
+    else if (workMs > targetMs)
+    {
+      // RSS is a syscall, so the frame cadence above normally throttles it —
+      // but a callback that overran (state create() decoding assets, a GC
+      // storm) blocks all frames while the heap moves hundreds of MB, and
+      // the next FRAME line would print the pre-freeze RSS: rss below the
+      // current heap, and MemoryLedger's runtime = RSS - heap clamped to 0B
+      // (seen in the transition frames of vlog/log.txt). Refresh after any
+      // over-budget callback so the line stays self-consistent.
       sampleRss();
     }
 
@@ -358,17 +378,30 @@ class VLog
     }
 
     // Lag spike detection (a paused window is not a lag).
-    if (!lostFocus && elapsedMs > 0.0)
+    //
+    // `elapsedMs` is start-to-start, so a long PREVIOUS callback (a state
+    // create() full of asset decodes, a GC storm) lands in this frame's
+    // elapsed time: the frame that actually did the work reported a tiny
+    // elapsed and was never flagged, and the next frame got blamed for all
+    // of it with a bogus "vsync wait" outside figure (e.g. frame=17ms
+    // work=1812ms going unflagged, then frame=2206ms outside=2206ms).
+    // Split the stall correctly instead: `workMs` is this callback's own
+    // cost, `gapMs` is the real wait after the previous callback ended —
+    // flag whichever side overran the budget.
+    final gapMs = Math.max(elapsedMs - prevWorkMs, 0.0);
+    prevWorkMs = workMs;
+    if (!lostFocus)
     {
       final threshold = Math.max(targetMs * 2.0, LAG_SPIKE_MIN_MS);
-      if (elapsedMs > threshold)
+      final spikeMs = Math.max(workMs, gapMs);
+      if (spikeMs > threshold)
       {
         lagSpikes++;
-        final extreme = elapsedMs > LAG_EXTREME_MS;
+        final extreme = spikeMs > LAG_EXTREME_MS;
         if (extreme) extremeLagSpikes++;
-        log(extreme ? 'EXTREME LAG' : 'LAG SPIKE', 'frame=' + round(elapsedMs, 3) + 'ms (budget ' + round(targetMs, 3) + 'ms, ' + round(elapsedMs / targetMs, 2) + 'x)'
+        log(extreme ? 'EXTREME LAG' : 'LAG SPIKE', 'frame=' + round(elapsedMs, 3) + 'ms (budget ' + round(targetMs, 3) + 'ms, ' + round(spikeMs / targetMs, 2) + 'x)'
           + ' work=' + round(workMs, 3) + 'ms'
-          + ' outside=' + round(Math.max(elapsedMs - workMs, 0.0), 3) + 'ms (vsync wait / system stall)'
+          + ' outside=' + round(gapMs, 3) + 'ms (vsync wait / system stall)'
           + ' heap=' + formatBytes(heap)
           + ' rss=' + formatBytes(lastRssBytes)
           + ' ' + ramCompact
@@ -543,6 +576,7 @@ class VLog
   static function resetSessionStats():Void
   {
     frameIndex = 0;
+    prevWorkMs = 0.0;
     flushCount = 0;
     fpsFrames = 0;
     fpsClockMs = 0.0;
