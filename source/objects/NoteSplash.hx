@@ -105,9 +105,19 @@ class NoteSplash extends FlxSprite
 
 	function loadAnims(skin:String) {
 		maxAnims = 0;
-		if (!Paths.splashSkinFramesMap.exists(skin)) Paths.initSplash(skin);
-		frames = Paths.splashSkinFramesMap.get(skin);
-		animation.copyFrom(Paths.splashSkinAnimsMap.get(skin));
+		var cachedFrames = Paths.splashSkinFramesMap.get(skin);
+		if (cachedFrames == null || cachedFrames.parent == null || cachedFrames.parent.isDestroyed)
+		{
+			Paths.initSplash(skin);
+			cachedFrames = Paths.splashSkinFramesMap.get(skin);
+		}
+		else
+		{
+			Paths.trackLocalAsset(cachedFrames.parent.key);
+		}
+		frames = cachedFrames;
+		final cachedAnims = Paths.splashSkinAnimsMap.get(skin);
+		if (cachedAnims != null) animation.copyFrom(cachedAnims);
 	}
 
 	/**

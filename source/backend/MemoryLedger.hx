@@ -259,9 +259,14 @@ class MemoryLedger
     var interpBytes:Float = 0.0;
     var luaCount:Int = 0;
     var interpCount:Int = 0;
-    final modTotals:Map<String, Float> = [];
+    var hasModTotals:Bool = false;
+    var modTotals:Map<String, Float> = null;
     for (name => ram in modAssetRam)
+    {
+      if (modTotals == null) modTotals = [];
       modTotals.set(name, ram);
+      hasModTotals = true;
+    }
     for (entry in codeEntries)
     {
       final bytes:Float = safeBytes(entry.getBytes);
@@ -275,7 +280,10 @@ class MemoryLedger
         interpBytes += bytes;
         interpCount++;
       }
-      modTotals.set(entry.modName, (modTotals.exists(entry.modName) ? modTotals.get(entry.modName) : 0.0) + bytes);
+      if (modTotals == null) modTotals = [];
+      final prev:Null<Float> = modTotals.get(entry.modName);
+      modTotals.set(entry.modName, (prev != null ? prev : 0.0) + bytes);
+      hasModTotals = true;
     }
 
     final assetCpu:Float = engineAssetCpu + modAssetCpu;
@@ -298,7 +306,7 @@ class MemoryLedger
       luaCount: luaCount,
       interpCount: interpCount,
       engineBaselineBytes: engineBaseline,
-      topMods: topMods(modTotals)
+      topMods: hasModTotals ? topMods(modTotals) : []
     };
   }
 

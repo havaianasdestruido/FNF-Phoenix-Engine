@@ -24,15 +24,12 @@ class PlayStateCountdown
 {
 	public static function cacheCountdown(state:PlayState)
 	{
-		var introAssets:Map<String, Array<String>> = new Map<String, Array<String>>();
 		var introImagesArray:Array<String> = switch(PlayState.stageUI) {
 			case "pixel": ['${PlayState.stageUI}UI/ready-pixel', '${PlayState.stageUI}UI/set-pixel', '${PlayState.stageUI}UI/date-pixel'];
 			case "normal": ["ready", "set" ,"go"];
 			default: ['${PlayState.stageUI}UI/ready', '${PlayState.stageUI}UI/set', '${PlayState.stageUI}UI/go'];
 		}
-		introAssets.set(PlayState.stageUI, introImagesArray);
-		var introAlts:Array<String> = introAssets.get(PlayState.stageUI);
-		for (asset in introAlts) Paths.image(asset);
+		for (asset in introImagesArray) Paths.image(asset);
 
 		state.intro3 = new FlxSound().loadEmbedded(Paths.sound('intro3' + state.introSoundsSuffix));
 		state.intro2 = new FlxSound().loadEmbedded(Paths.sound('intro2' + state.introSoundsSuffix));

@@ -87,6 +87,7 @@ class StoryMenuState extends MusicBeatState
 		final reject:String = "BACK";
 		if(WeekData.weeksList.length < 1)
 		{
+			Paths.clearUnusedMemory();
 			FlxTransitionableState.skipNextTransIn = true;
 			persistentUpdate = false;
 			var msg:String = "NO WEEKS ADDED FOR STORY MODE\n\nPress " + accept + " to go to the Week Editor Menu.\nPress " + reject + " to return to Main Menu.";
@@ -221,6 +222,7 @@ class StoryMenuState extends MusicBeatState
 
 		addVirtualPad(LEFT_FULL, A_B_C);
 
+		Paths.clearUnusedMemory();
 		super.create();
 	}
 

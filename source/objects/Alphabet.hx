@@ -420,12 +420,9 @@ class AlphaCharacter extends FlxSprite
 
 	private static function getCachedFrames(name:String):FlxAtlasFrames
 	{
-		if (cachedFrames.exists(name))
-		{
-			var cached:FlxAtlasFrames = cachedFrames.get(name);
-			if (cached != null && cached.parent != null && cached.parent == Paths.image(name))
-				return cached;
-		}
+		var cached:FlxAtlasFrames = cachedFrames.get(name);
+		if (cached != null && cached.parent != null && !cached.parent.isDestroyed && cached.parent == Paths.image(name))
+			return cached;
 		var atlas:FlxAtlasFrames = Paths.getSparrowAtlas(name);
 		cachedFrames.set(name, atlas);
 		return atlas;

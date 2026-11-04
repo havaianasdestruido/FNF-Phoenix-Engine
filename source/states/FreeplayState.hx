@@ -99,8 +99,6 @@ class FreeplayState extends MusicBeatState
 	{
 		layoutWidth = FlxG.width;
 		Paths.clearStoredMemory();
-		Paths.clearUnusedMemory();
-		Paths.gc();
 
 		persistentUpdate = true;
 		PlayState.isStoryMode = false;
@@ -116,6 +114,7 @@ class FreeplayState extends MusicBeatState
 
 		if(WeekData.weeksList.length < 1)
 		{
+			Paths.clearUnusedMemory();
 			FlxTransitionableState.skipNextTransIn = true;
 			persistentUpdate = false;
 			var msg:String = "NO WEEKS ADDED FOR FREEPLAY\n\nPress " + accept + " to go to the Week Editor Menu.\nPress " + reject + " to return to Main Menu.";
@@ -279,6 +278,7 @@ class FreeplayState extends MusicBeatState
 
 		addVirtualPad(LEFT_FULL, A_B_C_X_Y);
 
+		Paths.clearUnusedMemory();
 		super.create();
 	}
 
@@ -318,11 +318,12 @@ class FreeplayState extends MusicBeatState
 	override function update(elapsed:Float)
 	{
 		if (FlxG.sound.music != null)
-			Conductor.songPosition = FlxG.sound.music.time;
-
-		if (FlxG.sound.music.volume < 0.7)
 		{
-			FlxG.sound.music.volume += 0.5 * FlxG.elapsed;
+			Conductor.songPosition = FlxG.sound.music.time;
+			if (FlxG.sound.music.volume < 0.7)
+			{
+				FlxG.sound.music.volume += 0.5 * FlxG.elapsed;
+			}
 		}
 
 		/*

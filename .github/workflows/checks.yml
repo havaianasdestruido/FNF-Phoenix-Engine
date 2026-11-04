@@ -59,5 +59,7 @@ jobs:
         run: bash tests/haxe/run-mod-zip.sh
       - name: Test per-area RAM ledger (vlog memory attribution)
         run: bash tests/haxe/run-memory-ledger.sh
+      - name: Test asset caching, lookup memoization and eviction
+        run: bash tests/haxe/run-asset-cache.sh
       - name: Test mobile storage and pre-state startup resize
         run: python3 -m unittest discover -s tests -p 'test_mobile_startup.py' -v
