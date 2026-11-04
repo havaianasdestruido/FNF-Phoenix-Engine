@@ -88,6 +88,26 @@ static inline std::string phoenixMacDesktopAlertScript(const std::string &messag
     phoenixEscapeAppleScriptString(message) + "\" as critical";
 }
 
+/** Desktop notifications are best effort: success means the helper accepted the request,
+ * not that the desktop actually displayed it. Never pass mod text through a shell. */
+static inline bool phoenixShowLinuxNotification(const std::string &title, const std::string &message)
+{
+  const std::vector<std::string> arguments = {"notify-send", "--", title, message};
+  return phoenixRunDesktopDialogProgram(arguments) == 0;
+}
+
+static inline std::string phoenixMacNotificationScript(const std::string &title, const std::string &message)
+{
+  return std::string("display notification \"") + phoenixEscapeAppleScriptString(message) +
+    "\" with title \"" + phoenixEscapeAppleScriptString(title) + "\"";
+}
+
+static inline bool phoenixShowMacNotification(const std::string &title, const std::string &message)
+{
+  const std::vector<std::string> arguments = {"osascript", "-e", phoenixMacNotificationScript(title, message)};
+  return phoenixRunDesktopDialogProgram(arguments) == 0;
+}
+
 /** Show an osascript alert on macOS, printing to stderr if osascript cannot run. */
 static inline int phoenixShowMacDesktopDialog(const std::string &message)
 {
