@@ -12,7 +12,6 @@ import psychlua.Convert;
 import psychlua.FunkinLua;
 #end
 
-// REFACTOR: extracted from psychlua.callbacks.ScriptCallbacks — Python parity (#87)
 // Mirrors the Lua ScriptCallbacks inter-script API so Python mods can discover,
 // call and share state with other scripts without silently falling back to nil.
 class PyScriptLib

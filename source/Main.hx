@@ -5,14 +5,12 @@ import debug.FPSCounter;
 import debug.FrameProfiler;
 import backend.FunkinGame;
 import flixel.system.scaleModes.PhoenixScaleMode;
-// REFACTOR: relocated root classes
 import backend.CrashHandler;
 import states.InitState;
 import lime.app.Application;
 import openfl.Lib;
 import openfl.display.Sprite;
 
-// REFACTOR: imports for relocated root classes
 import backend.Achievements;
 import backend.ClientPrefs;
 import backend.CoolUtil;

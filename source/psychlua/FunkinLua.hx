@@ -1,7 +1,5 @@
 package psychlua;
 
-// REFACTOR: subtypes of shaders.ErrorHandledShader need explicit imports
-
 import Type.ValueType;
 import flixel.FlxBasic;
 import flixel.addons.effects.FlxTrail;
@@ -37,7 +35,6 @@ import psychlua.callbacks.TextCallbacks;
 import psychlua.callbacks.TweenCallbacks;
 import psychlua.callbacks.WindowCallbacks;
 
-// REFACTOR: imports for relocated root classes
 import backend.Conductor;
 import backend.CoolUtil;
 import data.Song;
@@ -345,51 +342,35 @@ class FunkinLua {
 		}
 
 		// shader shit
-// REFACTOR: extracted to psychlua.callbacks.ShaderCallbacks
 	ShaderCallbacks.register(this);
 
-// REFACTOR: extracted to psychlua.callbacks.ScriptCallbacks
 	ScriptCallbacks.register(this);
 
-// REFACTOR: extracted to psychlua.callbacks.PropertyCallbacks
 	PropertyCallbacks.register(this);
 
-// REFACTOR: extracted to psychlua.callbacks.TweenCallbacks
 	TweenCallbacks.register(this);
 
-// REFACTOR: extracted to psychlua.callbacks.InputCallbacks
 	InputCallbacks.register(this);
 
-// REFACTOR: extracted to psychlua.callbacks.GameCallbacks
 	GameCallbacks.register(this);
 
-// REFACTOR: extracted to psychlua.callbacks.SpriteCallbacks
 	SpriteCallbacks.register(this);
 
-// REFACTOR: extracted to psychlua.callbacks.SoundCallbacks
 	SoundCallbacks.register(this);
 
-// REFACTOR: extracted to psychlua.callbacks.TextCallbacks
 	TextCallbacks.register(this);
 
-// REFACTOR: extracted to psychlua.callbacks.SaveDataCallbacks
 	SaveDataCallbacks.register(this);
 
-// REFACTOR: extracted to psychlua.callbacks.FileCallbacks
 	FileCallbacks.register(this);
 
-// REFACTOR: extracted to psychlua.callbacks.DeprecatedCallbacks
 	DeprecatedCallbacks.register(this);
 
-// REFACTOR: extracted to psychlua.callbacks.EffectCallbacks
 	EffectCallbacks.register(this);
 
-// REFACTOR: extracted to psychlua.callbacks.MiscCallbacks
 	MiscCallbacks.register(this);
 
-// REFACTOR: extracted to psychlua.callbacks.HardwareCallbacks
 	HardwareCallbacks.register(this);
-// REFACTOR: extracted to psychlua.callbacks.WindowCallbacks
 	WindowCallbacks.register(this);
 // 4th-wall-breaking ("META_HORROR") system effects (issue #94)
 	MetaHorrorCallbacks.register(this);
@@ -399,7 +380,6 @@ class FunkinLua {
 	CustomSubstate.implement(this);
 	#if flxanimate FlxAnimateFunctions.implement(this); #end
 
-// REFACTOR: extracted to psychlua.callbacks.CameraCallbacks
 	CameraCallbacks.register(this);
 
 		for (name => func in registeredFunctions) {
@@ -461,7 +441,6 @@ class FunkinLua {
 	public static function registerFunction(name:String, func:Dynamic):Void
 		registeredFunctions.set(name, func);
 
-	// REFACTOR: stateless helpers moved to LuaUtils; kept as forwarding statics for external callers
 	public static function setVarInArray(instance:Dynamic, variable:String, value:Dynamic):Any
 		return LuaUtils.setVarInArray(instance, variable, value);
 
@@ -715,7 +694,6 @@ class FunkinLua {
 		return Function_Continue;
 	}
 
-	// REFACTOR: body moved to LuaUtils; kept as forwarding static for external callers
 	static function addAnimByIndices(obj:String, name:String, prefix:String, indices:String, framerate:Int = 24, loop:Bool = false)
 	{
 		return LuaUtils.addAnimByIndices(obj, name, prefix, indices, framerate, loop);
@@ -766,7 +744,6 @@ class FunkinLua {
 		#end
 	}
 
-	// REFACTOR: body moved to LuaUtils; kept as forwarding static for external callers
 	public static inline function getInstance()
 	{
 		return LuaUtils.getInstance();

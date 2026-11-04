@@ -26,10 +26,8 @@ import states.LoadingState;
 import states.RenderingDoneSubState;
 import states.StoryMenuState;
 
-// REFACTOR: imports for relocated root classes
 import objects.Note;
 
-// REFACTOR: song playback control extracted from play.PlayState
 @:access(play.PlayState)
 @:access(backend.MusicBeatState)
 class PlayStatePlayback

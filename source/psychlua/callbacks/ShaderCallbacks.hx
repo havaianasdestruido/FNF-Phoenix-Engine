@@ -13,7 +13,6 @@ import flixel.addons.display.FlxRuntimeShader;
 import openfl.filters.ShaderFilter;
 #end
 
-// REFACTOR: extracted from psychlua.FunkinLua (initLuaShader / sprite and camera runtime shader API)
 class ShaderCallbacks
 {
 	public static function register(funk:FunkinLua):Void {

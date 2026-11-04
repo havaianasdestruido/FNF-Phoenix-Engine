@@ -1,6 +1,5 @@
 package options;
 
-// REFACTOR: explicit imports for shader subtypes
 import shaders.RGBPalette.RGBShaderReference;
 
 import objects.Note;
@@ -14,7 +13,6 @@ import flixel.util.FlxGradient;
 import lime.system.Clipboard;
 import shaders.RGBPalette;
 
-// REFACTOR: imports for relocated root classes
 import backend.ClientPrefs;
 import backend.ViewportVisuals;
 import backend.Controls;

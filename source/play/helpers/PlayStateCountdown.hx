@@ -13,11 +13,9 @@ import play.helpers.PlayStateCamera;
 import play.helpers.PlayStateNoteHelpers;
 import play.helpers.PlayStatePlayback;
 
-// REFACTOR: imports for relocated root classes
 import data.Song;
 import objects.Note;
 
-// REFACTOR: countdown logic extracted from play.PlayState
 @:access(play.PlayState)
 @:access(backend.MusicBeatState)
 class PlayStateCountdown

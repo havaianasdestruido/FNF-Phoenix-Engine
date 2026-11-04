@@ -333,46 +333,33 @@ class PythonScript
 		// API registry (mirrors FunkinLua's constructor).
 		// --------------------------------------------------------------------
 
-// REFACTOR: extracted to psychlua.pystdlib.PyPropertyLib
 	PyPropertyLib.register(this);
 
-// REFACTOR: extracted to psychlua.pystdlib.PyScoreLib
 	PyScoreLib.register(this);
 
-// REFACTOR: extracted to psychlua.pystdlib.PyCharacterLib
 	PyCharacterLib.register(this);
 
-// REFACTOR: extracted to psychlua.pystdlib.PyCameraLib
 	PyCameraLib.register(this);
 
-// REFACTOR: extracted to psychlua.pystdlib.PyKeyLib
 	PyKeyLib.register(this);
 
-// REFACTOR: extracted to psychlua.pystdlib.PySpriteLib
 	PySpriteLib.register(this);
 
-// REFACTOR: extracted to psychlua.pystdlib.PyTextLib
 	PyTextLib.register(this);
 
-// REFACTOR: extracted to psychlua.pystdlib.PyTweenLib
 	PyTweenLib.register(this);
 
-// REFACTOR: extracted to psychlua.pystdlib.PyTimerLib
 	PyTimerLib.register(this);
 
-// REFACTOR: extracted to psychlua.pystdlib.PySoundLib
 	PySoundLib.register(this);
 
-// REFACTOR: extracted to psychlua.pystdlib.PyMiscLib
 	PyMiscLib.register(this);
 
-// REFACTOR: extracted to psychlua.pystdlib.PyWindowLib
 	PyWindowLib.register(this);
 
 		// Script interop — mirrors psychlua.callbacks.ScriptCallbacks for Lua (#87)
 		psychlua.pystdlib.PyScriptLib.register(this);
 
-// REFACTOR: extracted to psychlua.pystdlib.PyHardwareLib
 	PyHardwareLib.register(this);
 
 		for (name => func in registeredFunctions) {

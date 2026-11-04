@@ -1,6 +1,5 @@
 package options.helpers;
 
-// REFACTOR: explicit imports for note visual subtypes
 import flixel.FlxG;
 import flixel.FlxSprite;
 import flixel.util.FlxColor;
@@ -13,14 +12,12 @@ import objects.StrumNote;
 import shaders.RGBPalette;
 import shaders.RGBPalette.RGBShaderReference;
 
-// REFACTOR: imports for relocated root classes
 import backend.ClientPrefs;
 import backend.CoolUtil;
 import backend.Paths;
 import options.NotesSubState;
 import play.PlayState;
 
-// REFACTOR: note visual settings / preview note grid / color readout helpers extracted from options.NotesSubState
 @:access(options.NotesSubState)
 @:access(objects.Note)
 @:access(backend.MusicBeatState)

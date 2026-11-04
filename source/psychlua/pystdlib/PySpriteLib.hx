@@ -15,7 +15,6 @@ import headers.PsychLua;
 import psychlua.ModchartSprite;
 import states.substates.GameOverSubstate;
 
-// REFACTOR: extracted from psychlua.PythonScript (sprite/animation API)
 class PySpriteLib
 {
 	public static function register(py:PythonScript):Void {

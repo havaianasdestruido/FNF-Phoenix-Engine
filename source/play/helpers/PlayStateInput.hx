@@ -18,7 +18,6 @@ import play.helpers.PlayStateCamera;
 import play.helpers.PlayStateNoteHelpers;
 import play.helpers.PlayStateNotes;
 
-// REFACTOR: keyboard input logic extracted from play.PlayState
 @:access(play.PlayState)
 @:access(backend.MusicBeatState)
 class PlayStateInput
