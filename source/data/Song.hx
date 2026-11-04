@@ -1,4 +1,4 @@
-﻿package data;
+package data;
 
 import data.Section.SwagSection;
 import backend.Conductor;
@@ -71,28 +71,33 @@ class Song
 	{
 		if(songJson.events == null)
 		{
-			songJson.events = [];
+			// Legacy charts store events as notes with a negative lane. Compact each
+			// section in one pass instead of calling Array.remove() per event (which
+			// shifts the tail every time and makes dense event sections O(n^2)).
+			var events:Array<Dynamic> = [];
 			for (secNum in 0...songJson.notes.length)
 			{
 				var sec:SwagSection = songJson.notes[secNum];
-
-				var i:Int = 0;
 				var notes:Array<Dynamic> = sec.sectionNotes;
-				var len:Int = notes.length;
-				while(i < len)
+				var write:Int = 0;
+				for (read in 0...notes.length)
 				{
-					var note:Array<Dynamic> = notes[i];
+					var note:Array<Dynamic> = notes[read];
 					if(note[1] < 0)
 					{
-						songJson.events.push([note[0], [[note[2], note[3], note[4]]]]);
-						notes.remove(note);
-						len = notes.length;
+						events.push([note[0], [[note[2], note[3], note[4]]]]);
 					}
-					else i++;
+					else
+					{
+						if(write != read) notes[write] = note;
+						write++;
+					}
 				}
+				if(write != notes.length) notes.splice(write, notes.length - write);
 			}
+			songJson.events = events;
 		}
-		
+
 		//processes the chart if it's made in psych 1.0
 		if (psychV1Chart) {
 			var curBPM:Float = Conductor.bpm;
@@ -154,7 +159,7 @@ class Song
 	{
 		if(folder == null) folder = jsonInput;
 		var rawJson:String = null;
-		
+
 		loadedSongName = folder;
 
 		var formattedFolder:String = Paths.formatToSongPath(folder);
@@ -233,12 +238,13 @@ class Song
 		};
 	}
 
-	
+
 	public static function parseJSON(rawJson:String):Dynamic {
+		// Some editors save UTF-8 JSON with a BOM; Json.parse rejects it.
+		if(rawJson.charCodeAt(0) == 0xFEFF) rawJson = rawJson.substr(1);
 		var songJson = cast Json.parse(rawJson);
 		psychV1Chart = Reflect.hasField(songJson, 'format');
 		if (psychV1Chart) {
-			psychV1Chart = true;
 			Reflect.deleteField(songJson, 'format');
 			return songJson;
 		}

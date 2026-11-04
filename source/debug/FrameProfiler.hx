@@ -262,6 +262,7 @@ class FrameProfiler
     if (!initialized || forceReset)
     {
       NativeFrameProfiler.init(targetFps);
+      debug.profiler.HotspotProfiler.reset();
       initialized = true;
       _recordingEnabled = true;
       _collectMemory = NativeFrameProfiler.getCollectMemoryMetrics();
@@ -331,6 +332,7 @@ class FrameProfiler
   {
     ensureInitialized();
     NativeFrameProfiler.reset();
+    debug.profiler.HotspotProfiler.reset();
     _exitExportCompleted = false;
     _lastStateInstance = null;
   }
@@ -360,6 +362,7 @@ class FrameProfiler
   {
     ensureInitialized();
     _recordingEnabled = value;
+    if (!value) debug.profiler.HotspotProfiler.setInFrame(false);
     NativeFrameProfiler.setEnabled(value);
     return value;
   }
@@ -515,6 +518,7 @@ class FrameProfiler
     }
 
     NativeFrameProfiler.beginFrame(queryHeapUsedBytes(), queryHeapReservedBytes());
+    debug.profiler.HotspotProfiler.setInFrame(true);
   }
 
   /**
@@ -525,6 +529,7 @@ class FrameProfiler
     if (!initialized || !_recordingEnabled)
       return;
 
+    debug.profiler.HotspotProfiler.setInFrame(false);
     NativeFrameProfiler.endFrame(
       queryHeapUsedBytes(),
       queryHeapReservedBytes(),
@@ -953,6 +958,14 @@ class FrameProfiler
     buf.add('Other / Unaccounted    : Avg=${roundDec(sum.avgOtherTimeMs, 4)} ms | Max=${roundDec(sum.maxOtherTimeMs, 4)} ms\n');
     buf.add('Draw Calls             : Avg=${roundDec(sum.avgDrawCalls, 1)} / frame | Max=${sum.maxDrawCalls}\n\n');
 
+    buf.add(debug.profiler.HotspotProfiler.report(sum.sessionDurationMs));
+    buf.add("\n[MEMORY AREAS] CURRENT ESTIMATES (not per-call ownership)\n");
+    if (sum.heapStatsAvailable && sum.rssAvailable)
+      buf.add(backend.MemoryLedger.formatDetailed(backend.MemoryLedger.snapshot(
+        sum.currentHeapUsedBytes, sum.currentRssBytes)) + "\n\n");
+    else
+      buf.add("N/A (heap or RSS unavailable)\n\n");
+
     buf.add("[3] GARBAGE COLLECTION (GC PAUSES & HEAP CONTRACTIONS)\n");
     buf.add("--------------------------------------------------------------------------------\n");
     buf.add('Measured GC Events     : ${sum.totalGcCount} (Explicit: ${sum.totalExplicitGcCount})\n');
@@ -1057,6 +1070,32 @@ class FrameProfiler
       {
         if (FileSystem.exists(exported) && !FileSystem.isDirectory(exported))
         {
+          #if cpp
+          // The native exporter writes its own report; append the Haxe-side
+          // hotspot and ledger data after its atomic export has succeeded.
+          var extra:sys.io.FileOutput = null;
+          try
+          {
+            final summary = getSummary();
+            final details = new StringBuf();
+            details.add(debug.profiler.HotspotProfiler.report(summary.sessionDurationMs));
+            details.add("\n[MEMORY AREAS] CURRENT ESTIMATES (not per-call ownership)\n");
+            if (summary.heapStatsAvailable && summary.rssAvailable)
+              details.add(backend.MemoryLedger.formatDetailed(backend.MemoryLedger.snapshot(
+                summary.currentHeapUsedBytes, summary.currentRssBytes)) + "\n");
+            else
+              details.add("N/A (heap or RSS unavailable)\n");
+            extra = File.append(exported, false);
+            extra.writeString(details.toString());
+            extra.close();
+            extra = null;
+          }
+          catch (e:Dynamic)
+          {
+            if (extra != null) try { extra.close(); } catch (_:Dynamic) {}
+            trace('[FrameProfiler] Could not append hotspot details: ${e}');
+          }
+          #end
           lastExportedLogPath = exported;
           trace('[FrameProfiler] Exported frame profile log to: ${exported}');
           return exported;

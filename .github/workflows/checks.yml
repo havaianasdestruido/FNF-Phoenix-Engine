@@ -58,6 +58,10 @@ jobs:
         run: bash tests/haxe/run-ram-graph.sh
       - name: Test BPM-aware chart section timing
         run: bash tests/haxe/run-charting-timing.sh
+      - name: Test JSON chart parsing and legacy event compaction
+        run: bash tests/haxe/run-chart-loading.sh
+      - name: Test gameplay chart note/event conversion
+        run: bash tests/haxe/run-chart-loader.sh
       - name: Test .zip mod import (path policy, archive parsing, extraction)
         run: bash tests/haxe/run-mod-zip.sh
       - name: Test per-area RAM ledger (vlog memory attribution)
