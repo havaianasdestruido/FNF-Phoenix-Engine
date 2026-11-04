@@ -227,6 +227,10 @@ class Main extends Sprite
 
       if (FlxG.game != null) resetSpriteCache(FlxG.game);
     });
+
+    // Engine + libs are fully initialised but no song/mod content is loaded yet:
+    // snapshot the boot heap as the memory ledger's "engine code" baseline.
+    backend.MemoryLedger.captureEngineBaseline();
   }
 
   public static function getTime():Float

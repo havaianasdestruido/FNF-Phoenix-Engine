@@ -34,6 +34,9 @@ class HaxeScript
 	public var securityAllowlist:Array<String> = [];
 	public var parent:Dynamic = null;
 
+	/** Memory-ledger registration id for this interpreter's RAM (0 = unregistered). */
+	var vlogCodeId:Int = 0;
+
 	public function new(scriptName:String, ?parent:Dynamic, ?scriptCode:String)
 	{
 		this.scriptName = scriptName;
@@ -55,6 +58,9 @@ class HaxeScript
 			return;
 		}
 
+		// Heap snapshot before the interpreter exists, so the ledger can estimate
+		// this state script's footprint from the allocation delta around its load.
+		final vlogHeapBefore:Float = debug.Memory.gay();
 		interp = new Interp();
 		interp.errorHandler = function(err)
 		{
@@ -95,6 +101,15 @@ class HaxeScript
 		{
 			report('$scriptName: $e');
 			closed = true;
+		}
+
+		// Pure-Haxe interpreter: estimate its heap footprint from the load-time
+		// delta (floored by source size) and report it under mod code in the vlog.
+		if (!closed)
+		{
+			final vlogHeapAfter:Float = debug.Memory.gay();
+			final vlogEstimate:Float = backend.MemoryLedger.estimateInterpBytes(source, vlogHeapBefore, vlogHeapAfter);
+			vlogCodeId = backend.MemoryLedger.registerCode(scriptName, 'haxescript', null, function():Float return vlogEstimate);
 		}
 		#end
 	}
@@ -268,6 +283,8 @@ class HaxeScript
 
 	public function stop():Void
 	{
+		backend.MemoryLedger.unregisterCode(vlogCodeId);
+		vlogCodeId = 0;
 		closed = true;
 		#if HSCRIPT_ALLOWED
 		interp = null;

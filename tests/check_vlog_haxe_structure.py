@@ -19,11 +19,15 @@ import sys
 
 FILES = [
     "source/backend/VLog.hx",
+    "source/backend/MemoryLedger.hx",
     "source/Main.hx",
     "source/backend/Paths.hx",
     "source/backend/CrashHandler.hx",
     "source/psychlua/LuaUtils.hx",
+    "source/psychlua/FunkinLua.hx",
     "source/psychlua/PythonScript.hx",
+    "source/psychlua/HScript.hx",
+    "source/psychlua/HaxeScript.hx",
     "source/source-haxelib-patches/flixel/FlxGame.hx",
 ]
 

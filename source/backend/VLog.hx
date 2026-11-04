@@ -19,7 +19,12 @@ package backend;
  *    launch arguments, full hardware report, duration, frame totals,
  *    lag-spike counts, peak heap/RSS;
  *  - one line per frame: FPS, frametime, work time, update count, draw
- *    calls, managed heap, process RSS, current state;
+ *    calls, managed heap, process RSS, current state, and a per-area RAM
+ *    breakdown (engine assets / mod assets / engine code / mod code /
+ *    Haxe-Flixel runtime reserved) from `backend.MemoryLedger`;
+ *  - a detailed RAM line every ~second and on every state change: per-area
+ *    CPU + GPU bytes, asset/script counts, exact Lua vs. estimated interpreter
+ *    memory, the GC reserved pool, and the top mods by RAM;
  *  - lag spikes: any frame over max(2x budget, 25 ms) gets a dedicated
  *    LAG SPIKE line; over 100 ms it is called out as EXTREME;
  *  - every `trace()` in the engine and in the scripting runtimes — Lua
@@ -76,6 +81,8 @@ class VLog
   static inline final MAX_WEB_CHARS:Int = 2 * 1024 * 1024;
   /** RSS is a syscall on desktop; sample at most once per N frames. */
   static inline final RSS_EVERY_N_FRAMES:Int = 60;
+  /** Emit the detailed per-area RAM breakdown line at most once per N frames. */
+  static inline final RAM_DETAIL_EVERY_N_FRAMES:Int = 60;
 
   // -- Session state ---------------------------------------------------------
 
@@ -105,6 +112,14 @@ class VLog
   static var assetEvents:Int = 0;
   static var peakHeapBytes:Float = 0.0;
   static var peakRssBytes:Float = 0.0;
+
+  // Per-area RAM peaks (reported in the footer), from the memory ledger.
+  static var peakEngineAssets:Float = 0.0;
+  static var peakModAssets:Float = 0.0;
+  static var peakEngineCode:Float = 0.0;
+  static var peakModCode:Float = 0.0;
+  static var peakRuntime:Float = 0.0;
+  static var ramDetailFrames:Int = 0;
 
   static var lastRssBytes:Float = -1.0;
   static var rssFrames:Int = 0;
@@ -249,6 +264,17 @@ class VLog
       sampleRss();
     }
 
+    // Per-area RAM attribution (engine/mod assets, engine/mod code, runtime).
+    // One snapshot per frame feeds the FRAME line, the peaks and the periodic
+    // detailed breakdown, so the ledger is only walked once.
+    final ram:MemoryLedger.MemorySnapshot = MemoryLedger.snapshot(heap, lastRssBytes);
+    final ramCompact:String = MemoryLedger.formatCompact(ram);
+    if (ram.engineAssets.ram > peakEngineAssets) peakEngineAssets = ram.engineAssets.ram;
+    if (ram.modAssets.ram > peakModAssets) peakModAssets = ram.modAssets.ram;
+    if (ram.engineCode.ram > peakEngineCode) peakEngineCode = ram.engineCode.ram;
+    if (ram.modCode.ram > peakModCode) peakModCode = ram.modCode.ram;
+    if (ram.runtime.ram > peakRuntime) peakRuntime = ram.runtime.ram;
+
     log('FRAME', 'fps=' + round(fps, 1)
       + ' frame=' + round(elapsedMs, 3) + 'ms'
       + ' work=' + round(workMs, 3) + 'ms'
@@ -256,8 +282,17 @@ class VLog
       + ' draws=' + drawCalls
       + ' heap=' + formatBytes(heap)
       + ' rss=' + formatBytes(lastRssBytes)
+      + ' ' + ramCompact
       + (lostFocus ? ' focus=lost' : '')
       + ' state=' + currentStateName());
+
+    // Detailed per-area breakdown ~once a second (counts, GPU, Lua vs. interp,
+    // GC reserved pool, top mods). State changes log one immediately too.
+    if (++ramDetailFrames >= RAM_DETAIL_EVERY_N_FRAMES)
+    {
+      ramDetailFrames = 0;
+      log('RAM', MemoryLedger.formatDetailed(ram));
+    }
 
     // Lag spike detection (a paused window is not a lag).
     if (!lostFocus && elapsedMs > 0.0)
@@ -273,6 +308,7 @@ class VLog
           + ' outside=' + round(Math.max(elapsedMs - workMs, 0.0), 3) + 'ms (vsync wait / system stall)'
           + ' heap=' + formatBytes(heap)
           + ' rss=' + formatBytes(lastRssBytes)
+          + ' ' + ramCompact
           + ' state=' + currentStateName());
       }
     }
@@ -286,6 +322,21 @@ class VLog
       log('STATE', 'entered ' + to);
     else
       log('STATE', from + ' -> ' + to);
+    // A per-area RAM snapshot at every transition makes it easy to see what a
+    // state left behind / is about to load. Reset the periodic counter so the
+    // ~1 s detailed line does not immediately duplicate this one.
+    logMemoryDetail();
+    ramDetailFrames = 0;
+  }
+
+  /**
+   * Emits a detailed per-area RAM breakdown line on demand (state changes,
+   * memory-management events). Safe to call any time after `init`.
+   */
+  public static function logMemoryDetail():Void
+  {
+    if (!initialized) return;
+    log('RAM', MemoryLedger.formatDetailed(MemoryLedger.snapshot(heapUsedBytes(), lastRssBytes)));
   }
 
   /**
@@ -400,6 +451,11 @@ class VLog
         + ' assetEvents=' + assetEvents
         + ' peakHeap=' + formatBytes(peakHeapBytes)
         + ' peakRss=' + formatBytes(peakRssBytes));
+      log('BOOT', 'peakRam{engAssets=' + formatBytes(peakEngineAssets)
+        + ' modAssets=' + formatBytes(peakModAssets)
+        + ' engCode=' + formatBytes(peakEngineCode)
+        + ' modCode=' + formatBytes(peakModCode)
+        + ' runtime=' + formatBytes(peakRuntime) + '}');
     }
     catch (_:Dynamic) {}
     flush(true);
