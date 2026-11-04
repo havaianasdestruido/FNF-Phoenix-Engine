@@ -288,6 +288,20 @@ class NativeIncludeTests(unittest.TestCase):
         self.assertIn('<section if="windows">', build)
         self.assertIn("meta_horror_build.xml", read(BACKEND))
 
+    def test_snippets_are_valid_haxe_string_literals(self):
+        """No raw `'` may appear inside a single-quoted Haxe metadata string.
+
+        A single apostrophe (an English possessive in a C++ comment is enough)
+        terminates the literal early and the file stops parsing - which fails
+        the whole build on *every* platform before any C++ is compiled, so the
+        error looks nothing like a native problem.
+        """
+        source = read(BACKEND)
+        for match in re.finditer(r"@:(\w+)\('(.*?)'\)", source, re.S):
+            with self.subTest(metadata=match.group(1), line=source[:match.start()].count("\n") + 1):
+                self.assertNotIn("'", match.group(2),
+                    "apostrophe inside a single-quoted @: metadata string")
+
     def test_snippets_stay_portable_for_the_mock_build(self):
         """No snippet may depend on a header the mock test cannot provide."""
         source = read(BACKEND)

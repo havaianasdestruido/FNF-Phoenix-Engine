@@ -1399,7 +1399,7 @@ class MetaHorror
     const std::string current = phoenixMetaGetWallpaper();
     if (current.empty())
       return String();
-    // The header returns UTF-8, matching hxcpp's own String encoding.
+    // The header returns UTF-8, matching the encoding hxcpp uses for String.
     return String(current.c_str());
   ')
   static function getWallpaperNative():String
