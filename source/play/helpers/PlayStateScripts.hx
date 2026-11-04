@@ -46,49 +46,13 @@ class PlayStateScripts
 			return true;
 		}
 
-		#if MODS_ALLOWED
-		var foldersToCheck:Array<String> = [Paths.mods('shaders/')];
-		if(Mods.currentModDirectory != null && Mods.currentModDirectory.length > 0)
-			foldersToCheck.insert(0, Paths.mods(Mods.currentModDirectory + '/shaders/'));
-
-		for(mod in Mods.getGlobalMods())
-			foldersToCheck.insert(0, Paths.mods(mod + '/shaders/'));
-		#else
-		var foldersToCheck:Array<String> = [];
-		#end
-
-		for (folder in foldersToCheck)
+		final sources = shaders.ShaderSource.load(name);
+		if (sources != null)
 		{
-			#if sys
-			if(FileSystem.exists(folder))
-			{
-				var frag:String = folder + name + '.frag';
-				var vert:String = folder + name + '.vert';
-				var found:Bool = false;
-				if(FileSystem.exists(frag))
-				{
-					frag = File.getContent(frag);
-					found = true;
-				}
-				else frag = null;
-
-				if (FileSystem.exists(vert))
-				{
-					vert = File.getContent(vert);
-					found = true;
-				}
-				else vert = null;
-
-				if(found)
-				{
-					state.runtimeShaders.set(name, [frag, vert]);
-					//trace('Found shader $name!');
-					return true;
-				}
-			}
-			#end
+			state.runtimeShaders.set(name, sources);
+			return true;
 		}
-		FlxG.log.warn('Missing shader $name .frag AND .vert files!');
+		FlxG.log.warn('Missing shader $name .frag AND .vert files, or one of its imports could not be loaded!');
 		return false;
 	}
 	#end

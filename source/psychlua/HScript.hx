@@ -598,6 +598,7 @@ class HScript
 		interp.variables.set('FlxRuntimeShader', flixel.addons.display.FlxRuntimeShader);
 		#end
 		interp.variables.set('ShaderFilter', openfl.filters.ShaderFilter);
+		interp.variables.set('FunkinShader', shaders.FunkinShader);
 		interp.variables.set('StringTools', StringTools);
 		interp.variables.set('Math', Math);
 		interp.variables.set('Std', Std);
