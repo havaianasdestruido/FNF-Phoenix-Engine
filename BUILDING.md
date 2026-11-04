@@ -109,6 +109,14 @@ head into the `setup` folder located in the root directory of this repository, a
 
 It depends on your Operating System. for Windows, run `windows.bat`, for anything else, `unix.sh`
 
+Every setup/tool/test script in this repository is kept in all three shell
+dialects (`.bat`, `.ps1` and `.sh`, same basename and folder), so e.g.
+`windows.ps1`/`windows.sh` and `unix.ps1`/`unix.bat` do the same jobs as the
+files above. Ports of inherently Windows-only scripts (the `phoenix://`
+registry scripts in `setup/uri/`, `windows-msvc*`) delegate to
+`reg.exe`/PowerShell or the Windows installer where the platform allows it,
+and otherwise print a clear "Windows-only" message and exit non-zero.
+
 sit back, relax, wait for haxelib to do its magic, and once everything is done, run
 
 `lime test <platform>`
