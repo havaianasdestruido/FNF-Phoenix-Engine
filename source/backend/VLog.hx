@@ -3,7 +3,9 @@ package backend;
 /*
  * Phoenix Engine VLog — the "everything" log.
  *
- * Every build records a running, aggressively verbose session log at
+ * The vlog is **off by default**: it only starts when the player enables
+ * `Options → Misc → "Enable VLog"` (saved as `ClientPrefs.vlogEnabled`).
+ * When enabled it records a running, aggressively verbose session log at
  * `vlog/log.txt` next to the working directory:
  *
  *  - desktop builds: `vlog/log.txt` next to the executable (same place as
@@ -124,24 +126,80 @@ class VLog
   static var lastRssBytes:Float = -1.0;
   static var rssFrames:Int = 0;
 
+  // -- Opt-in switch ---------------------------------------------------------
+
+  /**
+   * Whether the vlog records anything at all. Off by default; the player
+   * flips it from `Options → Misc → "Enable VLog"` (`ClientPrefs.vlogEnabled`)
+   * and `Main` restores the saved value on boot.
+   */
+  public static var enabled:Bool = false;
+
+  /** Framerate `init()` was called with, reused by a late `setEnabled(true)`. */
+  static var bootTargetFps:Float = 60.0;
+  /** When `init()` ran, so a late start can report how late it is. */
+  static var bootMs:Float = 0.0;
+  /** `haxe.Log.trace` as it was before the vlog rebound it (restored on stop). */
+  static var previousTrace:Dynamic = null;
+
   // -- Public API -------------------------------------------------------------
 
   /**
-   * Initializes the vlog. Call once, as early as possible at startup
+   * Prepares the vlog. Call once, as early as possible at startup
    * (`Main` does this before `CrashHandler.init`, and on Android after the
-   * storage directory became the working directory). Creates `vlog/`,
-   * appends a session header to `vlog/log.txt` and hooks the global trace
-   * so every engine/script trace is recorded.
+   * storage directory became the working directory).
    *
-   * @param targetFps target framerate the log's lag thresholds are based on
+   * The vlog is dormant unless it was already enabled: while it is off,
+   * nothing is created on disk and `trace()` is left untouched, so the whole
+   * feature costs nothing. `setEnabled(true)` starts it at any point later.
+   *
+   * @param targetFps    target framerate the log's lag thresholds are based on
+   * @param startEnabled start logging right away (default: stay off until the
+   *                     player turns it on from Options → Misc)
    */
-  public static function init(?targetFps:Float = 60.0):Void
+  public static function init(?targetFps:Float = 60.0, ?startEnabled:Null<Bool> = null):Void
+  {
+    bootMs = nowMs();
+    bootTargetFps = (targetFps > 0.0) ? targetFps : 60.0;
+    if (startEnabled != null) enabled = startEnabled;
+    if (!enabled || initialized) return;
+    startSession();
+  }
+
+  /**
+   * Turns the vlog on or off at runtime (`Options → Misc → "Enable VLog"`).
+   * Enabling starts a session immediately; disabling writes the session
+   * footer, flushes to disk and restores the default `trace()` behaviour.
+   *
+   * @param on        new state
+   * @param targetFps optional framerate budget to use from now on
+   */
+  public static function setEnabled(on:Bool, ?targetFps:Float = null):Void
+  {
+    if (targetFps != null && targetFps > 0.0) bootTargetFps = targetFps;
+    enabled = on;
+    if (on)
+    {
+      if (!initialized) startSession();
+    }
+    else if (initialized)
+      endSession('VLOG DISABLED FROM OPTIONS', true);
+  }
+
+  /**
+   * Opens a session: creates `vlog/`, appends the session header to
+   * `vlog/log.txt`, hooks `trace()` and registers the exit footer.
+   */
+  static function startSession():Void
   {
     if (initialized) return;
     initialized = true;
+    fileReady = false;
+    flushFailed = false;
     sessionStartMs = nowMs();
     lastFlushMs = sessionStartMs;
-    targetMs = (targetFps > 0.0) ? 1000.0 / targetFps : 1000.0 / 60.0;
+    targetMs = 1000.0 / bootTargetFps;
+    resetSessionStats();
 
     #if sys
     try
@@ -156,6 +214,9 @@ class VLog
 
     // Session header.
     log('BOOT', '=== PHOENIX ENGINE VLOG — SESSION START ===');
+    if (bootMs > 0.0 && nowMs() - bootMs > 1000.0)
+      log('BOOT', 'late start: enabled ' + round((nowMs() - bootMs) / 1000.0, 2)
+        + 's after boot from Options -> Misc');
     log('BOOT', 'engine: Phoenix v' + engineVersion() + ' (JSE v' + jseVersion() + ', Psych v' + psychVersion() + ')');
     #if debug
     final buildKind:String = 'debug';
@@ -180,13 +241,15 @@ class VLog
 
     // Capture every trace() in the engine and in Lua/Python/HScript.
     // Haxe 4.3 rebinds trace through haxe.Log.trace (no traceHook yet).
+    // Remember the original printer so disabling the vlog restores it.
+    previousTrace = haxe.Log.trace;
     haxe.Log.trace = onTrace;
 
     // Session footer on exit.
     #if !flash
     try
     {
-      if (Application.current != null && Application.current.onExit != null)
+      if (!_exitHooked && Application.current != null && Application.current.onExit != null)
       {
         _exitHooked = true;
         Application.current.onExit.add(function(_:Int) shutdown());
@@ -198,7 +261,7 @@ class VLog
     flush(true);
   }
 
-  /** True once init() ran and (on file targets) writes are possible. */
+  /** True while a session is open and (on file targets) writes are possible. */
   public static function isActive():Bool
   {
     #if sys
@@ -435,12 +498,20 @@ class VLog
    * application exit hook; also safe to call manually.
    */
   public static function shutdown():Void
+    endSession('SESSION END');
+
+  /**
+   * Closes the current session: footer with the session totals, a forced
+   * flush, and (when turned off at runtime) the original `trace()` restored
+   * so a disabled vlog behaves exactly like a build without it.
+   */
+  static function endSession(reason:String, restoreTrace:Bool = false):Void
   {
     if (!initialized) return;
     try
     {
       final durationMs = nowMs() - sessionStartMs;
-      log('BOOT', '=== PHOENIX ENGINE VLOG — SESSION END ===');
+      log('BOOT', '=== PHOENIX ENGINE VLOG — ' + reason + ' ===');
       log('BOOT', 'duration=' + round(durationMs / 1000.0, 2) + 's'
         + ' frames=' + frameIndex
         + ' fpsAvg=' + round(frameIndex * 1000.0 / Math.max(durationMs, 1.0), 2)
@@ -459,6 +530,33 @@ class VLog
     }
     catch (_:Dynamic) {}
     flush(true);
+    initialized = false;
+    fileReady = false;
+    if (restoreTrace && previousTrace != null)
+    {
+      haxe.Log.trace = previousTrace;
+      previousTrace = null;
+    }
+  }
+
+  /** Zeroes the per-session counters so a later session starts fresh. */
+  static function resetSessionStats():Void
+  {
+    frameIndex = 0;
+    flushCount = 0;
+    fpsFrames = 0;
+    fpsClockMs = 0.0;
+    fps = 0.0;
+    peakFrameMs = 0.0;
+    peakWorkMs = 0.0;
+    lagSpikes = 0;
+    extremeLagSpikes = 0;
+    traceLines = 0;
+    assetEvents = 0;
+    peakHeapBytes = 0.0;
+    peakRssBytes = 0.0;
+    lastRssBytes = -1.0;
+    rssFrames = 0;
   }
 
   /** Human-readable byte count for log lines ("214.3MB", "n/a"). */
