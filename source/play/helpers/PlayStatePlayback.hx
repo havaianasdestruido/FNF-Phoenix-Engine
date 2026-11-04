@@ -85,6 +85,10 @@ class PlayStatePlayback
 
 		setSongTime(state, Math.max(0, PlayState.startOnTime - 500) + Conductor.offset);
 		PlayState.startOnTime = 0;
+		PlayState.startOnTimeRate = null;
+		PlayState.startOnTimeHealth = null;
+		PlayState.startOnTimePractice = null;
+		PlayState.startOnTimeBotplay = null;
 
 		if(state.paused) {
 			//trace('Oopsie doopsie! Paused sound');
@@ -180,7 +184,7 @@ class PlayStatePlayback
 		state.oneK = ClientPrefs.getGameplaySetting('onekey', false);
 		state.randomSpeedThing = ClientPrefs.getGameplaySetting('randomspeed', false);
 		state.jackingtime = ClientPrefs.getGameplaySetting('jacks', 0);
-		state.playbackRate = ClientPrefs.getGameplaySetting('songspeed', 1);
+		state.playbackRate = PlayState.startOnTimeRate != null ? PlayState.startOnTimeRate : ClientPrefs.getGameplaySetting('songspeed', 1);
 		state.songSpeedType = ClientPrefs.getGameplaySetting('scrolltype','multiplicative');
 
 		switch(state.songSpeedType)

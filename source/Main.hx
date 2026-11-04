@@ -167,6 +167,11 @@ class Main extends Sprite
       android.platform.AndroidPlatform.init();
     });
     #end
+    #if ios
+    FlxG.signals.postGameStart.addOnce(function() {
+      ios.platform.IOSPlatform.init();
+    });
+    #end
 
     addChild(funkinGame);
     // Main itself is not on stage yet. This immediately resizes the viewport;
