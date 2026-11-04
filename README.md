@@ -163,6 +163,7 @@ Phoenix Engine currently has those additions (and more!) that vanilla JSE (Jorda
 - **Script Initialization Fix**: Lua scripts no longer called twice
 
 ### **10. UI & Visual Polish**
+- **Platform Badge**: Small white, outlined platform icon (Windows, Android, macOS, Linux, Web, AIR, Flash…) above the engine watermark in gameplay and the main menu, drawn as vectors so it scales with screen DPI; toggleable in Visuals options (`docs/PLATFORM_ICONS.md`)
 - **Menu Track Modding**: Support for modified freakyMenu names
 - **GF Limo Layering**: Fixed visual layering issues
 - **Rainbow Eyesore Shader**: Validation and waveSpeed fixes

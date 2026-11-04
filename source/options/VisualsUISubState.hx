@@ -244,6 +244,13 @@ class VisualsUISubState extends BaseOptionsMenu
 			['Vanilla', 'Dave Engine', 'JS Engine', 'Forever Engine', 'Hide']);
 		addOption(option);
 
+		var option:Option = new Option('Platform Badge',
+			"If checked, a small icon of the platform you're playing on (Windows, Android, web...) sits on top of the watermark.",
+			'platformWatermark',
+			'bool',
+			true);
+		addOption(option);
+
 		var option:Option = new Option('Bot Txt Style:',
 			"How would you like your Botplay text to look?",
 			'botTxtStyle',
