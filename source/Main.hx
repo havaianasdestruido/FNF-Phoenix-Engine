@@ -21,7 +21,7 @@ import play.PlayState;
 #if GAMEMODE_ALLOWED
 import hxgamemode.GamemodeClient;
 #end
-#if ((linux || mac) && !flash)
+#if ((linux || mac || windows) && !flash)
 import lime.graphics.Image;
 #end
 
@@ -126,6 +126,9 @@ class Main extends Sprite
       return;
     }
     #end
+    // Runtime settings are independent of compile-time feature defines and
+    // must be available before the first state, shader, or window is created.
+    backend.RuntimeFlags.load();
     // The verbose vlog is opt-in (Options -> Misc -> 'Enable VLog'), so a
     // normal session writes nothing to disk. FlxG.save is only bound later in
     // InitState, so the saved flag is read straight from funkin.sol here —
@@ -216,9 +219,17 @@ class Main extends Sprite
 
     FlxG.autoPause = false;
 
-    #if ((linux || mac) && !flash)
-    var icon = Image.fromFile("icon.png");
-    Lib.current.stage.window.setIcon(icon);
+    #if ((linux || mac || windows) && !flash)
+    var configuredIcon:String = backend.RuntimeFlags.getString("window.icon", "");
+    var iconPath:String = configuredIcon.length > 0 ? configuredIcon : "";
+    #if (linux || mac)
+    if (iconPath.length == 0) iconPath = "icon.png";
+    #end
+    if (iconPath.length > 0 && sys.FileSystem.exists(iconPath))
+    {
+      try Lib.current.stage.window.setIcon(Image.fromFile(iconPath))
+      catch (error:Dynamic) trace('Could not load configured window icon $iconPath: $error');
+    }
     #end
 
     #if windows
