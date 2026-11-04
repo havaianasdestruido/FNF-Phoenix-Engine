@@ -26,7 +26,7 @@ class PauseSubState extends MusicBeatSubstate
 	var menuItemGroup:FlxTypedGroup<Alphabet>;
 
 	var menuItems:Array<String> = [];
-	var menuItemsOG:Array<String> = ['Resume', 'Restart Song', 'Change Gameplay Settings', 'Change Difficulty', 'Options', 'Exit'];
+	var menuItemsOG:Array<String> = ['Resume', 'Restart Song', 'Change Gameplay Settings', 'Change Difficulty', 'Toggle RAM Graph', 'Options', 'Exit'];
 	var menuItemsExit:Array<String> = [(PlayState.isStoryMode ? 'Exit to Story Menu' : 'Exit to Freeplay'), 'Exit to Main Menu', 'Exit Game', 'Back'];
 	var difficultyChoices = [];
 	var curSelected:Int = 0;
@@ -254,6 +254,12 @@ class PauseSubState extends MusicBeatSubstate
 					menuItems = difficultyChoices;
 					deleteSkipTimeText();
 					regenMenu();
+				case 'Toggle RAM Graph':
+					ClientPrefs.showRamGraph = !ClientPrefs.showRamGraph;
+					PlayState.instance.ramGraph.setEnabled(ClientPrefs.showRamGraph);
+					Reflect.setField(FlxG.save.data, 'showRamGraph', ClientPrefs.showRamGraph);
+					FlxG.save.flush();
+					menuItemGroup.members[curSelected].text = ramGraphMenuLabel();
 				case 'Toggle Practice Mode':
 					PlayState.instance.practiceMode = !PlayState.instance.practiceMode;
 					PlayState.changedDifficulty = true;
@@ -424,6 +430,11 @@ class PauseSubState extends MusicBeatSubstate
 		}
 	}
 
+	function ramGraphMenuLabel():String
+	{
+		return 'RAM Graph: ' + (ClientPrefs.showRamGraph ? 'ON' : 'OFF');
+	}
+
 	public function regenMenu():Void {
 		for (i in 0...menuItemGroup.members.length) {
 			var obj = menuItemGroup.members[0];
@@ -433,7 +444,8 @@ class PauseSubState extends MusicBeatSubstate
 		}
 
 		for (i in 0...menuItems.length) {
-			var item = new Alphabet(ScreenLayout.contentLeft(FlxG.width) + 90, 320, menuItems[i], true);
+			var label = menuItems[i] == 'Toggle RAM Graph' ? ramGraphMenuLabel() : menuItems[i];
+			var item = new Alphabet(ScreenLayout.contentLeft(FlxG.width) + 90, 320, label, true);
 			item.isMenuItem = true;
 			item.targetY = i;
 			menuItemGroup.add(item);

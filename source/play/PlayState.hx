@@ -21,6 +21,7 @@ import data.Song;
 import data.StageData;
 
 import debug.PoolStats;
+import debug.RamGraph;
 
 import editors.CharacterEditorState;
 import editors.ChartingState;
@@ -338,6 +339,8 @@ class PlayState extends MusicBeatState
 	public var botplaySine:Float = 0;
 	public var botplayTxt:FlxText;
 	public var renderedTxt:FlxText;
+	/** Optional fixed-screen RAM history shown during gameplay. */
+	public var ramGraph:RamGraph;
 
 	public var iconP1:HealthIcon;
 	public var iconP2:HealthIcon;
@@ -497,6 +500,7 @@ class PlayState extends MusicBeatState
 		super.onResize(width, height);
 		if (layoutWidth != 0) PlayStateLayout.resize(this, layoutWidth);
 		layoutWidth = FlxG.width;
+		if (ramGraph != null) ramGraph.x = ScreenLayout.contentLeft(FlxG.width) + 8;
 	}
 
 	override public function create()
@@ -1546,6 +1550,11 @@ class PlayState extends MusicBeatState
 		timeBarBG.cameras = [camHUD];
 		timeTxt.cameras = [camHUD];
 		popUpGroup.cameras = [camHUD];
+
+		ramGraph = new RamGraph(ScreenLayout.contentLeft(FlxG.width) + 8, 52);
+		ramGraph.cameras = [camOther];
+		ramGraph.setEnabled(ClientPrefs.showRamGraph);
+		add(ramGraph);
 
 		startingSong = true;
 		MusicBeatState.windowNameSuffix = " - " + SONG.song + " " + (isStoryMode ? "(Story Mode)" : "(Freeplay)");

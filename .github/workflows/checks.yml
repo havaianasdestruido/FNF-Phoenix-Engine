@@ -49,6 +49,8 @@ jobs:
         run: bash tests/haxe/run-phoenix-version.sh
       - name: Typecheck threaded update checker
         run: bash tests/haxe/run-update-checker-typecheck.sh
+      - name: Test RAM graph history and interpolation
+        run: bash tests/haxe/run-ram-graph.sh
       - name: Test BPM-aware chart section timing
         run: bash tests/haxe/run-charting-timing.sh
       - name: Test .zip mod import (path policy, archive parsing, extraction)

@@ -74,6 +74,7 @@ class ClientPrefs { //default settings if it can't find a save file containing y
 	public static var checkForUpdates:Bool = true;
 	public static var comboStacking = true;
 	public static var showRamUsage:Bool = true;
+	public static var showRamGraph:Bool = false;
 	public static var showMaxRamUsage:Bool = true;
 	public static var debugInfo:Bool = false;
 	public static var frameProfiler:Bool = false;
