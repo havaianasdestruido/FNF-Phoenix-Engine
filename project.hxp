@@ -979,6 +979,9 @@ class Project extends HXProject
 
 		if (GAMEMODE_ALLOWED.isEnabled(this))
 			addAsset("gamemode.ini");
+
+		// Editable runtime switches; kept as a loose, non-embedded asset.
+		addAsset("flags.ini", "flags.ini", "default", false);
 	}
 
 	/**
