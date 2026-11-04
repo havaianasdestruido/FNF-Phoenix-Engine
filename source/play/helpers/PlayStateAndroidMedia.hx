@@ -28,6 +28,7 @@ import android.platform.AndroidSystem;
 import backend.Conductor;
 import backend.CoolUtil;
 import backend.Paths;
+import backend.PhoenixVersion;
 import flixel.FlxG;
 import openfl.utils.AssetType;
 import flixel.util.FlxTimer;
@@ -53,6 +54,46 @@ class PlayStateAndroidMedia
 	static var updateTimer:FlxTimer = null;
 	static var ducked:Bool = false;
 	static var volumeBeforeDuck:Float = 1.0;
+
+	static var recoveryTimer:FlxTimer = null;
+	static var lastRecoveryPosition:Float = 0;
+	static var lastPlaybackPosition:Float = 0;
+	static var lastPlaybackTime:Float = 0;
+
+	/** Build the recovery blob: enough to resume exactly where the OS killed the process. */
+	static function buildRecoveryBlob():String
+	{
+		try
+		{
+			var blob:Dynamic = {
+				type: "song",
+				song: PlayState.SONG != null ? PlayState.SONG.song : null,
+				difficulty: CoolUtil.difficultyString(),
+				difficulties: CoolUtil.difficulties,
+				mod: Mods.currentModDirectory,
+				songPosition: Conductor.songPosition,
+				playbackRate: state != null ? state.playbackRate : 1.0,
+				health: state != null ? state.health : 1.0,
+				practiceMode: state != null ? state.practiceMode : false,
+				botplay: state != null ? state.cpuControlled : false,
+				score: state != null ? state.songScore : 0,
+				engineVersion: PhoenixVersion.current,
+				timestamp: Date.now().getTime()
+			};
+			return Json.stringify(blob);
+		}
+		catch (e:Dynamic)
+		{
+			return "";
+		}
+	}
+
+	static function persistRecoveryState():Void
+	{
+		var blob:String = buildRecoveryBlob();
+		if (blob.length > 0)
+			AndroidSystem.setRecoveryState(blob);
+	}
 
 	/** Begin presenting the current song to Android's media system. */
 	public static function start(playState:play.PlayState):Void
@@ -82,28 +123,41 @@ class PlayStateAndroidMedia
 		// Persist enough context to offer a resume after process death
 		// (TitleState.checkRecoveryState consumes it). The difficulty list
 		// and mod directory are included because both are gone after a
-		// process kill and chart paths depend on them.
-		try
-		{
-			AndroidSystem.setRecoveryState(Json.stringify({
-				type: "song",
-				song: PlayState.SONG != null ? PlayState.SONG.song : null,
-				difficulty: CoolUtil.difficultyString(),
-				difficulties: CoolUtil.difficulties,
-				mod: Mods.currentModDirectory
-			}));
-		}
-		catch (e:Dynamic) {}
+		// process kill and chart paths depend on them. Now also includes
+		// songPosition, playbackRate, health/practice state and engine version
+		// so Resume continues where the OS killed the process and a blob
+		// written by another build is rejected instead of half-applied.
+		persistRecoveryState();
+		lastRecoveryPosition = Conductor.songPosition;
 
 		AndroidMedia.onPlay.add(onMediaPlay);
 		AndroidMedia.onPause.add(onMediaPause);
 		AndroidMedia.onStop.add(onMediaStop);
 		AndroidMedia.onAudioFocusChanged.add(onAudioFocusChanged);
 
-		// Keep the media UI's playback position fresh.
-		updateTimer = new FlxTimer().start(1, function(_)
+		// Keep the media UI's playback position fresh — rate-aware and frequent
+		// enough that lock-screen / Android Auto interpolates smoothly.
+		// Media3 can interpolate from PlaybackState position + speed, but the
+		// engine must push an accurate position/speed pair; drifting 1s steps
+		// cause visible stutter during rate changes.
+		lastPlaybackPosition = Conductor.songPosition > 0 ? Conductor.songPosition : 0;
+		lastPlaybackTime = haxe.Timer.stamp();
+		updateTimer = new FlxTimer().start(0.5, function(_)
 		{
 			refreshPlaybackState();
+		}, 0);
+
+		// Periodically refresh the recovery blob so "Resume" is close to the
+		// kill point even on long songs. Throttled to 2s / 5s position delta.
+		recoveryTimer = new FlxTimer().start(2, function(_)
+		{
+			if (state == null || state.paused || state.endingSong) return;
+			var pos:Float = Conductor.songPosition;
+			if (Math.abs(pos - lastRecoveryPosition) > 5000)
+			{
+				lastRecoveryPosition = pos;
+				persistRecoveryState();
+			}
 		}, 0);
 	}
 
@@ -114,6 +168,11 @@ class PlayStateAndroidMedia
 		{
 			updateTimer.cancel();
 			updateTimer = null;
+		}
+		if (recoveryTimer != null)
+		{
+			recoveryTimer.cancel();
+			recoveryTimer = null;
 		}
 
 		AndroidMedia.onPlay.remove(onMediaPlay);
@@ -133,6 +192,9 @@ class PlayStateAndroidMedia
 			AndroidMedia.stop();
 			state = null;
 		}
+		lastRecoveryPosition = 0;
+		lastPlaybackPosition = 0;
+		lastPlaybackTime = 0;
 	}
 
 	static function refreshPlaybackState():Void
@@ -140,7 +202,20 @@ class PlayStateAndroidMedia
 		if (state == null)
 			return;
 
-		var position:Float = Conductor.songPosition > 0 ? Conductor.songPosition : 0;
+		// Rate-aware position: interpolate from last reported position + elapsed * speed
+		// so Media3 clients (lock screen, Auto) see smooth progress between Haxe ticks.
+		var now:Float = haxe.Timer.stamp();
+		var elapsedMs:Float = (now - lastPlaybackTime) * 1000;
+		var basePosition:Float = Conductor.songPosition > 0 ? Conductor.songPosition : 0;
+		// If the engine's reported position is close to our predicted one, use predicted
+		// to avoid 500ms-step jitter; otherwise resync to engine truth.
+		var predicted:Float = lastPlaybackPosition + elapsedMs * state.playbackRate;
+		var position:Float = basePosition;
+		if (state.playbackRate != 0 && Math.abs(basePosition - predicted) < 800)
+			position = predicted;
+		lastPlaybackPosition = position;
+		lastPlaybackTime = now;
+
 		var musicIsPlaying:Bool = FlxG.sound.music != null && FlxG.sound.music.playing;
 		if (state.paused)
 			AndroidMedia.setPlaybackState(AndroidMedia.STATE_PAUSED, position, state.playbackRate);

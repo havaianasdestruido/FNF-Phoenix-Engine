@@ -604,8 +604,8 @@ class PlayState extends MusicBeatState
 		hpDrainLevel = ClientPrefs.getGameplaySetting('drainlevel', 1);
 		instakillOnMiss = ClientPrefs.getGameplaySetting('instakill', false);
 		sickOnly = ClientPrefs.getGameplaySetting('onlySicks', false);
-		practiceMode = ClientPrefs.getGameplaySetting('practice', false);
-		cpuControlled = ClientPrefs.getGameplaySetting('botplay', false);
+		practiceMode = startOnTimePractice != null ? startOnTimePractice : ClientPrefs.getGameplaySetting('practice', false);
+		cpuControlled = startOnTimeBotplay != null ? startOnTimeBotplay : ClientPrefs.getGameplaySetting('botplay', false);
 		opponentChart = ClientPrefs.getGameplaySetting('opponentplay', false);
 		bothSides = ClientPrefs.getGameplaySetting('bothsides', false);
 		trollingMode = ClientPrefs.getGameplaySetting('thetrollingever', false);
@@ -882,8 +882,8 @@ class PlayState extends MusicBeatState
 			}
 			SONG.gfVersion = gfVersion; //Fix for the Chart Editor
 		}
-		health = maxHealth / 2;
-		displayedHealth = maxHealth / 2;
+		health = startOnTimeHealth != null ? startOnTimeHealth : maxHealth / 2;
+		displayedHealth = health;
 
 		if (!stageData.hide_girlfriend && ClientPrefs.charsAndBG)
 		{
@@ -1897,6 +1897,10 @@ class PlayState extends MusicBeatState
 	public var countdownSet:FlxSprite;
 	public var countdownGo:FlxSprite;
 	public static var startOnTime:Float = 0;
+	public static var startOnTimeRate:Null<Float> = null;
+	public static var startOnTimeHealth:Null<Float> = null;
+	public static var startOnTimePractice:Null<Bool> = null;
+	public static var startOnTimeBotplay:Null<Bool> = null;
 
 	function cacheCountdown()
 	{
