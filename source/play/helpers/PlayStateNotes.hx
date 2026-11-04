@@ -409,8 +409,14 @@ class PlayStateNotes
 			note.wasGoodHit = true;
 			if (!ClientPrefs.lessBotLag && ClientPrefs.noteSplashes && note.isSustainNote && state.splashesPerFrame[3] <= 4) PlayStateNoteHelpers.spawnHoldSplashOnNote(state, note);
 			if (PlayState.SONG.needsVoices && !state.ffmpegMode)
-				if (PlayState.opponentChart && state.opponentVocals != null && state.opponentVocals.volume != 1) state.opponentVocals.volume = 1;
-				else if (!PlayState.opponentChart && state.vocals.volume != 1 || state.vocals.volume != 1) state.vocals.volume = 1;
+			{
+				// Unmuting restores the stem to the global override, not to a hardcoded full volume.
+				final vocalVolume:Float = PlayStatePlayback.vocalsVolume(state);
+				if (PlayState.opponentChart && state.opponentVocals != null && state.opponentVocals.volume != vocalVolume)
+					state.opponentVocals.volume = vocalVolume;
+				else if (!PlayState.opponentChart && state.vocals.volume != vocalVolume || state.vocals.volume != vocalVolume)
+					state.vocals.volume = vocalVolume;
+			}
 
 			if (!state.notesBeingHit && state.usingBotEnergy)
 			{
@@ -471,7 +477,7 @@ class PlayStateNotes
 			if (!ClientPrefs.noSkipFuncs && state.hasActiveScripts())
 				state.callOnLuas((state.oppTrigger ? 'opponentNoteSkip' : 'goodNoteSkip'), [null, Math.abs(noteAlt.noteData), noteAlt.noteType, noteAlt.isSustainNote]);
 			state.health += noteAlt.hitHealth * state.healthGain * (PlayState.opponentChart ? state.polyphonyOppo : state.polyphonyBF);
-			if (!state.ffmpegMode) (PlayState.opponentChart ? state.opponentVocals : state.vocals).volume = 1;
+			if (!state.ffmpegMode) (PlayState.opponentChart ? state.opponentVocals : state.vocals).volume = PlayStatePlayback.vocalsVolume(state);
 		}
 		return;
 	}
@@ -554,8 +560,14 @@ class PlayStateNotes
 				PlayStateNoteHelpers.spawnNoteSplashOnNote(state, true, daNote);
 
 			if (PlayState.SONG.needsVoices && !state.ffmpegMode)
-				if (!PlayState.opponentChart && state.opponentVocals != null && state.opponentVocals.volume != 1) state.opponentVocals.volume = 1;
-				else if (PlayState.opponentChart && state.vocals.volume != 1 || state.vocals.volume != 1) state.vocals.volume = 1;
+			{
+				// Unmuting restores the stem to the global override, not to a hardcoded full volume.
+				final vocalVolume:Float = PlayStatePlayback.vocalsVolume(state);
+				if (!PlayState.opponentChart && state.opponentVocals != null && state.opponentVocals.volume != vocalVolume)
+					state.opponentVocals.volume = vocalVolume;
+				else if (PlayState.opponentChart && state.vocals.volume != vocalVolume || state.vocals.volume != vocalVolume)
+					state.vocals.volume = vocalVolume;
+			}
 
 			if (state.polyphonyOppo > 1 && !daNote.isSustainNote) state.opponentNoteTotal += state.polyphonyOppo - 1;
 
@@ -640,8 +652,14 @@ class PlayStateNotes
 			if (!ClientPrefs.noSkipFuncs && state.hasActiveScripts())
 				state.callOnLuas((!PlayState.opponentChart ? 'opponentNoteSkip' : 'goodNoteSkip'), [null, Math.abs(noteAlt.noteData), noteAlt.noteType, noteAlt.isSustainNote]);
 			if (PlayState.SONG.needsVoices && !state.ffmpegMode)
-				if (!PlayState.opponentChart && state.opponentVocals != null && state.opponentVocals.volume != 1) state.opponentVocals.volume = 1;
-				else if (PlayState.opponentChart && state.vocals.volume != 1 || state.vocals.volume != 1) state.vocals.volume = 1;
+			{
+				// Unmuting restores the stem to the global override, not to a hardcoded full volume.
+				final vocalVolume:Float = PlayStatePlayback.vocalsVolume(state);
+				if (!PlayState.opponentChart && state.opponentVocals != null && state.opponentVocals.volume != vocalVolume)
+					state.opponentVocals.volume = vocalVolume;
+				else if (PlayState.opponentChart && state.vocals.volume != vocalVolume || state.vocals.volume != vocalVolume)
+					state.vocals.volume = vocalVolume;
+			}
 		}
 		return;
 	}

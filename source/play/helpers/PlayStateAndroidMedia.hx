@@ -254,9 +254,24 @@ class PlayStateAndroidMedia
 				}
 		}
 	}
+
+	/**
+	 * True while audio focus has the instrumental ducked for another app (a call, a notification).
+	 * Volume owners -- e.g. the global stem override in PlayStatePlayback -- must not fight the duck.
+	 */
+	public static function isDucking():Bool
+	{
+		return ducked;
+	}
 	#else
 	public static function start(playState:play.PlayState):Void {}
 
 	public static function stop(?playState:play.PlayState):Void {}
+
+	/** Only Android ducks the instrumental for audio focus; everywhere else this is always false. */
+	public static function isDucking():Bool
+	{
+		return false;
+	}
 	#end
 }

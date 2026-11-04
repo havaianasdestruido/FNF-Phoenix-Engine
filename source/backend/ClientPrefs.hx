@@ -24,6 +24,13 @@ class ClientPrefs { //default settings if it can't find a save file containing y
 	public static var ghostTapAnim:Bool = true;
 	public static var hitsoundVolume:Float = 0;
 	public static var hitsoundType:String = 'osu!mania';
+	// Global song stem volume overrides (Options -> Gameplay Settings). While a toggle is on, its
+	// value is forced on every song for that stem -- charts, stages and scripts cannot change it.
+	// See play.helpers.PlayStatePlayback for the resolution and the per-frame enforcement.
+	public static var overrideInstrumentalVolume:Bool = false;
+	public static var instrumentalVolumeOverride:Float = 1;
+	public static var overrideVocalsVolume:Bool = false;
+	public static var vocalsVolumeOverride:Float = 1;
 	public static var voiidTrollMode:Bool = false;
 	public static var trollMaxSpeed:String = 'Medium';
 	public static var missSoundEnabled:Bool = false;

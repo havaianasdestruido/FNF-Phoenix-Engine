@@ -143,6 +143,46 @@ class GameplaySettingsSubState extends BaseOptionsMenu
 			addOption(option);
 		}
 
+		// Global song stem volume overrides: forced on every song, so charts, stages and
+		// scripts cannot change them (see play.helpers.PlayStatePlayback).
+		var option:Option = new Option('Override Instrumental Volume',
+			'If checked, every song plays its instrumental at the volume below,\nno matter what charts, stages or scripts try to do.',
+			'overrideInstrumentalVolume',
+			'bool',
+			false);
+		addOption(option);
+
+		var option:Option = new Option('Instrumental Volume Override',
+			'The instrumental volume used for all songs while the override is checked.',
+			'instrumentalVolumeOverride',
+			'percent',
+			1);
+		addOption(option);
+		option.scrollSpeed = 1.6;
+		option.minValue = 0.0;
+		option.maxValue = 1;
+		option.changeValue = 0.1;
+		option.decimals = 1;
+
+		var option:Option = new Option('Override Vocal Volume',
+			'If checked, every song plays its vocals (yours and the opponent\'s) at the volume\nbelow, no matter what charts, stages or scripts try to do.',
+			'overrideVocalsVolume',
+			'bool',
+			false);
+		addOption(option);
+
+		var option:Option = new Option('Vocal Volume Override',
+			'The vocal volume used for all songs while the override is checked.\nVocals still get muted when you miss a note.',
+			'vocalsVolumeOverride',
+			'percent',
+			1);
+		addOption(option);
+		option.scrollSpeed = 1.6;
+		option.minValue = 0.0;
+		option.maxValue = 1;
+		option.changeValue = 0.1;
+		option.decimals = 1;
+
 		var option:Option = new Option('Rating Offset',
 			'Changes how late/early you have to hit for a "Sick!"\nHigher values mean you have to hit later.',
 			'ratingOffset',

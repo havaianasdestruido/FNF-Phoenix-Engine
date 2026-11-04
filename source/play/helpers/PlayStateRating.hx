@@ -20,6 +20,7 @@ import play.PlayState;
 import psychlua.EtternaFunctions; // REFACTOR: EtternaFunctions moved to psychlua package
 
 import play.helpers.PlayStateNoteHelpers;
+import play.helpers.PlayStatePlayback;
 
 // REFACTOR: scoring / rating popup logic extracted from play.PlayState
 @:access(play.PlayState)
@@ -122,7 +123,7 @@ class PlayStateRating
 			});
 		}
 
-		if (!miss && !state.ffmpegMode) (PlayState.opponentChart ? state.opponentVocals : state.vocals).volume = 1;
+		if (!miss && !state.ffmpegMode) (PlayState.opponentChart ? state.opponentVocals : state.vocals).volume = PlayStatePlayback.vocalsVolume(state);
 
 		judgeNote(state, note, miss);
 
