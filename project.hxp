@@ -990,6 +990,31 @@ class Project extends HXProject
 			addIcon('art/icon${size}.png', size);
 		addIcon("art/iconOG.png");
 
+		if (isWindows())
+		{
+			// Keep these next to the executable, even when game assets are embedded.
+			addAsset("art/windows/phoenix.ico", "phoenix.ico", "default", false);
+			addAsset("art/windows/desktop.ini", "desktop.ini", "default", false);
+
+			// Explorer only reads desktop.ini for folders marked read-only or system.
+			// ZIP extraction can discard this attribute; the Windows game restores it
+			// on startup as well. Do not touch the host filesystem for other targets.
+			if (Sys.systemName() == "Windows" && (this.command == "build" || this.command == "test"))
+			{
+				try
+				{
+					var folder = app.path + "windows/bin";
+					FileSystem.createDirectory(folder);
+					if (Sys.command("attrib", ["+r", folder]) != 0)
+						info('Could not set the Windows folder icon attribute on $folder');
+				}
+				catch (error:Dynamic)
+				{
+					info('Could not set the Windows folder icon attribute: $error');
+				}
+			}
+		}
+
 		if (isAndroid())
 		{
 			// Signing key resolution order:

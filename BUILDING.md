@@ -16,6 +16,14 @@
 
 ### Windows & Mac
 
+Windows builds place `phoenix.ico` and `desktop.ini` beside the executable.
+The output folder is marked read-only so Explorer can display its custom icon;
+this attribute does not prevent editing the folder's files. ZIP extraction can
+remove the attribute, so the game restores it on first launch if both files are
+present. Explorer may need a refresh to show the icon. If the folder is not
+writable, the attribute can also be set manually with `attrib +r "path\to\folder"`.
+Other platforms do not receive these Windows-specific files.
+
 For `git`, you're likely gonna want [git-scm](https://git-scm.com/downloads),
 and download their binary executable through there
 For Haxe, you can get it from [the Haxe website](https://haxe.org/download/)
