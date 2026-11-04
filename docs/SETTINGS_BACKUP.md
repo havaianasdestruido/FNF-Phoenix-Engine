@@ -71,3 +71,10 @@ editors use.
 * `tests/test_settings_backup.py` — source guards: every settings list ends with
   the two options, import is confirmation-gated and whitelisted, the codec has
   no engine dependencies.
+
+## See also
+
+`Options → Misc → "Copy Diagnostics"` covers the opposite direction: instead of
+moving *settings* between devices it produces a redacted support block (machine,
+mods, changed preferences and a log tail) for a bug report. It is described in
+[`DIAGNOSTICS.md`](DIAGNOSTICS.md) and never uploads anything.

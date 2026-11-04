@@ -68,6 +68,15 @@ The same values are available to scripts through `getSystemInfo()`, `getGPUName(
 HScript), see the [Lua](../modding/lua-api-reference.md) and
 [Python](../modding/python-api-reference.md) API references.
 
+## Copy diagnostics (support block)
+
+`Options -> Misc -> "Copy Diagnostics"` builds a redacted, paste-ready block
+(engine version and commit, target, CPU/RAM, GPU and driver, save path, mods in
+load order, changed preferences and the last 60 log lines), copies it and saves
+a copy under `crash/`. It works with the vlog off — a bounded in-memory session
+tail backs the log section — and it never uploads anything. Details and the
+redaction rules: [Copy diagnostics](diagnostics.md).
+
 ## Verbose log (`vlog/log.txt`)
 
 `backend.VLog` records an aggressively verbose, append-only session log at

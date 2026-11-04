@@ -19,6 +19,10 @@ import sys
 
 FILES = [
     "source/backend/VLog.hx",
+    "source/backend/Diagnostics.hx",
+    "source/backend/DiagnosticsReport.hx",
+    "source/backend/Native.hx",
+    "source/states/substates/DiagnosticsSubstate.hx",
     "source/backend/MemoryLedger.hx",
     "source/Main.hx",
     "source/states/InitState.hx",

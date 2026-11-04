@@ -38,7 +38,11 @@ class VLogCoreTests(unittest.TestCase):
         # Options -> Misc drives it at runtime; enabling starts a session,
         # disabling closes it and restores the original trace() printer.
         self.assertIn("public static function setEnabled(on:Bool, ?targetFps:Float = null):Void", self.vlog)
-        self.assertIn("if (!enabled || initialized) return;", self.vlog)
+        # Nothing is created on disk while the log is off: `init()` seeds only
+        # the in-memory tail and returns before the session starts.
+        self.assertIn("if (initialized) return;\n    seedTail();\n    if (!enabled) return;", self.vlog)
+        # …and `log()` still refuses to touch the session buffer/file when off.
+        self.assertIn("appendTail(line);\n\n    if (!initialized) return;", self.vlog)
         self.assertIn("previousTrace = haxe.Log.trace;", self.vlog)
         self.assertIn("haxe.Log.trace = previousTrace;", self.vlog)
 

@@ -2,6 +2,7 @@
 
 import backend.ClientPrefs;
 import backend.Controls;
+import backend.Diagnostics;
 import flixel.graphics.FlxGraphic;
 import flixel.input.keyboard.FlxKey;
 import openfl.Lib;
@@ -101,10 +102,43 @@ class MiscSettingsSubState extends BaseOptionsMenu
 		addOption(option);
 		#end
 
+		// Support actions live last, next to the settings backup. One button:
+		// build the redacted block, copy it, save a copy under crash/ and show
+		// it. Nothing is uploaded anywhere (TODO §19: offline only).
+		var option:Option = new Option('Copy Diagnostics',
+			'Copies a redacted support block to the clipboard: engine version and\n'
+			+ 'commit, target, CPU/RAM, GPU and driver, save path, mod list and\n'
+			+ 'order, the options you changed and the last ~60 log lines.\n'
+			+ 'A copy is also saved to crash/, and it is never uploaded anywhere.',
+			'copyDiagnostics',
+			'link',
+			false);
+		option.onChange = copyDiagnostics;
+		addOption(option);
+
 		cameras = [FlxG.cameras.list[FlxG.cameras.list.length-1]];
 
 		addBackupOptions();
 
 		super();
+	}
+
+	/**
+	 * "Copy Diagnostics": builds the block, puts it on the clipboard, writes a
+	 * file copy under `crash/` and opens the read-only viewer.
+	 *
+	 * The message is shown by the viewer itself, so a canceled/failed copy has
+	 * exactly one place to look. `Diagnostics.busy` keeps a held ACCEPT from
+	 * generating two reports.
+	 */
+	function copyDiagnostics():Void
+	{
+		final message:String = Diagnostics.copyToClipboard();
+		// A failed build leaves the previous report in `lastReport`; showing that
+		// would be worse than showing nothing.
+		final report:String = Diagnostics.lastError == null ? Diagnostics.lastReport : null;
+		// The viewer shows the exact string that was copied (or prepared, when
+		// the clipboard is unavailable), never a second build.
+		openSubState(new states.substates.DiagnosticsSubstate(report, message));
 	}
 }

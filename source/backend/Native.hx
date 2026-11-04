@@ -175,6 +175,33 @@ class Native
     return lines.join("\n");
   }
 
+  /**
+   * `GL_VENDOR` exactly as reported by the driver (e.g. "NVIDIA Corporation").
+   *
+   * Kept separate from the parsed `gpuVendor`: a diagnostics report quotes both,
+   * because a driver bug can depend on the raw string. "Unable to detect" when
+   * there is no render context.
+   */
+  public static function getOpenGLRenderer():String
+  {
+    #if (lime_opengl || lime_opengles || lime_webgl)
+    try
+    {
+      if (GL.context != null)
+      {
+        final vendor:Dynamic = GL.getParameter(GL.VENDOR);
+        if (vendor != null)
+        {
+          final text:String = StringTools.trim(Std.string(vendor));
+          if (text.length > 0) return text;
+        }
+      }
+    }
+    catch (e:Dynamic) {}
+    #end
+    return 'Unable to detect';
+  }
+
   /** The OpenGL version exactly as reported by the active driver. */
   public static function getOpenGLVersion():String
   {
@@ -559,7 +586,12 @@ class Native
     return value;
   }
 
-  /** The operating system name, with the kernel name mapped to a real one. */
+  /**
+   * The operating system name, with the kernel name mapped to a real one.
+   *
+   * Android is special: `uname` only reports the kernel, so the engine reports
+   * "Android" without a version rather than the kernel's.
+   */
   static function cleanOSName(name:String):String
   {
     #if android
