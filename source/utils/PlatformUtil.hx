@@ -51,11 +51,16 @@ class PlatformUtil
 		return PlatformUtilNative.detectWineNative();
 	}
 
-	
+
 	public static function getArch():String {
 		return PlatformUtilNative.getArchNative();
 	}
 	#end
+
+    #if !cpp
+    /** Non-native targets cannot show shell notifications. */
+    public static function sendNotification(title:String, message:String):Bool return false;
+    #end
 
     /**
      * Trace helper for 4th-wall-breaking (`META_HORROR`) effects called on a

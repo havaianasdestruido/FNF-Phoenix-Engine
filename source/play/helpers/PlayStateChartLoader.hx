@@ -31,6 +31,7 @@ class PlayStateChartLoader
 	{
 		var offsetStart = (startingPoint > 0 ? 500 : 0);
 		final startTime = haxe.Timer.stamp();
+		final noteCutoff:Float = startingPoint + offsetStart;
 
 		state.songSpeedType = ClientPrefs.getGameplaySetting('scrolltype','multiplicative');
 
@@ -84,56 +85,27 @@ class PlayStateChartLoader
 		var eventsToLoad:String = (PlayState.SONG.specialEventsName.length > 1 ? PlayState.SONG.specialEventsName : CoolUtil.difficultyString()).toLowerCase();
 
 		final songName:String = Paths.formatToSongPath(PlayState.SONG.song);
-		final file:String = Paths.songEvents(songName, eventsToLoad);
+		final eventsFile:String = Paths.songEvents(songName, eventsToLoad);
 		#if MODS_ALLOWED
-		if (FileSystem.exists(Paths.json(file)) || FileSystem.exists(Paths.modsJson(file))) {
+		if (FileSystem.exists(Paths.json(eventsFile)) || FileSystem.exists(Paths.modsJson(eventsFile))) {
 		#else
-		if (OpenFlAssets.exists(file)) {
+		if (OpenFlAssets.exists(eventsFile)) {
 		#end
 			var eventsData:Array<Dynamic> = Song.loadFromJson(Paths.songEvents(songName, eventsToLoad, true), songName).events;
-			for (event in eventsData) //Event Notes
-			{
-				for (i in 0...event[1].length)
-				{
-					if (event[0] >= startingPoint + offsetStart)
-					{
-						var newEventNote:Array<Dynamic> = [event[0], event[1][i][0], event[1][i][1], event[1][i][2]];
-						var subEvent:EventNote = {
-							strumTime: newEventNote[0] + ClientPrefs.noteOffset,
-							event: newEventNote[1],
-							value1: newEventNote[2],
-							value2: newEventNote[3]
-						};
-						state.eventNotes.push(subEvent);
-						PlayStateEvents.eventPushed(state, subEvent);
-					}
-				}
-			}
+			pushEventNotes(state, eventsData, noteCutoff);
 		}
-		for (event in PlayState.SONG.events) //Event Notes
-		{
-			for (i in 0...event[1].length)
-			{
-				if (event[0] >= startingPoint + offsetStart)
-				{
-					var newEventNote:Array<Dynamic> = [event[0], event[1][i][0], event[1][i][1], event[1][i][2]];
-					var subEvent:EventNote = {
-						strumTime: newEventNote[0] + ClientPrefs.noteOffset,
-						event: newEventNote[1],
-						value1: newEventNote[2],
-						value2: newEventNote[3]
-					};
-					state.eventNotes.push(subEvent);
-					PlayStateEvents.eventPushed(state, subEvent);
-				}
-			}
-		}
+		pushEventNotes(state, PlayState.SONG.events, noteCutoff);
+
 		var currentBPMLol:Float = Conductor.bpm;
 		var stepCrochet:Float = 15000 / currentBPMLol;
 		var currentMultiplier:Float = 1;
 		var gottaHitNote:Bool = false;
 		var swagNote:PreloadedChartNote;
 		var ghostNotesCleared:Int = 0;
+		var charChangeIndex:Int = 0;
+		var multiChangeIndex:Int = 0;
+		final jackCount:Int = Std.int(state.jackingtime);
+		final jackStep:Float = 15000 / PlayState.SONG.bpm;
 		// TODO: Optimize and clean up this mess, maybe split into functions
 		// this is absolute spaghetti code
 		for (section in noteData) {
@@ -142,15 +114,21 @@ class PlayStateChartLoader
 				stepCrochet = 15000 / currentBPMLol;
 			}
 
-			for (i in 0...section.sectionNotes.length)
+			final sectionNotes:Array<Dynamic> = section.sectionNotes;
+			final sectionLength:Int = sectionNotes.length;
+			final mustHitSection:Bool = section.mustHitSection;
+			final altAnim:Bool = section.altAnim;
+			final gfSection:Bool = section.gfSection;
+
+			for (i in 0...sectionLength)
 			{
-				final songNotes:Array<Dynamic> = section.sectionNotes[i];
+				final songNotes:Array<Dynamic> = sectionNotes[i];
 
 				if (songNotes[1] == -1)
 					continue;
 
-				if (songNotes[0] >= startingPoint + offsetStart) {
-					final daStrumTime:Float = songNotes[0];
+				final daStrumTime:Float = songNotes[0];
+				if (daStrumTime >= noteCutoff) {
 					var daNoteData:Int = 0;
 					if (!state.assignedFirstData && state.oneK)
 					{
@@ -182,7 +160,7 @@ class PlayStateChartLoader
 						state.stair++;
 					}
 
-					gottaHitNote = (!PlayState.opponentChart ? songNotes[1] < 4 : songNotes[1] > 3) ? section.mustHitSection : !section.mustHitSection;
+					gottaHitNote = (!PlayState.opponentChart ? songNotes[1] < 4 : songNotes[1] > 3) ? mustHitSection : !mustHitSection;
 
 					if ((PlayState.bothSides || gottaHitNote) && songNotes[3] != 'Hurt Note') {
 						state.totalNotes += 1;
@@ -191,55 +169,60 @@ class PlayStateChartLoader
 						state.opponentNoteTotal += 1;
 					}
 
-					if (daStrumTime >= state.charChangeTimes[0])
+					if (charChangeIndex < state.charChangeTimes.length && daStrumTime >= state.charChangeTimes[charChangeIndex])
 					{
-						switch (state.charChangeTypes[0])
+						switch (state.charChangeTypes[charChangeIndex])
 						{
 							case 0:
-								var boyfriendToGrab:Boyfriend = state.boyfriendMap.get(state.charChangeNames[0]);
+								var boyfriendToGrab:Boyfriend = state.boyfriendMap.get(state.charChangeNames[charChangeIndex]);
 								if (boyfriendToGrab != null) state.bfNoteskin = boyfriendToGrab.noteskin;
 							case 1:
-								var dadToGrab:Character = state.dadMap.get(state.charChangeNames[0]);
+								var dadToGrab:Character = state.dadMap.get(state.charChangeNames[charChangeIndex]);
 								if (dadToGrab != null) state.dadNoteskin = dadToGrab.noteskin;
 						}
-						state.charChangeTimes.shift();
-						state.charChangeNames.shift();
-						state.charChangeTypes.shift();
+						charChangeIndex++;
 					}
 
-					if (state.multiChangeEvents[0].length > 0 && daStrumTime >= state.multiChangeEvents[0][0])
+					if (multiChangeIndex < state.multiChangeEvents[0].length && daStrumTime >= state.multiChangeEvents[0][multiChangeIndex])
 					{
-						currentMultiplier = state.multiChangeEvents[1][0];
-						state.multiChangeEvents[0].shift();
-						state.multiChangeEvents[1].shift();
+						currentMultiplier = state.multiChangeEvents[1][multiChangeIndex];
+						multiChangeIndex++;
 					}
+
+					// Normalize legacy note types once per chart note, then reuse the
+					// derived flags for the head, jacks and every sustain segment.
+					final rawNoteType:Dynamic = songNotes[3];
+					final rawIsBool:Bool = Std.isOfType(rawNoteType, Bool);
+					final noteType:Dynamic = Std.isOfType(rawNoteType, String) ? rawNoteType : ChartingState.noteTypeList[rawNoteType];
+					final rawAnimSuffix:String = (rawNoteType == 'Alt Animation' || altAnim ? '-alt' : '');
+					final animSuffix:String = rawIsBool ? (rawNoteType || altAnim ? '-alt' : '') : rawAnimSuffix;
+					final isHurt:Bool = rawNoteType == 'Hurt Note';
+					final gfNote:Bool = rawNoteType == 'GF Sing' || (gfSection && songNotes[1] < 4);
+					final noAnimation:Bool = rawNoteType == 'No Animation';
+					final noteskin:String = gottaHitNote ? state.bfNoteskin : state.dadNoteskin;
 
 					swagNote = {
 						strumTime: daStrumTime,
 						noteData: daNoteData,
 						mustPress: PlayState.bothSides || gottaHitNote,
 						oppNote: (PlayState.opponentChart ? gottaHitNote : !gottaHitNote),
-						noteType: songNotes[3],
-						animSuffix: (songNotes[3] == 'Alt Animation' || section.altAnim ? '-alt' : ''),
-						noteskin: (gottaHitNote ? state.bfNoteskin : state.dadNoteskin),
-						gfNote: songNotes[3] == 'GF Sing' || (section.gfSection && songNotes[1] < 4),
-						noAnimation: songNotes[3] == 'No Animation',
-						noMissAnimation: songNotes[3] == 'No Animation',
+						noteType: noteType,
+						animSuffix: animSuffix,
+						noteskin: noteskin,
+						gfNote: gfNote,
+						noAnimation: noAnimation,
+						noMissAnimation: noAnimation,
 						sustainLength: songNotes[2],
 						hitHealth: 0.023,
-						missHealth: songNotes[3] != 'Hurt Note' ? 0.0475 : 0.3,
+						missHealth: !isHurt ? 0.0475 : 0.3,
 						wasHit: false,
-						hitCausesMiss: songNotes[3] == 'Hurt Note',
+						hitCausesMiss: isHurt,
 						multSpeed: 1,
 						multAlpha: 1,
 						noteDensity: currentMultiplier,
-						ignoreNote: songNotes[3] == 'Hurt Note' && gottaHitNote
+						ignoreNote: isHurt && gottaHitNote
 					};
 					if (swagNote.noteskin.length > 0 && !Paths.noteSkinFramesMap.exists(swagNote.noteskin)) inline Paths.initNote(swagNote.noteskin);
-
-					if(!Std.isOfType(songNotes[3], String)) swagNote.noteType = ChartingState.noteTypeList[songNotes[3]]; //Backward compatibility + compatibility with Week 7 charts
-
-					if(Std.isOfType(songNotes[3], Bool)) swagNote.animSuffix = (songNotes[3] || section.altAnim ? '-alt' : ''); //Compatibility with charts made by SNIFF
 
 					if (!state.noteTypeMap.exists(swagNote.noteType)) {
 						state.noteTypeMap.set(swagNote.noteType, true);
@@ -247,16 +230,16 @@ class PlayStateChartLoader
 
 					state.unspawnNotes.push(swagNote);
 
-					if (state.jackingtime > 0) {
-						for (j in 0...Std.int(state.jackingtime)) {
+					if (jackCount > 0) {
+						for (j in 0...jackCount) {
 							final jackNote:PreloadedChartNote = {
-								strumTime: swagNote.strumTime + (15000 / PlayState.SONG.bpm) * (j + 1),
+								strumTime: swagNote.strumTime + jackStep * (j + 1),
 								noteData: swagNote.noteData,
 								mustPress: swagNote.mustPress,
 								oppNote: swagNote.oppNote,
 								noteType: swagNote.noteType,
-								animSuffix: (songNotes[3] == 'Alt Animation' || section.altAnim ? '-alt' : ''),
-								noteskin: (gottaHitNote ? state.bfNoteskin : state.dadNoteskin),
+								animSuffix: rawAnimSuffix,
+								noteskin: noteskin,
 								gfNote: swagNote.gfNote,
 								isSustainNote: false,
 								isSustainEnd: false,
@@ -278,36 +261,38 @@ class PlayStateChartLoader
 
 					final roundSus:Int = Math.round(swagNote.sustainLength / stepCrochet);
 					if (roundSus > 0) {
+						final sustainMissHealth:Float = !isHurt ? 0.0475 : 0.1;
+						final sustainIgnore:Bool = isHurt && swagNote.mustPress;
 						for (susNote in 0...roundSus + 1) {
 							final sustainNote:PreloadedChartNote = {
 								strumTime: daStrumTime + (stepCrochet * susNote),
 								noteData: daNoteData,
 								mustPress: PlayState.bothSides || gottaHitNote,
 								oppNote: (PlayState.opponentChart ? gottaHitNote : !gottaHitNote),
-								noteType: songNotes[3],
-								animSuffix: (songNotes[3] == 'Alt Animation' || section.altAnim ? '-alt' : ''),
-								noteskin: (gottaHitNote ? state.bfNoteskin : state.dadNoteskin),
-								gfNote: songNotes[3] == 'GF Sing' || (section.gfSection && songNotes[1] < 4),
-								noAnimation: songNotes[3] == 'No Animation',
+								noteType: rawNoteType,
+								animSuffix: rawAnimSuffix,
+								noteskin: noteskin,
+								gfNote: gfNote,
+								noAnimation: noAnimation,
 								isSustainNote: true,
 								isSustainEnd: susNote == roundSus,
 								parentST: swagNote.strumTime,
 								parentSL: swagNote.sustainLength,
 								hitHealth: 0.023,
-								missHealth: songNotes[3] != 'Hurt Note' ? 0.0475 : 0.1,
+								missHealth: sustainMissHealth,
 								wasHit: false,
 								multSpeed: 1,
 								multAlpha: 1,
 								noteDensity: currentMultiplier,
-								hitCausesMiss: songNotes[3] == 'Hurt Note',
-								ignoreNote: songNotes[3] == 'Hurt Note' && swagNote.mustPress
+								hitCausesMiss: isHurt,
+								ignoreNote: sustainIgnore
 							};
 							state.unspawnNotes.push(sustainNote);
 						}
 					}
 				} else {
 					final gottaHitNote:Bool = ((songNotes[1] < 4 && !PlayState.opponentChart)
-						|| (songNotes[1] > 3 && PlayState.opponentChart) ? section.mustHitSection : !section.mustHitSection);
+						|| (songNotes[1] > 3 && PlayState.opponentChart) ? mustHitSection : !mustHitSection);
 					if ((PlayState.bothSides || gottaHitNote) && songNotes[3] != 'Hurt Note') {
 						state.totalNotes += 1;
 						state.combo += 1;
@@ -320,12 +305,23 @@ class PlayStateChartLoader
 				}
 			}
 			PlayState.sectionsLoaded += 1;
-			state.notesLoadedRN += section.sectionNotes.length;
+			state.notesLoadedRN += sectionLength;
 			#if debug
 			#if sys
 			Sys.print('\rSection ${PlayState.sectionsLoaded} loaded! (' + state.notesLoadedRN + ' notes)');
 			#end
 			#end
+		}
+
+		// Consume the event queues without shifting their tails on every note.
+		if (charChangeIndex > 0) {
+			state.charChangeTimes.splice(0, charChangeIndex);
+			state.charChangeNames.splice(0, charChangeIndex);
+			state.charChangeTypes.splice(0, charChangeIndex);
+		}
+		if (multiChangeIndex > 0) {
+			state.multiChangeEvents[0].splice(0, multiChangeIndex);
+			state.multiChangeEvents[1].splice(0, multiChangeIndex);
 		}
 
 		state.bfNoteskin = state.boyfriend.noteskin;
@@ -359,5 +355,27 @@ class PlayStateChartLoader
 		#end
 		#end
 		state.notesLoadedRN = 0;
+	}
+
+	private static function pushEventNotes(state:PlayState, eventsData:Array<Dynamic>, cutoff:Float):Void
+	{
+		for (event in eventsData)
+		{
+			final eventTime:Float = event[0];
+			if (eventTime < cutoff) continue;
+
+			final subEvents:Array<Dynamic> = event[1];
+			for (subEvent in subEvents)
+			{
+				var note:EventNote = {
+					strumTime: eventTime + ClientPrefs.noteOffset,
+					event: subEvent[0],
+					value1: subEvent[1],
+					value2: subEvent[2]
+				};
+				state.eventNotes.push(note);
+				PlayStateEvents.eventPushed(state, note);
+			}
+		}
 	}
 }

@@ -52,9 +52,7 @@ import Sys;
 import sys.FileSystem;
 import sys.io.File;
 #end
-#if web
-import openfl.utils.File as OpenFlFile;
-#end
+
 import lime.app.Application;
 import utils.MemoryUtil;
 
@@ -469,10 +467,16 @@ class VLog
    */
   public static function download():Void
   {
-    #if web
+    #if js
     try
     {
-      OpenFlFile.download('log.txt', haxe.io.Bytes.ofString(exportText()), false);
+      final blob = new js.html.Blob([exportText()], {type: 'text/plain'});
+      final url = js.html.URL.createObjectURL(blob);
+      final anchor = js.Browser.document.createAnchorElement();
+      anchor.href = url;
+      anchor.download = 'log.txt';
+      anchor.click();
+      js.html.URL.revokeObjectURL(url);
     }
     catch (_:Dynamic) {}
     #end
@@ -678,6 +682,7 @@ class VLog
    */
   static function rotateIfNeeded():Void
   {
+    #if sys
     if (!FileSystem.exists(FILE)) return;
     try
     {
@@ -695,6 +700,7 @@ class VLog
     }
     catch (e:Dynamic)
       Sys.println('vlog: rotation failed: ' + Std.string(e));
+    #end
   }
 
   /** Samples the process RSS (a syscall on desktop, throttled). */
