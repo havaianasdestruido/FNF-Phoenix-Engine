@@ -633,11 +633,7 @@ class PlayStateEvents
 		if (PlatformUtil.sendNotification(title, desc)) return;
 		if (isEvent)
 		{
-			#if (cpp && windows)
-			PlayStateScripts.addTextToDebug(state, 'Windows notification was rejected or suppressed by the shell.', FlxColor.RED);
-			#else
-			PlayStateScripts.addTextToDebug(state, 'Windows notifications are not supported on this platform.', FlxColor.RED);
-			#end
+			PlayStateScripts.addTextToDebug(state, 'Desktop notification could not be sent on this platform.', FlxColor.RED);
 		}
 	}
 }
