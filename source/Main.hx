@@ -37,6 +37,7 @@ import lime.graphics.Image;
 @:cppFileCode('
 #include <windows.h>
 #include <winuser.h>
+#include <string>
 ')
 #end
 class Main extends Sprite
@@ -86,8 +87,33 @@ class Main extends Sprite
 
   public static function main():Void
   {
+    #if (cpp && windows)
+    restoreBuildFolderIcon();
+    #end
     Lib.current.addChild(new Main());
   }
+
+  #if (cpp && windows)
+  // Archives commonly lose Windows directory attributes. Restore only the
+  // executable's own folder, and only when both packaged icon files exist.
+  @:functionCode('
+    wchar_t executable[32768];
+    DWORD length = GetModuleFileNameW(NULL, executable, 32768);
+    if (length == 0 || length >= 32768) return;
+    std::wstring folder(executable, length);
+    size_t separator = folder.find_last_of(L"\\\\/");
+    if (separator == std::wstring::npos) return;
+    folder.resize(separator);
+    DWORD ini = GetFileAttributesW((folder + L"\\\\desktop.ini").c_str());
+    DWORD icon = GetFileAttributesW((folder + L"\\\\phoenix.ico").c_str());
+    DWORD attributes = GetFileAttributesW(folder.c_str());
+    if (ini == INVALID_FILE_ATTRIBUTES || (ini & FILE_ATTRIBUTE_DIRECTORY) ||
+        icon == INVALID_FILE_ATTRIBUTES || (icon & FILE_ATTRIBUTE_DIRECTORY) ||
+        attributes == INVALID_FILE_ATTRIBUTES || (attributes & FILE_ATTRIBUTE_READONLY)) return;
+    SetFileAttributesW(folder.c_str(), attributes | FILE_ATTRIBUTE_READONLY);
+  ')
+  private static function restoreBuildFolderIcon():Void {}
+  #end
 
   public function new()
   {
