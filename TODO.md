@@ -345,11 +345,10 @@ Phoenix's identity is "runs on weak devices", yet configuration is manual: `Clie
 `CrashHandler` catches errors, writes text logs and shows a summarized-reason screen, but recovery is still manual: the next launch re-enters the same mod/save, Android users can't easily reach `logs/`, and support requests have to ask for versions by hand.
 
 - **[P1] Safe Mode after repeated crashes.** Count unclean starts, then offer "start with all mods disabled", "start with fresh prefs", "start with default resolution/framerate" *before* `InitState` loads mods. A single bad `pack.json`/script currently turns into a crash loop the player must fix by editing files.
-- **[P2] "Copy diagnostics" action.** One button producing a redacted, pasteable block: engine version (`VERSION` in `project.hxp`), commit (`HaxeCommit`), target, `SystemInfo` CPU/RAM, GPU/driver (#96), save path, mod list + order, non-default prefs, last N log lines. Offline only — the recent update flow is deliberately repo-based (§0), so no auto-upload.
+- **[P2] "Copy diagnostics" action.** One button producing a redacted, pasteable block: engine version (`VERSION` in `project.hxp`), commit (`HaxeCommit`), target, `SystemInfo` CPU/RAM, GPU/driver (#96), save path, mod list + order, non-default prefs, last N log lines. Offline only — the recent update flow is deliberately repo-based (§0), so no auto-upload. Reuse `backend.DiagnosticsReport` (built for `phoenix://diagnostics`) as the block, and add the redaction here rather than in the link: the deep-linked page only *warns* about usernames in paths.
 - **[P2] Crash bundle export.** Alongside the log, write a `.zip` (crash text, `modsList.txt`, each mod's `pack.json`, prefs, screenshot) to a user-reachable folder — critical on Android where `logs/` is buried in app storage. Depends on §6 #70's target guard and pairs with §11 FILES.
 - **[P2] Log rotation and redaction.** `logs/` accumulates a file per crash and per profiler export with no cap. Rotate by size/age and strip usernames/absolute paths before a log leaves the machine.
 - **[P3] Per-mod "why did it break?" report.** In the mods menu, show last load error, invalid `pack.json`, blocked script rule (§6 sandbox) and missing-asset count per mod, instead of requiring a log read.
-- **[P3] Deep-linkable diagnostics.** Once the §11 URI routing layer lands, add a read-only `phoenix://diagnostics` route so support can ask a user to tap one link and screenshot the result.
 
 ### OPT-OUT BY DEFAULT ANALYTICS
 

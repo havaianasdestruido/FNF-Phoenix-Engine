@@ -1,7 +1,7 @@
 ---
 title: Deep links (phoenix://)
 sidebar_position: 10
-description: The custom URI scheme — routes, grammar, dispatch rules and per-platform registration.
+description: The custom URI scheme — routes, grammar, dispatch rules, the read-only diagnostics link and per-platform registration.
 ---
 
 # Deep links — `phoenix://`
@@ -12,6 +12,7 @@ page or another app can open a specific menu:
 ```html
 <a href="phoenix://menu/misc">Open Phoenix Misc settings</a>
 <a href="phoenix://mods">Open Phoenix Mods</a>
+<a href="phoenix://diagnostics">Show the read-only diagnostics page</a>
 ```
 
 The app must be installed. On Windows the handler is also **opt-in**: the player
@@ -36,7 +37,48 @@ Misc is the existing settings substate, not a new menu: Back closes Misc into Op
 Back from Options returns to the Main Menu. Without `MODS_ALLOWED`, the Mods route falls
 back to the Main Menu.
 
+### Resource routes (version 2)
+
+Version 1's table stays the compatibility contract; `PhoenixURI.parseEx` adds
+structured hosts on top of it:
+
+| Canonical URI | Destination |
+|---|---|
+| `phoenix://screen/<menuName>` | same destinations as `phoenix://menu/<menuName>` |
+| `phoenix://song/<song>?difficulty=<name>` | starts that chart in Freeplay, only if the normal lookup finds it |
+| `phoenix://mod/<modId>` (optionally `/song/<song>`) | Mods manager with that folder focused, or the song when it exists |
+| `phoenix://diagnostics` | the read-only diagnostics page (alias `phoenix://screen/diagnostics`) |
+| `phoenix://replay/<id>` | reserved — reports "not implemented" rather than pretending |
+
+Segment counts are exact, so `phoenix://song` or `phoenix://diagnostics/all` are
+invalid links, ignored without a popup.
+
+## Diagnostics: `phoenix://diagnostics`
+
+The route a support thread asks for. Tap it, screenshot what opens, paste the
+report — one link instead of a walk-through of the menus. `states.DiagnosticsState`
+renders a single snapshot built by `backend.DiagnosticsReport`: build identity
+(version, commit, target, feature flags, launch arguments), hardware (OS, CPU,
+RAM, GPU and driver, graphics and audio API), runtime (viewport, scale mode,
+framerate targets, uptime, heap, RSS), file locations (working directory,
+save-data id, session log, crash folder, mods folder), the enabled mods in load
+order, the settings that change feel or performance, and the last ten `vlog`
+lines.
+
+It is read-only by construction: it writes no file, changes no preference,
+touches no save data, resolves no path from the link text, and skips the
+`Paths.clearUnusedMemory()` a menu usually runs on entry — freeing cached assets
+would rewrite the memory numbers the screenshot exists to show. The route also
+takes **no parameters**: `phoenix://diagnostics?copy=1` is rejected as malformed
+rather than half-accepted. Each section is guarded, so a value the target cannot
+report becomes `unavailable` instead of an error page. `R` re-reads the snapshot,
+`C`/`A` copies the text, `ESC`/`B` returns to the Main Menu, and absolute paths
+can carry the player's username, so the footer says to redact before posting.
+Nothing is ever uploaded.
+
 ## Grammar
+
+Version 1, and what `PhoenixURI.parse` still accepts:
 
 ```text
 URI         = "phoenix://" authority ["/" destination] ["/"]
@@ -50,7 +92,8 @@ is accepted, and the maximum input length is 256 characters.
 
 Rejected outright (no popup, pending destination unchanged): query parameters, fragments,
 credentials, ports, whitespace, percent escapes, backslashes, extra path segments and
-empty internal segments. Input is neither trimmed nor URL-decoded.
+empty internal segments. Input is neither trimmed nor URL-decoded. The same strictness
+applies to the version 2 hosts, where each host fixes its own exact segment count.
 
 ```text
 phoenix:///mods
@@ -59,16 +102,19 @@ phoenix://menu/%6disc
 phoenix://mods?enable=all
 phoenix://mods#settings
 phoenix://user@mods
-phoenix://song/test
+phoenix://diagnostics?copy=1
 ```
 
 ## Implementation
 
-Two modules in `backend/deeplink/`:
+Four modules in `backend/deeplink/`:
 
-- **`PhoenixURI`** — `parse(uri)` validates against the grammar and returns an
-  allowlisted route string, or `null`. It never resolves a class from external text.
-- **`DeepLinks`** — platform subscription, queueing and dispatch.
+- **`PhoenixURI`** — `parse(uri)` validates the v1 grammar and returns an
+  allowlisted route string; `parseEx(uri)` returns a structured `ParsedURI` for
+  the version 2 hosts. Neither resolves a class from external text.
+- **`URIKind` / `ParsedURI`** — the route enum (`Menu`, `Screen`, `Song`, `Mod`,
+  `Diagnostics`, `Replay`) and its query map.
+- **`DeepLinks`** — platform subscription, queueing and dispatch into the states.
 
 ```haxe
 DeepLinks.init();             // from Main, before the game exists: queues only
@@ -96,7 +142,10 @@ DeepLinks.applyRegistration(); // the Misc "Toggle Deeplink" checkbox
 ### Security boundary
 
 Links never install or enable mods, load a filesystem path, run scripts or commands,
-change preferences, download content, or start a song.
+change preferences, download content, or start a song. Version 2's `song` route is the
+one addition to that list, and it only starts a chart the normal lookup already found;
+`phoenix://diagnostics` sits on the strict side of it — a read-only page that takes no
+parameters, resolves nothing and writes nothing.
 
 ## Per-platform registration
 
@@ -138,5 +187,21 @@ anything. Both scripts (source in `setup/uri/`) ship next to the executable, and
 protocol launches do not inherit a sane working directory, the engine resets the CWD to
 the executable's folder when a link is pending. The whole path is behind
 `#if (windows && sys)`, so browser and mobile builds compile without any of it.
+
+## Tests
+
+* `python3 tests/uri/run.py` — runs `tests/uri/TestPhoenixURI.hx` in the Haxe
+  interpreter with the parser isolated from `source/import.hx`: every route and
+  alias, the case and slash rules, injection-shaped input, the size limits, and the
+  `phoenix://diagnostics` contract (both spellings accepted, parameters rejected).
+* `bash tests/haxe/run-diagnostics-report.sh` — compiles and runs `backend.DiagnosticsReport`
+  and `states.DiagnosticsState` against `tests/haxe/stubs/diagnostics`: the seven
+  sections in order, the padded value column, `not reported here` where a target
+  cannot know, the ten-line log tail, a throwing data source costing one row, and on
+  the page side the scroll bounds, the clipboard contents, the `R` refresh, the
+  single-shot exit and the camera being released on `destroy`.
+* `python3 -m unittest tests.test_deeplink_diagnostics` — source guards for what the
+  compiler cannot see: only the idle menu states dispatch, the diagnostics path
+  writes nothing, and `URI.MD` and this page keep telling the same story.
 
 Full specification: [`URI.MD`](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/blob/main/URI.MD).
