@@ -57,6 +57,7 @@ import play.helpers.PlayStatePlayback;
 import play.helpers.PlayStateRating;
 import play.helpers.PlayStateRender;
 import play.helpers.PlayStateScripts;
+import play.helpers.PlayStateShaders;
 import play.helpers.PlayStateAndroidMedia;
 #if HSCRIPT_ALLOWED
 import psychlua.HScript;
@@ -510,6 +511,10 @@ class PlayState extends MusicBeatState
 	{
 		// #88: per-play pool accounting so the debug overlay reports this song's numbers.
 		PoolStats.reset();
+
+		// [P3] Shader warm-up: every shader created from here on (stage filters,
+		// runtime shaders from scripts) is compiled before the countdown starts.
+		PlayStateShaders.beginLoad();
 
 		layoutWidth = FlxG.width;
 		FlxG.mouse.visible = false;
@@ -1706,6 +1711,10 @@ class PlayState extends MusicBeatState
 
 		cacheCountdown();
 		cachePopUpScore();
+
+		// [P3] Shader warm-up: compile what this stage/song declares while the
+		// loading screen is still up, so the first bop doesn't stall on the driver.
+		PlayStateShaders.warmUp(this, stageData);
 
 		startCallback();
 
