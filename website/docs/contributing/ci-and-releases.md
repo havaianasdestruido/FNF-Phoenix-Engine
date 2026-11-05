@@ -72,8 +72,11 @@ in the commit a release points at, so release from up-to-date `main`.
 ## `checks.yml` — Checks
 
 Runs the dependency-manifest check, Python regression tests, host-JVM Android tests,
-and isolated Haxe tests for layout, chart timing, mod imports, versions and updates.
-These checks do not require a full game build or the Android SDK.
+and an hxcpp native-object-cache smoke test on Linux and Windows. These checks do not
+require a full game build or the Android SDK. The isolated Haxe interpreter specs in
+`tests/haxe/` are not wired into this workflow; run the matching `run-*.sh` script
+locally (see
+[`docs/HAXE_LINUX.md`](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/blob/main/docs/HAXE_LINUX.md)).
 
 ## `docs.yml` — Documentation
 

@@ -213,10 +213,9 @@ class TestInterpreterSpec(unittest.TestCase):
         self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
         self.assertIn("ModZipImportSpec: all checks passed", proc.stdout + proc.stderr)
 
-    def test_runner_spec_and_ci_step_exist(self):
+    def test_runner_and_spec_exist(self):
         self.assertTrue((ROOT / "tests/haxe/run-mod-zip.sh").exists())
         self.assertTrue((ROOT / "tests/haxe/ModZipImportSpec.hx").exists())
-        self.assertIn("tests/haxe/run-mod-zip.sh", read(".github/workflows/checks.yml"))
 
     def test_spec_sources_stay_dependency_free(self):
         for path in ("source/backend/ModPathPolicy.hx", "source/mobile/files/ModZipInstaller.hx"):
