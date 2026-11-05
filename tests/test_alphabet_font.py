@@ -24,6 +24,17 @@ def read(rel: str) -> str:
     return (ROOT / rel).read_text(encoding="utf-8", errors="ignore")
 
 
+IMPORT_LINE = re.compile(r"^import\s+([\w.]+)(?:\s+as\s+(\w+))?", re.M)
+
+
+def imported_names(source: str) -> set[str]:
+    """Names an `import` list puts in scope, honouring `as` and skipping wildcards."""
+    names = set()
+    for path, alias in IMPORT_LINE.findall(source):
+        names.add(alias if alias else path.rsplit(".", 1)[-1])
+    return names
+
+
 class AlphabetFontAssetsTest(unittest.TestCase):
     def test_bundled_fonts_exist_and_are_truetype(self):
         fonts = ROOT / "assets/fonts"
@@ -137,6 +148,35 @@ class AlphabetOptionsTest(unittest.TestCase):
         play = read("source/play/PlayState.hx")
         self.assertIn("if (AlphabetFont.currentUsesImages()) Paths.image('alphabet');", play)
         self.assertIn("else AlphabetFontRenderer.warmUp();", play)
+
+    def test_alphabet_imports_every_flixel_type_it_names(self):
+        """A type the engine does not import globally must be imported by the file.
+
+        The native build failed with `Type not found : FlxGraphic` because the file named
+        it without importing it, and the typecheck harness had its own import list that
+        did. The harness is not runnable in CI (no haxelibs), so this is the guard that
+        runs there.
+        """
+        alphabet = read("source/objects/Alphabet.hx")
+        scope = imported_names(alphabet) | imported_names(read("source/import.hx"))
+        scope |= set(re.findall(r"^(?:class|abstract|enum|typedef)\s+(\w+)", alphabet, re.M))
+        named = set(re.findall(r"\b(Flx[A-Z]\w*)\b", alphabet))
+        missing = sorted(named - scope)
+        self.assertEqual(
+            missing,
+            [],
+            f"import these in source/objects/Alphabet.hx: {missing} "
+            "(source/import.hx does not provide them)",
+        )
+
+    def test_typecheck_harness_reuses_the_engine_import_list(self):
+        script = read("tests/haxe/run-alphabet-typecheck.sh")
+        self.assertIn("cp source/import.hx \"$test_source/import.hx\"", script)
+        self.assertNotIn(
+            'cat > "$test_source/import.hx"',
+            script,
+            "a hand written import list can resolve types the engine never imports",
+        )
 
 
 if __name__ == "__main__":

@@ -9,7 +9,8 @@
 # the native (cpp) targets.
 #
 # The libraries are found through `haxelib path` (what setup/windows.bat and hmm install)
-# or through FLIXEL_PATH / OPENFL_PATH / LIME_PATH. Without them the script skips, so it
+# or through FLIXEL_PATH / OPENFL_PATH / LIME_PATH (and FLIXEL_ADDONS_PATH for the
+# flixel-addons imports in source/import.hx). Without them the script skips, so it
 # stays usable on a sandbox that only has the Haxe compiler.
 #
 # Shell only, unlike the other scripts here: it discovers the libraries at runtime and
@@ -19,8 +20,10 @@
 set -euo pipefail
 cd "$(dirname "$0")/../.."
 
+# $1 haxelib name, $2 env var override, $3 package path inside the library when it is
+# not the library name (flixel-addons ships flixel/addons).
 find_lib() {
-  local name="$1" envvar="$2" dir=""
+  local name="$1" envvar="$2" pkg="${3:-$1}" dir=""
   if [ -n "${!envvar:-}" ]; then
     dir="${!envvar}"
   elif command -v haxelib >/dev/null 2>&1; then
@@ -28,9 +31,9 @@ find_lib() {
   fi
   [ -z "$dir" ] && return 1
   # haxelib reports the library root; openfl and lime keep their classes under src/.
-  if [ -d "$dir/src/$name" ]; then
+  if [ -d "$dir/src/$pkg" ]; then
     printf '%s' "$dir/src"
-  elif [ -d "$dir/$name" ]; then
+  elif [ -d "$dir/$pkg" ]; then
     printf '%s' "$dir"
   else
     return 1
@@ -40,6 +43,10 @@ find_lib() {
 flixel=$(find_lib flixel FLIXEL_PATH || true)
 openfl=$(find_lib openfl OPENFL_PATH || true)
 lime=$(find_lib lime LIME_PATH || true)
+# source/import.hx imports two flixel-addons types, so the global import list
+# cannot resolve without the library. It is optional: it is only needed to make
+# those two lines resolve, the alphabet files never use them.
+addons=$(find_lib flixel-addons FLIXEL_ADDONS_PATH flixel/addons || true)
 
 if [ -z "$flixel" ] || [ -z "$openfl" ] || [ -z "$lime" ]; then
   echo "SKIP: flixel/openfl/lime sources not found (haxelib path or FLIXEL_PATH/OPENFL_PATH/LIME_PATH)"
@@ -48,25 +55,51 @@ fi
 
 test_source=$(mktemp -d)
 trap 'rm -rf "$test_source"' EXIT
-mkdir -p "$test_source/objects" "$test_source/backend"
+mkdir -p "$test_source/objects" "$test_source/backend" "$test_source/play"
 cp source/objects/Alphabet.hx "$test_source/objects/Alphabet.hx"
 cp source/objects/AlphabetFont.hx "$test_source/objects/AlphabetFont.hx"
 cp source/objects/AlphabetFontRenderer.hx "$test_source/objects/AlphabetFontRenderer.hx"
 
-# Subset of source/import.hx: only the globals the alphabet files use.
-cat > "$test_source/import.hx" <<'HAXE'
-import flixel.FlxG;
-import flixel.FlxSprite;
-import flixel.math.FlxMath;
-import flixel.math.FlxPoint;
-import flixel.util.FlxColor;
-import flixel.group.FlxSpriteGroup;
-import flixel.graphics.frames.FlxAtlasFrames;
-import flixel.graphics.FlxGraphic;
-import openfl.display.BitmapData;
-import openfl.Assets;
-import openfl.utils.AssetType;
-using StringTools;
+# The engine's own global imports, copied verbatim. Do not hand write a subset
+# here: a subset once listed flixel.graphics.FlxGraphic, which source/import.hx
+# does not, so Alphabet.hx type checked here and died in the native build with
+# "Type not found : FlxGraphic".
+cp source/import.hx "$test_source/import.hx"
+cp -r source/utils "$test_source/utils"
+
+# Modules source/import.hx names that the alphabet files never touch. They are
+# stubbed instead of pulled in, so the import list above stays the real one.
+cat > "$test_source/play/BaseStage.hx" <<'HAXE'
+package play;
+
+enum Countdown
+{
+  THREE;
+  TWO;
+  ONE;
+  GO;
+  START;
+}
+
+class BaseStage
+{
+}
+HAXE
+
+cat > "$test_source/backend/ModsList.hx" <<'HAXE'
+package backend;
+
+class ModsList
+{
+}
+HAXE
+
+cat > "$test_source/backend/ModsStub.hx" <<'HAXE'
+package backend;
+
+class ModsStub
+{
+}
 HAXE
 
 cat > "$test_source/backend/ScreenLayout.hx" <<'HAXE'
@@ -135,6 +168,9 @@ class TypecheckMain
 HAXE
 
 common="-cp $test_source -cp $flixel -cp $openfl -cp $lime -D lime=8.1.2 -D openfl=9.3.0"
+if [ -n "$addons" ]; then
+  common="$common -cp $addons"
+fi
 
 echo "Typechecking the alphabet renderer for html5..."
 # shellcheck disable=SC2086

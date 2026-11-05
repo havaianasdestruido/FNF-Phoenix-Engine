@@ -3,6 +3,7 @@ package objects;
 import backend.Paths;
 import backend.ClientPrefs;
 import backend.ScreenLayout;
+import flixel.graphics.FlxGraphic;
 import objects.AlphabetFont.AlphabetFontDef;
 
 enum Alignment
