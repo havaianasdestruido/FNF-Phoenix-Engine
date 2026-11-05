@@ -1,6 +1,7 @@
 package psychlua;
 
 import backend.Paths;
+import backend.RuntimeFlags;
 
 using StringTools;
 
@@ -148,13 +149,17 @@ class StateScripts
 	public function load():Void
 	{
 		#if HSCRIPT_ALLOWED
-		if (scriptName.length < 1) return;
-		for (path in collectFiles(scriptName))
-		{
-			var script = new HaxeScript(path, parent);
-			if (!script.closed)
-				scripts.push(script);
-		}
+		var names:Array<String> = [];
+		if (scriptName.length > 0) names.push(scriptName);
+		var defaultName:String = sanitizeName(RuntimeFlags.getString("scripts.defaultState", ""));
+		if (defaultName.length > 0 && !names.contains(defaultName)) names.push(defaultName);
+		for (name in names)
+			for (path in collectFiles(name))
+			{
+				var script = new HaxeScript(path, parent);
+				if (!script.closed)
+					scripts.push(script);
+			}
 		#end
 	}
 

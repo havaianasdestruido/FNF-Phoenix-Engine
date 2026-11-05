@@ -138,6 +138,13 @@ class FlxDrawQuadsItem extends FlxDrawBaseItem<FlxDrawQuadsItem>
 			#end
 			camera.canvas.graphics.beginShaderFill(shader);
 			camera.canvas.graphics.drawQuads(rects, null, transforms);
+			// Base FlxDrawBaseItem.render() is what bumps the per-frame
+			// drawCalls counter, but this override returns early without it —
+			// and quads are the common path for every sprite, so without this
+			// call the profiler/VLog draw-call stat read 0 every frame.
+			// Count only batches that were actually issued (early-outs above
+			// skip it, like FlxDrawTrianglesItem does via its trailing super).
+			super.render(camera);
 		}
 		catch(e)
 		{

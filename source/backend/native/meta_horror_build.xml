@@ -1,0 +1,34 @@
+<xml>
+  <!--
+    Build configuration for the 4th-wall-breaking ("META_HORROR") helpers in
+    source/backend/native/include/phoenix_meta_horror.h.
+
+    The include folder joins the "haxe" file group so the generated
+    MetaHorror.cpp can find the header. Unlike phoenix_window.h, these helpers
+    are only compiled into -DMETA_HORROR builds, so the libraries they need are
+    requested here instead of on every build.
+  -->
+  <set name="PHOENIX_META_HORROR_DIR" value="${this_dir}" />
+  <files id="haxe">
+    <!-- phoenix_meta_horror.h and the phoenix_window.h it includes both live
+         in this folder. -->
+    <compilervalue name="-I" value="${PHOENIX_META_HORROR_DIR}/include/" />
+    <!-- hxcpp hashes declared dependencies when reusing cached objects, so the
+         header this module includes must be listed next to its include path
+         (same contract as native/build.xml, window_build.xml and the others). -->
+    <depend name="${PHOENIX_META_HORROR_DIR}/include/phoenix_meta_horror.h" />
+  </files>
+  <target id="haxe">
+    <!-- Same <section if="windows"> shape as native/build.xml and the
+         profiler, which are the build files already proven to work here.
+         WASAPI (IMMDeviceEnumerator / IAudioEndpointVolume) needs ole32;
+         window, wallpaper, taskbar and input helpers need user32/shell32;
+         the desktop capture needs gdi32. -->
+    <section if="windows">
+      <lib name="ole32.lib" />
+      <lib name="user32.lib" />
+      <lib name="shell32.lib" />
+      <lib name="gdi32.lib" />
+    </section>
+  </target>
+</xml>

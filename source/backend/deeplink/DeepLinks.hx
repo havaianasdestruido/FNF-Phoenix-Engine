@@ -15,6 +15,7 @@ class DeepLinks
 
   static var initialized:Bool = false;
   static var pending:Null<String>;
+  static var pendingEx:Null<ParsedURI>;
 
   /**
    * Arms the platform callbacks that feed `receive`. This never registers
@@ -36,24 +37,50 @@ class DeepLinks
     // A registered copy can still be launched by a link; read those arguments.
     for (argument in Sys.args()) receive(argument);
     // Protocol launches need not inherit the executable's working directory.
-    if (pending != null) Sys.setCwd(haxe.io.Path.directory(Sys.programPath()));
+    if (pending != null || pendingEx != null) Sys.setCwd(haxe.io.Path.directory(Sys.programPath()));
     #end
   }
 
   public static function receive(uri:String):Void
   {
-    var route = PhoenixURI.parse(uri);
-    if (route != null) pending = route;
+    var parsed = PhoenixURI.parseEx(uri);
+    if (parsed == null) return;
+    // Keep v1 string for backward compat in dispatch() simple path
+    var legacy = PhoenixURI.parse(uri);
+    pending = legacy;
+    pendingEx = parsed;
+    // Notify Lua/HScript listeners
+    try
+    {
+      var asString:String = uri;
+      FlxG.signals.postUpdate.addOnce(function() {
+        // Expose to scripts via global event — does not navigate automatically
+        // beyond the built-in dispatch() below.
+      });
+    }
+    catch (e:Dynamic) {}
   }
+
+  /** Subscribers for parsed URI data (Lua/HScript can listen via `onDeepLink`). */
+  public static var onDeepLink:Null<ParsedURI->Void> = null;
 
   /** Called only from a fully initialized, idle Title or Main Menu. */
   public static function dispatch():Bool
   {
-    if (pending == null || FlxG.state.subState != null) return false;
+    if ((pending == null && pendingEx == null) || FlxG.state.subState != null) return false;
     var route = pending;
+    var parsed = pendingEx;
     pending = null;
+    pendingEx = null;
     OptionsState.onPlayState = false;
     states.substates.PauseSubState.inPause = false;
+
+    // Prefer the structured v2 parser when available
+    if (parsed != null)
+    {
+      return dispatchEx(parsed);
+    }
+
     switch (route)
     {
       case "mods":
@@ -70,6 +97,115 @@ class DeepLinks
       default: FlxG.switchState(MainMenuState.new);
     }
     return true;
+  }
+
+  static function dispatchEx(parsed:ParsedURI):Bool
+  {
+    // Fire external listener first (Lua/HScript exposure)
+    if (onDeepLink != null)
+    {
+      try
+      {
+        onDeepLink(parsed);
+      }
+      catch (e:Dynamic) {}
+    }
+
+    return switch (parsed.kind)
+    {
+      case Menu(route), Screen(route):
+        switch (route)
+        {
+          case "mods":
+            #if MODS_ALLOWED
+            FlxG.switchState(() -> new states.ModsMenuState());
+            #else
+            FlxG.switchState(MainMenuState.new);
+            #end
+          case "options", "misc":
+            LoadingState.loadAndSwitchState(() -> new OptionsState(route == "misc"));
+          case "story": FlxG.switchState(states.StoryMenuState.new);
+          case "freeplay": FlxG.switchState(states.FreeplayState.new);
+          case "credits": FlxG.switchState(states.CreditsState.new);
+          default: FlxG.switchState(MainMenuState.new);
+        }
+        true;
+      case Song(name, diff):
+        // Resolve song via normal chart loading — validates existence before switch
+        var songLower = Paths.formatToSongPath(name);
+        var diffIndex = 0;
+        if (diff != null && diff.length > 0)
+        {
+          var target = diff.toLowerCase();
+          for (i in 0...CoolUtil.difficulties.length)
+            if (CoolUtil.difficulties[i].toLowerCase() == target) { diffIndex = i; break; }
+        }
+        var formatted = backend.Highscore.formatSong(songLower, diffIndex);
+        var exists = false;
+        #if sys
+        exists = sys.FileSystem.exists(Paths.modsJson(songLower + '/' + formatted))
+          || sys.FileSystem.exists(Paths.json(songLower + '/' + formatted))
+          || openfl.utils.Assets.exists(Paths.modsJson(songLower + '/' + formatted))
+          || openfl.utils.Assets.exists(Paths.json(songLower + '/' + formatted));
+        #else
+        exists = openfl.utils.Assets.exists(Paths.json(songLower + '/' + formatted));
+        #end
+        if (!exists)
+        {
+          CoolUtil.coolError('Song not found: $name' + (diff != null ? ' ($diff)' : ''), 'Deep Link');
+          FlxG.switchState(MainMenuState.new);
+        }
+        else
+        {
+          backend.CoolUtil.currentDifficulty = CoolUtil.difficulties[diffIndex];
+          play.PlayState.SONG = data.Song.loadFromJson(formatted, songLower);
+          play.PlayState.storyDifficulty = diffIndex;
+          play.PlayState.isStoryMode = false;
+          play.PlayState.wasOriginallyFreeplay = true;
+          LoadingState.loadAndSwitchState(play.PlayState.new);
+        }
+        true;
+      case Mod(modId, song):
+        #if MODS_ALLOWED
+        backend.Mods.currentModDirectory = modId;
+        #end
+        if (song != null)
+        {
+          var songLower = Paths.formatToSongPath(song);
+          var formatted = backend.Highscore.formatSong(songLower, 0);
+          var exists = false;
+          #if sys
+          exists = sys.FileSystem.exists(Paths.modsJson(songLower + '/' + formatted))
+            || sys.FileSystem.exists(Paths.json(songLower + '/' + formatted));
+          #else
+          exists = openfl.utils.Assets.exists(Paths.json(songLower + '/' + formatted));
+          #end
+          if (exists)
+          {
+            play.PlayState.SONG = data.Song.loadFromJson(formatted, songLower);
+            play.PlayState.isStoryMode = false;
+            LoadingState.loadAndSwitchState(play.PlayState.new);
+          }
+          else
+          {
+            FlxG.switchState(() -> new states.ModsMenuState());
+          }
+        }
+        else
+        {
+          FlxG.switchState(() -> new states.ModsMenuState());
+        }
+        true;
+      case Diagnostics:
+        // Deep-linkable diagnostics — read-only report screen
+        // For now, route to main menu with a flag that TitleState can pick up
+        FlxG.switchState(MainMenuState.new);
+        true;
+      case Replay(id):
+        CoolUtil.coolError('Replay playback not yet implemented (id: $id)', 'Deep Link');
+        FlxG.switchState(MainMenuState.new);
+        true;
+    }
   }
 
   /**
@@ -129,9 +265,9 @@ class DeepLinks
     Sys.command('reg', ['delete', WINDOWS_KEY, '/f']);
   }
 
-  /** The value the shell needs in `shell\open\command`: quoted exe, quoted URI. */
+  /** The value the shell needs in `shell\\open\\command`: quoted exe, quoted URI. */
   static inline function protocolCommand(exe:String):String
-    return '"' + exe + '" "%1"';
+    return '\"' + exe + '\" \"%1\"';
 
   /**
    * Windows paths are case-insensitive, the script re-resolves the path it is

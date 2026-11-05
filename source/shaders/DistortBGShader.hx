@@ -3,8 +3,6 @@
 
 import flixel.system.FlxAssets.FlxShader;
 
-import objects.Character;
-
 class DistortBGShader extends FlxShader
 {
   @:glFragmentSource('

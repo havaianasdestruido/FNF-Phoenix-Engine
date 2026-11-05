@@ -40,10 +40,8 @@ function onCreatePost()
 end
 
 function onSongEnd()
-    -- clean up after the effect
-    restoreWallpaper()
-    restoreTaskbar()
-    resetWindowEffects()
+    -- always clean up after the effect
+    restoreAllMetaEffects()
 end
 ```
 
@@ -108,6 +106,102 @@ needs an external helper binary.
 | `openFile(path)` | Open a file with the OS default application (Notepad, an image viewer...). Windows/Linux/macOS |
 | `duplicateImage(imageFile, finalFileName, ?fileType = 'png', ?location)` | "Leak" a game image to disk. Returns the written path, or `null` on failure. Default location: `<temp>/phoenix_horror` |
 | `getSystemRAM()` | Installed system RAM in megabytes |
+
+## The player, memory & cleanup
+
+These build on the upstream effects. Same `-DMETA_HORROR` gate, same failure
+values on a normal build.
+
+### It knows who is playing
+
+| Function | Returns |
+| --- | --- |
+| `getDesktopUsername()` | The player's OS account name, or `"player"`. Only the short login name is read |
+| `getSystemUptime()` | Seconds since the machine booted (`0` if unknown) |
+| `getLocalHour()` / `getLocalTimeString()` | The player's local hour (`0`-`23`) / local time as `HH:MM` |
+| `isLateNight(?from = 0, ?to = 5)` | True inside that hour window; ranges may wrap midnight: `isLateNight(23, 4)` |
+
+```lua
+function onDialogueLine()
+    -- classic: the character says your name, then checks the clock
+    setDialogueText('dad', 'Still awake, ' .. getDesktopUsername() .. '?')
+    if isLateNight() then
+        setDialogueText('dad', 'It is ' .. getLocalTimeString() .. '. Go to bed.')
+    end
+end
+```
+
+### It remembers you
+
+| Function | Effect |
+| --- | --- |
+| `getLaunchCount()` | How many times this install has been launched, including this one |
+| `getPersistentValue(key, ?default = 0)` | Read a number that survives restarts |
+| `setPersistentValue(key, value)` / `hasPersistentValue(key)` | Write / test such a number. Keys are `[A-Za-z0-9_]`, max 64 chars |
+| `addPersistentValue(key, ?amount = 1)` | Add to a counter and return the new total |
+| `clearPersistentValues()` | Delete every value |
+
+These are stored in their own save slot (`meta_horror`), never in `FlxG.save`,
+so a mod cannot corrupt options, keybinds or achievements.
+
+```lua
+function onSongStart()
+    local seen = addPersistentValue('timesInSong') -- 1 on the first play
+    if seen > 3 then
+        setWindowTitle('you keep coming back')
+    end
+end
+
+function onSongEnd()
+    restoreAllMetaEffects()
+end
+```
+
+### The desktop itself
+
+| Function | Effect |
+| --- | --- |
+| `getClipboardText()` / `setClipboardText(text)` | Read the OS clipboard / leave a message on it |
+| `setWindowTitle(title)` / `restoreWindowTitle()` | Rename the game window / put the original back |
+| `setAlwaysOnTop(enable)` / `isAlwaysOnTop()` | Pin the game above other windows (Windows) |
+| `flashTaskbar(?times = 3)` / `stopTaskbarFlash()` | Flash the taskbar button / cancel it (Windows) |
+| `getOpenWindowTitles()` | Titles of the other visible windows - never their contents (Windows) |
+| `captureDesktop(?fileName = 'desktop', ?location)` | Screenshot every monitor's desktop to a PNG and return the path (Windows) |
+| `restoreAllMetaEffects()` | Undo everything at once |
+
+`captureDesktop` is the most invasive call here: it captures the whole screen,
+including other applications. Treat it like a screenshot feature, not a scare
+effect, and never call it without warning the player.
+
+### Cleaning up
+
+`restoreAllMetaEffects()` undoes the wallpaper, the taskbar, the hidden
+windows, the window style/alpha/color-key, always-on-top, the window title and
+any running taskbar flash, and cancels a pending `typeText`.
+
+The engine also installs an exit hook at startup, so quitting the game (even
+with alt-F4) restores the desktop. That hook only runs when the **game**
+exits, so still call `restoreAllMetaEffects()` from `onSongEnd` and
+`onGameOver`.
+
+:::info[Two functions are namespaced]
+
+`setWindowAlpha` and `setWindowTransparencyColor` belong to the transparent
+window feature. The META_HORROR window-style equivalents are
+`setMetaWindowAlpha`, `setMetaWindowColorKey` and `resetMetaWindowEffects`.
+
+:::
+
+## Sandbox rules
+
+Sandboxed softmods need an allowlist entry for the calls that reach past the
+game window:
+
+| Script call | `scriptSandboxAllowlist` rule |
+| --- | --- |
+| `getClipboardText`, `setClipboardText` | `engine.clipboard` |
+| `getOpenWindowTitles` | `engine.window-list` |
+| `captureDesktop` | `engine.screen-capture` |
 
 ## Behaviour on unsupported platforms
 

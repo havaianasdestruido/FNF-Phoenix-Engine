@@ -88,16 +88,20 @@ python3 tools/platform_icon_preview.py --sizes 16 24 48 128 --out /tmp/badges.pn
 ## Regression checks
 
 ```sh
-python3 -m unittest tests.test_platform_icons -v
 bash tests/haxe/run-platform-icons.sh      # needs the Haxe compiler
 ```
 
 The Haxe spec runs the real detection/density/raster math under `--interp`, once
-per target define (including `-D air -D flash`, where AIR has to win), and walks
-the artwork to prove nothing leaves the grid. The Python test parses the same
-artwork and guards the call sites: HUD camera, resize reflow, alpha tweens,
-preference and options entry. Both run in the **Checks** workflow.
+per target define (`windows`, `mac`, `linux`, `android`, `ios`, `html5`, `air`,
+plus a run with no define at all), and walks the artwork to prove nothing leaves
+the grid. Flash is the exception: `flash` is a *reserved* compiler flag that
+cannot be set with `-D`, so the Flash and AIR branches are type-checked by
+compiling the spec for the real SWF target (`--swf … --no-output`, with `-D air`
+for the AIR case, which is exactly the build where both branches match). The
+rule that AIR wins over Flash is asserted by the `-D air --interp` run, where
+`detect()` must return `AIR` even though `flash` is also defined. It runs in the
+**Checks** workflow.
 
-Neither can prove pixel-perfect rendering: for release validation, look at the
+The spec cannot prove pixel-perfect rendering: for release validation, look at the
 watermark corner at 1280×720 and fullscreen on a HiDPI display, and on a phone
 build, with each `Watermark Style` value.

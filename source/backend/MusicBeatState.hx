@@ -223,20 +223,39 @@ class MusicBeatState extends FlxUIState
 	}
 
 	override function create() {
+		// A runtime editor lock applies to every editor state, including states
+		// reached through debug shortcuts or a mod menu rather than the main menu.
+		var className:Null<String> = Type.getClassName(Type.getClass(this));
+		if (!RuntimeFlags.getBool("editors.enabled", true) && className != null && StringTools.startsWith(className, "editors."))
+		{
+			FlxG.switchState(states.MainMenuState.new);
+			return;
+		}
+
 		loadStateScripts();
 		camBeat = FlxG.camera;
+		var transitionsEnabled:Bool = RuntimeFlags.getBool("transitions.enabled", true);
+		if (!transitionsEnabled)
+		{
+			FlxTransitionableState.skipNextTransIn = true;
+			FlxTransitionableState.skipNextTransOut = true;
+		}
 		var skip:Bool = FlxTransitionableState.skipNextTransOut;
 		super.create();
 
 		if(!_psychCameraInitialized && !Main.isPlayState()) initPsychCamera();
 
-		if(!skip) {
+		if(!skip && transitionsEnabled) {
 			openSubState(new CustomFadeTransition(0.7, true));
 		}
 		FlxTransitionableState.skipNextTransOut = false;
 
-		try {windowNamePrefix = Assets.getText(Paths.txt("windowTitleBase", "preload"));}
+		var defaultTitle:String = windowNamePrefix;
+		try {defaultTitle = Assets.getText(Paths.txt("windowTitleBase", "preload"));}
 		catch(e) {}
+		windowNamePrefix = RuntimeFlags.windowTitle(defaultTitle);
+		if (windowNameSuffix2 == " (BETA)" || windowNameSuffix2.length == 0)
+			windowNameSuffix2 = RuntimeFlags.getBool("warnings.beta", true) && RuntimeFlags.isPrerelease() ? " (BETA)" : "";
 
 		#if !flash
 		Application.current.window.title = windowNamePrefix + windowNameSuffix + windowNameSuffix2;
@@ -347,7 +366,7 @@ class MusicBeatState extends FlxUIState
 
 	override function startOutro(onOutroComplete:()->Void):Void
 	{
-		if (!FlxTransitionableState.skipNextTransIn)
+		if (!FlxTransitionableState.skipNextTransIn && RuntimeFlags.getBool("transitions.enabled", true))
 		{
 			openSubState(new CustomFadeTransition(0.6, false));
 			CustomFadeTransition.finishCallback = onOutroComplete;

@@ -14,7 +14,7 @@ Usage::
     python3 tools/platform_icon_preview.py --out /tmp/badges.png --background 1a1a1a
 
 Rendering needs Pillow (``pip install Pillow``); the parser underneath is
-plain stdlib and is reused by ``tests/test_platform_icons.py``.
+plain stdlib.
 """
 
 from __future__ import annotations

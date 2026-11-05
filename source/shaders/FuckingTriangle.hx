@@ -70,6 +70,68 @@ class FuckingTriangle extends FlxShader
 				return flixel_texture2D(bitmap, uv);
 			}
 
+			// perspective()/translate()/rotateX()/rotateY()/bary()/baryLerp()/
+			// uvLerp() were called below but never defined anywhere, so this
+			// shader could not compile at all. Standard implementations:
+			// fov and the rotation uniforms are in degrees (rotX/rotY default
+			// to -25/45 from the Haxe constructor), matrices are the usual
+			// OpenGL clip-space ones (column-major constructors).
+			mat4 perspective(float fovDegrees, float aspect, float near, float far) {
+				float f = 1.0 / tan(radians(fovDegrees) * 0.5);
+				float nf = 1.0 / (near - far);
+				return mat4(
+					f / aspect, 0.0, 0.0, 0.0,
+					0.0, f, 0.0, 0.0,
+					0.0, 0.0, (far + near) * nf, -1.0,
+					0.0, 0.0, 2.0 * far * near * nf, 0.0);
+			}
+
+			mat4 translate(vec3 t) {
+				return mat4(
+					1.0, 0.0, 0.0, 0.0,
+					0.0, 1.0, 0.0, 0.0,
+					0.0, 0.0, 1.0, 0.0,
+					t.x, t.y, t.z, 1.0);
+			}
+
+			mat4 rotateX(float angleDegrees) {
+				float c = cos(radians(angleDegrees));
+				float s = sin(radians(angleDegrees));
+				return mat4(
+					1.0, 0.0, 0.0, 0.0,
+					0.0, c, s, 0.0,
+					0.0, -s, c, 0.0,
+					0.0, 0.0, 0.0, 1.0);
+			}
+
+			mat4 rotateY(float angleDegrees) {
+				float c = cos(radians(angleDegrees));
+				float s = sin(radians(angleDegrees));
+				return mat4(
+					c, 0.0, -s, 0.0,
+					0.0, 1.0, 0.0, 0.0,
+					s, 0.0, c, 0.0,
+					0.0, 0.0, 0.0, 1.0);
+			}
+
+			vec3 bary(vec2 a, vec2 b, vec2 c, vec2 p) {
+				vec2 v0 = b - a;
+				vec2 v1 = c - a;
+				vec2 v2 = p - a;
+				float den = v0.x * v1.y - v1.x * v0.y;
+				float v = (v2.x * v1.y - v1.x * v2.y) / den;
+				float w = (v0.x * v2.y - v2.x * v0.y) / den;
+				return vec3(1.0 - v - w, v, w);
+			}
+
+			float baryLerp(float a, float b, float c, vec3 tri) {
+				return a * tri.x + b * tri.y + c * tri.z;
+			}
+
+			vec2 uvLerp(vec2 a, vec2 b, vec2 c, vec3 tri) {
+				return a * tri.x + b * tri.y + c * tri.z;
+			}
+
 			const float fov  = 70.0;
 			const float near = 0.1;
 			// FIX: 10. -> 10.0
@@ -82,12 +144,11 @@ class FuckingTriangle extends FlxShader
 			uniform float rotX;
 			uniform float rotY;
 
-			vec4 pixel(in vec2 ndc, in float aspect, inout float depth, in int vertexIndex) {
-				mat4 proj  = perspective(fov, aspect, near, far);
-				mat4 view  = translate(-cameraPos);
-				mat4 model = rotateX(rotX) * rotateY(rotY);
-				mat4 mvp  = proj * view * model;
-
+			// The MVP matrix is built once in main() and passed in: pixel() used
+			// to rebuild the projection/view/model matrices (two trig-based
+			// rotations and two mat4*mat4 multiplies) for each of the six
+			// triangles, even though the result never changes between calls.
+			vec4 pixel(in vec2 ndc, in mat4 mvp, inout float depth, in int vertexIndex) {
 				// FIX: use getVertex/getTexCoord instead of array indexing
 				vec4 v0 = vertexShader(getVertex(vertexIndex  ), mvp);
 				vec4 v1 = vertexShader(getVertex(vertexIndex+1), mvp);
@@ -133,19 +194,21 @@ void main()
 
     float depth = 1.0;
 
+    mat4 mvp = perspective(fov, aspect, near, far) * translate(-cameraPos) * (rotateX(rotX) * rotateY(rotY));
+
     // FIX: replaced for(int i = 0; i < 18; i += 3) loop with unrolled calls
     // (loop used array indexing which is now replaced with getVertex/getTexCoord)
-    vec4 triResult0 = pixel(ndc, aspect, depth, 0);
+    vec4 triResult0 = pixel(ndc, mvp, depth, 0);
     outColor = mix(outColor.rgb, triResult0.rgb, triResult0.a);
-    vec4 triResult1 = pixel(ndc, aspect, depth, 3);
+    vec4 triResult1 = pixel(ndc, mvp, depth, 3);
     outColor = mix(outColor.rgb, triResult1.rgb, triResult1.a);
-    vec4 triResult2 = pixel(ndc, aspect, depth, 6);
+    vec4 triResult2 = pixel(ndc, mvp, depth, 6);
     outColor = mix(outColor.rgb, triResult2.rgb, triResult2.a);
-    vec4 triResult3 = pixel(ndc, aspect, depth, 9);
+    vec4 triResult3 = pixel(ndc, mvp, depth, 9);
     outColor = mix(outColor.rgb, triResult3.rgb, triResult3.a);
-    vec4 triResult4 = pixel(ndc, aspect, depth, 12);
+    vec4 triResult4 = pixel(ndc, mvp, depth, 12);
     outColor = mix(outColor.rgb, triResult4.rgb, triResult4.a);
-    vec4 triResult5 = pixel(ndc, aspect, depth, 15);
+    vec4 triResult5 = pixel(ndc, mvp, depth, 15);
     outColor = mix(outColor.rgb, triResult5.rgb, triResult5.a);
 
     // FIX: 1. -> 1.0

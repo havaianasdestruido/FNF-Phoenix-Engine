@@ -1,6 +1,5 @@
 package editors.helpers;
 
-// REFACTOR: dialogue JSON load/save FileReference plumbing extracted from
 // editors.DialogueCharacterEditorState and editors.DialogueEditorState (behavior-preserving)
 
 import editors.DialogueCharacterEditorState;

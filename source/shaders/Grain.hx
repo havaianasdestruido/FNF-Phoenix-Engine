@@ -1,5 +1,4 @@
-﻿package shaders;
-
+package shaders;
 
 import flixel.system.FlxAssets.FlxShader;
 
@@ -30,11 +29,10 @@ class Grain extends FlxShader
 		const float permTexUnit = 1.0/256.0;        // Perm texture texel-size
 		const float permTexUnitHalf = 0.5/256.0;    // Half perm texture texel-size
 
-		float width = openfl_TextureSize.x;
-		float height = openfl_TextureSize.y;
-
 		const float grainamount = 0.05; //grain amount
-		bool colored = false; //colored noise?
+		// `const` (was a mutable global) so every driver is guaranteed to
+		// dead-code-eliminate the two extra pnoise3D evaluations in main().
+		const bool colored = false; //colored noise?
 		uniform float coloramount;
 		uniform float grainsize; //grain particle size (1.5 - 2.5)
 		uniform float lumamount; //
@@ -109,7 +107,7 @@ class Grain extends FlxShader
 		//2d coordinate orientation thing
 		vec2 coordRot(in vec2 tc, in float angle)
 		{
-			float aspect = width/height;
+			float aspect = openfl_TextureSize.x/openfl_TextureSize.y;
 			float rotX = ((tc.x*2.0-1.0)*aspect*cos(angle)) - ((tc.y*2.0-1.0)*sin(angle));
 			float rotY = ((tc.y*2.0-1.0)*cos(angle)) + ((tc.x*2.0-1.0)*aspect*sin(angle));
 			rotX = ((rotX/aspect)*0.5+0.5);
@@ -120,20 +118,26 @@ class Grain extends FlxShader
 		void main()
 		{
 			vec2 texCoord = openfl_TextureCoordv.st;
+			// width/grainsize and height/grainsize were recomputed for every
+			// pnoise3D call (and kept in globals initialized from a uniform,
+			// which strict GLSL ES does not allow). Compute the scale once.
+			vec2 grainScale = openfl_TextureSize/grainsize;
 
 			vec3 rotOffset = vec3(1.425,3.892,5.835); //rotation offset values
 			vec2 rotCoordsR = coordRot(texCoord, uTime + rotOffset.x);
-			vec3 noise = vec3(pnoise3D(vec3(rotCoordsR*vec2(width/grainsize,height/grainsize),0.0)));
+			vec3 noise = vec3(pnoise3D(vec3(rotCoordsR*grainScale,0.0)));
 
 			if (colored)
 			{
 				vec2 rotCoordsG = coordRot(texCoord, uTime + rotOffset.y);
 				vec2 rotCoordsB = coordRot(texCoord, uTime + rotOffset.z);
-				noise.g = mix(noise.r,pnoise3D(vec3(rotCoordsG*vec2(width/grainsize,height/grainsize),1.0)),coloramount);
-				noise.b = mix(noise.r,pnoise3D(vec3(rotCoordsB*vec2(width/grainsize,height/grainsize),2.0)),coloramount);
+				noise.g = mix(noise.r,pnoise3D(vec3(rotCoordsG*grainScale,1.0)),coloramount);
+				noise.b = mix(noise.r,pnoise3D(vec3(rotCoordsB*grainScale,2.0)),coloramount);
 			}
 
-			vec3 col = texture2D(bitmap, openfl_TextureCoordv).rgb;
+			// Single fetch: the same texel was sampled again below just for alpha.
+			vec4 texColor = texture2D(bitmap, openfl_TextureCoordv);
+			vec3 col = texColor.rgb;
 
 			//noisiness response curve based on scene luminance
 			vec3 lumcoeff = vec3(0.299,0.587,0.114);
@@ -144,10 +148,8 @@ class Grain extends FlxShader
 			noise = mix(noise,vec3(0.0),pow(lum,4.0));
 			col = col+noise*grainamount;
 
-				float bitch = 1.0;
-			vec4 texColor = texture2D(bitmap, openfl_TextureCoordv);
-				if (lockAlpha) bitch = texColor.a;
-			gl_FragColor =  vec4(col,bitch);
+			float outAlpha = lockAlpha ? texColor.a : 1.0;
+			gl_FragColor =  vec4(col,outAlpha);
 		}')
   public function new()
   {

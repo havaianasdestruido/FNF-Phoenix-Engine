@@ -7,7 +7,6 @@ import play.PlayState;
 
 import utils.DateUtils;
 
-// REFACTOR: ffmpeg render pipeline extracted from play.PlayState
 @:access(play.PlayState)
 @:access(backend.MusicBeatState)
 class PlayStateRender

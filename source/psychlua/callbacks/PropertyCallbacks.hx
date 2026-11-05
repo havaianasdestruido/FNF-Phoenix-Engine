@@ -7,7 +7,6 @@ import psychlua.FunkinLua;
 import headers.PsychLua;
 import Type.ValueType;
 
-// REFACTOR: extracted from psychlua.FunkinLua (getProperty / setProperty family)
 class PropertyCallbacks
 {
 	public static function register(funk:FunkinLua):Void {

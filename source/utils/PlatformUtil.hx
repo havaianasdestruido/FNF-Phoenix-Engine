@@ -26,10 +26,18 @@ class PlatformUtil
         return Windows.__setWindowTransparencyAlpha(opacity);
     }
 
-    /** Show a Windows notification-area message; false on unsupported targets. */
+    /** Request a desktop notification. Success means the platform accepted the request,
+     * not necessarily that it was displayed (system notification settings may suppress it). */
     public static function sendNotification(title:String, message:String):Bool
     {
+        if (title == null || message == null) return false;
+        #if windows
         return Windows.sendWindowsNotification(title, message);
+        #elseif ((linux && !android) || (mac && !ios))
+        return PlatformUtilNative.sendDesktopNotification(title, message);
+        #else
+        return false;
+        #end
     }
 
     /** Shows the native crash dialog available on the current desktop platform. */
@@ -51,11 +59,16 @@ class PlatformUtil
 		return PlatformUtilNative.detectWineNative();
 	}
 
-	
+
 	public static function getArch():String {
 		return PlatformUtilNative.getArchNative();
 	}
 	#end
+
+    #if !cpp
+    /** Non-native targets cannot show shell notifications. */
+    public static function sendNotification(title:String, message:String):Bool return false;
+    #end
 
     /**
      * Trace helper for 4th-wall-breaking (`META_HORROR`) effects called on a

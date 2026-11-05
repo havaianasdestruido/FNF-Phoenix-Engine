@@ -1,6 +1,5 @@
 package editors.helpers;
 
-// REFACTOR: imports for types used by the extracted helpers
 import backend.CoolUtil;
 #if MODS_ALLOWED
 #end
@@ -14,7 +13,6 @@ import objects.Character.AnimArray;
 import objects.FlxUIDropDownMenuCustom;
 import openfl.utils.AssetType;
 
-// REFACTOR: character list / positioning logic extracted from editors.CharacterEditorState
 @:access(editors.CharacterEditorState)
 class CharacterEditorHelpers
 {

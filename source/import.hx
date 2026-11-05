@@ -1,8 +1,6 @@
 ﻿#if !macro
-// REFACTOR: root classes relocated; Paths -> backend, BaseStage -> play
 import backend.Paths;
 
-// REFACTOR: imports for relocated root classes
 import play.BaseStage;
 
 #if sys

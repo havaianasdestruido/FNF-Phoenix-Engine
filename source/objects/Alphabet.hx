@@ -3,6 +3,8 @@ package objects;
 import backend.Paths;
 import backend.ClientPrefs;
 import backend.ScreenLayout;
+import flixel.graphics.FlxGraphic;
+import objects.AlphabetFont.AlphabetFontDef;
 
 enum Alignment
 {
@@ -38,7 +40,42 @@ class Alphabet extends FlxSpriteGroup
 		this.startPosition.x = x;
 		this.startPosition.y = y;
 		this.bold = bold;
+		liveGroups.push(this);
 		this.text = text;
+	}
+
+	/**
+	 * Every alphabet that is still alive, so that changing the alphabet style or font in
+	 * Options -> Visuals and UI redraws the menus the player is looking at. Entries are
+	 * dropped in `destroy()` and pruned every time the list is walked.
+	 */
+	public static var liveGroups:Array<Alphabet> = [];
+
+	/**
+	 * Rebuilds every live alphabet with the current `ClientPrefs.alphabetStyle` and
+	 * `ClientPrefs.alphabetFont`. Letters already on screen keep their position, alignment
+	 * and scale; only the way each glyph is drawn changes.
+	 */
+	public static function reloadAll()
+	{
+		var i:Int = liveGroups.length;
+		while (i-- > 0)
+		{
+			var group:Alphabet = liveGroups[i];
+			if (group == null || !group.exists)
+			{
+				liveGroups.splice(i, 1);
+				continue;
+			}
+			var current:String = group.text;
+			group.text = (current == null) ? '' : current; //set_text recreates every letter
+		}
+	}
+
+	override function destroy()
+	{
+		liveGroups.remove(this);
+		super.destroy();
 	}
 
 	public function setAlignmentFromString(align:String)
@@ -189,7 +226,18 @@ class Alphabet extends FlxSpriteGroup
 
 	private static var Y_PER_ROW:Float = 100;
 
+	/**
+	 * Draws `newText` with whichever renderer the player picked: glyphs rasterized from a
+	 * font (default, see `objects.AlphabetFont`) or the classic `images/alphabet` spritesheet.
+	 */
 	private function createLetters(newText:String)
+	{
+		if (AlphabetFont.currentUsesImages()) createImageLetters(newText);
+		else createFontLetters(newText);
+	}
+
+	/** Spritesheet renderer: every glyph is a frame of `images/alphabet`. */
+	private function createImageLetters(newText:String)
 	{
 		var consecutiveSpaces:Int = 0;
 
@@ -242,6 +290,78 @@ class Alphabet extends FlxSpriteGroup
 				xPos = 0;
 				rows++;
 			}
+		}
+
+		for (letter in letters)
+		{
+			letter.rowWidth = rowData[letter.row] / scale.x;
+		}
+
+		if(letters.length > 0) rows++;
+	}
+
+	/**
+	 * Font renderer: glyphs are rasterized from `ClientPrefs.alphabetFont` (VCR OSD Mono or
+	 * Inconsolata) instead of being frames of `images/alphabet`.
+	 *
+	 * Two differences from the spritesheet path: any printable character can be drawn, not
+	 * only the ones listed in `AlphaCharacter.allLetters`, and the spacing comes from the
+	 * font's own advance widths, so no per letter offset table is needed.
+	 */
+	private function createFontLetters(newText:String)
+	{
+		var def:AlphabetFontDef = AlphabetFont.resolveFont();
+		var lineHeight:Float = AlphabetFont.lineHeightFor(def, bold);
+		var spaceWidth:Float = AlphabetFontRenderer.spaceAdvance(def, bold);
+
+		var consecutiveSpaces:Int = 0;
+
+		var xPos:Float = 0;
+		var rowData:Array<Float> = [];
+		rows = 0;
+		for (character in newText.split(''))
+		{
+			if(character == '\n')
+			{
+				xPos = 0;
+				rows++;
+				continue;
+			}
+
+			if (character == " " || (bold && character == "_"))
+			{
+				consecutiveSpaces++;
+				continue;
+			}
+
+			if (!AlphabetFont.supports(character)) continue;
+
+			if (consecutiveSpaces > 0)
+			{
+				xPos += spaceWidth * consecutiveSpaces * scaleX;
+				rowData[rows] = xPos;
+				if(!bold && xPos >= ScreenLayout.BASE_WIDTH * 0.65)
+				{
+					xPos = 0;
+					rows++;
+				}
+			}
+			consecutiveSpaces = 0;
+
+			var letter:AlphaCharacter = cast recycle(AlphaCharacter, true);
+			letter.scale.x = scaleX;
+			letter.scale.y = scaleY;
+			letter.rowWidth = 0;
+
+			letter.setupAlphaCharacter(xPos, rows * lineHeight * scale.y, character, bold);
+			@:privateAccess letter.parent = this;
+
+			letter.row = rows;
+			xPos += letter.width; //the glyph box already carries the font's advance
+			rowData[rows] = xPos;
+
+			add(letter);
+			letters.push(letter);
 		}
 
 		for (letter in letters)
@@ -348,10 +468,16 @@ class AlphaCharacter extends FlxSprite
 	public var row:Int = 0;
 	public var rowWidth:Float = 0;
 	public var character:String = '?';
+	/** `true` while this letter is a glyph rasterized from a font instead of a spritesheet frame. */
+	public var fontGlyph:Bool = false;
+	/** Set when a script points `image` at a spritesheet, pinning this letter to the spritesheet. */
+	public var forceImage:Bool = false;
+	var curBold:Bool = true;
 	public function new()
 	{
 		super(x, y);
-		image = 'alphabet';
+		//The font renderer rasterizes glyphs on demand, so only the spritesheet path needs this.
+		if (AlphabetFont.currentUsesImages()) image = 'alphabet';
 		antialiasing = ClientPrefs.globalAntialiasing;
 	}
 
@@ -372,40 +498,82 @@ class AlphaCharacter extends FlxSprite
 		if(character != null)
 		{
 			this.character = character;
+			forceImage = false; //recycled letters start clean, a script can pin them again
+			curBold = (bold == null) ? true : bold;
 			curLetter = null;
 			var lowercase:String = this.character.toLowerCase();
 			if(allLetters.exists(lowercase)) curLetter = allLetters.get(lowercase);
 			else curLetter = allLetters.get('?');
 
-			var suffix:String = '';
-			if(!bold)
-			{
-				if(isTypeAlphabet(lowercase))
-				{
-					if(lowercase != this.character)
-						suffix = ' uppercase';
-					else
-						suffix = ' lowercase';
-				}
-				else suffix = ' normal';
-			}
-			else suffix = ' bold';
-
-			var alphaAnim:String = lowercase;
-			if(curLetter != null && curLetter.anim != null) alphaAnim = curLetter.anim;
-
-			var anim:String = alphaAnim + suffix;
-			if (animation.getByName(anim) == null) animation.addByPrefix(anim, anim, 24);
-			animation.play(anim, true);
-			if(animation.curAnim == null)
-			{
-				if(suffix != ' bold') suffix = ' normal';
-				anim = 'question' + suffix;
-				if (animation.getByName(anim) == null) animation.addByPrefix(anim, anim, 24);
-				animation.play(anim, true);
-			}
+			if (!forceImage && !AlphabetFont.currentUsesImages()) setupFontGlyph(curBold);
+			else setupImageGlyph(curBold);
 		}
 		updateHitbox();
+	}
+
+	/**
+	 * Draws `character` from the spritesheet: plays the `images/alphabet` animation matching
+	 * the character and its weight.
+	 */
+	private function setupImageGlyph(bold:Bool)
+	{
+		fontGlyph = false;
+		antialiasing = ClientPrefs.globalAntialiasing;
+		if (frames == null)
+		{
+			var atlas:String = (image == null || image.length == 0) ? 'alphabet' : image;
+			frames = getCachedFrames(atlas);
+		}
+
+		var lowercase:String = character.toLowerCase();
+		var suffix:String = '';
+		if(!bold)
+		{
+			if(isTypeAlphabet(lowercase))
+			{
+				if(lowercase != character)
+					suffix = ' uppercase';
+				else
+					suffix = ' lowercase';
+			}
+			else suffix = ' normal';
+		}
+		else suffix = ' bold';
+
+		var alphaAnim:String = lowercase;
+		if(curLetter != null && curLetter.anim != null) alphaAnim = curLetter.anim;
+
+		var anim:String = alphaAnim + suffix;
+		if (animation.getByName(anim) == null) animation.addByPrefix(anim, anim, 24);
+		animation.play(anim, true);
+		if(animation.curAnim == null)
+		{
+			if(suffix != ' bold') suffix = ' normal';
+			anim = 'question' + suffix;
+			if (animation.getByName(anim) == null) animation.addByPrefix(anim, anim, 24);
+			animation.play(anim, true);
+		}
+	}
+
+	/**
+	 * Draws `character` as a glyph of the font the player picked (see `objects.AlphabetFont`
+	 * and `objects.AlphabetFontRenderer`). Falls back to the spritesheet when the font file
+	 * cannot be loaded, so a stripped or broken asset never leaves the menus blank.
+	 */
+	private function setupFontGlyph(bold:Bool)
+	{
+		var def:AlphabetFontDef = AlphabetFont.resolveFont();
+		var graphic:FlxGraphic = AlphabetFontRenderer.glyph(def, character, bold);
+		if (graphic == null)
+		{
+			setupImageGlyph(bold);
+			return;
+		}
+
+		fontGlyph = true;
+		antialiasing = true; //glyphs are rasterized large and scaled down, so they need filtering
+		letterOffset = [0, 0]; //one shared box per font already shares the baseline
+		loadGraphic(graphic);
 	}
 
 	public static function isTypeAlphabet(c:String) // thanks kade
@@ -444,8 +612,13 @@ class AlphaCharacter extends FlxSprite
 		}
 		image = name;
 		frames = getCachedFrames(name);
-		this.scale.x = parent.scaleX;
-		this.scale.y = parent.scaleY;
+		fontGlyph = false;
+		forceImage = true; //a script asked for a spritesheet, keep this letter on it
+		if (parent != null)
+		{
+			this.scale.x = parent.scaleX;
+			this.scale.y = parent.scaleY;
+		}
 		alignOffset = 0;
 
 		if (lastAnim != null)
@@ -455,14 +628,27 @@ class AlphaCharacter extends FlxSprite
 
 			updateHitbox();
 		}
+		else if (character != null) //was a font glyph: play its spritesheet animation
+		{
+			setupImageGlyph(curBold);
+			updateHitbox();
+		}
 		return name;
 	}
 
 	public function updateLetterOffset()
 	{
+		if (fontGlyph)
+		{
+			//Every glyph of a font shares one box height and one baseline, so there is
+			//nothing to realign here; explicit offsets (set by a script) still apply.
+			offset.x += letterOffset[0] * scale.x;
+			offset.y += letterOffset[1] * scale.y;
+			return;
+		}
+
 		if (animation.curAnim == null)
 		{
-			trace(character);
 			return;
 		}
 

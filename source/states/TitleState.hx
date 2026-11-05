@@ -91,7 +91,7 @@ class TitleState extends MusicBeatState
 
     MusicBeatState.windowNameSuffix = " - Title Screen";
 
-    MusicBeatState.windowNamePrefix = Assets.getText(Paths.txt("windowTitleBase", "preload"));
+    MusicBeatState.windowNamePrefix = backend.RuntimeFlags.windowTitle(Assets.getText(Paths.txt("windowTitleBase", "preload")));
 
     curWacky = FlxG.random.getObject(getIntroText());
 
@@ -247,15 +247,80 @@ class TitleState extends MusicBeatState
     if (!exists)
       return;
 
-    openSubState(new objects.Prompt('The game was interrupted during "${data.song}".\n\nResume it now?', 0, function()
+    // Extract resume state — validated and clamped.
+    var resumePosition:Null<Float> = null;
+    var resumeRate:Null<Float> = null;
+    var resumeHealth:Null<Float> = null;
+    var resumePractice:Null<Bool> = null;
+    var resumeBotplay:Null<Bool> = null;
+    try
+    {
+      if (data.songPosition != null)
+      {
+        var pos:Float = Std.parseFloat(Std.string(data.songPosition));
+        if (Math.isFinite(pos) && pos > 2000 && pos < 10 * 60 * 1000)
+          resumePosition = pos;
+      }
+      if (data.playbackRate != null)
+      {
+        var rate:Float = Std.parseFloat(Std.string(data.playbackRate));
+        if (Math.isFinite(rate) && rate > 0.25 && rate < 4.0)
+          resumeRate = rate;
+      }
+      if (data.health != null)
+      {
+        var h:Float = Std.parseFloat(Std.string(data.health));
+        if (Math.isFinite(h) && h >= 0 && h <= 2.5)
+          resumeHealth = h;
+      }
+      if (data.practiceMode != null) resumePractice = (data.practiceMode == true);
+      if (data.botplay != null) resumeBotplay = (data.botplay == true);
+    }
+    catch (e:Dynamic) {}
+
+    // Engine version check — reject blobs from another build so a renamed
+    // field or migrated chart does not half-apply and corrupt the session.
+    if (data.engineVersion != null)
+    {
+      var blobVersion:String = Std.string(data.engineVersion);
+      if (blobVersion.length > 0 && blobVersion != backend.PhoenixVersion.current && blobVersion != backend.PhoenixVersion.FALLBACK)
+      {
+        trace('Recovery: rejecting blob from different engine version ($blobVersion vs ${backend.PhoenixVersion.current})');
+        return;
+      }
+    }
+
+    var detail:String = '${data.song}';
+    if (resumePosition != null && resumePosition > 5000)
+      detail += ' @ ${formatRecoveryTime(resumePosition)}';
+
+    openSubState(new objects.Prompt('The game was interrupted during "' + detail + '".\n\nResume ' + (resumePosition != null ? "where you left off" : "from the start") + '?', 0, function()
     {
       PlayState.SONG = Song.loadFromJson(poop, songLowercase);
       PlayState.storyDifficulty = diffIndex;
       PlayState.isStoryMode = false;
       PlayState.wasOriginallyFreeplay = true;
       CoolUtil.currentDifficulty = CoolUtil.difficultyString();
+      if (resumePosition != null)
+        PlayState.startOnTime = resumePosition;
+      if (resumeRate != null)
+        PlayState.startOnTimeRate = resumeRate;
+      if (resumeHealth != null)
+        PlayState.startOnTimeHealth = resumeHealth;
+      if (resumePractice != null)
+        PlayState.startOnTimePractice = resumePractice;
+      if (resumeBotplay != null)
+        PlayState.startOnTimeBotplay = resumeBotplay;
       LoadingState.loadAndSwitchState(PlayState.new);
     }, null, true));
+  }
+
+  static function formatRecoveryTime(ms:Float):String
+  {
+    var total:Int = Std.int(ms / 1000);
+    var m:Int = Std.int(total / 60);
+    var s:Int = total % 60;
+    return '' + m + ':' + StringTools.lpad("" + s, "0", 2);
   }
   #end
 

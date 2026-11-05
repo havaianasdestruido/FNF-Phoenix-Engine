@@ -16,7 +16,6 @@ import objects.DialogueBoxPsych.DialogueFile;
 
 import objects.Character;
 
-// REFACTOR: extracted from psychlua.FunkinLua (song flow / score / characters / gameplay events)
 class GameCallbacks
 {
 	public static function register(funk:FunkinLua):Void {

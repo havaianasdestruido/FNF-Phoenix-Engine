@@ -138,11 +138,9 @@ null. `FlxGame.create()` reapplies the resize after creating the first state.
 Without this guard, startup can crash after dismissing the old notice and
 fail again without a notice on relaunch.
 
-Regression checks: `python3 -m unittest discover -s tests -p 'test_mobile_startup.py' -v`.
-With Haxe on PATH (or `HAXE` set), this also executes the production storage
-initializer and resize method against host-side boundary stubs. Device checks
-still need a rebuilt APK: test a fresh install, force-stop/relaunch, an upgrade
-preserving existing mods/saves, and background/resume during initial asset copying.
+Device checks need a rebuilt APK: test a fresh install, force-stop/relaunch, an
+upgrade preserving existing mods/saves, and background/resume during initial
+asset copying.
 
 ### System-visible app directories (`PhoenixDocumentsProvider`)
 
@@ -209,6 +207,78 @@ a no-op outside `#if android` unless noted.
 | `AndroidNotification` | Notifications | `notify(id, title, text)`, `notifyEvent(id, title, text)` (opt-in), `cancel(id)`, `requestPermission()` (API 33+) |
 | `AndroidStorage` | SAF / content URIs | `openDocument`, `createDocument`, `openDocumentTree`, `readUriBytes/Text`, `writeUriBytes/Text`, `importUri`, `exportFileToUri`, `persistUriPermission`, `extensionToMime` |
 | `AndroidDiscord` | Presence stand-in | No-op on Android: keeps `DiscordClient` platform-agnostic without ever touching the media session, which is owned by `PlayStateAndroidMedia` (Discord RPC is desktop-only) |
+
+
+### JNI Bridge Contract
+
+There are 56 `JNI.createStaticMethod` sites in `source/android/platform/` (plus external SDL bindings).
+Each binds a Java method by string name *and* signature. A Java rename or
+signature edit still compiles and fails only at runtime as a silent no-op.
+
+*   Validate: `python3 tools/check_android_bridge.py --check` (also run in CI).
+*   Regenerate this table: `python3 tools/check_android_bridge.py > docs/table.md` (Phoenix rows only).
+
+| Haxe Module | Java Class | Method | Signature | Status |
+|---|---|---|---|---|
+| `AndroidSystem.hx` | `PhoenixCore` | `acquireWakeLock` | `()V` | OK |
+| `AndroidBridge.hx` | `PhoenixCore` | `clearPendingDeepLink` | `()V` | OK |
+| `AndroidSystem.hx` | `PhoenixCore` | `getBatteryInfo` | `()Ljava/lang/String;` | OK |
+| `AndroidSystem.hx` | `PhoenixCore` | `getDeviceInfo` | `()Ljava/lang/String;` | OK |
+| `StorageUtil.hx` | `PhoenixCore` | `getExternalFilesDir` | `()Ljava/lang/String;` | OK |
+| `AndroidBridge.hx` | `PhoenixCore` | `getPendingDeepLink` | `()Ljava/lang/String;` | OK |
+| `AndroidSystem.hx` | `PhoenixCore` | `getRecoveryState` | `()Ljava/lang/String;` | OK |
+| `AndroidSystem.hx` | `PhoenixCore` | `getSDKInt` | `()I` | OK |
+| `AndroidBridge.hx` | `PhoenixCore` | `registerCallback` | `(Lorg/haxe/lime/HaxeObject;)V` | OK |
+| `AndroidSystem.hx` | `PhoenixCore` | `releaseWakeLock` | `()V` | OK |
+| `AndroidNotification.hx` | `PhoenixCore` | `requestNotificationPermission` | `()V` | OK |
+| `AndroidSystem.hx` | `PhoenixCore` | `setRecoveryState` | `(Ljava/lang/String;)V` | OK |
+| `AndroidDisplay.hx` | `PhoenixDisplay` | `getCutoutInsets` | `()Ljava/lang/String;` | OK |
+| `AndroidDisplay.hx` | `PhoenixDisplay` | `getDisplayInfo` | `()Ljava/lang/String;` | OK |
+| `AndroidDisplay.hx` | `PhoenixDisplay` | `registerDisplayListener` | `()V` | OK |
+| `AndroidDisplay.hx` | `PhoenixDisplay` | `setCutoutMode` | `(Ljava/lang/String;)V` | OK |
+| `AndroidDisplay.hx` | `PhoenixDisplay` | `setImmersive` | `(Ljava/lang/String;)V` | OK |
+| `AndroidDisplay.hx` | `PhoenixDisplay` | `setPreferredRefreshRate` | `(F)V` | OK |
+| `AndroidHaptics.hx` | `PhoenixInput` | `cancelVibration` | `()V` | OK |
+| `AndroidGamepad.hx` | `PhoenixInput` | `getDeviceInfo` | `(I)Ljava/lang/String;` | OK |
+| `AndroidGamepad.hx` | `PhoenixInput` | `getGamepads` | `()Ljava/lang/String;` | OK |
+| `AndroidHaptics.hx` | `PhoenixInput` | `hasVibrator` | `()Z` | OK |
+| `AndroidGamepad.hx` | `PhoenixInput` | `registerGamepadListener` | `()V` | OK |
+| `AndroidHardwareInput.hx` | `PhoenixInput` | `setVolumeKeysIntercepted` | `(Z)V` | OK |
+| `AndroidHaptics.hx` | `PhoenixInput` | `vibrate` | `(J)V` | OK |
+| `AndroidGamepad.hx` | `PhoenixInput` | `vibrateGamepad` | `(IJ)Z` | OK |
+| `AndroidHaptics.hx` | `PhoenixInput` | `vibratePattern` | `(Ljava/lang/String;I)V` | OK |
+| `AndroidMedia.hx` | `PhoenixMedia` | `abandonAudioFocus` | `()V` | OK |
+| `AndroidNotification.hx` | `PhoenixMedia` | `cancelNotification` | `(I)V` | OK |
+| `AndroidMedia.hx` | `PhoenixMedia` | `createSession` | `()V` | OK |
+| `AndroidMedia.hx` | `PhoenixMedia` | `getAudioInfo` | `()Ljava/lang/String;` | OK |
+| `AndroidMedia.hx` | `PhoenixMedia` | `notifyMedia` | `(Ljava/lang/String;Ljava/lang/String;Z)V` | OK |
+| `AndroidNotification.hx` | `PhoenixMedia` | `notifySimple` | `(ILjava/lang/String;Ljava/lang/String;)V` | OK |
+| `AndroidMedia.hx` | `PhoenixMedia` | `releaseSession` | `()V` | OK |
+| `AndroidMedia.hx` | `PhoenixMedia` | `requestAudioFocus` | `()I` | OK |
+| `AndroidMedia.hx` | `PhoenixMedia` | `setActive` | `(Z)V` | OK |
+| `AndroidMedia.hx` | `PhoenixMedia` | `setMetadata` | `(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;JLjava/lang/String;)V` | OK |
+| `AndroidMedia.hx` | `PhoenixMedia` | `setPlaybackState` | `(IJF)V` | OK |
+| `AndroidMedia.hx` | `PhoenixMedia` | `startForegroundService` | `(Ljava/lang/String;Ljava/lang/String;Z)V` | OK |
+| `AndroidMedia.hx` | `PhoenixMedia` | `stopForegroundService` | `()V` | OK |
+| `AndroidStorage.hx` | `PhoenixStorage` | `copyUriToFile` | `(Ljava/lang/String;Ljava/lang/String;)Z` | OK |
+| `AndroidStorage.hx` | `PhoenixStorage` | `createDocument` | `(Ljava/lang/String;Ljava/lang/String;)V` | OK |
+| `AndroidStorage.hx` | `PhoenixStorage` | `getDisplayName` | `(Ljava/lang/String;)Ljava/lang/String;` | OK |
+| `AndroidStorage.hx` | `PhoenixStorage` | `getUriSize` | `(Ljava/lang/String;)J` | OK |
+| `AndroidStorage.hx` | `PhoenixStorage` | `openDocument` | `(Ljava/lang/String;Ljava/lang/String;)V` | OK |
+| `AndroidStorage.hx` | `PhoenixStorage` | `openDocumentTree` | `()V` | OK |
+| `AndroidIntents.hx` | `PhoenixStorage` | `openFile` | `(Ljava/lang/String;)V` | OK |
+| `AndroidIntents.hx` | `PhoenixStorage` | `openSettings` | `(Ljava/lang/String;)V` | OK |
+| `AndroidIntents.hx` | `PhoenixStorage` | `openUrl` | `(Ljava/lang/String;)V` | OK |
+| `AndroidStorage.hx` | `PhoenixStorage` | `persistUriPermission` | `(Ljava/lang/String;Z)V` | OK |
+| `AndroidStorage.hx` | `PhoenixStorage` | `readUriBytes` | `(Ljava/lang/String;)[B` | OK |
+| `AndroidBridge.hx` | `PhoenixStorage` | `registerStorageCallback` | `(Lorg/haxe/lime/HaxeObject;)V` | OK |
+| `AndroidIntents.hx` | `PhoenixStorage` | `shareFile` | `(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V` | OK |
+| `AndroidIntents.hx` | `PhoenixStorage` | `shareText` | `(Ljava/lang/String;Ljava/lang/String;)V` | OK |
+| `AndroidIntents.hx` | `PhoenixStorage` | `viewContentUri` | `(Ljava/lang/String;Ljava/lang/String;)V` | OK |
+| `AndroidStorage.hx` | `PhoenixStorage` | `writeUriBytes` | `(Ljava/lang/String;[B)Z` | OK |
+
+External SDL bindings (`org/libsdl/app/SDLActivity`) are provided by the
+Lime fork and not listed here.
 
 Common Android SDK classes (`android.Permissions`, `android.Settings`,
 `android.content.Context`, `android.os.Build`, `android.os.Environment`)
@@ -333,9 +403,7 @@ length/depth. `ModZipInstaller` then:
   the menu asks with a `Prompt` before doing so.
 
 Regression checks: `tests/haxe/run-mod-zip.sh` (interpreter spec for the path
-policy, central-directory parser and extractor) and
-`python3 -m unittest discover -s tests -p 'test_mod_zip_import.py' -v` (wiring,
-security rules and docs).
+policy, central-directory parser and extractor).
 
 ### System-visible app directories (`PhoenixDocumentsProvider`)
 

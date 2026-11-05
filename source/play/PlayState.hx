@@ -1,6 +1,5 @@
 package play;
 
-// REFACTOR: explicit imports for shader subtypes
 import shaders.ErrorHandledShader.ErrorHandledRuntimeShader;
 
 import backend.ClientPrefs;
@@ -38,7 +37,6 @@ import openfl.system.System;
 
 import play.BaseStage;
 import play.BaseStage.Countdown;
-// REFACTOR: import kept for safety against stale global `BaseStage.Countdown` in source\import.hx
 import play.CutsceneHandler;
 // The decomposed gameplay helpers live in `play.helpers`. Haxe only resolves
 // unqualified types from the current package (`play`), so every helper this file
@@ -57,6 +55,7 @@ import play.helpers.PlayStatePlayback;
 import play.helpers.PlayStateRating;
 import play.helpers.PlayStateRender;
 import play.helpers.PlayStateScripts;
+import play.helpers.PlayStateShaders;
 import play.helpers.PlayStateAndroidMedia;
 #if HSCRIPT_ALLOWED
 import psychlua.HScript;
@@ -81,7 +80,6 @@ import states.StoryMenuState;
 import states.substates.GameOverSubstate;
 import states.substates.PauseSubState;
 
-// REFACTOR: imports for relocated root classes
 import backend.Controls;
 import backend.Screenshot;
 import objects.Alphabet;
@@ -511,6 +509,10 @@ class PlayState extends MusicBeatState
 		// #88: per-play pool accounting so the debug overlay reports this song's numbers.
 		PoolStats.reset();
 
+		// [P3] Shader warm-up: every shader created from here on (stage filters,
+		// runtime shaders from scripts) is compiled before the countdown starts.
+		PlayStateShaders.beginLoad();
+
 		layoutWidth = FlxG.width;
 		FlxG.mouse.visible = false;
 		//Stops playing on a height that isn't divisible by 2
@@ -604,8 +606,8 @@ class PlayState extends MusicBeatState
 		hpDrainLevel = ClientPrefs.getGameplaySetting('drainlevel', 1);
 		instakillOnMiss = ClientPrefs.getGameplaySetting('instakill', false);
 		sickOnly = ClientPrefs.getGameplaySetting('onlySicks', false);
-		practiceMode = ClientPrefs.getGameplaySetting('practice', false);
-		cpuControlled = ClientPrefs.getGameplaySetting('botplay', false);
+		practiceMode = startOnTimePractice != null ? startOnTimePractice : ClientPrefs.getGameplaySetting('practice', false);
+		cpuControlled = startOnTimeBotplay != null ? startOnTimeBotplay : ClientPrefs.getGameplaySetting('botplay', false);
 		opponentChart = ClientPrefs.getGameplaySetting('opponentplay', false);
 		bothSides = ClientPrefs.getGameplaySetting('bothsides', false);
 		trollingMode = ClientPrefs.getGameplaySetting('thetrollingever', false);
@@ -882,8 +884,8 @@ class PlayState extends MusicBeatState
 			}
 			SONG.gfVersion = gfVersion; //Fix for the Chart Editor
 		}
-		health = maxHealth / 2;
-		displayedHealth = maxHealth / 2;
+		health = startOnTimeHealth != null ? startOnTimeHealth : maxHealth / 2;
+		displayedHealth = health;
 
 		if (!stageData.hide_girlfriend && ClientPrefs.charsAndBG)
 		{
@@ -1697,7 +1699,10 @@ class PlayState extends MusicBeatState
 		hitsound.volume = ClientPrefs.hitsoundVolume;
 		hitsound.pitch = playbackRate;
 		for (i in 1...4) Paths.sound('missnote$i');
-		Paths.image('alphabet');
+		//The alphabet is either a spritesheet or glyphs rasterized from a font; cache the one
+		//the player actually uses (see objects.AlphabetFont).
+		if (AlphabetFont.currentUsesImages()) Paths.image('alphabet');
+		else AlphabetFontRenderer.warmUp();
 
 		if (PauseSubState.songName != null)
 			Paths.music(PauseSubState.songName);
@@ -1706,6 +1711,10 @@ class PlayState extends MusicBeatState
 
 		cacheCountdown();
 		cachePopUpScore();
+
+		// [P3] Shader warm-up: compile what this stage/song declares while the
+		// loading screen is still up, so the first bop doesn't stall on the driver.
+		PlayStateShaders.warmUp(this, stageData);
 
 		startCallback();
 
@@ -1728,13 +1737,11 @@ class PlayState extends MusicBeatState
 	public var runtimeShaders:Map<String, Array<String>> = new Map<String, Array<String>>();
 	public function createRuntimeShader(shaderName:String):ErrorHandledRuntimeShader
 	{
-		// REFACTOR: delegated to play.helpers
 		return PlayStateScripts.createRuntimeShader(this, shaderName);
 	}
 
 	public function initLuaShader(name:String)
 	{
-		// REFACTOR: delegated to play.helpers
 		return PlayStateScripts.initLuaShader(this, name);
 	}
 	#end
@@ -1812,7 +1819,6 @@ class PlayState extends MusicBeatState
 	}
 
 	public function addTextToDebug(text:String, color:FlxColor) {
-		// REFACTOR: delegated to play.helpers
 		PlayStateScripts.addTextToDebug(this, text, color);
 	}
 
@@ -1824,38 +1830,31 @@ class PlayState extends MusicBeatState
 	}
 
 	public function addCharacterToList(newCharacter:String, type:Int) {
-		// REFACTOR: delegated to play.helpers
 		PlayStateCharacters.addCharacterToList(this, newCharacter, type);
 	}
 
 	function startCharacterLua(name:String)
 	{
-		// REFACTOR: delegated to play.helpers
 		PlayStateCharacters.startCharacterLua(this, name);
 	}
 
 	public function addShaderToCamera(cam:String,effect:Dynamic){//STOLE FROM ANDROMEDA	// actually i got it from old psych engine
-		// REFACTOR: delegated to play.helpers
 		PlayStateScripts.addShaderToCamera(this, cam, effect);
 	}
 
 	public function removeShaderFromCamera(cam:String,effect:Dynamic){
-		// REFACTOR: delegated to play.helpers
 		PlayStateScripts.removeShaderFromCamera(this, cam, effect);
 	}
 
 	public function clearShaderFromCamera(cam:String){
-		// REFACTOR: delegated to play.helpers
 		PlayStateScripts.clearShaderFromCamera(this, cam);
 	}
 
 	public function getLuaObject(tag:String, text:Bool=true):FlxSprite {
-		// REFACTOR: delegated to play.helpers
 		return PlayStateScripts.getLuaObject(this, tag, text);
 	}
 
 	function startCharacterPos(char:Character, ?gfCheck:Bool = false) {
-		// REFACTOR: delegated to play.helpers
 		PlayStateCharacters.startCharacterPos(this, char, gfCheck);
 	}
 
@@ -1865,13 +1864,11 @@ class PlayState extends MusicBeatState
 	public var videoCutscene:VideoSprite = null;
 	public function startVideo(name:String, ?library:String = null, ?callback:Void->Void = null, forMidSong:Bool = false, canSkip:Bool = true, loop:Bool = false, playOnLoad:Bool = true)
 	{
-		// REFACTOR: delegated to play.helpers
 		return PlayStateCutscenes.startVideo(this, name, library, callback, forMidSong, canSkip, loop, playOnLoad);
 	}
 
 	public function startAndEnd()
 	{
-		// REFACTOR: delegated to play.helpers
 		PlayStateCutscenes.startAndEnd(this);
 	}
 
@@ -1880,12 +1877,10 @@ class PlayState extends MusicBeatState
 	//You don't have to add a song, just saying. You can just do "startDialogue(dialogueJson);" and it should work
 	public function startDialogue(dialogueFile:DialogueFile, ?song:String = null):Void
 	{
-		// REFACTOR: delegated to play.helpers
 		PlayStateCutscenes.startDialogue(this, dialogueFile, song);
 	}
 
 	public function changeTheSettingsBitch() {
-		// REFACTOR: delegated to play.helpers
 		PlayStatePlayback.changeTheSettingsBitch(this);
 	}
 
@@ -1897,10 +1892,13 @@ class PlayState extends MusicBeatState
 	public var countdownSet:FlxSprite;
 	public var countdownGo:FlxSprite;
 	public static var startOnTime:Float = 0;
+	public static var startOnTimeRate:Null<Float> = null;
+	public static var startOnTimeHealth:Null<Float> = null;
+	public static var startOnTimePractice:Null<Bool> = null;
+	public static var startOnTimeBotplay:Null<Bool> = null;
 
 	function cacheCountdown()
 	{
-		// REFACTOR: delegated to play.helpers
 		PlayStateCountdown.cacheCountdown(this);
 	}
 
@@ -1911,35 +1909,29 @@ class PlayState extends MusicBeatState
 
 	public function startCountdown():Void
 	{
-		// REFACTOR: delegated to play.helpers
 		PlayStateCountdown.startCountdown(this);
 	}
 
 	inline private function createCountdownSprite(image:String, antialias:Bool):FlxSprite
 	{
-		// REFACTOR: delegated to play.helpers
 		return PlayStateCountdown.createCountdownSprite(this, image, antialias);
 	}
 
 	public function addBehindGF(obj:FlxObject)
 	{
-		// REFACTOR: delegated to play.helpers
 		PlayStateNoteHelpers.addBehindGF(this, obj);
 	}
 	public function addBehindBF(obj:FlxObject)
 	{
-		// REFACTOR: delegated to play.helpers
 		PlayStateNoteHelpers.addBehindBF(this, obj);
 	}
 	public function addBehindDad (obj:FlxObject)
 	{
-		// REFACTOR: delegated to play.helpers
 		PlayStateNoteHelpers.addBehindDad(this, obj);
 	}
 
 	public function clearNotesBefore(time:Float)
 	{
-		// REFACTOR: delegated to play.helpers
 		PlayStateNoteHelpers.clearNotesBefore(this, time);
 	}
 
@@ -1948,36 +1940,30 @@ class PlayState extends MusicBeatState
 	var missString:String = '';
 	public dynamic function updateScore(miss:Bool = false)
 	{
-		// REFACTOR: delegated to play.helpers
 		PlayStateRating.updateScore(this, miss);
 	}
 
 	public function setSongTime(time:Float)
 	{
-		// REFACTOR: delegated to play.helpers
 		PlayStatePlayback.setSongTime(this, time);
 	}
 
 	public function startNextDialogue() {
-		// REFACTOR: delegated to play.helpers
 		PlayStateCutscenes.startNextDialogue(this);
 	}
 
 	public function skipDialogue() {
-		// REFACTOR: delegated to play.helpers
 		PlayStateCutscenes.skipDialogue(this);
 	}
 
 	function startSong():Void
 	{
-		// REFACTOR: delegated to play.helpers
 		PlayStatePlayback.startSong(this);
 	}
 
 	var ogSongSpeed:Float = 0;
 	public function lerpSongSpeed(num:Float, time:Float):Void
 	{
-		// REFACTOR: delegated to play.helpers
 		PlayStatePlayback.lerpSongSpeed(this, num, time);
 	}
 
@@ -1988,41 +1974,34 @@ class PlayState extends MusicBeatState
 	private var eventPushedMap:Map<String, Bool> = new Map<String, Bool>();
 	private function generateSong(?startingPoint:Float = 0):Void
 	{
-		// REFACTOR: delegated to play.helpers
 		PlayStateChartLoader.generateSong(this, startingPoint);
 	}
 
 	// called only once per different event (Used for precaching)
 	function eventPushed(event:EventNote) {
-		// REFACTOR: delegated to play.helpers
 		PlayStateEvents.eventPushed(this, event);
 	}
 
 	function eventPushedUnique(event:EventNote) {
-		// REFACTOR: delegated to play.helpers
 		PlayStateEvents.eventPushedUnique(this, event);
 	}
 
 	function eventNoteEarlyTrigger(event:EventNote):Float {
-		// REFACTOR: delegated to play.helpers
 		return PlayStateEvents.eventNoteEarlyTrigger(this, event);
 	}
 
 	function sortByTime(Obj1:Dynamic, Obj2:Dynamic):Int
 	{
-		// REFACTOR: delegated to play.helpers
 		return PlayStateEvents.sortByTime(this, Obj1, Obj2);
 	}
 
 	function sortNotesByTime(Obj1:Note, Obj2:Note):Int {
-		// REFACTOR: delegated to play.helpers
 		return PlayStateEvents.sortNotesByTime(this, Obj1, Obj2);
 	}
 
 	public var skipArrowStartTween:Bool = false; //for lua
 	private function generateStaticArrows(player:Int):Void
 	{
-		// REFACTOR: delegated to play.helpers
 		PlayStateNoteHelpers.generateStaticArrows(this, player);
 	}
 
@@ -2102,7 +2081,6 @@ class PlayState extends MusicBeatState
 
 	function resyncVocals():Void
 	{
-		// REFACTOR: delegated to play.helpers
 		PlayStatePlayback.resyncVocals(this);
 	}
 
@@ -2235,7 +2213,9 @@ class PlayState extends MusicBeatState
 		// dispatch when no script is loaded removes a per-frame array (plus the two
 		// more that callOnScripts builds for its default arguments).
 		if (hasActiveScripts()) callOnLuas('onUpdate', [elapsed]);
+		final stateUpdateHotspot = debug.profiler.HotspotProfiler.begin("PlayState: Flixel state/group update");
 		super.update(elapsed);
+		debug.profiler.HotspotProfiler.end(stateUpdateHotspot);
 
 		if (tankmanAscend && curStep > 895 && curStep < 1151) camGame.zoom = 0.8;
 
@@ -2253,7 +2233,6 @@ class PlayState extends MusicBeatState
 				}
 			}
 		}
-		// REFACTOR: delegated to play.helpers
 		PlayStateRating.updateNps(this);
 
 		if (scoreTxtUpdateFrame > 0) scoreTxtUpdateFrame = 0;
@@ -2406,6 +2385,11 @@ class PlayState extends MusicBeatState
 						Conductor.songPosition = Conductor.songPosition + 1000 * FlxMath.signOf(timeDiff);
 				}
 				if (Conductor.songPosition < 200 && Math.abs(vocals.time - FlxG.sound.music.time) >= 20) setVocalsTime(FlxG.sound.music.time);
+
+				// Global stem volume overrides (Options -> Gameplay Settings) stay authoritative while the
+				// chart plays: stages, events and scripts writing the stem volumes cannot defeat them.
+				if (!endingSong && !inCutscene && !transitioning && !heyStopTrying && finishTimer == null)
+					PlayStatePlayback.enforceStemVolumes(this);
 			}
 			debug.FrameProfiler.endAudio();
 		}
@@ -2467,26 +2451,34 @@ class PlayState extends MusicBeatState
 
 		skippedCount = 0;
 
+		final spawnHotspot = debug.profiler.HotspotProfiler.begin("PlayState: spawn notes");
 		spawnNotes();
+		debug.profiler.HotspotProfiler.end(spawnHotspot);
 
 		if (generatedMusic)
 		{
 			if(!inCutscene)
 			{
 				if(!cpuControlled) {
+					final inputHotspot = debug.profiler.HotspotProfiler.begin("PlayState: note input");
 					handleKeyInput();
+					debug.profiler.HotspotProfiler.end(inputHotspot);
 				}
 				else if (ClientPrefs.charsAndBG) playerDance();
 
+				final notesHotspot = debug.profiler.HotspotProfiler.begin("PlayState: note update and sort");
 				amountOfRenderedNotes = 0;
 				notes.forEach(updateNote);
 				// #88: cached comparators — FlxTypedGroup.sort() binds a new closure per call.
 				PlayStateNoteHelpers.sortNoteGroup(notes);
 				sustainNotes.forEach(updateNote);
 				PlayStateNoteHelpers.sortNoteGroup(sustainNotes);
+				debug.profiler.HotspotProfiler.end(notesHotspot);
 			}
 
+			final destroyHotspot = debug.profiler.HotspotProfiler.begin("PlayState: destroy notes");
 			destroyNotes();
+			debug.profiler.HotspotProfiler.end(destroyHotspot);
 
 			while(eventNotes.length > 0 && eventNotes[eventIndex] != null && Conductor.songPosition > eventNotes[eventIndex].strumTime) {
 				var value1:String = '';
@@ -2558,10 +2550,14 @@ class PlayState extends MusicBeatState
 			callOnLuas('onUpdatePost', [elapsed]);
 		}
 
-		if (shaderUpdates.length > 0)
-			for (i in shaderUpdates){
-				i(elapsed);
-			}
+		// Indexed loop: `for (i in shaderUpdates)` allocated an Array
+		// iterator on every frame for as long as any shader effect is alive.
+		var shaderUpdateIndex:Int = 0;
+		while (shaderUpdateIndex < shaderUpdates.length)
+		{
+			shaderUpdates[shaderUpdateIndex](elapsed);
+			shaderUpdateIndex++;
+		}
 
 		if (ffmpegMode)
 		{
@@ -2595,7 +2591,6 @@ class PlayState extends MusicBeatState
 	var iconSizeResetTime:Float = 0;
 	public dynamic function updateIconsScale(elapsed:Float)
 	{
-		// REFACTOR: delegated to play.helpers
 		PlayStateCamera.updateIconsScale(this, elapsed);
 	}
 
@@ -2603,7 +2598,6 @@ class PlayState extends MusicBeatState
 	var center:Float = 0;
 	public dynamic function updateIconsPosition()
 	{
-		// REFACTOR: delegated to play.helpers
 		PlayStateCamera.updateIconsPosition(this);
 	}
 
@@ -2640,7 +2634,6 @@ class PlayState extends MusicBeatState
 
 	public function loopCallback(startingPoint:Float = 0)
 	{
-		// REFACTOR: delegated to play.helpers
 		PlayStatePlayback.loopCallback(this, startingPoint);
 	}
 
@@ -2752,85 +2745,70 @@ class PlayState extends MusicBeatState
 	}
 
 	public function triggerEventNote(eventName:String, value1:String, value2:String, strumTime:Float) {
-		// REFACTOR: delegated to play.helpers
 		PlayStateEvents.triggerEventNote(this, eventName, value1, value2, strumTime);
 	}
 
 	function sendWindowsNotification(title:String, desc:String, isEvent:Bool = false) {
-		// REFACTOR: delegated to play.helpers
 		PlayStateEvents.sendWindowsNotification(this, title, desc, isEvent);
 	}
 
 	public function moveCameraSection():Void {
-		// REFACTOR: delegated to play.helpers
 		PlayStateCamera.moveCameraSection(this);
 	}
 
 	var cameraTwn:FlxTween;
 	public function moveCamera(focus:String = "bf")
 	{
-		// REFACTOR: delegated to play.helpers
 		PlayStateCamera.moveCamera(this, focus);
 	}
 
 	function snapCamFollowToPos(x:Float, y:Float) {
-		// REFACTOR: delegated to play.helpers
 		PlayStateCamera.snapCamFollowToPos(this, x, y);
 	}
 
 	public function unpauseVocals()
 	{
-		// REFACTOR: delegated to play.helpers
 		PlayStatePlayback.unpauseVocals(this);
 	}
 	public function pauseVocals()
 	{
-		// REFACTOR: delegated to play.helpers
 		PlayStatePlayback.pauseVocals(this);
 	}
 	public function setVocalsTime(time:Float)
 	{
-		// REFACTOR: delegated to play.helpers
 		PlayStatePlayback.setVocalsTime(this, time);
 	}
 
 	public function finishSong(?ignoreNoteOffset:Bool = false):Void
 	{
-		// REFACTOR: delegated to play.helpers
 		PlayStatePlayback.finishSong(this, ignoreNoteOffset);
 	}
 
 	public function loopSongLol()
 	{
-		// REFACTOR: delegated to play.helpers
 		PlayStatePlayback.loopSongLol(this);
 	}
 
 	function calculateTrollModeStuff(pb:Float):Float {
-		// REFACTOR: delegated to play.helpers
 		return PlayStatePlayback.calculateTrollModeStuff(this, pb);
 	}
 
 	function calculateResetTime():Float {
-		// REFACTOR: delegated to play.helpers
 		return PlayStatePlayback.calculateResetTime(this);
 	}
 
 	public var transitioning = false;
 	public function endSong():Void
 	{
-		// REFACTOR: delegated to play.helpers
 		PlayStatePlayback.endSong(this);
 	}
 
 	public function KillNotes() {
-		// REFACTOR: delegated to play.helpers
 		PlayStateNoteHelpers.KillNotes(this);
 	}
 
 	public function restartSong(noTrans:Bool = true)
 	{
-		// REFACTOR: delegated to play.helpers
 		PlayStatePlayback.restartSong(this, noTrans);
 	}
 
@@ -2845,7 +2823,6 @@ class PlayState extends MusicBeatState
 
 	private function cachePopUpScore()
 	{
-		// REFACTOR: delegated to play.helpers
 		PlayStateRating.cachePopUpScore(this);
 	}
 
@@ -2856,39 +2833,33 @@ class PlayState extends MusicBeatState
 
 	function judgeNote(note:Note = null, ?miss:Bool = false)
 	{
-		// REFACTOR: delegated to play.helpers
 		PlayStateRating.judgeNote(this, note, miss);
 	}
 
 	var separatedScore:Array<Dynamic> = [];
 	private function popUpScore(note:Note = null, ?miss:Bool = false):Void
 	{
-		// REFACTOR: delegated to play.helpers
 		PlayStateRating.popUpScore(this, note, miss);
 	}
 
 	private function onKeyPress(event:KeyboardEvent):Void
 	{
-		// REFACTOR: delegated to play.helpers
 		PlayStateInput.onKeyPress(this, event);
 	}
 
 	public var strumsBlocked:Array<Bool> = [];
 	private function keyPressed(key:Int):Void
 	{
-		// REFACTOR: delegated to play.helpers
 		PlayStateInput.keyPressed(this, key);
 	}
 
 	function sortHitNotes(a:Dynamic, b:Dynamic):Int
 	{
-		// REFACTOR: delegated to play.helpers
 		return PlayStateInput.sortHitNotes(a, b);
 	}
 
 	private function onKeyRelease(event:KeyboardEvent):Void
 	{
-		// REFACTOR: delegated to play.helpers
 		PlayStateInput.onKeyRelease(this, event);
 	}
 
@@ -2901,40 +2872,34 @@ class PlayState extends MusicBeatState
 
 	private function keyReleased(key:Int)
 	{
-		// REFACTOR: delegated to play.helpers
 		PlayStateInput.keyReleased(this, key);
 	}
 
 	public function getKeyFromEvent(key:FlxKey):Int
 	{
-		// REFACTOR: delegated to play.helpers
 		return PlayStateInput.getKeyFromEvent(this, key);
 	}
 
 	// Hold notes
 	private function handleKeyInput():Void
 	{
-		// REFACTOR: delegated to play.helpers
 		PlayStateInput.handleKeyInput(this);
 	}
 
 	public function parseKeys(ret:Array<Bool>, ?suffix:String = ''):Void
 	{
-		// REFACTOR: delegated to play.helpers
 		PlayStateInput.parseKeys(this, ret, suffix);
 	}
 
 	function noteMiss(daNote:Note = null, daNoteAlt:PreloadedChartNote = null):Void { //You didn't hit the key and let it go offscreen, also used by Hurt Notes
 		if (daNote != null)
 		{
-			// REFACTOR: delegated to play.helpers
 			PlayStateNotes.noteMiss(this, daNote, daNoteAlt);
 		}
 	}
 
 	function noteMissPress(direction:Int = 1):Void //You pressed a key when there was no notes to press for this key
 	{
-		// REFACTOR: delegated to play.helpers
 		PlayStateNotes.noteMissPress(this, direction);
 	}
 
@@ -2944,13 +2909,11 @@ class PlayState extends MusicBeatState
 	var spawnedNote:Note;
 	function spawnNotes()
 	{
-		// REFACTOR: delegated to play.helpers
 		PlayStateNotes.spawnNotes(this);
 	}
 
 	function updateNote(daNote:Note):Void
 	{
-		// REFACTOR: delegated to play.helpers
 		PlayStateNotes.updateNote(this, daNote);
 	}
 
@@ -2963,7 +2926,6 @@ class PlayState extends MusicBeatState
 	var animCheck:String = 'hey';
 	function goodNoteHit(note:Note, noteAlt:PreloadedChartNote = null):Void
 	{
-		// REFACTOR: delegated to play.helpers
 		PlayStateNotes.goodNoteHit(this, note, noteAlt);
 	}
 
@@ -2971,39 +2933,32 @@ class PlayState extends MusicBeatState
 	var gfTrigger:Bool = false;
 	function opponentNoteHit(daNote:Note, noteAlt:PreloadedChartNote = null):Void
 	{
-		// REFACTOR: delegated to play.helpers
 		PlayStateNotes.opponentNoteHit(this, daNote, noteAlt);
 	}
 
 	public function invalidateNote(note:Note):Void {
-		// REFACTOR: delegated to play.helpers
 		PlayStateNoteHelpers.invalidateNote(this, note);
 	}
 
 	var noteKill:Note = null;
 	public function destroyNotes():Void
 	{
-		// REFACTOR: delegated to play.helpers
 		PlayStateNoteHelpers.destroyNotes(this);
 	}
 
 	public function spawnHoldSplashOnNote(note:Note, ?isDad:Bool = false) {
-		// REFACTOR: delegated to play.helpers
 		PlayStateNoteHelpers.spawnHoldSplashOnNote(this, note, isDad);
 	}
 
 	public function spawnHoldSplash(note:Note) {
-		// REFACTOR: delegated to play.helpers
 		PlayStateNoteHelpers.spawnHoldSplash(this, note);
 	}
 
 	public function spawnNoteSplashOnNote(isDad:Bool, note:Note) {
-		// REFACTOR: delegated to play.helpers
 		PlayStateNoteHelpers.spawnNoteSplashOnNote(this, isDad, note);
 	}
 
 	public function spawnNoteSplash(x:Float, y:Float, data:Int, ?note:Note = null) {
-		// REFACTOR: delegated to play.helpers
 		PlayStateNoteHelpers.spawnNoteSplash(this, x, y, data, note);
 	}
 
@@ -3096,7 +3051,6 @@ class PlayState extends MusicBeatState
 	{
 		super.stepHit();
 
-		// REFACTOR: delegated to play.helpers
 		if (tankmanAscend) PlayStateCamera.tankmanStep(this);
 
 		setOnLuas('curStep', curStep);
@@ -3139,19 +3093,16 @@ class PlayState extends MusicBeatState
 	}
 	public function characterBopper(beat:Int):Void
 	{
-		// REFACTOR: delegated to play.helpers
 		PlayStateCamera.characterBopper(this, beat);
 	}
 
 	public function playerDance():Void
 	{
-		// REFACTOR: delegated to play.helpers
 		PlayStateCamera.playerDance(this);
 	}
 
 	public function doTwist()
 	{
-		// REFACTOR: delegated to play.helpers
 		PlayStateCamera.doTwist(this);
 	}
 
@@ -3196,7 +3147,6 @@ class PlayState extends MusicBeatState
 
 	public function bopIcons(?bopBF:Bool = false)
 	{
-		// REFACTOR: delegated to play.helpers
 		PlayStateCamera.bopIcons(this, bopBF);
 	}
 
@@ -3367,7 +3317,9 @@ class PlayState extends MusicBeatState
 			if(exclusions.contains(script.scriptName))
 				continue;
 
+			final hotspot = debug.profiler.HotspotProfiler.begin(debug.FrameProfiler.enabled ? "Lua: " + script.scriptName + " / " + event : "");
 			final myValue = script.call(event, args);
+			debug.profiler.HotspotProfiler.end(hotspot);
 			if(myValue == FunkinLua.Function_StopLua && !ignoreStops) {
 				stopAll = true;
 				break;
@@ -3385,7 +3337,9 @@ class PlayState extends MusicBeatState
 			if(exclusions.contains(script.scriptName))
 				continue;
 
+			final hotspot = debug.profiler.HotspotProfiler.begin(debug.FrameProfiler.enabled ? "Python: " + script.scriptName + " / " + event : "");
 			final myValue = script.call(event, args);
+			debug.profiler.HotspotProfiler.end(hotspot);
 			if(myValue == PythonScript.Function_StopAll && !ignoreStops) {
 				stopAll = true;
 				break;
@@ -3403,7 +3357,9 @@ class PlayState extends MusicBeatState
 			if(exclusions.contains(script.scriptName))
 				continue;
 
+			final hotspot = debug.profiler.HotspotProfiler.begin(debug.FrameProfiler.enabled ? "HScript: " + script.scriptName + " / " + event : "");
 			final myValue = script.call(event, args);
+			debug.profiler.HotspotProfiler.end(hotspot);
 			if(myValue == HScript.Function_StopLua && !ignoreStops) {
 				stopAll = true;
 				break;
@@ -3498,14 +3454,12 @@ class PlayState extends MusicBeatState
 	public var ratingPercent:Float;
 	public var ratingFC:String;
 	public function RecalculateRating(badHit:Bool = false) {
-		// REFACTOR: delegated to play.helpers
 		PlayStateRating.RecalculateRating(this, badHit);
 	}
 
 	#if ACHIEVEMENTS_ALLOWED
 	private function checkForAchievement(achievesToCheck:Array<String> = null)
 	{
-		// REFACTOR: delegated to play.helpers
 		PlayStateRating.checkForAchievement(this, achievesToCheck);
 	}
 	#end
@@ -3522,7 +3476,6 @@ class PlayState extends MusicBeatState
 
 	private function initRender(renderPath:String = "assets/gameRenders/", ?prefixName:String = null):Void
 	{
-		// REFACTOR: delegated to play.helpers
 		PlayStateRender.initRender(this, renderPath, prefixName);
 	}
 
@@ -3530,13 +3483,11 @@ class PlayState extends MusicBeatState
 	var bytes = null;
 	private function pipeFrame():Void
 	{
-		// REFACTOR: delegated to play.helpers
 		PlayStateRender.pipeFrame(this);
 	}
 
 	public static function stopRender():Void
 	{
-		// REFACTOR: delegated to play.helpers
 		PlayStateRender.stopRender();
 	}
 }

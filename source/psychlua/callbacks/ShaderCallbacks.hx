@@ -1,6 +1,7 @@
 package psychlua.callbacks;
 
 import shaders.ErrorHandledShader.ErrorHandledRuntimeShader;
+import shaders.ShaderWarmup;
 
 import backend.ClientPrefs;
 import backend.Paths;
@@ -13,7 +14,6 @@ import flixel.addons.display.FlxRuntimeShader;
 import openfl.filters.ShaderFilter;
 #end
 
-// REFACTOR: extracted from psychlua.FunkinLua (initLuaShader / sprite and camera runtime shader API)
 class ShaderCallbacks
 {
 	public static function register(funk:FunkinLua):Void {
@@ -49,6 +49,11 @@ class ShaderCallbacks
 			if(leObj != null) {
 				var arr:Array<String> = game.runtimeShaders.get(shader);
 				leObj.shader = new ErrorHandledRuntimeShader(shader, arr[0], arr[1]);
+				#if !neko
+				// [P3] Shader warm-up: scripts run during the loading screen, so
+				// compile this instead of paying for it on its first draw.
+				ShaderWarmup.track(leObj.shader);
+				#end
 				return true;
 			}
 			#else
@@ -89,6 +94,10 @@ class ShaderCallbacks
             if (camera.filters == null)
                 camera.filters = [];
 				final filter = new ShaderFilter(new ErrorHandledRuntimeShader(shader, arr[0], arr[1]));
+				#if !neko
+				// [P3] Shader warm-up: see setSpriteShader above.
+				ShaderWarmup.track(filter.shader);
+				#end
 				FunkinLua.storedFilters.set(index, filter);
 				camera.filters.push(filter);
             }
@@ -263,6 +272,72 @@ class ShaderCallbacks
 			LuaUtils.luaTrace(funk.lua, "setShaderFloatArray | Platform unsupported for Runtime Shaders!", false, false, FlxColor.RED);
 			#end
 		});
+
+		// Shader uniform tweens are named/tagged like the normal modchart tweens.
+		// Float arrays are interpolated component-wise with one easing curve.
+		final tweenShaderFloat = function(tag:String, obj:String, prop:String, target:Float, duration:Float, ease:String = 'linear') {
+			#if (MODS_ALLOWED && SHADERS_ALLOWED)
+			var shader:FlxRuntimeShader = funk.getShader(obj);
+			if (shader == null || !ClientPrefs.shaders || tag == null || tag.length == 0) return false;
+
+			var from:Float = shader.getFloat(prop);
+			if (PlayState.instance.modchartTweens.exists(tag)) PlayState.instance.modchartTweens.get(tag).cancel();
+			var tween = FlxTween.num(from, target, duration / PlayState.instance.playbackRate, {
+				ease: LuaUtils.getFlxEaseByString(ease),
+				onUpdate: function(twn:FlxTween) {
+					shader.setFloat(prop, from + (target - from) * twn.percent);
+				},
+				onComplete: function(twn:FlxTween) {
+					shader.setFloat(prop, target);
+					PlayState.instance.callOnLuas('onTweenCompleted', [tag]);
+					PlayState.instance.modchartTweens.remove(tag);
+				}
+			});
+			PlayState.instance.modchartTweens.set(tag, tween);
+			return true;
+			#else
+			return false;
+			#end
+		};
+		FunkinLua.registerFunction("tweenShaderFloat", tweenShaderFloat);
+		FunkinLua.registerFunction("doTweenShaderFloat", tweenShaderFloat);
+
+		final tweenShaderFloatArray = function(tag:String, obj:String, prop:String, targets:Dynamic, duration:Float, ease:String = 'linear') {
+			#if (MODS_ALLOWED && SHADERS_ALLOWED)
+			var shader:FlxRuntimeShader = funk.getShader(obj);
+			if (shader == null || !ClientPrefs.shaders || tag == null || tag.length == 0 || targets == null) return false;
+
+			var startValues:Array<Float> = shader.getFloatArray(prop);
+			var targetValues:Array<Float> = Std.isOfType(targets, Array) ? cast targets : null;
+			if (startValues == null || targetValues == null || startValues.length == 0 || startValues.length != targetValues.length) {
+				LuaUtils.luaTrace(funk.lua, 'tweenShaderFloatArray | Uniform "$prop" must have an initialized float array matching the target length.', false, false, FlxColor.RED);
+				return false;
+			}
+			startValues = startValues.copy();
+			targetValues = targetValues.copy();
+			if (PlayState.instance.modchartTweens.exists(tag)) PlayState.instance.modchartTweens.get(tag).cancel();
+			var tween = FlxTween.num(0, 1, duration / PlayState.instance.playbackRate, {
+				ease: LuaUtils.getFlxEaseByString(ease),
+				onUpdate: function(twn:FlxTween) {
+					var values:Array<Float> = [];
+					for (i in 0...startValues.length)
+						values.push(startValues[i] + (targetValues[i] - startValues[i]) * twn.percent);
+					shader.setFloatArray(prop, values);
+				},
+				onComplete: function(twn:FlxTween) {
+					shader.setFloatArray(prop, targetValues);
+					PlayState.instance.callOnLuas('onTweenCompleted', [tag]);
+					PlayState.instance.modchartTweens.remove(tag);
+				}
+			});
+			PlayState.instance.modchartTweens.set(tag, tween);
+			return true;
+			#else
+			return false;
+			#end
+		};
+		FunkinLua.registerFunction("tweenShaderFloatArray", tweenShaderFloatArray);
+		FunkinLua.registerFunction("doTweenShaderFloatArray", tweenShaderFloatArray);
 
 		FunkinLua.registerFunction("setShaderSampler2D", function(obj:String, prop:String, bitmapdataPath:String) {
 			#if (MODS_ALLOWED && SHADERS_ALLOWED)

@@ -1618,6 +1618,13 @@ class Paths
 
   static public function modFolders(key:String)
   {
+    // A key that already points inside mods/ (e.g. a mod's `pack.png` icon,
+    // passed as `mods/<folder>/pack.png`) is a complete path. Prepending the
+    // mods root again would look for `mods/mods/...`, which never exists, so
+    // the asset silently failed to load and every mod fell back to the
+    // placeholder icon in the mods menu. Return it unchanged.
+    if (key.startsWith('mods/')) return key;
+
     if (Mods.currentModDirectory != null && Mods.currentModDirectory.length > 0)
     {
       var fileToCheck:String = mods(Mods.currentModDirectory + '/' + key);

@@ -19,7 +19,6 @@ import shaders.ThreeDEffect;
 import shaders.BloomEffect;
 import shaders.BlockedGlitchEffect;
 
-// REFACTOR: extracted from psychlua.FunkinLua (camera shader effect adders)
 class EffectCallbacks
 {
 	public static function register(funk:FunkinLua):Void {

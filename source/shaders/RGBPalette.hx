@@ -10,31 +10,67 @@ class RGBPalette {
 	public var b(default, set):FlxColor;
 	public var mult(default, set):Float;
 
+	// OpenFL re-reads the parameter array on every draw, so after the first
+	// assignment these setters write into the existing array instead of
+	// allocating a new [r, g, b] array per change (scripts can set these
+	// every frame).
 	private function set_r(color:FlxColor) {
 		r = color;
 		if (shader != null)
-			shader.r.value = [color.redFloat, color.greenFloat, color.blueFloat];
+		{
+			if (shader.r.value == null)
+				shader.r.value = [color.redFloat, color.greenFloat, color.blueFloat];
+			else
+			{
+				shader.r.value[0] = color.redFloat;
+				shader.r.value[1] = color.greenFloat;
+				shader.r.value[2] = color.blueFloat;
+			}
+		}
 		return color;
 	}
 
 	private function set_g(color:FlxColor) {
 		g = color;
 		if (shader != null)
-			shader.g.value = [color.redFloat, color.greenFloat, color.blueFloat];
+		{
+			if (shader.g.value == null)
+				shader.g.value = [color.redFloat, color.greenFloat, color.blueFloat];
+			else
+			{
+				shader.g.value[0] = color.redFloat;
+				shader.g.value[1] = color.greenFloat;
+				shader.g.value[2] = color.blueFloat;
+			}
+		}
 		return color;
 	}
 
 	private function set_b(color:FlxColor) {
 		b = color;
 		if (shader != null)
-			shader.b.value = [color.redFloat, color.greenFloat, color.blueFloat];
+		{
+			if (shader.b.value == null)
+				shader.b.value = [color.redFloat, color.greenFloat, color.blueFloat];
+			else
+			{
+				shader.b.value[0] = color.redFloat;
+				shader.b.value[1] = color.greenFloat;
+				shader.b.value[2] = color.blueFloat;
+			}
+		}
 		return color;
 	}
 
 	private function set_mult(value:Float) {
 		mult = FlxMath.bound(value, 0, 1);
 		if (shader != null)
-			shader.mult.value = [mult];
+		{
+			if (shader.mult.value == null)
+				shader.mult.value = [mult];
+			else
+				shader.mult.value[0] = mult;
+		}
 		return mult;
 	}
 
@@ -142,16 +178,13 @@ class RGBPaletteShader extends FlxFixedShader {
 				return color;
 			}
 
-			vec4 newColor = color;
-			newColor.rgb = min(color.r * r + color.g * g + color.b * b, vec3(1.0));
-			newColor.a = color.a;
-
-			color = mix(color, newColor, mult);
-
-			if(color.a > 0.0) {
-				return vec4(color.rgb, color.a);
-			}
-			return vec4(0.0, 0.0, 0.0, 0.0);
+			// Past the early return color.a is always > 0.0 (mix() below never
+			// touched alpha either), so the old trailing
+			// `if (color.a > 0.0) ... else return vec4(0.0)` could only take
+			// the first branch; the vec4 copy through newColor is gone too.
+			vec3 mapped = min(color.r * r + color.g * g + color.b * b, vec3(1.0));
+			color.rgb = mix(color.rgb, mapped, mult);
+			return color;
 		}')
 
 	@:glFragmentSource('
