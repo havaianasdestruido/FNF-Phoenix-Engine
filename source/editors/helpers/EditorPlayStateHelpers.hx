@@ -393,7 +393,7 @@ class EditorPlayStateHelpers
 		Paths.image(state.pixelRatingPrefix + "sick" + state.pixelRatingSuffix);
 		Paths.image(state.pixelRatingPrefix + "good" + state.pixelRatingSuffix);
 		Paths.image(state.pixelRatingPrefix + "bad" + state.pixelRatingSuffix);
-		Paths.image(state.pixelRatingPrefix + "poor" + state.pixelRatingSuffix);
+		Paths.image(state.pixelRatingPrefix + "shit" + state.pixelRatingSuffix);
 		Paths.image(state.pixelRatingPrefix + "miss" + state.pixelRatingSuffix);
 
 		for (i in 0...10) Paths.image(state.pixelRatingPrefix + 'num' + i + state.pixelRatingSuffix);
@@ -411,7 +411,7 @@ class EditorPlayStateHelpers
 
 		if (noteDiff > Conductor.safeZoneOffset * 0.75)
 		{
-			daRating = 'poor';
+			daRating = 'shit';
 			//score = 50;
 		}
 		else if (noteDiff > Conductor.safeZoneOffset * 0.5)

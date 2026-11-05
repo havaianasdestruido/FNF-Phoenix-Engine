@@ -9236,7 +9236,7 @@
       "chosen_colors": 16
     },
     {
-      "path": "assets/shared/images/pixelUI/ratings/default/poor-pixel.png",
+      "path": "assets/shared/images/pixelUI/ratings/default/shit-pixel.png",
       "kind": "png",
       "bytes_before": 226,
       "bytes_after": 226,
@@ -9704,7 +9704,7 @@
       "chosen_colors": 16
     },
     {
-      "path": "assets/shared/images/pixelUI/ratings/doki-doki+/poor-pixel.png",
+      "path": "assets/shared/images/pixelUI/ratings/doki-doki+/shit-pixel.png",
       "kind": "png",
       "bytes_before": 226,
       "bytes_after": 226,
@@ -10141,7 +10141,7 @@
       "chosen_colors": 16
     },
     {
-      "path": "assets/shared/images/pixelUI/ratings/fire-in-the-hole/poor-pixel.png",
+      "path": "assets/shared/images/pixelUI/ratings/fire-in-the-hole/shit-pixel.png",
       "kind": "png",
       "bytes_before": 226,
       "bytes_after": 226,
@@ -10635,7 +10635,7 @@
       "chosen_colors": 16
     },
     {
-      "path": "assets/shared/images/pixelUI/ratings/kade/poor-pixel.png",
+      "path": "assets/shared/images/pixelUI/ratings/kade/shit-pixel.png",
       "kind": "png",
       "bytes_before": 272,
       "bytes_after": 272,
@@ -11118,7 +11118,7 @@
       "chosen_colors": 16
     },
     {
-      "path": "assets/shared/images/pixelUI/ratings/nmcw/poor-pixel.png",
+      "path": "assets/shared/images/pixelUI/ratings/nmcw/shit-pixel.png",
       "kind": "png",
       "bytes_before": 226,
       "bytes_after": 226,
@@ -11612,7 +11612,7 @@
       "chosen_colors": 16
     },
     {
-      "path": "assets/shared/images/pixelUI/ratings/tgt-v4/poor-pixel.png",
+      "path": "assets/shared/images/pixelUI/ratings/tgt-v4/shit-pixel.png",
       "kind": "png",
       "bytes_before": 226,
       "bytes_after": 226,
@@ -12096,7 +12096,7 @@
       "chosen_colors": 16
     },
     {
-      "path": "assets/shared/images/pixelUI/ratings/vs-impostor/poor-pixel.png",
+      "path": "assets/shared/images/pixelUI/ratings/vs-impostor/shit-pixel.png",
       "kind": "png",
       "bytes_before": 272,
       "bytes_after": 272,
@@ -12595,7 +12595,7 @@
       "chosen_colors": 16
     },
     {
-      "path": "assets/shared/images/pixelUI/ratings/yeahs/poor-pixel.png",
+      "path": "assets/shared/images/pixelUI/ratings/yeahs/shit-pixel.png",
       "kind": "png",
       "bytes_before": 272,
       "bytes_after": 272,
@@ -13289,7 +13289,7 @@
       "chosen_colors": 63
     },
     {
-      "path": "assets/shared/images/ratings/default/poor.png",
+      "path": "assets/shared/images/ratings/default/shit.png",
       "kind": "png",
       "bytes_before": 2120,
       "bytes_after": 2120,
@@ -13921,7 +13921,7 @@
       ]
     },
     {
-      "path": "assets/shared/images/ratings/doki-doki+/poor.png",
+      "path": "assets/shared/images/ratings/doki-doki+/shit.png",
       "kind": "png",
       "bytes_before": 1965,
       "bytes_after": 1965,
@@ -14806,7 +14806,7 @@
       "chosen_colors": 32
     },
     {
-      "path": "assets/shared/images/ratings/fire-in-the-hole/poor.png",
+      "path": "assets/shared/images/ratings/fire-in-the-hole/shit.png",
       "kind": "png",
       "bytes_before": 2354,
       "bytes_after": 2354,
@@ -15449,7 +15449,7 @@
       "chosen_colors": 63
     },
     {
-      "path": "assets/shared/images/ratings/kade/poor.png",
+      "path": "assets/shared/images/ratings/kade/shit.png",
       "kind": "png",
       "bytes_before": 2185,
       "bytes_after": 2185,
@@ -15917,7 +15917,7 @@
       ]
     },
     {
-      "path": "assets/shared/images/ratings/nmcw/poor.png",
+      "path": "assets/shared/images/ratings/nmcw/shit.png",
       "kind": "png",
       "bytes_before": 2148,
       "bytes_after": 2148,
@@ -16413,7 +16413,7 @@
       "chosen_colors": 4
     },
     {
-      "path": "assets/shared/images/ratings/tgt-v4/poor.png",
+      "path": "assets/shared/images/ratings/tgt-v4/shit.png",
       "kind": "png",
       "bytes_before": 1162,
       "bytes_after": 1162,
@@ -17040,7 +17040,7 @@
       "chosen_colors": 63
     },
     {
-      "path": "assets/shared/images/ratings/vs-impostor/poor.png",
+      "path": "assets/shared/images/ratings/vs-impostor/shit.png",
       "kind": "png",
       "bytes_before": 2016,
       "bytes_after": 2016,
@@ -17740,7 +17740,7 @@
       "chosen_colors": 8
     },
     {
-      "path": "assets/shared/images/ratings/yeahs/poor.png",
+      "path": "assets/shared/images/ratings/yeahs/shit.png",
       "kind": "png",
       "bytes_before": 1351,
       "bytes_after": 1351,

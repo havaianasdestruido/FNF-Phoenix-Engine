@@ -319,7 +319,7 @@ class DarnellBlazinHandler
 	
 	function wasNoteHitPoorly(rating:String)
 	{
-		return (rating == "bad" || rating == "poor");
+		return (rating == "bad" || rating == "shit");
 	}
 
 	function isPlayerLowHealth()

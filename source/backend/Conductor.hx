@@ -196,7 +196,7 @@ class Rating
 		// The lowest rating increments `poorRatings`, used by the FC conditions in
 		// `PlayStateRating.RecalculateRating`. Keep this mapping explicit: deriving
 		// a counter from the rating name would target a nonexistent field on hxcpp.
-		this.counter = (name == 'poor') ? 'poorRatings' : name + 's';
+		this.counter = (name == 'shit') ? 'poorRatings' : name + 's';
 		this.hitWindow = Reflect.field(ClientPrefs, name + 'Window');
 		if(hitWindow == null)
 		{
@@ -231,7 +231,7 @@ class Rating
 		rating.noteSplash = false;
 		ratingsData.push(rating);
 
-		var rating:Rating = new Rating('poor');
+		var rating:Rating = new Rating('shit');
 		rating.ratingMod = 0;
 		rating.score = 50;
 		rating.noteSplash = false;
