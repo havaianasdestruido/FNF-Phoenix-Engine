@@ -1,6 +1,5 @@
 package editors.charting;
 
-// REFACTOR: extracted from editors.ChartingState (behavior-preserving)
 import editors.ChartingState;
 import haxe.io.Bytes;
 import lime.media.AudioBuffer;
@@ -10,7 +9,6 @@ import flixel.sound.FlxSound;
 import flixel.util.FlxColor;
 import openfl.geom.Rectangle;
 
-// REFACTOR: imports for relocated root classes
 // Conductor stays explicitly imported: #67 moved the waveform bounds to
 // ChartingState.sectionStartTime(), which resolves through this class' explicit
 // dependency list.

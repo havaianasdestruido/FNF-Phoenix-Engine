@@ -1,6 +1,5 @@
 package editors.charting;
 
-// REFACTOR: extracted from editors.ChartingState (behavior-preserving)
 import backend.ClientPrefs;
 import backend.Conductor;
 import backend.CoolUtil;
@@ -18,7 +17,6 @@ import objects.FlxUIDropDownMenuCustom;
 import objects.Prompt;
 import play.PlayState;
 
-// REFACTOR: imports for relocated root classes
 import data.Section;
 import objects.Character;
 import objects.Note;

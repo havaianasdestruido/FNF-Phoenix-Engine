@@ -1,6 +1,5 @@
 package shaders;
 
-
 import flixel.system.FlxAssets.FlxShader;
 
 // coding is like hitting on women, you never start with the number
@@ -14,8 +13,6 @@ class ThreeDShader extends FlxShader
 	uniform float yrot;
 	uniform float zrot;
 	uniform float dept;
-	// FIX: float alph = 0 -> float alph = 0.0 (integer init for float)
-	float alph = 0.0;
 
 float plane( in vec3 norm, in vec3 po, in vec3 ro, in vec3 rd ) {
     float de = dot(norm, rd);
@@ -37,10 +34,8 @@ vec2 raytraceTexturedQuad(in vec3 rayOrigin, in vec3 rayDirection, in vec3 quadC
     //--------------------------------------
 
     vec3 right = RotationMatrix * vec3(quadDimensions.x, 0.0, 0.0);
-    // FIX: vec3(0, quadDimensions.y, 0) -> vec3(0.0, quadDimensions.y, 0.0) (integer args in vector constructor)
     vec3 up = RotationMatrix * vec3(0.0, quadDimensions.y, 0.0);
-    vec3 normal = cross(right, up);
-    normal /= length(normal);
+    vec3 normal = normalize(cross(right, up));
 
     //Find the plane hit point in space
     vec3 pos = (rayDirection * plane(normal, quadCenter, rayOrigin, rayDirection)) - quadCenter;
@@ -51,7 +46,6 @@ vec2 raytraceTexturedQuad(in vec3 rayOrigin, in vec3 rayDirection, in vec3 quadC
 }
 
 void main() {
-	vec4 texColor = texture2D(bitmap, openfl_TextureCoordv);
     //Screen UV goes from 0 - 1 along each axis
     vec2 screenUV = openfl_TextureCoordv;
     vec2 p = (2.0 * screenUV) - 1.0;
@@ -61,27 +55,24 @@ void main() {
     p.x *= screenAspect;
 
     //Normalized Ray Dir
-    vec3 dir = vec3(p.x, p.y, 1.0);
-    dir /= length(dir);
+    vec3 dir = normalize(vec3(p.x, p.y, 1.0));
 
     //Define the plane
     vec3 planePosition = vec3(0.0, 0.0, dept);
     vec3 planeRotation = vec3(xrot, yrot, zrot);//this the shit you needa change
     vec2 planeDimension = vec2(-screenAspect, 1.0);
 
-    // FIX: vec3(0) -> vec3(0.0, 0.0, 0.0) (integer arg in vector constructor)
     vec2 uv = raytraceTexturedQuad(vec3(0.0, 0.0, 0.0), dir, planePosition, planeRotation, planeDimension);
 
-    //If we hit the rectangle, sample the texture
+    //If we hit the rectangle, sample the texture. This was three fetches:
+    //one dead pre-fetch at the top of main() whose value was never used, and
+    //the same uv sampled twice here. Outside the quad gl_FragColor was left
+    //unwritten (undefined); write transparent black instead.
+    gl_FragColor = vec4(0.0);
     if (abs(uv.x - 0.5) < 0.5 && abs(uv.y - 0.5) < 0.5) {
-
 		vec3 tex = flixel_texture2D(bitmap, uv).xyz;
-		float bitch = 1.0;
-		if (tex.z == 0.0){
-			bitch = 0.0;
-		}
-
-	  gl_FragColor = vec4(flixel_texture2D(bitmap, uv).xyz, bitch);
+		float outAlpha = (tex.z == 0.0) ? 0.0 : 1.0;
+		gl_FragColor = vec4(tex, outAlpha);
     }
 }
 

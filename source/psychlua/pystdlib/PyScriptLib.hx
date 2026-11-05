@@ -12,7 +12,6 @@ import psychlua.Convert;
 import psychlua.FunkinLua;
 #end
 
-// REFACTOR: extracted from psychlua.callbacks.ScriptCallbacks — Python parity (#87)
 // Mirrors the Lua ScriptCallbacks inter-script API so Python mods can discover,
 // call and share state with other scripts without silently falling back to nil.
 class PyScriptLib
@@ -320,8 +319,10 @@ class PyScriptLib
 			for (s in PlayState.instance.pythonArray)
 				if (s.scriptName == resolved)
 				{
+					// Detach first so an onDestroy callback that removes itself cannot
+					re-enter this loop; then give the script its normal lifecycle hook.
 					PlayState.instance.pythonArray.remove(s);
-					s.stop();
+					unloadPythonScript(s);
 					break;
 				}
 		});
@@ -374,10 +375,18 @@ class PyScriptLib
 					if (s.scriptName == resolved)
 					{
 						PlayState.instance.pythonArray.remove(s);
-						s.stop();
+						unloadPythonScript(s);
 					}
 			}
 		});
+	}
+
+	/** Run the Python lifecycle hook exactly once when a script is unloaded. */
+	static function unloadPythonScript(script:PythonScript):Void
+	{
+		if (script == null || script.closed) return;
+		script.call('onDestroy', []);
+		script.stop();
 	}
 
 	/** Candidate file names for a script reference given with or without extension. */

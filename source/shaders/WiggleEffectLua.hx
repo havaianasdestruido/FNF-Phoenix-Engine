@@ -50,42 +50,60 @@ class WiggleEffectLua extends Effect
   function set_effectType(v:WiggleEffectType):WiggleEffectType
   {
     effectType = v;
-    shader.effectType.value = [WiggleEffectType.getConstructors().indexOf(Std.string(v))];
+    if (shader.effectType.value == null)
+      shader.effectType.value = [Type.enumIndex(v)];
+    else
+      shader.effectType.value[0] = Type.enumIndex(v);
     return v;
   }
 
   function set_waveSpeed(v:Float):Float
   {
     waveSpeed = v;
-    shader.uSpeed.value = [waveSpeed];
+    if (shader.uSpeed.value == null)
+      shader.uSpeed.value = [waveSpeed];
+    else
+      shader.uSpeed.value[0] = waveSpeed;
     return v;
   }
 
   function set_waveFrequency(v:Float):Float
   {
     waveFrequency = v;
-    shader.uFrequency.value = [waveFrequency];
+    if (shader.uFrequency.value == null)
+      shader.uFrequency.value = [waveFrequency];
+    else
+      shader.uFrequency.value[0] = waveFrequency;
     return v;
   }
 
   function set_waveAmplitude(v:Float):Float
   {
     waveAmplitude = v;
-    shader.uWaveAmplitude.value = [waveAmplitude];
+    if (shader.uWaveAmplitude.value == null)
+      shader.uWaveAmplitude.value = [waveAmplitude];
+    else
+      shader.uWaveAmplitude.value[0] = waveAmplitude;
     return v;
   }
 
   function set_verticalStrength(v:Float):Float
   {
     verticalStrength = v;
-    shader.verticalStrength.value = [verticalStrength];
+    if (shader.verticalStrength.value == null)
+      shader.verticalStrength.value = [verticalStrength];
+    else
+      shader.verticalStrength.value[0] = verticalStrength;
     return v;
   }
 
   function set_horizontalStrength(v:Float):Float
   {
     horizontalStrength = v;
-    shader.horizontalStrength.value = [horizontalStrength];
+    if (shader.horizontalStrength.value == null)
+      shader.horizontalStrength.value = [horizontalStrength];
+    else
+      shader.horizontalStrength.value[0] = horizontalStrength;
     return v;
   }
 }

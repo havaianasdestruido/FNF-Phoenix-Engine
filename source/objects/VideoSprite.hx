@@ -193,6 +193,98 @@ class VideoSprite extends FlxSpriteGroup
   public function pause()
     videoSprite?.pause();
 }
+#elseif ios
+/**
+ * iOS fallback — hxvlc is desktop-only, so cutscenes are skipped the same
+ * way as on Android. Future iOS work will replace this with an AVPlayer
+ * bridge (source/ios/src/PhoenixVideo.m) without changing call sites.
+ * See docs/IOS_PLATFORM.md for the roadmap.
+ */
+@:access(play.PlayState)
+class VideoSprite extends FlxSpriteGroup
+{
+  public var finishCallback:Void->Void = null;
+  public var onSkip:Void->Void = null;
+
+  public var holdingTime:Float = 0;
+  public var videoSprite:NullVideoSpriteBackend = new NullVideoSpriteBackend();
+  public var canSkip(default, set):Bool = false;
+
+  private var videoName:String;
+
+  public var waiting:Bool = false;
+
+  var alreadyDestroyed:Bool = false;
+  var resolved:Bool = false;
+
+  public function new(videoName:String, isWaiting:Bool, canSkip:Bool = false, shouldLoop:Dynamic = false, autoPause:Bool = true)
+  {
+    super();
+
+    this.videoName = videoName;
+    waiting = isWaiting;
+    if (canSkip) this.canSkip = true;
+
+    trace('Video backend unavailable on iOS, skipping "$videoName" (see docs/IOS_PLATFORM.md)');
+  }
+
+  override function update(elapsed:Float)
+  {
+    super.update(elapsed);
+    if (!resolved)
+    {
+      resolved = true;
+      destroy();
+    }
+  }
+
+  override function destroy()
+  {
+    if (alreadyDestroyed) return;
+    if (finishCallback != null) finishCallback();
+    else if (waiting)
+    {
+      var game = PlayState.instance;
+      if (game != null)
+      {
+        game.inCutscene = false;
+        game.canPause = true;
+      }
+    }
+    onSkip = null;
+    if (FlxG.state != null)
+    {
+      if (FlxG.state.members.contains(this)) FlxG.state.remove(this);
+      if (FlxG.state.subState != null && FlxG.state.subState.members.contains(this)) FlxG.state.subState.remove(this);
+    }
+    super.destroy();
+    alreadyDestroyed = true;
+  }
+
+  function set_canSkip(newValue:Bool)
+  {
+    canSkip = newValue;
+    return canSkip;
+  }
+
+  public function play() {}
+
+  public function resume() {}
+
+  public function pause() {}
+}
+
+/** Stand-in for `hxvlc.flixel.FlxVideoSprite` when no backend exists. */
+class NullVideoSpriteBackend
+{
+  public function new() {}
+
+  public function play() {}
+
+  public function resume() {}
+
+  public function pause() {}
+}
 #else
 /**
  * Graceful fallback used when the hxvlc video backend isn't available on

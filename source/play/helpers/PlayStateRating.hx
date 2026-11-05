@@ -17,11 +17,11 @@ import objects.Popup;
 
 import play.PlayState;
 
-import psychlua.EtternaFunctions; // REFACTOR: EtternaFunctions moved to psychlua package
+import psychlua.EtternaFunctions;
 
 import play.helpers.PlayStateNoteHelpers;
+import play.helpers.PlayStatePlayback;
 
-// REFACTOR: scoring / rating popup logic extracted from play.PlayState
 @:access(play.PlayState)
 @:access(backend.MusicBeatState)
 class PlayStateRating
@@ -122,7 +122,7 @@ class PlayStateRating
 			});
 		}
 
-		if (!miss && !state.ffmpegMode) (PlayState.opponentChart ? state.opponentVocals : state.vocals).volume = 1;
+		if (!miss && !state.ffmpegMode) (PlayState.opponentChart ? state.opponentVocals : state.vocals).volume = PlayStatePlayback.vocalsVolume(state);
 
 		judgeNote(state, note, miss);
 
@@ -356,7 +356,6 @@ class PlayStateRating
 		state.setOnLuas('ratingFC', state.ratingFC);
 	}
 
-	// REFACTOR: NPS tracking block extracted from play.PlayState.update()
 	public static function updateNps(state:PlayState)
 	{
 		if (ClientPrefs.showNPS && (state.notesHitDateArray.length > 0 || state.oppNotesHitDateArray.length > 0)) {
@@ -420,7 +419,6 @@ if (state.scoreTxtUpdateFrame <= 8 && state.scoreTxt != null) state.updateScore(
 	}
 
 	#if ACHIEVEMENTS_ALLOWED
-	// REFACTOR: achievement checking extracted from play.PlayState
 	public static function checkForAchievement(state:PlayState, achievesToCheck:Array<String> = null)
 	{
 		if(PlayState.chartingMode || state.trollingMode) return;

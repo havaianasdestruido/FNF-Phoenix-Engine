@@ -26,14 +26,71 @@ import states.LoadingState;
 import states.RenderingDoneSubState;
 import states.StoryMenuState;
 
-// REFACTOR: imports for relocated root classes
 import objects.Note;
 
-// REFACTOR: song playback control extracted from play.PlayState
 @:access(play.PlayState)
 @:access(backend.MusicBeatState)
 class PlayStatePlayback
 {
+	/* Global song stem volume overrides (Options -> Gameplay Settings) */
+
+	/**
+	 * Volume the instrumental should play at.
+	 *
+	 * Game Renderer mode keeps the stems silent on purpose (its audio is captured separately), so it
+	 * always wins. Otherwise, when `ClientPrefs.overrideInstrumentalVolume` is on, the override is
+	 * forced on every song; when it is off, songs keep playing at full volume like they always did.
+	 */
+	public static function instrumentalVolume(state:PlayState):Float
+	{
+		if (state.ffmpegMode) return 0;
+		if (ClientPrefs.overrideInstrumentalVolume) return CoolUtil.boundTo(ClientPrefs.instrumentalVolumeOverride, 0, 1);
+		return 1;
+	}
+
+	/**
+	 * Volume an *unmuted* vocal stem (player or opponent) should play at.
+	 *
+	 * Miss-muting, death and cutscenes still force the stems to 0 -- this is only the value they get
+	 * restored to, which honors `ClientPrefs.vocalsVolumeOverride` while the override is enabled.
+	 */
+	public static function vocalsVolume(state:PlayState):Float
+	{
+		if (state.ffmpegMode) return 0;
+		if (ClientPrefs.overrideVocalsVolume) return CoolUtil.boundTo(ClientPrefs.vocalsVolumeOverride, 0, 1);
+		return 1;
+	}
+
+	/**
+	 * Re-applies the enabled stem overrides while the chart plays, so stages, events and scripts
+	 * writing `FlxG.sound.music.volume` or `vocals.volume` cannot defeat them ("for all songs").
+	 *
+	 * No-op unless an override is turned on, so the default path costs nothing. A vocal stem that is
+	 * currently muted stays muted and Android's audio-focus duck on the instrumental is respected;
+	 * call this only while the song is live (not paused, not ending, not in a cutscene) --
+	 * `PlayState.update` already does.
+	 */
+	public static function enforceStemVolumes(state:PlayState):Void
+	{
+		if (state.ffmpegMode) return;
+		if (!ClientPrefs.overrideInstrumentalVolume && !ClientPrefs.overrideVocalsVolume) return;
+
+		// Android ducks the instrumental while another app holds audio focus; don't fight the duck.
+		if (ClientPrefs.overrideInstrumentalVolume && FlxG.sound.music != null && !PlayStateAndroidMedia.isDucking())
+		{
+			final instVolume:Float = instrumentalVolume(state);
+			if (FlxG.sound.music.volume != instVolume) FlxG.sound.music.volume = instVolume;
+		}
+
+		if (ClientPrefs.overrideVocalsVolume)
+		{
+			final vocalVolume:Float = vocalsVolume(state);
+			if (state.vocals != null && state.vocals.volume > 0 && state.vocals.volume != vocalVolume) state.vocals.volume = vocalVolume;
+			if (state.opponentVocals != null && state.opponentVocals.volume > 0 && state.opponentVocals.volume != vocalVolume)
+				state.opponentVocals.volume = vocalVolume;
+		}
+	}
+
 	public static function setSongTime(state:PlayState, time:Float)
 	{
 		if(time < 0) time = 0;
@@ -45,6 +102,7 @@ class PlayStatePlayback
 		FlxG.sound.music.play();
 		FlxG.sound.music.pitch = state.playbackRate;
 		if (state.ffmpegMode) FlxG.sound.music.volume = 0;
+		else if (ClientPrefs.overrideInstrumentalVolume) FlxG.sound.music.volume = instrumentalVolume(state);
 
 		if (Conductor.songPosition <= state.vocals.length)
 		{
@@ -57,6 +115,13 @@ class PlayStatePlayback
 		state.vocals.play();
 		state.opponentVocals.play();
 		if (state.ffmpegMode) state.vocals.volume = state.opponentVocals.volume = 0;
+		else if (ClientPrefs.overrideVocalsVolume)
+		{
+			// A stem muted by a miss stays muted; only the audible ones follow the override.
+			final vocalVolume:Float = vocalsVolume(state);
+			if (state.vocals.volume > 0) state.vocals.volume = vocalVolume;
+			if (state.opponentVocals.volume > 0) state.opponentVocals.volume = vocalVolume;
+		}
 		Conductor.songPosition = time;
 		if (time > 0) PlayStateNoteHelpers.clearNotesBefore(state, time);
 	}
@@ -68,10 +133,11 @@ class PlayStatePlayback
 		var diff:String = (PlayState.SONG.specialAudioName.length > 1 ? PlayState.SONG.specialAudioName : CoolUtil.difficultyString()).toLowerCase();
 		@:privateAccess
 		if (!state.ffmpegMode) {
-			FlxG.sound.playMusic(state.inst._sound, 1, false);
+			FlxG.sound.playMusic(state.inst._sound, instrumentalVolume(state), false);
 			FlxG.sound.music.onComplete = PlayStatePlayback.finishSong.bind(state);
 			state.vocals.play();
 			state.opponentVocals.play();
+			if (ClientPrefs.overrideVocalsVolume) state.vocals.volume = state.opponentVocals.volume = vocalsVolume(state);
 		} else {
 			FlxG.sound.playMusic(state.inst._sound, 0, false);
 			state.vocals.play(); state.vocals.volume = 0;
@@ -85,6 +151,10 @@ class PlayStatePlayback
 
 		setSongTime(state, Math.max(0, PlayState.startOnTime - 500) + Conductor.offset);
 		PlayState.startOnTime = 0;
+		PlayState.startOnTimeRate = null;
+		PlayState.startOnTimeHealth = null;
+		PlayState.startOnTimePractice = null;
+		PlayState.startOnTimeBotplay = null;
 
 		if(state.paused) {
 			//trace('Oopsie doopsie! Paused sound');
@@ -180,7 +250,7 @@ class PlayStatePlayback
 		state.oneK = ClientPrefs.getGameplaySetting('onekey', false);
 		state.randomSpeedThing = ClientPrefs.getGameplaySetting('randomspeed', false);
 		state.jackingtime = ClientPrefs.getGameplaySetting('jacks', 0);
-		state.playbackRate = ClientPrefs.getGameplaySetting('songspeed', 1);
+		state.playbackRate = PlayState.startOnTimeRate != null ? PlayState.startOnTimeRate : ClientPrefs.getGameplaySetting('songspeed', 1);
 		state.songSpeedType = ClientPrefs.getGameplaySetting('scrolltype','multiplicative');
 
 		switch(state.songSpeedType)

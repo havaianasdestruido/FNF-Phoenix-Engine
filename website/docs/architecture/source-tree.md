@@ -72,10 +72,10 @@ Documentation files at the root: `README.md` (features and the patch system),
 
 - **One public type per module**, file name equal to the type name.
 - **Helpers are static** and take the owning state as the first parameter.
+- **State classes stay thin**: a helper module's name and package say where the logic lives,
+  so relocated code needs no marker comments recording where it came from.
 - **`*Shader` / `*Effect` pairs**: the shader holds the GLSL, the effect wraps it with
   animatable parameters and an `update(elapsed)`.
-- **`REFACTOR:` comments** mark code moved out of the old flat layout — they document where
-  something came from, which is useful when porting a Psych patch.
 - **Platform-specific code** lives in `utils/`, `mobile/`, `android/` rather than inside
   gameplay files; gameplay code should rarely contain `#if android`.
 

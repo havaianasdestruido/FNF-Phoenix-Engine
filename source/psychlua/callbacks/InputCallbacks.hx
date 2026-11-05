@@ -3,7 +3,6 @@ package psychlua.callbacks;
 import play.PlayState;
 import psychlua.FunkinLua;
 
-// REFACTOR: extracted from psychlua.FunkinLua (input polling API)
 class InputCallbacks
 {
 	public static function register(funk:FunkinLua):Void {

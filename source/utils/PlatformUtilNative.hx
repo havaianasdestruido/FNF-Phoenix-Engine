@@ -74,6 +74,16 @@ class PlatformUtilNative
     #end
   }
 
+  #if (cpp && linux && !android)
+  @:functionCode('return phoenixShowLinuxNotification(std::string(title.c_str()), std::string(message.c_str()));')
+  #elseif (cpp && mac && !ios)
+  @:functionCode('return phoenixShowMacNotification(std::string(title.c_str()), std::string(message.c_str()));')
+  #end
+  static function sendDesktopNotification(title:String, message:String):Bool
+  {
+    return false;
+  }
+
   static function getWindowsBackwardNative(res:Int = 0) // Only works on windows, otherwise returns 0!
   {
     #if windows

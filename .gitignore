@@ -19,6 +19,9 @@ export/*
 debug/log/*.log
 .vscode/*
 .haxelib/
+# hxcpp's content-addressed native object cache (kept outside build/ so a
+# Lime clean does not discard it).
+.hxcpp_cache/
 *.code-workspace
 # Local history which shouldn't be shared.
 .history

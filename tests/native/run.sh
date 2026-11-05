@@ -114,6 +114,43 @@ else
   echo "skip window lookup ($CXX unavailable)"
 fi
 
+# --- META_HORROR native header self-sufficiency, against the Win32 double ----
+# Two translation units verify the header-only (static) linkage that hxcpp
+# requires because it includes native metadata twice.
+if command -v "$CXX" >/dev/null; then
+  printf '#include <windows.h>\n#include "phoenix_meta_horror.h"\ndouble otherUptime() { return phoenixMetaSystemUptime(); }\n' > "$work/meta_other.cpp"
+  awk '{ if ($0 ~ /int main\(\)/) print "extern double otherUptime();"; print }' \
+    tests/native/test_meta_horror_header.cpp > "$work/meta_main.cpp"
+  "$CXX" -std=c++11 -Wall -Wextra -Werror -D_WIN32 \
+    -I tests/native/windows -I source/backend/native/include \
+    "$work/meta_main.cpp" "$work/meta_other.cpp" -o "$work/meta-horror-header"
+  "$work/meta-horror-header"
+else
+  echo "skip meta_horror header ($CXX unavailable)"
+fi
+
+# --- Desktop notification helpers: mod strings are data, not shell syntax ----
+if command -v "$CXX" >/dev/null; then
+  notif="$work/notif"
+  mkdir -p "$notif"
+  for name in notify-send osascript; do
+    printf '#!/bin/sh\nprintf "%%s\\n" "$@" > "$CAPTURE/%s.args"\n' "$name" > "$notif/$name"
+    chmod +x "$notif/$name"
+  done
+  "$CXX" -std=c++11 -Wall -Wextra -Werror -I source/utils/include \
+    tests/native/test_desktop_notifications.cpp -o "$work/notif-test"
+  PATH="$notif:$PATH" CAPTURE="$notif" "$work/notif-test"
+  # Graceful failure: a failing or missing notify-send must not crash.
+  printf '#!/bin/sh\nexit 1\n' > "$notif/notify-send"
+  printf '#include "phoenix_desktop_dialog.h"\nint main() { return phoenixShowLinuxNotification("x", "y") ? 1 : 0; }\n' > "$work/notif_fail.cpp"
+  "$CXX" -std=c++11 -I source/utils/include "$work/notif_fail.cpp" -o "$work/notif-fail"
+  PATH="$notif:$PATH" CAPTURE="$notif" "$work/notif-fail"
+  rm "$notif/notify-send"
+  PATH="$notif:$PATH" CAPTURE="$notif" "$work/notif-fail"
+else
+  echo "skip desktop notifications ($CXX unavailable)"
+fi
+
 # Optional: compile the real header against the actual Windows SDK.
 if [ -n "${PHOENIX_WINDOWS_CXX:-}" ]; then
   for i in 0 1; do

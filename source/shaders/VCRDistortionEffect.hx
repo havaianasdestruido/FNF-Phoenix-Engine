@@ -24,7 +24,9 @@ class VCRDistortionEffect extends Effect
   public function update(elapsed:Float)
   {
     shader.iTime.value[0] += elapsed;
-    shader.iResolution.value = [Lib.current.stage.stageWidth, Lib.current.stage.stageHeight];
+    // Mutate instead of reallocating the [width, height] array every frame.
+    shader.iResolution.value[0] = Lib.current.stage.stageWidth;
+    shader.iResolution.value[1] = Lib.current.stage.stageHeight;
   }
 
   public function setVignette(state:Bool)

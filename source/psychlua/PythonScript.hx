@@ -45,6 +45,7 @@ import psychlua.pystdlib.PyTextLib;
 import psychlua.pystdlib.PyTimerLib;
 import utils.CoolSystemStuff;
 import psychlua.pystdlib.PyTweenLib;
+import psychlua.pystdlib.PyMetaHorrorLib;
 import psychlua.pystdlib.PyWindowLib;
 import Type.ValueType;
 
@@ -333,46 +334,36 @@ class PythonScript
 		// API registry (mirrors FunkinLua's constructor).
 		// --------------------------------------------------------------------
 
-// REFACTOR: extracted to psychlua.pystdlib.PyPropertyLib
 	PyPropertyLib.register(this);
 
-// REFACTOR: extracted to psychlua.pystdlib.PyScoreLib
 	PyScoreLib.register(this);
 
-// REFACTOR: extracted to psychlua.pystdlib.PyCharacterLib
 	PyCharacterLib.register(this);
 
-// REFACTOR: extracted to psychlua.pystdlib.PyCameraLib
 	PyCameraLib.register(this);
 
-// REFACTOR: extracted to psychlua.pystdlib.PyKeyLib
 	PyKeyLib.register(this);
 
-// REFACTOR: extracted to psychlua.pystdlib.PySpriteLib
 	PySpriteLib.register(this);
 
-// REFACTOR: extracted to psychlua.pystdlib.PyTextLib
 	PyTextLib.register(this);
 
-// REFACTOR: extracted to psychlua.pystdlib.PyTweenLib
 	PyTweenLib.register(this);
 
-// REFACTOR: extracted to psychlua.pystdlib.PyTimerLib
 	PyTimerLib.register(this);
 
-// REFACTOR: extracted to psychlua.pystdlib.PySoundLib
 	PySoundLib.register(this);
 
-// REFACTOR: extracted to psychlua.pystdlib.PyMiscLib
 	PyMiscLib.register(this);
 
-// REFACTOR: extracted to psychlua.pystdlib.PyWindowLib
 	PyWindowLib.register(this);
+
+// 4th-wall-breaking ("META_HORROR") effects — mirrors the Lua bridge
+	PyMetaHorrorLib.register(this);
 
 		// Script interop — mirrors psychlua.callbacks.ScriptCallbacks for Lua (#87)
 		psychlua.pystdlib.PyScriptLib.register(this);
 
-// REFACTOR: extracted to psychlua.pystdlib.PyHardwareLib
 	PyHardwareLib.register(this);
 
 		for (name => func in registeredFunctions) {
@@ -446,13 +437,15 @@ class PythonScript
 			return result;
 		}
 		catch (e:Error) {
+			// Only genuinely absent callbacks are cached above. A callback that
+			// raises during one frame must remain callable on later frames (for
+			// example, while an object is still being initialized).
 			pyTrace("ERROR (" + func + "): " + getErrorString(e), false, false, FlxColor.RED);
-			_missingCalls.set(func, true);
 			return Function_Continue;
 		}
 		catch (e:Dynamic) {
+			// Keep dispatch alive after runtime errors, matching the Lua host.
 			pyTrace("ERROR (" + func + "): " + Std.string(e), false, false, FlxColor.RED);
-			_missingCalls.set(func, true);
 			return Function_Continue;
 		}
 	}

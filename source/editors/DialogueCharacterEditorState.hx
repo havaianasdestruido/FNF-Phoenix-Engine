@@ -20,9 +20,7 @@ import flixel.ui.FlxButton;
 import lime.system.Clipboard;
 import openfl.net.FileReference;
 
-// REFACTOR: imports for relocated root classes
 import objects.Character;
-// REFACTOR: dialogue load/save plumbing moved to helpers
 import headers.Editors;
 
 class DialogueCharacterEditorState extends MusicBeatState

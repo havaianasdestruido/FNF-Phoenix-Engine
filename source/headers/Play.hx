@@ -1,6 +1,5 @@
 package headers;
 
-// REFACTOR: categorization header re-exporting the play.helpers group
 typedef PlayStateCamera = play.helpers.PlayStateCamera;
 typedef PlayStateCharacters = play.helpers.PlayStateCharacters;
 typedef PlayStateChartLoader = play.helpers.PlayStateChartLoader;

@@ -8,7 +8,6 @@ import headers.PsychLua;
 import backend.DiscordClient;
 #end
 
-// REFACTOR: extracted from psychlua.FunkinLua (random/debug/print/cursor/string utils)
 class MiscCallbacks
 {
 	public static function register(funk:FunkinLua):Void {

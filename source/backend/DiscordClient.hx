@@ -71,9 +71,14 @@ class DiscordClient
 	{
 		// Discord may provide a null callback pointer when its native backend is
 		// unavailable (for example, AIR builds without hxdiscord_rpc).
+		// Keep the cast-dep guard: request[0] may be null on AIR (no hxdiscord_rpc).
 		if (request == null) return;
 		final discordUser = request[0];
 		if (discordUser == null || discordUser.username == null) return;
+		// Successful connection resets backoff — presence stays off until
+		// reconnect would otherwise fire onDisconnected.
+		reconnectAttempts = 0;
+		reconnectPending = false;
 		final user = cast (discordUser.username, String);
 		final discriminator = discordUser.discriminator == null ? '0' : cast (discordUser.discriminator, String);
 
@@ -92,9 +97,64 @@ class DiscordClient
 		trace('Discord: Error ($errorCode: ${cast(message, String)})');
 	}
 
+	private static var reconnectAttempts:Int = 0;
+	private static inline var MAX_RECONNECT_ATTEMPTS:Int = 5;
+	private static inline var BASE_RECONNECT_DELAY:Float = 1.5;
+	private static var reconnectPending:Bool = false;
+
 	private static function onDisconnected(errorCode:Int, message:ConstCharStar):Void
 	{
 		trace('Discord: Disconnected ($errorCode: ${cast(message, String)})');
+		if (ClientPrefs.discordRPC && !reconnectPending)
+			scheduleReconnect();
+	}
+
+	/**
+	 * Bounded reconnect with exponential backoff. Called from onDisconnected and
+	 * exposed for manual retry via the options toggle (see ClientPrefs.discordRPC).
+	 * Respects MAX_RECONNECT_ATTEMPTS and resets on successful onReady.
+	 */
+	static function scheduleReconnect():Void
+	{
+		if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS)
+		{
+			trace('Discord: Reconnect attempts exhausted (${MAX_RECONNECT_ATTEMPTS}), giving up until next manual toggle');
+			return;
+		}
+		if (reconnectPending) return;
+		reconnectPending = true;
+		final delay:Float = Math.min(BASE_RECONNECT_DELAY * Math.pow(2, reconnectAttempts), 30.0);
+		reconnectAttempts++;
+		trace('Discord: Scheduling reconnect attempt ${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS} in ${delay}s');
+		#if sys
+		sys.thread.Thread.create(() ->
+		{
+			Sys.sleep(delay);
+			reconnectPending = false;
+			if (!ClientPrefs.discordRPC || isInitialized)
+				return;
+			trace('Discord: Attempting reconnect ${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS}');
+			try
+			{
+				initialize();
+			}
+			catch (e:Dynamic)
+			{
+				trace('Discord: Reconnect failed: $e');
+				scheduleReconnect();
+			}
+		});
+		#end
+	}
+
+	/** Manual retry entry point for the options UI. Resets backoff. */
+	public static function retryConnection():Void
+	{
+		if (!ClientPrefs.discordRPC) return;
+		reconnectAttempts = 0;
+		reconnectPending = false;
+		if (isInitialized) shutdown();
+		initialize();
 	}
 
 	public static function initialize()

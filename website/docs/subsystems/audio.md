@@ -54,6 +54,34 @@ code needs to change for that, because `Paths.modsSounds()` and
 `Conductor.songPosition` is driven from the instrumental's time, not from `elapsed`, so
 rendering hitches cannot desync the chart.
 
+### Global stem volume overrides
+
+Two opt-in settings in **Options → Gameplay Settings** pin a stem's volume for *every* song:
+
+| Option | `ClientPrefs` fields |
+|---|---|
+| Override Instrumental Volume | `overrideInstrumentalVolume`, `instrumentalVolumeOverride` |
+| Override Vocal Volume | `overrideVocalsVolume`, `vocalsVolumeOverride` |
+
+`PlayStatePlayback.instrumentalVolume()` and `PlayStatePlayback.vocalsVolume()` resolve the
+volume a stem should play at — the override while its toggle is on, full volume otherwise —
+and `PlayStatePlayback.enforceStemVolumes()` re-applies both every frame while the chart
+plays (`PlayState.update`, guarded so pause, cutscenes, the ending sequence and renderer mode
+are left alone). Stages, events and scripts therefore cannot drift away from the chosen
+value; `setSoundVolume('')` and `setProperty('FlxG.sound.music.volume', …)` are reverted on
+the next frame. That is the point of an override, but modders should know it exists.
+
+Four things the override deliberately does **not** touch:
+
+- **Miss-muting still wins.** Missing a note mutes the vocal stems to 0, and the next hit
+  restores them to the override value instead of a hardcoded full volume.
+- **Game Renderer mode** (`ffmpegMode`) keeps the stems silent because it captures audio
+  separately; that always beats the override.
+- **The chart editor** keeps its own instrumental/vocal sliders and mute checkboxes —
+  `ChartingState` and `EditorPlayState` never read the override.
+- **The freeplay preview** keeps its own quieter levels (`music.MusicPlayer`,
+  `FreeplayStateHelpers.playSong`); the override applies to songs you actually play.
+
 :::note[Pitch on SWF targets]
 
 Flash and AIR have no pitch shifting. A [haxelib patch](../architecture/haxelib-patches.md)

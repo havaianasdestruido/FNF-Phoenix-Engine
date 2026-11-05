@@ -1,6 +1,5 @@
 ﻿package objects;
 
-// REFACTOR: explicit imports for shader subtypes
 import shaders.RGBPalette.RGBShaderReference;
 
 import backend.NoteTypesConfig;
@@ -280,8 +279,6 @@ class Note extends FlxSprite
 		}
 	}
 
-	// REFACTOR: initializeGlobalRGBShader moved to objects.NoteHelpers
-
 	var _lastNoteOffX:Float = 0;
 	static var _lastValidChecked:String; //optimization
 	public var originalHeight:Float = 6;
@@ -365,8 +362,6 @@ class Note extends FlxSprite
 			updateHitbox();
 		}
 	}
-
-	// REFACTOR: getNoteSkinPostfix moved to objects.NoteHelpers
 
 	override function update(elapsed:Float)
 	{

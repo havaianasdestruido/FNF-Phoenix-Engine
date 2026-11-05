@@ -76,6 +76,7 @@ A stage is either **JSON-only** or **JSON + a hardcoded class**.
 | `hide_girlfriend` | skip spawning gf |
 | `camera_boyfriend`, `camera_opponent`, `camera_girlfriend` | per-character camera offsets |
 | `camera_speed` | follow lerp speed |
+| `shaders` *(optional)* | shader names to pre-compile on the loading screen (`shaders.ShaderWarmup`) |
 
 `StageData.getStageFile(stage)` reads `stages/<stage>.json`, checking mods first, and
 `StageData.dummy()` supplies a safe fallback. `StageData.loadDirectory(SONG)` sets the
@@ -96,6 +97,7 @@ class MyStage extends BaseStage {
   override function sectionHit():Void { ... }
   override function countdownTick(count:Countdown, num:Int):Void { ... }
   override function eventCalled(name:String, v1:String, v2:String, flag:Int, time:Float):Void { ... }
+  override function declareShaders():Array<Shader> { ... }  // see "Shader warm-up"
 }
 ```
 
@@ -107,6 +109,36 @@ Stage props live in `stages/objects/`: `PhillyTrain`, `PhillyGlowGradient`,
 `PhillyGlowParticle`, `BackgroundDancer`, `BackgroundGirls`, `BackgroundTank`,
 `TankmenBG`, `MallCrowd`, `DadBattleFog`, `ABotSpeaker` (the spectrum-analyzer speaker),
 `SpraycanAtlasSprite`, `PicoBlazinHandler`, `DarnellBlazinHandler`.
+
+### Shader warm-up
+
+The driver compiles GLSL the first time a shader is actually drawn, which used to land
+on the first bop of a song (the stage's camera filter, the `Pulse` event's
+`RuntimeShaders.pulseEffect`, a mod's runtime shader…). `PlayState` now compiles what a
+stage declares while the loading screen is still up (`play.helpers.PlayStateShaders` →
+`shaders.ShaderWarmup`), so the program is already in OpenFL's per-context program cache
+when gameplay starts.
+
+Two ways to declare a shader:
+
+```jsonc
+// stages/<stage>.json — built-in names and/or <mod>/shaders/<name>.frag
+"shaders": ["rain", "glitch", "myModShader.frag"]
+```
+
+```haxe
+// a hardcoded stage: hand over the instances it renders with
+override function declareShaders():Array<Shader>
+  return rainShader != null ? [rainShader] : [];
+```
+
+Built-in names (`shaders.ShaderWarmupRegistry`): `rain`, `glitch`, `blockedglitch`,
+`bloom`, `building`, `chromatic`, `distortbg`, `grain`, `grayscale`/`greyscale`,
+`invert`, `pulse`, `rgbpalette`, `scanline`, `threed`/`3d`, `tiltshift`, `vcr`, `vfd`.
+Names are matched case-insensitively and ignore a `.frag`/`.vert` extension, so `Rain`
+and `shaders/rain.frag` both work. Runtime shaders a Lua/Python/HScript script creates
+while the state loads are queued automatically. Backends without a GL render context
+(Flash/AIR, HTML5 canvas) simply skip warm-up; unknown names only log a warning.
 
 ### Stage scripts
 

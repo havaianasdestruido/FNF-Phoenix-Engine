@@ -1,5 +1,4 @@
-﻿package shaders;
-
+package shaders;
 
 import flixel.system.FlxAssets.FlxShader;
 
@@ -28,10 +27,17 @@ class BlockedGlitchShader extends FlxShader
 
     void main(void) {
       vec2 uv = openfl_TextureCoordv;
-      gl_FragColor = flixel_texture2D(bitmap, uv);
-      gl_FragColor.r = flixel_texture2D(bitmap, uv + vec2(offset(64.0, uv) * 0.03, 0.0)).r;
-      gl_FragColor.g = flixel_texture2D(bitmap, uv + vec2(offset(64.0, uv) * 0.03 * 0.16666666, 0.0)).g;
-      gl_FragColor.b = flixel_texture2D(bitmap, uv + vec2(offset(64.0, uv) * 0.03, 0.0)).b;
+      // offset() only depends on uv, so the three channel offsets below are
+      // scalar multiples of one value: evaluate the hash once instead of three
+      // times, and share one fetch between the r and b channels, which sample
+      // the exact same coordinates. Alpha still comes from the center texel.
+      float o = offset(64.0, uv) * 0.03;
+      vec4 rb = flixel_texture2D(bitmap, uv + vec2(o, 0.0));
+      vec4 col = vec4(rb.r,
+        flixel_texture2D(bitmap, uv + vec2(o * 0.16666666, 0.0)).g,
+        rb.b,
+        flixel_texture2D(bitmap, uv).a);
+      gl_FragColor = col;
     }
     ')
   public function new()

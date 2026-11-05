@@ -9,7 +9,6 @@ import headers.PsychLua;
 import psychlua.ModchartSprite;
 import states.substates.GameOverSubstate;
 
-// REFACTOR: extracted from psychlua.FunkinLua (sprite/animation API)
 class SpriteCallbacks
 {
 	public static function register(funk:FunkinLua):Void {

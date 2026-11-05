@@ -1,9 +1,7 @@
-﻿package shaders;
+package shaders;
 
 
 import flixel.system.FlxAssets.FlxShader;
-
-import objects.Note;
 
 class Tiltshift extends FlxShader
 {
@@ -49,31 +47,32 @@ class Tiltshift extends FlxShader
 		uniform float bluramount;
 		uniform float center;
 		const float stepSize    = 0.004;
-		const float steps       = 3.0;
-
-		const float minOffs     = (float(steps-1.0)) / -2.0;
-		const float maxOffs     = (float(steps-1.0)) / +2.0;
 
 		void main() {
-			float amount;
-			vec4 blurred;
-
 			// Work out how much to blur based on the mid point
-			amount = pow((openfl_TextureCoordv.y * center) * 2.0 - 1.0, 2.0) * bluramount;
+			// (pow(x, 2.0) replaced with the equivalent multiply)
+			float midDist = (openfl_TextureCoordv.y * center) * 2.0 - 1.0;
+			float amount = midDist * midDist * bluramount;
+
+			// With no blur, all 9 taps below sample the same texel, so the
+			// result is (vec4(0,0,0,1) + 9 * texel) / 9. Produce exactly
+			// that value from a single fetch instead.
+			if (amount == 0.0) {
+				vec4 texel = texture2D(bitmap, openfl_TextureCoordv.xy);
+				gl_FragColor = vec4(texel.rgb, (1.0 + 9.0 * texel.a) / 9.0);
+				return;
+			}
 
 			// This is the accumulation of color from the surrounding pixels in the texture
-			blurred = vec4(0.0, 0.0, 0.0, 1.0);
+			vec4 blurred = vec4(0.0, 0.0, 0.0, 1.0);
 
-			// From minimum offset to maximum offset
-			for (float offsX = minOffs; offsX <= maxOffs; ++offsX) {
-				for (float offsY = minOffs; offsY <= maxOffs; ++offsY) {
-
-					// copy the coord so we can mess with it
-					vec2 temp_tcoord = openfl_TextureCoordv.xy;
-
-					//work out which uv we want to sample now
-					temp_tcoord.x += offsX * amount * stepSize;
-					temp_tcoord.y += offsY * amount * stepSize;
+			// From minimum offset to maximum offset (steps = 3, so -1..1).
+			// Integer loops and one hoisted offset scale replace the float
+			// loop that recomputed amount * stepSize for every tap.
+			float offsetScale = amount * stepSize;
+			for (int offsX = -1; offsX <= 1; ++offsX) {
+				for (int offsY = -1; offsY <= 1; ++offsY) {
+					vec2 temp_tcoord = openfl_TextureCoordv.xy + vec2(float(offsX), float(offsY)) * offsetScale;
 
 					// accumulate the sample
 					blurred += texture2D(bitmap, temp_tcoord);
@@ -81,7 +80,7 @@ class Tiltshift extends FlxShader
 			}
 
 			// because we are doing an average, we divide by the amount (x AND y, hence steps * steps)
-			blurred /= float(steps * steps);
+			blurred /= 9.0;
 
 			// return the final blurred color
 			gl_FragColor = blurred;

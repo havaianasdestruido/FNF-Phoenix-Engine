@@ -47,13 +47,14 @@ Checkstyle notes:
 - One public type per module, named after the file.
 - Guard optional subsystems with `#if` — never rely on a runtime check for something a
   build may not contain.
+- Give a module a short package/class comment describing what it owns; do not leave notes
+  that only record that code used to live somewhere else.
 - Keep state classes thin; new logic goes into the matching `helpers/` package as static
   functions taking the state.
 - Prefer `inline` and `final` for hot-path helpers and constants; the engine targets
   low-end devices.
 - Avoid `Reflect` and allocations inside per-frame loops (note iteration, rendering,
   script dispatch).
-- `REFACTOR:` comments mark relocated code; keep them accurate if you move things again.
 
 ## JSON
 
