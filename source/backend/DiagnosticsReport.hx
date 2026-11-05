@@ -45,9 +45,6 @@ class DiagnosticsReport
   /** Only this much of the live log is read back for the tail. */
   static inline final LOG_TAIL_BYTES:Int = 32 * 1024;
 
-  /** Bigger than this, the log is not worth opening for a screenshot (vlog caps at 10 MiB). */
-  static inline final LOG_MAX_BYTES:Int = 2 * 1024 * 1024;
-
   /**
    * The full snapshot as one plain-text block: header, sections, footer.
    *
@@ -74,7 +71,7 @@ class DiagnosticsReport
 
     out.push('[FOOTER]');
     out.push(row('Screenshot', 'this page, or press copy, then attach it to your report'));
-    out.push(row('Privacy', 'paths can contain your username - redact before posting'));
+    out.push(row('Privacy', 'log lines arrive redacted; the paths above do not'));
     return out;
   }
 
@@ -231,11 +228,15 @@ class DiagnosticsReport
     var cutHead:Bool = false;
     #if sys
     // vlog/log.txt is capped at 10 MiB by rotation, which is a lot more than a
-    // screenshot needs: read only the last rows, and say so when the file is
-    // too big to bother opening at all.
+    // screenshot needs: read only the last rows, and skip the file when it is
+    // bigger than the size LogUtils is willing to copy a log to anywhere. The
+    // lines themselves need no scrubbing here: VLog redacts before every disk
+    // write and on export, so this page shows a log the player could paste.
+    // Everything this file prints directly (paths, save dir) is not redacted,
+    // which is what the footer says.
     try
     {
-      if (FileSystem.exists(VLog.FILE) && FileSystem.stat(VLog.FILE).size <= LOG_MAX_BYTES)
+      if (FileSystem.exists(VLog.FILE) && FileSystem.stat(VLog.FILE).size <= LogUtils.MAX_LOG_FILE_BYTES)
       {
         final bytes = File.getBytes(VLog.FILE);
         if (bytes.length > LOG_TAIL_BYTES)

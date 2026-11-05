@@ -2,9 +2,9 @@
 """Static regression tests for the read-only `phoenix://diagnostics` route.
 
 TODO.md §19 asked for one link support can send, so that a player taps it and
-screenshots what opens. The promise has three parts, and each is pinned here the
-way `test_deeplink_opt_in.py` pins the registration boundary (no Haxe
-toolchain needed):
+screenshots what opens. The promise has three parts, and each is pinned here
+(no Haxe toolchain needed), in the style of `test_asset_caching.py`:
+`checks.yml` runs the compiled specs, this file is the fast local guard.
 
   * the parser accepts the route in both of its spellings and rejects anything
     it cannot use, while the version 1 menu contract stays exactly as it was;
@@ -33,7 +33,7 @@ ROUTER = "source/backend/deeplink/DeepLinks.hx"
 STATE = "source/states/DiagnosticsState.hx"
 REPORT = "source/backend/DiagnosticsReport.hx"
 TESTS = "tests/uri/TestPhoenixURI.hx"
-RUNNER = "tests/uri/run.py"
+RUNNER = "tests/uri/run.sh"
 
 MENU_NAMES = ["main", "mods", "options", "misc", "story", "freeplay", "credits"]
 
@@ -133,7 +133,7 @@ class DiagnosticsParserTests(unittest.TestCase):
         # The isolated runner has to copy the parser's result types as well, or
         # the v2 API cannot compile at all.
         runner = read(RUNNER)
-        for module in ("PhoenixURI.hx", "ParsedURI.hx", "URIKind.hx"):
+        for module in ("PhoenixURI", "ParsedURI", "URIKind"):
             self.assertIn(module, runner)
 
 
@@ -224,12 +224,20 @@ class DiagnosticsReportTests(unittest.TestCase):
         self.assertRegex(source, r"section\(out, '\[?[A-Z ]+\]?', \w+Section\)",
                          "each section goes through the guard, not straight into the text")
 
+    def test_the_log_policy_is_reused_not_forked(self):
+        source = read(REPORT)
+        self.assertIn("LogUtils.MAX_LOG_FILE_BYTES", source,
+                      "the size bound for opening a log is backend.LogUtils' policy, so it is read "
+                      "from there instead of being a second number that can drift")
+        self.assertNotIn("LOG_MAX_BYTES", source, "no private copy of the cap")
+        self.assertNotIn("redact(", source,
+                         "the tail is printed as VLog stored it; redacting again here would fork the policy")
+
     def test_log_tail_is_bounded(self):
         source = read(REPORT)
-        self.assertRegex(source, r"LOG_MAX_BYTES\s*:\s*Int\s*=\s*\d+ \* 1024 \* 1024")
         self.assertRegex(source, r"LOG_TAIL_BYTES\s*:\s*Int\s*=\s*\d+ \* 1024")
         self.assertRegex(source, r"LOG_LINES\s*:\s*Int\s*=\s*\d+")
-        self.assertIn("FileSystem.stat(VLog.FILE).size <= LOG_MAX_BYTES", source,
+        self.assertIn("FileSystem.stat(VLog.FILE).size <= LogUtils.MAX_LOG_FILE_BYTES", source,
                       "a log capped at 10 MiB by rotation must not be slurped for a screenshot")
         self.assertRegex(source, r"slice\(\w+\.length - LOG_LINES\)",
                          "the tail has to be cut from the end, not re-read")
@@ -307,7 +315,7 @@ class DiagnosticsSpecHarnessTests(unittest.TestCase):
     def test_ci_runs_the_haxe_specs_and_the_parser_spec(self):
         workflow = read(self.WORKFLOW)
         self.assertIn("tests/haxe/run-diagnostics-report.sh", workflow)
-        self.assertIn("tests/uri/run.py", workflow,
+        self.assertIn("tests/uri/run.sh", workflow,
                       "the parser is the compatibility contract; it should not rely on a local run")
 
 

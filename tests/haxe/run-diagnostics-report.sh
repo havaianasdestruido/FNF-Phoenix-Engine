@@ -20,6 +20,9 @@ trap 'rm -rf "$test_source"' EXIT
 cp -r tests/haxe/stubs/diagnostics/. "$test_source/"
 mkdir -p "$test_source/backend" "$test_source/states"
 cp source/backend/DiagnosticsReport.hx "$test_source/backend/DiagnosticsReport.hx"
+# LogUtils is Flixel-free on purpose, so the report sees the real redaction and
+# size policy here instead of a paraphrase of it.
+cp source/backend/LogUtils.hx "$test_source/backend/LogUtils.hx"
 cp source/states/DiagnosticsState.hx "$test_source/states/DiagnosticsState.hx"
 cd "$test_source"
 "${HAXE:-haxe}" -cp "$test_source" -cp "$root/tests/haxe" -main DiagnosticsReportSpec --interp
