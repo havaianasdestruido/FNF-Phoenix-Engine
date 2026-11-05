@@ -4,7 +4,6 @@ import backend.Paths;
 import play.PlayState;
 import psychlua.FunkinLua;
 
-// REFACTOR: extracted from psychlua.FunkinLua (sound/music API)
 class SoundCallbacks
 {
 	public static function register(funk:FunkinLua):Void {

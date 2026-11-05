@@ -2,6 +2,7 @@
 
 * [Dependencies](#dependencies)
 * [Building](#building)
+  * [Faster repeat builds](#faster-repeat-builds)
 
 ---
 
@@ -117,11 +118,77 @@ head into the `setup` folder located in the root directory of this repository, a
 
 It depends on your Operating System. for Windows, run `windows.bat`, for anything else, `unix.sh`
 
+Every setup/tool/test script in this repository is kept in all three shell
+dialects (`.bat`, `.ps1` and `.sh`, same basename and folder), so e.g.
+`windows.ps1`/`windows.sh` and `unix.ps1`/`unix.bat` do the same jobs as the
+files above. Ports of inherently Windows-only scripts (the `phoenix://`
+registry scripts in `setup/uri/`, `windows-msvc*`) delegate to
+`reg.exe`/PowerShell or the Windows installer where the platform allows it,
+and otherwise print a clear "Windows-only" message and exit non-zero.
+
 sit back, relax, wait for haxelib to do its magic, and once everything is done, run
 
 `lime test <platform>`
 
 where `<platform>` gets replaced with `windows`, `linux`, or `mac`
+
+---
+
+### Faster repeat builds
+
+**Native targets (especially Windows):** C++ `lime build` and `lime test`
+commands now use hxcpp's object cache in `.hxcpp_cache/` at the repository
+root. The first build still compiles everything; later builds can reuse
+unchanged objects, even after `lime clean` or switching branches. This cache is
+separate from the normal incremental `build/` output and is ignored by Git.
+It does not disable mods, reflection, or other engine features.
+
+- To put the cache elsewhere, set `HXCPP_COMPILE_CACHE` **before** running
+  Lime. For example, in PowerShell: `$env:HXCPP_COMPILE_CACHE = 'D:\hxcpp-cache'`.
+  An explicit environment value takes precedence over the project default;
+  `-DHXCPP_COMPILE_CACHE=<absolute-path>` can also be used.
+- To disable the **default** cache for one invocation, use
+  `lime build windows -DNO_HXCPP_COMPILE_CACHE`. If you already set
+  `HXCPP_COMPILE_CACHE` yourself, unset that environment variable as well.
+- hxcpp normally limits the cache to about 1 GB. If objects are repeatedly
+  evicted, increase its limit with `HXCPP_CACHE_MB` (for example,
+  `$env:HXCPP_CACHE_MB = '2048'` in PowerShell). Keep enough free disk space.
+  Delete `.hxcpp_cache/` to reclaim space or troubleshoot a suspect cache;
+  the next build will be cold.
+- The engine's native headers are declared as cache dependencies. If you edit
+  an **external** native header/SDK in place, hxcpp may not know about it;
+  clear the cache after such changes, as well as after toolchain changes when
+  in doubt. Avoid sharing one cache between incompatible toolchains or targets.
+
+**All targets:** an optional Haxe compilation server can speed up repeated
+Haxe typing/macro work. Start it once in one terminal:
+
+```sh
+haxe --wait 6000
+```
+
+In another terminal in this checkout, pass `--connect 6000` to your usual
+build, for example:
+
+```sh
+haxelib run lime build windows --connect 6000
+# Or: haxelib run lime build html5 --connect 6000
+```
+
+The first server build is cold; later builds benefit while it stays running.
+Stop the server with Ctrl+C. Restart it after changing Haxe, libraries,
+toolchain/environment settings, or switching checkouts/branches. When using
+`-Dcommit`, also restart it after a commit/checkout change: the server can
+otherwise reuse the macro result containing an old Git SHA. If it is not
+running, omit `--connect` or start it again.
+
+CI keeps a target/toolchain-specific hxcpp object cache and Gradle's Android
+dependency cache. Pull requests can read the base cache but do not save their
+own copies; each shared configuration refreshes at most daily to limit storage use.
+Routine Windows CI builds use a faster normal link. Builds requested with
+`officialBuild` retain link-time optimization, which takes longer but matches
+the previous release optimization; Android continues to avoid LTO because of
+NDK TLS link failures. Artifact locations and packaging checks are unchanged.
 
 ---
 

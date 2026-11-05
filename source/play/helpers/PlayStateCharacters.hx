@@ -5,7 +5,6 @@ import objects.Character.Boyfriend;
 
 import play.PlayState;
 
-// REFACTOR: character list/pos/lua logic extracted from play.PlayState
 class PlayStateCharacters
 {
 	public static function addCharacterToList(state:PlayState, newCharacter:String, type:Int) {

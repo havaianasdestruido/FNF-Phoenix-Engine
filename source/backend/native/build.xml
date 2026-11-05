@@ -10,6 +10,8 @@
   <set name="PHOENIX_HARDWARE_DIR" value="${this_dir}" />
   <files id="haxe">
     <compilervalue name="-I" value="${PHOENIX_HARDWARE_DIR}/include/" />
+    <!-- hxcpp hashes declared dependencies when reusing cached objects. -->
+    <depend name="${PHOENIX_HARDWARE_DIR}/include/phoenix_hardware.h" />
   </files>
   <target id="haxe">
     <section if="windows">

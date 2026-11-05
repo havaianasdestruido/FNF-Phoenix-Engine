@@ -152,7 +152,7 @@ FNF-JS-Engine-Light/
   enviar qualquer um dos dois, mas o repositório fica **só Ogg**.
 - Ao adicionar música/SFX: `ffmpeg -i in.wav -vn -c:a libvorbis -q:a 2 out.ogg`
   (`tools/compress-audio.sh` já faz isso em lote; `-q:a 2` ≈ 96 kbps VBR).
-- `tests/test_audio_format_policy.py` falha se um par `.ogg`/`.mp3` reaparecer.
+- Nunca versione um par `.ogg`/`.mp3` da mesma faixa; revise isso no code review.
 
 ---
 
@@ -226,7 +226,7 @@ FNF-JS-Engine-Light/
 - `mobile-release.yml` — valida uma tag Phoenix existente e reutiliza `main.yml` com
   apenas Android habilitado para publicar o APK. O antigo `mobile.yml` duplicava esse build.
 - `release.yml` — publica o artefato Windows de `main.yml` em uma draft release.
-- `checks.yml` — regressões Python/Java/Haxe; `docs.yml` — build e deploy do site.
+- `checks.yml` — regressões Java/nativas; `docs.yml` — build e deploy do site.
 - `sparse-submodule.yml` — valida o checkout sparse e o link do mod fnf_030_ui.
 - `nightly.yml`, `autotriage.yml`, `autolock.yml` — housekeeping.
 - **Sem CodeQL:** não adicionar workflows `github/codeql-action` nem ativar o default setup

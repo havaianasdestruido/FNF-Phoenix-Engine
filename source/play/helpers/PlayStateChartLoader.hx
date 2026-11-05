@@ -19,10 +19,8 @@ import openfl.system.System;
 
 import play.PlayState;
 
-// REFACTOR: imports for relocated root classes
 import backend.MusicBeatState;
 
-// REFACTOR: chart parsing extracted from play.PlayState.generateSong
 @:access(play.PlayState)
 @:access(backend.MusicBeatState)
 class PlayStateChartLoader

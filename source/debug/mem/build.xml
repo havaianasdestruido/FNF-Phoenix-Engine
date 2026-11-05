@@ -2,6 +2,7 @@
   <set name="PROJECT_DIR" value="${this_dir}" />
   <files id="haxe">
     <compilervalue name="-I" value="${PROJECT_DIR}/include/" />
+    <depend name="${PROJECT_DIR}/include/memory.h" />
   </files>
   <target id="haxe">
     <section if="linux">

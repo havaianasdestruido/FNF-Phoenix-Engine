@@ -1,0 +1,2 @@
+package headers;
+class Objects {}

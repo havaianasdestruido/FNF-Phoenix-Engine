@@ -8,7 +8,6 @@ import psychlua.PythonScript;
 import headers.PsychLua;
 import Type.ValueType;
 
-// REFACTOR: extracted from psychlua.PythonScript (getProperty / setProperty family)
 class PyPropertyLib
 {
 	public static function register(py:PythonScript):Void {

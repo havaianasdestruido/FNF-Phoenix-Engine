@@ -23,7 +23,6 @@ import mobile.files.ModZipInstaller;
 import objects.Alphabet;
 import objects.Prompt;
 
-// REFACTOR: imports for relocated root classes
 import backend.Controls;
 import headers.States;
 

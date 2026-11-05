@@ -5,7 +5,6 @@ import play.PlayState;
 import psychlua.FunkinLua;
 import headers.PsychLua;
 
-// REFACTOR: extracted from psychlua.FunkinLua (text object API)
 class TextCallbacks
 {
 	public static function register(funk:FunkinLua):Void {

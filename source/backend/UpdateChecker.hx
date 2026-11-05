@@ -111,7 +111,7 @@ class UpdateChecker
 
     try
     {
-      final http:Http = new Http(PhoenixVersion.RELEASES_API_URL);
+      final http:Http = new Http(RuntimeFlags.url("urls.releasesApi", PhoenixVersion.RELEASES_API_URL));
       http.setHeader("Accept", "application/vnd.github+json");
       http.setHeader("User-Agent", "Phoenix-Engine-Update-Checker");
       http.setHeader("X-GitHub-Api-Version", "2022-11-28");

@@ -1,6 +1,5 @@
 package editors.charting;
 
-// REFACTOR: extracted from editors.ChartingState (behavior-preserving)
 import flixel.FlxSprite;
 import flixel.text.FlxText;
 

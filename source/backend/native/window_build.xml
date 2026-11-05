@@ -3,5 +3,6 @@
   <set name="PHOENIX_WINDOW_DIR" value="${this_dir}" />
   <files id="haxe">
     <compilervalue name="-I" value="${PHOENIX_WINDOW_DIR}/include/" />
+    <depend name="${PHOENIX_WINDOW_DIR}/include/phoenix_window.h" />
   </files>
 </xml>
