@@ -4,7 +4,7 @@ import flixel.system.FlxAssets.FlxShader;
 
 // Boing! by ThaeHan
 
-class FuckingTriangle extends FlxShader
+class TriangleShader extends FlxShader
 {
   // FIX: removed const arrays (arrays unsupported on some platforms)
   // FIX: removed default values from uniforms

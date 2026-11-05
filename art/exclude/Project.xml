@@ -35,7 +35,7 @@
 	<define name="HSCRIPT_ALLOWED" if="desktop || mobile || web" />
 	<define name="ACHIEVEMENTS_ALLOWED" />
 	<define name="SHADERS_ALLOWED" unless="flash"/>
-	<define name="FUNNY_ALLOWED" /> <!-- allows any joke related shit -->
+	<define name="FUNNY_ALLOWED" /> <!-- allows any joke related poor -->
 	<define name="VIDEOS_ALLOWED" if="desktop || mobile" unless="32bits || web"/>
 	<define name="PSYCH_WATERMARKS"/> <!-- DELETE THIS TO REMOVE WATERMARKS/DEV NAMES ON TITLE SCREEN -->
 	<define name="DISCORD_ALLOWED" if="desktop || mobile" unless="web" />
@@ -126,7 +126,7 @@
 	<haxelib name="hxvlc" if="VIDEOS_ALLOWED"/>
 
 	<haxelib name="hxdiscord_rpc" if="DISCORD_ALLOWED" />
-	<!-- openfls folder dialog is an pain in the ass -->
+	<!-- openfls folder dialog is an a hassle -->
 	<haxelib name="hxnativefiledialog" if="cpp" unless="hl || neko"/>
 	<haxelib name="hxgamemode" if="linux" unless="debug"/>
 	<haxelib name="flxanimate"/>

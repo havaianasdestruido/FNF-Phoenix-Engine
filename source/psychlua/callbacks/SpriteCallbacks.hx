@@ -113,38 +113,38 @@ class SpriteCallbacks
 		});
 		FunkinLua.registerFunction("addAnimationByPrefix", function(obj:String, name:String, prefix:String, framerate:Int = 24, loop:Bool = true) {
 			if(PlayState.instance.getLuaObject(obj,false)!=null) {
-				var cock:FlxSprite = PlayState.instance.getLuaObject(obj,false);
-				cock.animation.addByPrefix(name, prefix, framerate, loop);
-				if(cock.animation.curAnim == null) {
-					cock.animation.play(name, true);
+				var targetSprite:FlxSprite = PlayState.instance.getLuaObject(obj,false);
+				targetSprite.animation.addByPrefix(name, prefix, framerate, loop);
+				if(targetSprite.animation.curAnim == null) {
+					targetSprite.animation.play(name, true);
 				}
 				return;
 			}
 
-			var cock:FlxSprite = Reflect.getProperty(FunkinLua.getInstance(), obj);
-			if(cock != null) {
-				cock.animation.addByPrefix(name, prefix, framerate, loop);
-				if(cock.animation.curAnim == null) {
-					cock.animation.play(name, true);
+			var targetSprite:FlxSprite = Reflect.getProperty(FunkinLua.getInstance(), obj);
+			if(targetSprite != null) {
+				targetSprite.animation.addByPrefix(name, prefix, framerate, loop);
+				if(targetSprite.animation.curAnim == null) {
+					targetSprite.animation.play(name, true);
 				}
 			}
 		});
 
 		FunkinLua.registerFunction("addAnimation", function(obj:String, name:String, frames:Array<Int>, framerate:Int = 24, loop:Bool = true) {
 			if(PlayState.instance.getLuaObject(obj,false)!=null) {
-				var cock:FlxSprite = PlayState.instance.getLuaObject(obj,false);
-				cock.animation.add(name, frames, framerate, loop);
-				if(cock.animation.curAnim == null) {
-					cock.animation.play(name, true);
+				var targetSprite:FlxSprite = PlayState.instance.getLuaObject(obj,false);
+				targetSprite.animation.add(name, frames, framerate, loop);
+				if(targetSprite.animation.curAnim == null) {
+					targetSprite.animation.play(name, true);
 				}
 				return;
 			}
 
-			var cock:FlxSprite = Reflect.getProperty(FunkinLua.getInstance(), obj);
-			if(cock != null) {
-				cock.animation.add(name, frames, framerate, loop);
-				if(cock.animation.curAnim == null) {
-					cock.animation.play(name, true);
+			var targetSprite:FlxSprite = Reflect.getProperty(FunkinLua.getInstance(), obj);
+			if(targetSprite != null) {
+				targetSprite.animation.add(name, frames, framerate, loop);
+				if(targetSprite.animation.curAnim == null) {
+					targetSprite.animation.play(name, true);
 				}
 			}
 		});

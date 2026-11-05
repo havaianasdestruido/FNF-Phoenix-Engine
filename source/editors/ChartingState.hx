@@ -611,7 +611,7 @@ class ChartingState extends MusicBeatState
     songSlider.minLabel.visible = false;
     add(songSlider);
     songSlider.scrollFactor.set();
-    songSlider.callback = function(fuck:Float) {
+    songSlider.callback = function(value:Float) {
       vocals.time = opponentVocals.time = FlxG.sound.music.time;
       var sectionIndex:Int = sectionIndexAtTime(FlxG.sound.music.time);
 
@@ -1074,7 +1074,7 @@ class ChartingState extends MusicBeatState
       chartingUi.remove(chartingUi.members[0], true);
     }
 
-    // general shit
+    // General settings
     var title:FlxText = new FlxText(UI_box.x + 20, UI_box.y + 20, 0);
     chartingUi.add(title);
   }
@@ -1627,12 +1627,12 @@ class ChartingState extends MusicBeatState
           var increase:Float = 1 / snap;
           if (FlxG.mouse.wheel > 0)
           {
-            var fuck:Float = CoolUtil.quantize(beat, snap) - increase;
-            FlxG.sound.music.time = beatToSeconds(fuck);
+            var adjustedBeat:Float = CoolUtil.quantize(beat, snap) - increase;
+            FlxG.sound.music.time = beatToSeconds(adjustedBeat);
           } else
           {
-            var fuck:Float = CoolUtil.quantize(beat, snap) + increase;
-            FlxG.sound.music.time = beatToSeconds(fuck);
+            var adjustedBeat:Float = CoolUtil.quantize(beat, snap) + increase;
+            FlxG.sound.music.time = beatToSeconds(adjustedBeat);
           }
         }
         pauseAndSetVocalsTime();
@@ -1673,12 +1673,12 @@ class ChartingState extends MusicBeatState
           var increase:Float = 1 / snap;
           if (FlxG.keys.pressed.UP)
           {
-            var fuck:Float = CoolUtil.quantize(beat, snap) - increase; // (Math.floor((beat+snap) / snap) * snap);
-            FlxG.sound.music.time = beatToSeconds(fuck);
+            var adjustedBeat:Float = CoolUtil.quantize(beat, snap) - increase; // (Math.floor((beat+snap) / snap) * snap);
+            FlxG.sound.music.time = beatToSeconds(adjustedBeat);
           } else
           {
-            var fuck:Float = CoolUtil.quantize(beat, snap) + increase; // (Math.floor((beat+snap) / snap) * snap);
-            FlxG.sound.music.time = beatToSeconds(fuck);
+            var adjustedBeat:Float = CoolUtil.quantize(beat, snap) + increase; // (Math.floor((beat+snap) / snap) * snap);
+            FlxG.sound.music.time = beatToSeconds(adjustedBeat);
           }
         }
       }
@@ -1744,12 +1744,12 @@ class ChartingState extends MusicBeatState
           var increase:Float = 1 / snap;
           if (FlxG.keys.pressed.UP)
           {
-            var fuck:Float = CoolUtil.quantize(beat, snap) - increase;
-            feces = beatToSeconds(fuck);
+            var adjustedBeat:Float = CoolUtil.quantize(beat, snap) - increase;
+            feces = beatToSeconds(adjustedBeat);
           } else
           {
-            var fuck:Float = CoolUtil.quantize(beat, snap) + increase; // (Math.floor((beat+snap) / snap) * snap);
-            feces = beatToSeconds(fuck);
+            var adjustedBeat:Float = CoolUtil.quantize(beat, snap) + increase; // (Math.floor((beat+snap) / snap) * snap);
+            feces = beatToSeconds(adjustedBeat);
           }
           FlxTween.tween(FlxG.sound.music, {time: feces}, 0.1, {ease: FlxEase.circOut});
           pauseAndSetVocalsTime();
@@ -2050,7 +2050,7 @@ class ChartingState extends MusicBeatState
     if (FlxG.sound.music.playing && idleMusic != null && idleMusic.music != null && idleMusicAllow) idleMusic.pauseMusic();
 
     FlxG.sound.music.pause();
-    // Basically old shit from changeSection???
+    // Legacy behavior from changeSection.
     FlxG.sound.music.time = sectionStartTime();
 
     if (songBeginning)

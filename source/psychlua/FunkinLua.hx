@@ -159,7 +159,7 @@ class FunkinLua {
 
 		game.luaArray.push(this);
 
-		// Lua shit
+		// Lua API
 		set('Function_StopLua', Function_StopLua);
 		set('Function_Stop', Function_Stop);
 		set('Function_Continue', Function_Continue);
@@ -168,7 +168,7 @@ class FunkinLua {
 		set('inChartEditor', false);
 		set('modFolder', this.modFolder);
 
-		// Song/Week shit
+		// Song and week data
 		set('curBpm', Conductor.bpm);
 		set('bpm', PlayState.SONG.bpm);
 		set('scrollSpeed', PlayState.SONG.speed);
@@ -198,7 +198,7 @@ class FunkinLua {
 		set('screenWidth', FlxG.width);
 		set('screenHeight', FlxG.height);
 
-		// PlayState cringe ass nae nae bullcrap
+		// PlayState cringe nae nae nonsense
 		set('curBeat', 0);
 		set('curStep', 0);
 		set('curDecBeat', 0);
@@ -249,7 +249,7 @@ class FunkinLua {
 		set('defaultGirlfriendX', game.GF_X);
 		set('defaultGirlfriendY', game.GF_Y);
 
-		// Character shit
+		// Character API
 		set('boyfriendName', PlayState.SONG.player1 ?? 'bf');
 		set('dadName', PlayState.SONG.player2 ?? 'dad');
 		set('gfName', PlayState.SONG.gfVersion ?? 'gf');
@@ -272,7 +272,7 @@ class FunkinLua {
 		set('scriptName', scriptName);
 		set('currentModDirectory', Mods.currentModDirectory);
 
-		// Noteskin/Splash shit
+		// Noteskin and splash settings
 		set('noteSkin', ClientPrefs.noteSkin);
 		set('noteSkinPostfix', NoteHelpers.getNoteSkinPostfix());
 		set('splashSkin', ClientPrefs.splashType);
@@ -303,7 +303,8 @@ class FunkinLua {
 			}
 		}
 
-		// shader shit
+		// Shader support
+		// REFACTOR: extracted to psychlua.callbacks.ShaderCallbacks
 	ShaderCallbacks.register(this);
 
 	ScriptCallbacks.register(this);

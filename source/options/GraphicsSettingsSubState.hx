@@ -51,7 +51,7 @@ class GraphicsSettingsSubState extends BaseOptionsMenu
 		addOption(option);
 
 		var option:Option = new Option('GPU Caching', //Name
-			"If checked, allows the GPU to be used for caching textures, decreasing RAM usage.\nDon't turn this on if you have a shitty Graphics Card.", //Description
+			"If checked, allows the GPU to be used for caching textures, decreasing RAM usage.\nDon't turn this on if you have an older or less capable graphics card.", //Description
 			'cacheOnGPU',
 			'bool',
 			false); //Don't turn this on by default
@@ -92,7 +92,7 @@ class GraphicsSettingsSubState extends BaseOptionsMenu
 		option.onChange = onChangeResolution;
 		#end
 
-		//Apparently other framerates isn't correctly supported on Browser? Probably it has some V-Sync shit enabled by default, idk
+		//Apparently other framerates isn't correctly supported on Browser? Probably it has V-Sync enabled by default, idk
 		var option:Option = new Option('Framerate',
 			"Pretty self explanatory, isn't it?",
 			'framerate',

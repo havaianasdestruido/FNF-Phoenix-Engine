@@ -59,7 +59,7 @@ void main() {
 
     //Define the plane
     vec3 planePosition = vec3(0.0, 0.0, dept);
-    vec3 planeRotation = vec3(xrot, yrot, zrot);//this the shit you needa change
+    vec3 planeRotation = vec3(xrot, yrot, zrot);// Adjust this vector to change the plane orientation.
     vec2 planeDimension = vec2(-screenAspect, 1.0);
 
     vec2 uv = raytraceTexturedQuad(vec3(0.0, 0.0, 0.0), dir, planePosition, planeRotation, planeDimension);

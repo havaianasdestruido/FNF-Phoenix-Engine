@@ -89,9 +89,9 @@ class DarnellBlazinHandler
 			case "weekend-1-fakeout":
 				playCringeAnim();
 			case "weekend-1-taunt":
-				playPissedConditionalAnim();
+				playAngryConditionalAnim();
 			case "weekend-1-tauntforce":
-				playPissedAnim();
+				playAngryAnim();
 			case "weekend-1-reversefakeout":
 				playFakeoutAnim();
 		}
@@ -185,9 +185,9 @@ class DarnellBlazinHandler
 			case "weekend-1-fakeout":
 				playCringeAnim(); // TODO: Which anim?
 			case "weekend-1-taunt":
-				playPissedConditionalAnim();
+				playAngryConditionalAnim();
 			case "weekend-1-tauntforce":
-				playPissedAnim();
+				playAngryAnim();
 			case "weekend-1-reversefakeout":
 				playFakeoutAnim(); // TODO: Which anim?
 		}
@@ -247,17 +247,17 @@ class DarnellBlazinHandler
 		moveToBack();
 	}
 
-	function playPissedConditionalAnim()
+	function playAngryConditionalAnim()
 	{
 		if (dad.getAnimationName() == "cringe")
-			playPissedAnim();
+			playAngryAnim();
 		else
 			playIdleAnim();
 	}
 
-	function playPissedAnim()
+	function playAngryAnim()
 	{
-		dad.playAnim('pissed', true);
+		dad.playAnim('angry', true);
 		moveToBack();
 	}
 

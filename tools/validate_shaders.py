@@ -41,7 +41,7 @@ SHADER_FILES = [
     "source/shaders/BuildingShader.hx",
     "source/shaders/ChromaticAberrationShader.hx",
     "source/shaders/DistortBGShader.hx",
-    "source/shaders/FuckingTriangle.hx",
+    "source/shaders/TriangleShader.hx",
     "source/shaders/GlitchShader.hx",
     "source/shaders/Grain.hx",
     "source/shaders/GreyscaleShader.hx",

@@ -1,7 +1,7 @@
 package utils;
 
 /*
-    This is some cool system shit!
+    This is a useful system helper!
 	lordRyan wrote this :D
     Shoutout to him :D
 */

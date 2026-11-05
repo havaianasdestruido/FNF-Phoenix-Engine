@@ -225,7 +225,7 @@ class FreeplayStateHelpers
 
 		CoolUtil.difficulties = CoolUtil.defaultDifficulties.copy();
 		var diffStr:String = WeekData.getCurrentWeek().difficulties;
-		if(diffStr != null) diffStr = diffStr.trim(); //Fuck you HTML5
+		if(diffStr != null) diffStr = diffStr.trim(); //Bother you HTML5
 
 		if(diffStr != null && diffStr.length > 0)
 		{

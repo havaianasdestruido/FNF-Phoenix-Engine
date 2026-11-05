@@ -316,7 +316,7 @@ class PhillyStreets extends BaseStage
 		});
 		cutsceneHandler.timer(cutsceneDelay + 4, function() //pico reloads
 		{
-			boyfriend.playAnim('cock', true);
+			boyfriend.playAnim('reload', true);
 			FlxTween.tween(FlxG.camera.scroll, {x: camFollowPos.x + 180 - FlxG.width/2}, 0.4, {ease: FlxEase.backOut});
 			gunPrepSnd.play(true);
 		});
@@ -487,7 +487,7 @@ class PhillyStreets extends BaseStage
 			{
 				case 'weekend-1-kickcan':
 					createCan();
-				case 'weekend-1-cockgun':
+				case 'weekend-1-propgun':
 					precacheCasing();
 				case 'weekend-1-firegun':
 					bonkSnd = new FlxSound();
@@ -830,9 +830,9 @@ class PhillyStreets extends BaseStage
 
 		switch(note.noteType)
 		{
-			case 'weekend-1-cockgun': // HE'S PULLING HIS COCK OUT
+			case 'weekend-1-propgun': // Recoil animation for the prop action.
 				boyfriend.holdTimer = 0;
-				boyfriend.playAnim('cock', true);
+				boyfriend.playAnim('reload', true);
 				boyfriend.specialAnim = true;
 				gunPrepSnd.play();
 
@@ -840,7 +840,7 @@ class PhillyStreets extends BaseStage
 				{
 					switch(name)
 					{
-						case 'cock':
+						case 'reload':
 							if(frameNumber == 3)
 							{
 								boyfriend.animation.callback = null;
@@ -968,7 +968,7 @@ class PhillyStreets extends BaseStage
 				{
 					if (name == 'shootMISS' && game.health > 0.0 && !game.practiceMode && game.gameOverTimer == null)
 					{
-						//FlxFlicker was crashing so fuck it, FlxTimer all the way
+						//FlxFlicker was crashing, so use FlxTimer instead.
 						picoFlicker = new FlxTimer().start(1 / 30, function(tmr:FlxTimer)
 						{
 							boyfriend.visible = !boyfriend.visible;

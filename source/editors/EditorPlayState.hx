@@ -569,7 +569,7 @@ class EditorPlayState extends MusicBeatState
 		EditorPlayStateHelpers.spawnHoldSplash(this, note);
 	}
 
-	// Note splash shit, duh
+	// Note splash behavior
 	function spawnNoteSplashOnNote(note:Note) {
 		if(ClientPrefs.noteSplashes && note != null) {
 			var strum:StrumNote = playerStrums.members[note.noteData];
