@@ -16,6 +16,7 @@ from __future__ import annotations
 import pathlib
 import re
 import sys
+from typing import Optional
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 CLIENT_PREFS = ROOT / "source/backend/ClientPrefs.hx"
@@ -32,6 +33,40 @@ def normalise(value: str) -> str:
     return value.replace(" ", "")
 
 
+CONST_RE = re.compile(r"public static final (\w+)\s*:(?:\w+)\s*=\s*(.+?);")
+
+
+def class_constants(class_name: str) -> dict[str, str]:
+    """Literal values of `public static final` fields declared in `class_name`."""
+    for path in ROOT.rglob(f"{class_name}.hx"):
+        source = path.read_text(encoding="utf-8-sig")
+        return {m.group(1): m.group(2).strip() for m in CONST_RE.finditer(source)}
+    return {}
+
+
+def resolve(value: str, seen: Optional[set] = None, scope: Optional[dict] = None) -> str:
+    """Follow constant defaults (`OtherClass.CONST`, or a bare same-class name)
+    down to the literal they ultimately stand for."""
+    seen = seen or set()
+    scope = scope or {}
+    value = value.strip()
+    if value in seen:
+        return value
+    seen.add(value)
+
+    qualified = re.fullmatch(r"(\w+)\.(\w+)", value)
+    if qualified:
+        consts = class_constants(qualified.group(1))
+        name = qualified.group(2)
+    elif re.fullmatch(r"\w+", value) and value in scope:
+        consts, name = scope, value
+    else:
+        return value
+
+    resolved = consts.get(name)
+    return resolve(resolved, seen, consts) if resolved else value
+
+
 def client_prefs_defaults() -> dict[str, str]:
     source = CLIENT_PREFS.read_text(encoding="utf-8-sig")
     defaults: dict[str, str] = {}
@@ -39,7 +74,7 @@ def client_prefs_defaults() -> dict[str, str]:
         name, kind, value = match.group(1), match.group(2), match.group(3).strip()
         if "Map<" in kind or "Array<" in kind or value.startswith("[") or value.startswith("new Map"):
             continue
-        defaults[name] = value
+        defaults[name] = resolve(value)
     return defaults
 
 

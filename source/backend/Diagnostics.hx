@@ -622,6 +622,8 @@ class Diagnostics
    */
   static final DEFAULTS:Dynamic =
   {
+    alphabetStyle: 'Font',
+    alphabetFont: 'VCR OSD Mono',
     controllerMode: false,
     downScroll: false,
     middleScroll: false,
