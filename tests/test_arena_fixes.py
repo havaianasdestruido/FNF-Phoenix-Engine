@@ -93,9 +93,11 @@ class TestCIWorkflows(unittest.TestCase):
 
     def test_cache_key_pins_dependency_set_per_job(self):  # #57
         main = read(".github/workflows/main.yml")
-        self.assertIn("haxelib-${{ runner.os }}-${{ matrix.setup }}", main)
-        self.assertIn("hashFiles('hmm.json')", main)
-        self.assertNotIn("windows-msvc-fix.ps1') }}", main.split("Restore haxelib")[1].split("\n")[3])
+        # The haxelib key stays namespaced per target and hashes the pinned
+        # dependency set (the manifest plus the setup scripts that install it).
+        self.assertIn("haxelib-${{ matrix.setup }}-haxe-${{ env.HAXE_VERSION }}", main)
+        self.assertIn("hashFiles('hmm.json'", main)
+        self.assertIn("setup/windows-msvc-fix.ps1') }}", main)
         self.assertIn("Report resolved dependency revisions", main)
 
     def test_nightly_trigger_names_a_real_workflow(self):  # #59

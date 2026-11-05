@@ -31,9 +31,42 @@ Two steps worth knowing about:
   `libc++_shared.so` is missing for any ABI. This is the automated form of the
   [`dlopen` failure](../getting-started/troubleshooting.md#android-dlopen-failed-libc_sharedso-not-found).
   The preceding manifest check also verifies Media3/SAF components and SDK levels.
-- **Cache handling** — both the haxelib/hxcpp tools and the generated C++ output are
-  cached per target (`cache_name`), with proper `HXCPP_COMPILE_CACHE` detection. Cold
-  builds take longer than warm ones.
+- **Cache handling** — both the haxelib/hxcpp tools and hxcpp's native object cache
+  (`.hxcpp_cache`, via `HXCPP_COMPILE_CACHE`) are cached per target (`cache_name`).
+  Cold builds take longer than warm ones.
+
+### How the caches are keyed
+
+GitHub Actions caches are immutable and every entry is a full snapshot of the path it
+was saved from, so a cache key that changes with every commit stores the same 140–370 MB
+of objects (and 1.6 GB of haxelibs) over and over until the 10 GB quota evicts all of
+them. This workflow therefore uses **one rolling entry per target**:
+
+- The key hashes only what makes the cache *incompatible*: `CACHE_SCHEMA`, the target,
+  OS/arch, Haxe version, the pinned dependency set (`hmm.json` + the setup scripts) and
+  the build flags. Source files, `project.hxp` and the workflow itself are deliberately
+  **not** hashed.
+- hxcpp already hashes each translation unit's own inputs (sources, headers declared as
+  `<depend>` in `source/**/build.xml`, compiler flags) and recompiles the objects that
+  changed, so sharing the cache across commits is safe. A new native header must be
+  declared in its `build.xml`, or cached objects will keep the old inline code —
+  `tests/test_build_cache_policy.py` enforces that.
+- The save step writes the **same key** that was looked up (`cache-hit` is only true on
+  an exact match, and a restore-key hit counts as a miss), so a miss restores the
+  previous generation, adds the new objects and replaces the entry after the build.
+- Only `pull_request` runs are read-only. `push`, `workflow_dispatch` and `workflow_call`
+  (manual/mobile releases, release assets) all refresh the shared entry.
+- The haxelib key is content-derived too, so it hits exactly on a warm run instead of
+  re-uploading the haxelib tree on every commit. Dependencies are only installed when
+  that exact key misses.
+- Bump `CACHE_SCHEMA` in `main.yml` to invalidate every existing entry at once (e.g.
+  after changing what is cached). Evicted payloads are rebuilt on the next run.
+
+`HXCPP_CACHE_MB` is raised to 2048 so a full Windows/dual-ABI Android object set fits
+hxcpp's own disk budget instead of being evicted mid-build. Note that the hxcpp object
+directory is content-addressed, so entries for source revisions that no longer build are
+simply not referenced anymore; the rolling save replaces the snapshot rather than
+accumulating one per commit.
 
 Windows artifacts contain `build/release/windows/bin`. Android artifacts contain the
 APK under `build/release/android/bin/app/build/outputs/apk/debug`: the pinned Lime fork
