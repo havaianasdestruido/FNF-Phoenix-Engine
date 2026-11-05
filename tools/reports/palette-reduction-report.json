@@ -9238,31 +9238,26 @@
     {
       "path": "assets/shared/images/pixelUI/ratings/default/shit-pixel.png",
       "kind": "png",
-      "bytes_before": 279,
-      "bytes_after": 279,
-      "sha256_before": "d8c834242fe96cc9e798c611d0ec5741938111e56f382fb8d37acc0fb9cfb2e5",
-      "sha256_after": "d8c834242fe96cc9e798c611d0ec5741938111e56f382fb8d37acc0fb9cfb2e5",
-      "width": 35,
-      "height": 20,
-      "palette_before": 6,
-      "palette_after": 6,
+      "bytes_before": 226,
+      "bytes_after": 226,
+      "sha256_before": "74a7d8c741c23d39f3704ef8e54a7353699f03b49b1299fa356b5846d82bad09",
+      "sha256_after": "74a7d8c741c23d39f3704ef8e54a7353699f03b49b1299fa356b5846d82bad09",
+      "width": 28,
+      "height": 19,
+      "palette_before": 4,
+      "palette_after": 4,
       "bits_before": 8,
       "bits_after": 8,
       "changed": false,
-      "reason": "all candidates were larger than the original",
+      "reason": "clean rating artwork reused",
       "chosen": null,
       "quality": null,
-      "unique_colors_before": 6,
+      "unique_colors_before": 4,
       "rejected": [
         {
-          "target": 4,
-          "reason": "psnr 27.35 < 30.0",
-          "psnr": 27.35
-        },
-        {
           "target": 2,
-          "reason": "psnr 13.10 < 30.0",
-          "psnr": 13.1
+          "reason": "psnr 11.95 < 30.0",
+          "psnr": 11.95
         }
       ]
     },
@@ -9711,31 +9706,26 @@
     {
       "path": "assets/shared/images/pixelUI/ratings/doki-doki+/shit-pixel.png",
       "kind": "png",
-      "bytes_before": 279,
-      "bytes_after": 279,
-      "sha256_before": "d8c834242fe96cc9e798c611d0ec5741938111e56f382fb8d37acc0fb9cfb2e5",
-      "sha256_after": "d8c834242fe96cc9e798c611d0ec5741938111e56f382fb8d37acc0fb9cfb2e5",
-      "width": 35,
-      "height": 20,
-      "palette_before": 6,
-      "palette_after": 6,
+      "bytes_before": 226,
+      "bytes_after": 226,
+      "sha256_before": "74a7d8c741c23d39f3704ef8e54a7353699f03b49b1299fa356b5846d82bad09",
+      "sha256_after": "74a7d8c741c23d39f3704ef8e54a7353699f03b49b1299fa356b5846d82bad09",
+      "width": 28,
+      "height": 19,
+      "palette_before": 4,
+      "palette_after": 4,
       "bits_before": 8,
       "bits_after": 8,
       "changed": false,
-      "reason": "all candidates were larger than the original",
+      "reason": "clean rating artwork reused",
       "chosen": null,
       "quality": null,
-      "unique_colors_before": 6,
+      "unique_colors_before": 4,
       "rejected": [
         {
-          "target": 4,
-          "reason": "psnr 27.35 < 30.0",
-          "psnr": 27.35
-        },
-        {
           "target": 2,
-          "reason": "psnr 13.10 < 30.0",
-          "psnr": 13.1
+          "reason": "psnr 11.95 < 30.0",
+          "psnr": 11.95
         }
       ]
     },
@@ -10153,31 +10143,26 @@
     {
       "path": "assets/shared/images/pixelUI/ratings/fire-in-the-hole/shit-pixel.png",
       "kind": "png",
-      "bytes_before": 279,
-      "bytes_after": 279,
-      "sha256_before": "d8c834242fe96cc9e798c611d0ec5741938111e56f382fb8d37acc0fb9cfb2e5",
-      "sha256_after": "d8c834242fe96cc9e798c611d0ec5741938111e56f382fb8d37acc0fb9cfb2e5",
-      "width": 35,
-      "height": 20,
-      "palette_before": 6,
-      "palette_after": 6,
+      "bytes_before": 226,
+      "bytes_after": 226,
+      "sha256_before": "74a7d8c741c23d39f3704ef8e54a7353699f03b49b1299fa356b5846d82bad09",
+      "sha256_after": "74a7d8c741c23d39f3704ef8e54a7353699f03b49b1299fa356b5846d82bad09",
+      "width": 28,
+      "height": 19,
+      "palette_before": 4,
+      "palette_after": 4,
       "bits_before": 8,
       "bits_after": 8,
       "changed": false,
-      "reason": "all candidates were larger than the original",
+      "reason": "clean rating artwork reused",
       "chosen": null,
       "quality": null,
-      "unique_colors_before": 6,
+      "unique_colors_before": 4,
       "rejected": [
         {
-          "target": 4,
-          "reason": "psnr 27.35 < 30.0",
-          "psnr": 27.35
-        },
-        {
           "target": 2,
-          "reason": "psnr 13.10 < 30.0",
-          "psnr": 13.1
+          "reason": "psnr 11.95 < 30.0",
+          "psnr": 11.95
         }
       ]
     },
@@ -10652,31 +10637,31 @@
     {
       "path": "assets/shared/images/pixelUI/ratings/kade/shit-pixel.png",
       "kind": "png",
-      "bytes_before": 303,
-      "bytes_after": 303,
-      "sha256_before": "2760cee148d58b92d1b78da310d10df24f4359cf5dc3b5cd3d5cf2074452b5be",
-      "sha256_after": "2760cee148d58b92d1b78da310d10df24f4359cf5dc3b5cd3d5cf2074452b5be",
-      "width": 35,
-      "height": 20,
-      "palette_before": 9,
-      "palette_after": 9,
-      "bits_before": 8,
-      "bits_after": 8,
+      "bytes_before": 272,
+      "bytes_after": 272,
+      "sha256_before": "76ade9433b4d28561c938c954e65174f79bd94d18aab4e1e81c6ab4116fa416b",
+      "sha256_after": "76ade9433b4d28561c938c954e65174f79bd94d18aab4e1e81c6ab4116fa416b",
+      "width": 28,
+      "height": 19,
+      "palette_before": 8,
+      "palette_after": 8,
+      "bits_before": 4,
+      "bits_after": 4,
       "changed": false,
-      "reason": "all candidates were larger than the original",
+      "reason": "clean rating artwork reused",
       "chosen": null,
       "quality": null,
-      "unique_colors_before": 9,
+      "unique_colors_before": 8,
       "rejected": [
         {
           "target": 4,
-          "reason": "changed_gt8 0.3592 > 0.20",
-          "psnr": 31.53
+          "reason": "psnr 29.11 < 30.0",
+          "psnr": 29.11
         },
         {
           "target": 2,
-          "reason": "psnr 20.39 < 30.0",
-          "psnr": 20.39
+          "reason": "psnr 16.61 < 30.0",
+          "psnr": 16.61
         }
       ]
     },
@@ -11135,31 +11120,26 @@
     {
       "path": "assets/shared/images/pixelUI/ratings/nmcw/shit-pixel.png",
       "kind": "png",
-      "bytes_before": 279,
-      "bytes_after": 279,
-      "sha256_before": "d8c834242fe96cc9e798c611d0ec5741938111e56f382fb8d37acc0fb9cfb2e5",
-      "sha256_after": "d8c834242fe96cc9e798c611d0ec5741938111e56f382fb8d37acc0fb9cfb2e5",
-      "width": 35,
-      "height": 20,
-      "palette_before": 6,
-      "palette_after": 6,
+      "bytes_before": 226,
+      "bytes_after": 226,
+      "sha256_before": "74a7d8c741c23d39f3704ef8e54a7353699f03b49b1299fa356b5846d82bad09",
+      "sha256_after": "74a7d8c741c23d39f3704ef8e54a7353699f03b49b1299fa356b5846d82bad09",
+      "width": 28,
+      "height": 19,
+      "palette_before": 4,
+      "palette_after": 4,
       "bits_before": 8,
       "bits_after": 8,
       "changed": false,
-      "reason": "all candidates were larger than the original",
+      "reason": "clean rating artwork reused",
       "chosen": null,
       "quality": null,
-      "unique_colors_before": 6,
+      "unique_colors_before": 4,
       "rejected": [
         {
-          "target": 4,
-          "reason": "psnr 27.35 < 30.0",
-          "psnr": 27.35
-        },
-        {
           "target": 2,
-          "reason": "psnr 13.10 < 30.0",
-          "psnr": 13.1
+          "reason": "psnr 11.95 < 30.0",
+          "psnr": 11.95
         }
       ]
     },
@@ -11634,31 +11614,26 @@
     {
       "path": "assets/shared/images/pixelUI/ratings/tgt-v4/shit-pixel.png",
       "kind": "png",
-      "bytes_before": 279,
-      "bytes_after": 279,
-      "sha256_before": "d8c834242fe96cc9e798c611d0ec5741938111e56f382fb8d37acc0fb9cfb2e5",
-      "sha256_after": "d8c834242fe96cc9e798c611d0ec5741938111e56f382fb8d37acc0fb9cfb2e5",
-      "width": 35,
-      "height": 20,
-      "palette_before": 6,
-      "palette_after": 6,
+      "bytes_before": 226,
+      "bytes_after": 226,
+      "sha256_before": "74a7d8c741c23d39f3704ef8e54a7353699f03b49b1299fa356b5846d82bad09",
+      "sha256_after": "74a7d8c741c23d39f3704ef8e54a7353699f03b49b1299fa356b5846d82bad09",
+      "width": 28,
+      "height": 19,
+      "palette_before": 4,
+      "palette_after": 4,
       "bits_before": 8,
       "bits_after": 8,
       "changed": false,
-      "reason": "all candidates were larger than the original",
+      "reason": "clean rating artwork reused",
       "chosen": null,
       "quality": null,
-      "unique_colors_before": 6,
+      "unique_colors_before": 4,
       "rejected": [
         {
-          "target": 4,
-          "reason": "psnr 27.35 < 30.0",
-          "psnr": 27.35
-        },
-        {
           "target": 2,
-          "reason": "psnr 13.10 < 30.0",
-          "psnr": 13.1
+          "reason": "psnr 11.95 < 30.0",
+          "psnr": 11.95
         }
       ]
     },
@@ -12123,31 +12098,31 @@
     {
       "path": "assets/shared/images/pixelUI/ratings/vs-impostor/shit-pixel.png",
       "kind": "png",
-      "bytes_before": 303,
-      "bytes_after": 303,
-      "sha256_before": "2760cee148d58b92d1b78da310d10df24f4359cf5dc3b5cd3d5cf2074452b5be",
-      "sha256_after": "2760cee148d58b92d1b78da310d10df24f4359cf5dc3b5cd3d5cf2074452b5be",
-      "width": 35,
-      "height": 20,
-      "palette_before": 9,
-      "palette_after": 9,
-      "bits_before": 8,
-      "bits_after": 8,
+      "bytes_before": 272,
+      "bytes_after": 272,
+      "sha256_before": "76ade9433b4d28561c938c954e65174f79bd94d18aab4e1e81c6ab4116fa416b",
+      "sha256_after": "76ade9433b4d28561c938c954e65174f79bd94d18aab4e1e81c6ab4116fa416b",
+      "width": 28,
+      "height": 19,
+      "palette_before": 8,
+      "palette_after": 8,
+      "bits_before": 4,
+      "bits_after": 4,
       "changed": false,
-      "reason": "all candidates were larger than the original",
+      "reason": "clean rating artwork reused",
       "chosen": null,
       "quality": null,
-      "unique_colors_before": 9,
+      "unique_colors_before": 8,
       "rejected": [
         {
           "target": 4,
-          "reason": "changed_gt8 0.3592 > 0.20",
-          "psnr": 31.53
+          "reason": "psnr 29.11 < 30.0",
+          "psnr": 29.11
         },
         {
           "target": 2,
-          "reason": "psnr 20.39 < 30.0",
-          "psnr": 20.39
+          "reason": "psnr 16.61 < 30.0",
+          "psnr": 16.61
         }
       ]
     },
@@ -12622,31 +12597,31 @@
     {
       "path": "assets/shared/images/pixelUI/ratings/yeahs/shit-pixel.png",
       "kind": "png",
-      "bytes_before": 303,
-      "bytes_after": 303,
-      "sha256_before": "2760cee148d58b92d1b78da310d10df24f4359cf5dc3b5cd3d5cf2074452b5be",
-      "sha256_after": "2760cee148d58b92d1b78da310d10df24f4359cf5dc3b5cd3d5cf2074452b5be",
-      "width": 35,
-      "height": 20,
-      "palette_before": 9,
-      "palette_after": 9,
-      "bits_before": 8,
-      "bits_after": 8,
+      "bytes_before": 272,
+      "bytes_after": 272,
+      "sha256_before": "76ade9433b4d28561c938c954e65174f79bd94d18aab4e1e81c6ab4116fa416b",
+      "sha256_after": "76ade9433b4d28561c938c954e65174f79bd94d18aab4e1e81c6ab4116fa416b",
+      "width": 28,
+      "height": 19,
+      "palette_before": 8,
+      "palette_after": 8,
+      "bits_before": 4,
+      "bits_after": 4,
       "changed": false,
-      "reason": "all candidates were larger than the original",
+      "reason": "clean rating artwork reused",
       "chosen": null,
       "quality": null,
-      "unique_colors_before": 9,
+      "unique_colors_before": 8,
       "rejected": [
         {
           "target": 4,
-          "reason": "changed_gt8 0.3592 > 0.20",
-          "psnr": 31.53
+          "reason": "psnr 29.11 < 30.0",
+          "psnr": 29.11
         },
         {
           "target": 2,
-          "reason": "psnr 20.39 < 30.0",
-          "psnr": 20.39
+          "reason": "psnr 16.61 < 30.0",
+          "psnr": 16.61
         }
       ]
     },
@@ -13316,39 +13291,28 @@
     {
       "path": "assets/shared/images/ratings/default/shit.png",
       "kind": "png",
-      "bytes_before": 4615,
-      "bytes_after": 2897,
-      "sha256_before": "41d8dbb840bc5a68d8f9b8da8c80c4be3ccc3d44e3a148aa52e91724a2fdc23e",
-      "sha256_after": "c67afe7aba4709ad10ec5ed5d29c586f1f05160cfc5c49fedb17b7a725b975c3",
-      "width": 285,
-      "height": 163,
-      "palette_before": 20,
+      "bytes_before": 2120,
+      "bytes_after": 2120,
+      "sha256_before": "224e17e0c8bf6b62ba765dc9765e08f3fb9ee684c39fecad6e8f43096fe82279",
+      "sha256_after": "224e17e0c8bf6b62ba765dc9765e08f3fb9ee684c39fecad6e8f43096fe82279",
+      "width": 261,
+      "height": 131,
+      "palette_before": 8,
       "palette_after": 8,
-      "bits_before": 8,
+      "bits_before": 4,
       "bits_after": 4,
-      "changed": true,
-      "reason": "palette reduced",
-      "chosen": "q8",
-      "quality": {
-        "psnr": 31.27,
-        "alpha_mae": 1.6099,
-        "alpha_max": 98,
-        "halo": 0,
-        "lost": 0,
-        "opaque_bad": 0.02738,
-        "changed_gt8": 0.08322,
-        "visible": 22663,
-        "total": 46455
-      },
-      "unique_colors_before": 20,
+      "changed": false,
+      "reason": "clean rating artwork reused",
+      "chosen": null,
+      "quality": null,
+      "unique_colors_before": 8,
       "rejected": [
         {
           "target": 4,
-          "reason": "psnr 27.91 < 30.0",
-          "psnr": 27.91
+          "reason": "psnr 27.72 < 30.0",
+          "psnr": 27.72
         }
-      ],
-      "chosen_colors": 8
+      ]
     },
     {
       "path": "assets/shared/images/ratings/default/sick.png",
@@ -13959,49 +13923,28 @@
     {
       "path": "assets/shared/images/ratings/doki-doki+/shit.png",
       "kind": "png",
-      "bytes_before": 4906,
-      "bytes_after": 4047,
-      "sha256_before": "e681adf0e7d5707d45d908084eec96606b2c2b49d61958e552c400bdacdd0bc7",
-      "sha256_after": "82b762a1addf7f2a9dc05769e94741edf66e24dd1254fdf256d7e5c8f54c0865",
-      "width": 197,
-      "height": 125,
-      "palette_before": 119,
-      "palette_after": 63,
-      "bits_before": 8,
-      "bits_after": 8,
-      "changed": true,
-      "reason": "palette reduced",
-      "chosen": "q64",
-      "quality": {
-        "psnr": 35.37,
-        "alpha_mae": 1.0248,
-        "alpha_max": 69,
-        "halo": 0,
-        "lost": 0,
-        "opaque_bad": 0.0139,
-        "changed_gt8": 0.10569,
-        "visible": 19444,
-        "total": 24625
-      },
-      "unique_colors_before": 119,
+      "bytes_before": 1965,
+      "bytes_after": 1965,
+      "sha256_before": "e761c7bb4fa0f7ede104cc942438d7813e635117901da9ab40b87c8084442b41",
+      "sha256_after": "e761c7bb4fa0f7ede104cc942438d7813e635117901da9ab40b87c8084442b41",
+      "width": 227,
+      "height": 119,
+      "palette_before": 8,
+      "palette_after": 8,
+      "bits_before": 4,
+      "bits_after": 4,
+      "changed": false,
+      "reason": "clean rating artwork reused",
+      "chosen": null,
+      "quality": null,
+      "unique_colors_before": 8,
       "rejected": [
         {
-          "target": 32,
-          "reason": "psnr 29.11 < 30.0",
-          "psnr": 29.11
-        },
-        {
-          "target": 16,
-          "reason": "psnr 26.05 < 30.0",
-          "psnr": 26.05
-        },
-        {
-          "target": 8,
-          "reason": "psnr 21.51 < 30.0",
-          "psnr": 21.51
+          "target": 4,
+          "reason": "psnr 24.67 < 30.0",
+          "psnr": 24.67
         }
-      ],
-      "chosen_colors": 63
+      ]
     },
     {
       "path": "assets/shared/images/ratings/doki-doki+/sick.png",
@@ -14865,39 +14808,28 @@
     {
       "path": "assets/shared/images/ratings/fire-in-the-hole/shit.png",
       "kind": "png",
-      "bytes_before": 3237,
-      "bytes_after": 2724,
-      "sha256_before": "fd39b03c4a348e22e93e35235b7d0aa09b396d528a14296ed801b79ed6bb4078",
-      "sha256_after": "7eba53df5fdda8536bb4219def45224a79d49c82315f8f25caf528002fd3d82b",
+      "bytes_before": 2354,
+      "bytes_after": 2354,
+      "sha256_before": "07320d185ed4940a487c58908a3086cd80f3d7fc84dbe19a68fcded69ba55c9d",
+      "sha256_after": "07320d185ed4940a487c58908a3086cd80f3d7fc84dbe19a68fcded69ba55c9d",
       "width": 150,
       "height": 150,
-      "palette_before": 46,
-      "palette_after": 32,
-      "bits_before": 8,
-      "bits_after": 8,
-      "changed": true,
-      "reason": "palette reduced",
-      "chosen": "q32",
-      "quality": {
-        "psnr": 41.82,
-        "alpha_mae": 0.0105,
-        "alpha_max": 1,
-        "halo": 0,
-        "lost": 0,
-        "opaque_bad": 0.00216,
-        "changed_gt8": 0.03462,
-        "visible": 17736,
-        "total": 22500
-      },
-      "unique_colors_before": 46,
+      "palette_before": 16,
+      "palette_after": 16,
+      "bits_before": 4,
+      "bits_after": 4,
+      "changed": false,
+      "reason": "clean rating artwork reused",
+      "chosen": null,
+      "quality": null,
+      "unique_colors_before": 16,
       "rejected": [
         {
-          "target": 16,
-          "reason": "lost 19 visible pixels",
-          "psnr": 34.31
+          "target": 8,
+          "reason": "psnr 29.06 < 30.0",
+          "psnr": 29.06
         }
-      ],
-      "chosen_colors": 32
+      ]
     },
     {
       "path": "assets/shared/images/ratings/fire-in-the-hole/sick.png",
@@ -15519,31 +15451,26 @@
     {
       "path": "assets/shared/images/ratings/kade/shit.png",
       "kind": "png",
-      "bytes_before": 3188,
-      "bytes_after": 3188,
-      "sha256_before": "6430e394c20d244754db0529ce09be474d3d34e857559c5138c811f2ac72d9e5",
-      "sha256_after": "6430e394c20d244754db0529ce09be474d3d34e857559c5138c811f2ac72d9e5",
-      "width": 285,
-      "height": 163,
-      "palette_before": 20,
-      "palette_after": 20,
-      "bits_before": 8,
-      "bits_after": 8,
+      "bytes_before": 2185,
+      "bytes_after": 2185,
+      "sha256_before": "d995973b8464ec59d8297ddb04fc54355429be1d0935b17234335a22e2056b81",
+      "sha256_after": "d995973b8464ec59d8297ddb04fc54355429be1d0935b17234335a22e2056b81",
+      "width": 261,
+      "height": 131,
+      "palette_before": 8,
+      "palette_after": 8,
+      "bits_before": 4,
+      "bits_after": 4,
       "changed": false,
-      "reason": "all candidates were larger than the original",
+      "reason": "clean rating artwork reused",
       "chosen": null,
       "quality": null,
-      "unique_colors_before": 20,
+      "unique_colors_before": 8,
       "rejected": [
         {
-          "target": 8,
-          "reason": "changed_gt8 0.3917 > 0.20",
-          "psnr": 33.59
-        },
-        {
           "target": 4,
-          "reason": "psnr 28.12 < 30.0",
-          "psnr": 28.12
+          "reason": "psnr 26.27 < 30.0",
+          "psnr": 26.27
         }
       ]
     },
@@ -15992,31 +15919,31 @@
     {
       "path": "assets/shared/images/ratings/nmcw/shit.png",
       "kind": "png",
-      "bytes_before": 7181,
-      "bytes_after": 7181,
-      "sha256_before": "14bd54a458136ebaffc0d7ba9f4a6df2252565b8cf8fe3d8728a8cf5a5faa668",
-      "sha256_after": "14bd54a458136ebaffc0d7ba9f4a6df2252565b8cf8fe3d8728a8cf5a5faa668",
-      "width": 285,
-      "height": 163,
-      "palette_before": 8,
-      "palette_after": 8,
+      "bytes_before": 2148,
+      "bytes_after": 2148,
+      "sha256_before": "7f82662be18d9470cbb0d5ac1ad215d1306bcad5934f8c3e4e31230b48b8e49a",
+      "sha256_after": "7f82662be18d9470cbb0d5ac1ad215d1306bcad5934f8c3e4e31230b48b8e49a",
+      "width": 261,
+      "height": 106,
+      "palette_before": 7,
+      "palette_after": 7,
       "bits_before": 8,
       "bits_after": 8,
       "changed": false,
-      "reason": "all candidates were larger than the original",
+      "reason": "clean rating artwork reused",
       "chosen": null,
       "quality": null,
-      "unique_colors_before": 8,
+      "unique_colors_before": 7,
       "rejected": [
         {
           "target": 4,
-          "reason": "psnr 20.01 < 30.0",
-          "psnr": 20.01
+          "reason": "psnr 29.62 < 30.0",
+          "psnr": 29.62
         },
         {
           "target": 2,
-          "reason": "psnr 17.46 < 30.0",
-          "psnr": 17.46
+          "reason": "psnr 13.82 < 30.0",
+          "psnr": 13.82
         }
       ]
     },
@@ -16488,26 +16415,26 @@
     {
       "path": "assets/shared/images/ratings/tgt-v4/shit.png",
       "kind": "png",
-      "bytes_before": 1724,
-      "bytes_after": 1724,
-      "sha256_before": "1cbfa5cad3902d5b78bdd9b355117a18be88cabddc1abe6d16897f617a80be83",
-      "sha256_after": "1cbfa5cad3902d5b78bdd9b355117a18be88cabddc1abe6d16897f617a80be83",
-      "width": 304,
-      "height": 146,
+      "bytes_before": 1162,
+      "bytes_after": 1162,
+      "sha256_before": "af65fbcb6fefafdfabf5cda2ff967033907fe06969f0fdddf41b82b0d450844e",
+      "sha256_after": "af65fbcb6fefafdfabf5cda2ff967033907fe06969f0fdddf41b82b0d450844e",
+      "width": 204,
+      "height": 136,
       "palette_before": 3,
       "palette_after": 3,
       "bits_before": 2,
       "bits_after": 2,
       "changed": false,
-      "reason": "all candidates were larger than the original",
+      "reason": "clean rating artwork reused",
       "chosen": null,
       "quality": null,
       "unique_colors_before": 3,
       "rejected": [
         {
           "target": 2,
-          "reason": "psnr 13.76 < 30.0",
-          "psnr": 13.76
+          "reason": "psnr 9.39 < 30.0",
+          "psnr": 9.39
         }
       ]
     },
@@ -17115,49 +17042,33 @@
     {
       "path": "assets/shared/images/ratings/vs-impostor/shit.png",
       "kind": "png",
-      "bytes_before": 4249,
-      "bytes_after": 4245,
-      "sha256_before": "1ed6406ffba9b6757ebc3d333b8dff0f3cf252cd131ce5cad717e2b5a9006286",
-      "sha256_after": "6889c2efd5c279a6de4b8d05ecf2b7455c924d87051fc3038e5b9d7884d56d27",
-      "width": 285,
-      "height": 163,
-      "palette_before": 20,
-      "palette_after": 16,
-      "bits_before": 8,
+      "bytes_before": 2016,
+      "bytes_after": 2016,
+      "sha256_before": "29e9dab553de5c27434fa358d1f0ba99c8180f0ba063e36cdf69b7123e129b16",
+      "sha256_after": "29e9dab553de5c27434fa358d1f0ba99c8180f0ba063e36cdf69b7123e129b16",
+      "width": 261,
+      "height": 131,
+      "palette_before": 8,
+      "palette_after": 8,
+      "bits_before": 4,
       "bits_after": 4,
-      "changed": true,
-      "reason": "palette reduced",
-      "chosen": "q16",
-      "quality": {
-        "psnr": 38.72,
-        "alpha_mae": 0.3105,
-        "alpha_max": 23,
-        "halo": 0,
-        "lost": 0,
-        "opaque_bad": 0.0,
-        "changed_gt8": 0.02132,
-        "visible": 19329,
-        "total": 46455
-      },
-      "unique_colors_before": 20,
+      "changed": false,
+      "reason": "clean rating artwork reused",
+      "chosen": null,
+      "quality": null,
+      "unique_colors_before": 8,
       "rejected": [
         {
-          "target": 8,
-          "reason": "psnr 29.54 < 30.0",
-          "psnr": 29.54
-        },
-        {
           "target": 4,
-          "reason": "psnr 26.86 < 30.0",
-          "psnr": 26.86
+          "reason": "psnr 28.63 < 30.0",
+          "psnr": 28.63
         },
         {
           "target": 2,
-          "reason": "psnr 16.06 < 30.0",
-          "psnr": 16.06
+          "reason": "psnr 11.43 < 30.0",
+          "psnr": 11.43
         }
-      ],
-      "chosen_colors": 16
+      ]
     },
     {
       "path": "assets/shared/images/ratings/vs-impostor/sick.png",
@@ -17831,44 +17742,33 @@
     {
       "path": "assets/shared/images/ratings/yeahs/shit.png",
       "kind": "png",
-      "bytes_before": 2660,
-      "bytes_after": 1302,
-      "sha256_before": "1c023b43e2c4d399eae91bfb145410b353bcaf2160eb9fe0769ca6db1e84a2a9",
-      "sha256_after": "adb9a3c0c52599aa7103bb37088f90f4989127d29d44b64528382979d7679bf4",
-      "width": 285,
-      "height": 163,
-      "palette_before": 29,
+      "bytes_before": 1351,
+      "bytes_after": 1351,
+      "sha256_before": "4e059c034dea3764832f5d3a74320a6d32fa2374e997c122d7b3754e15dfa36b",
+      "sha256_after": "4e059c034dea3764832f5d3a74320a6d32fa2374e997c122d7b3754e15dfa36b",
+      "width": 261,
+      "height": 131,
+      "palette_before": 8,
       "palette_after": 8,
-      "bits_before": 8,
+      "bits_before": 4,
       "bits_after": 4,
-      "changed": true,
-      "reason": "palette reduced",
-      "chosen": "q8",
-      "quality": {
-        "psnr": 34.44,
-        "alpha_mae": 0.0,
-        "alpha_max": 0,
-        "halo": 0,
-        "lost": 0,
-        "opaque_bad": 0.02068,
-        "changed_gt8": 0.10412,
-        "visible": 35640,
-        "total": 46455
-      },
-      "unique_colors_before": 29,
+      "changed": false,
+      "reason": "clean rating artwork reused",
+      "chosen": null,
+      "quality": null,
+      "unique_colors_before": 8,
       "rejected": [
         {
           "target": 4,
-          "reason": "psnr 26.19 < 30.0",
-          "psnr": 26.19
+          "reason": "psnr 22.53 < 30.0",
+          "psnr": 22.53
         },
         {
           "target": 2,
-          "reason": "psnr 10.50 < 30.0",
-          "psnr": 10.5
+          "reason": "psnr 15.11 < 30.0",
+          "psnr": 15.11
         }
-      ],
-      "chosen_colors": 8
+      ]
     },
     {
       "path": "assets/shared/images/ratings/yeahs/sick.png",

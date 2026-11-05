@@ -47,7 +47,7 @@ instead of taking the game down (important for mod-supplied shaders).
 | Background distortion | `DistortBGEffect` + `DistortBGShader` |
 | Buildings (Philly) | `BuildingEffect` + `BuildingShader` |
 | Rain | `RainShader` (toggleable; optimized behind an option) |
-| Triangle | `FuckingTriangle`, `FuckingTriangleEffect` |
+| Triangle | `TriangleShader`, `TriangleEffect` |
 | VFD overlay | `VFDOverlay` |
 | Note colouring | `RGBPalette` |
 | Transitions | `CustomFadeTransition`, `CrossFade` |

@@ -98,7 +98,7 @@ body:
         - "Mac"
         - "Mobile | Android"
         - "Mobile | iOS"
-        - "Flash/Air-based target" #the fuck is this one????
+        - "Flash/Air-based target" #what is this one????
         - "Neko, HashLink, or other build system"
     validations:
       required: true

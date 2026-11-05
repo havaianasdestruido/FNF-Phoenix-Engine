@@ -11,7 +11,7 @@ class DeprecatedCallbacks
 {
 	public static function register(funk:FunkinLua):Void {
 		@:privateAccess {
-		// DEPRECATED, DONT MESS WITH THESE SHITS, ITS JUST THERE FOR BACKWARD COMPATIBILITY
+		// DEPRECATED, DONT MESS WITH THESE ENTRIES, ITS JUST THERE FOR BACKWARD COMPATIBILITY
 		FunkinLua.registerFunction("objectPlayAnimation", function(obj:String, name:String, forced:Bool = false, ?startFrame:Int = 0) {
 			LuaUtils.luaTrace(funk.lua, "objectPlayAnimation is deprecated! Use playAnim instead", false, true);
 			if(PlayState.instance.getLuaObject(obj,false) != null) {
@@ -52,10 +52,10 @@ class DeprecatedCallbacks
 		FunkinLua.registerFunction("luaSpriteAddAnimationByPrefix", function(tag:String, name:String, prefix:String, framerate:Int = 24, loop:Bool = true) {
 			LuaUtils.luaTrace(funk.lua, "luaSpriteAddAnimationByPrefix is deprecated! Use addAnimationByPrefix instead", false, true);
 			if(PlayState.instance.modchartSprites.exists(tag)) {
-				var cock:ModchartSprite = PlayState.instance.modchartSprites.get(tag);
-				cock.animation.addByPrefix(name, prefix, framerate, loop);
-				if(cock.animation.curAnim == null) {
-					cock.animation.play(name, true);
+				var rooster:ModchartSprite = PlayState.instance.modchartSprites.get(tag);
+				rooster.animation.addByPrefix(name, prefix, framerate, loop);
+				if(rooster.animation.curAnim == null) {
+					rooster.animation.play(name, true);
 				}
 			}
 		});

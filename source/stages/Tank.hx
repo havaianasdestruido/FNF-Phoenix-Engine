@@ -253,7 +253,7 @@ class Tank extends BaseStage
 			camFollow.x -= 750;
 			camFollow.y -= 100;
 
-			// We should just kill you but... what the hell, it's been a boring day... let's see what you've got!
+			// We should just kill you but... what the heck, it's been a boring day... let's see what you've got!
 			#if flxanimate
 			tankman.anim.play('killYou', true);
 			#end

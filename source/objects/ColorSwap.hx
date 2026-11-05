@@ -139,7 +139,7 @@ class ColorSwapShader extends FlxFixedShader {
 
 			if (awesomeOutline)
 			{
-				 // Outline bullshit?
+				 // Outline nonsense?
 				vec2 size = vec2(3, 3);
 
 				if (color.a <= 0.5) {

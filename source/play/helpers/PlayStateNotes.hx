@@ -119,7 +119,7 @@ class PlayStateNotes
 
 	public static function noteMissPress(state:PlayState, direction:Int = 1):Void //You pressed a key when there was no notes to press for this key
 	{
-		if(ClientPrefs.ghostTapping) return; //fuck it
+		if(ClientPrefs.ghostTapping) return; //bother it
 
 		if (!state.boyfriend.stunned)
 		{

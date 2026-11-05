@@ -42,7 +42,7 @@ class MobileOptionsSubState extends BaseOptionsMenu
 	public function new()
 	{
 		title = 'Mobile Options';
-		rpcTitle = 'Mobile Options Menu'; // for Discord Rich Presence, fuck it
+		rpcTitle = 'Mobile Options Menu'; // for Discord Rich Presence, bother it
 
 		var option:Option = new Option('Extra Controls',
 		'If checked, extra ${MobileControls.mode == "Hitbox" ? 'hint' : 'button'} to simulate pressing the space bar will be enabled.',

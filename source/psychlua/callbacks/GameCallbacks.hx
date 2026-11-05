@@ -41,7 +41,7 @@ class GameCallbacks
 				PlayState.instance.vocals.volume = 0;
 			}
 		});
-		//stupid bietch ass functions
+		//score, miss, and hit helper functions
 		FunkinLua.registerFunction("addScore", function(value:Float = 0) {
 			PlayState.instance.songScore += value;
 			PlayState.instance.RecalculateRating();
