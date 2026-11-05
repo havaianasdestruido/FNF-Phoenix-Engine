@@ -73,7 +73,7 @@ class Paths
   // Function that initializes the first note. This way, we can recycle the notes
   public static function initDefaultSkin(?noteSkin:String, ?inEditor:Bool = false)
   {
-    if (noteSkin.length > 0) defaultSkin = noteSkin;
+    if (noteSkin != null && noteSkin.length > 0) defaultSkin = noteSkin;
     else if (!PlayState.isPixelStage) defaultSkin = 'noteskins/NOTE_assets' + NoteHelpers.getNoteSkinPostfix();
     else
       defaultSkin = 'noteskins/NOTE_assets';
@@ -85,9 +85,19 @@ class Paths
   public static function initNote(?noteSkin:String)
   {
     // Do this to be able to just copy over the note animations and not reallocate it
-    if (noteSkin.length < 1) noteSkin = defaultSkin;
+    if (noteSkin == null || noteSkin.length < 1) noteSkin = defaultSkin;
+    final existingFrames:FlxFramesCollection = noteSkinFramesMap.get(noteSkin);
+    if (existingFrames != null && existingFrames.parent != null && !existingFrames.parent.isDestroyed && noteSkinAnimsMap.exists(noteSkin))
+    {
+      trackLocalAsset(existingFrames.parent.key);
+      return;
+    }
+
+    final noteFrames:FlxAtlasFrames = getSparrowAtlas(noteSkin.length > 1 ? noteSkin : defaultSkin);
+    if (noteFrames == null) return;
+
     var spr:FlxSprite = new FlxSprite();
-    spr.frames = getSparrowAtlas(noteSkin.length > 1 ? noteSkin : defaultSkin);
+    spr.frames = noteFrames;
 
     // Use a for loop for adding all of the animations in the note spritesheet, otherwise it won't find the animations for the next recycle
     for (d in 0...Note.colArray.length)
@@ -106,8 +116,25 @@ class Paths
   public static function initSplash(?splashSkin:String)
   {
     var skin:String = (splashSkin != null && splashSkin.length > 0) ? splashSkin : 'noteSplashes/noteSplashes' + NoteSplash.getSplashSkinPostfix();
+    final existingFrames:FlxFramesCollection = splashSkinFramesMap.get(skin);
+    if (existingFrames != null && existingFrames.parent != null && !existingFrames.parent.isDestroyed && splashSkinAnimsMap.exists(skin))
+    {
+      splashFrames = existingFrames;
+      splashAnimation = splashSkinAnimsMap.get(skin);
+      trackLocalAsset(existingFrames.parent.key);
+      if (splashSkin != null && splashSkin != skin)
+      {
+        splashSkinFramesMap.set(splashSkin, existingFrames);
+        splashSkinAnimsMap.set(splashSkin, splashAnimation);
+        final count:Null<Int> = splashAnimCountMap.get(skin);
+        if (count != null) splashAnimCountMap.set(splashSkin, count);
+      }
+      return;
+    }
+
     splashFrames = getSparrowAtlas(skin);
     if (splashFrames == null) splashFrames = getSparrowAtlas('noteSplashes/noteSplashes' + NoteSplash.getSplashSkinPostfix());
+    if (splashFrames == null) return;
 
     // Do this to be able to just copy over the splash animations and not reallocate it
 
@@ -138,11 +165,16 @@ class Paths
       if (!shouldBreakLoop) maxAnims++;
       else
         break;
-      // trace('currently: $maxAnims');
     }
-    splashSkinFramesMap.set(splashSkin, splashFrames);
-    splashSkinAnimsMap.set(splashSkin, splashAnimation);
-    splashAnimCountMap.set(splashSkin, maxAnims);
+    splashSkinFramesMap.set(skin, splashFrames);
+    splashSkinAnimsMap.set(skin, splashAnimation);
+    splashAnimCountMap.set(skin, maxAnims);
+    if (splashSkin != null && splashSkin != skin)
+    {
+      splashSkinFramesMap.set(splashSkin, splashFrames);
+      splashSkinAnimsMap.set(splashSkin, splashAnimation);
+      splashAnimCountMap.set(splashSkin, maxAnims);
+    }
     VLog.assetCached('noteskin', 'splash: ' + skin, maxAnims + ' splash animations cached in RAM');
   }
 
@@ -162,7 +194,9 @@ class Paths
   {
     var path:String = Paths.getSharedPath('images/' + skin + '.txt');
     #if sys
+    #if MODS_ALLOWED
     if (!FileSystem.exists(path)) path = Paths.modsTxt(skin);
+    #end
     if (!FileSystem.exists(path)) path = Paths.getSharedPath('images/noteSplashes/noteSplashes' + NoteSplash.getSplashSkinPostfix() + '.txt');
     #end
 
@@ -188,9 +222,106 @@ class Paths
     return config;
   }
 
+  private static inline var MISSING_SENTINEL:String = "\x00";
+  private static var dumpExclusionSet:Map<String, Bool> = [];
+  private static var dumpExclusionsSyncedLen:Int = -1;
+  private static var localTrackedAssetSet:Map<String, Bool> = [];
+  private static var localTrackedSyncedLen:Int = 0;
+
+  private static var resolvedImageKeyCache:Map<String, String> = [];
+  private static var resolvedImageFileCache:Map<String, String> = [];
+  private static var resolvedSoundCache:Map<String, String> = [];
+  private static var resolvedExistsCache:Map<String, Bool> = [];
+  private static var formattedSongPathCache:Map<String, String> = [];
+  private static var soundAssetIds:Map<String, String> = [];
+  private static var lastLookupModDir:String = null;
+  private static var lastLookupLevel:String = null;
+
+  public static function invalidateAssetLookupCache():Void
+  {
+    resolvedImageKeyCache.clear();
+    resolvedImageFileCache.clear();
+    resolvedSoundCache.clear();
+    resolvedExistsCache.clear();
+    lastLookupModDir = null;
+    lastLookupLevel = null;
+  }
+
+  private static inline function syncLookupContext():Void
+  {
+    final curMod:String = #if MODS_ALLOWED (Mods.currentModDirectory != null ? Mods.currentModDirectory : '') #else '' #end;
+    final curLvl:String = (currentLevel != null) ? currentLevel : '';
+    if (lastLookupModDir != curMod || lastLookupLevel != curLvl)
+    {
+      resolvedImageKeyCache.clear();
+      resolvedImageFileCache.clear();
+      resolvedSoundCache.clear();
+      resolvedExistsCache.clear();
+      lastLookupModDir = curMod;
+      lastLookupLevel = curLvl;
+    }
+  }
+
+  private static function syncDumpExclusionSet():Void
+  {
+    dumpExclusionSet.clear();
+    for (entry in dumpExclusions)
+    {
+      if (entry != null) dumpExclusionSet.set(entry, true);
+    }
+    dumpExclusionsSyncedLen = dumpExclusions.length;
+  }
+
+  private static function syncLocalTrackedSet():Void
+  {
+    localTrackedAssetSet.clear();
+    for (entry in localTrackedAssets)
+    {
+      if (entry != null) localTrackedAssetSet.set(entry, true);
+    }
+    localTrackedSyncedLen = localTrackedAssets.length;
+  }
+
+  public static inline function trackLocalAsset(key:String):Void
+  {
+    if (key != null)
+    {
+      if (localTrackedAssets.length != localTrackedSyncedLen) syncLocalTrackedSet();
+      if (!localTrackedAssetSet.exists(key))
+      {
+        localTrackedAssetSet.set(key, true);
+        localTrackedAssets.push(key);
+        localTrackedSyncedLen = localTrackedAssets.length;
+      }
+    }
+  }
+
+  private static inline function isLocallyTracked(key:String):Bool
+  {
+    if (key == null) return false;
+    if (localTrackedAssets.length != localTrackedSyncedLen) syncLocalTrackedSet();
+    return localTrackedAssetSet.exists(key);
+  }
+
+  private static function isDumpExcluded(key:String):Bool
+  {
+    if (key == null) return false;
+    if (dumpExclusions.length != dumpExclusionsSyncedLen) syncDumpExclusionSet();
+    if (dumpExclusionSet.exists(key)) return true;
+    final activeMenuTheme:String = 'assets/music/freakyMenu-' + ClientPrefs.daMenuMusic + '.$SOUND_EXT';
+    return key == activeMenuTheme;
+  }
+
   public static function excludeAsset(key:String)
   {
-    if (!dumpExclusions.contains(key)) dumpExclusions.push(key);
+    if (key == null) return;
+    if (dumpExclusions.length != dumpExclusionsSyncedLen) syncDumpExclusionSet();
+    if (!dumpExclusionSet.exists(key))
+    {
+      dumpExclusionSet.set(key, true);
+      dumpExclusions.push(key);
+      dumpExclusionsSyncedLen = dumpExclusions.length;
+    }
   }
 
   public static var dumpExclusions:Array<String> = [
@@ -243,16 +374,54 @@ class Paths
       _gc(major);
   }
 
+  private static function evictUnusedSounds():Int
+  {
+    var freedSounds:Int = 0;
+    for (key in currentTrackedSounds.keys())
+    {
+      if (key != null && !localTrackedAssetSet.exists(key) && !isDumpExcluded(key))
+      {
+        final sound:Sound = currentTrackedSounds.get(key);
+        if (isMusicSound(sound)) continue;
+
+        final assetId:String = soundAssetIds.get(key);
+        if (assetId != null)
+        {
+          OpenFlAssets.cache.removeSound(assetId);
+          Assets.cache.clear(assetId);
+          soundAssetIds.remove(key);
+        }
+        OpenFlAssets.cache.removeSound(key);
+        Assets.cache.clear(key);
+        if (sound != null && !isSoundPlayingInList(sound))
+        {
+          try
+          {
+            sound.close();
+          }
+          catch (_:Dynamic) {}
+        }
+        currentTrackedSounds.remove(key);
+        MemoryLedger.untrackAsset(key); // ...and from the per-area RAM ledger
+        freedSounds++;
+      }
+    }
+    return freedSounds;
+  }
+
   /// haya I love you for the base cache dump I took to the max
   public static function clearUnusedMemory()
   {
+    if (localTrackedAssets.length != localTrackedSyncedLen) syncLocalTrackedSet();
+    if (dumpExclusions.length != dumpExclusionsSyncedLen) syncDumpExclusionSet();
+
     var vlogFreed:Int = 0;
     final vlogHeapBefore:Float = VLog.heapUsedBytes();
     // clear non local assets in the tracked assets list
     for (key in currentTrackedAssets.keys())
     {
       // if it is not currently contained within the used local assets
-      if (!localTrackedAssets.contains(key) && !dumpExclusions.contains(key))
+      if (!localTrackedAssetSet.exists(key) && !isDumpExcluded(key))
       {
         destroyGraphic(currentTrackedAssets.get(key)); // get rid of the graphic
         currentTrackedAssets.remove(key); // and remove the key from local cache map
@@ -260,20 +429,44 @@ class Paths
         vlogFreed++;
       }
     }
-    // run the garbage collector for good measure lmfao
-    compress();
-    gc(true);
-    VLog.memoryEvent('clearUnusedMemory: freed ' + vlogFreed + ' tracked images | heap ' + VLog.formatBytes(vlogHeapBefore) + ' -> ' + VLog.formatBytes(VLog.heapUsedBytes()));
+    final vlogFreedSounds:Int = evictUnusedSounds();
+    if (vlogFreed > 0 || vlogFreedSounds > 0)
+    {
+      gc(true);
+      compress();
+    }
+    VLog.memoryEvent('clearUnusedMemory: freed ' + vlogFreed + ' tracked images and ' + vlogFreedSounds
+      + ' cached sounds | heap ' + VLog.formatBytes(vlogHeapBefore) + ' -> ' + VLog.formatBytes(VLog.heapUsedBytes()));
   }
 
   // define the locally tracked assets
   public static var localTrackedAssets:Array<String> = [];
 
+  @:access(flixel.sound.FlxSound)
+  private static function isMusicSound(sound:Sound):Bool
+  {
+    return sound != null && FlxG.sound != null && FlxG.sound.music != null && FlxG.sound.music.playing && FlxG.sound.music._sound == sound;
+  }
+
+  @:access(flixel.sound.FlxSound)
+  private static function isSoundPlayingInList(sound:Sound):Bool
+  {
+    if (sound == null || FlxG.sound == null || FlxG.sound.list == null) return false;
+    for (item in FlxG.sound.list.members)
+    {
+      if (item != null && item.playing && item._sound == sound) return true;
+    }
+    return false;
+  }
+
   @:access(flixel.system.frontEnds.BitmapFrontEnd._cache)
   public static function clearStoredMemory(?cleanUnused:Bool = false)
   {
+    if (localTrackedAssets.length != localTrackedSyncedLen) syncLocalTrackedSet();
+    if (dumpExclusions.length != dumpExclusionsSyncedLen) syncDumpExclusionSet();
+    invalidateAssetLookupCache();
+
     var vlogFreedBitmaps:Int = 0;
-    var vlogFreedSounds:Int = 0;
     // clear anything not in the tracked assets list
     for (key in FlxG.bitmap._cache.keys())
     {
@@ -284,42 +477,76 @@ class Paths
       }
     }
     // clear all sounds that are cached
-    for (key in currentTrackedSounds.keys())
-    {
-      if (!localTrackedAssets.contains(key) && !dumpExclusions.contains(key) && key != null)
-      {
-        // trace('test: ' + dumpExclusions, key);
-        Assets.cache.clear(key);
-        currentTrackedSounds.remove(key);
-        MemoryLedger.untrackAsset(key); // ...and from the per-area RAM ledger
-        vlogFreedSounds++;
-      }
-    }
+    final vlogFreedSounds:Int = evictUnusedSounds();
     VLog.memoryEvent('clearStoredMemory: freed ' + vlogFreedBitmaps + ' bitmap cache entries and ' + vlogFreedSounds + ' cached sounds');
     // flags everything to be cleared out next unused memory clear
-    localTrackedAssets = [];
-    #if !html5 openfl.Assets.cache.clear("songs"); #end
-    gc(true);
-    compress();
+    localTrackedAssets.resize(0);
+    localTrackedAssetSet.clear();
+    localTrackedSyncedLen = 0;
+    #if !html5
+    openfl.Assets.cache.clear("songs");
+    #end
+    if (vlogFreedBitmaps > 0 || vlogFreedSounds > 0)
+    {
+      gc(true);
+      compress();
+    }
+  }
+
+  private static function pruneSkinCachesForGraphic(graphic:FlxGraphic):Void
+  {
+    if (graphic == null) return;
+    for (skinKey in noteSkinFramesMap.keys())
+    {
+      final frames:FlxFramesCollection = noteSkinFramesMap.get(skinKey);
+      if (frames == null || frames.parent == null || frames.parent == graphic || frames.parent.isDestroyed)
+      {
+        noteSkinFramesMap.remove(skinKey);
+        noteSkinAnimsMap.remove(skinKey);
+      }
+    }
+    for (skinKey in splashSkinFramesMap.keys())
+    {
+      final frames:FlxFramesCollection = splashSkinFramesMap.get(skinKey);
+      if (frames == null || frames.parent == null || frames.parent == graphic || frames.parent.isDestroyed)
+      {
+        splashSkinFramesMap.remove(skinKey);
+        splashSkinAnimsMap.remove(skinKey);
+        splashAnimCountMap.remove(skinKey);
+      }
+    }
   }
 
   inline static function destroyGraphic(graphic:FlxGraphic)
   {
-    // free some gpu memory
-    #if !flash
-    if (graphic != null && graphic.bitmap != null && graphic.bitmap.__texture != null) graphic.bitmap.__texture.dispose();
-    #end
-    // Safety net: drop the graphic from the per-area RAM ledger too (no-op when
-    // it was never tracked, e.g. engine-generated Flixel graphics).
-    if (graphic != null && graphic.key != null) MemoryLedger.untrackAsset(graphic.key);
-    FlxG.bitmap.remove(graphic);
+    if (graphic != null)
+    {
+      pruneSkinCachesForGraphic(graphic);
+      // free some gpu memory
+      #if !flash
+      if (graphic.bitmap != null && graphic.bitmap.__texture != null) graphic.bitmap.__texture.dispose();
+      #end
+      // Safety net: drop the graphic from the per-area RAM ledger too (no-op when
+      // it was never tracked, e.g. engine-generated Flixel graphics).
+      if (graphic.key != null)
+      {
+        OpenFlAssets.cache.removeBitmapData(graphic.key);
+        MemoryLedger.untrackAsset(graphic.key);
+      }
+      FlxG.bitmap.remove(graphic);
+    }
   }
 
   static public var currentLevel:String;
 
   static public function setCurrentLevel(name:String)
   {
-    currentLevel = name.toLowerCase();
+    final nextLevel:String = name.toLowerCase();
+    if (currentLevel != nextLevel)
+    {
+      currentLevel = nextLevel;
+      invalidateAssetLookupCache();
+    }
   }
 
   public static function getPath(file:String, ?type:AssetType = TEXT, ?library:Null<String> = null, ?modsAllowed:Bool = false):String
@@ -493,11 +720,11 @@ class Paths
   static public function voices(song:String, ?difficulty:String = '', ?postfix:String = null):Any
   {
     var formattedDifficulty:String = formatToSongPath(difficulty);
-    if (difficulty.contains(' ')) difficulty = formattedDifficulty;
+    if (difficulty != null && difficulty.contains(' ')) difficulty = formattedDifficulty;
     #if (html5 || flash)
     return songAudioAsset(formatToSongPath(song), 'Voices');
     #else
-    if (difficulty != null)
+    if (difficulty != null && difficulty.length > 0)
     {
       var songKey:String = '${formatToSongPath(song)}/Voices';
       if (postfix != null) songKey += '-' + postfix;
@@ -514,11 +741,11 @@ class Paths
   static public function inst(song:String, ?difficulty:String = ''):Any
   {
     var formattedDifficulty:String = formatToSongPath(difficulty);
-    if (difficulty.contains(' ')) difficulty = formattedDifficulty;
+    if (difficulty != null && difficulty.contains(' ')) difficulty = formattedDifficulty;
     #if (html5 || flash)
     return songAudioAsset(formatToSongPath(song), 'Inst');
     #else
-    if (difficulty != null)
+    if (difficulty != null && difficulty.length > 0)
     {
       var songKey:String = '${formatToSongPath(song)}/Inst-$difficulty';
       if (songKeyExists(songKey)) return returnSound('songs', songKey);
@@ -552,6 +779,18 @@ class Paths
    * nobody has to keep two copies of the same track around.
    */
   static function songKeyExists(key:String):Bool
+  {
+    syncLookupContext();
+    final cacheId:String = 'song:' + key;
+    final cached:Null<Bool> = resolvedExistsCache.get(cacheId);
+    if (cached != null) return cached;
+
+    final found:Bool = probeSongKeyExists(key);
+    resolvedExistsCache.set(cacheId, found);
+    return found;
+  }
+
+  private static function probeSongKeyExists(key:String):Bool
   {
     #if MODS_ALLOWED
     // modsSounds() falls back to 'mods/<key>' and returns null when missing.
@@ -644,7 +883,7 @@ class Paths
       var eventsKey:String = formatToSongPath(song) + '/events-${difficulty.toLowerCase()}';
       #if sys
       if (FileSystem.exists(Paths.json(eventsKey))
-        || FileSystem.exists(Paths.modsJson(eventsKey))) return (!onlyEventsString ? eventsKey : 'events-${difficulty.toLowerCase()}');
+        #if MODS_ALLOWED || FileSystem.exists(Paths.modsJson(eventsKey)) #end) return (!onlyEventsString ? eventsKey : 'events-${difficulty.toLowerCase()}');
       #else
       if (OpenFlAssets.exists(Paths.json(eventsKey))) return (!onlyEventsString ? eventsKey : 'events-${difficulty.toLowerCase()}');
       #end
@@ -659,6 +898,8 @@ class Paths
   inline public static function imageExists(key:String, ?folder:String):Bool
     return Paths.exists(imagePath(key, folder));
 
+  private static final ZERO_BORDER:flixel.math.FlxPoint = new flixel.math.FlxPoint(0, 0);
+
   // Loads images.
   public static var currentTrackedAssets:Map<String, FlxGraphic> = [];
   // because the trace is so damn annoying sometimes
@@ -666,57 +907,146 @@ class Paths
 
   static public function image(key:String, ?parentFolder:String = null):FlxGraphic
   {
-    key = 'images/$key' + '.png';
-    var bitmap:BitmapData = null;
-    if (currentTrackedAssets.exists(key))
+    syncLookupContext();
+    final lookupId:String = (parentFolder == null || parentFolder.length == 0) ? key : parentFolder + ':' + key;
+    var cacheKey:String = resolvedImageKeyCache.get(lookupId);
+    if (cacheKey == MISSING_SENTINEL) return null;
+
+    if (cacheKey != null)
     {
-      localTrackedAssets.push(key);
-      return currentTrackedAssets.get(key);
+      final cached:FlxGraphic = currentTrackedAssets.get(cacheKey);
+      if (cached != null && !cached.isDestroyed && cached.bitmap != null)
+      {
+        trackLocalAsset(cacheKey);
+        return cached;
+      }
+      currentTrackedAssets.remove(cacheKey);
     }
-    return cacheBitmap(key, parentFolder, bitmap);
+
+    final assetKey:String = 'images/$key.png';
+    final file:String = getPath(assetKey, IMAGE, parentFolder, true);
+    #if MODS_ALLOWED
+    if (file.startsWith('mods/') && FileSystem.exists(file))
+    {
+      cacheKey = file;
+    }
+    else
+    #end
+    if (parentFolder != null && parentFolder.length > 0 && parentFolder != 'preload' && parentFolder != 'default')
+    {
+      cacheKey = '$parentFolder:$assetKey';
+    }
+    else
+    {
+      cacheKey = assetKey;
+    }
+
+    resolvedImageFileCache.set(cacheKey, file);
+    final existing:FlxGraphic = currentTrackedAssets.get(cacheKey);
+    if (existing != null && !existing.isDestroyed && existing.bitmap != null)
+    {
+      resolvedImageKeyCache.set(lookupId, cacheKey);
+      trackLocalAsset(cacheKey);
+      return existing;
+    }
+    if (existing != null) currentTrackedAssets.remove(cacheKey);
+
+    final loaded:FlxGraphic = cacheBitmap(cacheKey, parentFolder, null);
+    resolvedImageKeyCache.set(lookupId, loaded != null ? cacheKey : MISSING_SENTINEL);
+    return loaded;
   }
 
   public static function cacheBitmap(key:String, ?parentFolder:String = null, ?bitmap:BitmapData):FlxGraphic
   {
+    if (bitmap == null)
+    {
+      final existing:FlxGraphic = currentTrackedAssets.get(key);
+      if (existing != null && !existing.isDestroyed && existing.bitmap != null)
+      {
+        trackLocalAsset(key);
+        return existing;
+      }
+      if (existing != null) currentTrackedAssets.remove(key);
+    }
+
     // Resolved path tells the memory ledger whether this is an engine or mod
     // asset (and which mod). Falls back to the key when a bitmap is passed in.
     var vlogSourcePath:String = key;
     if (bitmap == null)
     {
-      var file:String = getPath(key, IMAGE, parentFolder, true);
+      var file:String = resolvedImageFileCache.get(key);
+      if (file == null)
+      {
+        #if MODS_ALLOWED
+        if (FileSystem.exists(key))
+        {
+          file = key;
+        }
+        else if (key.startsWith('mods/'))
+        {
+          return null;
+        }
+        else
+        #end
+        file = getPath(key, IMAGE, parentFolder, true);
+      }
       vlogSourcePath = file;
-      #if MODS_ALLOWED if (FileSystem.exists(file)) bitmap = BitmapData.fromFile(file);
-      else #end if (OpenFlAssets.exists(file, IMAGE)) bitmap = OpenFlAssets.getBitmapData(file);
+      #if MODS_ALLOWED
+      if (FileSystem.exists(file))
+      {
+        bitmap = BitmapData.fromFile(file);
+      }
+      else
+      #end
+      if (OpenFlAssets.exists(file, IMAGE))
+      {
+        if (OpenFlAssets.cache.hasBitmapData(file))
+        {
+          bitmap = OpenFlAssets.getBitmapData(file, true);
+          OpenFlAssets.cache.removeBitmapData(file);
+        }
+        else
+        {
+          bitmap = OpenFlAssets.getBitmapData(file, false);
+        }
+      }
 
       if (bitmap == null)
       {
- 		if (!warnedMissingAssets.exists(file))
-		{
-			warnedMissingAssets.set(file, true);
-			#if MAIN_DEBUG
-			trace('Missing asset: $file');
-			#end
-		}
-		return null;
+        if (!warnedMissingAssets.exists(file))
+        {
+          warnedMissingAssets.set(file, true);
+          #if MAIN_DEBUG
+          trace('Missing asset: $file');
+          #end
+        }
+        return null;
       }
     }
 
     var vlogGpuCached:Bool = false;
     #if !flash
-    if (ClientPrefs.cacheOnGPU && bitmap.image != null)
+    if (ClientPrefs.cacheOnGPU && bitmap.image != null && FlxG.stage != null && FlxG.stage.context3D != null)
     {
-      vlogGpuCached = true;
       bitmap.lock();
       if (bitmap.__texture == null)
       {
         bitmap.image.premultiplied = true;
         bitmap.getTexture(FlxG.stage.context3D);
       }
-      bitmap.getSurface();
-      bitmap.disposeImage();
-      bitmap.image.data = null;
-      bitmap.image = null;
-      bitmap.readable = true;
+      if (bitmap.__texture != null)
+      {
+        vlogGpuCached = true;
+        bitmap.__surface = null;
+        bitmap.disposeImage();
+        bitmap.image.data = null;
+        bitmap.image = null;
+        bitmap.readable = true;
+      }
+      else
+      {
+        bitmap.unlock();
+      }
     }
     #end
 
@@ -725,7 +1055,7 @@ class Paths
     graph.destroyOnNoUse = false;
 
     currentTrackedAssets.set(key, graph);
-    localTrackedAssets.push(key);
+    trackLocalAsset(key);
     MemoryLedger.trackImage(key, vlogSourcePath, bitmap, vlogGpuCached);
     VLog.assetCached('image', key, bitmap.width + 'x' + bitmap.height
       + ' (~' + VLog.formatBytes(bitmap.width * bitmap.height * 4) + ')'
@@ -738,10 +1068,18 @@ class Paths
     var text:String = null;
     #if sys
     #if MODS_ALLOWED
-    if (text == null && !ignoreMods && FileSystem.exists(modFolders(key))) text = File.getContent(modFolders(key));
+    if (!ignoreMods)
+    {
+      final modPath:String = modFolders(key);
+      if (FileSystem.exists(modPath)) text = File.getContent(modPath);
+    }
     #end
 
-    if (text == null && FileSystem.exists(getPreloadPath(key))) text = File.getContent(getPreloadPath(key));
+    if (text == null)
+    {
+      final preloadPath:String = getPreloadPath(key);
+      if (FileSystem.exists(preloadPath)) text = File.getContent(preloadPath);
+    }
 
     if (text == null && currentLevel != null)
     {
@@ -759,9 +1097,13 @@ class Paths
       }
     }
     #end
-    if (text == null) text = Assets.getText(getPath(key, TEXT));
+    if (text == null)
+    {
+      final assetPath:String = getPath(key, TEXT);
+      if (Assets.exists(assetPath, TEXT)) text = Assets.getText(assetPath);
+    }
 
-    if (text.charCodeAt(0) == 0xFEFF) text = text.substr(1); //Strip BOM to prevent Json.parse errors
+    if (text != null && text.charCodeAt(0) == 0xFEFF) text = text.substr(1); // Strip BOM to prevent Json.parse errors
     return text;
   }
 
@@ -779,23 +1121,40 @@ class Paths
 
   public static function fileExists(key:String, type:AssetType, ?ignoreMods:Bool = false)
   {
+    syncLookupContext();
+    final cacheId:String = (ignoreMods ? '1:' : '0:') + key;
+    final cached:Null<Bool> = resolvedExistsCache.get(cacheId);
+    if (cached != null) return cached;
+
+    var found:Bool = false;
     #if MODS_ALLOWED
     if (!ignoreMods)
     {
-      for (mod in Mods.getGlobalMods())
-        if (FileSystem.exists(mods('$mod/$key'))) return true;
-
-      if (FileSystem.exists(mods(Mods.currentModDirectory + '/' + key)) || FileSystem.exists(mods(key))) return true;
-
-      if (FileSystem.exists(mods('$key'))) return true;
+      if (Mods.currentModDirectory != null && Mods.currentModDirectory.length > 0 && FileSystem.exists(mods(Mods.currentModDirectory + '/' + key)))
+      {
+        found = true;
+      }
+      else
+      {
+        for (mod in Mods.getGlobalMods())
+        {
+          if (FileSystem.exists(mods('$mod/$key')))
+          {
+            found = true;
+            break;
+          }
+        }
+        if (!found && FileSystem.exists(mods(key))) found = true;
+      }
     }
     #end
 
-    if (OpenFlAssets.exists(getPath(key, type)))
+    if (!found && OpenFlAssets.exists(getPath(key, type)))
     {
-      return true;
+      found = true;
     }
-    return false;
+    resolvedExistsCache.set(cacheId, found);
+    return found;
   }
 
   // temp shit lol
@@ -817,14 +1176,15 @@ class Paths
 
   inline static public function existsPath(key:String, type:AssetType = null, ?library:String)
   {
+    final resolvedPath:String = getPath(key, type, library);
     #if sys
-    if (FileSystem.exists(getPath(key, type, library)))
+    if (FileSystem.exists(resolvedPath))
     {
       return true;
     }
     #end
 
-    if (OpenFlAssets.exists(getPath(key, type, library), type))
+    if (OpenFlAssets.exists(resolvedPath, type))
     {
       return true;
     }
@@ -844,9 +1204,13 @@ class Paths
 
   static public function getAtlas(key:String, ?parentFolder:String = null):FlxAtlasFrames
   {
-    var useMod = false;
     var imageLoaded:FlxGraphic = image(key, parentFolder);
+    if (imageLoaded == null) return null;
 
+    final cachedAtlas:FlxAtlasFrames = FlxAtlasFrames.findFrame(imageLoaded, ZERO_BORDER);
+    if (cachedAtlas != null) return cachedAtlas;
+
+    var useMod = false;
     var myXml:Dynamic = getPath('images/$key.xml', TEXT, parentFolder, true);
     if (OpenFlAssets.exists(myXml) #if MODS_ALLOWED || (FileSystem.exists(myXml) && (useMod = true)) #end)
     {
@@ -887,63 +1251,140 @@ class Paths
     return parentFrames;
   }
 
-  inline static public function getSparrowAtlas(key:String, ?parentFolder:String = null):FlxAtlasFrames
+  static public function getSparrowAtlas(key:String, ?parentFolder:String = null):FlxAtlasFrames
   {
     var imageLoaded:FlxGraphic = image(key, parentFolder);
-    #if MODS_ALLOWED
-    var xmlExists:Bool = false;
+    if (imageLoaded == null) return null;
 
+    final cachedAtlas:FlxAtlasFrames = FlxAtlasFrames.findFrame(imageLoaded, ZERO_BORDER);
+    if (cachedAtlas != null) return cachedAtlas;
+
+    #if MODS_ALLOWED
     var xml:String = modsXml(key);
-    if (FileSystem.exists(xml)) xmlExists = true;
-
-    return FlxAtlasFrames.fromSparrow(imageLoaded, (xmlExists ? File.getContent(xml) : getPath('images/$key' + '.xml', TEXT, parentFolder)));
-    #else
+    if (FileSystem.exists(xml))
+    {
+      return FlxAtlasFrames.fromSparrow(imageLoaded, File.getContent(xml));
+    }
+    #end
     return FlxAtlasFrames.fromSparrow(imageLoaded, getPath('images/$key' + '.xml', TEXT, parentFolder));
-    #end
   }
 
-  inline static public function getPackerAtlas(key:String, ?parentFolder:String = null):FlxAtlasFrames
+  static public function getPackerAtlas(key:String, ?parentFolder:String = null):FlxAtlasFrames
   {
     var imageLoaded:FlxGraphic = image(key, parentFolder);
-    #if MODS_ALLOWED
-    var txtExists:Bool = false;
+    if (imageLoaded == null) return null;
 
+    final cachedAtlas:FlxAtlasFrames = FlxAtlasFrames.findFrame(imageLoaded, ZERO_BORDER);
+    if (cachedAtlas != null) return cachedAtlas;
+
+    #if MODS_ALLOWED
     var txt:String = modsTxt(key);
-    if (FileSystem.exists(txt)) txtExists = true;
-
-    return FlxAtlasFrames.fromSpriteSheetPacker(imageLoaded, (txtExists ? File.getContent(txt) : getPath('images/$key' + '.txt', TEXT, parentFolder)));
-    #else
-    return FlxAtlasFrames.fromSpriteSheetPacker(imageLoaded, getPath('images/$key' + '.txt', TEXT, parentFolder));
+    if (FileSystem.exists(txt))
+    {
+      return FlxAtlasFrames.fromSpriteSheetPacker(imageLoaded, File.getContent(txt));
+    }
     #end
+    return FlxAtlasFrames.fromSpriteSheetPacker(imageLoaded, getPath('images/$key' + '.txt', TEXT, parentFolder));
   }
 
-  inline static public function getAsepriteAtlas(key:String, ?parentFolder:String = null, ?allowGPU:Bool = true):FlxAtlasFrames
+  static public function getAsepriteAtlas(key:String, ?parentFolder:String = null, ?allowGPU:Bool = true):FlxAtlasFrames
   {
     var imageLoaded:FlxGraphic = image(key, parentFolder);
+    if (imageLoaded == null) return null;
+
+    final cachedAtlas:FlxAtlasFrames = FlxAtlasFrames.findFrame(imageLoaded, ZERO_BORDER);
+    if (cachedAtlas != null) return cachedAtlas;
+
     #if MODS_ALLOWED
-    var jsonExists:Bool = false;
-
     var json:String = modsImagesJson(key);
-    if (FileSystem.exists(json)) jsonExists = true;
-
-    return FlxAtlasFrames.fromTexturePackerJson(imageLoaded, (jsonExists ? File.getContent(json) : getPath('images/$key' + '.json', TEXT, parentFolder)));
-    #else
-    return FlxAtlasFrames.fromTexturePackerJson(imageLoaded, getPath('images/$key' + '.json', TEXT, parentFolder));
+    if (FileSystem.exists(json))
+    {
+      return FlxAtlasFrames.fromTexturePackerJson(imageLoaded, File.getContent(json));
+    }
     #end
+    return FlxAtlasFrames.fromTexturePackerJson(imageLoaded, getPath('images/$key' + '.json', TEXT, parentFolder));
   }
 
-  inline static public function formatToSongPath(path:String)
+  /**
+   * Lowercases a song/difficulty name and turns it into a filesystem-safe folder
+   * name. Memoized, and allocation-free on repeat calls -- the old version built
+   * two `EReg`s plus three throwaway strings per call, and it runs several times
+   * per state transition (`PlayState`, `FreeplayState`, `Highscore`, Lua/HScript
+   * variables...).
+   *
+   * The legacy semantics are kept *exactly*, including the quirk that only the
+   * first matching character is rewritten: the original implementation used
+   * non-global `EReg.split`, so a second `#` or `?` in a song name was left
+   * alone. Chart folders created by older builds (and by Psych Engine itself)
+   * must keep resolving to the same path.
+   */
+  static public function formatToSongPath(path:String):String
   {
-    var invalidChars = ~/[~&\\;:<>#]/;
-    var hideChars = ~/[.,'"%?!]/;
+    if (path == null) return '';
+    final cached:String = formattedSongPathCache.get(path);
+    if (cached != null) return cached;
 
-    var path = invalidChars.split(path.replace(' ', '-')).join("-");
-    return hideChars.split(path).join("").toLowerCase();
+    var buf:StringBuf = new StringBuf();
+    var replacedInvalid:Bool = false;
+    var removedHidden:Bool = false;
+    for (i in 0...path.length)
+    {
+      final code:Int = StringTools.fastCodeAt(path, i);
+      if (code == 32) buf.addChar(45); // ' ' -> '-'
+      else if (!replacedInvalid && isSongPathInvalidChar(code))
+      {
+        replacedInvalid = true;
+        buf.addChar(45); // first '~', '&', '\', ';', ':', '<', '>', '#' -> '-'
+      }
+      else if (!removedHidden && isSongPathHiddenChar(code))
+      {
+        removedHidden = true; // first '.', ',', '\'', '"', '%', '?', '!' is dropped
+      }
+      else buf.addChar(code);
+    }
+    final formatted:String = buf.toString().toLowerCase();
+    formattedSongPathCache.set(path, formatted);
+    return formatted;
+  }
+
+  private static inline function isSongPathInvalidChar(code:Int):Bool
+  {
+    return code == 126 || code == 38 || code == 92 || code == 59 || code == 58 || code == 60 || code == 62 || code == 35;
+  }
+
+  private static inline function isSongPathHiddenChar(code:Int):Bool
+  {
+    return code == 46 || code == 44 || code == 39 || code == 34 || code == 37 || code == 63 || code == 33;
   }
 
   inline static function isOggFile(file:String):Bool
   {
     return file != null && file.toLowerCase().endsWith('.ogg');
+  }
+
+  private static function hasOggMagic(file:String):Bool
+  {
+    #if sys
+    var input = File.read(file, true);
+    try
+    {
+      final header:Bytes = Bytes.alloc(4);
+      final readCount:Int = input.readBytes(header, 0, 4);
+      input.close();
+      return readCount == 4 && header.toString() == "OggS";
+    }
+    catch (_:Dynamic)
+    {
+      try
+      {
+        input.close();
+      }
+      catch (_:Dynamic) {}
+      return false;
+    }
+    #else
+    return true;
+    #end
   }
 
   /**
@@ -976,6 +1417,22 @@ class Paths
   // Returns sounds which is useful for all the sfx
   public static function returnSound(path:String, key:String, ?library:String, stream:Bool = false)
   {
+    syncLookupContext();
+    final lookupKey:String = (library == null || library.length == 0) ? '$path/$key' : '$library:$path/$key';
+    final cachedFile:String = resolvedSoundCache.get(lookupKey);
+    if (cachedFile == MISSING_SENTINEL) return null;
+
+    if (cachedFile != null && !stream)
+    {
+      final fastHit:Sound = currentTrackedSounds.get(cachedFile);
+      if (fastHit != null && @:privateAccess fastHit.__buffer != null)
+      {
+        trackLocalAsset(cachedFile);
+        return fastHit;
+      }
+      currentTrackedSounds.remove(cachedFile);
+    }
+
     var sound:Sound = null;
     var file:String = null;
 
@@ -983,35 +1440,41 @@ class Paths
     // modsSounds() walks SOUND_EXTENSIONS and returns null when the mod ships
     // neither .ogg nor .mp3, in which case we fall through to the libraries.
     file = modsSounds(path, key);
-    if (file != null && currentTrackedSounds.exists(file))
+    if (file != null)
     {
-      localTrackedAssets.push(file);
-      return currentTrackedSounds.get(file);
-    } else if (file != null && FileSystem.exists(file))
-    {
-      #if lime_vorbis
-      if (stream) sound = Sound.fromAudioBuffer(AudioBuffer.fromVorbisFile(VorbisFile.fromFile(file)));
-      else
-      #end
-      try
+      final existingModSound:Sound = currentTrackedSounds.get(file);
+      if (!stream && existingModSound != null && @:privateAccess existingModSound.__buffer != null)
       {
-        // Only Ogg files get the container sanity check; MP3 is decoded by
-        // OpenFL/Windows/Android natively and has no magic header to look for.
-        if (isOggFile(file))
-        {
-          final header:Bytes = File.getBytes(file).sub(0, 4);
-          if (header.toString() != "OggS")
-          {
-            throw 'The file "$file" is not a valid OGG file (missing OggS header). It may have been renamed from another format like MP3 -- either rename it back to .mp3 or re-encode it as Ogg.';
-          }
-        }
-
-        sound = Sound.fromFile(file);
+        resolvedSoundCache.set(lookupKey, file);
+        trackLocalAsset(file);
+        return existingModSound;
       }
-      catch (e)
+      if (FileSystem.exists(file))
       {
-        VLog.assetCached('sound', file, 'DECODE FAILED: ' + Std.string(e));
-        throw 'Cannot load sound file: $file\nMake sure it is a properly encoded .ogg (or .mp3) file.\nError: $e';
+        #if lime_vorbis
+        if (stream) sound = Sound.fromAudioBuffer(AudioBuffer.fromVorbisFile(VorbisFile.fromFile(file)));
+        else
+        #end
+        try
+        {
+          // Only Ogg files get the container sanity check; MP3 is decoded by
+          // OpenFL/Windows/Android natively and has no magic header to look for.
+          if (isOggFile(file))
+          {
+            if (!hasOggMagic(file))
+            {
+              throw 'The file "$file" is not a valid OGG file (missing OggS header). It may have been renamed from '
+                + 'another format like MP3 -- either rename it back to .mp3 or re-encode it as Ogg.';
+            }
+          }
+
+          sound = Sound.fromFile(file);
+        }
+        catch (e)
+        {
+          VLog.assetCached('sound', file, 'DECODE FAILED: ' + Std.string(e));
+          throw 'Cannot load sound file: $file\nMake sure it is a properly encoded .ogg (or .mp3) file.\nError: $e';
+        }
       }
     }
     #end
@@ -1027,10 +1490,13 @@ class Paths
       else
       {
         file = gottenPath.substring(gottenPath.indexOf(':') + 1, gottenPath.length);
-        if (currentTrackedSounds.exists(file))
+        soundAssetIds.set(file, gottenPath);
+        final existingLibSound:Sound = currentTrackedSounds.get(file);
+        if (!stream && existingLibSound != null && @:privateAccess existingLibSound.__buffer != null)
         {
-          localTrackedAssets.push(file);
-          return currentTrackedSounds.get(file);
+          resolvedSoundCache.set(lookupKey, file);
+          trackLocalAsset(file);
+          return existingLibSound;
         }
         #if lime_vorbis
         if (stream) sound = OpenFlAssets.getMusic(gottenPath);
@@ -1042,13 +1508,15 @@ class Paths
 
     if (sound != null)
     {
-      localTrackedAssets.push(file);
+      resolvedSoundCache.set(lookupKey, file);
+      trackLocalAsset(file);
       currentTrackedSounds.set(file, sound);
       MemoryLedger.trackSound(file, file, sound);
       VLog.assetCached('sound', file, 'decoded into RAM (tracked for cache clearing)');
       return sound;
     }
 
+    resolvedSoundCache.set(lookupKey, MISSING_SENTINEL);
     VLog.assetCached('sound', file, 'MISSING — not found on disk or in the asset libraries');
     #if MAIN_DEBUG
     trace('Missing asset: $file');
@@ -1129,23 +1597,34 @@ class Paths
       final track:String = Paths.modsSounds('music', key);
       if (track != null)
       {
-        FlxG.sound.playMusic(Sound.fromFile(track), volume, true);
+        FlxG.sound.playMusic(Paths.music(key), volume, true);
         return;
       }
     }
     if (Paths.resolveSoundAsset('music', file) != null)
     {
       FlxG.sound.playMusic(Paths.music(file), volume);
+      #if MAIN_DEBUG
       trace('fallback to base selected theme: ' + file);
+      #end
     } else
     {
       FlxG.sound.playMusic(Paths.music(fallback), volume);
+      #if MAIN_DEBUG
       trace('fallback to default: ' + fallback);
+      #end
     }
   }
 
   static public function modFolders(key:String)
   {
+    // A key that already points inside mods/ (e.g. a mod's `pack.png` icon,
+    // passed as `mods/<folder>/pack.png`) is a complete path. Prepending the
+    // mods root again would look for `mods/mods/...`, which never exists, so
+    // the asset silently failed to load and every mod fell back to the
+    // placeholder icon in the mods menu. Return it unchanged.
+    if (key.startsWith('mods/')) return key;
+
     if (Mods.currentModDirectory != null && Mods.currentModDirectory.length > 0)
     {
       var fileToCheck:String = mods(Mods.currentModDirectory + '/' + key);

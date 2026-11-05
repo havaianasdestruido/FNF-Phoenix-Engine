@@ -14,6 +14,7 @@ import backend.ModSecurity;
 import backend.Native;
 import objects.Character;
 import objects.Alphabet;
+import objects.AlphabetFont;
 import play.PlayState;
 
 /**
@@ -150,6 +151,7 @@ class HaxeScript
 		interp.variables.set('ClientPrefs', ClientPrefs);
 		interp.variables.set('Character', Character);
 		interp.variables.set('Alphabet', Alphabet);
+		interp.variables.set('AlphabetFont', AlphabetFont);
 		interp.variables.set('CustomSubstate', psychlua.CustomSubstate);
 		interp.variables.set('ModState', states.ModState);
 		interp.variables.set('ModSubState', states.substates.ModSubState);
@@ -160,6 +162,7 @@ class HaxeScript
 		interp.variables.set('FlxRuntimeShader', flixel.addons.display.FlxRuntimeShader);
 		#end
 		interp.variables.set('ShaderFilter', openfl.filters.ShaderFilter);
+		interp.variables.set('FunkinShader', shaders.FunkinShader);
 		interp.variables.set('StringTools', StringTools);
 		interp.variables.set('Math', Math);
 		interp.variables.set('Std', Std);

@@ -1,12 +1,10 @@
 package objects;
 
-// REFACTOR: explicit imports for relocated root classes
 import backend.ClientPrefs;
 import play.PlayState;
 import shaders.RGBPalette;
 import flixel.util.FlxColor;
 
-// REFACTOR: stateless helper functions extracted from objects.Note
 @:access(objects.Note)
 class NoteHelpers
 {

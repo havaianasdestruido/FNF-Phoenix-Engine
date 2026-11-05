@@ -42,7 +42,9 @@ package backend;
  * The writer is fail-safe: any filesystem problem disables vlog writes for
  * the session (with a console notice) instead of taking the game down, and
  * lines are buffered in memory and flushed at most every 250 ms so a crash
- * never loses more than a quarter second of log.
+ * never loses more than a quarter second of log. Paths and local usernames are
+ * redacted before disk writes and exports; the 10 MiB live file rotates by
+ * size/age and keeps at most two backups.
  */
 
 import flixel.FlxG;
@@ -69,6 +71,8 @@ class VLog
   static inline final MAX_LOG_BYTES:Int = 10 * 1024 * 1024;
   /** Rotated backups kept: `log.1.txt`, `log.2.txt` (oldest is dropped). */
   static inline final MAX_ROTATED:Int = 2;
+  /** Expire the live log and its rotated backups after this many days. */
+  static inline final MAX_LOG_AGE_DAYS:Int = 30;
   /** Flush the in-memory buffer once it holds at least this many characters… */
   static inline final FLUSH_CHARS:Int = 32768;
   /** …or at least this often, so a crash loses at most ~¼ s of log. */
@@ -93,6 +97,7 @@ class VLog
   static var buffer:StringBuf = new StringBuf();
   static var lastFlushMs:Float = 0.0;
   static var flushCount:Int = 0;
+  static var rotationInProgress:Bool = false;
 
   static var frameIndex:Int = 0;
   static var targetMs:Float = 1000.0 / 60.0;
@@ -211,7 +216,11 @@ class VLog
     try
     {
       if (!FileSystem.exists(DIR)) FileSystem.createDirectory(DIR);
+      // Evaluate age before sanitizing (rewriting) would update file mtimes.
+      pruneExpiredRotations();
       rotateIfNeeded();
+      pruneExpiredRotations();
+      sanitizeStoredLogs();
       fileReady = true;
     }
     catch (e:Dynamic)
@@ -518,16 +527,18 @@ class VLog
   /** The full log as text (reads the file on file targets, buffer on web). */
   public static function exportText():String
   {
+    var content:String = buffer.toString();
     #if sys
     try
     {
       if (fileReady && FileSystem.exists(FILE))
         // …plus whatever is still in the in-memory buffer (≤ 250 ms).
-        return File.getContent(FILE) + buffer.toString();
+        content = File.getContent(FILE) + content;
     }
     catch (_:Dynamic) {}
     #end
-    return buffer.toString();
+    // Also sanitize legacy content and the not-yet-flushed in-memory tail.
+    return LogUtils.redact(content);
   }
 
   /**
@@ -693,12 +704,16 @@ class VLog
       // File.write() truncates; File.append() keeps the previous content and
       // starts writing at the end of the file (text mode: binary = false).
       final f = File.append(FILE, false);
-      f.write(haxe.io.Bytes.ofString(buffer.toString()));
+      // Redact at the disk boundary so even the Android VLogs document root
+      // never exposes raw usernames or machine-specific absolute paths.
+      f.write(haxe.io.Bytes.ofString(LogUtils.redact(buffer.toString())));
       f.close();
       buffer = new StringBuf();
       lastFlushMs = nowMs();
-      // Rotation stats are a directory scan; keep it to ~4x per second.
-      if (++flushCount % 60 == 0) rotateIfNeeded();
+      // Check size after every write; age cleanup is a much less frequent scan.
+      flushCount++;
+      rotateIfNeeded();
+      if (flushCount % 60 == 0) pruneExpiredRotations();
     }
     catch (e:Dynamic)
     {
@@ -711,16 +726,21 @@ class VLog
   }
 
   /**
-   * Rotates the log once it grows past MAX_LOG_BYTES:
-   * `log.txt` -> `log.1.txt` -> `log.2.txt` (the oldest backup is dropped).
+   * Rotates the live log after the size or age limit:
+   * `log.txt` -> `log.1.txt` -> `log.2.txt` (oldest backup is dropped).
    */
   static function rotateIfNeeded():Void
   {
     #if sys
-    if (!FileSystem.exists(FILE)) return;
+    if (rotationInProgress || !FileSystem.exists(FILE)) return;
     try
     {
-      if (FileSystem.stat(FILE).size <= MAX_LOG_BYTES) return;
+      final stat = FileSystem.stat(FILE);
+      final ageMs:Float = Date.now().getTime() - stat.mtime.getTime();
+      final maxAgeMs:Float = MAX_LOG_AGE_DAYS * 24.0 * 60.0 * 60.0 * 1000.0;
+      if (stat.size <= MAX_LOG_BYTES && ageMs < maxAgeMs) return;
+
+      rotationInProgress = true;
       final oldest = DIR + '/log.' + MAX_ROTATED + '.txt';
       if (FileSystem.exists(oldest)) FileSystem.deleteFile(oldest);
       for (i in MAX_ROTATED - 1...0)
@@ -730,10 +750,65 @@ class VLog
           FileSystem.rename(from, DIR + '/log.' + (i + 1) + '.txt');
       }
       FileSystem.rename(FILE, DIR + '/log.1.txt');
-      log('ROTATE', FILE + ' exceeded ' + MemoryUtil.formatMemory(MAX_LOG_BYTES) + ' and was rotated (log.1.txt … log.' + MAX_ROTATED + '.txt kept)');
+      log('ROTATE', FILE + ' reached its size/age limit and was rotated (log.1.txt … log.' + MAX_ROTATED + '.txt kept)');
     }
     catch (e:Dynamic)
       Sys.println('vlog: rotation failed: ' + Std.string(e));
+    rotationInProgress = false;
+    #end
+  }
+
+  /** Redacts this and previous VLog files before they can be copied out. */
+  static function sanitizeStoredLogs():Void
+  {
+    #if sys
+    for (path in [FILE, DIR + '/log.1.txt', DIR + '/log.2.txt'])
+    {
+      if (!FileSystem.exists(path) || FileSystem.isDirectory(path))
+        continue;
+      try
+      {
+        // An unexpectedly large file from an older unbounded build is safer
+        // to discard than to load wholesale or expose unsanitized.
+        if (FileSystem.stat(path).size > MAX_LOG_BYTES)
+        {
+          FileSystem.deleteFile(path);
+          continue;
+        }
+        final original:String = File.getContent(path);
+        final safe:String = LogUtils.limitText(LogUtils.redact(original), MAX_LOG_BYTES);
+        if (safe != original)
+          File.saveContent(path, safe);
+      }
+      catch (_:Dynamic)
+      {
+        try
+        {
+          if (FileSystem.exists(path)) FileSystem.deleteFile(path);
+        }
+        catch (_:Dynamic) {}
+      }
+    }
+    #end
+  }
+
+  /** Deletes age-expired rotated session files. */
+  static function pruneExpiredRotations():Void
+  {
+    #if sys
+    final cutoff:Float = Date.now().getTime() - MAX_LOG_AGE_DAYS * 24.0 * 60.0 * 60.0 * 1000.0;
+    for (i in 1...(MAX_ROTATED + 1))
+    {
+      final path = DIR + '/log.' + i + '.txt';
+      if (!FileSystem.exists(path) || FileSystem.isDirectory(path))
+        continue;
+      try
+      {
+        if (FileSystem.stat(path).mtime.getTime() < cutoff)
+          FileSystem.deleteFile(path);
+      }
+      catch (_:Dynamic) {}
+    }
     #end
   }
 

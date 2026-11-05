@@ -60,7 +60,6 @@ class AchievementsMenuState extends MusicBeatState
 	{
 		layoutWidth = FlxG.width;
 		Paths.clearStoredMemory();
-		Paths.clearUnusedMemory();
 
 		#if DISCORD_ALLOWED
 		DiscordClient.changePresence("Achievements Menu", null);
@@ -169,6 +168,7 @@ class AchievementsMenuState extends MusicBeatState
 
 		addVirtualPad(LEFT_FULL, A_B_C);
 
+		Paths.clearUnusedMemory();
 		super.create();
 
 		FlxG.camera.follow(camFollow, null, 9);

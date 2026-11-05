@@ -101,6 +101,23 @@ FNF-JS-Engine-Light/
   hosts for `data/states/<Name>.hx` (see `psychlua.StateScripts`).
 - **`objects/`**: `Note.hx`, `NoteSplash.hx`, `StrumNote.hx`, `HealthIcon.hx`, `Alphabet.hx`,
   `Character.hx`, `Boyfriend.hx`, `FlxText`, `BG`, `BGSprite`...
+- **Alphabet (texto de menus)**: `objects/Alphabet.hx` monta cada letra como um
+  `AlphaCharacter` e tem **dois renderizadores**, escolhidos pelo jogador em
+  Options -> Visuals and UI (`ClientPrefs.alphabetStyle`, padrão `Font`):
+  - `Font` rasteriza glifos de uma fonte real (`ClientPrefs.alphabetFont`):
+    `assets/fonts/vcr.ttf` (**VCR OSD Mono**, já embutida) e `assets/fonts/inconsolata.ttf` +
+    `inconsolata-bold.ttf` (**Inconsolata**, adicionada, SIL OFL 1.1 em
+    `assets/fonts/LICENSE-inconsolata.txt`). Dividido em `objects/AlphabetFont.hx`
+    (modelo **puro**, sem Flixel/OpenFL: estilos, fontes, tamanhos, chaves de cache) e
+    `objects/AlphabetFontRenderer.hx` (rasterização via `openfl.text.TextField` + cache de
+    `FlxGraphic`). Qualquer caractere imprimível é desenhado, e o espaçamento vem das
+    métricas da fonte — sem tabela de offsets por letra.
+  - `Image` mantém o spritesheet clássico `images/alphabet` (caminho antigo intacto, e
+    fallback automático se a fonte não carregar).
+  `Alphabet.reloadAll()` redesenha os alphabets vivos ao trocar a opção; `AlphabetFont`
+  também é exposto ao HScript. Testes: `tests/haxe/run-alphabet-font.sh` (interpretador,
+    entra no CI) e `tests/haxe/run-alphabet-typecheck.sh` (typecheck html5+native contra
+    flixel/openfl/lime; pula se as haxelibs não estiverem instaladas).
 - **`stages/`**: `StageData.hx` + implementações de stage por semana (`StageWeek1` etc.).
 - **`options/`**: menu de opções + toggles (via `options/helpers`).
 - **`editors/`**: ChartEditor, WeekEditor, CharacterEditor, StageEditor, DialogueEditor.
@@ -152,7 +169,7 @@ FNF-JS-Engine-Light/
   enviar qualquer um dos dois, mas o repositório fica **só Ogg**.
 - Ao adicionar música/SFX: `ffmpeg -i in.wav -vn -c:a libvorbis -q:a 2 out.ogg`
   (`tools/compress-audio.sh` já faz isso em lote; `-q:a 2` ≈ 96 kbps VBR).
-- `tests/test_audio_format_policy.py` falha se um par `.ogg`/`.mp3` reaparecer.
+- Nunca versione um par `.ogg`/`.mp3` da mesma faixa; revise isso no code review.
 
 ---
 
@@ -226,9 +243,20 @@ FNF-JS-Engine-Light/
 - `mobile-release.yml` — valida uma tag Phoenix existente e reutiliza `main.yml` com
   apenas Android habilitado para publicar o APK. O antigo `mobile.yml` duplicava esse build.
 - `release.yml` — publica o artefato Windows de `main.yml` em uma draft release.
-- `checks.yml` — regressões Python/Java/Haxe; `docs.yml` — build e deploy do site.
+- `checks.yml` — regressões Java/nativas; `docs.yml` — build e deploy do site.
 - `sparse-submodule.yml` — valida o checkout sparse e o link do mod fnf_030_ui.
 - `nightly.yml`, `autotriage.yml`, `autolock.yml` — housekeeping.
+- **Caches (quota de 10 GB):** cada cache do Actions é um snapshot imutável do `path`. As
+  chaves em `main.yml` (`CACHE_SCHEMA` + target + OS/arch + Haxe + `hmm.json`/setup + flags)
+  **não** incluem `source/`, `project.hxp` nem o próprio workflow: se incluírem, cada commit
+  cria um snapshot novo de 140–370 MB e as entradas só se acumulam. O save usa a **mesma**
+  chave do restore (`cache-hit` só é true com match exato), então o cache é rolante. PRs só
+  leem; `push`/`workflow_dispatch`/`workflow_call` salvam. Gradle é cacheado à mão em
+  `~/.gradle/caches` (nunca `cache: gradle` do setup-java: ele hasheia um projeto que o Lime
+  só gera durante o build, então erra sempre e salva 512 MB por PR). Quem mexe nisso roda
+  `bash tests/haxe/run-build-cache-policy.sh` (roda em `checks.yml`, sem toolchain). Cabeçalho
+  nativo novo precisa de `<depend>` no `build.xml` respectivo, senão o objeto cacheado fica
+  com o código antigo.
 - **Sem CodeQL:** não adicionar workflows `github/codeql-action` nem ativar o default setup
   de code scanning. O default setup é uma configuração do GitHub, separada dos arquivos de workflow.
 - Para rodar android localmente (Windows): configurar Android SDK/NDK via `haxelib run lime config`

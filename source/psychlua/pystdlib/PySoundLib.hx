@@ -7,7 +7,6 @@ import play.PlayState;
 import backend.Paths;
 import headers.PsychLua;
 
-// REFACTOR: extracted from psychlua.PythonScript (sound/music API)
 class PySoundLib
 {
 	public static function register(py:PythonScript):Void {

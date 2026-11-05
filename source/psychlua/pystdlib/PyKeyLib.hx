@@ -5,7 +5,6 @@ import psychlua.PythonScript;
 import play.PlayState;
 import headers.PsychLua;
 
-// REFACTOR: extracted from psychlua.PythonScript (key/control API)
 class PyKeyLib
 {
 	public static function register(py:PythonScript):Void {

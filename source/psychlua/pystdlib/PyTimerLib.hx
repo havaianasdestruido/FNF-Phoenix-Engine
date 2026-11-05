@@ -5,7 +5,6 @@ import psychlua.PythonScript;
 import play.PlayState;
 import headers.PsychLua;
 
-// REFACTOR: extracted from psychlua.PythonScript (timer API)
 class PyTimerLib
 {
 	public static function register(py:PythonScript):Void {

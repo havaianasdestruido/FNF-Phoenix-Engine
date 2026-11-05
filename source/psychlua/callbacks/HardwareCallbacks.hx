@@ -4,7 +4,6 @@ import backend.Native;
 import headers.PsychLua;
 import psychlua.FunkinLua;
 
-// REFACTOR: extracted from psychlua.FunkinLua (hardware detection API)
 class HardwareCallbacks
 {
   public static function register(funk:FunkinLua):Void {

@@ -6,7 +6,6 @@ import psychlua.PythonScript;
 import play.PlayState;
 import headers.PsychLua;
 
-// REFACTOR: extracted from psychlua.PythonScript (camera API)
 class PyCameraLib
 {
 	public static function register(py:PythonScript):Void {

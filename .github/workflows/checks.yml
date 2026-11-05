@@ -1,8 +1,11 @@
 name: Checks
 
-# Fast regression guards for Arena fixes and BPM-aware chart timing.
-# Python/source guards need no Haxe or Android SDK; Java 17 exercises the
-# Android-free SAF path-policy and Media3 bridge lifecycle/action classes.
+# Fast regression guards: dependency manifests, the JNI bridge contract,
+# host-JVM Android bridge/policy classes, standalone native C/C++ smoke tests,
+# and an hxcpp native-object-cache smoke test. None of these need a full game
+# build or the Android SDK. Most isolated Haxe interpreter specs in tests/haxe/
+# are not run here; the diagnostic log, crash bundle, diagnostics report and
+# phoenix:// URI parser specs have a dedicated Haxe job below.
 
 on:
   push:
@@ -24,50 +27,91 @@ jobs:
       - name: Dependency manifests agree and are pinned
         run: python3 tools/check_dependencies.py
 
+      - name: JNI bridge contract matches the Java methods
+        run: python3 tools/check_android_bridge.py --check
+
       - name: Setup Java 17 for host-JVM regression tests
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: "17"
 
-      - name: Run regression tests
-        run: python3 -m unittest discover -s tests -p 'test_*.py' -v
+      - name: Run host-JVM Android bridge/policy tests
+        run: bash tests/java/run.sh
 
-  widescreen-layout:
-    name: Widescreen geometry (Haxe)
+      - name: Run native C/C++ smoke tests
+        run: bash tests/native/run.sh
+
+      # Static guard for main.yml's cache keys: they must be reused, not
+      # re-created per commit, and every native header must stay a declared
+      # hxcpp dependency. No Haxe or C++ toolchain needed.
+      - name: Build cache keys roll over instead of piling up
+        run: bash tests/haxe/run-build-cache-policy.sh
+  diagnostic-report-specs:
+    name: Diagnostic log, crash bundle and diagnostics page (Haxe)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: krdlab/setup-haxe@master
         with:
           haxe-version: "4.3.7"
-      - name: Test viewport, touch lanes, resize rollback and script scanning
-        run: bash tests/haxe/run-layout.sh
-      - name: Typecheck platform native dialog bridge
-        run: bash tests/haxe/run-platform-util-native.sh
-      - name: Test Phoenix version and release selection
-        run: bash tests/haxe/run-phoenix-version.sh
-      - name: Test watermark platform badge (detection, density, artwork)
-        run: bash tests/haxe/run-platform-icons.sh
-      - name: Typecheck threaded update checker
-        run: bash tests/haxe/run-update-checker-typecheck.sh
-      - name: Test RAM graph history and interpolation
-        run: bash tests/haxe/run-ram-graph.sh
-      - name: Test BPM-aware chart section timing
-        run: bash tests/haxe/run-charting-timing.sh
-      - name: Test JSON chart parsing and legacy event compaction
-        run: bash tests/haxe/run-chart-loading.sh
-      - name: Test gameplay chart note/event conversion
-        run: bash tests/haxe/run-chart-loader.sh
-      - name: Test .zip mod import (path policy, archive parsing, extraction)
-        run: bash tests/haxe/run-mod-zip.sh
-      - name: Test per-area RAM ledger (vlog memory attribution)
-        run: bash tests/haxe/run-memory-ledger.sh
-      - name: Test settings backup format (export/import .json)
-        run: bash tests/haxe/run-settings-backup.sh
+      - name: Test diagnostic log redaction and retention
+        run: bash tests/haxe/run-log-utils.sh
+      - name: Test crash bundle archive safety
+        run: bash tests/haxe/run-crash-bundle.sh
       - name: Test diagnostics report text and the phoenix://diagnostics page
         run: bash tests/haxe/run-diagnostics-report.sh
       - name: Test the phoenix:// URI parser and its route allowlists
-        run: python3 tests/uri/run.py
-      - name: Test mobile storage and pre-state startup resize
-        run: python3 -m unittest discover -s tests -p 'test_mobile_startup.py' -v
+        run: bash tests/uri/run.sh
+
+  native-object-cache:
+    name: hxcpp cache smoke (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: krdlab/setup-haxe@master
+        with:
+          haxe-version: "4.3.7"
+      - name: Install the project's pinned hxcpp
+        shell: bash
+        run: |
+          set -euo pipefail
+          # $PWD is a native bash path on both Linux and Git Bash for Windows.
+          libroot="$PWD/.hxcpp-test-libs"
+          mkdir -p "$libroot"
+          haxelib setup "$libroot"
+          url=$(python -c "import json; print(next(d['url'] for d in json.load(open('hmm.json'))['dependencies'] if d['name']=='hxcpp'))")
+          ref=$(python -c "import json; print(next(d['ref'] for d in json.load(open('hmm.json'))['dependencies'] if d['name']=='hxcpp'))")
+          haxelib git hxcpp "$url" "$ref" --quiet
+          hxcpp_dir="$libroot/hxcpp/git"
+          (cd "$hxcpp_dir/tools/run" && haxe compile.hxml)
+          (cd "$hxcpp_dir/tools/hxcpp" && haxe compile.hxml)
+      - name: Verify cold, warm, header-change and flag-change builds
+        shell: bash
+        env:
+          PHOENIX_RUN_HXCPP_CACHE_TESTS: "1"
+        run: bash tests/haxe/run-hxcpp-cache.sh
+      - name: Install Lime and HXP for the project configuration test
+        shell: bash
+        run: |
+          set -euo pipefail
+          url=$(python -c "import json; print(next(d['url'] for d in json.load(open('hmm.json'))['dependencies'] if d['name']=='lime'))")
+          ref=$(python -c "import json; print(next(d['ref'] for d in json.load(open('hmm.json'))['dependencies'] if d['name']=='lime'))")
+          haxelib git lime "$url" "$ref" --quiet
+          haxelib install hxp --quiet
+      - name: Verify project cache defaults and overrides
+        shell: bash
+        run: bash tests/haxe/run-project-build-cache.sh
+      - name: Verify PowerShell test launcher (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: ./tests/haxe/run-project-build-cache.ps1
+      - name: Verify batch test launcher (Windows)
+        if: runner.os == 'Windows'
+        shell: cmd
+        run: call tests\haxe\run-project-build-cache.bat
+

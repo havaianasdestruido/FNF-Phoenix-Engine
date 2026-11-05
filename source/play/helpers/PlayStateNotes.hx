@@ -17,7 +17,6 @@ import play.helpers.PlayStateNoteHelpers;
 import play.helpers.PlayStatePlayback;
 import play.helpers.PlayStateRating;
 
-// REFACTOR: note hit/miss/spawn logic extracted from play.PlayState
 @:access(play.PlayState)
 @:access(backend.MusicBeatState)
 class PlayStateNotes

@@ -33,11 +33,9 @@ import openfl.events.Event;
 import openfl.events.IOErrorEvent;
 import openfl.net.FileReference;
 
-// REFACTOR: imports for relocated root classes
 import backend.Controls;
 import objects.Note;
 
-// REFACTOR: relocated helpers
 import headers.Editors;
 
 /**

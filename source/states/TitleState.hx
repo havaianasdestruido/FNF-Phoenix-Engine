@@ -91,7 +91,7 @@ class TitleState extends MusicBeatState
 
     MusicBeatState.windowNameSuffix = " - Title Screen";
 
-    MusicBeatState.windowNamePrefix = Assets.getText(Paths.txt("windowTitleBase", "preload"));
+    MusicBeatState.windowNamePrefix = backend.RuntimeFlags.windowTitle(Assets.getText(Paths.txt("windowTitleBase", "preload")));
 
     curWacky = FlxG.random.getObject(getIntroText());
 

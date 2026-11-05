@@ -108,7 +108,6 @@ class MainMenuState extends MusicBeatState
     layoutWidth = FlxG.width;
     MusicBeatState.windowNameSuffix = " - Main Menu";
     Paths.clearStoredMemory();
-    Paths.clearUnusedMemory();
 
     tipsArray = CoolUtil.coolTextFile(Paths.txt('funnyTips'));
 	canDoTips = ClientPrefs.tipTexts; // so it's not running in the background
@@ -272,6 +271,7 @@ class MainMenuState extends MusicBeatState
 
     addVirtualPad(UP_DOWN, A_B);
 
+    Paths.clearUnusedMemory();
     super.create();
   }
 
@@ -383,7 +383,7 @@ class MainMenuState extends MusicBeatState
       {
         if (menuOptions[curSelected] == 'donate')
         {
-          CoolUtil.browserLoad(backend.PhoenixVersion.REPOSITORY_URL);
+          CoolUtil.browserLoad(backend.RuntimeFlags.url("urls.repository", backend.PhoenixVersion.REPOSITORY_URL));
         } 
 		else
         {

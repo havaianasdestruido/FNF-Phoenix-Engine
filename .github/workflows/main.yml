@@ -52,13 +52,22 @@ env:
   HAXE_VERSION: "4.3.7"
   HAXELIB_PATH: ${{ github.workspace }}/.haxelib
 
-  # Must be named HXCPP_COMPILE_CACHE - that's the variable hxcpp itself reads
-  # to enable its object cache.
+  # hxcpp hashes C++ sources, declared headers, flags and compiler version.
+  # Keep this outside build/ so it survives a clean and can be restored by CI.
   HXCPP_COMPILE_CACHE: ${{ github.workspace }}/.hxcpp_cache
+  # Two Android ABIs and Windows PCH/object files can exceed hxcpp's 1 GB
+  # default, in which case hxcpp evicts entries mid-build and the cache that
+  # gets saved is already gutted.
+  HXCPP_CACHE_MB: "2048"
 
-  # Desktop hxcpp performance optimization. Android NDK's LTO link does not
-  # resolve hxcpp's TLS runtime helper (__tls_get_addr), so it must not use it.
-  HXCPP_DESKTOP_PERF_FLAGS: "-D HXCPP_OPTIMIZE_LINK"
+  # Actions caches are immutable and every entry is a full snapshot of the
+  # path it was saved from. Saving one cache per commit (or per PR) therefore
+  # stores the same objects over and over until the 10 GB quota evicts
+  # everything. Both shared caches (haxelib + native objects) are instead
+  # written to one rolling key per target and refreshed only when its content
+  # fingerprint changes, so a warm run reuses what the previous run saved.
+  # Bump the version to invalidate every existing entry at once.
+  CACHE_SCHEMA: v3
 
 # Cancel previous runs for the same branch/PR concurrency:
 concurrency:
@@ -166,12 +175,25 @@ jobs:
       # ==========================================
       # Java 17 - Android
       # ==========================================
+      # No `cache: gradle` here on purpose. setup-java's Gradle cache is
+      # keyed on a hash of a Gradle project that Lime only generates during
+      # the build, so the first run has nothing to hash and every PR saved a
+      # 512 MB copy (~3 GB of the quota, re-uploaded on each PR). The Gradle
+      # dependency cache is restored from the same rolling, per-target key as
+      # the native objects below, on a path that survives the generated
+      # project being re-created.
       - name: Setup Java 17
         if: steps.target-selection.outputs.enabled == 'true' && matrix.target == 'android'
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: "17"
+
+      - name: Resolve Gradle user home
+        id: gradle-home
+        if: steps.target-selection.outputs.enabled == 'true' && matrix.target == 'android'
+        shell: bash
+        run: echo "dir=${GRADLE_USER_HOME:-$HOME/.gradle}" >> "$GITHUB_OUTPUT"
 
       # ==========================================
       # Android SDK / NDK
@@ -183,15 +205,38 @@ jobs:
           packages: platform-tools platforms;android-36 build-tools;36.0.0 ndk;27.0.12077973
 
       # ==========================================
+      # Restore the Gradle dependency cache - Android
+      # ==========================================
+      # Same key material as the native object cache below (target, pinned
+      # dependency set, build flags), so this is one rolling entry per target
+      # instead of one 512 MB snapshot per PR.
+      - name: Restore Gradle cache
+        id: gradle-cache
+        if: steps.target-selection.outputs.enabled == 'true' && matrix.target == 'android'
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{ steps.gradle-home.outputs.dir }}/caches
+          key: ${{ env.CACHE_SCHEMA }}-gradle-${{ matrix.cache_name }}-${{ runner.os }}-${{ hashFiles('hmm.json', 'setup/unix.sh', 'source/android/media3/build.gradle') }}-${{ inputs.buildFlags != '' && format('explicit-{0}', inputs.buildFlags) || 'unset' }}
+          restore-keys: |
+            ${{ env.CACHE_SCHEMA }}-gradle-${{ matrix.cache_name }}-${{ runner.os }}-${{ hashFiles('hmm.json', 'setup/unix.sh', 'source/android/media3/build.gradle') }}-
+
+      # ==========================================
       # Restore Haxelib cache
       # ==========================================
+      # `cache-hit` is only 'true' on an exact key match, so a cache found
+      # through a restore-key is restored but still counts as a miss. Without
+      # a hash of the lookup in the key, every commit produced a brand-new
+      # haxelib entry. The key is now derived from the content instead (same
+      # rolling scheme as the native object cache below).
       - name: Restore haxelib and hxcpp tools
         id: haxelib-cache
         if: steps.target-selection.outputs.enabled == 'true'
         uses: actions/cache/restore@v4
         with:
           path: ${{ env.HAXELIB_PATH }}
-          key: haxelib-${{ runner.os }}-${{ matrix.setup }}-haxe-${{ env.HAXE_VERSION }}-${{ hashFiles('hmm.json') }}
+          key: ${{ env.CACHE_SCHEMA }}-haxelib-${{ matrix.setup }}-haxe-${{ env.HAXE_VERSION }}-${{ hashFiles('hmm.json', 'setup/unix.sh', 'setup/windows.bat', 'setup/windows-msvc-fix.ps1') }}
+          restore-keys: |
+            ${{ env.CACHE_SCHEMA }}-haxelib-${{ matrix.setup }}-haxe-${{ env.HAXE_VERSION }}-
 
       # ==========================================
       # Install Haxelib dependencies - Android
@@ -279,29 +324,56 @@ jobs:
       # ==========================================
       # Save haxelib cache
       # ==========================================
+      # Saving uses the exact key that was looked up, so a restore-key warm-up
+      # uploads the current content once and later runs hit it exactly. PRs
+      # only read the shared entry (their cache scope is unreachable from main
+      # anyway); main and a manual/release dispatch write it.
       - name: Save haxelib and hxcpp tools
-        if: success() && steps.target-selection.outputs.enabled == 'true' && steps.haxelib-cache.outputs.cache-hit != 'true'
+        id: haxelib-save
+        if: success() && github.event_name != 'pull_request' && steps.target-selection.outputs.enabled == 'true' && steps.haxelib-cache.outputs.cache-hit != 'true'
         uses: actions/cache/save@v4
         with:
           path: ${{ env.HAXELIB_PATH }}
-          key: ${{ steps.haxelib-cache.outputs.cache-primary-key }}
+          key: ${{ env.CACHE_SCHEMA }}-haxelib-${{ matrix.setup }}-haxe-${{ env.HAXE_VERSION }}-${{ hashFiles('hmm.json', 'setup/unix.sh', 'setup/windows.bat', 'setup/windows-msvc-fix.ps1') }}
 
       # ==========================================
-      # Restore generated C++ cache
+      # Save the Gradle dependency cache - Android
       # ==========================================
-      - name: Restore generated C++ cache
+      - name: Save Gradle cache
+        if: success() && github.event_name != 'pull_request' && steps.target-selection.outputs.enabled == 'true' && matrix.target == 'android' && steps.gradle-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ steps.gradle-home.outputs.dir }}/caches
+          key: ${{ env.CACHE_SCHEMA }}-gradle-${{ matrix.cache_name }}-${{ runner.os }}-${{ hashFiles('hmm.json', 'setup/unix.sh', 'source/android/media3/build.gradle') }}-${{ inputs.buildFlags != '' && format('explicit-{0}', inputs.buildFlags) || 'unset' }}
+
+      # ==========================================
+      # Restore hxcpp's content-addressed C++ cache
+      # ==========================================
+      # The key only describes things that make the *batch* of objects
+      # incompatible: toolchain, target, pinned dependencies and the build
+      # flags. It deliberately does not hash the source tree, project.hxp or
+      # the workflow file:
+      #   * every commit touches source files, and hashing them produced one
+      #     ~140-370 MB snapshot per commit, which is what filled the quota;
+      #   * hxcpp hashes each translation unit's own inputs and falls back to
+      #     a real compile when they changed, so a shared cache is safe;
+      #   * the previous scheme also mixed a UTC day into the key while saving
+      #     only on a miss, so a sparse commit cadence could skip saving
+      #     entirely and the "warm" restore was never reused.
+      # `cache-primary-key` is therefore always the restore key, which turns
+      # this into a rolling cache: a miss restores the previous generation,
+      # adds the new objects and re-saves the same key after the build.
+      - name: Restore hxcpp object cache
         id: build-cache
         if: steps.target-selection.outputs.enabled == 'true'
         uses: actions/cache/restore@v4
         with:
-          path: |
-            build/release/${{ matrix.target_dir }}/haxe
-            build/release/${{ matrix.target_dir }}/obj
-            ${{ env.HXCPP_COMPILE_CACHE }}
-          key: hxcpp-${{ runner.os }}-${{ matrix.cache_name }}-${{ inputs.buildFlags || 'commit' }}-${{ hashFiles('project.hxp', 'source/**') }}
+          # Regenerate Lime/Haxe outputs from the current source and assets;
+          # only reuse objects through hxcpp's own dependency/flag hashes.
+          path: ${{ env.HXCPP_COMPILE_CACHE }}
+          key: ${{ env.CACHE_SCHEMA }}-hxcpp-${{ matrix.cache_name }}-${{ runner.os }}-${{ runner.arch }}-haxe-${{ env.HAXE_VERSION }}-${{ hashFiles('hmm.json', 'setup/unix.sh', 'setup/windows.bat', 'setup/windows-msvc-fix.ps1') }}-${{ inputs.buildFlags != '' && format('explicit-{0}', inputs.buildFlags) || 'unset' }}
           restore-keys: |
-            hxcpp-${{ runner.os }}-${{ matrix.cache_name }}-${{ inputs.buildFlags || 'commit' }}-
-            hxcpp-${{ runner.os }}-${{ matrix.cache_name }}-
+            ${{ env.CACHE_SCHEMA }}-hxcpp-${{ matrix.cache_name }}-${{ runner.os }}-${{ runner.arch }}-haxe-${{ env.HAXE_VERSION }}-${{ hashFiles('hmm.json', 'setup/unix.sh', 'setup/windows.bat', 'setup/windows-msvc-fix.ps1') }}-${{ inputs.buildFlags != '' && format('explicit-{0}', inputs.buildFlags) || 'unset' }}
 
       # ==========================================
       # Compile Windows
@@ -312,14 +384,19 @@ jobs:
         # Limiting parallel C++ compilation keeps Windows runners below their memory limit.
         env:
           HXCPP_COMPILE_THREADS: 4
+          BUILD_FLAGS: ${{ inputs.buildFlags }}
         run: |
-          if (Test-Path $env:HXCPP_COMPILE_CACHE) {
-            Remove-Item $env:HXCPP_COMPILE_CACHE -Recurse -Force
-          }
-
           Remove-Item -Force assets/preload/gameRenders/renderlinux.sh
 
-          haxelib run lime build windows -D"${{ inputs.buildFlags || 'commit' }}" ${{ env.HXCPP_DESKTOP_PERF_FLAGS }}
+          $buildFlag = if ($env:BUILD_FLAGS) { $env:BUILD_FLAGS } else { 'commit' }
+          $buildArgs = @('run', 'lime', 'build', 'windows', "-D$buildFlag")
+          # LTCG adds substantial link time. Keep it for official releases,
+          # while routine CI uses the same fast link as local builds.
+          if ($buildFlag -eq 'officialBuild') {
+            $buildArgs += '-DHXCPP_OPTIMIZE_LINK'
+          }
+          & haxelib @buildArgs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
       # ==========================================
       # Compile Android
@@ -329,10 +406,13 @@ jobs:
         shell: bash
         env:
           HXCPP_COMPILE_THREADS: 4
+          BUILD_FLAGS: ${{ inputs.buildFlags }}
         run: |
-          rm -rf "$HXCPP_COMPILE_CACHE" 2>/dev/null || true
-
-          haxelib run lime build android ${{ inputs.buildFlags != '' && format('-D {0}', inputs.buildFlags) || '' }}
+          args=()
+          if [ -n "$BUILD_FLAGS" ]; then
+            args+=("-D$BUILD_FLAGS")
+          fi
+          haxelib run lime build android "${args[@]}"
 
       # ==========================================
       # Verify the actual merged Android manifest
@@ -388,17 +468,21 @@ jobs:
           [ "$missing" -eq 0 ]
 
       # ==========================================
-      # Save generated C++ cache
+      # Save the updated object cache
       # ==========================================
-      - name: Save generated C++ cache
-        if: success() && steps.target-selection.outputs.enabled == 'true' && steps.build-cache.outputs.cache-hit != 'true'
+      # Same key as the restore above, so the refreshed snapshot replaces the
+      # restored generation instead of adding another entry. Saving from
+      # failed builds would risk caching objects from a partially compiled
+      # tree, and PRs only read it (a PR cache scope is not even visible to
+      # main). The save reuses the key that was actually looked up rather than
+      # relying on `cache-primary-key` being reported on a missed lookup.
+      - name: Save hxcpp object cache
+        id: build-cache-save
+        if: success() && github.event_name != 'pull_request' && steps.target-selection.outputs.enabled == 'true' && steps.build-cache.outputs.cache-hit != 'true'
         uses: actions/cache/save@v4
         with:
-          path: |
-            build/release/${{ matrix.target_dir }}/haxe
-            build/release/${{ matrix.target_dir }}/obj
-            ${{ env.HXCPP_COMPILE_CACHE }}
-          key: ${{ steps.build-cache.outputs.cache-primary-key }}
+          path: ${{ env.HXCPP_COMPILE_CACHE }}
+          key: ${{ env.CACHE_SCHEMA }}-hxcpp-${{ matrix.cache_name }}-${{ runner.os }}-${{ runner.arch }}-haxe-${{ env.HAXE_VERSION }}-${{ hashFiles('hmm.json', 'setup/unix.sh', 'setup/windows.bat', 'setup/windows-msvc-fix.ps1') }}-${{ inputs.buildFlags != '' && format('explicit-{0}', inputs.buildFlags) || 'unset' }}
 
       # ==========================================
       # Publish artifact

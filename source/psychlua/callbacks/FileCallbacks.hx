@@ -4,7 +4,6 @@ import backend.Paths;
 import psychlua.FunkinLua;
 import headers.PsychLua;
 
-// REFACTOR: extracted from psychlua.FunkinLua (file IO API)
 class FileCallbacks
 {
 	public static function register(funk:FunkinLua):Void {

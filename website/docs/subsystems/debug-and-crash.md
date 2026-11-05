@@ -68,6 +68,46 @@ The same values are available to scripts through `getSystemInfo()`, `getGPUName(
 HScript), see the [Lua](../modding/lua-api-reference.md) and
 [Python](../modding/python-api-reference.md) API references.
 
+### Log privacy and retention
+
+Crash reports (`crash/`), frame-profiler exports (`debug/log/`), and shader/copy
+failure reports (`logs/`) are sanitized before they are saved or returned for
+sharing. Local usernames and absolute POSIX, Windows, and network paths are
+replaced with `[username]`, `[home]`, or `[absolute path]`; relative source and
+asset paths remain useful for debugging. Crash text and the VLog tail included
+in crash bundles use the same redaction policy. Existing reports are cleaned at
+startup as well, before Android's read-only document roots can expose them.
+
+Each report is capped at 2 MiB. Each report directory keeps at most 10 files and
+16 MiB total, and reports older than 30 days are removed. When a cap is reached,
+the oldest reports are removed first; an overlong individual report is marked as
+truncated rather than allowed to grow without bound.
+
+### Crash bundle (`.zip`)
+
+Alongside the log, every crash also writes a **crash bundle** —
+`crash/FNF-Phoenix-Engine_crash-bundle_<date>.zip` — collecting everything a bug
+report needs in one file: the crash text, `modsList.txt`, each mod's `pack.json`,
+the preferences (in the settings-backup format, see `docs/SETTINGS_BACKUP.md`),
+a screenshot of the crashed frame, the vlog tail when enabled, and a
+`bundle.json` manifest (versions, commit, target, mod list, file list, notes).
+
+- `backend.CrashBundle` collects the pieces best-effort — a missing screenshot or
+  an unreadable `pack.json` is noted in the manifest and never stops the bundle,
+  and the bundle never stops the crash handler.
+- `backend.CrashBundleWriter` (Flixel-free) builds the zip: entry names are
+  validated with `backend.ModPathPolicy`, entries are capped (8 MB each, 32 MB
+  total, 512 entries), text is deflated while media is stored, the write is
+  atomic (`.tmp` + rename), and only the newest 3 bundles are kept.
+- On Android the bundle lands in the SAF **"Crash Logs"** root, and the crash
+  screen's **Export crash bundle** action (`[E]` on desktop, a tap button on
+  mobile) saves it anywhere through `MobileFilePicker` — e.g. Downloads — so it
+  is reachable even though `Android/data` is buried. Mobile also gets a touch
+  **Restart** button.
+
+See `docs/CRASH_BUNDLE.md` in the repository for the full format and safety
+rules.
+
 ## Verbose log (`vlog/log.txt`)
 
 `backend.VLog` records an aggressively verbose, append-only session log at
@@ -116,12 +156,13 @@ the default `trace()` printer, so a disabled vlog behaves exactly like a build
 without it.
 
 The writer is fail-safe: lines are buffered and flushed at most every 250 ms,
-the live log rotates at 10 MiB (keeping `log.1.txt`/`log.2.txt`), and any
-filesystem problem disables vlog writes for the session with a console notice
-instead of affecting gameplay. Web and Flash builds have no writable
-filesystem, so the log accumulates in a capped in-memory buffer that
-`VLog.exportText()` returns; on HTML5, `VLog.download()` additionally saves
-it as `log.txt` through the browser.
+the live log rotates at 10 MiB or after 30 days (keeping `log.1.txt` and
+`log.2.txt`), and any filesystem problem disables vlog writes for the session
+with a console notice instead of affecting gameplay. Usernames and absolute
+paths are redacted before disk writes and by `VLog.exportText()` / browser
+download. Web and Flash builds have no writable filesystem, so the log
+accumulates in a capped in-memory buffer that `VLog.exportText()` returns; on
+HTML5, `VLog.download()` additionally saves it as `log.txt` through the browser.
 
 ### Per-area RAM attribution
 

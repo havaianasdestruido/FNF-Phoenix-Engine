@@ -1,6 +1,5 @@
 package options;
 
-// REFACTOR: explicit imports for shader subtypes
 import shaders.RainShader.Light;
 
 
@@ -8,10 +7,12 @@ import backend.Controls;
 import objects.Note;
 import headers.Objects;
 import objects.StrumNote;
+import objects.Alphabet;
+import objects.AlphabetFont;
+import objects.AlphabetFontRenderer;
 import flixel.graphics.FlxGraphic;
 import flixel.input.keyboard.FlxKey;
 
-// REFACTOR: imports for relocated root classes
 import backend.ClientPrefs;
 import data.Song;
 
@@ -444,6 +445,24 @@ class VisualsUISubState extends BaseOptionsMenu
 			true);
 		addOption(option);
 
+		var option:Option = new Option('Alphabet Style:',
+			"How the alphabet draws menu text.\nFont: glyphs from a real font, crisp at any size.\nImage: the classic alphabet spritesheet.",
+			'alphabetStyle',
+			'string',
+			AlphabetFont.STYLE_FONT,
+			AlphabetFont.styles());
+		addOption(option);
+		option.onChange = onChangeAlphabet;
+
+		var option:Option = new Option('Alphabet Font:',
+			"Which font the alphabet uses. Only applies when Alphabet Style is Font.",
+			'alphabetFont',
+			'string',
+			AlphabetFont.DEFAULT_FONT,
+			AlphabetFont.fontNames());
+		addOption(option);
+		option.onChange = onChangeAlphabet;
+
 		var option:Option = new Option('Main Menu Tips',
 			"If unchecked, hides those tips at the top in the main menu!",
 			'tipTexts',
@@ -535,6 +554,13 @@ class VisualsUISubState extends BaseOptionsMenu
 	{
 		if(changedMusic) FlxG.sound.playMusic(Paths.music('freakyMenu-' + ClientPrefs.daMenuMusic));
 		super.destroy();
+	}
+
+	/** Rebuilds every alphabet on screen after the style or font changed. */
+	function onChangeAlphabet()
+	{
+		Alphabet.reloadAll(); //letters switch to the new style/font first...
+		AlphabetFontRenderer.clearCache(); //...then the glyphs nobody uses anymore are dropped
 	}
 
 	function onChangeFPSCounter()

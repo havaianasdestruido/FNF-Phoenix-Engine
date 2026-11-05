@@ -136,13 +136,15 @@ returns to the Main Menu. The sections:
 | `FILES` | working directory, save-data id, session log path and whether it is live, crash folder, mods folder, Windows handler registration |
 | `MODS` | enabled mods in load order (first 10, then a count), disabled ones, folders the engine rejected, active mod directory |
 | `SETTINGS` | the preferences that change feel or performance: resolution/widescreen, framerate, quality and shaders, optimization, scroll and ghost tap, note skins, debug aids, update checks/Discord/deeplink opt-in, anti-cheat |
-| `RECENT LOG` | the last 10 lines of `vlog/log.txt` plus anything still buffered, or how to turn VLog on |
+| `RECENT LOG` | the last 10 lines of `vlog/log.txt` plus anything still buffered, in the redacted form the log keeps, or how to turn VLog on |
 
 Every section is guarded, so a value the target cannot report (no render
 context, no native memory query, unwritable storage) prints as `unavailable` or
-`not reported here` instead of taking the page down. Absolute paths can contain
-the player's username, which the footer says to redact before posting — the page
-uploads nothing anywhere. On Windows the link only arrives when this copy owns
+`not reported here` instead of taking the page down. Log lines arrive as
+`backend.LogUtils` left them (home directories, usernames and absolute paths
+already replaced), because that is how VLog stores them; the paths this report
+prints itself are **not** rewritten, so they can contain the player's username and
+the footer says to redact before posting. The page uploads nothing anywhere. On Windows the link only arrives when this copy owns
 the handler (Options → Misc → Toggle Deeplink); Android and iOS accept it cold
 or warm like any other route.
 
@@ -271,7 +273,7 @@ checkbox stays off and the manual commands above are the fallback.
 Dependency-free parser tests (Haxe required; no engine haxelibs):
 
 ```sh
-python3 tests/uri/run.py
+bash tests/uri/run.sh
 bash tests/haxe/run-diagnostics-report.sh
 python3 -m unittest tests.test_deeplink_diagnostics
 ```
