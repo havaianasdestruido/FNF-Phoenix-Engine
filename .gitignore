@@ -19,6 +19,9 @@ export/*
 debug/log/*.log
 .vscode/*
 .haxelib/
+# hxcpp's content-addressed native object cache (kept outside build/ so a
+# Lime clean does not discard it).
+.hxcpp_cache/
 *.code-workspace
 # Local history which shouldn't be shared.
 .history
@@ -42,6 +45,6 @@ website/docs/modding/lua-api-reference.md
 website/docs/modding/python-api-reference.md
 
 ### Python
-# Bytecode caches from `python3 -m unittest` / tools/check_dependencies.py.
+# Bytecode caches from tools/check_dependencies.py and other maintenance tools.
 __pycache__/
 *.pyc

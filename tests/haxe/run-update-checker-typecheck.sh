@@ -18,6 +18,15 @@ cat > "$test_source/backend/ClientPrefs.hx" <<'HAXE'
 package backend;
 class ClientPrefs { public static var enablePreReleaseUpdates:Bool = false; }
 HAXE
+# UpdateChecker resolves the releases endpoint through RuntimeFlags; stub the
+# accessor it uses so the typecheck stays hermetic (the real class reads
+# flags.ini and pulls in openfl.Assets, which this harness does not provide).
+cat > "$test_source/backend/RuntimeFlags.hx" <<'HAXE'
+package backend;
+class RuntimeFlags {
+  public static function url(key:String, fallback:String):String { return fallback; }
+}
+HAXE
 cat > "$test_source/lime/app/Application.hx" <<'HAXE'
 package lime.app;
 // Lime Application.onUpdate is Event<Float->Void>.

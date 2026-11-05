@@ -46,7 +46,7 @@ Two consequences:
 - **A patch is a whole file, not a diff.** The folder mirrors the library's package layout
   exactly (path, letter case and file name must match) and the file must compile on its own.
 - **Keep the two source folders disjoint.** A module patched in both would silently be
-  taken from `source/source-haxelib-patches/`. Today they are disjoint, and `tests/test_arena_fixes.py` fails if a library package (`flixel/`, `openfl/`, `funkin/`) reappears under `source/` (#46).
+  taken from `source/source-haxelib-patches/`. Keep them disjoint: a library package (`flixel/`, `openfl/`, `funkin/`) must not reappear under `source/` (#46).
 
 Because the substitution happens at Haxe compile time, a patch applies to *every* target —
 which is why each one is wrapped in platform conditionals, so native builds behave exactly
