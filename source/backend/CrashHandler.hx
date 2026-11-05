@@ -195,27 +195,44 @@ class CrashHandler
 			catch (e)
 				systemInfo = 'System information unavailable.';
 
+			var crashText:String = '$errorMessage\n\nCrash Happened on Phoenix Engine v${MainMenuState.phoenixEngineVersion} (JSE v${MainMenuState.psychEngineJSVersion})!\n\n$systemInfo';
+			final safeCrashText:String = LogUtils.limitText(LogUtils.redact(crashText), CrashBundle.MAX_TEXT_BYTES);
 			try
 			{
-				if (!FileSystem.exists("crash/"))
-					FileSystem.createDirectory("crash/");
-				File.saveContent(path, '$errorMessage\n\nCrash Happened on Phoenix Engine v${MainMenuState.phoenixEngineVersion} (JSE v${MainMenuState.psychEngineJSVersion})!\n\n$systemInfo');
+				if (!LogUtils.saveLog(path, safeCrashText))
+					trace('Couldn\'t save error message.');
 			}
-			catch (e)
-				trace('Couldn\'t save error message. (${e.message})');
+			catch (_:Dynamic)
+				trace('Couldn\'t save error message.');
+
+			// Crash bundle (.zip): crash text + modsList.txt + each mod's
+			// pack.json + prefs + screenshot, written next to the log. On
+			// Android the crash/ folder is the SAF "Crash Logs" root, and the
+			// crash screen can also save the bundle anywhere through the SAF
+			// picker. Must never interfere with the log or the crash screen.
+			try
+			{
+				CrashBundle.onCrash(safeCrashText, path);
+			}
+			catch (e:Dynamic) {}
 
 			#if android
 			// Opt-in event notification (Options -> Mobile Options -> "Event
 			// Notifications"). Must never interfere with crash handling.
 			try
 			{
-				AndroidNotification.notifyEvent(AndroidNotification.ID_CRASH_LOG, 'Crash log saved', 'Saved to $path - attach it when reporting this bug.');
+				var notice:String = 'Saved to $path';
+				if (CrashBundle.lastBundleName.length > 0)
+					notice += ' (bundle: ${CrashBundle.lastBundleName})';
+				AndroidNotification.notifyEvent(AndroidNotification.ID_CRASH_LOG, 'Crash log saved', notice + ' - attach it when reporting this bug.');
 			}
 			catch (e:Dynamic) {}
 			#end
 
 			Sys.println(errorMessage);
 			Sys.println("Crash dump saved in " + Path.normalize(path));
+			if (CrashBundle.lastBundlePath.length > 0)
+				Sys.println("Crash bundle saved in " + Path.normalize(CrashBundle.lastBundlePath));
 			#end
 		}
 		catch (e:Dynamic)
@@ -228,6 +245,8 @@ class CrashHandler
 		{
 			errorMessage += "\n\nPlease report this error to the GitHub page: https://github.com/havaianasdestruido/FNF-Phoenix-Engine"
 				+ "\nThe engine has saved a crash log inside the crash folder, If you're making a GitHub issue you might want to send that!";
+			if (CrashBundle.lastBundleName.length > 0)
+				errorMessage += "\nA crash bundle (" + CrashBundle.lastBundleName + ") with your settings, mod list and a screenshot was saved next to it - even better for a report!";
 
 			#if !flash
 			CoolUtil.showPopUp(errorMessage,
@@ -283,12 +302,35 @@ class Crash extends MusicBeatState
 		add(ohNo3);
 
 		var ohNo4:FlxText = new FlxText(0, 0, 1280,
-			"If you are reporting this bug, Press [F2] to screenshot that error or\nGo to crash/ folder and copy the contents from the recent file.");
+			#if mobile
+			"Tap EXPORT CRASH BUNDLE to save the .zip somewhere you can reach (e.g. Downloads),\nthen attach it to your bug report. Tap RESTART to go back to the menu."
+			#else
+			"A crash bundle (.zip) with the log, your settings, mod list and a screenshot was\nsaved in the crash/ folder. Press [E] to save it elsewhere, or [F2] to screenshot this error."
+			#end);
 		ohNo4.setFormat(Paths.font('vcr.ttf'), 22, FlxColor.WHITE, FlxTextAlign.CENTER);
 		ohNo4.alpha = 0;
 		ohNo4.screenCenter();
 		ohNo4.y = 620;
 		add(ohNo4);
+
+		// Status line for the bundle export (path, cancel, errors).
+		bundleStatus = new FlxText(0, 0, 1280, '');
+		bundleStatus.setFormat(Paths.font('vcr.ttf'), 18, FlxColor.WHITE, FlxTextAlign.CENTER);
+		bundleStatus.alpha = 0;
+		bundleStatus.screenCenter();
+		bundleStatus.y = 486;
+		add(bundleStatus);
+
+		// The export button works with mouse/touch on every file target; on
+		// mobile there is no keyboard, so a restart button is added too.
+		#if sys
+		#if mobile
+		exportButton = makeButton(70, 520, 560, 56, 'EXPORT CRASH BUNDLE (.ZIP)');
+		restartButton = makeButton(650, 520, 560, 56, 'RESTART');
+		#else
+		exportButton = makeButton(360, 520, 560, 56, 'EXPORT CRASH BUNDLE (.ZIP)  [E]');
+		#end
+		#end
 
 		var stripClub:Array<String> = CrashHandler.errorMessage.split("\n");
 		var i:Int = -1;
@@ -334,7 +376,22 @@ class Crash extends MusicBeatState
 	var countDown:Int = 10;
 	var clicked:Bool = false;
 
+	var bundleStatus:FlxText = null;
+	var exportButton:FlxSprite = null;
+	var restartButton:FlxSprite = null;
+
 	override public function update(elapsed:Float)
+	{
+		// Mouse/touch buttons. On mobile these are the only way forward (there
+		// is no keyboard); on desktop the export button mirrors the [E] key.
+		if (FlxG.mouse.justPressed && !clicked)
+		{
+			if (exportButton != null && FlxG.mouse.overlaps(exportButton))
+				exportBundle();
+			else if (restartButton != null && FlxG.mouse.overlaps(restartButton))
+				restartToMenu();
+		}
+
 		if (FlxG.keys.justPressed.ANY && !clicked)
 		{
 			FlxTransitionableState.skipNextTransIn = false;
@@ -374,9 +431,46 @@ class Crash extends MusicBeatState
 					}
 				}, 10);
 			}
-			else if (!FlxG.keys.justPressed.F2) {
-				Paths.playMenuMusic(true, 0);
-				FlxG.switchState(MainMenuState.new);
-			}
+			else if (FlxG.keys.justPressed.E)
+				exportBundle();
+			else if (!FlxG.keys.justPressed.F2)
+				restartToMenu();
 		}
+	}
+
+	function restartToMenu():Void
+	{
+		FlxTransitionableState.skipNextTransIn = false;
+		Paths.playMenuMusic(true, 0);
+		FlxG.switchState(MainMenuState.new);
+	}
+
+	function exportBundle():Void
+	{
+		if (CrashBundle.busy)
+			return;
+		setBundleStatus('Saving crash bundle...');
+		CrashBundle.exportLastBundle(function(message:String):Void
+		{
+			setBundleStatus(message == null ? 'Export canceled.' : message);
+		});
+	}
+
+	function setBundleStatus(message:String):Void
+	{
+		if (bundleStatus == null)
+			return;
+		bundleStatus.text = message;
+		bundleStatus.alpha = 1;
+	}
+
+	function makeButton(x:Float, y:Float, width:Int, height:Int, label:String):FlxSprite
+	{
+		var button:FlxSprite = new FlxSprite(x, y).makeGraphic(width, height, 0xFF404040);
+		add(button);
+		var text:FlxText = new FlxText(x, y + (height - 22) / 2, width, label);
+		text.setFormat(Paths.font('vcr.ttf'), 22, FlxColor.WHITE, FlxTextAlign.CENTER);
+		add(text);
+		return button;
+	}
 }

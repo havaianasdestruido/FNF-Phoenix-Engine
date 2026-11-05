@@ -87,6 +87,29 @@ class Assets
 		#end
 	}
 
+	private static var hasCompressedTextures:Null<Bool> = null;
+
+	private static function checkCompressedTexturesAvailable():Bool
+	{
+		if (hasCompressedTextures != null) return hasCompressedTextures;
+		#if (lime && !flash && !air)
+		var found:Bool = false;
+		for (entry in LimeAssets.list())
+		{
+			if (entry != null && (StringTools.endsWith(entry, '.astc') || StringTools.endsWith(entry, '.ktx') || StringTools.endsWith(entry, '.dds')))
+			{
+				found = true;
+				break;
+			}
+		}
+		hasCompressedTextures = found;
+		return found;
+		#else
+		hasCompressedTextures = false;
+		return false;
+		#end
+	}
+
 	/**
 		Gets an instance of an embedded bitmap
 		@usage		var bitmap = new Bitmap (Assets.getBitmapData ("image.png"));
@@ -97,7 +120,7 @@ class Assets
 	public static function getBitmapData(id:String, useCache:Bool = true):BitmapData
 	{
 		#if (lime && tools && !display)
-		if (useCache && cache.enabled && cache.hasBitmapData(id))
+		if (useCache && cache.enabled)
 		{
 			var bitmapData = cache.getBitmapData(id);
 
@@ -108,28 +131,32 @@ class Assets
 		}
 
 		#if (!flash && !air)
-		for (ext in ['astc', 'ktx', 'dds'])
+		if (checkCompressedTexturesAvailable() && openfl.Lib.current != null && openfl.Lib.current.stage != null && openfl.Lib.current.stage.context3D != null)
 		{
-			final textureName:String = haxe.io.Path.withoutExtension(id) + '.$ext';
-
-			if (Assets.exists('$textureName'))
+			final baseName:String = haxe.io.Path.withoutExtension(id);
+			for (ext in ['astc', 'ktx', 'dds'])
 			{
-				final texture = switch (ext)
+				final textureName:String = '$baseName.$ext';
+
+				if (Assets.exists(textureName))
 				{
-					case 'astc': openfl.Lib.current.stage.context3D.createASTCTexture(Assets.getBytes(textureName));
-					case 'ktx': openfl.Lib.current.stage.context3D.createETC2Texture(Assets.getBytes(textureName));
-					case 'dds': openfl.Lib.current.stage.context3D.createS3TCTexture(Assets.getBytes(textureName));
-					default: null;
+					final texture = switch (ext)
+					{
+						case 'astc': openfl.Lib.current.stage.context3D.createASTCTexture(Assets.getBytes(textureName));
+						case 'ktx': openfl.Lib.current.stage.context3D.createETC2Texture(Assets.getBytes(textureName));
+						case 'dds': openfl.Lib.current.stage.context3D.createS3TCTexture(Assets.getBytes(textureName));
+						default: null;
+					}
+
+					final bitmapData:BitmapData = BitmapData.fromTexture(texture, false);
+
+					if (useCache && cache.enabled)
+					{
+						cache.setBitmapData(id, bitmapData);
+					}
+
+					return bitmapData;
 				}
-
-				final bitmapData:BitmapData = BitmapData.fromTexture(texture, false);
-
-				if (useCache && cache.enabled)
-				{
-					cache.setBitmapData(id, bitmapData);
-				}
-
-				return bitmapData;
 			}
 		}
 		#end
@@ -459,7 +486,8 @@ class Assets
 			return false;
 		}
 		#else
-		return (bitmapData != null && #if !lime_hybrid bitmapData.image != null #else bitmapData.__handle != null #end);
+		return (bitmapData != null
+			&& (#if !lime_hybrid bitmapData.image != null || @:privateAccess bitmapData.__texture != null #else bitmapData.__handle != null #end));
 		#end
 		#else
 		return true;
@@ -469,10 +497,9 @@ class Assets
 	@:noCompletion private static function isValidSound(sound:Sound):Bool
 	{
 		#if ((tools && !display) && (cpp || neko || nodejs))
-		return true;
-		// return (sound.__handle != null && sound.__handle != 0);
+		return (sound != null && @:privateAccess sound.__buffer != null);
 		#else
-		return true;
+		return sound != null;
 		#end
 	}
 
@@ -621,6 +648,7 @@ class Assets
 	**/
 	public static function loadLibrary(name:String):#if java Future<LimeAssetLibrary> #else Future<AssetLibrary> #end
 	{
+		hasCompressedTextures = null;
 		#if lime
 		return LimeAssets.loadLibrary(name).then(function(library)
 		{

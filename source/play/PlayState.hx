@@ -1699,7 +1699,10 @@ class PlayState extends MusicBeatState
 		hitsound.volume = ClientPrefs.hitsoundVolume;
 		hitsound.pitch = playbackRate;
 		for (i in 1...4) Paths.sound('missnote$i');
-		Paths.image('alphabet');
+		//The alphabet is either a spritesheet or glyphs rasterized from a font; cache the one
+		//the player actually uses (see objects.AlphabetFont).
+		if (AlphabetFont.currentUsesImages()) Paths.image('alphabet');
+		else AlphabetFontRenderer.warmUp();
 
 		if (PauseSubState.songName != null)
 			Paths.music(PauseSubState.songName);
