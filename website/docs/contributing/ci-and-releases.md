@@ -60,6 +60,11 @@ them. This workflow therefore uses **one rolling entry per target**:
 - The haxelib key is content-derived too, so it hits exactly on a warm run instead of
   re-uploading the haxelib tree on every commit. Dependencies are only installed when
   that exact key misses.
+- **Gradle is cached manually, not with `actions/setup-java`'s `cache: gradle`.** That
+  action hashes a Gradle project that Lime only generates *during* the build, so the
+  lookup missed on every run and each PR scope saved its own 512 MB copy (~3 GB of the
+  quota). `~/.gradle/caches` is restored/saved on the same rolling per-target key
+  instead, so all PRs share the main branch's entry.
 - Bump `CACHE_SCHEMA` in `main.yml` to invalidate every existing entry at once (e.g.
   after changing what is cached). Evicted payloads are rebuilt on the next run.
 
