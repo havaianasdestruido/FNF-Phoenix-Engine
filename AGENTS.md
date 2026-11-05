@@ -101,6 +101,23 @@ FNF-JS-Engine-Light/
   hosts for `data/states/<Name>.hx` (see `psychlua.StateScripts`).
 - **`objects/`**: `Note.hx`, `NoteSplash.hx`, `StrumNote.hx`, `HealthIcon.hx`, `Alphabet.hx`,
   `Character.hx`, `Boyfriend.hx`, `FlxText`, `BG`, `BGSprite`...
+- **Alphabet (texto de menus)**: `objects/Alphabet.hx` monta cada letra como um
+  `AlphaCharacter` e tem **dois renderizadores**, escolhidos pelo jogador em
+  Options -> Visuals and UI (`ClientPrefs.alphabetStyle`, padrão `Font`):
+  - `Font` rasteriza glifos de uma fonte real (`ClientPrefs.alphabetFont`):
+    `assets/fonts/vcr.ttf` (**VCR OSD Mono**, já embutida) e `assets/fonts/inconsolata.ttf` +
+    `inconsolata-bold.ttf` (**Inconsolata**, adicionada, SIL OFL 1.1 em
+    `assets/fonts/LICENSE-inconsolata.txt`). Dividido em `objects/AlphabetFont.hx`
+    (modelo **puro**, sem Flixel/OpenFL: estilos, fontes, tamanhos, chaves de cache) e
+    `objects/AlphabetFontRenderer.hx` (rasterização via `openfl.text.TextField` + cache de
+    `FlxGraphic`). Qualquer caractere imprimível é desenhado, e o espaçamento vem das
+    métricas da fonte — sem tabela de offsets por letra.
+  - `Image` mantém o spritesheet clássico `images/alphabet` (caminho antigo intacto, e
+    fallback automático se a fonte não carregar).
+  `Alphabet.reloadAll()` redesenha os alphabets vivos ao trocar a opção; `AlphabetFont`
+  também é exposto ao HScript. Testes: `tests/haxe/run-alphabet-font.sh` (interpretador,
+    entra no CI) e `tests/haxe/run-alphabet-typecheck.sh` (typecheck html5+native contra
+    flixel/openfl/lime; pula se as haxelibs não estiverem instaladas).
 - **`stages/`**: `StageData.hx` + implementações de stage por semana (`StageWeek1` etc.).
 - **`options/`**: menu de opções + toggles (via `options/helpers`).
 - **`editors/`**: ChartEditor, WeekEditor, CharacterEditor, StageEditor, DialogueEditor.
