@@ -23,12 +23,10 @@ import openfl.events.Event;
 import openfl.events.IOErrorEvent;
 import openfl.net.FileReference;
 
-// REFACTOR: imports for relocated root classes
 import backend.Controls;
 import data.Song;
 import objects.BGSprite;
 
-// REFACTOR: helper delegation
 import headers.Editors;
 
 class WeekEditorState extends MusicBeatState

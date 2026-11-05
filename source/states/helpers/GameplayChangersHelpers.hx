@@ -1,6 +1,5 @@
 package states.helpers;
 
-// REFACTOR: gameplay option plumbing extracted from states.substates.GameplayChangersSubstate (behavior-preserving)
 import backend.Paths;
 import objects.Alphabet;
 import objects.AttachedText;

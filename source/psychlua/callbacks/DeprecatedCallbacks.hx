@@ -7,7 +7,6 @@ import psychlua.ModchartSprite;
 
 import objects.Character;
 
-// REFACTOR: extracted from psychlua.FunkinLua (deprecated backward-compat functions)
 class DeprecatedCallbacks
 {
 	public static function register(funk:FunkinLua):Void {

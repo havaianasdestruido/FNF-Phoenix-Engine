@@ -12,10 +12,8 @@ import play.helpers.PlayStateCountdown;
 import play.helpers.PlayStatePlayback;
 import play.helpers.PlayStateScripts;
 
-// REFACTOR: imports for relocated root classes
 import data.Song;
 
-// REFACTOR: video / dialogue cutscene logic extracted from play.PlayState
 @:access(play.PlayState)
 @:access(backend.MusicBeatState)
 class PlayStateCutscenes

@@ -6,7 +6,6 @@ import headers.PsychLua;
 
 import objects.Character;
 
-// REFACTOR: extracted from psychlua.PythonScript (character API)
 class PyCharacterLib
 {
 	public static function register(py:PythonScript):Void {

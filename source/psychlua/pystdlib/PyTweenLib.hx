@@ -7,7 +7,6 @@ import play.PlayState;
 import objects.StrumNote;
 import headers.PsychLua;
 
-// REFACTOR: extracted from psychlua.PythonScript (tween API)
 class PyTweenLib
 {
 	public static function register(py:PythonScript):Void {

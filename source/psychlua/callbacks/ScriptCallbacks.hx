@@ -6,7 +6,6 @@ import play.PlayState;
 import psychlua.FunkinLua;
 import headers.PsychLua;
 
-// REFACTOR: extracted from psychlua.FunkinLua (script loading / inter-script calls)
 class ScriptCallbacks
 {
 	public static function register(funk:FunkinLua):Void {

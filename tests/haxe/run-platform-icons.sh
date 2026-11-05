@@ -27,7 +27,7 @@ spec --swf "$test_source/spec.swf" --no-output
 
 # A real AIR build is the Flash target plus `air`, which is exactly the case
 # where two of the ladder's branches match at once; `detect()` must still pick
-# AIR. The returned value is asserted on the interpreter above (`-D air`) and
-# the ordering is pinned in tests/test_platform_icons.py, because a SWF cannot
-# be executed on CI.
+# AIR. That ordering is asserted on the interpreter above (`-D air --interp`,
+# where the spec's `air` branch requires detect() == AIR); this SWF pass only
+# type-checks the combined build, since a SWF cannot be executed on CI.
 spec -D air --swf "$test_source/spec.swf" --no-output

@@ -55,12 +55,25 @@ class FlxFixedShader extends OriginalFlxShader
 		var gl = __context.gl;
 
 		#if lime_opengles
-		var prefix = "#version 300 es\n";
+		var defaultVersion:String = "300 es";
 		#elseif mac
-		var prefix = "#version 120\n";
+		var defaultVersion:String = "120";
 		#else
-		var prefix = "#version 330\n";
+		var defaultVersion:String = "330";
 		#end
+		var configuredVersion:String = RuntimeFlags.getString("graphics.glslVersion", "auto").toLowerCase();
+		var version:String = switch (configuredVersion)
+		{
+			case "120": "120";
+			case "330": "330";
+			case "300 es": "300 es";
+			default: defaultVersion;
+		};
+		#if lime_opengles
+		// The GLES source rewrite below requires GLSL ES 3.00 semantics.
+		if (version != "300 es") version = defaultVersion;
+		#end
+		var prefix:String = '#version $version\n';
 
 		#if (js && html5)
 		prefix += (precisionHint == FULL ? "precision mediump float;\n" : "precision lowp float;\n");

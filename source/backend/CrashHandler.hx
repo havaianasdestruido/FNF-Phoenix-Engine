@@ -424,7 +424,9 @@ class Crash extends MusicBeatState
 					countText.text = countDown + "";
 					if (countDown == 0)
 					{
-						CoolUtil.browserLoad("https://github.com/havaianasdestruido/FNF-Phoenix-Engine/issues/new?template=bugs.yml");
+						var issuesUrl:String = RuntimeFlags.url("urls.issues", "https://github.com/havaianasdestruido/FNF-Phoenix-Engine/issues/new?template=bugs.yml");
+						if (StringTools.endsWith(issuesUrl, "/issues")) issuesUrl += "/new?template=bugs.yml";
+						CoolUtil.browserLoad(issuesUrl);
 						FlxG.switchState(MainMenuState.new);
 					}
 				}, 10);

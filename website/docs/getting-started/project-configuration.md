@@ -140,6 +140,46 @@ Ogg too (see [`Paths.SOUND_EXTENSIONS`](../architecture/assets-and-paths.md#exte
 With `-DNO_BUILTIN_CONTENT`, the content libraries are stripped; see
 [Building](./building.md#content-stripped-builds).
 
+## Runtime flags (`flags.ini`)
+
+`flags.ini` is a loose, optional INI file read from the game working directory; when absent,
+Phoenix falls back to the copy packaged with the app and then to code defaults. It is loaded
+at startup, so changes take effect after restarting. Sections are case-insensitive, as are
+keys; `;` and `#` start comments, and booleans accept `true`/`false`, `yes`/`no`, `on`/`off`,
+or `1`/`0`.
+
+```ini
+[editors]
+enabled = true
+[transitions]
+enabled = true
+[warnings]
+beta = true
+[scripts]
+defaultState =
+[graphics]
+glslVersion = auto
+[urls]
+repository = https://github.com/havaianasdestruido/FNF-Phoenix-Engine
+releasesApi = https://api.github.com/repos/havaianasdestruido/FNF-Phoenix-Engine/releases?per_page=100
+[window]
+title =
+icon =
+```
+
+`editors.enabled` blocks entry into editor states (it does not remove their code); `transitions.enabled`
+turns off the engine's state fades; `warnings.beta` controls the prerelease marker in the window
+title. `scripts.defaultState` names an extra global script under `data/states/` (without an
+extension). `graphics.glslVersion` accepts `auto`, `120`, `330`, or `300 es` (GLES stays on
+`300 es`). Window title/icon overrides are optional; icon paths are relative to the working
+directory. `urls.repository`, `urls.releases`, `urls.releasesApi`, and `urls.issues` are HTTP(S)
+links. Unknown values safely fall back to defaults. Runtime settings cannot turn on code excluded
+by build-time feature defines such as `LUA_ALLOWED` or `SHADERS_ALLOWED`.
+
+The build copies this file as a non-embedded asset so it can be edited next to the install.
+Additional runtime-only toggles may be queried from Haxe with `RuntimeFlags.getBool()`,
+`getString()`, or `getInt()`.
+
 ## Class paths
 
 ```haxe

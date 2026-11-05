@@ -3,7 +3,6 @@ package psychlua.pystdlib;
 import backend.Native;
 import psychlua.PythonScript;
 
-// REFACTOR: extracted from psychlua.PythonScript (hardware detection API)
 class PyHardwareLib
 {
   public static function register(py:PythonScript):Void {

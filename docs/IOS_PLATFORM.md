@@ -187,5 +187,6 @@ when the ObjC bridge is available; until then `MobileFilePicker`'s
 * Test flight: fresh install, upgrade preserving `documents/`, background/
   resume during asset copy, notch vs non-notch devices.
 
-Regression checks:
-`python3 -m unittest discover -s tests -p 'test_ios_platform.py' -v`
+Regression checks: iOS behavior is validated on device / TestFlight (fresh
+install, upgrade preserving `documents/`, background/resume during asset copy,
+notch vs non-notch devices); there is no host-side iOS test harness.

@@ -10,7 +10,7 @@ files are important.
 With no arguments both tools scan the **repository root** (the folder
 containing `tools/`), so they can be run from any directory.
 
-## Audio (`compress-audio.sh` / `compress-audio.ps1`)
+## Audio (`compress-audio.sh` / `compress-audio.ps1` / `compress-audio.bat`)
 
 Re-encodes project audio at conservative, game-friendly bitrates and replaces a
 source file **only when the encoded file is smaller**. They preserve the
@@ -26,8 +26,8 @@ of committing it, and never commit the same track as both `.ogg` and `.mp3`:
 ffmpeg -i song.mp3 -vn -map_metadata 0 -c:a libvorbis -q:a 2 song.ogg
 ```
 
-`tests/test_audio_format_policy.py` fails the suite if a duplicate pair or a
-stray MP3 ever lands in `assets/`, `mods/` or `example_mods/`.
+Never commit a duplicate `.ogg`/`.mp3` pair or a stray MP3 into `assets/`,
+`mods/` or `example_mods/`; enforce this in code review.
 
 ```sh
 # All MP3/OGG files in the repository
@@ -46,6 +46,15 @@ On Windows PowerShell:
 .\tools\compress-audio.ps1 -Root assets
 .\tools\compress-audio.ps1 -Root assets -Mp3Bitrate 160 -OggBitrate 112
 .\tools\compress-audio.ps1 -Root assets -DryRun
+```
+
+On Windows cmd.exe (same options as the `.sh` version):
+
+```bat
+tools\compress-audio.bat
+tools\compress-audio.bat --root assets
+tools\compress-audio.bat --root assets --mp3-bitrate 160 --ogg-bitrate 112
+tools\compress-audio.bat --root assets --dry-run
 ```
 
 Re-encoding is destructive: commit or back up your audio first, then listen to a
@@ -109,6 +118,17 @@ On Windows PowerShell:
 .\tools\compress-images.ps1 -Root assets -Colors 128
 ```
 
+On Windows cmd.exe (same options as the `.sh` version; note it classifies
+files by extension rather than by content):
+
+```bat
+tools\compress-images.bat
+tools\compress-images.bat --root assets
+tools\compress-images.bat --root assets --dry-run
+tools\compress-images.bat --root assets --lossless
+tools\compress-images.bat --root assets --colors 128
+```
+
 At least one PNG tool and one JPEG tool must be installed; the more of them are
 present, the smaller the result. `pngquant` plus `oxipng` is the recommended
 pair. Without `pngquant` the scripts still run, but only apply the lossless
@@ -155,6 +175,5 @@ python3 tools/platform_icon_preview.py --out /tmp/badges.png --background 1a1a1a
 ```
 
 Rendering needs [Pillow](https://pypi.org/project/Pillow/) (`pip install Pillow`);
-the parser underneath is plain stdlib and is reused by
-`tests/test_platform_icons.py`. The generated sheet is scratch output - don't
-commit it. See `docs/PLATFORM_ICONS.md` for the feature itself.
+the parser underneath is plain stdlib. The generated sheet is scratch output -
+don't commit it. See `docs/PLATFORM_ICONS.md` for the feature itself.

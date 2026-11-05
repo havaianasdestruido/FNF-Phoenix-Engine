@@ -5,7 +5,6 @@ import play.PlayState;
 import backend.Highscore;
 import headers.PsychLua;
 
-// REFACTOR: extracted from psychlua.PythonScript (score/health API)
 class PyScoreLib
 {
 	public static function register(py:PythonScript):Void {

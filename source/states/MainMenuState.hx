@@ -383,7 +383,7 @@ class MainMenuState extends MusicBeatState
       {
         if (menuOptions[curSelected] == 'donate')
         {
-          CoolUtil.browserLoad(backend.PhoenixVersion.REPOSITORY_URL);
+          CoolUtil.browserLoad(backend.RuntimeFlags.url("urls.repository", backend.PhoenixVersion.REPOSITORY_URL));
         } 
 		else
         {

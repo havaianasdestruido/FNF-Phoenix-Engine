@@ -38,24 +38,22 @@ world area, or use a solid/tiling background behind it.
 ## Regression checks
 
 ```sh
-python3 -m unittest discover -s tests -p 'test_*.py' -v
 bash tests/haxe/run-layout.sh
 ```
 
-The Python tests guard rendering/resize and mobile-input integration paths;
-the Haxe interpreter test executes the production viewport, touch-lane and
+The Haxe interpreter test executes the production viewport, touch-lane and
 same-lane multitouch transition math for 16:9, 21:9, 32:9, narrow, invalid,
 odd-width and toggle/resize-rollback cases.
-Both run in the Checks workflow (which installs Haxe 4.3.7 for the latter).
+It runs in the Checks workflow (which installs Haxe 4.3.7).
 The interpreter runner copies the production math/input modules to an isolated
 classpath, since the application's global `source/import.hx` needs the full
 Flixel/OpenFL dependency graph. Windows and Android builds are selected in
 the normal `main`-targeted PR workflow; extra targets can be requested
 separately from the Build/Mobile workflows.
 
-The pure geometry tests and integration guards **cannot prove pixel-perfect
-rendering**. For release validation, compare screenshots at 1280×720,
-2560×1080 and 3840×1080 while switching Widescreen on/off and dragging the
+The pure geometry tests **cannot prove pixel-perfect rendering**. For release
+validation, compare screenshots at 1280×720, 2560×1080 and 3840×1080 while
+switching Widescreen on/off and dragging the
 window during gameplay, menus, dialogue, a pause/options substate and a
 full-screen flash. On a mobile build, repeat with the four-lane hitbox (including
 the last pixel at an odd-width surface), two fingers holding the same lane while

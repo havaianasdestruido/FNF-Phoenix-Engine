@@ -19,7 +19,6 @@ import play.PlayState;
 
 import shaders.CrossFade;
 
-// REFACTOR: note group/splash helpers extracted from play.PlayState
 @:access(play.PlayState)
 @:access(backend.MusicBeatState)
 class PlayStateNoteHelpers

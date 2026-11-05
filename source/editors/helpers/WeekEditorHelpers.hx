@@ -1,6 +1,5 @@
 package editors.helpers;
 
-// REFACTOR: explicit imports for relocated root classes
 import backend.Paths;
 
 import backend.DiscordClient;
@@ -22,7 +21,6 @@ import openfl.net.FileReference;
 import sys.io.File;
 #end
 
-// REFACTOR: extracted from editors.WeekEditorState (behavior-preserving)
 @:access(editors.WeekEditorState)
 class WeekEditorHelpers
 {

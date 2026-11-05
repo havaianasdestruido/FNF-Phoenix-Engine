@@ -1,5 +1,6 @@
 <xml>
   <files id="haxe">
     <compilervalue name="-I" value="${this_dir}/include/" />
+    <depend name="${this_dir}/include/phoenix_system.h" />
   </files>
 </xml>
