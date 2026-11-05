@@ -44,7 +44,6 @@ class CreditsState extends MusicBeatState
 	override function create()
 	{
 		Paths.clearStoredMemory();
-		Paths.clearUnusedMemory();
 
 		MusicBeatState.windowNameSuffix = " - Credits";
 
@@ -167,6 +166,7 @@ class CreditsState extends MusicBeatState
 
 		addVirtualPad(UP_DOWN, A_B);
 
+		Paths.clearUnusedMemory();
 		super.create();
 	}
 
@@ -174,7 +174,7 @@ class CreditsState extends MusicBeatState
 	var holdTime:Float = 0;
 	override function update(elapsed:Float)
 	{
-		if (FlxG.sound.music.volume < 0.7)
+		if (FlxG.sound.music != null && FlxG.sound.music.volume < 0.7)
 		{
 			FlxG.sound.music.volume += 0.5 * FlxG.elapsed;
 		}

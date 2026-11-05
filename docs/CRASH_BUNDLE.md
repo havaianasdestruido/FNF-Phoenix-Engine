@@ -80,8 +80,8 @@ path redaction is the separate §19 "Log rotation and redaction" task.
   interpreter: zip round-trip (text deflated, media stored), manifest, unsafe /
   duplicate / oversized entry skipping, the entry-count cap, atomic writes,
   name collisions, retention and failure reporting.
-`tests/test_crash_bundle.py` used to add source-text guards (handler order,
-collector side effects, Flixel-freedom of the writer, crash-screen actions);
-it went away with the rest of the Python suite (#185), so the behaviour those
-guards described is covered by the spec above and by hand when reviewing a
-change to `crash/`.
+- `tests/test_crash_bundle.py` — source guards: the handler builds the bundle
+  after the log under the `#if sys` guard and never throws, the collector reads
+  the mod list without side effects and reuses the settings-backup format, the
+  writer stays Flixel-free and reuses `ModPathPolicy`, and the crash screen
+  offers the export/restart actions.

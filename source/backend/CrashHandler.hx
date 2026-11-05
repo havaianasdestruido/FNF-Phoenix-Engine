@@ -196,14 +196,14 @@ class CrashHandler
 				systemInfo = 'System information unavailable.';
 
 			var crashText:String = '$errorMessage\n\nCrash Happened on Phoenix Engine v${MainMenuState.phoenixEngineVersion} (JSE v${MainMenuState.psychEngineJSVersion})!\n\n$systemInfo';
+			final safeCrashText:String = LogUtils.limitText(LogUtils.redact(crashText), CrashBundle.MAX_TEXT_BYTES);
 			try
 			{
-				if (!FileSystem.exists("crash/"))
-					FileSystem.createDirectory("crash/");
-				File.saveContent(path, crashText);
+				if (!LogUtils.saveLog(path, safeCrashText))
+					trace('Couldn\'t save error message.');
 			}
-			catch (e)
-				trace('Couldn\'t save error message. (${e.message})');
+			catch (_:Dynamic)
+				trace('Couldn\'t save error message.');
 
 			// Crash bundle (.zip): crash text + modsList.txt + each mod's
 			// pack.json + prefs + screenshot, written next to the log. On
@@ -212,7 +212,7 @@ class CrashHandler
 			// picker. Must never interfere with the log or the crash screen.
 			try
 			{
-				CrashBundle.onCrash(crashText, path);
+				CrashBundle.onCrash(safeCrashText, path);
 			}
 			catch (e:Dynamic) {}
 

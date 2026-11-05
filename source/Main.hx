@@ -126,6 +126,9 @@ class Main extends Sprite
       return;
     }
     #end
+    // Apply retention and privacy cleanup to any reports left by an older
+    // build before a log can be copied out through Android's document roots.
+    backend.LogUtils.cleanup();
     // Runtime settings are independent of compile-time feature defines and
     // must be available before the first state, shader, or window is created.
     backend.RuntimeFlags.load();

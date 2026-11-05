@@ -95,7 +95,6 @@ class ModsMenuState extends MusicBeatState
 	override function create()
 	{
 		Paths.clearStoredMemory();
-		Paths.clearUnusedMemory();
 		persistentUpdate = false;
 
 		modsList = Mods.parseList();
@@ -212,6 +211,7 @@ class ModsMenuState extends MusicBeatState
 
 			FlxG.autoPause = false;
 			changeSelectedMod();
+			Paths.clearUnusedMemory();
 			super.create();
 			onResize(FlxG.width, FlxG.height);
 			return;
@@ -338,6 +338,7 @@ class ModsMenuState extends MusicBeatState
 		add(modsGroup);
 
 		changeSelectedMod();
+		Paths.clearUnusedMemory();
 		super.create();
 		onResize(FlxG.width, FlxG.height);
 	}

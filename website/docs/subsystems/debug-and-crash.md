@@ -77,7 +77,22 @@ a copy under `crash/`. It works with the vlog off — a bounded in-memory sessio
 tail backs the log section — and it never uploads anything. Details and the
 redaction rules: [Copy diagnostics](diagnostics.md).
 
-## Crash bundle (`.zip`)
+### Log privacy and retention
+
+Crash reports (`crash/`), frame-profiler exports (`debug/log/`), and shader/copy
+failure reports (`logs/`) are sanitized before they are saved or returned for
+sharing. Local usernames and absolute POSIX, Windows, and network paths are
+replaced with `[username]`, `[home]`, or `[absolute path]`; relative source and
+asset paths remain useful for debugging. Crash text and the VLog tail included
+in crash bundles use the same redaction policy. Existing reports are cleaned at
+startup as well, before Android's read-only document roots can expose them.
+
+Each report is capped at 2 MiB. Each report directory keeps at most 10 files and
+16 MiB total, and reports older than 30 days are removed. When a cap is reached,
+the oldest reports are removed first; an overlong individual report is marked as
+truncated rather than allowed to grow without bound.
+
+### Crash bundle (`.zip`)
 
 Alongside the log, every crash also writes a **crash bundle** —
 `crash/FNF-Phoenix-Engine_crash-bundle_<date>.zip` — collecting everything a bug
@@ -150,12 +165,13 @@ the default `trace()` printer, so a disabled vlog behaves exactly like a build
 without it.
 
 The writer is fail-safe: lines are buffered and flushed at most every 250 ms,
-the live log rotates at 10 MiB (keeping `log.1.txt`/`log.2.txt`), and any
-filesystem problem disables vlog writes for the session with a console notice
-instead of affecting gameplay. Web and Flash builds have no writable
-filesystem, so the log accumulates in a capped in-memory buffer that
-`VLog.exportText()` returns; on HTML5, `VLog.download()` additionally saves
-it as `log.txt` through the browser.
+the live log rotates at 10 MiB or after 30 days (keeping `log.1.txt` and
+`log.2.txt`), and any filesystem problem disables vlog writes for the session
+with a console notice instead of affecting gameplay. Usernames and absolute
+paths are redacted before disk writes and by `VLog.exportText()` / browser
+download. Web and Flash builds have no writable filesystem, so the log
+accumulates in a capped in-memory buffer that `VLog.exportText()` returns; on
+HTML5, `VLog.download()` additionally saves it as `log.txt` through the browser.
 
 ### Per-area RAM attribution
 

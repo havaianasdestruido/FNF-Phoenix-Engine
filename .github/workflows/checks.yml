@@ -1,11 +1,11 @@
 name: Checks
 
 # Fast regression guards: dependency manifests, the JNI bridge contract, the
-# diagnostics preference-defaults table, host-JVM Android bridge/policy classes,
-# standalone native C/C++ smoke tests, and an hxcpp native-object-cache smoke
-# test. None of these need a full game build or the Android SDK. The isolated
-# Haxe interpreter specs in tests/haxe/ are not run here; run the matching
-# run-*.sh script locally (see docs/HAXE_LINUX.md).
+# diagnostics preference-defaults table, the build-cache keys, host-JVM Android
+# bridge/policy classes and standalone native C/C++ smoke tests. None of these
+# need a full game build or the Android SDK. Most isolated Haxe interpreter
+# specs in tests/haxe/ are not run here; the diagnostic-report ones have a
+# dedicated Haxe job below.
 
 on:
   push:
@@ -44,6 +44,24 @@ jobs:
 
       - name: Run native C/C++ smoke tests
         run: bash tests/native/run.sh
+
+      # Static guard for main.yml's cache keys: they must be reused, not
+      # re-created per commit, and every native header must stay a declared
+      # hxcpp dependency. No Haxe or C++ toolchain needed.
+      - name: Build cache keys roll over instead of piling up
+        run: bash tests/haxe/run-build-cache-policy.sh
+  diagnostic-report-specs:
+    name: Diagnostic log and crash bundle (Haxe)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: krdlab/setup-haxe@master
+        with:
+          haxe-version: "4.3.7"
+      - name: Test diagnostic log redaction and retention
+        run: bash tests/haxe/run-log-utils.sh
+      - name: Test crash bundle archive safety
+        run: bash tests/haxe/run-crash-bundle.sh
 
   native-object-cache:
     name: hxcpp cache smoke (${{ matrix.os }})

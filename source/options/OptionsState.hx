@@ -103,7 +103,6 @@ class OptionsState extends MusicBeatState
 
 	override function create() {
 		Paths.clearStoredMemory();
-		Paths.clearUnusedMemory();
 		mainCamera = initPsychCamera();
 		subCamera = new FlxCamera();
 		otherCamera = new FlxCamera();
@@ -163,6 +162,7 @@ class OptionsState extends MusicBeatState
 		addVirtualPad(LEFT_FULL, ClientPrefs.mobileCPlayStateVpad ? A_B_C : A_B);
 		virtualPad.camera = otherCamera;
 
+		Paths.clearUnusedMemory();
 		super.create();
     if (openMiscOnCreate)
     {

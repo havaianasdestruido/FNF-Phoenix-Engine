@@ -18,6 +18,7 @@ import backend.ScriptSecurityScanner.ScriptSecurityFinding;
 import backend.WeekData;
 import objects.Character;
 import objects.Alphabet;
+import objects.AlphabetFont;
 import objects.NoteHelpers;
 import objects.NoteSplash;
 import play.PlayState;
@@ -582,6 +583,7 @@ class HScript
 		interp.variables.set('ClientPrefs', ClientPrefs);
 		interp.variables.set('Character', Character);
 		interp.variables.set('Alphabet', Alphabet);
+		interp.variables.set('AlphabetFont', AlphabetFont);
 		interp.variables.set('CustomSubstate', psychlua.CustomSubstate);
 		#if ACHIEVEMENTS_ALLOWED
 		interp.variables.set('Achievements', Achievements);
