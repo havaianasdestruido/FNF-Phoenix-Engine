@@ -2257,8 +2257,12 @@ class PlayState extends MusicBeatState
 			if (!opponentChart) displayedHealth = ClientPrefs.smoothHealth ? FlxMath.lerp(displayedHealth, health, 0.1 / ((!ffmpegMode ? ClientPrefs.framerate : targetFPS) / 60)) : health;
 			else displayedHealth = ClientPrefs.smoothHealth ? FlxMath.lerp(displayedHealth, maxHealth - health, 0.1 / ((!ffmpegMode ? ClientPrefs.framerate : targetFPS) / 60)) : maxHealth - health;
 
-		setOnLuas('curDecStep', curDecStep);
-		setOnLuas('curDecBeat', curDecBeat);
+		// Skip setting per-frame decimal beat/step when no scripts are listening,
+		// avoiding boxing of Floats to Dynamic on every frame.
+		if (hasActiveScripts()) {
+			setOnLuas('curDecStep', curDecStep);
+			setOnLuas('curDecBeat', curDecBeat);
+		}
 
 		if(botplayTxt != null && botplayTxt.visible && ClientPrefs.botTxtFade) {
 			botplaySine += 180 * elapsed;
@@ -3394,6 +3398,10 @@ class PlayState extends MusicBeatState
 	}
 
 	public function setOnScripts(variable:String, arg:Dynamic) {
+		// Short-circuit variable publishing when no scripts (Lua/Python/HScript) are active,
+		// avoiding unnecessary loop overhead and method calls on high-frequency paths.
+		if (!hasActiveScripts()) return;
+
 		#if LUA_ALLOWED
 		for (i in 0...luaArray.length) {
 			luaArray[i].set(variable, arg);
