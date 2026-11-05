@@ -246,6 +246,15 @@ FNF-JS-Engine-Light/
 - `checks.yml` — regressões Java/nativas; `docs.yml` — build e deploy do site.
 - `sparse-submodule.yml` — valida o checkout sparse e o link do mod fnf_030_ui.
 - `nightly.yml`, `autotriage.yml`, `autolock.yml` — housekeeping.
+- **Caches (quota de 10 GB):** cada cache do Actions é um snapshot imutável do `path`. As
+  chaves em `main.yml` (`CACHE_SCHEMA` + target + OS/arch + Haxe + `hmm.json`/setup + flags)
+  **não** incluem `source/`, `project.hxp` nem o próprio workflow: se incluírem, cada commit
+  cria um snapshot novo de 140–370 MB e as entradas só se acumulam. O save usa a **mesma**
+  chave do restore (`cache-hit` só é true com match exato), então o cache é rolante. PRs só
+  leem; `push`/`workflow_dispatch`/`workflow_call` salvam. Quem mexe nisso roda
+  `bash tests/haxe/run-build-cache-policy.sh` (roda em `checks.yml`, sem toolchain). Cabeçalho
+  nativo novo precisa de `<depend>` no `build.xml` respectivo, senão o objeto cacheado fica
+  com o código antigo.
 - **Sem CodeQL:** não adicionar workflows `github/codeql-action` nem ativar o default setup
   de code scanning. O default setup é uma configuração do GitHub, separada dos arquivos de workflow.
 - Para rodar android localmente (Windows): configurar Android SDK/NDK via `haxelib run lime config`

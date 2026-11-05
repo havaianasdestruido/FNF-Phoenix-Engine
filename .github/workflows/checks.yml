@@ -42,6 +42,11 @@ jobs:
       - name: Run native C/C++ smoke tests
         run: bash tests/native/run.sh
 
+      # Static guard for main.yml's cache keys: they must be reused, not
+      # re-created per commit, and every native header must stay a declared
+      # hxcpp dependency. No Haxe or C++ toolchain needed.
+      - name: Build cache keys roll over instead of piling up
+        run: bash tests/haxe/run-build-cache-policy.sh
   diagnostic-report-specs:
     name: Diagnostic log and crash bundle (Haxe)
     runs-on: ubuntu-latest
