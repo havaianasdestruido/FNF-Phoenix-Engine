@@ -230,7 +230,7 @@ jobs:
       # rolling scheme as the native object cache below).
       - name: Restore haxelib and hxcpp tools
         id: haxelib-cache
-        if: steps.target-selection.outputs.enabled == 'true'
+        if: false  # TEMP EXPERIMENT: force a clean install to isolate the build failure
         uses: actions/cache/restore@v4
         with:
           path: ${{ env.HAXELIB_PATH }}
