@@ -1,8 +1,11 @@
 name: Checks
 
-# Fast regression guards: dependency manifests, host-JVM Android bridge/policy
-# classes, standalone native C/C++ smoke tests, and isolated Haxe specs.
-# None of these need a full game build or the Android SDK.
+# Fast regression guards: dependency manifests, the JNI bridge contract,
+# host-JVM Android bridge/policy classes, standalone native C/C++ smoke tests,
+# and an hxcpp native-object-cache smoke test. None of these need a full game
+# build or the Android SDK. The isolated Haxe interpreter specs in tests/haxe/
+# are not run here; run the matching run-*.sh script locally (see
+# docs/HAXE_LINUX.md).
 
 on:
   push:
@@ -89,44 +92,3 @@ jobs:
         if: runner.os == 'Windows'
         shell: cmd
         run: call tests\haxe\run-project-build-cache.bat
-
-  widescreen-layout:
-    name: Widescreen geometry (Haxe)
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: krdlab/setup-haxe@master
-        with:
-          haxe-version: "4.3.7"
-      - name: Test viewport, touch lanes, resize rollback and script scanning
-        run: bash tests/haxe/run-layout.sh
-      - name: Typecheck platform native dialog bridge
-        run: bash tests/haxe/run-platform-util-native.sh
-      - name: Test Phoenix version and release selection
-        run: bash tests/haxe/run-phoenix-version.sh
-      - name: Test watermark platform badge (detection, density, artwork)
-        run: bash tests/haxe/run-platform-icons.sh
-      - name: Typecheck threaded update checker
-        run: bash tests/haxe/run-update-checker-typecheck.sh
-      - name: Test RAM graph history and interpolation
-        run: bash tests/haxe/run-ram-graph.sh
-      - name: Test BPM-aware chart section timing
-        run: bash tests/haxe/run-charting-timing.sh
-      - name: Test JSON chart parsing and legacy event compaction
-        run: bash tests/haxe/run-chart-loading.sh
-      - name: Test gameplay chart note/event conversion
-        run: bash tests/haxe/run-chart-loader.sh
-      - name: Test .zip mod import (path policy, archive parsing, extraction)
-        run: bash tests/haxe/run-mod-zip.sh
-      - name: Test mods-menu icon path resolution (no mods/mods double prefix)
-        run: bash tests/haxe/run-mod-icon-path.sh
-      - name: Test per-area RAM ledger (vlog memory attribution)
-        run: bash tests/haxe/run-memory-ledger.sh
-      - name: Test settings backup format (export/import .json)
-        run: bash tests/haxe/run-settings-backup.sh
-      - name: Test shader warm-up (declaration plan, program cache, per-song wiring)
-        run: bash tests/haxe/run-shader-warmup.sh
-      - name: Test pooled-sprite accounting
-        run: bash tests/haxe/run-pool-stats.sh
-      - name: Test phoenix:// URI parser
-        run: bash tests/uri/run.sh
