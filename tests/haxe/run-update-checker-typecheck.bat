@@ -13,6 +13,13 @@ copy /y "source\backend\UpdateChecker.hx" "%TEST_SOURCE%\backend\" >nul || goto 
 > "%TEST_SOURCE%\backend\ClientPrefs.hx" echo package backend;
 >> "%TEST_SOURCE%\backend\ClientPrefs.hx" echo class ClientPrefs { public static var enablePreReleaseUpdates:Bool = false; }
 
+rem UpdateChecker resolves the releases endpoint through RuntimeFlags; stub the
+rem accessor it uses so the typecheck stays hermetic.
+> "%TEST_SOURCE%\backend\RuntimeFlags.hx" echo package backend;
+>> "%TEST_SOURCE%\backend\RuntimeFlags.hx" echo class RuntimeFlags {
+>> "%TEST_SOURCE%\backend\RuntimeFlags.hx" echo   public static function url(key:String, fallback:String):String { return fallback; }
+>> "%TEST_SOURCE%\backend\RuntimeFlags.hx" echo }
+
 > "%TEST_SOURCE%\lime\app\Application.hx" echo package lime.app;
 >> "%TEST_SOURCE%\lime\app\Application.hx" echo // Lime Application.onUpdate is Event^<Float-^>Void^>.
 >> "%TEST_SOURCE%\lime\app\Application.hx" echo class UpdateEvent {

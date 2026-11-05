@@ -14,6 +14,14 @@ try {
 package backend;
 class ClientPrefs { public static var enablePreReleaseUpdates:Bool = false; }
 '@
+    # UpdateChecker resolves the releases endpoint through RuntimeFlags; stub
+    # the accessor it uses so the typecheck stays hermetic.
+    Set-Content -LiteralPath "$testSource/backend/RuntimeFlags.hx" -Value @'
+package backend;
+class RuntimeFlags {
+  public static function url(key:String, fallback:String):String { return fallback; }
+}
+'@
     Set-Content -LiteralPath "$testSource/lime/app/Application.hx" -Value @'
 package lime.app;
 // Lime Application.onUpdate is Event<Float->Void>.
