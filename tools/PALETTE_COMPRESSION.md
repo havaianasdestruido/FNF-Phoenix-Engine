@@ -2,7 +2,6 @@
 
 Tool: `tools/reduce_image_palettes.py` (maintenance only — **not** needed to
 build or play the game). Report: `tools/reports/palette-reduction-report.json`.
-Tests: `tests/test_reduce_image_palettes.py`.
 
 ## What it does
 
@@ -124,7 +123,6 @@ pip install -r tools/requirements-image-palette.txt
 python3 tools/reduce_image_palettes.py --dry-run          # measure, change nothing
 python3 tools/reduce_image_palettes.py --profile aggressive
 python3 tools/reduce_image_palettes.py --check            # validate report vs files
-python3 -m unittest tests/test_reduce_image_palettes.py -v
 ```
 
 `--dry-run` reports the projected saving without touching files or the report.

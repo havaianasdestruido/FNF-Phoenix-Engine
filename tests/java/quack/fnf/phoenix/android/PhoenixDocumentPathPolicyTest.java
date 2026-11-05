@@ -9,7 +9,7 @@ import java.util.Base64;
 
 /**
  * Host-JVM tests for the exact filesystem policy called by
- * PhoenixDocumentsProvider. Run through test_android_documents_provider.py.
+ * PhoenixDocumentsProvider. Run through tests/java/run.sh.
  */
 public final class PhoenixDocumentPathPolicyTest
 {

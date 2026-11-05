@@ -71,9 +71,10 @@ in the commit a release points at, so release from up-to-date `main`.
 
 ## `checks.yml` — Checks
 
-Runs the dependency-manifest check, Python regression tests, host-JVM Android tests,
-and an hxcpp native-object-cache smoke test on Linux and Windows. These checks do not
-require a full game build or the Android SDK. The isolated Haxe interpreter specs in
+Runs the dependency-manifest check, the JNI bridge contract check, host-JVM
+Android tests, standalone native C/C++ smoke tests, and an hxcpp
+native-object-cache smoke test on Linux and Windows. These checks do not require
+a full game build or the Android SDK. The isolated Haxe interpreter specs in
 `tests/haxe/` are not wired into this workflow; run the matching `run-*.sh` script
 locally (see
 [`docs/HAXE_LINUX.md`](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/blob/main/docs/HAXE_LINUX.md)).
@@ -106,7 +107,9 @@ commented on, and automatic closing of inactive issues.
 haxelib run lime build windows -Dcommit
 haxelib run lime build android
 python3 tools/check_dependencies.py
-python3 -m unittest discover -s tests -p 'test_*.py' -v
+python3 tools/check_android_bridge.py --check
+bash tests/java/run.sh
+bash tests/native/run.sh
 ```
 
 For Android make sure `lime setup android` has been run so `ANDROID_NDK_ROOT` resolves.

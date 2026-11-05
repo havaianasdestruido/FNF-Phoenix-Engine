@@ -1,10 +1,11 @@
 name: Checks
 
-# Fast regression guards for Arena fixes and BPM-aware chart timing.
-# Python/source guards need no Haxe or Android SDK; Java 17 exercises the
-# Android-free SAF path-policy and Media3 bridge lifecycle/action classes.
-# The isolated Haxe interpreter specs in tests/haxe/ are not run here; run the
-# matching run-*.sh script locally (see docs/HAXE_LINUX.md).
+# Fast regression guards: dependency manifests, the JNI bridge contract,
+# host-JVM Android bridge/policy classes, standalone native C/C++ smoke tests,
+# and an hxcpp native-object-cache smoke test. None of these need a full game
+# build or the Android SDK. The isolated Haxe interpreter specs in tests/haxe/
+# are not run here; run the matching run-*.sh script locally (see
+# docs/HAXE_LINUX.md).
 
 on:
   push:
@@ -26,14 +27,20 @@ jobs:
       - name: Dependency manifests agree and are pinned
         run: python3 tools/check_dependencies.py
 
+      - name: JNI bridge contract matches the Java methods
+        run: python3 tools/check_android_bridge.py --check
+
       - name: Setup Java 17 for host-JVM regression tests
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: "17"
 
-      - name: Run regression tests
-        run: python3 -m unittest discover -s tests -p 'test_*.py' -v
+      - name: Run host-JVM Android bridge/policy tests
+        run: bash tests/java/run.sh
+
+      - name: Run native C/C++ smoke tests
+        run: bash tests/native/run.sh
 
   native-object-cache:
     name: hxcpp cache smoke (${{ matrix.os }})
@@ -65,7 +72,7 @@ jobs:
         shell: bash
         env:
           PHOENIX_RUN_HXCPP_CACHE_TESTS: "1"
-        run: python -m unittest discover -s tests -p 'test_hxcpp_cache_integration.py' -v
+        run: bash tests/haxe/run-hxcpp-cache.sh
       - name: Install Lime and HXP for the project configuration test
         shell: bash
         run: |

@@ -26,8 +26,8 @@ of committing it, and never commit the same track as both `.ogg` and `.mp3`:
 ffmpeg -i song.mp3 -vn -map_metadata 0 -c:a libvorbis -q:a 2 song.ogg
 ```
 
-`tests/test_audio_format_policy.py` fails the suite if a duplicate pair or a
-stray MP3 ever lands in `assets/`, `mods/` or `example_mods/`.
+Never commit a duplicate `.ogg`/`.mp3` pair or a stray MP3 into `assets/`,
+`mods/` or `example_mods/`; enforce this in code review.
 
 ```sh
 # All MP3/OGG files in the repository
@@ -175,6 +175,5 @@ python3 tools/platform_icon_preview.py --out /tmp/badges.png --background 1a1a1a
 ```
 
 Rendering needs [Pillow](https://pypi.org/project/Pillow/) (`pip install Pillow`);
-the parser underneath is plain stdlib and is reused by
-`tests/test_platform_icons.py`. The generated sheet is scratch output - don't
-commit it. See `docs/PLATFORM_ICONS.md` for the feature itself.
+the parser underneath is plain stdlib. The generated sheet is scratch output -
+don't commit it. See `docs/PLATFORM_ICONS.md` for the feature itself.
