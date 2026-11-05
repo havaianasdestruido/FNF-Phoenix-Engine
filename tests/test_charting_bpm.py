@@ -55,7 +55,10 @@ class TestChartingBpmIntegration(unittest.TestCase):
         self.assertIn("first changed-BPM section duration", spec)
         self.assertIn("sectionIndexAtTime", spec)
         self.assertIn("section-zero BPM override", spec)
-        self.assertIn("run-charting-timing.sh", read(".github/workflows/checks.yml"))
+        self.assertTrue(
+            (ROOT / "tests/haxe/run-charting-timing.sh").is_file(),
+            "missing the Haxe interpreter spec runner (run it locally)",
+        )
 
 
 if __name__ == "__main__":
