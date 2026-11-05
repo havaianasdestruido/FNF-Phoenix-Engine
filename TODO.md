@@ -36,7 +36,15 @@ Sections 13–20 are a second backlog pass written against the current tree. Eve
 
 - Adding a built-in mid download support (gamebanana browser) (just like GMod)
 
-- Rebuilding how the MODDING API works and adjusting it to be able to also support other languages (Common Modding API)
+#### Rebuilding how the MODDING API works and adjusting it to be able to also support other languages (Common Modding API)
+
+Should include exposing almost ALL game screens thought the Modding API. (By screen I mean like the Freeplay page, Mods page, etc.)
+
+- Should contain all in-game screens. (only exclude critical ones like the update screen and the mods picker screen)
+
+- Mods should be able to change assets placement, size, change its assets, or even just toggle it off
+
+- Should not bloat the whole engine
 
 - Making 99,9% of all engine aspects modifiable by softmods. (Python & Lua)
 
