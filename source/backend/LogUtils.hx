@@ -27,10 +27,10 @@ class LogUtils
   static inline final MAX_SANITIZE_READ_BYTES:Int = MAX_LOG_FILE_BYTES * 8;
   static inline final DAY_MS:Float = 24.0 * 60.0 * 60.0 * 1000.0;
   static inline final TRUNCATION_MARKER:String = "\n[Phoenix Engine truncated this log at its size limit.]\n";
-  static final WINDOWS_BACKSLASH_PATH:EReg = new EReg('(^|[\s=\[\(\x22\x27])([A-Za-z]:\\\\[^\s\x22\x27<>|]+)', "g");
-  static final WINDOWS_SLASH_PATH:EReg = new EReg('(^|[\s=\[\(\x22\x27])([A-Za-z]:/[^\s\x22\x27<>|]+)', "g");
-  static final UNC_ABSOLUTE_PATH:EReg = new EReg('(^|[\s=\[\(\x22\x27])\\\\[^\s\x22\x27<>|]+', "g");
-  static final POSIX_ABSOLUTE_PATH:EReg = new EReg('(^|[\s=\[\(\x22\x27])/(?:[^\s\x22\x27<>|]+/)*[^\s\x22\x27<>|,;\]\)]*', "g");
+  static final WINDOWS_BACKSLASH_PATH:EReg = new EReg('(^|[\\s=\\[\\(\\x22\\x27])([A-Za-z]:\\\\[^\\s\\x22\\x27<>|]+)', "g");
+  static final WINDOWS_SLASH_PATH:EReg = new EReg('(^|[\\s=\\[\\(\\x22\\x27])([A-Za-z]:/[^\\s\\x22\\x27<>|]+)', "g");
+  static final UNC_ABSOLUTE_PATH:EReg = new EReg('(^|[\\s=\\[\\(\\x22\\x27])\\\\[^\\s\\x22\\x27<>|]+', "g");
+  static final POSIX_ABSOLUTE_PATH:EReg = new EReg('(^|[\\s=\\[\\(\\x22\\x27])/(?:[^\\s\\x22\\x27<>|]+/)*[^\\s\\x22\\x27<>|,;\\]\\)]*', "g");
   static final POSIX_PROFILE_USER:EReg = new EReg('(/(?:home|Users)/)[^/]+', "ig");
   static var privacyInitialized:Bool = false;
   static var homePathPatterns:Array<EReg> = [];
