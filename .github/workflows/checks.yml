@@ -61,6 +61,8 @@ jobs:
         run: bash tests/haxe/run-chart-loader.sh
       - name: Test .zip mod import (path policy, archive parsing, extraction)
         run: bash tests/haxe/run-mod-zip.sh
+      - name: Test mods-menu icon path resolution (no mods/mods double prefix)
+        run: bash tests/haxe/run-mod-icon-path.sh
       - name: Test per-area RAM ledger (vlog memory attribution)
         run: bash tests/haxe/run-memory-ledger.sh
       - name: Test settings backup format (export/import .json)
