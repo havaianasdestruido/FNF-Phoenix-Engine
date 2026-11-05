@@ -403,7 +403,8 @@ class Diagnostics
    * `ClientPrefs.loadPrefs()` overwrites each field with the saved value, so
    * the field initialisers are not readable any more by the time a report is
    * built. The defaults therefore come from a table generated from the
-   * initialisers themselves (kept honest by `tests/test_diagnostics.py`).
+   * initialisers themselves (kept honest by
+   * `tools/check_diagnostics_defaults.py`).
    */
   static function defaultFor(field:String):Dynamic
   {
@@ -614,8 +615,8 @@ class Diagnostics
    * Expected value of every `ClientPrefs` preference on a fresh install.
    *
    * Mirrors the field initialisers in `source/backend/ClientPrefs.hx`;
-   * `tests/test_diagnostics.py` fails when the two disagree, so a new
-   * preference cannot silently be reported as "changed by the player".
+   * `tools/check_diagnostics_defaults.py` fails when the two disagree, so a
+   * new preference cannot silently be reported as "changed by the player".
    * Fields that are not preferences (keybinds, colour tables, maps, the
    * gameplay modifiers below) are deliberately absent.
    */

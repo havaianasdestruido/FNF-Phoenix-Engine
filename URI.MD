@@ -189,7 +189,7 @@ checkbox stays off and the manual commands above are the fallback.
 Dependency-free parser tests (Haxe required; no engine haxelibs):
 
 ```sh
-python3 tests/uri/run.py
+bash tests/uri/run.sh
 ```
 
 The runner isolates the parser from `source/import.hx`. Tests cover every route

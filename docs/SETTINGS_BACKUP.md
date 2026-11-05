@@ -68,9 +68,6 @@ editors use.
 * `tests/haxe/run-settings-backup.sh` — runs `SettingsBackupCodecSpec.hx` in the
   Haxe interpreter: round-trip, refusal of foreign JSON, coercion and version
   warnings.
-* `tests/test_settings_backup.py` — source guards: every settings list ends with
-  the two options, import is confirmation-gated and whitelisted, the codec has
-  no engine dependencies.
 
 ## See also
 

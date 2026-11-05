@@ -143,7 +143,7 @@ from the system Files app exactly like a crash report.
 `ClientPrefs`. Because `ClientPrefs.loadPrefs()` overwrites those fields at
 startup, the defaults live in a table (`Diagnostics.DEFAULTS` /
 `GAMEPLAY_DEFAULTS`) generated from the initialisers;
-`tests/test_diagnostics.py` fails if the two ever disagree, so a new
+`tools/check_diagnostics_defaults.py` fails if the two ever disagree, so a new
 preference cannot silently be reported as "changed by the player".
 
 ## Tests
@@ -152,9 +152,10 @@ preference cannot silently be reported as "changed by the player".
   the Haxe interpreter: the section/field contract, the redaction rules (home
   folders, secrets, e-mails, deep links), log-tail slicing, clipping, value
   formatting and the fail-safe edges (null facts, empty lists, missing log).
-* `tests/test_diagnostics.py` — source guards: the Misc entry and its wiring,
-  every roadmap field present, no HTTP/socket imports anywhere in the feature,
-  the defaults table matching `ClientPrefs`.
+* `tools/check_diagnostics_defaults.py` — CI guard that `Diagnostics.DEFAULTS`
+  still names every scalar preference in `ClientPrefs` with the same initial
+  value. The rest of the feature is proven by the spec above: the reporter is
+  Flixel-free on purpose, so the interpreter exercises it directly.
 
 ## See also
 

@@ -39,11 +39,10 @@ META_HORROR window effects share this native state rather than competing with it
 
 ## Validation
 
-`python3 -m unittest discover -s tests -p 'test_native_window.py' -v` runs the
-native state/ownership tests with a Win32 test double. Set
-`PHOENIX_WINDOWS_CXX` to a Windows-targeting C++ compiler to additionally check
-the header against the real Windows SDK. Visual DWM effects and notification
-presentation still require a real Windows desktop session.
+`bash tests/native/run.sh` runs the native state/ownership tests with a Win32
+test double. Set `PHOENIX_WINDOWS_CXX` to a Windows-targeting C++ compiler to
+additionally check the header against the real Windows SDK. Visual DWM effects
+and notification presentation still require a real Windows desktop session.
 
 ## Dark frame
 

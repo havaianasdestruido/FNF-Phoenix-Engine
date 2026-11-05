@@ -115,8 +115,8 @@ class DiagnosticsReportSpec
 
   /**
    * The block's shape: one marker line, the section order a reader scans for,
-   * and no label that renames a library (the dependency-free check in
-   * `tests/test_diagnostics.py` forbids those spellings in this file).
+   * and no label that renames a library (this file stays dependency-free:
+   * nothing here may reference a game haxelib).
    */
   static function reportShape():Void
   {

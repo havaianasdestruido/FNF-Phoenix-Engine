@@ -246,7 +246,8 @@ Two rules keep the Windows build green:
 2. **That annotation must be written at file level, above `class MetaHorror`.**
    Written inside the class body it attaches to the next field declaration
    instead of the class, and hxcpp ignores it silently — same failure, no warning.
-   `tests/test_meta_horror.py` (`NativeIncludeTests`) enforces both rules.
+   `tests/native/run.sh` enforces the header contract by building the real
+   header against the Win32 test double.
 
 Every helper is `static` (`PHOENIX_META_UNUSED`), because hxcpp includes native
 metadata in more than one translation unit; external linkage would break the
@@ -254,6 +255,6 @@ link step. Snippets pass UTF-8 (`String.c_str()`) and the header converts to
 UTF-16 with `MultiByteToWideChar`, matching hxcpp's own `String` encoding.
 
 The header is verified without a Windows SDK by `tests/native/windows/`, a
-Win32/WASAPI test double, in `tests/test_meta_horror_native.py` — including a
-real `g++` build of the full header, a two-translation-unit link check and a
-byte-level BMP check of `captureDesktop`.
+Win32/WASAPI test double, in `tests/native/run.sh` — a real `g++` build of the
+full header (`tests/native/test_meta_horror_header.cpp`) plus a
+two-translation-unit link check that every helper runs.
