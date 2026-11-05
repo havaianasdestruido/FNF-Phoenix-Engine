@@ -1,8 +1,11 @@
 name: Checks
 
-# Fast regression guards for Arena fixes and BPM-aware chart timing.
-# Python/source guards need no Haxe or Android SDK; Java 17 exercises the
-# Android-free SAF path-policy and Media3 bridge lifecycle/action classes.
+# Fast regression guards: dependency manifests, the JNI bridge contract,
+# host-JVM Android bridge/policy classes, standalone native C/C++ smoke tests,
+# and an hxcpp native-object-cache smoke test. None of these need a full game
+# build or the Android SDK. The isolated Haxe interpreter specs in tests/haxe/
+# are not run here; run the matching run-*.sh script locally (see
+# docs/HAXE_LINUX.md).
 
 on:
   push:
@@ -24,14 +27,26 @@ jobs:
       - name: Dependency manifests agree and are pinned
         run: python3 tools/check_dependencies.py
 
+      - name: JNI bridge contract matches the Java methods
+        run: python3 tools/check_android_bridge.py --check
+
       - name: Setup Java 17 for host-JVM regression tests
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: "17"
 
-      - name: Run regression tests
-        run: python3 -m unittest discover -s tests -p 'test_*.py' -v
+      - name: Run host-JVM Android bridge/policy tests
+        run: bash tests/java/run.sh
+
+      - name: Run native C/C++ smoke tests
+        run: bash tests/native/run.sh
+
+      # Static guard for main.yml's cache keys: they must be reused, not
+      # re-created per commit, and every native header must stay a declared
+      # hxcpp dependency. No Haxe or C++ toolchain needed.
+      - name: Build cache keys roll over instead of piling up
+        run: bash tests/haxe/run-build-cache-policy.sh
 
   native-object-cache:
     name: hxcpp cache smoke (${{ matrix.os }})
@@ -63,7 +78,7 @@ jobs:
         shell: bash
         env:
           PHOENIX_RUN_HXCPP_CACHE_TESTS: "1"
-        run: python -m unittest discover -s tests -p 'test_hxcpp_cache_integration.py' -v
+        run: bash tests/haxe/run-hxcpp-cache.sh
       - name: Install Lime and HXP for the project configuration test
         shell: bash
         run: |
@@ -83,42 +98,3 @@ jobs:
         if: runner.os == 'Windows'
         shell: cmd
         run: call tests\haxe\run-project-build-cache.bat
-
-  widescreen-layout:
-    name: Widescreen geometry (Haxe)
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: krdlab/setup-haxe@master
-        with:
-          haxe-version: "4.3.7"
-      - name: Test viewport, touch lanes, resize rollback and script scanning
-        run: bash tests/haxe/run-layout.sh
-      - name: Typecheck platform native dialog bridge
-        run: bash tests/haxe/run-platform-util-native.sh
-      - name: Test Phoenix version and release selection
-        run: bash tests/haxe/run-phoenix-version.sh
-      - name: Test watermark platform badge (detection, density, artwork)
-        run: bash tests/haxe/run-platform-icons.sh
-      - name: Typecheck threaded update checker
-        run: bash tests/haxe/run-update-checker-typecheck.sh
-      - name: Test RAM graph history and interpolation
-        run: bash tests/haxe/run-ram-graph.sh
-      - name: Test BPM-aware chart section timing
-        run: bash tests/haxe/run-charting-timing.sh
-      - name: Test JSON chart parsing and legacy event compaction
-        run: bash tests/haxe/run-chart-loading.sh
-      - name: Test gameplay chart note/event conversion
-        run: bash tests/haxe/run-chart-loader.sh
-      - name: Test .zip mod import (path policy, archive parsing, extraction)
-        run: bash tests/haxe/run-mod-zip.sh
-      - name: Test mods-menu icon path resolution (no mods/mods double prefix)
-        run: bash tests/haxe/run-mod-icon-path.sh
-      - name: Test per-area RAM ledger (vlog memory attribution)
-        run: bash tests/haxe/run-memory-ledger.sh
-      - name: Test settings backup format (export/import .json)
-        run: bash tests/haxe/run-settings-backup.sh
-      - name: Test shader warm-up (declaration plan, program cache, per-song wiring)
-        run: bash tests/haxe/run-shader-warmup.sh
-      - name: Test mobile storage and pre-state startup resize
-        run: python3 -m unittest discover -s tests -p 'test_mobile_startup.py' -v

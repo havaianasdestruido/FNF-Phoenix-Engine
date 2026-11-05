@@ -22,7 +22,7 @@ class PhoenixVersion
 
   /**
    * Fallback for contexts without Lime application metadata. Keep equal to
-   * VERSION in project.hxp; tests/test_arena_fixes.py enforces that invariant.
+   * VERSION in project.hxp.
    */
   public static inline var FALLBACK:String = "0.0.1";
 

@@ -13,10 +13,13 @@
     <!-- phoenix_meta_horror.h and the phoenix_window.h it includes both live
          in this folder. -->
     <compilervalue name="-I" value="${PHOENIX_META_HORROR_DIR}/include/" />
-    <!-- hxcpp hashes declared dependencies when reusing cached objects. An
-         undeclared header makes -DMETA_HORROR builds stick to the first
-         version they compiled, which is exactly what a shared build cache
-         must never do. -->
+    <!-- hxcpp hashes declared dependencies when reusing cached objects, so
+         the header this module includes must be listed next to its include
+         path (same contract as native/build.xml, window_build.xml and the
+         others). phoenix_window.h is listed too: phoenix_meta_horror.h
+         includes it, so a change there changes the generated MetaHorror.cpp.
+         An undeclared header makes -DMETA_HORROR builds stick to whatever
+         version first populated the shared object cache. -->
     <depend name="${PHOENIX_META_HORROR_DIR}/include/phoenix_meta_horror.h" />
     <depend name="${PHOENIX_META_HORROR_DIR}/include/phoenix_window.h" />
   </files>

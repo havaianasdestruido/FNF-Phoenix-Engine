@@ -50,7 +50,8 @@ them. This workflow therefore uses **one rolling entry per target**:
   `<depend>` in `source/**/build.xml`, compiler flags) and recompiles the objects that
   changed, so sharing the cache across commits is safe. A new native header must be
   declared in its `build.xml`, or cached objects will keep the old inline code —
-  `tests/test_build_cache_policy.py` enforces that.
+  `tests/haxe/run-build-cache-policy.sh` enforces that (it runs in `checks.yml` and needs
+  no Haxe or C++ toolchain).
 - The save step writes the **same key** that was looked up (`cache-hit` is only true on
   an exact match, and a restore-key hit counts as a miss), so a miss restores the
   previous generation, adds the new objects and replaces the entry after the build.
@@ -104,9 +105,13 @@ in the commit a release points at, so release from up-to-date `main`.
 
 ## `checks.yml` — Checks
 
-Runs the dependency-manifest check, Python regression tests, host-JVM Android tests,
-and isolated Haxe tests for layout, chart timing, mod imports, versions and updates.
-These checks do not require a full game build or the Android SDK.
+Runs the dependency-manifest check, the JNI bridge contract check, host-JVM
+Android tests, standalone native C/C++ smoke tests, and an hxcpp
+native-object-cache smoke test on Linux and Windows. These checks do not require
+a full game build or the Android SDK. The isolated Haxe interpreter specs in
+`tests/haxe/` are not wired into this workflow; run the matching `run-*.sh` script
+locally (see
+[`docs/HAXE_LINUX.md`](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/blob/main/docs/HAXE_LINUX.md)).
 
 ## `docs.yml` — Documentation
 
@@ -136,7 +141,9 @@ commented on, and automatic closing of inactive issues.
 haxelib run lime build windows -Dcommit
 haxelib run lime build android
 python3 tools/check_dependencies.py
-python3 -m unittest discover -s tests -p 'test_*.py' -v
+python3 tools/check_android_bridge.py --check
+bash tests/java/run.sh
+bash tests/native/run.sh
 ```
 
 For Android make sure `lime setup android` has been run so `ANDROID_NDK_ROOT` resolves.
