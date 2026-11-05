@@ -1,6 +1,5 @@
 ﻿package objects;
 
-// REFACTOR: explicit imports for shader subtypes
 import shaders.RGBPalette.RGBShaderReference;
 
 import backend.NoteTypesConfig;
@@ -188,13 +187,23 @@ class Note extends FlxSprite
 	var changeSize:Bool = false;
 
 	private function set_texture(value:String):String {
-		if (value.length == 0) value = Paths.defaultSkin;
+		if (value == null || value.length == 0) value = Paths.defaultSkin;
 		if (!pixelNote && texture != value)
 		{
 			changeSize = false;
-			if (!Paths.noteSkinFramesMap.exists(value)) Paths.initNote(value);
-			if (frames != @:privateAccess Paths.noteSkinFramesMap.get(value)) frames = @:privateAccess Paths.noteSkinFramesMap.get(value);
-			if (animation != @:privateAccess Paths.noteSkinAnimsMap.get(value)) animation.copyFrom(@:privateAccess Paths.noteSkinAnimsMap.get(value));
+			var cachedFrames = Paths.noteSkinFramesMap.get(value);
+			if (cachedFrames == null || cachedFrames.parent == null || cachedFrames.parent.isDestroyed)
+			{
+				Paths.initNote(value);
+				cachedFrames = Paths.noteSkinFramesMap.get(value);
+			}
+			else
+			{
+				Paths.trackLocalAsset(cachedFrames.parent.key);
+			}
+			if (frames != cachedFrames) frames = cachedFrames;
+			final cachedAnims = Paths.noteSkinAnimsMap.get(value);
+			if (cachedAnims != null && animation != cachedAnims) animation.copyFrom(cachedAnims);
 
 			antialiasing = ClientPrefs.globalAntialiasing;
 
@@ -280,8 +289,6 @@ class Note extends FlxSprite
 		}
 	}
 
-	// REFACTOR: initializeGlobalRGBShader moved to objects.NoteHelpers
-
 	var _lastNoteOffX:Float = 0;
 	static var _lastValidChecked:String; //optimization
 	public var originalHeight:Float = 6;
@@ -365,8 +372,6 @@ class Note extends FlxSprite
 			updateHitbox();
 		}
 	}
-
-	// REFACTOR: getNoteSkinPostfix moved to objects.NoteHelpers
 
 	override function update(elapsed:Float)
 	{

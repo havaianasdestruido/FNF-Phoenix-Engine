@@ -191,6 +191,7 @@ class Project extends HXProject
 		configureApp();
 
 		displayTarget();
+		configureCompileCache();
 		configureCompileDefines();
 		configureFeatureFlags();
 		configureOutputDir();
@@ -475,6 +476,25 @@ class Project extends HXProject
 		FEATURE_FILE_DROP.apply(this, !isMac() && !isFlash() && !isAir());
 
 		FLASH_ALLOWED.apply(this, isFlash());
+	}
+
+	/**
+	 * Keep hxcpp objects across clean builds and branch switches. Lime sets
+	 * targetType to "cpp" even when the user runs `lime build windows` rather
+	 * than `lime build cpp`; targetFlags.exists("cpp") alone misses those builds.
+	 * Do not override a caller-supplied cache or change non-C++/display targets.
+	 */
+	function configureCompileCache()
+	{
+		if ((command != "build" && command != "test") || defines.get("targetType") != "cpp"
+			|| hasDefine("NO_HXCPP_COMPILE_CACHE") || hasDefine("HXCPP_COMPILE_CACHE") || environment.exists("HXCPP_COMPILE_CACHE"))
+			return;
+
+		// hxcpp runs in build/<mode>/<target>/obj, so a relative path here would
+		// resolve inside the disposable output tree rather than at the project root.
+		var cachePath = FileSystem.fullPath(".") + "/.hxcpp_cache";
+		setenv("HXCPP_COMPILE_CACHE", cachePath);
+		info('hxcpp object cache: $cachePath');
 	}
 
 	/**
@@ -979,6 +999,9 @@ class Project extends HXProject
 
 		if (GAMEMODE_ALLOWED.isEnabled(this))
 			addAsset("gamemode.ini");
+
+		// Editable runtime switches; kept as a loose, non-embedded asset.
+		addAsset("flags.ini", "flags.ini", "default", false);
 	}
 
 	/**
@@ -989,6 +1012,31 @@ class Project extends HXProject
 		for (size in [16, 32, 64])
 			addIcon('art/icon${size}.png', size);
 		addIcon("art/iconOG.png");
+
+		if (isWindows())
+		{
+			// Keep these next to the executable, even when game assets are embedded.
+			addAsset("art/windows/phoenix.ico", "phoenix.ico", "default", false);
+			addAsset("art/windows/desktop.ini", "desktop.ini", "default", false);
+
+			// Explorer only reads desktop.ini for folders marked read-only or system.
+			// ZIP extraction can discard this attribute; the Windows game restores it
+			// on startup as well. Do not touch the host filesystem for other targets.
+			if (Sys.systemName() == "Windows" && (this.command == "build" || this.command == "test"))
+			{
+				try
+				{
+					var folder = app.path + "windows/bin";
+					FileSystem.createDirectory(folder);
+					if (Sys.command("attrib", ["+r", folder]) != 0)
+						info('Could not set the Windows folder icon attribute on $folder');
+				}
+				catch (error:Dynamic)
+				{
+					info('Could not set the Windows folder icon attribute: $error');
+				}
+			}
+		}
 
 		if (isAndroid())
 		{

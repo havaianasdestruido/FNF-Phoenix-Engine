@@ -1,7 +1,6 @@
 package states.helpers;
 
 #if MODS_ALLOWED
-// REFACTOR: logic extracted from states.ModsMenuState (behavior-preserving)
 import backend.ClientPrefs;
 import backend.Paths;
 import flixel.FlxG;

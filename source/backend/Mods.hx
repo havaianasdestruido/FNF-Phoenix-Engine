@@ -53,6 +53,7 @@ class Mods
 			var pack:Dynamic = getPack(mod);
 			if(pack != null && pack.runsGlobally) globalMods.push(mod);
 		}
+		Paths.invalidateAssetLookupCache();
 		return globalMods;
 	}
 
@@ -233,6 +234,7 @@ class Mods
 
 			File.saveContent('modsList.txt', lines.join('\n'));
 			updatedOnState = false;
+			Paths.invalidateAssetLookupCache();
 			return true;
 		} catch(e:Dynamic) {
 			trace('Could not enable the installed mod "$folder": $e');
@@ -300,5 +302,6 @@ class Mods
 		if(list != null && list[0] != null)
 			Mods.currentModDirectory = list[0];
 		#end
+		Paths.invalidateAssetLookupCache();
 	}
 }

@@ -23,11 +23,9 @@ import flixel.util.FlxSort;
 import openfl.events.KeyboardEvent;
 import play.objects.SustainSplash;
 
-// REFACTOR: imports for relocated root classes
 import backend.Controls;
 import objects.Character;
 
-// REFACTOR: helper for relocated static logic
 import headers.Editors;
 
 class EditorPlayState extends MusicBeatState
@@ -208,7 +206,6 @@ class EditorPlayState extends MusicBeatState
 	var startingSong:Bool = true;
 	private function generateSong(?startingPoint:Float = 0):Void
 	{
-		// REFACTOR: delegated to editors.helpers.EditorPlayStateHelpers
 		EditorPlayStateHelpers.generateSong(this, startingPoint);
 	}
 
@@ -232,7 +229,6 @@ class EditorPlayState extends MusicBeatState
 	}
 
 	private function endSong() {
-		// REFACTOR: delegated to editors.helpers.EditorPlayStateHelpers
 		EditorPlayStateHelpers.endSong(this);
 	}
 
@@ -365,31 +361,26 @@ class EditorPlayState extends MusicBeatState
 	}
 	private function onKeyPress(event:KeyboardEvent):Void
 	{
-		// REFACTOR: delegated to editors.helpers.EditorPlayStateHelpers
 		EditorPlayStateHelpers.onKeyPress(this, event);
 	}
 
 	function sortHitNotes(a:Note, b:Note):Int
 	{
-		// REFACTOR: delegated to editors.helpers.EditorPlayStateHelpers
 		return EditorPlayStateHelpers.sortHitNotes(a, b);
 	}
 
 	private function onKeyRelease(event:KeyboardEvent):Void
 	{
-		// REFACTOR: delegated to editors.helpers.EditorPlayStateHelpers
 		EditorPlayStateHelpers.onKeyRelease(this, event);
 	}
 
 	private function getKeyFromEvent(key:FlxKey):Int
 	{
-		// REFACTOR: delegated to editors.helpers.EditorPlayStateHelpers
 		return EditorPlayStateHelpers.getKeyFromEvent(this, key);
 	}
 
 	private function handleKeyInput():Void
 	{
-		// REFACTOR: delegated to editors.helpers.EditorPlayStateHelpers
 		EditorPlayStateHelpers.handleKeyInput(this);
 	}
 
@@ -524,13 +515,11 @@ class EditorPlayState extends MusicBeatState
 	}
 
 	public function invalidateNote(note:Note):Void {
-		// REFACTOR: delegated to editors.helpers.EditorPlayStateHelpers
 		EditorPlayStateHelpers.invalidateNote(this, note);
 	}
 
 	public function destroyNotes():Void
 	{
-		// REFACTOR: delegated to editors.helpers.EditorPlayStateHelpers
 		EditorPlayStateHelpers.destroyNotes(this);
 	}
 
@@ -541,7 +530,6 @@ class EditorPlayState extends MusicBeatState
 
 		private function cachePopUpScore()
 	{
-		// REFACTOR: delegated to editors.helpers.EditorPlayStateHelpers
 		EditorPlayStateHelpers.cachePopUpScore(this);
 	}
 
@@ -549,13 +537,11 @@ class EditorPlayState extends MusicBeatState
 	var COMBO_Y:Float = 340;
 	private function popUpScore(note:Note = null):Void
 	{
-		// REFACTOR: delegated to editors.helpers.EditorPlayStateHelpers
 		EditorPlayStateHelpers.popUpScore(this, note);
 	}
 
 	private function generateStaticArrows(player:Int):Void
 	{
-		// REFACTOR: delegated to editors.helpers.EditorPlayStateHelpers
 		EditorPlayStateHelpers.generateStaticArrows(this, player);
 	}
 
@@ -576,12 +562,10 @@ class EditorPlayState extends MusicBeatState
 	}
 
 	public function spawnHoldSplashOnNote(note:Note, ?isDad:Bool = false) {
-		// REFACTOR: delegated to editors.helpers.EditorPlayStateHelpers
 		EditorPlayStateHelpers.spawnHoldSplashOnNote(this, note, isDad);
 	}
 
 	public function spawnHoldSplash(note:Note) {
-		// REFACTOR: delegated to editors.helpers.EditorPlayStateHelpers
 		EditorPlayStateHelpers.spawnHoldSplash(this, note);
 	}
 

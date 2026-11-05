@@ -11,6 +11,7 @@ import play.CutsceneHandler;
 import states.substates.GameOverSubstate;
 import objects.Note;
 import flixel.addons.display.FlxTiledSprite;
+import openfl.display.Shader;
 import openfl.filters.ShaderFilter;
 import shaders.RainShader;
 import stages.objects.*;
@@ -512,6 +513,13 @@ class PhillyStreets extends BaseStage
 
 		for (i in 1...5)
 			Paths.sound('shots/shot$i');
+	}
+
+	// The rain shader is a full-camera filter; hand it to the engine so it is
+	// compiled on the loading screen instead of on the first bop.
+	override function declareShaders():Array<Shader>
+	{
+		return rainShader != null ? [rainShader] : [];
 	}
 
 	function setupRainShader()

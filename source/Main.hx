@@ -5,14 +5,12 @@ import debug.FPSCounter;
 import debug.FrameProfiler;
 import backend.FunkinGame;
 import flixel.system.scaleModes.PhoenixScaleMode;
-// REFACTOR: relocated root classes
 import backend.CrashHandler;
 import states.InitState;
 import lime.app.Application;
 import openfl.Lib;
 import openfl.display.Sprite;
 
-// REFACTOR: imports for relocated root classes
 import backend.Achievements;
 import backend.ClientPrefs;
 import backend.CoolUtil;
@@ -23,7 +21,7 @@ import play.PlayState;
 #if GAMEMODE_ALLOWED
 import hxgamemode.GamemodeClient;
 #end
-#if ((linux || mac) && !flash)
+#if ((linux || mac || windows) && !flash)
 import lime.graphics.Image;
 #end
 
@@ -37,6 +35,7 @@ import lime.graphics.Image;
 @:cppFileCode('
 #include <windows.h>
 #include <winuser.h>
+#include <string>
 ')
 #end
 class Main extends Sprite
@@ -86,8 +85,33 @@ class Main extends Sprite
 
   public static function main():Void
   {
+    #if (cpp && windows)
+    restoreBuildFolderIcon();
+    #end
     Lib.current.addChild(new Main());
   }
+
+  #if (cpp && windows)
+  // Archives commonly lose Windows directory attributes. Restore only the
+  // executable's own folder, and only when both packaged icon files exist.
+  @:functionCode('
+    wchar_t executable[32768];
+    DWORD length = GetModuleFileNameW(NULL, executable, 32768);
+    if (length == 0 || length >= 32768) return;
+    std::wstring folder(executable, length);
+    size_t separator = folder.find_last_of(L"\\\\/");
+    if (separator == std::wstring::npos) return;
+    folder.resize(separator);
+    DWORD ini = GetFileAttributesW((folder + L"\\\\desktop.ini").c_str());
+    DWORD icon = GetFileAttributesW((folder + L"\\\\phoenix.ico").c_str());
+    DWORD attributes = GetFileAttributesW(folder.c_str());
+    if (ini == INVALID_FILE_ATTRIBUTES || (ini & FILE_ATTRIBUTE_DIRECTORY) ||
+        icon == INVALID_FILE_ATTRIBUTES || (icon & FILE_ATTRIBUTE_DIRECTORY) ||
+        attributes == INVALID_FILE_ATTRIBUTES || (attributes & FILE_ATTRIBUTE_READONLY)) return;
+    SetFileAttributesW(folder.c_str(), attributes | FILE_ATTRIBUTE_READONLY);
+  ')
+  private static function restoreBuildFolderIcon():Void {}
+  #end
 
   public function new()
   {
@@ -102,6 +126,12 @@ class Main extends Sprite
       return;
     }
     #end
+    // Apply retention and privacy cleanup to any reports left by an older
+    // build before a log can be copied out through Android's document roots.
+    backend.LogUtils.cleanup();
+    // Runtime settings are independent of compile-time feature defines and
+    // must be available before the first state, shader, or window is created.
+    backend.RuntimeFlags.load();
     // The verbose vlog is opt-in (Options -> Misc -> 'Enable VLog'), so a
     // normal session writes nothing to disk. FlxG.save is only bound later in
     // InitState, so the saved flag is read straight from funkin.sol here —
@@ -192,9 +222,17 @@ class Main extends Sprite
 
     FlxG.autoPause = false;
 
-    #if ((linux || mac) && !flash)
-    var icon = Image.fromFile("icon.png");
-    Lib.current.stage.window.setIcon(icon);
+    #if ((linux || mac || windows) && !flash)
+    var configuredIcon:String = backend.RuntimeFlags.getString("window.icon", "");
+    var iconPath:String = configuredIcon.length > 0 ? configuredIcon : "";
+    #if (linux || mac)
+    if (iconPath.length == 0) iconPath = "icon.png";
+    #end
+    if (iconPath.length > 0 && sys.FileSystem.exists(iconPath))
+    {
+      try Lib.current.stage.window.setIcon(Image.fromFile(iconPath))
+      catch (error:Dynamic) trace('Could not load configured window icon $iconPath: $error');
+    }
     #end
 
     #if windows
@@ -208,6 +246,11 @@ class Main extends Sprite
 
     // Watches the window mode so transparency can be suspended in fullscreen.
     TransparentWindow.init();
+
+    // 4th-wall-breaking effects must never outlive the game process: this
+    // restores wallpaper/taskbar/window styles on exit and counts launches.
+    // A no-op on builds without -DMETA_HORROR.
+    backend.MetaHorror.installExitCleanup();
 
     #if (cpp && windows)
     Application.current.onExit.add(function(_:Int) Windows.removeWindowsNotification());

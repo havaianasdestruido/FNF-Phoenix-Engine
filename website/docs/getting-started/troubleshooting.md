@@ -25,7 +25,10 @@ lime test cpp -clean
 ### The build takes 5–10 minutes
 
 Expected for a first C++ build. Later builds reuse the hxcpp compile cache
-(`HXCPP_COMPILE_CACHE`); CI detects and restores it explicitly.
+(`HXCPP_COMPILE_CACHE`, `.hxcpp_cache/` in the repo root — hxcpp hashes each
+translation unit's sources, declared headers and flags, so a rebuild only compiles what
+actually changed). CI restores the same directory from one rolling cache entry per
+target; see [CI & releases](../contributing/ci-and-releases.md#how-the-caches-are-keyed).
 
 ### A library "downgraded" itself
 

@@ -1,7 +1,7 @@
 package play.helpers;
 
-// REFACTOR: explicit imports for shader subtypes
 import shaders.ErrorHandledShader.ErrorHandledRuntimeShader;
+import shaders.ShaderWarmup;
 
 import backend.ClientPrefs;
 import backend.Paths;
@@ -13,7 +13,6 @@ import play.PlayState;
 import psychlua.DebugLuaText;
 #end
 
-// REFACTOR: script/shader plumbing extracted from play.PlayState
 @:access(play.PlayState)
 @:access(backend.MusicBeatState)
 class PlayStateScripts
@@ -31,7 +30,13 @@ class PlayStateScripts
 		}
 
 		var arr:Array<String> = state.runtimeShaders.get(shaderName);
-		return new ErrorHandledRuntimeShader(shaderName, arr[0], arr[1]);
+		var shader = new ErrorHandledRuntimeShader(shaderName, arr[0], arr[1]);
+		// [P3] Shader warm-up: compile it with the stage's shaders while the
+		// state is loading instead of on the frame that first draws it.
+		#if !neko
+		ShaderWarmup.track(shader);
+		#end
+		return shader;
 		#else
 		FlxG.log.warn("Platform unsupported for Runtime Shaders!");
 		return null;
@@ -48,49 +53,13 @@ class PlayStateScripts
 			return true;
 		}
 
-		#if MODS_ALLOWED
-		var foldersToCheck:Array<String> = [Paths.mods('shaders/')];
-		if(Mods.currentModDirectory != null && Mods.currentModDirectory.length > 0)
-			foldersToCheck.insert(0, Paths.mods(Mods.currentModDirectory + '/shaders/'));
-
-		for(mod in Mods.getGlobalMods())
-			foldersToCheck.insert(0, Paths.mods(mod + '/shaders/'));
-		#else
-		var foldersToCheck:Array<String> = [];
-		#end
-
-		for (folder in foldersToCheck)
+		final sources = shaders.ShaderSource.load(name);
+		if (sources != null)
 		{
-			#if sys
-			if(FileSystem.exists(folder))
-			{
-				var frag:String = folder + name + '.frag';
-				var vert:String = folder + name + '.vert';
-				var found:Bool = false;
-				if(FileSystem.exists(frag))
-				{
-					frag = File.getContent(frag);
-					found = true;
-				}
-				else frag = null;
-
-				if (FileSystem.exists(vert))
-				{
-					vert = File.getContent(vert);
-					found = true;
-				}
-				else vert = null;
-
-				if(found)
-				{
-					state.runtimeShaders.set(name, [frag, vert]);
-					//trace('Found shader $name!');
-					return true;
-				}
-			}
-			#end
+			state.runtimeShaders.set(name, sources);
+			return true;
 		}
-		FlxG.log.warn('Missing shader $name .frag AND .vert files!');
+		FlxG.log.warn('Missing shader $name .frag AND .vert files, or one of its imports could not be loaded!');
 		return false;
 	}
 	#end

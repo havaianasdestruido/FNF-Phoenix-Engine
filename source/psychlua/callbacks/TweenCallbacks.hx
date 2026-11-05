@@ -7,7 +7,6 @@ import psychlua.FunkinLua;
 import headers.PsychLua;
 import psychlua.FunkinLua.LuaTweenOptions;
 
-// REFACTOR: extracted from psychlua.FunkinLua (tween/timer API)
 class TweenCallbacks
 {
 	public static function register(funk:FunkinLua):Void {

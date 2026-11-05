@@ -1,6 +1,5 @@
 package editors.charting;
 
-// REFACTOR: extracted from editors.ChartingState (behavior-preserving)
 #if android
 import android.platform.AndroidNotification;
 #end
@@ -17,7 +16,6 @@ import openfl.events.Event;
 import openfl.events.IOErrorEvent;
 import openfl.net.FileReference;
 import play.PlayState;
-// REFACTOR: imports for relocated root classes
 import objects.Character;
 
 @:access(editors.ChartingState)

@@ -107,29 +107,20 @@ Inspected actual dependency revision from `hmm.json`:
 
 ## Regression coverage and validation
 
-`python3 -m unittest discover -s tests -p 'test_android_cutout.py' -v`
+`bash tests/java/run.sh`
 
-Static checks cover the Haxe default, persistence wiring, startup application,
-menu flush/application, Android immersive startup, the native preference mirror,
-lifecycle hooks and no shared-view listener replacement.
-Host-JVM tests compile the production policy, layout, display bridge and rendered
-MainActivity template against small Android API doubles. They exercise API groups,
-repeat toggles, padding reset, changing inset edges/no cutout, Activity/view
-recreation, resume/focus calls, stale queued work, latest-mode selection, missing
-Activity/window, finishing/destroyed state, immersive controller/legacy flags,
-preference mirror restore/reconciliation and diagnostic error paths. They do
-**not** emulate Android layout measurement, SurfaceView, SDL native code, event
-dispatch, platform enforcement or actual Haxe save-file serialization.
+The host-JVM cutout suite compiles the production policy, layout, display bridge
+and rendered MainActivity template against the small Android API doubles in
+`tests/java/stubs/`. It exercises API groups, repeat toggles, padding reset,
+changing inset edges/no cutout, Activity/view recreation, resume/focus calls,
+stale queued work, latest-mode selection, missing Activity/window,
+finishing/destroyed state, immersive controller/legacy flags, preference mirror
+restore/reconciliation and diagnostic error paths. It does **not** emulate
+Android layout measurement, SurfaceView, SDL native code, event dispatch,
+platform enforcement or actual Haxe save-file serialization.
 
-Local follow-up validation: `python3 -m unittest discover -s tests -p
-'test_*.py' -v` ran 244 tests with only the three existing Haxe-toolchain skips.
-A temporary Eclipse compiler 3.32.0 and Java 17 runtime executed the host-JVM
-cutout suite without skips, and the production display/cutout Java plus rendered
-MainActivity compiled against the Android 36 SDK jar at Java 8 source level
-(only existing/deprecated-API warnings). CI uses actual javac 17 via
-`checks.yml`; `main.yml` has the Android build with SDK 36 / NDK
-27.0.12077973. The full local Android build cannot run (`haxelib: command not
-found`); no Haxe Formatter/Checkstyle or device/emulator validation is claimed.
+CI runs actual javac 17 via `checks.yml`; `main.yml` has the Android build with
+SDK 36 / NDK 27.0.12077973. No device/emulator validation is claimed.
 
 ## Device acceptance still required
 

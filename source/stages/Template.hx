@@ -3,6 +3,7 @@ import objects.Note;
 import play.BaseStage;
 import play.BaseStage.Countdown;
 import play.PlayState;
+import openfl.display.Shader;
 
 import stages.objects.*;
 
@@ -21,6 +22,16 @@ class Template extends BaseStage
 	override function createPost()
 	{
 		// Use this function to layer things above characters!
+	}
+
+	// Shaders this stage renders with. The engine compiles them while the
+	// loading screen is still up, so the first bop of the song doesn't hitch.
+	// Built-in shaders can also be listed in the stage JSON instead:
+	//   "shaders": ["rain", "glitch"]
+	override function declareShaders():Array<Shader>
+	{
+		// return rainShader != null ? [rainShader] : [];
+		return [];
 	}
 
 	override function update(elapsed:Float)

@@ -1,7 +1,5 @@
 package psychlua;
 
-// REFACTOR: subtypes of shaders.ErrorHandledShader need explicit imports
-
 import Type.ValueType;
 import flixel.FlxBasic;
 import flixel.addons.effects.FlxTrail;
@@ -37,7 +35,6 @@ import psychlua.callbacks.TextCallbacks;
 import psychlua.callbacks.TweenCallbacks;
 import psychlua.callbacks.WindowCallbacks;
 
-// REFACTOR: imports for relocated root classes
 import backend.Conductor;
 import backend.CoolUtil;
 import data.Song;
@@ -113,8 +110,10 @@ class FunkinLua {
 		this.scriptName = scriptName;
 		final game:PlayState = PlayState.instance;
 
-		// Read once, scan exactly those bytes, then execute the same buffer. This
-		// avoids a scan/dofile race where a mod could change the file in between.
+		// Read once, scan exactly those bytes, then execute the same buffer at
+		// the end of this constructor. This avoids a scan/dofile race where a
+		// mod could change the file in between, while still running the script
+		// only after the engine API below has been registered (Psych parity).
 		var source:String = scriptCode;
 		if(source == null)
 		{
@@ -159,46 +158,6 @@ class FunkinLua {
 		}
 
 		game.luaArray.push(this);
-		try
-		{
-			var result:Int;
-			if(source != null)
-			{
-				result = LuaL.loadbuffer(lua, source, haxe.io.Bytes.ofString(source).length, '@' + scriptName);
-				if(result == Lua.OK) result = Lua.pcall(lua, 0, 0, 0);
-			}
-			else result = LuaL.dofile(lua, scriptName);
-
-			if(result != Lua.OK)
-			{
-				var resultStr:String = Lua.tostring(lua, -1);
-				if(resultStr == null) resultStr = 'Unknown Lua load error';
-				if(sandboxed && resultStr.indexOf('[ModSecurity]') >= 0)
-					resultStr = ModSecurity.formatRuntimeBlock(securityModName, this.scriptName, resultStr);
-				trace('Error on lua script! ' + resultStr);
-				#if windows
-				lime.app.Application.current.window.alert(resultStr, 'Error on lua script!');
-				#else
-				LuaUtils.luaTrace(lua, 'Error loading lua script: "$scriptName"\n' + resultStr, true, false, FlxColor.RED);
-				#end
-				game.luaArray.remove(this);
-				Lua.close(lua);
-				lua = null;
-				closed = true;
-				return;
-			}
-		}
-		catch(e:Dynamic)
-		{
-			game.luaArray.remove(this);
-			if(lua != null) Lua.close(lua);
-			lua = null;
-			closed = true;
-			trace(e);
-			return;
-		}
-
-		trace('lua file loaded succesfully:' + scriptName);
 
 		// Lua API
 		set('Function_StopLua', Function_StopLua);
@@ -345,51 +304,36 @@ class FunkinLua {
 		}
 
 		// Shader support
-// REFACTOR: extracted to psychlua.callbacks.ShaderCallbacks
+		// REFACTOR: extracted to psychlua.callbacks.ShaderCallbacks
 	ShaderCallbacks.register(this);
 
-// REFACTOR: extracted to psychlua.callbacks.ScriptCallbacks
 	ScriptCallbacks.register(this);
 
-// REFACTOR: extracted to psychlua.callbacks.PropertyCallbacks
 	PropertyCallbacks.register(this);
 
-// REFACTOR: extracted to psychlua.callbacks.TweenCallbacks
 	TweenCallbacks.register(this);
 
-// REFACTOR: extracted to psychlua.callbacks.InputCallbacks
 	InputCallbacks.register(this);
 
-// REFACTOR: extracted to psychlua.callbacks.GameCallbacks
 	GameCallbacks.register(this);
 
-// REFACTOR: extracted to psychlua.callbacks.SpriteCallbacks
 	SpriteCallbacks.register(this);
 
-// REFACTOR: extracted to psychlua.callbacks.SoundCallbacks
 	SoundCallbacks.register(this);
 
-// REFACTOR: extracted to psychlua.callbacks.TextCallbacks
 	TextCallbacks.register(this);
 
-// REFACTOR: extracted to psychlua.callbacks.SaveDataCallbacks
 	SaveDataCallbacks.register(this);
 
-// REFACTOR: extracted to psychlua.callbacks.FileCallbacks
 	FileCallbacks.register(this);
 
-// REFACTOR: extracted to psychlua.callbacks.DeprecatedCallbacks
 	DeprecatedCallbacks.register(this);
 
-// REFACTOR: extracted to psychlua.callbacks.EffectCallbacks
 	EffectCallbacks.register(this);
 
-// REFACTOR: extracted to psychlua.callbacks.MiscCallbacks
 	MiscCallbacks.register(this);
 
-// REFACTOR: extracted to psychlua.callbacks.HardwareCallbacks
 	HardwareCallbacks.register(this);
-// REFACTOR: extracted to psychlua.callbacks.WindowCallbacks
 	WindowCallbacks.register(this);
 // 4th-wall-breaking ("META_HORROR") system effects (issue #94)
 	MetaHorrorCallbacks.register(this);
@@ -399,7 +343,6 @@ class FunkinLua {
 	CustomSubstate.implement(this);
 	#if flxanimate FlxAnimateFunctions.implement(this); #end
 
-// REFACTOR: extracted to psychlua.callbacks.CameraCallbacks
 	CameraCallbacks.register(this);
 
 		for (name => func in registeredFunctions) {
@@ -408,6 +351,57 @@ class FunkinLua {
 				Convert.addCallback(lua, name, func);
 			}
 		}
+
+		// Execute the script's top-level code only now, with every engine
+		// global and callback already registered — exactly like upstream
+		// Psych Engine (dofile at the end of the constructor) and this
+		// engine's own PythonScript/HScript hosts. Psych mods routinely call
+		// setProperty/debugPrint/precacheImage and read songName/screenWidth
+		// at the top level; running earlier made those nil calls abort the
+		// whole script ("soft mods not working"). The buffer executed here is
+		// the exact one ModSecurity scanned above, so the scan/execute race
+		// protection is preserved.
+		lastCalledScript = this;
+		try
+		{
+			var result:Int;
+			if(source != null)
+			{
+				result = LuaL.loadbuffer(lua, source, haxe.io.Bytes.ofString(source).length, '@' + scriptName);
+				if(result == Lua.OK) result = Lua.pcall(lua, 0, 0, 0);
+			}
+			else result = LuaL.dofile(lua, scriptName);
+
+			if(result != Lua.OK)
+			{
+				var resultStr:String = Lua.tostring(lua, -1);
+				if(resultStr == null) resultStr = 'Unknown Lua load error';
+				if(sandboxed && resultStr.indexOf('[ModSecurity]') >= 0)
+					resultStr = ModSecurity.formatRuntimeBlock(securityModName, this.scriptName, resultStr);
+				trace('Error on lua script! ' + resultStr);
+				#if windows
+				lime.app.Application.current.window.alert(resultStr, 'Error on lua script!');
+				#else
+				LuaUtils.luaTrace(lua, 'Error loading lua script: "$scriptName"\n' + resultStr, true, false, FlxColor.RED);
+				#end
+				game.luaArray.remove(this);
+				Lua.close(lua);
+				lua = null;
+				closed = true;
+				return;
+			}
+		}
+		catch(e:Dynamic)
+		{
+			game.luaArray.remove(this);
+			if(lua != null) Lua.close(lua);
+			lua = null;
+			closed = true;
+			trace(e);
+			return;
+		}
+
+		trace('lua file loaded succesfully:' + scriptName);
 
 		// Register this Lua state with the per-area RAM ledger. lua_gc(GCCOUNT)
 		// is an O(1) read of the Lua allocator total, re-sampled every frame, so
@@ -461,7 +455,6 @@ class FunkinLua {
 	public static function registerFunction(name:String, func:Dynamic):Void
 		registeredFunctions.set(name, func);
 
-	// REFACTOR: stateless helpers moved to LuaUtils; kept as forwarding statics for external callers
 	public static function setVarInArray(instance:Dynamic, variable:String, value:Dynamic):Any
 		return LuaUtils.setVarInArray(instance, variable, value);
 
@@ -502,43 +495,13 @@ class FunkinLua {
 			return true;
 		}
 
-		var foldersToCheck:Array<String> = [Paths.mods('shaders/')];
-		if(Mods.currentModDirectory != null && Mods.currentModDirectory.length > 0)
-			foldersToCheck.insert(0, Paths.mods(Mods.currentModDirectory + '/shaders/'));
-
-		for(mod in Mods.getGlobalMods())
-			foldersToCheck.insert(0, Paths.mods(mod + '/shaders/'));
-
-		for (folder in foldersToCheck)
+		final sources = shaders.ShaderSource.load(name);
+		if (sources != null)
 		{
-			if(FileSystem.exists(folder))
-			{
-				var frag:String = folder + name + '.frag';
-				var vert:String = folder + name + '.vert';
-				var found:Bool = false;
-				if(FileSystem.exists(frag))
-				{
-					frag = File.getContent(frag);
-					found = true;
-				}
-				else frag = null;
-
-				if(FileSystem.exists(vert))
-				{
-					vert = File.getContent(vert);
-					found = true;
-				}
-				else vert = null;
-
-				if(found)
-				{
-					PlayState.instance.runtimeShaders.set(name, [frag, vert]);
-					//trace('Found shader $name!');
-					return true;
-				}
-			}
+			PlayState.instance.runtimeShaders.set(name, sources);
+			return true;
 		}
-		LuaUtils.luaTrace(lua, 'Missing shader $name .frag AND .vert files!', false, false, FlxColor.RED);
+		LuaUtils.luaTrace(lua, 'Missing shader $name .frag AND .vert files, or one of its imports could not be loaded!', false, false, FlxColor.RED);
 		#else
 		LuaUtils.luaTrace(lua, 'This platform doesn\'t support Runtime Shaders!', false, false, FlxColor.RED);
 		#end
@@ -715,7 +678,6 @@ class FunkinLua {
 		return Function_Continue;
 	}
 
-	// REFACTOR: body moved to LuaUtils; kept as forwarding static for external callers
 	static function addAnimByIndices(obj:String, name:String, prefix:String, indices:String, framerate:Int = 24, loop:Bool = false)
 	{
 		return LuaUtils.addAnimByIndices(obj, name, prefix, indices, framerate, loop);
@@ -766,7 +728,6 @@ class FunkinLua {
 		#end
 	}
 
-	// REFACTOR: body moved to LuaUtils; kept as forwarding static for external callers
 	public static inline function getInstance()
 	{
 		return LuaUtils.getInstance();

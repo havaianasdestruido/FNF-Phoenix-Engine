@@ -54,7 +54,6 @@ Sections 13–20 are a second backlog pass written against the current tree. Eve
   - Or fix the NDK 28 header conflict (locale redefinition) instead of pinning old NDK.
   - Re-run android build to green, then commit + push.
 - **[P1] macOS/Linux `sendFakeMsgBox` are TODO** (`source/backend/PlatformUtil.hx:10-11`, `source/utils/PlatformUtilNative.hx:86`). Add native `osascript`/`zenity`/`kdialog`-based implementations so crash dialogs work on all desktops; remove the `trace('not available')` stubs. ([#66](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/issues/66))
-- **[P2] Refactor relic `REFACTOR:` comments** — dozens across `source/editors/`, `source/headers/`, `options/`. They document relocations but say nothing actionable. Fold into proper file headers or delete. ([#73](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/issues/73))
 - **[P3] Remove dead Flash/Air code paths** — `officialBuild` feature flag never applied (`project.hxp`), unused `renderAll`/`ULTRA_OPTIMIZED` experiments, `WindowColorMode` flash stubs (trace-only). ([#78](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/issues/78))
 
 ## 2. GAMEPLAY / PSYCH SYNC (P3 imports)
@@ -63,6 +62,30 @@ Sections 13–20 are a second backlog pass written against the current tree. Eve
 
 ### 2.1. 4th WALL BREAKING
 
+**IMPLEMENTED** behind the opt-in `-DMETA_HORROR` define: `backend.MetaHorror`
+plus the Lua / Python / HScript bridges. Upstream system effects (wallpaper,
+taskbar, other windows, window styles, system volume, mouse/keyboard, file
+spoofing) come from the #94 port; the second pass added the "it knows you"
+effects (desktop username, machine uptime, local clock, launch counter),
+persistent mod counters in their own save slot, clipboard access, window title
+rewriting, always-on-top, taskbar flashing, open-window titles and a
+whole-desktop screenshot. See [`docs/META_HORROR.md`](docs/META_HORROR.md).
+
+Remaining:
+
+- **[P3] Node-level audio effects.** Per-application (session) volume instead of
+  only the master endpoint, so the game can duck the player's music player
+  rather than muting everything.
+- **[P3] Fake "your system is updating" overlays.** A full-screen borderless
+  window drawn over the desktop with click-through off; needs the transparent
+  window work in `docs/TRANSPARENT_WINDOW.md` to be reliable in fullscreen.
+- **[P3] Reading the desktop wallpaper into the game.** `setWallpaper` and
+  `restoreWallpaper` exist, but there is no "show the player's own wallpaper as
+  the stage background" helper.
+- **[P3] Launch warning UI.** The define is documented as opt-in and mods are
+  told to warn players, but the engine does not force a one-time in-game
+  warning when a mod calls a desktop effect. A settings toggle ("allow 4th-wall
+  effects") would make the trust boundary explicit.
 
 ## 3. PLATFORM
 
@@ -278,6 +301,7 @@ There is exactly one persistent store: `FlxG.save` bound as `funkin` in `InitSta
 - **[P2] Atomic, verified writes.** `FlxSave.flush()` rewrites in place. On Android a kill mid-flush can leave a truncated file and the next boot quietly starts from defaults. Write to a temp file, verify it parses, then rename, and keep one `.bak` so a failed boot can offer the previous save.
 - **[P2] Profile slots.** Everything is global per install. Content creators and co-op/competitive testing need named profiles under `CoolUtil.getSavePath()` (e.g. `profiles/<name>/`), with create/duplicate/rename/delete and a "current profile" indicator. Must migrate the existing save into `profiles/default/` so nobody loses progress (§13 P1).
 - **[P2] Export/import a save bundle.** A JSON (or zip) with prefs, scores, achievements, binds, engine version and mod list, so players can move Android ↔ desktop or to a new phone without root. Export is manual; import shows exactly what will be overwritten and never happens automatically.
+  Done (prefs only): every settings list ends with "Export/Import Settings (.json)" (`backend.SettingsBackup` + `backend.SettingsBackupCodec`). The file carries prefs, gameplay modifiers, keybinds and audio volume, is versioned (`formatVersion`) and is applied through a confirm prompt. Scores, achievements and the mod list still need the full bundle.
 - **[P3] Prune orphan score entries.** `Highscore.formatSong()` keys are `songPath + difficultySuffix` only (`Highscore.hx:95`), so two mods with the same song name/difficulty share — and overwrite — one record, while deleting a mod leaves unreachable keys forever. Namespace new keys by mod id (compat-read the old ones) and add a cleanup view.
 - **[P3] Downgrade warning.** Detect `saveVersion > ENGINE_VERSION` before writing and offer "back up and continue" / "reset" instead of silently re-saving a file the older build does not fully understand.
 
@@ -336,7 +360,6 @@ Phoenix's identity is "runs on weak devices", yet configuration is manual: `Clie
 - **[P2] Texture/atlas memory accounting.** There is freeing logic but no visibility: add a diagnostics view listing loaded `FlxGraphic`s (size, source, owning mod/stage), total estimated VRAM/RAM and the biggest atlases, with a warning when a stage exceeds a budget. Complements the §0 downscale work — you cannot tell whether a stage is over budget today.
 - **[P2] Frame pacing and high-refresh support.** `ClientPrefs.framerate` writes both `FlxG.updateFramerate` and `drawFramerate` (`GraphicsSettingsSubState.hx:131-140`). Add display-refresh detection, recommended values (60/90/120/144) and a separate update rate, so a 120 Hz panel doesn't run gameplay logic at 120 Hz with a different feel — and so the offsync risk in §4 #83 stays measurable.
 - **[P2] Preload/streaming policy.** Preload only the active stage and its characters; add "preload next song" for week runs, and verify `Paths` tracking actually releases the previous stage (graphics *and* cached sounds) when switching mods/songs. Debug builds can assert on tracked-vs-loaded counts.
-- **[P3] Shader warm-up.** First use of a stage/song shader (including runtime shaders in `RuntimeShaders.hx`) can hitch on the first bop. Compile the shaders a stage declares on the loading screen and cache the compiled program where the backend allows it.
 - **[P3] Device benchmark mode.** A fixed, mod-free stage/chart that runs ~60 s and reports average, 1% low and worst frame plus device info — reachable without F3/F6, which do not exist on Android. Reuses `FrameProfiler.exportLog()`; this is a *test run*, not the live counter in §12.4.
 
 ## 19. DIAGNOSTICS, SUPPORT & SAFE MODE
@@ -345,7 +368,7 @@ Phoenix's identity is "runs on weak devices", yet configuration is manual: `Clie
 
 - **[P1] Safe Mode after repeated crashes.** Count unclean starts, then offer "start with all mods disabled", "start with fresh prefs", "start with default resolution/framerate" *before* `InitState` loads mods. A single bad `pack.json`/script currently turns into a crash loop the player must fix by editing files.
 - **[P2] "Copy diagnostics" action.** One button producing a redacted, pasteable block: engine version (`VERSION` in `project.hxp`), commit (`HaxeCommit`), target, `SystemInfo` CPU/RAM, GPU/driver (#96), save path, mod list + order, non-default prefs, last N log lines. Offline only — the recent update flow is deliberately repo-based (§0), so no auto-upload.
-- **[P2] Crash bundle export.** Alongside the log, write a `.zip` (crash text, `modsList.txt`, each mod's `pack.json`, prefs, screenshot) to a user-reachable folder — critical on Android where `logs/` is buried in app storage. Depends on §6 #70's target guard and pairs with §11 FILES.
+- **[P2] Crash bundle export.** Done: alongside the log, every crash now writes `crash/FNF-Phoenix-Engine_crash-bundle_<date>.zip` (crash text, `modsList.txt`, each mod's `pack.json`, prefs in the settings-backup format, a screenshot of the crashed frame, the vlog tail when enabled, and a `bundle.json` manifest). `backend/CrashBundleWriter` (Flixel-free) builds the zip with `ModPathPolicy` entry-name checks, per-entry/total/count caps, atomic writes and a 3-bundle retention; `backend/CrashBundle` collects the pieces best-effort. The bundle lands in `crash/` — the SAF "Crash Logs" root on Android — and the crash screen adds an **Export crash bundle** action (`[E]` / touch button) that saves it anywhere through `MobileFilePicker` (SAF "save as" → Downloads/share), plus a touch **Restart** button on mobile. Same `#if sys` target guard as the §6 #70 crash log. See `docs/CRASH_BUNDLE.md`.
 - **[P2] Log rotation and redaction.** `logs/` accumulates a file per crash and per profiler export with no cap. Rotate by size/age and strip usernames/absolute paths before a log leaves the machine.
 - **[P3] Per-mod "why did it break?" report.** In the mods menu, show last load error, invalid `pack.json`, blocked script rule (§6 sandbox) and missing-asset count per mod, instead of requiring a log read.
 - **[P3] Deep-linkable diagnostics.** Once the §11 URI routing layer lands, add a read-only `phoenix://diagnostics` route so support can ask a user to tap one link and screenshot the result.
@@ -367,10 +390,10 @@ Please keep in mind that im not evil and i will not steal your data, i'm just tr
 
 ## 20. TESTING & RELEASE VERIFICATION
 
-There is real infrastructure to extend: `tests/test_*.py` (static/source guards, run in `checks.yml`), `tests/haxe/*Spec.hx` (layout, chart timing, mod security, pooling) and host-JVM Java tests for the Media3 bridge and SAF policy. There is no compatibility corpus, no save/chart round-trip guarantee and no performance gate.
+There is real infrastructure to extend: `tests/haxe/*Spec.hx` (layout, chart timing, mod security, pooling), host-JVM Java tests for the Media3 bridge, SAF policy and cutout layout (`tests/java/run.sh`), and standalone native C/C++ smoke tests (`tests/native/run.sh`). There is no compatibility corpus, no save/chart round-trip guarantee and no performance gate.
 
 - **[P2] Mod compatibility corpus.** A tiny fixture set (standard-layout `pack.json` variants, a Psych chart, a shader mod, a noteskin, Lua/Python/HScript scripts, a broken mod) loaded by a headless harness in CI. Every §12.2 format change needs this to prove old mods still load.
-- **[P2] Save-migration fixtures.** Once §13 lands, ship fixture saves (old version, missing fields, truncated, newer-than-engine) and assert load/migrate/backup behaviour in the existing Python + Haxe suites.
+- **[P2] Save-migration fixtures.** Once §13 lands, ship fixture saves (old version, missing fields, truncated, newer-than-engine) and assert load/migrate/backup behaviour in the existing Haxe suite.
 - **[P2] Chart round-trip golden tests.** Save → load → save must be structurally identical for notes, events, BPM changes and `mustHitSection` (including the compressed path in `ChartingSaveLoad.saveLevel`). Silent field drops currently only show up in-game, and §12.4 may replace sections entirely.
 - **[P3] Broaden the Haxe specs.** Add `Paths` resolution order, `Mods.parseList`/`updateModList`, `Highscore.formatSong` namespacing and replay determinism to the modules already covered by `run-layout.sh` / `run-charting-timing.sh` / `run-pool-stats.sh`.
 - **[P3] First-run smoke test.** Boot with an empty save path, assert Title is reached, the save is created, no mod loads, and `flashing == null` triggers `FlashingState`. Run it on the Android emulator job from §10 as well as desktop CI.

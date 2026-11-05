@@ -163,11 +163,9 @@ TransparentWindow.setEnabled(true);
 - **Never persisted.** Nothing is written to `ClientPrefs`: a mod that forgets to
   reset cannot leave the player with a permanently transparent game.
 
-## Regression tests
+## Validation
 
-```sh
-python3 -m unittest discover -s tests -p 'test_transparent_window.py' -v
-```
-
-`tests/test_transparent_window.py` pins the platform guards, the Lua/Python
-symmetry and the credits, without needing a Haxe toolchain.
+The native Windows state/ownership behavior is covered by the Win32 test double
+in `bash tests/native/run.sh`. The platform guards, Lua/Python symmetry and
+credits are exercised by a normal Windows build plus a mod that toggles
+transparency, alpha and click-through at runtime.

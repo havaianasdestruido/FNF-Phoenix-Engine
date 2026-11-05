@@ -1,6 +1,5 @@
 package editors;
 
-// REFACTOR: explicit imports for shader subtypes
 import editors.charting.ChartingUISections;
 import editors.charting.ChartingTiming;
 import shaders.RGBPalette.RGBShaderReference;
@@ -61,7 +60,6 @@ import openfl.net.FileReference;
 import openfl.utils.ByteArray;
 import shaders.RGBPalette;
 
-// REFACTOR: imports for relocated root classes
 import backend.Controls;
 import objects.Character;
 
@@ -856,19 +854,16 @@ class ChartingState extends MusicBeatState
   var stageDropDown:FlxUIDropDownMenuCustom;
   var sliderRate:FlxUISlider;
 
-  // REFACTOR: delegated to editors.charting.ChartingUISections
   function addSongUI():Void
   {
     ChartingUISections.addSongUI(this);
   }
 
-  // REFACTOR: delegated to editors.charting.ChartingSaveLoad
   function songJsonPopup()
   {
     ChartingSaveLoad.songJsonPopup(this);
   }
 
-  // REFACTOR: delegated to editors.charting.ChartingSaveLoad
   function promptBackup()
   {
     ChartingSaveLoad.promptBackup(this);
@@ -883,7 +878,6 @@ class ChartingState extends MusicBeatState
   var creditIconInputText:FlxUIInputText;
   var winNameInputText:FlxUIInputText;
 
-  // REFACTOR: delegated to editors.charting.ChartingUISections
   function addSongDataUI():Void // therell be more added here later
   {
     ChartingUISections.addSongDataUI(this);
@@ -908,7 +902,6 @@ class ChartingState extends MusicBeatState
   var deleteSecEnd:FlxUINumericStepper;
   var deleteSections:FlxButton;
 
-  // REFACTOR: delegated to editors.charting.ChartingUISections
   function addSectionUI():Void
   {
     ChartingUISections.addSectionUI(this);
@@ -919,7 +912,6 @@ class ChartingState extends MusicBeatState
   var noteTypeDropDown:FlxUIDropDownMenuCustom;
   var currentType:Int = 0;
 
-  // REFACTOR: delegated to editors.charting.ChartingUISections
   function addNoteUI():Void
   {
     ChartingUISections.addNoteUI(this);
@@ -931,7 +923,6 @@ class ChartingState extends MusicBeatState
   var stepperStackSideOffset:FlxUINumericStepper;
   var stepperShrinkAmount:FlxUINumericStepper;
 
-  // REFACTOR: delegated to editors.charting.ChartingUISections
   function addNoteStackingUI():Void
   {
     ChartingUISections.addNoteStackingUI(this);
@@ -943,19 +934,16 @@ class ChartingState extends MusicBeatState
   var event7DropDown:FlxUIDropDownMenuCustom;
   var event7InputText:FlxUIInputText;
 
-  // REFACTOR: delegated to editors.charting.ChartingUISections
   function addEventsUI():Void
   {
     ChartingUISections.addEventsUI(this);
   }
 
-  // REFACTOR: delegated to editors.charting.ChartingEvents
   function changeEventSelected(change:Int = 0)
   {
     ChartingEvents.changeEventSelected(this, change);
   }
 
-  // REFACTOR: delegated to editors.charting.ChartingEvents
   function setAllLabelsOffset(button:FlxButton, x:Float, y:Float)
   {
     ChartingEvents.setAllLabelsOffset(button, x, y);
@@ -975,7 +963,6 @@ class ChartingState extends MusicBeatState
   var voicesOppVolume:FlxUINumericStepper;
   var hitsoundVolume:FlxUINumericStepper;
 
-  // REFACTOR: delegated to editors.charting.ChartingUISections
   function addChartingUI()
   {
     ChartingUISections.addChartingUI(this);
@@ -1216,7 +1203,6 @@ class ChartingState extends MusicBeatState
 
   var updatedSection:Bool = false;
 
-  // REFACTOR: delegated to editors.charting.ChartingUIGrid
   function sectionStartTime(add:Int = 0):Float
   {
     return ChartingUIGrid.sectionStartTime(this, add);
@@ -1990,7 +1976,6 @@ class ChartingState extends MusicBeatState
     lilOpp.animation.play("idle");
   }
 
-  // REFACTOR: delegated to editors.charting.ChartingUIGrid
   function updateZoom()
   {
     ChartingUIGrid.updateZoom(this);
@@ -2006,13 +1991,11 @@ class ChartingState extends MusicBeatState
   var lastGridHasNext:Bool = false;
   var lastGridBGHeight:Int = -1;
 
-  // REFACTOR: delegated to editors.charting.ChartingUIGrid
   function reloadGridLayer()
   {
     ChartingUIGrid.reloadGridLayer(this);
   }
 
-  // REFACTOR: delegated to editors.charting.ChartingUIGrid
   function strumLineUpdateY()
   {
     ChartingUIGrid.strumLineUpdateY(this);
@@ -2026,20 +2009,17 @@ class ChartingState extends MusicBeatState
   var waveformCacheBuffer:AudioBuffer = null;
   var waveformCacheBytes:Bytes = null;
 
-  // REFACTOR: delegated to editors.charting.ChartingUIWaveform
   function updateWaveform()
   {
     ChartingUIWaveform.updateWaveform(this);
   }
 
-  // REFACTOR: delegated to editors.charting.ChartingUIWaveform
   function waveformData(buffer:AudioBuffer, bytes:Bytes, time:Float, endTime:Float, multiply:Float = 1, ?array:Array<Array<Array<Float>>>,
       ?steps:Float):Array<Array<Array<Float>>>
   {
     return ChartingUIWaveform.waveformData(buffer, bytes, time, endTime, multiply, array, steps);
   }
 
-  // REFACTOR: delegated to editors.charting.ChartingEvents
   function changeNoteSustain(value:Float):Void
   {
     ChartingEvents.changeNoteSustain(this, value);
@@ -2218,145 +2198,121 @@ class ChartingState extends MusicBeatState
     return cast Json.parse(rawJson);
   }
 
-  // REFACTOR: delegated to editors.charting.ChartingUIGrid
   function updateNoteUI():Void
   {
     ChartingUIGrid.updateNoteUI(this);
   }
 
-  // REFACTOR: delegated to editors.charting.ChartingUIGrid
   function updateGrid(?andNext:Bool = true, ?onlyEvents:Bool = false):Void
   {
     ChartingUIGrid.updateGrid(this, andNext, onlyEvents);
   }
 
-  // REFACTOR: delegated to editors.charting.ChartingUIGrid
   function setupNoteData(i:Array<Dynamic>, isNextSection:Bool):Note
   {
     return ChartingUIGrid.setupNoteData(this, i, isNextSection);
   }
 
-  // REFACTOR: delegated to editors.charting.ChartingUIGrid
   function getEventName(names:Array<Dynamic>):String
   {
     return ChartingUIGrid.getEventName(names);
   }
 
-  // REFACTOR: delegated to editors.charting.ChartingUIGrid
   function setupSusNote(note:Note, section:Int):FlxSprite
   {
     return ChartingUIGrid.setupSusNote(this, note, section);
   }
 
-  // REFACTOR: delegated to editors.charting.ChartingUIGrid
   private function addSection(sectionBeats:Float = 4):Void
   {
     ChartingUIGrid.addSection(this, sectionBeats);
   }
 
-  // REFACTOR: delegated to editors.charting.ChartingEvents
   function selectNote(note:Note, ?updateTheGrid:Bool = true):Void
   {
     ChartingEvents.selectNote(this, note, updateTheGrid);
   }
 
-  // REFACTOR: delegated to editors.charting.ChartingEvents
   function deleteNote(note:Note, ?usingVortex:Bool = false):Void
   {
     ChartingEvents.deleteNote(this, note, usingVortex);
   }
 
-  // REFACTOR: delegated to editors.charting.ChartingEvents
   public function doANoteThing(cs, d, style)
   {
     ChartingEvents.doANoteThing(this, cs, d, style);
   }
 
-  // REFACTOR: delegated to editors.charting.ChartingEvents
   function clearSong():Void
   {
     ChartingEvents.clearSong(this);
   }
 
-  // REFACTOR: delegated to editors.charting.ChartingEvents
   private function addNote(strum:Null<Float> = null, data:Null<Int> = null, type:Null<Int> = null, ?gridUpdate:Bool = true):Void
   {
     ChartingEvents.addNote(this, strum, data, type, gridUpdate);
   }
 
-  // REFACTOR: delegated to editors.charting.ChartingEvents
   function redo()
   {
     ChartingEvents.redo(this);
   }
 
-  // REFACTOR: delegated to editors.charting.ChartingUIGrid
   function getStrumTime(yPos:Float):Float
   {
     return ChartingUIGrid.getStrumTime(this, yPos);
   }
 
-  // REFACTOR: delegated to editors.charting.ChartingUIGrid
   function getYfromStrum(strumTime:Float):Float
   {
     return ChartingUIGrid.getYfromStrum(this, strumTime);
   }
 
-  // REFACTOR: delegated to editors.charting.ChartingUIGrid
   function getYfromStrumNotes(strumTime:Float, beats:Float, section:Int, sectionTop:Float):Float
   {
     return ChartingUIGrid.getYfromStrumNotes(this, strumTime, beats, section, sectionTop);
   }
 
-  // REFACTOR: delegated to editors.charting.ChartingSaveLoad
   public function saveUndo(songData:SwagSong)
   {
     ChartingSaveLoad.saveUndo(this, songData);
   }
 
-  // REFACTOR: delegated to editors.charting.ChartingSaveLoad
   public function undo()
   {
     ChartingSaveLoad.undo(this);
   }
 
-  // REFACTOR: delegated to editors.charting.ChartingSaveLoad
   function getNotes():Array<Dynamic>
   {
     return ChartingSaveLoad.getNotes(this);
   }
 
-  // REFACTOR: delegated to editors.charting.ChartingSaveLoad
   function loadJson(song:String, ?diff:String = ''):Void
   {
     ChartingSaveLoad.loadJson(this, song, diff);
   }
 
-  // REFACTOR: delegated to editors.charting.ChartingSaveLoad
   function clearEvents()
   {
     ChartingSaveLoad.clearEvents(this);
   }
 
-  // REFACTOR: delegated to editors.charting.ChartingSaveLoad
   private function saveLevel(?compressed:Bool = false, ?isAuto:Bool = false)
   {
     ChartingSaveLoad.saveLevel(this, compressed, isAuto);
   }
 
-  // REFACTOR: delegated to editors.charting.ChartingSaveLoad
   function sortByTime(Obj1:Array<Dynamic>, Obj2:Array<Dynamic>):Int
   {
     return ChartingSaveLoad.sortByTime(Obj1, Obj2);
   }
 
-  // REFACTOR: delegated to editors.charting.ChartingSaveLoad
   private function saveEvents()
   {
     ChartingSaveLoad.saveEvents(this);
   }
 
-  // REFACTOR: delegated to editors.charting.ChartingSaveLoad
   function onSaveComplete(_):Void
   {
     ChartingSaveLoad.onSaveComplete(this, _);
@@ -2365,19 +2321,16 @@ class ChartingState extends MusicBeatState
   /**
    * Called when the save file dialog is cancelled.
    */
-  // REFACTOR: delegated to editors.charting.ChartingSaveLoad
   function onSaveCancel(_):Void
   {
     ChartingSaveLoad.onSaveCancel(this, _);
   }
 
-  // REFACTOR: delegated to editors.charting.ChartingSaveLoad
   function onSaveError(_):Void
   {
     ChartingSaveLoad.onSaveError(this, _);
   }
 
-  // REFACTOR: delegated to editors.charting.ChartingUIGrid
   function getSectionBeats(?section:Null<Int> = null)
   {
     return ChartingUIGrid.getSectionBeats(this, section);

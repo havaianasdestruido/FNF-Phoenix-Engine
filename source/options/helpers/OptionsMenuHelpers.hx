@@ -1,6 +1,5 @@
 package options.helpers;
 
-// REFACTOR: option-row building extracted from options.BaseOptionsMenu
 import options.BaseOptionsMenu;
 import options.Option;
 import backend.ScreenLayout;
@@ -10,7 +9,6 @@ import objects.Alphabet;
 import objects.AttachedText;
 import objects.CheckboxThingie;
 
-// REFACTOR: option-row building extracted from source/options/BaseOptionsMenu.hx
 // (duplicated in new() and regenList() -> now delegated here)
 @:access(options.BaseOptionsMenu)
 class OptionsMenuHelpers

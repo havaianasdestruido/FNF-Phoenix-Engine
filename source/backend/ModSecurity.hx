@@ -55,7 +55,15 @@ class ModSecurity
 		'addLuaScript' => 'engine.script-loader',
 		'addPythonScript' => 'engine.script-loader',
 		'addHScript' => 'engine.script-loader',
-		'addScript' => 'engine.script-loader'
+		'addScript' => 'engine.script-loader',
+		// #94 follow-up: the 4th-wall API can inspect the player's desktop.
+		// Reading/replacing the OS clipboard and screenshotting every monitor
+		// are exactly the exfiltration paths a sandbox exists to block, so
+		// they need an explicit allowlist entry like file access does.
+		'getClipboardText' => 'engine.clipboard',
+		'setClipboardText' => 'engine.clipboard',
+		'getOpenWindowTitles' => 'engine.window-list',
+		'captureDesktop' => 'engine.screen-capture'
 	];
 
 	static var configCache:Map<String, ModSandboxConfig> = [];

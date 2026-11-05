@@ -1,6 +1,5 @@
 package states.helpers;
 
-// REFACTOR: song list generation/search, selection/difficulty and playback logic extracted from states.FreeplayState (behavior-preserving)
 import backend.ClientPrefs;
 import backend.ScreenLayout;
 import backend.CoolUtil;
@@ -33,7 +32,6 @@ import states.StoryMenuState;
 import sys.io.File;
 #end
 
-// REFACTOR: imports for relocated root classes
 import data.Section;
 import objects.Character;
 import objects.Note;

@@ -42,6 +42,9 @@ finding.
 | `engine.file-read` | `getTextFromFile`, `checkFileExists`, `directoryFileList` |
 | `engine.file-write` | `saveFile`, `deleteFile` |
 | `engine.script-loader` | `addLuaScript`, `addPythonScript`, `addScript` |
+| `engine.clipboard` | reading or replacing the OS clipboard (`getClipboardText`, `setClipboardText`) |
+| `engine.window-list` | listing the titles of other open windows (`getOpenWindowTitles`) |
+| `engine.screen-capture` | screenshotting the whole desktop (`captureDesktop`) |
 | `engine.native-class` | reflection into `Sys`, `sys.*`, `cpp.*`, `ModSecurity`, native platform classes, etc. |
 | `haxe.process` | `Sys.command`, `Sys.exit`, `sys.io.Process` in HScript (standalone or embedded) |
 | `haxe.filesystem` | `sys.io.File`, `sys.FileSystem` in HScript (standalone or embedded) |
