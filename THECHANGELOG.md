@@ -15,6 +15,10 @@ Highlights from the 0.0.1 release line:
 - Widescreen layout, gameplay sprite pooling, chart-editor timing fixes and
   sandboxed Lua/Python/HScript softmod scripts.
 - .zip mod import from the Mods menu and the bf-clicker example mod.
+- Shader warm-up: the shaders a stage declares (`StageFile.shaders`,
+  `BaseStage.declareShaders()`), the song-level Pulse shader and every runtime
+  shader a script creates while loading are compiled on the loading screen
+  instead of on the first bop (`shaders.ShaderWarmup`).
 
 Earlier Phoenix prereleases: v0.0.1-alpha, v0.0.1-beta and v0.0.1-pre1.
 This file is historical. Release notes are maintained on GitHub Releases;

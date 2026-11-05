@@ -1,6 +1,7 @@
 package psychlua.callbacks;
 
 import shaders.ErrorHandledShader.ErrorHandledRuntimeShader;
+import shaders.ShaderWarmup;
 
 import backend.ClientPrefs;
 import backend.Paths;
@@ -48,6 +49,11 @@ class ShaderCallbacks
 			if(leObj != null) {
 				var arr:Array<String> = game.runtimeShaders.get(shader);
 				leObj.shader = new ErrorHandledRuntimeShader(shader, arr[0], arr[1]);
+				#if !neko
+				// [P3] Shader warm-up: scripts run during the loading screen, so
+				// compile this instead of paying for it on its first draw.
+				ShaderWarmup.track(leObj.shader);
+				#end
 				return true;
 			}
 			#else
@@ -88,6 +94,10 @@ class ShaderCallbacks
             if (camera.filters == null)
                 camera.filters = [];
 				final filter = new ShaderFilter(new ErrorHandledRuntimeShader(shader, arr[0], arr[1]));
+				#if !neko
+				// [P3] Shader warm-up: see setSpriteShader above.
+				ShaderWarmup.track(filter.shader);
+				#end
 				FunkinLua.storedFilters.set(index, filter);
 				camera.filters.push(filter);
             }

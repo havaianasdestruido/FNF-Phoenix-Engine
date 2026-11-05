@@ -1,6 +1,7 @@
 package play.helpers;
 
 import shaders.ErrorHandledShader.ErrorHandledRuntimeShader;
+import shaders.ShaderWarmup;
 
 import backend.ClientPrefs;
 import backend.Paths;
@@ -29,7 +30,13 @@ class PlayStateScripts
 		}
 
 		var arr:Array<String> = state.runtimeShaders.get(shaderName);
-		return new ErrorHandledRuntimeShader(shaderName, arr[0], arr[1]);
+		var shader = new ErrorHandledRuntimeShader(shaderName, arr[0], arr[1]);
+		// [P3] Shader warm-up: compile it with the stage's shaders while the
+		// state is loading instead of on the frame that first draws it.
+		#if !neko
+		ShaderWarmup.track(shader);
+		#end
+		return shader;
 		#else
 		FlxG.log.warn("Platform unsupported for Runtime Shaders!");
 		return null;
