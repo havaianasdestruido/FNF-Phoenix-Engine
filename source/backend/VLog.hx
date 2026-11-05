@@ -45,12 +45,6 @@ package backend;
  * never loses more than a quarter second of log. Paths and local usernames are
  * redacted before disk writes and exports; the 10 MiB live file rotates by
  * size/age and keeps at most two backups.
- *
- * Even with the vlog off, the last `TAIL_MAX_CHARS` of the session log are
- * kept in memory (traces, boot lines, state changes, crashes) so
- * `Options -> Misc -> "Copy Diagnostics"` can attach a log tail without
- * writing anything to disk and without asking the player to enable the vlog
- * first. Nothing is ever uploaded: the copy goes to the system clipboard.
  */
 
 import flixel.FlxG;
@@ -94,14 +88,6 @@ class VLog
   /** Emit the detailed per-area RAM breakdown line at most once per N frames. */
   static inline final RAM_DETAIL_EVERY_N_FRAMES:Int = 60;
 
-  /**
-   * Size of the always-on in-memory tail (64 KiB). It is recorded whether or
-   * not a vlog session is open, so "Copy Diagnostics" can quote the end of
-   * the session log on a default install; it is a plain `StringBuf` with no
-   * allocation per frame beyond the lines this class already handles.
-   */
-  static inline final TAIL_MAX_CHARS:Int = 65536;
-
   // -- Session state ---------------------------------------------------------
 
   static var initialized:Bool = false;
@@ -112,14 +98,6 @@ class VLog
   static var lastFlushMs:Float = 0.0;
   static var flushCount:Int = 0;
   static var rotationInProgress:Bool = false;
-
-  /**
-   * End of the session log, kept even while the vlog is off (see
-   * `recentText()`). Bounded by `TAIL_MAX_CHARS`; `tailChars` counts the
-   * characters appended since the last trim so the length check stays O(1).
-   */
-  static var tailBuffer:StringBuf = new StringBuf();
-  static var tailChars:Int = 0;
 
   static var frameIndex:Int = 0;
   static var targetMs:Float = 1000.0 / 60.0;
@@ -195,9 +173,7 @@ class VLog
     bootMs = nowMs();
     bootTargetFps = (targetFps > 0.0) ? targetFps : 60.0;
     if (startEnabled != null) enabled = startEnabled;
-    if (initialized) return;
-    seedTail();
-    if (!enabled) return;
+    if (!enabled || initialized) return;
     startSession();
   }
 
@@ -314,23 +290,12 @@ class VLog
    * Appends one tagged line to the vlog. Safe to call from anywhere: lines
    * are buffered and flushed at most every 250 ms, and on web/flash they
    * accumulate in the capped in-memory buffer.
-   *
-   * The always-on tail is recorded even when no session is open, which is
-   * what lets "Copy Diagnostics" quote the end of the session on a default
-   * install without writing a file; `buffer` and the flush are still
-   * session-only, so nothing reaches `vlog/log.txt` unless the player enabled
-   * it.
    */
   public static function log(tag:String, message:String):Void
   {
-    final line:String = formatLine(tag, message);
-    // The tail is recorded from the same formatted line as the file, so a
-    // later diagnostics copy reads exactly like vlog/log.txt.
-    appendTail(line);
-
     if (!initialized) return;
 
-    buffer.add(line);
+    buffer.add(formatLine(tag, message));
     // The buffer is bounded on every target: file targets flush it every
     // 250 ms, while web/flash (and a session without a writable vlog/)
     // drop the oldest half once it grows too large.
@@ -455,6 +420,7 @@ class VLog
   /** Logs a state switch (called from `FlxGame.switchState`). */
   public static function stateChanged(?from:String, to:String):Void
   {
+    if (!initialized) return;
     if (from == null || from.length == 0)
       log('STATE', 'entered ' + to);
     else
@@ -472,6 +438,7 @@ class VLog
    */
   public static function logMemoryDetail():Void
   {
+    if (!initialized) return;
     log('RAM', MemoryLedger.formatDetailed(MemoryLedger.snapshot(heapUsedBytes(), lastRssBytes)));
   }
 
@@ -481,6 +448,7 @@ class VLog
    */
   public static function assetCached(kind:String, key:String, detail:String = ''):Void
   {
+    if (!initialized) return;
     assetEvents++;
     log('ASSET ' + kind.toUpperCase(), key + (detail.length > 0 ? ' | ' + detail : ''));
   }
@@ -488,6 +456,7 @@ class VLog
   /** Records a memory-management event (clears, explicit GC, low memory…). */
   public static function memoryEvent(message:String):Void
   {
+    if (!initialized) return;
     log('MEMORY', message);
   }
 
@@ -498,6 +467,7 @@ class VLog
    */
   public static function scriptTrace(language:String, message:String):Void
   {
+    if (!initialized) return;
     traceLines++;
     log('TRACE ' + language, message);
   }
@@ -509,6 +479,7 @@ class VLog
    */
   public static function crash(message:String, stack:String = ''):Void
   {
+    if (!initialized) return;
     log('CRASH', message);
     if (stack != null && stack.length > 0) log('CRASH STACK', stack);
     try
@@ -551,68 +522,6 @@ class VLog
     }
     catch (_:Dynamic) {}
     #end
-  }
-
-  /**
-   * The end of the session log as text, newest last — available whether or
-   * not a vlog session is open.
-   *
-   * When the vlog is on, this is `exportText()` (the whole file plus the
-   * unflushed buffer) and the caller slices the end itself. When it is off,
-   * the always-on in-memory tail is returned instead, so "Copy Diagnostics"
-   * still has a few hundred lines of context on a default install.
-   */
-  public static function recentText():String
-  {
-    if (initialized)
-    {
-      #if sys
-      // Only the end of the file is needed, and the file can be up to
-      // MAX_LOG_BYTES: reading the last TAIL_MAX_CHARS keeps a copy on a weak
-      // device from allocating the whole log just to throw it away.
-      if (fileReady)
-      {
-        final tail:String = readFileTail(FILE, TAIL_MAX_CHARS);
-        if (tail != null) return tail + buffer.toString();
-      }
-      #end
-      return exportText();
-    }
-    return tailBuffer.toString();
-  }
-
-  /**
-   * Reads at most the last `maxChars` of `path`, starting on a line boundary.
-   *
-   * The first line is dropped when the read started mid-file: half a stack
-   * frame reads like corruption in a pasted report. Returns null when the
-   * file cannot be read, so the caller can fall back.
-   */
-  static function readFileTail(path:String, maxChars:Int):String
-  {
-    #if sys
-    try
-    {
-      if (!FileSystem.exists(path)) return null;
-      final size:Int = FileSystem.stat(path).size;
-      if (size <= 0) return '';
-      final start:Int = (size > maxChars) ? size - maxChars : 0;
-      final input:sys.io.FileInput = File.read(path, false);
-      var text:String = '';
-      try
-      {
-        if (start > 0) input.seek(start, sys.io.FileSeek.SeekBegin);
-        text = input.readAll().toString();
-      }
-      catch (_:Dynamic) {}
-      input.close();
-      if (start == 0) return text;
-      final cut:Int = text.indexOf('\n');
-      return (cut == -1) ? '' : text.substr(cut + 1);
-    }
-    catch (_:Dynamic) {}
-    #end
-    return null;
   }
 
   /** The full log as text (reads the file on file targets, buffer on web). */
@@ -770,59 +679,6 @@ class VLog
     if (file.contains('hscript')) return 'HScript';
     return 'Engine';
   }
-
-  /**
-   * Writes the one-line boot header into the always-on tail.
-   *
-   * With the vlog off nothing else marks the start of the run, so a
-   * diagnostics copy taken before any other event would show only its own
-   * `[BOOT]` line. The header costs one line of memory and is the same
-   * information `vlog/log.txt` starts with; it is never written to disk.
-   */
-  static function seedTail():Void
-  {
-    #if debug
-    final buildKind:String = 'debug';
-    #else
-    final buildKind:String = 'release';
-    #end
-    log('BOOT', 'engine: Phoenix v' + engineVersion() + ' | target: ' + platformLabel()
-      + ' (' + buildKind + ' build) | vlog off (Options -> Misc)');
-  }
-
-  /**
-   * Appends to the always-on tail, trimming it once it outgrew
-   * `TAIL_MAX_CHARS`. Trimming keeps the newest half (plus any line the cut
-   * split, which `DiagnosticsReport.tail` drops again on the way out).
-   */
-  static function appendTail(line:String):Void
-  {
-    tailBuffer.add(line);
-    tailChars += line.length;
-    if (tailChars <= TAIL_MAX_CHARS) return;
-
-    final full:String = tailBuffer.toString();
-    final keep:Int = Std.int(TAIL_MAX_CHARS / 2);
-    // Not Math.max(): it returns Float, and substr() wants an Int (same
-    // reason truncateBuffer() derives its half-point explicitly).
-    var start:Int = (full.length > keep) ? full.length - keep : 0;
-    // Snap forward to the next line boundary, so `recentText()` always starts
-    // on a whole line instead of half a stack frame. `DiagnosticsReport.tail`
-    // drops a cut continuation line as well; this is the cheaper first cut.
-    final boundary:Int = full.indexOf('\n', start);
-    if (boundary != -1) start = boundary + 1;
-    tailBuffer = new StringBuf();
-    tailBuffer.add(full.substr(start));
-    tailChars = tailBuffer.length;
-  }
-
-  /** True while a vlog session is open, i.e. the file is being written. */
-  public static function isRecording():Bool
-    return initialized;
-
-  /** Where the live log is written, relative to the working directory. */
-  public static function filePath():String
-    return FILE;
 
   /** Drops the oldest half of the in-memory buffer (keeps it bounded). */
   static function truncateBuffer():Void
