@@ -251,7 +251,9 @@ FNF-JS-Engine-Light/
   **não** incluem `source/`, `project.hxp` nem o próprio workflow: se incluírem, cada commit
   cria um snapshot novo de 140–370 MB e as entradas só se acumulam. O save usa a **mesma**
   chave do restore (`cache-hit` só é true com match exato), então o cache é rolante. PRs só
-  leem; `push`/`workflow_dispatch`/`workflow_call` salvam. Quem mexe nisso roda
+  leem; `push`/`workflow_dispatch`/`workflow_call` salvam. Gradle é cacheado à mão em
+  `~/.gradle/caches` (nunca `cache: gradle` do setup-java: ele hasheia um projeto que o Lime
+  só gera durante o build, então erra sempre e salva 512 MB por PR). Quem mexe nisso roda
   `bash tests/haxe/run-build-cache-policy.sh` (roda em `checks.yml`, sem toolchain). Cabeçalho
   nativo novo precisa de `<depend>` no `build.xml` respectivo, senão o objeto cacheado fica
   com o código antigo.

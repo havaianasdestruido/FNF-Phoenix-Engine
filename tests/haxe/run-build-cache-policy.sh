@@ -160,10 +160,37 @@ for name in "Install haxelib dependencies (Android)" "Install haxelib dependenci
 done
 
 # ---------------------------------------------------------------------------
+# 5b. Gradle follows the same rule. setup-java's `cache: gradle` hashes a
+#     Gradle project that Lime only generates during the build, so it missed
+#     on every PR and saved a 512 MB snapshot per PR scope.
+# ---------------------------------------------------------------------------
+# Match the actual input line, not the explanation above it.
+if grep -qE '^          cache: gradle$' "$workflow"; then
+  fail "setup-java's cache: gradle cannot hit (Lime generates the Gradle project); use the rolling Gradle cache instead"
+fi
+have_step "Restore Gradle cache"
+have_step "Save Gradle cache"
+gradle_restore=$(step "Restore Gradle cache")
+gradle_save=$(step "Save Gradle cache")
+gradle_key=$(field key "$gradle_restore")
+[ "$gradle_key" = "$(field key "$gradle_save")" ] || fail "Gradle save must reuse the restore key"
+case "$gradle_key" in
+  *'env.CACHE_SCHEMA'*gradle*'matrix.cache_name'*'runner.os'*hashFiles*'hmm.json'*'build.gradle'*) ;;
+  *) fail "Gradle key must be content-derived per target: $gradle_key" ;;
+esac
+case "$(field path "$gradle_restore")" in
+  *.gradle/caches|*gradle-home.outputs.dir*) ;;
+  *) fail "Gradle cache must point at the Gradle user home caches dir" ;;
+esac
+if grep -q "installation/" <<<"$gradle_key"; then
+  fail "Gradle key must not track generated project output"
+fi
+
+# ---------------------------------------------------------------------------
 # 6. Write policy: PR runs are read-only, every other trigger refreshes the
 #    shared entry (workflow_call covers the release workflows).
 # ---------------------------------------------------------------------------
-for name in "Save haxelib and hxcpp tools" "Save hxcpp object cache"; do
+for name in "Save haxelib and hxcpp tools" "Save hxcpp object cache" "Save Gradle cache"; do
   guard=$(step_if "$(step "$name")")
   case "$guard" in
     *"github.event_name != 'pull_request'"*) ;;
