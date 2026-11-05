@@ -197,9 +197,10 @@ class DeepLinks
         }
         true;
       case Diagnostics:
-        // Deep-linkable diagnostics — read-only report screen
-        // For now, route to main menu with a flag that TitleState can pick up
-        FlxG.switchState(MainMenuState.new);
+        // The report page only reads: it writes no file, changes no preference,
+        // starts no song and frees nothing, which is exactly why a stranger can
+        // be asked to tap it. Built by backend.DiagnosticsReport.
+        FlxG.switchState(() -> new states.DiagnosticsState());
         true;
       case Replay(id):
         CoolUtil.coolError('Replay playback not yet implemented (id: $id)', 'Deep Link');

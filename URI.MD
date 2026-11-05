@@ -17,7 +17,7 @@ custom scheme, **not** an HTTPS Android App Link or iOS Universal Link; there is
 no website ownership verification or web fallback. Another installed app can
 claim the same scheme.
 
-### Complete supported route table
+### Menu route table
 
 | Canonical URI | Short alias | Destination |
 | --- | --- | --- |
@@ -32,6 +32,10 @@ claim the same scheme.
 Misc is the existing settings substate, not a new standalone menu. Back closes
 Misc into Options; Back from Options returns to Main Menu. In builds without
 `MODS_ALLOWED`, the Mods route falls back to Main Menu.
+
+This table is complete **for version 1**: every row must keep working forever.
+Version 2 adds the resource and support routes listed under
+“Version 2: resources and support” further down.
 
 ### Grammar and validation
 
@@ -63,6 +67,86 @@ phoenix://song/test
 Links never install/enable mods, load a filesystem path, run scripts or commands,
 change preferences, download content, or start a song. The parser returns only
 an allowlisted internal route; it never resolves a class from external text.
+(The version 2 routes below add one thing to that list: a `song` link starts a
+chart **only** after the normal chart lookup finds it.)
+
+## Version 2: resources and support
+
+Version 2 keeps every version 1 link working and adds structured hosts, parsed
+by `PhoenixURI.parseEx`. `PhoenixURI.parse` still returns only the version 1
+menu names, so anything written against v1 is unaffected.
+
+```text
+URI      = "phoenix://" host ["/" segment]* ["/"] ["?" query]
+host     = "menu" | menuName | "screen" | "song" | "mod" | "diagnostics" | "replay"
+menuName = "main" | "mods" | "options" | "misc" | "story" | "freeplay" | "credits"
+segment  = [A-Za-z0-9_-]+
+query    = key "=" value *( "&" key "=" value )
+```
+
+| Canonical URI | Short alias | Destination |
+| --- | --- | --- |
+| `phoenix://menu/<menuName>` | `phoenix://<menuName>` | the version 1 menu routes |
+| `phoenix://screen/<menuName>` | — | same destinations as `menu/…`, for readers that expect a path |
+| `phoenix://song/<song>?difficulty=<name>` | — | starts that chart in Freeplay, after the normal lookup confirms it exists |
+| `phoenix://mod/<modId>` | `phoenix://mod/<modId>/song/<song>` | Mods manager with that folder focused (and the song, when it exists) |
+| `phoenix://diagnostics` | `phoenix://screen/diagnostics` | the read-only diagnostics page |
+| `phoenix://replay/<id>` | — | reserved: says “not implemented” instead of pretending to play |
+
+Segment counts are exact, and a query parameter is only read where it means
+something (`difficulty` on `song`), so `phoenix://song`,
+`phoenix://menu/misc/extra` and `phoenix://diagnostics/all` are all invalid. A
+missing chart or song is reported and lands on Main Menu; nothing is installed,
+downloaded or enabled, and no path outside `mods/` and the bundled assets is
+ever resolved from link text.
+
+### `phoenix://diagnostics` — one link, one screenshot
+
+This route exists so a support thread can ask for a single tap instead of a
+walk-through. It is read-only **by construction**, so nobody has to trust the
+person tapping it:
+
+```html
+<a href="phoenix://diagnostics">Show my Phoenix diagnostics</a>
+```
+
+- **Nothing is written.** No file, no preference, no save data, no registry, no
+  download. The page even skips the `Paths.clearUnusedMemory()` a menu normally
+  runs on entry, because freeing cached assets would rewrite the memory numbers
+  the screenshot is supposed to show.
+- **Nothing is executed.** It resolves no path from link text, runs no script
+  and starts no song. The route takes **no parameters at all**: a
+  `phoenix://diagnostics?copy=1` style link is rejected as malformed rather
+  than accepted and ignored, so a mistyped link cannot half-work.
+- **It never interrupts a session.** Like every other route it is queued, and
+  only an idle Title or Main Menu opens it (see “Startup and lifecycle
+  behavior”); gameplay, pause, editors, Options, Mods, Story, Freeplay and
+  Credits keep it pending until you return to the Main Menu.
+
+The page (`states.DiagnosticsState`, text from `backend.DiagnosticsReport`)
+takes one snapshot when it opens and re-reads it on `R`. `C` — or `A` on a
+controller — puts the same text on the clipboard for a bug report; `ESC`/`B`
+returns to the Main Menu. The sections:
+
+| Section | Rows |
+| --- | --- |
+| `BUILD` | Phoenix version, JSE/Psych markers, git commit, target, architecture, feature flags, launch arguments |
+| `HARDWARE` | OS, CPU model/vendor/cores, total RAM, GPU model/vendor/driver, graphics and audio API |
+| `RUNTIME` | game size, scale mode, framerate targets, uptime, heap, process and peak RSS, current state |
+| `FILES` | working directory, save-data id, session log path and whether it is live, crash folder, mods folder, Windows handler registration |
+| `MODS` | enabled mods in load order (first 10, then a count), disabled ones, folders the engine rejected, active mod directory |
+| `SETTINGS` | the preferences that change feel or performance: resolution/widescreen, framerate, quality and shaders, optimization, scroll and ghost tap, note skins, debug aids, update checks/Discord/deeplink opt-in, anti-cheat |
+| `RECENT LOG` | the last 10 lines of `vlog/log.txt` plus anything still buffered, in the redacted form the log keeps, or how to turn VLog on |
+
+Every section is guarded, so a value the target cannot report (no render
+context, no native memory query, unwritable storage) prints as `unavailable` or
+`not reported here` instead of taking the page down. Log lines arrive as
+`backend.LogUtils` left them (home directories, usernames and absolute paths
+already replaced), because that is how VLog stores them; the paths this report
+prints itself are **not** rewritten, so they can contain the player's username and
+the footer says to redact before posting. The page uploads nothing anywhere. On Windows the link only arrives when this copy owns
+the handler (Options → Misc → Toggle Deeplink); Android and iOS accept it cold
+or warm like any other route.
 
 ## Startup and lifecycle behavior
 
@@ -190,10 +274,18 @@ Dependency-free parser tests (Haxe required; no engine haxelibs):
 
 ```sh
 bash tests/uri/run.sh
+bash tests/haxe/run-diagnostics-report.sh
+python3 -m unittest tests.test_deeplink_diagnostics
 ```
 
-The runner isolates the parser from `source/import.hx`. Tests cover every route
-and alias, case, slashes, malformed input, injection-shaped input and size limits.
+The first runner isolates the parser from `source/import.hx`; its tests cover every
+route and alias, case, slashes, malformed input, injection-shaped input and size
+limits. The second compiles `backend.DiagnosticsReport` and
+`states.DiagnosticsState` against the stubs in `tests/haxe/stubs/diagnostics`, so
+the section layout, the bounded log tail, the scroll bounds and the "nothing was
+written" promise are executed rather than eyeballed. The third needs no Haxe at
+all: it pins the source-level rules the compiler cannot see (which states may
+dispatch, that the page writes no files, that both documents still agree).
 
 Build with the normal SDK/toolchains:
 
@@ -222,16 +314,22 @@ Before release, test on **each platform**:
    no verification, no popup) while links still route; uncheck it and confirm the
    handler is gone and the checkbox survives a restart as off.
 
-Implementation environment: native builds and Haxe parser execution could not
-be run in the editing sandbox (Haxe/haxelib and platform SDKs unavailable;
-compiler downloads were blocked). The above runtime checks remain required.
+Implementation environment: the parser tests, the diagnostics specs and the whole
+Python guard suite were compiled and run in the editing sandbox against a Haxe
+compiler installed from npm. What was **not** done there: native builds (no Android,
+iOS or Windows SDKs) and any run against the real flixel/openfl/lime tree —
+`DiagnosticsReport.hx` and `DiagnosticsState.hx` are typechecked against the stubs,
+so a flixel signature that changed under us would only surface in a real build.
+The runtime checks above remain required.
 
 ## Evolution plan
 
 Version 1 is deliberately menu-only and has no version query parameter. Keep
 these routes compatible. New safe destinations must be added to the parser,
-router, tests and this table together. Song launches, mod installation, remote
-content and editor/file targets are **not implemented** or silently accepted;
-any future design needs explicit user confirmation, resource validation and a
-separate security review. Windows single-instance handoff is a future enhancement,
-not part of the current delivery contract.
+router, tests, `URI.MD` and `website/docs/subsystems/deeplinks.md` together —
+`phoenix://diagnostics` is the worked example of that rule, and its read-only
+contract is why it was allowed at all. Mod installation, remote content and
+editor/file targets remain **not implemented**; a route that writes, installs or
+resolves a path needs explicit user confirmation, resource validation and a
+separate security review first. Windows single-instance handoff is a future
+enhancement, not part of the current delivery contract.
