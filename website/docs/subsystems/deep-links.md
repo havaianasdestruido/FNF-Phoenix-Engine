@@ -72,9 +72,10 @@ would rewrite the memory numbers the screenshot exists to show. The route also
 takes **no parameters**: `phoenix://diagnostics?copy=1` is rejected as malformed
 rather than half-accepted. Each section is guarded, so a value the target cannot
 report becomes `unavailable` instead of an error page. `R` re-reads the snapshot,
-`C`/`A` copies the text, `ESC`/`B` returns to the Main Menu, and absolute paths
-can carry the player's username, so the footer says to redact before posting.
-Nothing is ever uploaded.
+`C`/`A` copies the text, `ESC`/`B` returns to the Main Menu. Log lines are shown
+in the redacted form `backend.LogUtils` gives VLog, but the paths the report prints
+itself are not rewritten, so they can carry the player's username and the footer
+says to redact before posting. Nothing is ever uploaded.
 
 ## Grammar
 
@@ -190,7 +191,7 @@ the executable's folder when a link is pending. The whole path is behind
 
 ## Tests
 
-* `python3 tests/uri/run.py` — runs `tests/uri/TestPhoenixURI.hx` in the Haxe
+* `bash tests/uri/run.sh` — runs `tests/uri/TestPhoenixURI.hx` in the Haxe
   interpreter with the parser isolated from `source/import.hx`: every route and
   alias, the case and slash rules, injection-shaped input, the size limits, and the
   `phoenix://diagnostics` contract (both spellings accepted, parameters rejected).

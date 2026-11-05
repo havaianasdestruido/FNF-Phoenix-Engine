@@ -183,6 +183,19 @@ class DiagnosticsReportSpec
     VLog.enabled = true;
     VLog.active = true;
     contains('nothing logged yet', 'an empty log is reported as empty');
+
+    // The page shows the log as the log stores it: redaction is VLog's policy
+    // (backend.LogUtils), not something this report re-implements or skips.
+    reset();
+    VLog.enabled = true;
+    VLog.active = true;
+    VLog.lines = ['[00:00:01] wrote /home/phoenixsupport/projects/fnf/vlog/log.txt'];
+    final rows:Array<String> = rowsOf('RECENT LOG');
+    check(rows.length == 1, 'one line in, one line out');
+    check(rows[0].indexOf('phoenixsupport') == -1, 'a username in a log line does not reach the page: ' + quote(rows[0]));
+    check(rows[0].indexOf('[absolute path]') != -1, 'and the path arrives as the log policy left it: ' + quote(rows[0]));
+    contains('wrote', 'the message itself is kept, so the line is still useful');
+
   }
 
   static function testBrokenSourceCostsOneRow():Void

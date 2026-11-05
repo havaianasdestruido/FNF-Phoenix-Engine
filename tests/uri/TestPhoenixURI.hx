@@ -2,7 +2,7 @@ import backend.deeplink.PhoenixURI;
 import backend.deeplink.URIKind;
 
 /**
- * Dependency-free parser tests (see `tests/uri/run.py`, which compiles this
+ * Dependency-free parser tests (see `tests/uri/run.sh`, which compiles this
  * against `source/backend/deeplink/*.hx` only, without `source/import.hx`).
  *
  * Two layers are pinned: `parse` must stay the strict v1 menu contract, and

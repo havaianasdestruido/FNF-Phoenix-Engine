@@ -20,8 +20,10 @@ class VLog
   public static function heapUsedBytes():Float
     return heapBytes;
 
+  /** The real VLog runs `LogUtils.redact` on every export; the stub has to, or the
+      spec would test a page that leaks what production never shows. */
   public static function exportText():String
-    return lines.join('\n');
+    return LogUtils.redact(lines.join('\n'));
 
   public static function formatBytes(bytes:Float):String
     return (bytes < 0.0) ? 'n/a' : '${Std.int(bytes / 1024 / 1024)}MB';
