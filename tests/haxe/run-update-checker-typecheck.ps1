@@ -6,10 +6,19 @@ $haxe = if ($env:HAXE) { $env:HAXE } else { "haxe" }
 $testSource = Join-Path ([IO.Path]::GetTempPath()) ("phoenix-update-checker-" + [Guid]::NewGuid().ToString("N"))
 New-Item -ItemType Directory -Path $testSource -Force | Out-Null
 try {
-    New-Item -ItemType Directory -Path "$testSource/backend", "$testSource/lime/app" -Force | Out-Null
+    New-Item -ItemType Directory -Path "$testSource/backend", "$testSource/lime/app", "$testSource/openfl" -Force | Out-Null
     Copy-Item "source/backend/PhoenixVersion.hx" "$testSource/backend/"
     Copy-Item "source/backend/PhoenixReleases.hx" "$testSource/backend/"
     Copy-Item "source/backend/UpdateChecker.hx" "$testSource/backend/"
+    Copy-Item "source/backend/RuntimeFlags.hx" "$testSource/backend/"
+    # RuntimeFlags (used by UpdateChecker since #198) reads flags.ini through Assets.
+    Set-Content -LiteralPath "$testSource/openfl/Assets.hx" -Value @'
+package openfl;
+class Assets {
+  public static function exists(id:String, ?type:Dynamic):Bool return false;
+  public static function getText(id:String):String return "";
+}
+'@
     Set-Content -LiteralPath "$testSource/backend/ClientPrefs.hx" -Value @'
 package backend;
 class ClientPrefs { public static var enablePreReleaseUpdates:Bool = false; }
