@@ -5,18 +5,10 @@ setlocal EnableExtensions EnableDelayedExpansion
 cd /d "%~dp0..\.."
 if not defined HAXE set "HAXE=haxe"
 set "TEST_SOURCE=%TEMP%\phoenix-update-checker-%RANDOM%-%RANDOM%"
-mkdir "%TEST_SOURCE%\backend" "%TEST_SOURCE%\lime\app" "%TEST_SOURCE%\openfl" || exit /b 1
+mkdir "%TEST_SOURCE%\backend" "%TEST_SOURCE%\lime\app" || exit /b 1
 copy /y "source\backend\PhoenixVersion.hx" "%TEST_SOURCE%\backend\" >nul || goto fail
 copy /y "source\backend\PhoenixReleases.hx" "%TEST_SOURCE%\backend\" >nul || goto fail
 copy /y "source\backend\UpdateChecker.hx" "%TEST_SOURCE%\backend\" >nul || goto fail
-copy /y "source\backend\RuntimeFlags.hx" "%TEST_SOURCE%\backend\" >nul || goto fail
-
-rem RuntimeFlags (used by UpdateChecker since #198) reads flags.ini through Assets.
-> "%TEST_SOURCE%\openfl\Assets.hx" echo package openfl;
->> "%TEST_SOURCE%\openfl\Assets.hx" echo class Assets {
->> "%TEST_SOURCE%\openfl\Assets.hx" echo   public static function exists(id:String, ?type:Dynamic):Bool return false;
->> "%TEST_SOURCE%\openfl\Assets.hx" echo   public static function getText(id:String):String return "";
->> "%TEST_SOURCE%\openfl\Assets.hx" echo }
 
 > "%TEST_SOURCE%\backend\ClientPrefs.hx" echo package backend;
 >> "%TEST_SOURCE%\backend\ClientPrefs.hx" echo class ClientPrefs { public static var enablePreReleaseUpdates:Bool = false; }

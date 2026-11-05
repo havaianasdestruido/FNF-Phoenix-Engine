@@ -4,16 +4,8 @@ set -euo pipefail
 cd "$(dirname "$0")/../.."
 test_source=$(mktemp -d)
 trap 'rm -rf "$test_source"' EXIT
-mkdir -p "$test_source/backend" "$test_source/lime/app" "$test_source/openfl"
-cp source/backend/{PhoenixVersion,PhoenixReleases,UpdateChecker,RuntimeFlags}.hx "$test_source/backend/"
-# RuntimeFlags (used by UpdateChecker since #198) reads flags.ini through Assets.
-cat > "$test_source/openfl/Assets.hx" <<'HAXE'
-package openfl;
-class Assets {
-  public static function exists(id:String, ?type:Dynamic):Bool return false;
-  public static function getText(id:String):String return "";
-}
-HAXE
+mkdir -p "$test_source/backend" "$test_source/lime/app"
+cp source/backend/{PhoenixVersion,PhoenixReleases,UpdateChecker}.hx "$test_source/backend/"
 cat > "$test_source/backend/ClientPrefs.hx" <<'HAXE'
 package backend;
 class ClientPrefs { public static var enablePreReleaseUpdates:Bool = false; }
