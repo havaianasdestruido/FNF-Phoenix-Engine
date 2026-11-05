@@ -45,6 +45,7 @@ import psychlua.pystdlib.PyTextLib;
 import psychlua.pystdlib.PyTimerLib;
 import utils.CoolSystemStuff;
 import psychlua.pystdlib.PyTweenLib;
+import psychlua.pystdlib.PyMetaHorrorLib;
 import psychlua.pystdlib.PyWindowLib;
 import Type.ValueType;
 
@@ -356,6 +357,9 @@ class PythonScript
 	PyMiscLib.register(this);
 
 	PyWindowLib.register(this);
+
+// 4th-wall-breaking ("META_HORROR") effects — mirrors the Lua bridge
+	PyMetaHorrorLib.register(this);
 
 		// Script interop — mirrors psychlua.callbacks.ScriptCallbacks for Lua (#87)
 		psychlua.pystdlib.PyScriptLib.register(this);

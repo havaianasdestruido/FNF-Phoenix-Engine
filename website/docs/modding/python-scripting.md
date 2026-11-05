@@ -81,7 +81,7 @@ template with every hook — Lua and Python share the same hook list; the shippe
 | Booleans | `true` / `false` | `True` / `False` |
 | Nil | `nil` | `None` |
 | Tables as arguments | `{1, 2, 3}` | `[1, 2, 3]` |
-| Function count | 273 | 168 |
+| Function count | 298 | 213 |
 | Comments | `--` | `#` |
 
 Both languages receive every hook listed in [Script hooks](./script-hooks.md);
@@ -132,6 +132,6 @@ difference is irrelevant.
 
 ## Next
 
-- [Python API reference](./python-api-reference.md) — all 170 functions (generated).
+- [Python API reference](./python-api-reference.md) — all 213 functions (generated).
 - [Transparent window](./transparent-window.md) — make the game window see-through.
 - [Script hooks](./script-hooks.md) — the callbacks, shared with Lua.

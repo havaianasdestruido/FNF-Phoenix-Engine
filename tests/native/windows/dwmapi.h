@@ -1,8 +1,12 @@
 #ifndef PHOENIX_TEST_DWMAPI_H
 #define PHOENIX_TEST_DWMAPI_H
 #include <windows.h>
+#ifndef FAILED
 #define FAILED(x) ((x) < 0)
+#endif
+#ifndef SUCCEEDED
 #define SUCCEEDED(x) ((x) >= 0)
+#endif
 extern HRESULT mockDwmResult;
 extern DWORD mockDwmAttribute, mockDwmValue;
 extern int mockDwmCalls;
