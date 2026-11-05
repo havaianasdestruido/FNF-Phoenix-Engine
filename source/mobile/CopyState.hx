@@ -150,9 +150,8 @@ class CopyState extends MusicBeatState
 				if (failedFiles.length > 0)
 				{
 					CoolUtil.showPopUp(failedFiles.join('\n'), 'Failed To Copy ${failedFiles.length} File.');
-					if (!FileSystem.exists('logs'))
-						FileSystem.createDirectory('logs');
-					File.saveContent('logs/' + Date.now().toString().replace(' ', '-').replace(':', "'") + '-CopyState' + '.txt', failedFilesStack.join('\n'));
+					final copyLogPath:String = 'logs/' + Date.now().toString().replace(' ', '-').replace(':', "'") + '-CopyState.txt';
+					backend.LogUtils.saveLog(copyLogPath, failedFilesStack.join('\n'));
 				}
 
 				FlxG.sound.play(Paths.sound('confirmMenu')).onComplete = () ->

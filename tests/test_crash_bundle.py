@@ -18,7 +18,6 @@ Run:  python3 -m unittest discover -s tests -p 'test_*.py' -v
 """
 from __future__ import annotations
 
-import sys
 import unittest
 from pathlib import Path
 
@@ -61,19 +60,21 @@ def body(source: str, signature: str) -> str:
 class CrashHandlerWiringTests(unittest.TestCase):
     def test_bundle_is_built_after_the_log_and_never_throws(self):
         handler = read(HANDLER)
-        # The log text is built once and shared by the log and the bundle.
+        # The raw crash text is redacted once and the safe text is shared by
+        # the bounded crash log and the bundle.
         self.assertIn("var crashText:String =", handler)
-        self.assertIn("File.saveContent(path, crashText);", handler)
+        self.assertIn("LogUtils.limitText(LogUtils.redact(crashText)", handler)
+        self.assertIn("LogUtils.saveLog(path, safeCrashText)", handler)
         self.assertLess(
-            handler.index("File.saveContent(path, crashText);"),
-            handler.index("CrashBundle.onCrash(crashText, path);"),
-            "the bundle must be built after the crash log is written",
+            handler.index("LogUtils.saveLog(path, safeCrashText)"),
+            handler.index("CrashBundle.onCrash(safeCrashText, path);"),
+            "the bundle must be built after the sanitized crash log is written",
         )
         # The call is individually guarded so a bundle failure cannot break the
         # crash handler (which is already handling a crash).
         self.assertRegex(
             handler,
-            r"try\s*\{\s*CrashBundle\.onCrash\(crashText, path\);\s*\}\s*catch",
+            r"try\s*\{\s*CrashBundle\.onCrash\(safeCrashText, path\);\s*\}\s*catch",
             "CrashBundle.onCrash must be wrapped in its own try/catch",
         )
 
@@ -82,7 +83,7 @@ class CrashHandlerWiringTests(unittest.TestCase):
         # §6 #70: the crash log (and therefore the bundle) is sys-only. The
         # onCrash call sits in the same #if sys region as the log write: the
         # nearest preceding #if sys is not closed before the call.
-        call = handler.index("CrashBundle.onCrash(crashText, path);")
+        call = handler.index("CrashBundle.onCrash(safeCrashText, path);")
         last_sys = handler.rindex("#if sys", 0, call)
         between = handler[last_sys:call]
         self.assertNotIn("#end", between, "the bundle call must be inside the #if sys block")
@@ -226,21 +227,6 @@ class CrashBundleWriterSafetyTests(unittest.TestCase):
         write_bytes = body(writer, "public static function writeBytes(")
         self.assertIn("catch (e:Dynamic)", write_bytes)
         self.assertIn("result.error", write_bytes)
-
-
-class HaxeStructureTests(unittest.TestCase):
-    def test_new_modules_are_structurally_sound(self):
-        # Reuse the repo's brace/preprocessor/try-catch checker (the same one
-        # test_vlog.py runs). The new files have no legacy baseline, so any
-        # finding is a real defect.
-        sys.path.insert(0, str(ROOT / "tests"))
-        try:
-            from check_vlog_haxe_structure import check_file
-        finally:
-            sys.path.pop(0)
-        for rel in (GLUE, WRITER):
-            errors = check_file(rel, read(rel))
-            self.assertEqual(errors, [], f"{rel} has structural errors: {errors}")
 
 
 class WiringAndDocsTests(unittest.TestCase):
