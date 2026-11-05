@@ -598,6 +598,7 @@ class HScript
 		interp.variables.set('FlxRuntimeShader', flixel.addons.display.FlxRuntimeShader);
 		#end
 		interp.variables.set('ShaderFilter', openfl.filters.ShaderFilter);
+		interp.variables.set('FunkinShader', shaders.FunkinShader);
 		interp.variables.set('StringTools', StringTools);
 		interp.variables.set('Math', Math);
 		interp.variables.set('Std', Std);
@@ -629,6 +630,21 @@ class HScript
 			interp.variables.set('Type', Type);
 			interp.variables.set('Reflect', Reflect);
 		}
+		// 4th-wall-breaking ("META_HORROR") effects, mirroring the Lua/Python
+		// bridges. Seeded here rather than through `registerFunction` because
+		// HScript's own registry is only replayed for the standalone host,
+		// while every interpreter seeds this scope.
+		//
+		// Withheld from sandboxed mods: reaching the class directly would step
+		// around the `set()` guard that enforces the clipboard / window-list /
+		// screen-capture rules (`backend.ModSecurity`). Sandboxed scripts keep
+		// the rest of the API and can opt into those effects by allowlisting.
+		if(!effectiveSandboxed())
+		{
+			interp.variables.set('MetaHorror', backend.MetaHorror);
+			interp.variables.set('isRecording', function():Bool return backend.MetaHorror.isRecording());
+		}
+
 		// Hardware information (GPU, driver, CPU, OS), mirroring the Lua API.
 		interp.variables.set('Native', Native);
 		interp.variables.set('getSystemInfo', function():String {
@@ -762,7 +778,7 @@ class HScript
 			str = libPackage + '.';
 		if(!allowClassAccess(str + libName)) return false;
 
-		var resolved:Class<Dynamic> = Type.resolveClass(str + libName); // REFACTOR: legacy bare-name fallback
+		var resolved:Class<Dynamic> = Type.resolveClass(str + libName);
 		if (resolved == null) resolved = LuaUtils.resolveClassCompat(libName);
 		interp.variables.set(libName, resolved);
 		_missingCalls.remove(libName);

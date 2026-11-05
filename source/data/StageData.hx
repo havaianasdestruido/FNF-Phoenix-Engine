@@ -15,6 +15,18 @@ typedef StageFile = {
 	var opponent:Array<Dynamic>;
 	var hide_girlfriend:Bool;
 
+	/**
+	 * Shaders the stage renders with, compiled on the loading screen instead of
+	 * on the first bop (see `shaders.ShaderWarmup`).
+	 *
+	 * Entries are either a built-in name (`shaders.ShaderWarmupRegistry`, e.g.
+	 * `"rain"`, `"glitch"`) or a runtime shader from the active mod's
+	 * `shaders/<name>.frag` (the same file Lua's `initShader` loads). Optional:
+	 * stages created from Haxe code declare their instances through
+	 * `BaseStage.declareShaders()` instead.
+	 */
+	@:optional var shaders:Array<String>;
+
 	var camera_boyfriend:Array<Float>;
 	var camera_opponent:Array<Float>;
 	var camera_girlfriend:Array<Float>;

@@ -54,7 +54,6 @@ Sections 13–20 are a second backlog pass written against the current tree. Eve
   - Or fix the NDK 28 header conflict (locale redefinition) instead of pinning old NDK.
   - Re-run android build to green, then commit + push.
 - **[P1] macOS/Linux `sendFakeMsgBox` are TODO** (`source/backend/PlatformUtil.hx:10-11`, `source/utils/PlatformUtilNative.hx:86`). Add native `osascript`/`zenity`/`kdialog`-based implementations so crash dialogs work on all desktops; remove the `trace('not available')` stubs. ([#66](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/issues/66))
-- **[P2] Refactor relic `REFACTOR:` comments** — dozens across `source/editors/`, `source/headers/`, `options/`. They document relocations but say nothing actionable. Fold into proper file headers or delete. ([#73](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/issues/73))
 - **[P3] Remove dead Flash/Air code paths** — `officialBuild` feature flag never applied (`project.hxp`), unused `renderAll`/`ULTRA_OPTIMIZED` experiments, `WindowColorMode` flash stubs (trace-only). ([#78](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/issues/78))
 
 ## 2. GAMEPLAY / PSYCH SYNC (P3 imports)
@@ -63,6 +62,31 @@ Sections 13–20 are a second backlog pass written against the current tree. Eve
 
 ### 2.1. 4th WALL BREAKING
 
+**IMPLEMENTED** behind the opt-in `-DMETA_HORROR` define: `backend.MetaHorror`
+plus the Lua / Python / HScript bridges. Upstream system effects (wallpaper,
+taskbar, other windows, window styles, system volume, mouse/keyboard, file
+spoofing) come from the #94 port; the second pass added the "it knows you"
+effects (desktop username, machine uptime, local clock, launch counter),
+persistent mod counters in their own save slot, clipboard access, window title
+rewriting, always-on-top, taskbar flashing, open-window titles and a
+whole-desktop screenshot. See [`docs/META_HORROR.md`](docs/META_HORROR.md) and
+[`tests/test_meta_horror.py`](tests/test_meta_horror.py).
+
+Remaining:
+
+- **[P3] Node-level audio effects.** Per-application (session) volume instead of
+  only the master endpoint, so the game can duck the player's music player
+  rather than muting everything.
+- **[P3] Fake "your system is updating" overlays.** A full-screen borderless
+  window drawn over the desktop with click-through off; needs the transparent
+  window work in `docs/TRANSPARENT_WINDOW.md` to be reliable in fullscreen.
+- **[P3] Reading the desktop wallpaper into the game.** `setWallpaper` and
+  `restoreWallpaper` exist, but there is no "show the player's own wallpaper as
+  the stage background" helper.
+- **[P3] Launch warning UI.** The define is documented as opt-in and mods are
+  told to warn players, but the engine does not force a one-time in-game
+  warning when a mod calls a desktop effect. A settings toggle ("allow 4th-wall
+  effects") would make the trust boundary explicit.
 
 ## 3. PLATFORM
 
@@ -337,7 +361,6 @@ Phoenix's identity is "runs on weak devices", yet configuration is manual: `Clie
 - **[P2] Texture/atlas memory accounting.** There is freeing logic but no visibility: add a diagnostics view listing loaded `FlxGraphic`s (size, source, owning mod/stage), total estimated VRAM/RAM and the biggest atlases, with a warning when a stage exceeds a budget. Complements the §0 downscale work — you cannot tell whether a stage is over budget today.
 - **[P2] Frame pacing and high-refresh support.** `ClientPrefs.framerate` writes both `FlxG.updateFramerate` and `drawFramerate` (`GraphicsSettingsSubState.hx:131-140`). Add display-refresh detection, recommended values (60/90/120/144) and a separate update rate, so a 120 Hz panel doesn't run gameplay logic at 120 Hz with a different feel — and so the offsync risk in §4 #83 stays measurable.
 - **[P2] Preload/streaming policy.** Preload only the active stage and its characters; add "preload next song" for week runs, and verify `Paths` tracking actually releases the previous stage (graphics *and* cached sounds) when switching mods/songs. Debug builds can assert on tracked-vs-loaded counts.
-- **[P3] Shader warm-up.** First use of a stage/song shader (including runtime shaders in `RuntimeShaders.hx`) can hitch on the first bop. Compile the shaders a stage declares on the loading screen and cache the compiled program where the backend allows it.
 - **[P3] Device benchmark mode.** A fixed, mod-free stage/chart that runs ~60 s and reports average, 1% low and worst frame plus device info — reachable without F3/F6, which do not exist on Android. Reuses `FrameProfiler.exportLog()`; this is a *test run*, not the live counter in §12.4.
 
 ## 19. DIAGNOSTICS, SUPPORT & SAFE MODE

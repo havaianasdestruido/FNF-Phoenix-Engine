@@ -148,7 +148,7 @@ preference cannot silently be reported as "changed by the player".
   formatting and the fail-safe edges (null facts, empty lists, missing log).
 * `tests/test_diagnostics.py` — source guards: the Misc entry and its wiring,
   every roadmap field present, no HTTP/socket imports anywhere in the feature,
-  the defaults table matching `ClientPrefs`, and the spec being wired into CI.
+  the defaults table matching `ClientPrefs`.
 
 ## See also
 

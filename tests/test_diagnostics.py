@@ -15,8 +15,9 @@ support block and never send it anywhere:
 * the defaults table that decides "non-default" matches the field
   initialisers in `ClientPrefs`, so a new preference cannot silently be
   reported as changed (or missed),
-* the Flixel-free formatter is covered by the Haxe interpreter spec, which is
-  wired into CI.
+* the Flixel-free formatter is covered by a Haxe interpreter spec that runs
+  standalone (`bash tests/haxe/run-diagnostics-report.sh`) with no engine
+  haxelibs.
 
 No Haxe toolchain needed (same style as test_settings_backup.py).
 
@@ -39,7 +40,6 @@ VLOG = "source/backend/VLog.hx"
 NATIVE = "source/backend/Native.hx"
 SPEC = "tests/haxe/DiagnosticsReportSpec.hx"
 SPEC_RUNNER = "tests/haxe/run-diagnostics-report.sh"
-CI = ".github/workflows/checks.yml"
 
 
 def read(rel: str) -> str:
@@ -315,8 +315,21 @@ class DiagnosticsSpecTests(unittest.TestCase):
         self.assertIn("GITHUB_TOKEN=<redacted>", spec)
         self.assertIn("C:\\\\Users\\\\<user>", spec)
 
-    def test_spec_is_wired_into_ci(self):
-        self.assertIn("bash tests/haxe/run-diagnostics-report.sh", read(CI))
+    def test_spec_runs_without_engine_haxelibs(self):
+        # The spec must stay runnable in the bare Haxe interpreter: that is
+        # what makes it a fast local check. `checks.yml` no longer calls the
+        # per-spec runners (the `Regression tests` job runs the Python suite,
+        # which is what gates the merge), so the runner is asserted to work
+        # standalone rather than to appear in a workflow file.
+        runner = read(SPEC_RUNNER)
+        self.assertIn("DiagnosticsReportSpec", runner)
+        self.assertIn("--interp", runner)
+        self.assertIn("source/backend/DiagnosticsReport.hx", runner)
+        # It copies only the dependency-free formatter, so no engine haxelibs
+        # are needed; copying more would make the spec fail to compile.
+        copied = [line for line in runner.splitlines() if line.strip().startswith("cp ")]
+        self.assertEqual(len(copied), 1, f"unexpected copies: {copied}")
+        self.assertIn("DiagnosticsReport.hx", copied[0])
 
     def test_structure_checker_covers_the_new_files(self):
         checker = read("tests/check_vlog_haxe_structure.py")

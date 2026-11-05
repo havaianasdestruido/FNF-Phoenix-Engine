@@ -24,6 +24,35 @@ class ModSecurityIntegration(unittest.TestCase):
         self.assertIn("LuaL.loadbuffer(lua, source", lua)
         self.assertIn("haxe.io.Bytes.ofString(source).length", lua)
 
+    def test_lua_top_level_runs_after_engine_api_registration(self):
+        """Softmod regression: top-level Lua code must see the engine API.
+
+        Upstream Psych Engine runs the script (dofile) at the END of the
+        FunkinLua constructor, after every global and callback exists. Running
+        the scanned buffer earlier turned top-level setProperty/debugPrint/
+        precacheImage calls into nil calls that aborted the whole script, and
+        top-level reads of songName/screenWidth returned nil — i.e. soft mods
+        silently stopped working. The scan-before-VM guarantees above must
+        hold at the same time.
+        """
+        lua = read("source/psychlua/FunkinLua.hx")
+        ctor = lua[lua.index("public function new(scriptName:String"):lua.index("/** Log a runtime guard failure")]
+        execute = ctor.index("LuaL.loadbuffer(lua, source")
+        for token in (
+            "game.luaArray.push(this)",
+            "set('Function_Stop', Function_Stop)",
+            "set('songName', PlayState.SONG.song)",
+            "set('screenWidth', FlxG.width)",
+            "ScriptCallbacks.register(this)",
+            "PropertyCallbacks.register(this)",
+            "Convert.addCallback(lua, name, func)",
+        ):
+            with self.subTest(token=token):
+                self.assertLess(ctor.index(token), execute)
+        self.assertLess(execute, ctor.index("call('onCreate', [])"))
+        # The executed buffer must still be the exact one that was scanned.
+        self.assertIn("haxe.io.Bytes.ofString(source).length", ctor)
+
     def test_python_is_scanned_before_interpreter_or_array_registration(self):
         py = read("source/psychlua/PythonScript.hx")
         check = py.index("ModSecurity.checkScript(scriptName, code, 'python')")

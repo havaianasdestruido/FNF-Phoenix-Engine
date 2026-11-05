@@ -12,7 +12,6 @@ import states.substates.PauseSubState;
 import backend.DiscordClient;
 #end
 
-// REFACTOR: extracted from psychlua.PythonScript (misc/debug/print utils)
 class PyMiscLib
 {
 	public static function register(py:PythonScript):Void {

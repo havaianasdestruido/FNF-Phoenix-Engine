@@ -7,7 +7,6 @@ import play.PlayState;
 import backend.Paths;
 import headers.PsychLua;
 
-// REFACTOR: extracted from psychlua.PythonScript (text object API)
 class PyTextLib
 {
 	public static function register(py:PythonScript):Void {

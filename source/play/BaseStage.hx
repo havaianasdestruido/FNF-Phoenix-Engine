@@ -8,6 +8,8 @@ import objects.Note.EventNote;
 
 import flixel.FlxBasic;
 
+import openfl.display.Shader;
+
 enum Countdown
 {
 	THREE;
@@ -65,6 +67,21 @@ class BaseStage extends FlxBasic
 	//main callbacks
 	public function create() {}
 	public function createPost() {}
+
+	/**
+	 * Shader instances this state renders with, so the engine can compile them
+	 * while the loading screen is still up instead of on the first bop.
+	 *
+	 * Override it when your stage creates shaders in `create()`:
+	 * ```haxe
+	 * override function declareShaders():Array<Shader>
+	 *     return rainShader != null ? [rainShader] : [];
+	 * ```
+	 * Stage files can also list built-in names in their JSON instead
+	 * (`"shaders": ["rain", "glitch"]`), which needs no Haxe at all.
+	 */
+	public function declareShaders():Array<Shader> return [];
+
 	/** Reflow full-screen stage effects when the logical viewport changes. */
 	public function onViewportResize() {}
 	//public function update(elapsed:Float) {}

@@ -1,6 +1,5 @@
 package editors.charting;
 
-// REFACTOR: extracted from editors.ChartingState (behavior-preserving)
 import backend.Paths;
 import editors.ChartingState;
 import editors.charting.AttachedFlxText;
