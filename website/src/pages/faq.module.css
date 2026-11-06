@@ -1,0 +1,67 @@
+.page {
+  padding: 2.5rem 0 4rem;
+}
+
+.content {
+  max-width: 54rem;
+}
+
+.breadcrumbs {
+  margin-bottom: 1.25rem;
+}
+
+.lead {
+  font-size: 1.1rem;
+  line-height: 1.65;
+  opacity: 0.9;
+  margin-bottom: 2rem;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.item {
+  padding: 1.35rem 1.5rem;
+  border: 1px solid var(--ifm-color-emphasis-300);
+  border-radius: var(--ifm-global-radius);
+  background: var(--ifm-card-background-color);
+}
+
+.item h2 {
+  font-size: 1.2rem;
+  line-height: 1.35;
+  margin-bottom: 0.6rem;
+}
+
+.item p {
+  margin-bottom: 0;
+  line-height: 1.65;
+}
+
+.moreHelp {
+  margin-top: 2.75rem;
+  padding-top: 1.75rem;
+  border-top: 1px solid var(--ifm-color-emphasis-300);
+}
+
+.moreHelp h2 {
+  font-size: 1.35rem;
+  margin-bottom: 0.6rem;
+}
+
+.moreHelp p {
+  margin-bottom: 0;
+}
+
+@media screen and (max-width: 640px) {
+  .page {
+    padding: 1.75rem 0 3rem;
+  }
+
+  .item {
+    padding: 1.1rem 1.15rem;
+  }
+}

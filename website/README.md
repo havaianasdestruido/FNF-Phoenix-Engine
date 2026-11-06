@@ -12,7 +12,7 @@ npm start          # dev server (regenerates the reference first)
 npm run build      # production build into website/build (also runs docs and SEO checks)
 npm run serve      # serve the production build
 npm run lint:docs  # check the markdown conventions the site needs to render
-npm run test:seo   # check the engine/platform structured-data metadata
+npm run test:seo   # check the engine/platform and FAQ structured-data metadata
 ```
 
 Node 20+ is required.
@@ -36,7 +36,7 @@ markdown that builds fine but renders wrong — most often an admonition written
 To document something in the reference, write a `/** ... */` doc comment on the Haxe type
 or field, or a `//` comment directly above a `registerFunction(...)` call, and regenerate.
 
-## Engine structured data
+## Engine and FAQ structured data
 
 The homepage describes Phoenix Engine with Google's `SoftwareApplication` JSON-LD
 format. `src/data/engine.mjs` is the shared source for that metadata and the visible
@@ -49,16 +49,24 @@ loads. Canonical, image and download URLs use the configured site URL/base path.
 - Neko, Flash and AIR are visible compilation targets/runtimes, not operating systems.
 - The engine is free and open source, so `offers.price` is `0`.
 
+The `/faq` page (`src/pages/faq.js`) publishes a schema.org `@graph` containing
+`WebPage`, `BreadcrumbList` and `FAQPage` (`mainEntity` with sixteen `Question` /
+`Answer` entries). `src/data/faq.mjs` is the single source for those sixteen Q&As:
+the first eight (`homepageFaqEntries`) also appear in the `#faq` preview section on
+the homepage, while inline `[label](url)` links and `` `code` `` spans are rendered
+visibly with `<FaqAnswer>` and stripped to plain text for `acceptedAnswer.text`.
+
 Google also requires a real `aggregateRating` or `review` for software rich-result
 eligibility. Neither is invented here: add one only when a verified, visible rating
 source exists and follows Google's review-snippet guidelines. Valid markup alone
 does not guarantee a rich result.
 
 `npm run build` runs `test:seo` before building and `check-structured-data.mjs`
-afterwards. The latter checks the actual `build/index.html` for valid JSON-LD,
-matching canonical/image URLs, visible platform targets and no `noindex` directive.
+afterwards. The latter checks both `build/index.html` and `build/faq.html` for valid
+JSON-LD, matching canonical/breadcrumb/image URLs, visible platform targets, every
+visible Q&A question and answer, and no `noindex` directive.
 After deployment, use Google's Rich Results Test and Search Console URL Inspection
-to check the live page; indexing can take time.
+to check the live pages; indexing can take time.
 
 ## Dependency overrides
 
@@ -106,10 +114,14 @@ scripts/
 ├── generate-api-docs.mjs    code reference generator
 ├── generate-script-api.mjs  Lua/Python API generator
 ├── check-doc-syntax.mjs     markdown/admonition lint
-└── check-structured-data.mjs  production homepage JSON-LD check
+└── check-structured-data.mjs  production homepage and FAQ JSON-LD check
 src/
+├── components/FaqAnswer/    renders inline FAQ links and code tokens
 ├── data/engine.mjs          shared engine metadata and platform targets
-└── pages/index.js           homepage, visible platforms and JSON-LD head tag
+├── data/faq.mjs             shared Q&A copy and FAQPage @graph builder
+└── pages/
+    ├── index.js             homepage, visible platforms, FAQ preview and JSON-LD head tag
+    └── faq.js               dedicated FAQ page, breadcrumbs and @graph JSON-LD head tag
 tests/
 └── structured-data.test.mjs  metadata regression tests
 ```

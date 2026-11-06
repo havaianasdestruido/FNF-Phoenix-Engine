@@ -100,6 +100,11 @@ const config = {
             label: 'Modding',
           },
           {
+            to: '/faq',
+            position: 'left',
+            label: 'FAQ',
+          },
+          {
             href: `https://github.com/${organizationName}/${projectName}`,
             label: 'GitHub',
             position: 'right',
@@ -116,6 +121,7 @@ const config = {
               {label: 'Building', to: '/docs/getting-started/building'},
               {label: 'Architecture', to: '/docs/architecture/overview'},
               {label: 'Code reference', to: '/docs/reference'},
+              {label: 'FAQ', to: '/faq'},
             ],
           },
           {
