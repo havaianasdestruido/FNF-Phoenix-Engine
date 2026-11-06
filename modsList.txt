@@ -1,1 +1,2 @@
 bf-clicker|1
+transparency-test|1

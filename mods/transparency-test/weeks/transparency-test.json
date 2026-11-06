@@ -1,0 +1,18 @@
+{
+  "songs": [
+    ["Transparency Test", "dad", [75, 190, 220]]
+  ],
+  "weekCharacters": [
+    "dad",
+    "bf",
+    "gf"
+  ],
+  "weekBackground": "stage",
+  "weekBefore": "",
+  "storyName": "Window Transparency Test",
+  "weekName": "Window Transparency Test",
+  "freeplayColor": [75, 190, 220],
+  "startUnlocked": true,
+  "hideStoryMode": true,
+  "hideFreeplay": false
+}

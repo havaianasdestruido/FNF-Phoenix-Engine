@@ -1,0 +1,10 @@
+# Window Transparency Test
+
+An enabled-by-default Phoenix Engine mod with a Freeplay song named **Transparency Test**. It keeps BF, Dad, and GF on a stage with no scenery, paints the game camera a single solid color, and uses that exact color as the native window's transparency key.
+
+- **Key color:** `#010101` (the engine's default RGB(1, 1, 1) color key).
+- **Windows:** the matching background pixels should reveal the desktop. The rest of the game window remains fully opaque.
+- **Linux/macOS:** whole-window alpha is available, but color-key transparency is not; the Lua API logs that the requested color-key effect is unsupported.
+- The Lua script disables color-key transparency and restores the previous window alpha when the song exits. It deliberately does not enable click-through, so the game remains interactive.
+
+The song reuses the engine's bundled Test instrumental and matching chart as a self-contained mod track; the chart assigns only BF, Dad, and GF.
