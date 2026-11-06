@@ -1,16 +1,18 @@
 import clsx from 'clsx';
+import Head from '@docusaurus/Head';
 import Link from '@docusaurus/Link';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import Layout from '@theme/Layout';
 import Heading from '@theme/Heading';
 
+import {engine, platformGroups, createEngineStructuredData} from '../data/engine.mjs';
 import styles from './index.module.css';
 
 const sections = [
   {
     title: 'Getting started',
     to: '/docs/getting-started/requirements',
-    body: 'Install the Haxe toolchain, run the setup scripts and compile for Windows, Linux, macOS, Android, iOS, HTML5, Neko or Flash.',
+    body: 'Install the Haxe toolchain, run the setup scripts and compile for Windows, Linux, macOS, Android, iOS, HTML5, Neko, Flash or AIR.',
   },
   {
     title: 'Architecture',
@@ -55,8 +57,9 @@ function HomepageHeader() {
           {siteConfig.title}
         </Heading>
         <p className="hero__subtitle">
-          Codebase documentation for the Friday Night Funkin&apos; Phoenix Engine —
-          a Haxe/HaxeFlixel engine built for weak devices and easy modding.
+          A free, open-source Friday Night Funkin&apos; engine built on Haxe/HaxeFlixel
+          for low-end devices and easy modding with Lua, Python and HScript.
+          Explore the codebase, build guides and generated API reference.
         </p>
         <div className={styles.buttons}>
           <Link className="button button--primary button--lg" to="/docs/intro">
@@ -67,7 +70,7 @@ function HomepageHeader() {
           </Link>
           <Link
             className="button button--secondary button--lg"
-            href="https://github.com/havaianasdestruido/FNF-Phoenix-Engine">
+            href={engine.repositoryUrl}>
             GitHub
           </Link>
         </div>
@@ -76,13 +79,54 @@ function HomepageHeader() {
   );
 }
 
+function EnginePlatforms() {
+  return (
+    <section className={styles.platforms} aria-labelledby="engine-platforms">
+      <div className="container">
+        <Heading as="h2" id="engine-platforms">
+          One engine, multiple platforms
+        </Heading>
+        <p>
+          Phoenix targets desktop, mobile and the web, alongside additional runtimes.
+          These are compilation targets; build requirements and available features vary.
+        </p>
+        <div className={styles.platformGrid}>
+          {platformGroups.map((group) => (
+            <div key={group.label} className={styles.platformGroup}>
+              <Heading as="h3">{group.label}</Heading>
+              <ul className={styles.platformList}>
+                {group.targets.map((target) => (
+                  <li key={target}>{target}</li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+        <p className={styles.platformNote}>
+          Scripting support varies by target: HTML5 supports HScript, but not Lua,
+          Python or video. Feature flags can further change what a build includes.{' '}
+          <Link to="/docs/architecture/platform-layer">Explore the platform layer</Link> or{' '}
+          <Link to="/docs/getting-started/building">read the build instructions</Link>.
+        </p>
+      </div>
+    </section>
+  );
+}
+
 export default function Home() {
+  const {siteConfig} = useDocusaurusContext();
+  const structuredData = createEngineStructuredData(siteConfig.url, siteConfig.baseUrl);
+
   return (
     <Layout
-      title="Documentation"
-      description="Full codebase documentation for the FNF Phoenix Engine: building, architecture, subsystems, modding and a generated Haxe code reference.">
+      title="Engine and platforms"
+      description="Phoenix Engine is a free, open-source Friday Night Funkin' engine for Windows, Linux, macOS, Android, iOS and HTML5, with documentation, build guides and modding APIs.">
+      <Head>
+        <script type="application/ld+json">{JSON.stringify(structuredData)}</script>
+      </Head>
       <HomepageHeader />
       <main>
+        <EnginePlatforms />
         <section className={styles.stats}>
           <div className="container">
             <div className="row">
