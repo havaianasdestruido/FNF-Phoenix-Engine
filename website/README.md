@@ -9,9 +9,10 @@ Published to GitHub Pages by `.github/workflows/docs.yml`.
 cd website
 npm install
 npm start          # dev server (regenerates the reference first)
-npm run build      # production build into website/build (also runs lint:docs)
+npm run build      # production build into website/build (also runs docs and SEO checks)
 npm run serve      # serve the production build
 npm run lint:docs  # check the markdown conventions the site needs to render
+npm run test:seo   # check the engine/platform structured-data metadata
 ```
 
 Node 20+ is required.
@@ -34,6 +35,30 @@ markdown that builds fine but renders wrong — most often an admonition written
 
 To document something in the reference, write a `/** ... */` doc comment on the Haxe type
 or field, or a `//` comment directly above a `registerFunction(...)` call, and regenerate.
+
+## Engine structured data
+
+The homepage describes Phoenix Engine with Google's `SoftwareApplication` JSON-LD
+format. `src/data/engine.mjs` is the shared source for that metadata and the visible
+platform cards in `src/pages/index.js`; update both together by editing that file.
+The JSON-LD is prerendered into the HTML `<head>`, not injected only after JavaScript
+loads. Canonical, image and download URLs use the configured site URL/base path.
+
+- `operatingSystem` lists Windows, Linux, macOS, Android and iOS.
+- HTML5 is described through the `WebApplication` type and browser requirements.
+- Neko, Flash and AIR are visible compilation targets/runtimes, not operating systems.
+- The engine is free and open source, so `offers.price` is `0`.
+
+Google also requires a real `aggregateRating` or `review` for software rich-result
+eligibility. Neither is invented here: add one only when a verified, visible rating
+source exists and follows Google's review-snippet guidelines. Valid markup alone
+does not guarantee a rich result.
+
+`npm run build` runs `test:seo` before building and `check-structured-data.mjs`
+afterwards. The latter checks the actual `build/index.html` for valid JSON-LD,
+matching canonical/image URLs, visible platform targets and no `noindex` directive.
+After deployment, use Google's Rich Results Test and Search Console URL Inspection
+to check the live page; indexing can take time.
 
 ## Dependency overrides
 
@@ -80,7 +105,13 @@ scripts/
 ├── haxe-parser.mjs          dependency-free Haxe parser
 ├── generate-api-docs.mjs    code reference generator
 ├── generate-script-api.mjs  Lua/Python API generator
-└── check-doc-syntax.mjs     markdown/admonition lint
+├── check-doc-syntax.mjs     markdown/admonition lint
+└── check-structured-data.mjs  production homepage JSON-LD check
+src/
+├── data/engine.mjs          shared engine metadata and platform targets
+└── pages/index.js           homepage, visible platforms and JSON-LD head tag
+tests/
+└── structured-data.test.mjs  metadata regression tests
 ```
 
 `sidebars.js` autogenerates one sidebar from the folder tree; ordering comes from

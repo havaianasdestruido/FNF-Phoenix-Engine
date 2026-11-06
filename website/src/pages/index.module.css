@@ -28,6 +28,67 @@
   margin-top: 2rem;
 }
 
+.platforms {
+  padding: 3rem 0 0.5rem;
+}
+
+.platformGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.platformGroup {
+  padding: 1.25rem;
+  border: 1px solid var(--ifm-color-emphasis-300);
+  border-radius: var(--ifm-global-radius);
+  background: var(--ifm-card-background-color);
+}
+
+.platformGroup h3 {
+  font-size: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.platformList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.platformList li {
+  padding: 0.25rem 0.65rem;
+  border: 1px solid var(--ifm-color-emphasis-300);
+  border-radius: 1rem;
+  font-size: 0.875rem;
+}
+
+.platformNote {
+  margin-top: 1.25rem;
+  font-size: 0.9rem;
+  opacity: 0.85;
+}
+
+@media screen and (max-width: 996px) {
+  .platformGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .platforms {
+    padding-top: 2rem;
+  }
+
+  .platformGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
 .stats {
   padding: 2.5rem 0 0.5rem;
 }
