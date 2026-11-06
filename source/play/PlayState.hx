@@ -3057,7 +3057,10 @@ class PlayState extends MusicBeatState
 
 		if (tankmanAscend) PlayStateCamera.tankmanStep(this);
 
-		if (hasActiveScripts()) {
+		// Guard rhythmic script dispatch: avoids redundant method calls and boxing
+		// when no Lua/Python/HScript scripts are active during gameplay.
+		if (hasActiveScripts())
+		{
 			setOnLuas('curStep', curStep);
 			callOnLuas('onStepHit');
 		}
