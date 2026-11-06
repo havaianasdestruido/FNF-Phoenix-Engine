@@ -13,6 +13,7 @@ npm run build      # production build into website/build (also runs docs and SEO
 npm run serve      # serve the production build
 npm run lint:docs  # check the markdown conventions the site needs to render
 npm run test:seo   # check the engine/platform and FAQ structured-data metadata
+npm run gen:sitemap # turn the built sitemap.xml into the published sitemap.txt
 ```
 
 Node 20+ is required.
@@ -68,6 +69,24 @@ visible Q&A question and answer, and no `noindex` directive.
 After deployment, use Google's Rich Results Test and Search Console URL Inspection
 to check the live pages; indexing can take time.
 
+## Sitemap
+
+The site publishes a **plain-text sitemap**: `https://havaianasdestruido.github.io/FNF-Phoenix-Engine/sitemap.txt`,
+one absolute URL per line, and no `sitemap.xml`.
+
+Docusaurus still generates the XML sitemap during the build, because that is
+where the page list comes from, but `scripts/generate-sitemap-txt.mjs` (run by
+`npm run postbuild`) converts it and deletes the XML file before the artifact is
+uploaded. GitHub Pages intermittently serves `sitemap.xml` in a way Google
+Search Console refuses to fetch even when the file is valid, and a text sitemap
+is the common workaround — it is a documented sitemap format, so crawlers read
+it the same way. The step fails the build when no URLs were found, so the site
+can never deploy without a sitemap.
+
+Submit `…/FNF-Phoenix-Engine/sitemap.txt` in Search Console and Bing Webmaster
+Tools. `tests/sitemap.test.mjs` covers the conversion, the entity decoding and
+the rejection of relative or off-site URLs.
+
 ## Dependency overrides
 
 Docusaurus pins a few transitive packages that the GitHub advisory database flags
@@ -114,7 +133,8 @@ scripts/
 ├── generate-api-docs.mjs    code reference generator
 ├── generate-script-api.mjs  Lua/Python API generator
 ├── check-doc-syntax.mjs     markdown/admonition lint
-└── check-structured-data.mjs  production homepage and FAQ JSON-LD check
+├── check-structured-data.mjs  production homepage and FAQ JSON-LD check
+└── generate-sitemap-txt.mjs   sitemap.xml -> sitemap.txt for GitHub Pages
 src/
 ├── components/FaqAnswer/    renders inline FAQ links and code tokens
 ├── data/engine.mjs          shared engine metadata and platform targets
@@ -123,7 +143,9 @@ src/
     ├── index.js             homepage, visible platforms, FAQ preview and JSON-LD head tag
     └── faq.js               dedicated FAQ page, breadcrumbs and @graph JSON-LD head tag
 tests/
-└── structured-data.test.mjs  metadata regression tests
+├── structured-data.test.mjs  metadata regression tests
+├── function-faq.test.mjs     generated Q&A tests
+└── sitemap.test.mjs          sitemap.txt conversion tests
 ```
 
 `sidebars.js` autogenerates one sidebar from the folder tree; ordering comes from
