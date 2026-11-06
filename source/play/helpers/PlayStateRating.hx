@@ -360,19 +360,18 @@ class PlayStateRating
 	{
 		if (ClientPrefs.showNPS && (state.notesHitDateArray.length > 0 || state.oppNotesHitDateArray.length > 0)) {
 			var threshold = Conductor.songPosition - 1000 * state.npsSpeedMult;
-			state.notesToRemoveCount = 0;
-			var i = 0;
 
-			while (i < state.notesHitDateArray.length) {
-				if (Math.isNaN(state.notesHitDateArray[i])) {
-					state.notesToRemoveCount++;
-				} else if (state.notesHitDateArray[i] < threshold) {
-					state.notesToRemoveCount++;
+			// notesHitDateArray
+			var i = 0;
+			var len = state.notesHitDateArray.length;
+			while (i < len) {
+				if (Math.isNaN(state.notesHitDateArray[i]) || state.notesHitDateArray[i] < threshold) {
+					i++;
 				} else {
 					break;
 				}
-				i++;
 			}
+			state.notesToRemoveCount = i;
 
 			if (state.notesToRemoveCount > 0) {
 				state.notesHitDateArray.splice(0, state.notesToRemoveCount);
@@ -383,19 +382,17 @@ class PlayStateRating
 			for (value in state.notesHitArray)
 				state.nps += value;
 
-			state.oppNotesToRemoveCount = 0;
+			// oppNotesHitDateArray
 			i = 0;
-
-			while (i < state.oppNotesHitDateArray.length) {
-				if (Math.isNaN(state.oppNotesHitDateArray[i])) {
-					state.oppNotesToRemoveCount++;
-				} else if (state.oppNotesHitDateArray[i] < threshold) {
-					state.oppNotesToRemoveCount++;
+			len = state.oppNotesHitDateArray.length;
+			while (i < len) {
+				if (Math.isNaN(state.oppNotesHitDateArray[i]) || state.oppNotesHitDateArray[i] < threshold) {
+					i++;
 				} else {
 					break;
 				}
-				i++;
 			}
+			state.oppNotesToRemoveCount = i;
 
 			if (state.oppNotesToRemoveCount > 0) {
 				state.oppNotesHitDateArray.splice(0, state.oppNotesToRemoveCount);

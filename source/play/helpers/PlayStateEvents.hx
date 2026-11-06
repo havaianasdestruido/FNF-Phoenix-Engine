@@ -83,7 +83,10 @@ class PlayStateEvents
 	}
 
 	public static function eventNoteEarlyTrigger(state:PlayState, event:EventNote):Float {
-		var returnedValue:Null<Float> = state.hasActiveScripts() ? state.callOnLuas('eventEarlyTrigger', [event.event, event.value1, event.value2, event.strumTime], true, [], [0]) : null;
+		var returnedValue:Null<Float> = null;
+		if (state.hasActiveScripts()) {
+			returnedValue = state.callOnLuas('eventEarlyTrigger', [event.event, event.value1, event.value2, event.strumTime], true, null, [0]);
+		}
 		#if LUA_ALLOWED
 		if(returnedValue != null && returnedValue != 0 && returnedValue != FunkinLua.Function_Continue) {
 			return returnedValue;
