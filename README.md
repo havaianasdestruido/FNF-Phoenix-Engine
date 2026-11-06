@@ -30,7 +30,6 @@
 
 ## Known Android issues
 
-- A song may incorrectly report missing chart or audio files. Dismissing the warning allows playback to continue.
 - Image and audio permission prompts may still appear after granting “manage all files” access.
 
 ## Contributing
