@@ -518,7 +518,7 @@ class AlphaCharacter extends FlxSprite
 	private function setupImageGlyph(bold:Bool)
 	{
 		fontGlyph = false;
-		antialiasing = ClientPrefs.globalAntialiasing;
+		antialiasing = ClientPrefs.globalAntialiasing && ClientPrefs.alphabetAntialiasing;
 		if (frames == null)
 		{
 			var atlas:String = (image == null || image.length == 0) ? 'alphabet' : image;
@@ -570,10 +570,26 @@ class AlphaCharacter extends FlxSprite
 			return;
 		}
 
-		fontGlyph = true;
-		antialiasing = true; //glyphs are rasterized large and scaled down, so they need filtering
-		letterOffset = [0, 0]; //one shared box per font already shares the baseline
-		loadGraphic(graphic);
+		try
+		{
+			if (graphic.isDestroyed || graphic.bitmap == null)
+			{
+				setupImageGlyph(bold);
+				return;
+			}
+
+			antialiasing = ClientPrefs.alphabetAntialiasing; //glyphs are rasterized large and scaled down, so they need filtering
+			letterOffset = [0, 0]; //one shared box per font already shares the baseline
+			loadGraphic(graphic);
+			fontGlyph = true;
+		}
+		catch (e:Dynamic)
+		{
+			// A stale/corrupt cached bitmap can throw while Flixel creates its image frame.
+			// Keep the menu usable rather than letting one glyph crash the state transition.
+			frames = null;
+			setupImageGlyph(bold);
+		}
 	}
 
 	public static function isTypeAlphabet(c:String) // thanks kade

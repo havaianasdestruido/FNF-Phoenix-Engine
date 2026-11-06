@@ -90,7 +90,17 @@ class AlphabetFontRenderer
     if (!AlphabetFont.supports(char)) return null;
 
     var key:String = AlphabetFont.cacheKey(def, char, bold);
-    if (glyphs.exists(key)) return glyphs.get(key);
+    if (glyphs.exists(key))
+    {
+      var cached:FlxGraphic = glyphs.get(key);
+      if (isUsable(cached)) return cached;
+
+      // A state/cache transition can invalidate a graphic while its key remains in this
+      // renderer's map. Do not hand it to FlxSprite.loadGraphic: FlxImageFrame then tries
+      // to build frames from a destroyed graphic (or one whose bitmap has been released).
+      glyphs.remove(key);
+      return null; // AlphaCharacter falls back to the classic alphabet spritesheet.
+    }
     if (!prepare(def, bold)) return null;
 
     var boxH:Int = boxHeight(def, bold);
@@ -106,13 +116,19 @@ class AlphabetFontRenderer
     bitmap.draw(field, new Matrix(1, 0, 0, 1, padH, padV));
 
     var graphic:FlxGraphic = FlxG.bitmap.add(bitmap, false, key);
-    if (graphic == null) return null;
+    if (!isUsable(graphic)) return null;
     // A glyph outlives the letters using it (recycled letters, state changes), exactly like
     // the alphabet spritesheet it replaces: without this Flixel destroys it as soon as the
     // last letter is released, leaving a dead graphic in the cache.
     graphic.persist = true;
     glyphs.set(key, graphic);
     return graphic;
+  }
+
+  /** A cached graphic is only safe to assign to a sprite while its bitmap is alive. */
+  static inline function isUsable(graphic:FlxGraphic):Bool
+  {
+    return graphic != null && !graphic.isDestroyed && graphic.bitmap != null;
   }
 
   /**

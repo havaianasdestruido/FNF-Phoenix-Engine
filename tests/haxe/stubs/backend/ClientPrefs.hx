@@ -8,4 +8,5 @@ class ClientPrefs
   // (which take them from objects.AlphabetFont).
   public static var alphabetStyle:String = 'Font';
   public static var alphabetFont:String = 'VCR OSD Mono';
+  public static var alphabetAntialiasing:Bool = true;
 }

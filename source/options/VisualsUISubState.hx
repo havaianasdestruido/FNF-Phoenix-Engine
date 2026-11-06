@@ -463,6 +463,14 @@ class VisualsUISubState extends BaseOptionsMenu
 		addOption(option);
 		option.onChange = onChangeAlphabet;
 
+		var option:Option = new Option('Enable Alphabet anti-aliasing',
+			"If checked, smooths menu alphabet letters. Disable this if it causes rendering issues.",
+			'alphabetAntialiasing',
+			'bool',
+			true);
+		addOption(option);
+		option.onChange = onChangeAlphabet;
+
 		var option:Option = new Option('Main Menu Tips',
 			"If unchecked, hides those tips at the top in the main menu!",
 			'tipTexts',

@@ -119,6 +119,7 @@ class ClientPrefs
   public static var globalAntialiasing:Bool = true;
   public static var alphabetStyle:String = 'Font';
   public static var alphabetFont:String = 'VCR OSD Mono';
+  public static var alphabetAntialiasing:Bool = true;
 }
 HAXE
 
