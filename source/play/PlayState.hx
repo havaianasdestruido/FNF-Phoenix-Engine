@@ -3057,8 +3057,10 @@ class PlayState extends MusicBeatState
 
 		if (tankmanAscend) PlayStateCamera.tankmanStep(this);
 
-		setOnLuas('curStep', curStep);
-		callOnLuas('onStepHit');
+		if (hasActiveScripts()) {
+			setOnLuas('curStep', curStep);
+			callOnLuas('onStepHit');
+		}
 	}
 
 	var lastBeatHit:Int = -1;
@@ -3092,8 +3094,10 @@ class PlayState extends MusicBeatState
 		if (ClientPrefs.charsAndBG) characterBopper(curBeat);
 		lastBeatHit = curBeat;
 
-		setOnLuas('curBeat', curBeat); //DAWGG?????
-		callOnLuas('onBeatHit');
+		if (hasActiveScripts()) {
+			setOnLuas('curBeat', curBeat); //DAWGG?????
+			callOnLuas('onBeatHit');
+		}
 	}
 	public function characterBopper(beat:Int):Void
 	{
@@ -3129,15 +3133,19 @@ class PlayState extends MusicBeatState
 				Conductor.changeBPM(SONG.notes[curSection].bpm);
 				SustainSplash.startCrochet = Conductor.stepCrochet;
 				SustainSplash.frameRate = Math.floor(24 / 100 * Conductor.bpm);
-				setOnLuas('curBpm', Conductor.bpm);
-				setOnLuas('crochet', Conductor.crochet);
-				setOnLuas('stepCrochet', Conductor.stepCrochet);
+				if (hasActiveScripts()) {
+					setOnLuas('curBpm', Conductor.bpm);
+					setOnLuas('crochet', Conductor.crochet);
+					setOnLuas('stepCrochet', Conductor.stepCrochet);
+				}
 				if (Conductor.bpm >= 500) singDurMult = gfSpeed;
 				else singDurMult = 1;
 			}
-			setOnLuas('mustHitSection', SONG.notes[curSection].mustHitSection);
-			setOnLuas('altAnim', SONG.notes[curSection].altAnim);
-			setOnLuas('gfSection', SONG.notes[curSection].gfSection);
+			if (hasActiveScripts()) {
+				setOnLuas('mustHitSection', SONG.notes[curSection].mustHitSection);
+				setOnLuas('altAnim', SONG.notes[curSection].altAnim);
+				setOnLuas('gfSection', SONG.notes[curSection].gfSection);
+			}
 			if (camZooming && !endingSong && !startingSong && camHUD.zoom < 1.35 && !usingBopIntervalEvent && ClientPrefs.camZooms)
 			{
 				camBopFactor += 0.015 * camBopIntensity;
@@ -3145,8 +3153,10 @@ class PlayState extends MusicBeatState
 			}
 		}
 
-		setOnLuas('curSection', curSection);
-		callOnLuas('onSectionHit');
+		if (hasActiveScripts()) {
+			setOnLuas('curSection', curSection);
+			callOnLuas('onSectionHit');
+		}
 	}
 
 	public function bopIcons(?bopBF:Bool = false)

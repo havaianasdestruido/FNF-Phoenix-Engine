@@ -18,3 +18,7 @@
 ## 2024-05-18 - Short-circuiting high-frequency script dispatches to avoid GC stutter
 **Learning:** Eagerly evaluating script arguments (e.g., dynamically allocated arrays like `[key]` or `[elapsed]`) inside high-frequency event loops like note hits, inputs, camera moves, and update functions causes noticeable garbage collection stutter in this Haxe codebase, even if the dispatch (`callOnLuas` / `callOnScripts`) does nothing because there are no active scripts.
 **Action:** Always wrap high-frequency script dispatches with `if (hasActiveScripts())` so that argument arrays are only evaluated and allocated when necessary.
+
+## 2024-05-18 - Eager array allocation in high-frequency script setOnLuas / callOnLuas dispatches
+**Learning:** Eagerly calling `setOnLuas` and `callOnLuas` during high-frequency event loops like step hits, beat hits, and section hits allocates objects and forces variable assignments across script runtimes. If left unguarded, these operations cause noticeable garbage collection stutter in this Haxe codebase, even if there are no active scripts.
+**Action:** Always wrap high-frequency `setOnLuas` and `callOnLuas` invocations with `if (hasActiveScripts())` to short-circuit the execution and avoid unnecessary allocations when no scripts are active.
