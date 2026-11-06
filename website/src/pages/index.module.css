@@ -112,7 +112,7 @@
 }
 
 .sections {
-  padding: 1.5rem 0 4rem;
+  padding: 1.5rem 0 2rem;
 }
 
 .card {
@@ -138,4 +138,47 @@
 .card p {
   margin-bottom: 0;
   opacity: 0.8;
+}
+
+.faq {
+  padding: 0.5rem 0 4rem;
+}
+
+.faqGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  margin-top: 1.25rem;
+}
+
+.faqItem {
+  padding: 1.35rem 1.5rem;
+  border: 1px solid var(--ifm-color-emphasis-300);
+  border-radius: var(--ifm-global-radius);
+  background: var(--ifm-card-background-color);
+}
+
+.faqItem h3 {
+  font-size: 1.05rem;
+  line-height: 1.35;
+  margin-bottom: 0.6rem;
+}
+
+.faqItem p {
+  margin-bottom: 0;
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.faqMore {
+  margin-top: 1.25rem;
+  margin-bottom: 0;
+  font-size: 0.9rem;
+  opacity: 0.85;
+}
+
+@media screen and (max-width: 996px) {
+  .faqGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }

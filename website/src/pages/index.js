@@ -5,7 +5,9 @@ import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import Layout from '@theme/Layout';
 import Heading from '@theme/Heading';
 
+import FaqAnswer from '../components/FaqAnswer';
 import {engine, platformGroups, createEngineStructuredData} from '../data/engine.mjs';
+import {homepageFaqEntries} from '../data/faq.mjs';
 import styles from './index.module.css';
 
 const sections = [
@@ -113,6 +115,35 @@ function EnginePlatforms() {
   );
 }
 
+function HomepageFaq() {
+  return (
+    <section className={styles.faq} aria-labelledby="faq">
+      <div className="container">
+        <Heading as="h2" id="faq">
+          Frequently asked questions
+        </Heading>
+        <div className={styles.faqGrid}>
+          {homepageFaqEntries.map((entry) => (
+            <article key={entry.id} className={styles.faqItem}>
+              <Heading as="h3" id={entry.id}>
+                {entry.question}
+              </Heading>
+              <p>
+                <FaqAnswer text={entry.answer} />
+              </p>
+            </article>
+          ))}
+        </div>
+        <p className={styles.faqMore}>
+          More questions — <code>project.hxp</code>, bundled editors, mobile support,
+          audio formats, transparent windows and contributing — are answered on the{' '}
+          <Link to="/faq">FAQ page</Link>.
+        </p>
+      </div>
+    </section>
+  );
+}
+
 export default function Home() {
   const {siteConfig} = useDocusaurusContext();
   const structuredData = createEngineStructuredData(siteConfig.url, siteConfig.baseUrl);
@@ -156,6 +187,8 @@ export default function Home() {
             </div>
           </div>
         </section>
+
+        <HomepageFaq />
       </main>
     </Layout>
   );
