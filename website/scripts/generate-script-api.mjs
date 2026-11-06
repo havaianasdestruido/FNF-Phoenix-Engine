@@ -16,6 +16,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseParams } from './haxe-parser.mjs';
+import { functionFaq, renderFaq } from './function-faq.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const WEBSITE_DIR = path.resolve(__dirname, '..');
@@ -174,8 +175,12 @@ function renderPage({ lang, title, sidebarLabel, position, intro, functions }) {
     byGroup.get(groupName).items.push(fn);
   }
 
+  const faq = functions.flatMap((fn) => functionFaq({
+    name: fn.name, language: lang === 'lua' ? 'Lua' : 'Python', doc: fn.doc, params: fn.params, group: (GROUPS[fn.module] ?? [fn.module])[0],
+  }));
   const out = [];
   out.push('---');
+  if (faq.length) out.push(`function_faq: ${JSON.stringify(faq)}`);
   out.push(`title: ${title}`);
   out.push(`sidebar_label: ${sidebarLabel}`);
   out.push(`sidebar_position: ${position}`);
@@ -252,6 +257,7 @@ function renderPage({ lang, title, sidebarLabel, position, intro, functions }) {
     out.push('');
   }
 
+  out.push(...renderFaq(faq));
   return out.join('\n');
 }
 

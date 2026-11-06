@@ -8,7 +8,7 @@
     "gen:scripts": "node scripts/generate-script-api.mjs",
     "gen": "npm run gen:api && npm run gen:scripts",
     "lint:docs": "node scripts/check-doc-syntax.mjs",
-    "test:seo": "node --test tests/structured-data.test.mjs",
+    "test:seo": "node --test tests/*.test.mjs",
     "prestart": "npm run gen",
     "start": "docusaurus start --host 0.0.0.0",
     "prebuild": "npm run gen && npm run lint:docs && npm run test:seo",
