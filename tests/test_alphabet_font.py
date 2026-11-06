@@ -61,6 +61,7 @@ class AlphabetFontPreferencesTest(unittest.TestCase):
         prefs = read("source/backend/ClientPrefs.hx")
         self.assertIn("public static var alphabetStyle:String = AlphabetFont.DEFAULT_STYLE;", prefs)
         self.assertIn("public static var alphabetFont:String = AlphabetFont.DEFAULT_FONT;", prefs)
+        self.assertIn("public static var alphabetAntialiasing:Bool = true;", prefs)
         self.assertIn("import objects.AlphabetFont;", prefs)
 
     def test_model_defaults(self):
@@ -110,6 +111,8 @@ class AlphabetRendererTest(unittest.TestCase):
         self.assertIn("private function createFontLetters(newText:String)", alphabet)
         self.assertIn("private function setupImageGlyph(bold:Bool)", alphabet)
         self.assertIn("private function setupFontGlyph(bold:Bool)", alphabet)
+        self.assertIn("antialiasing = ClientPrefs.alphabetAntialiasing;", alphabet)
+        self.assertIn("ClientPrefs.globalAntialiasing && ClientPrefs.alphabetAntialiasing", alphabet)
         # A font that fails to load must not leave the menus blank.
         self.assertIn("if (graphic == null)\n\t\t{\n\t\t\tsetupImageGlyph(bold);", alphabet)
         # Widescreen auto wrap still applies to the font renderer.
@@ -131,6 +134,8 @@ class AlphabetOptionsTest(unittest.TestCase):
         self.assertIn("AlphabetFont.styles());", visuals)
         self.assertIn("'alphabetFont',", visuals)
         self.assertIn("AlphabetFont.fontNames());", visuals)
+        self.assertIn("'alphabetAntialiasing',", visuals)
+        self.assertIn("'Enable Alphabet anti-aliasing'", visuals)
         self.assertIn("function onChangeAlphabet()", visuals)
         self.assertIn("AlphabetFontRenderer.clearCache();", visuals)
         self.assertIn("Alphabet.reloadAll();", visuals)

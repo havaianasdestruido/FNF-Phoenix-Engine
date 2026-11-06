@@ -95,6 +95,7 @@ class ClientPrefs { //default settings if it can't find a save file containing y
 	//See objects.AlphabetFont and objects.AlphabetFontRenderer.
 	public static var alphabetStyle:String = AlphabetFont.DEFAULT_STYLE;
 	public static var alphabetFont:String = AlphabetFont.DEFAULT_FONT;
+	public static var alphabetAntialiasing:Bool = true;
 
 	//Mobile Settings
   public static var respectCutout:Bool = true;
