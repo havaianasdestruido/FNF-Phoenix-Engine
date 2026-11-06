@@ -13,6 +13,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseHaxeFile, formatSignature } from './haxe-parser.mjs';
+import { functionFaq, renderFaq } from './function-faq.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const WEBSITE_DIR = path.resolve(__dirname, '..');
@@ -274,10 +275,15 @@ function renderType(type, parsed, allTypes) {
   const pkg = packageOf(parsed);
   const fqn = pkg === '(root)' ? type.name : `${pkg}.${type.name}`;
   const lines = [];
+  const faq = type.methods.filter((m) => m.isPublic || m.name === 'new').flatMap((m) => functionFaq({
+    name: m.name, owner: type.name, language: 'Haxe', doc: m.doc, params: m.params,
+    isStatic: m.isStatic, isConstructor: m.name === 'new', conditions: conditionBadge(m.conditions),
+  }));
 
   lines.push('---');
   lines.push(`title: ${type.name}`);
   lines.push(`sidebar_label: ${type.name}`);
+  if (faq.length) lines.push(`function_faq: ${JSON.stringify(faq)}`);
   lines.push(`description: ${JSON.stringify(
     (type.doc ? type.doc.split('\n')[0] : `${type.kind} ${fqn}`).slice(0, 180),
   )}`);
@@ -406,6 +412,7 @@ function renderType(type, parsed, allTypes) {
   };
 
   renderMethods('Public methods', publicMethods);
+  lines.push(...renderFaq(faq));
 
   if (privateFields.length || privateMethods.length) {
     lines.push('## Internals');

@@ -133,3 +133,23 @@ for (const entity of faqPageNode.mainEntity) {
 console.log(
   `[structured-data] Verified build/index.html and build/faq.html (${faqPageNode.mainEntity.length} Q&As, canonical URLs, breadcrumbs and image).`,
 );
+
+// Generated reference pages publish the exact same Q&As visibly and in JSON-LD.
+for (const relativePath of [
+  'docs/reference/backend/Paths.html',
+  'docs/modding/lua-api-reference.html',
+  'docs/modding/python-api-reference.html',
+]) {
+  const html = fs.readFileSync(path.join(websiteDir, 'build', relativePath), 'utf8');
+  const head = html.match(/<head\b[^>]*>([\s\S]*?)<\/head>/i)[1];
+  const data = [...head.matchAll(scriptPattern)].map((match) => JSON.parse(match[1]))
+    .find((item) => item['@type'] === 'FAQPage');
+  assert.ok(data?.mainEntity.length, `${relativePath} must have a FAQPage`);
+  const visible = toVisibleText(html.replace(/<head\b[^>]*>[\s\S]*?<\/head>/i, '')
+    .replace(/&#123;/g, '{').replace(/&#125;/g, '}'));
+  for (const entry of data.mainEntity) {
+    assert.ok(visible.includes(entry.name), `${relativePath}: question must be visible: ${entry.name}`);
+    assert.ok(visible.includes(entry.acceptedAnswer.text), `${relativePath}: answer must be visible: ${entry.name}`);
+  }
+}
+console.log('[structured-data] Verified generated Haxe, Lua and Python function Q&As.');

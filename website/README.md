@@ -130,3 +130,16 @@ tests/
 `sidebar_position` front matter and `_category_.json` files.
 
 More detail: [Contributing → Documentation](./docs/contributing/documentation.md).
+
+### Generated function Q&A
+
+Generated Haxe type pages and the Lua/Python API references include visible
+function Q&As and prerendered FAQPage JSON-LD. Both use the same entries, built
+by `scripts/function-faq.mjs`; the generator takes descriptions and signatures
+from the source, and labels invocation patterns as placeholders rather than
+pretending they are runnable examples. When a source description is missing, the
+answer says so and points readers to the linked implementation. Improve those
+answers by documenting the function at its source. A few verified scripting
+examples are maintained in `function-faq.mjs`. The post-build check verifies
+representative Haxe, Lua and Python pages against their visible Q&As. FAQ schema
+is not a guarantee of search-engine rich results.
