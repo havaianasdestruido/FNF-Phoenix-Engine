@@ -4,6 +4,12 @@ Generated from full repo audit. Priority: `[P0]` critical/blocker, `[P1]` high, 
 
 Sections 13–20 are a second backlog pass written against the current tree. Every entry there was checked against §0–12: anything already listed is **cross-referenced, not repeated**, and each item names the file/behaviour that proves it is still missing. They target Phoenix's stated identity — low-end devices, easy Lua/Python/HScript modding, Android-first platform work and Psych/JS compatibility — rather than generic engine cloning.
 
+_quick reminder that everything i say here that is a "port" of [x] feature of the [y] engine, i will port WITH THE APROPRIATED CREDITS!!!_
+
+_keep in mind i will only port stuff if their license is compatible with mine (Apache 2.0 AFAIK)_
+
+_i accept suggestions too_
+
 ---
 
 ## 0. PRIORITY-ish / UNCATEGORIZED
@@ -43,6 +49,7 @@ Sections 13–20 are a second backlog pass written against the current tree. Eve
 - - [refreshrate.cpp](https://github.com/troll-slaiyers/FNF-Troll-Engine/blob/main/source/funkin/api/src/refreshrate.cpp) (util for Linux users)
 - - [darkmode.cpp](https://github.com/troll-slaiyers/FNF-Troll-Engine/blob/main/source/funkin/api/src/darkmode.cpp)
   - [source/funkin/api/Github.hx](https://github.com/troll-slaiyers/FNF-Troll-Engine/blob/main/source/funkin/api/Github.hx) - Utils for in-game update screen and other social stuff
+  - https://github.com/troll-slaiyers/FNF-Troll-Engine/tree/main/flixel/flixel-ui/img - port their dark flixel-ui system too.
 
 #### Rebuilding how the MODDING API works and adjusting it to be able to also support other languages (Common Modding API)
 
