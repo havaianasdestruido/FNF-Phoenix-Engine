@@ -10,6 +10,24 @@ Code style is enforced using Visual Studio Code extensions. (specifically for JS
 * No orphan debug output (`trace()`, `Log.d`, `NSLog`, `console.log`, `printf`) in committed code; gate diagnostics behind a define.
 * Adding a formatter/linter for a language that doesn't have one yet: commit its config at the repo root, keep it non-blocking in CI, and clean the tree up incrementally — the same staged approach as the Haxe Checkstyle TODOs below.
 
+### Tests: Haxe, not Python
+* Engine tests are **Haxe specs**: `tests/haxe/<Area>Spec.hx` plus a `tests/haxe/run-<area>.sh`/`.bat`/`.ps1` runner. That is the only accepted shape for new tests — no toolchain-free "grep the source" suites.
+* **Python is not allowed for tests**, with one exception: the test belongs to a **softmod**, i.e. it lives **inside the mod's own folder** (`mods/<mod>/...`, `example_mods/<mod>/...`) next to that mod's content. Everywhere else the answer is a Haxe spec.
+* The static `tests/test_*.py` guards predate this rule: don't add more, don't extend them. When you touch the area one covers, port the check to a Haxe spec (or rely on the compiled spec CI already runs) instead.
+* CI/tooling scripts (`tools/*.py`, e.g. manifest, version and dependency checks) are **not tests** and stay as they are; new tooling should be Haxe/shell unless there is no reasonable alternative. Never use a tooling script as a loophole to "test" in Python.
+* Mod-script templates (`docs/TemplateScript.py`, `example_mods/scripts/TemplateScript.py`) are softmod content for the Hython runtime and may stay Python.
+
+## .py (only inside a mod / softmod)
+No Python is committed for the engine itself — the engine is Haxe. Python appears only as scripting content loaded by Hython (`source/psychlua/PythonScript*`), so a `.py` file is allowed at exactly three kinds of path: a mod folder (`mods/<mod>/scripts/`, `mods/<mod>/data/<song>/`), an example mod (`example_mods/scripts/`), and a `tools/` script the workflows actually call.
+
+### Python Notes
+* Mod scripts: LF, **tabs** to match the shipped templates (`docs/TemplateScript.py`, `example_mods/scripts/TemplateScript.py`); engine-facing callbacks keep the Lua names in `lowerCamelCase` (`def onCreate()`, `def onUpdate(elapsed)`), your own helpers `snake_case`. Keep the file self-contained — it ships to players, so it must not import engine internals.
+* Keep Lua and Python hooks symmetric: same callback names and argument order as the `.lua` version (see `AGENTS.md` §8.5).
+* No `print()` debugging in a committed script; use the runtime's log helper and remove it before shipping.
+* No third-party imports (`pip` isn't part of the pipeline). Standard library only, and only what the Hython runtime exposes.
+* `tools/*.py` follow PEP 8 defaults, are invoked as `python3 tools/<name>.py` from `.github/workflows/*`, and must stay dependency-free (stdlib only) since CI runs them on a bare runner.
+
+
 ## .hx
 Formatting is handled by the `nadako.vshaxe` extension, which includes the Haxe Formatter.
 Haxe Formatter resolves issues such as indentation style and line breaks, and can be configured in `hxformat.json`.
