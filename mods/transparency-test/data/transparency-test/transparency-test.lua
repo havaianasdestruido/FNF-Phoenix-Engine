@@ -6,12 +6,14 @@ local previousWindowAlpha = 1.0
 function onCreatePost()
     -- Keep the camera background a perfectly flat, opaque match for the key.
     previousWindowAlpha = getWindowAlpha()
-    setProperty('camGame.bgColor', transparencyKey)
+    setProperty('camGame.bgColor', getColorFromHex(transparencyKey))
     setWindowTransparencyColor(transparencyKey)
     setWindowAlpha(1.0)
 
     -- Safe no-op on platforms without color-key support; it logs the limitation.
-    setWindowTransparent(true)
+    if not setWindowTransparent(true) then
+        debugPrint("Window color-key transparency could not be enabled on this platform.")
+    end
 end
 
 function onDestroy()
