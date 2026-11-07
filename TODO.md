@@ -34,7 +34,15 @@ Sections 13–20 are a second backlog pass written against the current tree. Eve
 
 - Making the user be able to change ALL game text to a custom font.
 
-- Adding a built-in mid download support (gamebanana browser) (just like GMod)
+- Adding a built-in mod download support (gamebanana browser & gamejolt) (just like GMod)
+- - (edit: just found out this [https://github.com/miksel1/FNF-ScrewedEngine/blob/main/source/gamejolt/GJClient.hx](https://github.com/miksel1/FNF-ScrewedEngine/blob/main/source/gamejolt/GJClient.hx) snippet from Screwed Engine (JSE grandparent))
+ 
+- Port these cool stuff from Troll Engine:
+- - [source/funkin/api/src/memory.cpp
+](https://github.com/troll-slaiyers/FNF-Troll-Engine/blob/main/source/funkin/api/src/memory.cpp) (phoenix engine implmentation is not as complete as this one)
+- - [refreshrate.cpp](https://github.com/troll-slaiyers/FNF-Troll-Engine/blob/main/source/funkin/api/src/refreshrate.cpp) (util for Linux users)
+- - [darkmode.cpp](https://github.com/troll-slaiyers/FNF-Troll-Engine/blob/main/source/funkin/api/src/darkmode.cpp)
+  - [source/funkin/api/Github.hx](https://github.com/troll-slaiyers/FNF-Troll-Engine/blob/main/source/funkin/api/Github.hx) - Utils for in-game update screen and other social stuff
 
 #### Rebuilding how the MODDING API works and adjusting it to be able to also support other languages (Common Modding API)
 
