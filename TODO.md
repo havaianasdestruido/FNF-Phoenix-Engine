@@ -6,6 +6,13 @@ Sections 13–20 are a second backlog pass written against the current tree. Eve
 
 _quick reminder that everything i say here that is a "port" of [x] feature of the [y] engine, i will port WITH THE APROPRIATED CREDITS!!!_
 
+_every feature ported MUST be enabled by default (unless specified beforehand) and MUST have a toggle to enable/disable or to change its options_
+
+Examples of options:
+
+- Colorful [thing].
+- - Must make the color be customizable, or atleast have some presets
+
 _keep in mind i will only port stuff if their license is compatible with mine (Apache 2.0 AFAIK)_
 
 _i accept suggestions too_
@@ -50,6 +57,13 @@ _i accept suggestions too_
 - - [darkmode.cpp](https://github.com/troll-slaiyers/FNF-Troll-Engine/blob/main/source/funkin/api/src/darkmode.cpp)
   - [source/funkin/api/Github.hx](https://github.com/troll-slaiyers/FNF-Troll-Engine/blob/main/source/funkin/api/Github.hx) - Utils for in-game update screen and other social stuff
   - https://github.com/troll-slaiyers/FNF-Troll-Engine/tree/main/flixel/flixel-ui/img - port their dark flixel-ui system too.
+
+- Port these cool stuff from Doido Engine:
+- - [https://github.com/DoidoTeam/FNF-Doido-Engine/blob/main/source/backend/shaders/DistantNoteShader.hx ](https://github.com/DoidoTeam/FNF-Doido-Engine/blob/main/source/backend/shaders/DistantNoteShader.hx)- cool note shader thing
+  - cool looking loading screen
+  - clear ui (just FPT on top and ram below it)
+  - settings fully centered instead of being on the left
+  - "-[NUMBER]" when you miss note, accumulative and stays red
 
 #### Rebuilding how the MODDING API works and adjusting it to be able to also support other languages (Common Modding API)
 
