@@ -567,8 +567,11 @@ class VisualsUISubState extends BaseOptionsMenu
 	/** Rebuilds every alphabet on screen after the style or font changed. */
 	function onChangeAlphabet()
 	{
-		Alphabet.reloadAll(); //letters switch to the new style/font first...
-		AlphabetFontRenderer.clearCache(); //...then the glyphs nobody uses anymore are dropped
+		// Drop the old glyph frames first. Reloading against the previous atlas and then
+		// clearing it leaves live letters pointing at stale frames; individual letters can
+		// then fall back to the spritesheet while newly-created letters use the font.
+		AlphabetFontRenderer.clearCache();
+		Alphabet.reloadAll();
 	}
 
 	function onChangeFPSCounter()
