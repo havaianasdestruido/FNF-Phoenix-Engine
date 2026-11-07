@@ -109,8 +109,9 @@ FNF-JS-Engine-Light/
     `inconsolata-bold.ttf` (**Inconsolata**, adicionada, SIL OFL 1.1 em
     `assets/fonts/LICENSE-inconsolata.txt`). Dividido em `objects/AlphabetFont.hx`
     (modelo **puro**, sem Flixel/OpenFL: estilos, fontes, tamanhos, chaves de cache) e
-    `objects/AlphabetFontRenderer.hx` (rasterização via `openfl.text.TextField` + cache de
-    `FlxGraphic`). Qualquer caractere imprimível é desenhado, e o espaçamento vem das
+    `objects/AlphabetFontRenderer.hx` (rasterização via `openfl.text.TextField` + atlas
+    compartilhado de `FlxGraphic`, para manter os menus em poucos draw calls). Qualquer
+    caractere imprimível é desenhado, e o espaçamento vem das
     métricas da fonte — sem tabela de offsets por letra.
   - `Image` mantém o spritesheet clássico `images/alphabet` (caminho antigo intacto, e
     fallback automático se a fonte não carregar).

@@ -93,8 +93,8 @@ class AlphabetRendererTest(unittest.TestCase):
         self.assertIn("Assets.exists(path, AssetType.FONT)", renderer)
         self.assertIn("Assets.getFont(path)", renderer)
         self.assertIn("field.embedFonts = true;", renderer)
-        self.assertIn("FlxG.bitmap.add(bitmap, false, key)", renderer, "glyphs must be cached, not redrawn")
-        # Glyphs outlive the letters using them, and clearing never destroys one in use.
+        self.assertIn("FlxG.bitmap.add(bitmap, false, key)", renderer, "atlas pages must be cached, not redrawn")
+        # Atlas pages outlive the letters using them, and clearing never destroys one in use.
         self.assertIn("graphic.persist = true;", renderer)
         self.assertIn("if (graphic.useCount <= 0) FlxG.bitmap.remove(graphic);", renderer)
         self.assertIn("else graphic.persist = false;", renderer)
@@ -102,6 +102,27 @@ class AlphabetRendererTest(unittest.TestCase):
         self.assertIn("if (name == null) return false;", renderer)
         self.assertIn("if (!prepare(def, bold)) return null;", renderer)
         self.assertIn("if (bold && def.bold != def.regular) return familyName(def, false);", renderer)
+
+    def test_font_glyphs_share_atlas_pages(self):
+        """A menu must not need one GPU texture (and draw call) per character."""
+        renderer = read("source/objects/AlphabetFontRenderer.hx")
+        alphabet = read("source/objects/Alphabet.hx")
+        self.assertIn("static var glyphs:Map<String, FlxFrame>", renderer)
+        self.assertIn("static var pages:Array<AlphabetAtlasPage>", renderer)
+        self.assertIn("frames: new FlxAtlasFrames(graphic)", renderer)
+        self.assertIn("page.frames.addSpriteSheetFrame", renderer)
+        self.assertIn("page.graphic.bitmap.draw", renderer)
+        self.assertIn("AlphabetFont.metricsKey(def, bold, 'active-page')", renderer)
+        self.assertIn("if (page.x + width > ATLAS_SIZE)", renderer, "full rows must wrap")
+        self.assertIn("if (page.y + boxH > ATLAS_SIZE)", renderer, "full pages must roll over")
+        self.assertIn("frames = FlxImageFrame.fromFrame(glyphFrame);", alphabet)
+        self.assertNotIn("new BitmapData(width, boxH", renderer, "do not restore one bitmap per glyph")
+        self.assertNotIn("loadGraphic(graphic);", alphabet, "loading the whole atlas would draw every glyph at once")
+        self.assertIn(
+            "FlxG.bitmap.getUniqueKey",
+            renderer,
+            "a fresh page must not overwrite a live page left by an earlier cache generation",
+        )
 
     def test_alphabet_keeps_both_renderers(self):
         alphabet = read("source/objects/Alphabet.hx")
@@ -113,8 +134,10 @@ class AlphabetRendererTest(unittest.TestCase):
         self.assertIn("private function setupFontGlyph(bold:Bool)", alphabet)
         self.assertIn("antialiasing = ClientPrefs.alphabetAntialiasing;", alphabet)
         self.assertIn("ClientPrefs.globalAntialiasing && ClientPrefs.alphabetAntialiasing", alphabet)
-        # A font that fails to load must not leave the menus blank.
+        # A font that fails to load must not leave the menus blank. A recycled letter must
+        # also release its font frame collection and load the spritesheet animations.
         self.assertIn("if (graphic == null)\n\t\t{\n\t\t\tsetupImageGlyph(bold);", alphabet)
+        self.assertIn("var needsAtlas:Bool = (frames == null || fontGlyph);", alphabet)
         # Widescreen auto wrap still applies to the font renderer.
         self.assertIn("ScreenLayout.BASE_WIDTH * 0.65", alphabet)
         self.assertIn("public static function reloadAll()", alphabet)

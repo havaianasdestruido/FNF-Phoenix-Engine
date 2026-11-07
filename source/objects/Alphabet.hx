@@ -4,6 +4,8 @@ import backend.Paths;
 import backend.ClientPrefs;
 import backend.ScreenLayout;
 import flixel.graphics.FlxGraphic;
+import flixel.graphics.frames.FlxFrame;
+import flixel.graphics.frames.FlxImageFrame;
 import objects.AlphabetFont.AlphabetFontDef;
 
 enum Alignment
@@ -517,9 +519,10 @@ class AlphaCharacter extends FlxSprite
 	 */
 	private function setupImageGlyph(bold:Bool)
 	{
+		var needsAtlas:Bool = (frames == null || fontGlyph);
 		fontGlyph = false;
 		antialiasing = ClientPrefs.globalAntialiasing && ClientPrefs.alphabetAntialiasing;
-		if (frames == null)
+		if (needsAtlas)
 		{
 			var atlas:String = (image == null || image.length == 0) ? 'alphabet' : image;
 			frames = getCachedFrames(atlas);
@@ -563,7 +566,8 @@ class AlphaCharacter extends FlxSprite
 	private function setupFontGlyph(bold:Bool)
 	{
 		var def:AlphabetFontDef = AlphabetFont.resolveFont();
-		var graphic:FlxGraphic = AlphabetFontRenderer.glyph(def, character, bold);
+		var glyphFrame:FlxFrame = AlphabetFontRenderer.glyphFrame(def, character, bold);
+		var graphic:FlxGraphic = (glyphFrame == null) ? null : glyphFrame.parent;
 		if (graphic == null)
 		{
 			setupImageGlyph(bold);
@@ -580,7 +584,7 @@ class AlphaCharacter extends FlxSprite
 
 			antialiasing = ClientPrefs.alphabetAntialiasing; //glyphs are rasterized large and scaled down, so they need filtering
 			letterOffset = [0, 0]; //one shared box per font already shares the baseline
-			loadGraphic(graphic);
+			frames = FlxImageFrame.fromFrame(glyphFrame);
 			fontGlyph = true;
 		}
 		catch (e:Dynamic)
