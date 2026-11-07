@@ -892,6 +892,10 @@ class Project extends HXProject
 			addAsset("assets/preload/data/funnyTips.txt", "assets/data/funnyTips.txt", "default", shouldEmbed);
 			addAsset("assets/preload/data/windowTitleBase.txt", "assets/data/windowTitleBase.txt", "default", shouldEmbed);
 			addAssetPath("assets/preload/data/ratingQuotes", "assets/data/ratingQuotes", "default", ["*"], exclude, shouldEmbed);
+			// Keep the tutorial: CI stripped builds still ship one playable
+			// built-in week alongside the bundled mods (mods/ is added below).
+			addAssetPath("assets/preload/data/tutorial", "assets/data/tutorial", "default", ["*"], exclude, shouldEmbed);
+			addAssetPath("assets/preload/weeks", "assets/weeks", "default", ["tutorial.json", "weekList.txt"], exclude, shouldEmbed);
 			// Menu/UI shell art only. Built-in character, week and dialogue
 			// art is dropped (the game falls back to generated placeholders).
 			var excludePreloadImages:Array<String> = exclude.concat([
@@ -931,6 +935,10 @@ class Project extends HXProject
 		addAssetLibrary("songs", shouldEmbed, shouldPreload);
 		if (!stripped)
 			addAssetPath("assets/songs", "assets/songs", "songs", ["*"], exclude, shouldEmbed);
+		else
+			// Keep the tutorial song only; every other built-in song (and the
+			// week 2 through weekend 1 level folders below) stays dropped.
+			addAssetPath("assets/songs/tutorial", "assets/songs/tutorial", "songs", ["*"], exclude, shouldEmbed);
 		addAssetLibrary("shared", shouldEmbed, shouldPreload);
 		if (!stripped)
 		{
