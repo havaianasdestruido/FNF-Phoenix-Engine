@@ -188,6 +188,23 @@ FNF-JS-Engine-Light/
   bloco ASCII `/* */` para separar seções de código (padrão do repo).
 - Favor documentar função pública nova com `/** @param ... */` quando tiver parâmetros não óbvios.
 
+### Testes: Haxe por padrão, Python **não**
+
+- **Não é permitido** escrever testes em Python (`.py`) para o engine. Teste do engine é
+  **Haxe**: spec em `tests/haxe/*Spec.hx` + runner `tests/haxe/run-<nome>.sh`/`.bat`/`.ps1`
+  (mesmo formato dos que já existem).
+- Python só é aceitável para teste **quando o código testado é um softmod** — isto é, quando
+  o teste vive **dentro da pasta do mod** (`mods/<mod>/...`, `example_mods/<mod>/...`), junto
+  do próprio conteúdo do mod. Fora de pasta de mod, não.
+- Isso inclui os guards estáticos de `tests/test_*.py`: **não crie mais nenhum**, não estenda
+  os existentes; ao mexer numa área que eles cobrem, mova a verificação para um spec Haxe
+  (ou deixe para a CI que já roda). Eles são legado, não um padrão a seguir.
+- Scripts de ferramenta em `tools/*.py` chamados pela CI (checagem de manifesto, versão,
+  dependências) **não** são testes e continuam como estão — mas ferramenta nova só entra se
+  não der para fazer em Haxe/shell, e não vire desculpa para "testar" em Python.
+- Template de script de mod (`docs/TemplateScript.py`, `example_mods/scripts/TemplateScript.py`)
+  é conteúdo de mod/softmod: pode ficar em Python, é o runtime Hython que o carrega.
+
 ---
 
 ## 8. Regras de modificação (IMPORTANTE — siga SEMPRE)
@@ -206,6 +223,8 @@ FNF-JS-Engine-Light/
 9. Toda mudança de feature/flag pública deve atualizar `ClientPrefs`/`Options` se visível ao jogador.
 10. **Não** commits de `build/` (ignorado) nem de `art/` não-necessários; manter tree limpa
     (`git status`) antes de PR.
+11. **Nada de teste em Python** fora de pasta de mod (softmod). Teste de engine = spec Haxe em
+    `tests/haxe/`. Ver §7 "Testes: Haxe por padrão, Python não".
 
 ---
 
@@ -271,6 +290,8 @@ FNF-JS-Engine-Light/
 - [ ] Código formatado (Haxe Formatter) + sem warnings/errors de Haxe-Checkstyle novos.
 - [ ] Build compila: `haxelib run lime build <platform> -Dofficial` (ou o target do seu trabalho).
 - [ ] Se mexeu em scripts/callbacks: testou com um mod de exemplo (`.lua` e `.py`).
+- [ ] Se adicionou teste: é spec Haxe em `tests/haxe/` — **nenhum** `tests/test_*.py` novo
+      (Python só dentro de pasta de mod/softmod).
 - [ ] Se mexeu em assets: registrou no `project.hxp` quando necessário.
 - [ ] Sem `trace()` de debug esquecido; sem segredos/chaves commitadas.
 - [ ] Mensagem de commit curta no estilo do repo (Conventional-ish, tipo “fix: ...”, “feat: ...”).
