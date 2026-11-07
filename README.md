@@ -30,10 +30,6 @@
 - **Maintenance and fixes:** reorganized source code, haxelib overrides, smaller assets, and gameplay/crash fixes.
 - - **All platforms under the same branch:** The biggest addition i've ever added was mobile support DIRECTLY to the same branch as the Desktop one, so hotfixes and other patches can be applied to all platforms at once.
 
-## Known Android issues
-
-- Image and audio permission prompts may still appear after granting “manage all files” access.
-
 ## Contributing
 
 Bug fixes, features, example mods, platform ports, and upstream backports are welcome.
