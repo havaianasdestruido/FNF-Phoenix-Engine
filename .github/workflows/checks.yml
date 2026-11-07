@@ -68,6 +68,28 @@ jobs:
       - name: Test the phoenix:// URI parser and its route allowlists
         run: bash tests/uri/run.sh
 
+  lua-script-pipeline:
+    name: Lua script pipeline (Haxe)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: krdlab/setup-haxe@master
+        with:
+          haxe-version: "4.3.7"
+      # Stage 0-2 (+5) are dependency free and always run.
+      - name: Test mod discovery, the ModSecurity gate and loader invariants
+        run: bash tests/haxe/run-lua-discovery.sh
+      # The interpreter half runs the shipped mod scripts through the real
+      # sandbox bootstrap. LuaJIT is the runtime hxluajit binds.
+      - name: Build LuaJIT for the sandbox execution tests
+        run: |
+          set -euo pipefail
+          git clone --depth 1 https://github.com/LuaJIT/LuaJIT.git "$RUNNER_TEMP/luajit"
+          make -C "$RUNNER_TEMP/luajit" -j"$(nproc)" >/dev/null
+          echo "LUAJIT=$RUNNER_TEMP/luajit/src/luajit" >> "$GITHUB_ENV"
+      - name: Execute the shipped Lua mods under the sandbox
+        run: bash tests/haxe/run-lua-discovery.sh
+
   native-object-cache:
     name: hxcpp cache smoke (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
