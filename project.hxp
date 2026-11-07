@@ -1013,28 +1013,20 @@ class Project extends HXProject
 		}
 
 		// Level asset libraries (dropped entirely in stripped builds: each one
-		// is stage art + stage SFX for a built-in week).
-		addAssetLibrary("week2", shouldEmbed, shouldPreload);
-		if (!stripped)
-			addAssetPath("assets/week2", "assets/week2", "week2", ["*"], exclude, shouldEmbed);
-		addAssetLibrary("week3", shouldEmbed, shouldPreload);
-		if (!stripped)
-			addAssetPath("assets/week3", "assets/week3", "week3", ["*"], exclude, shouldEmbed);
-		addAssetLibrary("week4", shouldEmbed, shouldPreload);
-		if (!stripped)
-			addAssetPath("assets/week4", "assets/week4", "week4", ["*"], exclude, shouldEmbed);
-		addAssetLibrary("week5", shouldEmbed, shouldPreload);
-		if (!stripped)
-			addAssetPath("assets/week5", "assets/week5", "week5", ["*"], exclude, shouldEmbed);
-		addAssetLibrary("week6", shouldEmbed, shouldPreload);
-		if (!stripped)
-			addAssetPath("assets/week6", "assets/week6", "week6", ["*"], exclude, shouldEmbed);
-		addAssetLibrary("week7", shouldEmbed, shouldPreload);
-		if (!stripped)
-			addAssetPath("assets/week7", "assets/week7", "week7", ["*"], exclude, shouldEmbed);
-		addAssetLibrary("weekend1", shouldEmbed, shouldPreload);
-		if (!stripped)
-			addAssetPath("assets/weekend1", "assets/weekend1", "weekend1", ["*"], exclude, shouldEmbed);
+		// is stage art + stage SFX for a built-in week). No-assets checkouts
+		// ship without these folders, so a missing directory is skipped with
+		// a warning instead of aborting the whole project evaluation.
+		for (weekFolder in ["week2", "week3", "week4", "week5", "week6", "week7", "weekend1"])
+		{
+			addAssetLibrary(weekFolder, shouldEmbed, shouldPreload);
+			if (!stripped)
+			{
+				if (sys.FileSystem.exists("assets/${weekFolder}"))
+					addAssetPath("assets/${weekFolder}", "assets/${weekFolder}", weekFolder, ["*"], exclude, shouldEmbed);
+				else
+					info('No assets mode: skipping missing level asset folder "assets/${weekFolder}".');
+			}
+		}
 
 		// Art asset library (where README and CHANGELOG pull from)
 		var shouldEmbedArt = false;
