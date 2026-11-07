@@ -123,7 +123,9 @@ struct PhoenixWindowState
 {
   HWND window;
   LONG_PTR originalStyle;
+  ULONG_PTR originalClassStyle;
   bool tracked;
+  bool classStyleTracked;
   bool alpha;
   bool colorKey;
   bool clickThrough;
@@ -133,7 +135,7 @@ struct PhoenixWindowState
 
 static PHOENIX_WINDOW_UNUSED PhoenixWindowState &phoenixWindowState()
 {
-  static PhoenixWindowState state = {NULL, 0, false, false, false, false, 255, 0};
+  static PhoenixWindowState state = {NULL, 0, 0, false, false, false, false, false, 255, 0};
   return state;
 }
 
@@ -145,6 +147,8 @@ static PHOENIX_WINDOW_UNUSED bool phoenixWindowSelect(const char *title)
   {
     state.window = window;
     state.tracked = false;
+    // SDL_app is a process-wide class. Keep its saved style across HWND
+    // recreation so the new handle can still restore it on reset.
     state.alpha = state.colorKey = state.clickThrough = false;
     state.opacity = 255;
     state.key = 0;
@@ -161,6 +165,20 @@ static PHOENIX_WINDOW_UNUSED bool phoenixWindowSetStyle(HWND window, LONG_PTR st
   SetWindowPos(window, NULL, 0, 0, 0, 0,
     SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE | SWP_FRAMECHANGED);
   return true;
+}
+
+static PHOENIX_WINDOW_UNUSED bool phoenixWindowGetClassStyle(HWND window, ULONG_PTR &style)
+{
+  SetLastError(0);
+  style = GetClassLongPtrW(window, GCL_STYLE);
+  return style != 0 || GetLastError() == 0;
+}
+
+static PHOENIX_WINDOW_UNUSED bool phoenixWindowSetClassStyle(HWND window, ULONG_PTR style)
+{
+  SetLastError(0);
+  const ULONG_PTR previous = SetClassLongPtrW(window, GCL_STYLE, (LONG_PTR)style);
+  return previous != 0 || GetLastError() == 0;
 }
 
 static PHOENIX_WINDOW_UNUSED bool phoenixWindowApplyTransparency()
@@ -180,8 +198,44 @@ static PHOENIX_WINDOW_UNUSED bool phoenixWindowApplyTransparency()
     next |= WS_EX_TRANSPARENT;
 
   PhoenixWindowState previous = state;
+  ULONG_PTR classStyle = 0;
+  bool classStyleChanged = false;
+  if (layered)
+  {
+    /*
+     * SDL registers SDL_app with CS_OWNDC. Microsoft explicitly documents
+     * WS_EX_LAYERED as incompatible with CS_OWNDC and CS_CLASSDC:
+     * https://learn.microsoft.com/windows/win32/api/winuser/nf-winuser-setwindowlonga
+     *
+     * SDL has already acquired and retained the window HDC by this point, so
+     * clear only the incompatible class bits while layering is active. Every
+     * other class bit is preserved and the original value is restored below
+     * when the last layered effect is removed.
+     */
+    if (!phoenixWindowGetClassStyle(window, classStyle))
+      return false;
+    const ULONG_PTR compatible = classStyle & ~(ULONG_PTR)(CS_OWNDC | CS_CLASSDC);
+    if (compatible != classStyle)
+    {
+      if (!state.classStyleTracked)
+        state.originalClassStyle = classStyle;
+      if (!phoenixWindowSetClassStyle(window, compatible))
+      {
+        state = previous;
+        return false;
+      }
+      state.classStyleTracked = true;
+      classStyleChanged = true;
+    }
+  }
+
   if (next != style && !phoenixWindowSetStyle(window, next))
+  {
+    if (classStyleChanged)
+      phoenixWindowSetClassStyle(window, classStyle);
+    state = previous;
     return false;
+  }
   if (layered)
   {
     DWORD flags = (state.alpha || state.clickThrough) ? LWA_ALPHA : 0;
@@ -190,12 +244,30 @@ static PHOENIX_WINDOW_UNUSED bool phoenixWindowApplyTransparency()
     if (!SetLayeredWindowAttributes(window, state.key, state.opacity, flags))
     {
       phoenixWindowSetStyle(window, style);
+      if (classStyleChanged)
+        phoenixWindowSetClassStyle(window, classStyle);
       state = previous;
       return false;
     }
   }
+  else if (state.classStyleTracked)
+  {
+    // Layering has been removed; SDL can have its original class style back.
+    if (!phoenixWindowSetClassStyle(window, state.originalClassStyle))
+    {
+      state.tracked = true;
+      RedrawWindow(window, NULL, NULL,
+        RDW_ERASE | RDW_INVALIDATE | RDW_FRAME | RDW_ALLCHILDREN | RDW_UPDATENOW);
+      return false;
+    }
+    state.classStyleTracked = false;
+  }
   state.tracked = true;
-  RedrawWindow(window, NULL, NULL, RDW_INVALIDATE | RDW_UPDATENOW);
+
+  // Microsoft's layered-window guide requires a real repaint after removing
+  // WS_EX_LAYERED; invalidate both client and non-client areas immediately.
+  RedrawWindow(window, NULL, NULL,
+    RDW_ERASE | RDW_INVALIDATE | RDW_FRAME | RDW_ALLCHILDREN | RDW_UPDATENOW);
   return true;
 }
 

@@ -70,9 +70,13 @@ typedef BOOL (*WNDENUMPROC)(HWND, LPARAM);
 #define GA_ROOT 2
 #define GWL_EXSTYLE (-20)
 #define GWL_STYLE (-16)
+#define GCL_STYLE (-26)
 #define WS_EX_LAYERED 0x80000
 #define WS_EX_TRANSPARENT 0x20
 #define WS_SYSMENU 0x80000
+#define CS_OWNDC 0x0020
+#define CS_CLASSDC 0x0040
+#define CS_BYTEALIGNCLIENT 0x1000
 #define LWA_COLORKEY 1
 #define LWA_ALPHA 2
 #define SC_CLOSE 0xF060
@@ -85,6 +89,9 @@ typedef BOOL (*WNDENUMPROC)(HWND, LPARAM);
 #define SWP_NOACTIVATE 16
 #define SWP_FRAMECHANGED 32
 #define RDW_INVALIDATE 1
+#define RDW_ERASE 4
+#define RDW_FRAME 0x400
+#define RDW_ALLCHILDREN 0x80
 #define RDW_UPDATENOW 256
 #define MB_OK 0
 #define MB_YESNO 4
@@ -136,12 +143,14 @@ struct FLASHWINFO {
   UINT cbSize; HWND hwnd; DWORD dwFlags; UINT uCount; DWORD dwTimeout;
 };
 #define RGB(r,g,b) ((COLORREF)((r) | ((g)<<8) | ((b)<<16)))
-struct MockWindow { HWND handle; DWORD pid; std::string className; std::wstring title; LONG_PTR exStyle; bool alive; };
+struct MockWindow { HWND handle; DWORD pid; std::string className; std::wstring title; LONG_PTR exStyle; bool alive; ULONG_PTR classStyle; };
 extern std::vector<MockWindow> mockWindows;
 extern DWORD mockProcess;
 extern HWND mockActive, mockForeground;
 extern int mockStyleFail;
+extern int mockClassStyleFail;
 extern DWORD mockLastError;
+extern UINT mockRedrawFlags;
 inline MockWindow *mockWindow(HWND h) { for (auto &w : mockWindows) if (w.handle == h) return &w; return NULL; }
 inline BOOL IsWindow(HWND h) { auto w = mockWindow(h); return w && w->alive; }
 inline HWND GetAncestor(HWND h, UINT) { return h; }
@@ -168,9 +177,34 @@ inline int MultiByteToWideChar(UINT, DWORD, const char *text, int, WCHAR *out, i
   for (int i = 0; i < n; ++i) { out[i] = decoded[i]; } out[n] = 0; return n + 1;
 }
 inline LONG_PTR GetWindowLongPtrW(HWND h, int) { auto w = mockWindow(h); return w ? w->exStyle : 0; }
-inline LONG_PTR SetWindowLongPtrW(HWND h, int, LONG_PTR value) { auto w = mockWindow(h); if (!w || mockStyleFail) { mockLastError = 5; return 0; } LONG_PTR old = w->exStyle; w->exStyle = value; mockLastError = 0; return old; }
+inline LONG_PTR SetWindowLongPtrW(HWND h, int, LONG_PTR value) {
+  auto w = mockWindow(h);
+  if (!w || mockStyleFail || ((value & WS_EX_LAYERED) && (w->classStyle & (CS_OWNDC | CS_CLASSDC)))) {
+    // SetWindowLong documents WS_EX_LAYERED as incompatible with these class styles.
+    mockLastError = 5;
+    return 0;
+  }
+  LONG_PTR old = w->exStyle;
+  w->exStyle = value;
+  mockLastError = 0;
+  return old;
+}
+inline ULONG_PTR GetClassLongPtrW(HWND h, int) {
+  auto w = mockWindow(h);
+  if (!w || mockClassStyleFail) { mockLastError = 5; return 0; }
+  mockLastError = 0;
+  return w->classStyle;
+}
+inline ULONG_PTR SetClassLongPtrW(HWND h, int, LONG_PTR value) {
+  auto w = mockWindow(h);
+  if (!w || mockClassStyleFail) { mockLastError = 5; return 0; }
+  ULONG_PTR old = w->classStyle;
+  w->classStyle = static_cast<ULONG_PTR>(value);
+  mockLastError = 0;
+  return old;
+}
 inline BOOL SetWindowPos(HWND, HWND, int, int, int, int, UINT) { return TRUE; }
-inline BOOL RedrawWindow(HWND, const RECT *, void *, UINT) { return TRUE; }
+inline BOOL RedrawWindow(HWND, const RECT *, void *, UINT flags) { mockRedrawFlags = flags; return TRUE; }
 extern DWORD mockLayerFlags, mockLayerKey;
 extern BYTE mockLayerAlpha;
 extern int mockLayerFail;

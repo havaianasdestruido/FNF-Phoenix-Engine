@@ -29,9 +29,12 @@ cross-platform API and compile to no-ops elsewhere.
   under Wine. `backend.TransparentWindow` drives the see-through window effect
   through `backend.FlxTransWindow` (a port of the same class in
   psych-engine-modified-build): it resolves the `HWND` of the **current process**
-  instead of trusting `GetActiveWindow()`, then applies `WS_EX_LAYERED` with a
-  color key and whole-window alpha in a single `SetLayeredWindowAttributes()`
-  call, plus `WS_EX_TRANSPARENT` for click-through.
+  instead of trusting `GetActiveWindow()`, temporarily removes SDL's
+  Win32-incompatible `CS_OWNDC`/`CS_CLASSDC` class bits, then applies
+  `WS_EX_LAYERED` with a color key and whole-window alpha in a single
+  `SetLayeredWindowAttributes()` call, plus `WS_EX_TRANSPARENT` for
+  click-through. Reset restores the original class style and repaints the
+  client and non-client areas.
 - **Linux.** `hxgamemode` is requested in `Main.__init__()` behind `GAMEMODE_ALLOWED`
   and released in `shutdownGameMode()`; both paths tolerate `gamemoded` being absent.
   `gamemode.ini` is the shipped profile. Video decoding is libvlc through `hxvlc`.

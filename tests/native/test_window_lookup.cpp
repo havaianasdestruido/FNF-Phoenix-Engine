@@ -6,7 +6,9 @@ std::vector<MockWindow> mockWindows;
 DWORD mockProcess = 10;
 HWND mockActive = NULL, mockForeground = NULL;
 int mockStyleFail = 0;
+int mockClassStyleFail = 0;
 DWORD mockLastError = 0;
+UINT mockRedrawFlags = 0;
 DWORD mockLayerFlags = 0, mockLayerKey = 0;
 BYTE mockLayerAlpha = 255;
 int mockLayerFail = 0;
@@ -31,8 +33,12 @@ static void reset()
 {
   mockWindows.clear();
   mockActive = mockForeground = NULL;
-  mockWindows.push_back({handle(0), 10, "SDL_app", L"Phoenix", 0, true});
-  mockWindows.push_back({handle(1), 99, "SDL_app", L"Another game", 0, true});
+  mockStyleFail = mockClassStyleFail = mockLayerFail = 0;
+  mockRedrawFlags = 0;
+  // This is the class style used by Phoenix's pinned SDL for SDL_app.
+  const ULONG_PTR sdlClassStyle = CS_BYTEALIGNCLIENT | CS_OWNDC;
+  mockWindows.push_back({handle(0), 10, "SDL_app", L"Phoenix", 0, true, sdlClassStyle});
+  mockWindows.push_back({handle(1), 99, "SDL_app", L"Another game", 0, true, sdlClassStyle});
 }
 int main()
 {
@@ -46,7 +52,7 @@ int main()
   mockWindows[0].alive = false;
   assert(phoenixWindowFind(NULL) == NULL); // invalidate the cache
   mockWindows[0].alive = true;
-  mockWindows.push_back({handle(2), 10, "SDL_app", L"Second window", 0, true});
+  mockWindows.push_back({handle(2), 10, "SDL_app", L"Second window", 0, true, CS_BYTEALIGNCLIENT | CS_OWNDC});
   assert(phoenixWindowFind(NULL) == NULL); // two process-owned SDL windows: ambiguous
   mockWindows[0].title = L"Jogo \u2014 Phoenix";
   assert(phoenixWindowFind("Jogo \xe2\x80\x94 Phoenix") == handle(0));
@@ -57,8 +63,11 @@ int main()
   assert(phoenixWindowFind("Phoenix") == NULL);
   reset();
   assert(phoenixWindowSelect("Phoenix"));
+  const ULONG_PTR sdlClassStyle = CS_BYTEALIGNCLIENT | CS_OWNDC;
   mockWindows[0].exStyle = 0x100;
   assert(phoenixWindowSetOpacity(0.5));
+  assert(mockWindows[0].classStyle == CS_BYTEALIGNCLIENT);
+  assert(mockWindows[0].exStyle == (0x100 | WS_EX_LAYERED));
   assert(phoenixWindowSetColorKey(RGB(1, 2, 3), true));
   assert(mockLayerFlags == (LWA_ALPHA | LWA_COLORKEY));
   assert(mockLayerAlpha == 128 && mockLayerKey == RGB(1, 2, 3));
@@ -69,6 +78,33 @@ int main()
   assert(mockLayerAlpha == 255);
   assert(phoenixWindowResetTransparency());
   assert(mockWindows[0].exStyle == 0x100);
+  assert(mockWindows[0].classStyle == sdlClassStyle);
+  const UINT requiredRepaint = RDW_ERASE | RDW_INVALIDATE | RDW_FRAME | RDW_ALLCHILDREN;
+  assert((mockRedrawFlags & requiredRepaint) == requiredRepaint);
+
+  // A failed layered-attribute request must also undo the temporary class style.
+  mockLayerFail = 1;
+  assert(!phoenixWindowSetColorKey(RGB(1, 2, 3), true));
+  mockLayerFail = 0;
+  assert(mockWindows[0].exStyle == 0x100);
+  assert(mockWindows[0].classStyle == sdlClassStyle);
+  assert(phoenixWindowResetTransparency());
+
+  // Likewise, a rejected window-style change must not leave the class altered.
+  mockStyleFail = 1;
+  assert(!phoenixWindowSetOpacity(0.5));
+  mockStyleFail = 0;
+  assert(mockWindows[0].classStyle == sdlClassStyle);
+  assert(phoenixWindowResetTransparency());
+
+  // Failure to change the class must stop before touching the window style.
+  mockClassStyleFail = 1;
+  assert(!phoenixWindowSetOpacity(0.5));
+  mockClassStyleFail = 0;
+  assert(mockWindows[0].exStyle == 0x100);
+  assert(mockWindows[0].classStyle == sdlClassStyle);
+  assert(phoenixWindowResetTransparency());
+
   assert(phoenixWindowSetOpacity(2.0));
   assert(phoenixWindowSetOpacity(-1.0));
   assert(mockLayerAlpha == 0);
@@ -76,6 +112,7 @@ int main()
   assert(!phoenixWindowResetTransparency());
   mockStyleFail = 0;
   assert(phoenixWindowResetTransparency());
+  assert(mockWindows[0].classStyle == sdlClassStyle);
   assert(phoenixWindowSetDarkMode(true));
   assert(mockDwmAttribute == 20 && mockDwmValue == 1);
   mockDwmResult = (HRESULT)0x80070057;
@@ -130,5 +167,15 @@ int main()
   mockNotifyResult = 1;
   assert(phoenixWindowRemoveNotification());
   assert(mockNotifyAction == NIM_DELETE);
+
+  // Recreating the SDL HWND must not lose the class style saved for cleanup.
+  assert(phoenixWindowSetOpacity(0.5));
+  mockWindows[0].alive = false;
+  mockWindows.push_back({handle(2), 10, "SDL_app", L"Phoenix", 0x100, true, CS_BYTEALIGNCLIENT});
+  assert(phoenixWindowSelect("Phoenix"));
+  assert(phoenixWindowResetTransparency());
+  assert(mockWindows.back().exStyle == 0x100);
+  assert(mockWindows.back().classStyle == sdlClassStyle);
+
   std::cout << "window native tests passed\n";
 }
