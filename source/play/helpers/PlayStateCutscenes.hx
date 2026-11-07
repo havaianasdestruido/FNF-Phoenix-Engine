@@ -113,10 +113,12 @@ class PlayStateCutscenes
 
 	public static function startNextDialogue(state:PlayState) {
 		state.dialogueCount++;
-		state.callOnLuas('onNextDialogue', [state.dialogueCount]);
+		if (state.hasActiveScripts())
+			state.callOnLuas('onNextDialogue', [state.dialogueCount]);
 	}
 
 	public static function skipDialogue(state:PlayState) {
-		state.callOnLuas('onSkipDialogue', [state.dialogueCount]);
+		if (state.hasActiveScripts())
+			state.callOnLuas('onSkipDialogue', [state.dialogueCount]);
 	}
 }
