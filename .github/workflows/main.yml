@@ -390,6 +390,12 @@ jobs:
 
           $buildFlag = if ($env:BUILD_FLAGS) { $env:BUILD_FLAGS } else { 'commit' }
           $buildArgs = @('run', 'lime', 'build', 'windows', "-D$buildFlag")
+          # PR/push CI builds drop the built-in weeks and story songs (keeping
+          # the tutorial + bundled mods) to keep the artifact .zip small.
+          # Explicit workflow_dispatch / workflow_call flags are left untouched.
+          if ('${{ github.event_name }}' -eq 'push' -or '${{ github.event_name }}' -eq 'pull_request') {
+            $buildArgs += '-DNO_BUILTIN_CONTENT'
+          }
           # LTCG adds substantial link time. Keep it for official releases,
           # while routine CI uses the same fast link as local builds.
           if ($buildFlag -eq 'officialBuild') {
@@ -412,6 +418,11 @@ jobs:
           if [ -n "$BUILD_FLAGS" ]; then
             args+=("-D$BUILD_FLAGS")
           fi
+          # PR/push CI builds drop the built-in weeks and story songs (keeping
+          # the tutorial + bundled mods) to keep the artifact .zip small.
+          case "${{ github.event_name }}" in
+            push|pull_request) args+=("-DNO_BUILTIN_CONTENT") ;;
+          esac
           haxelib run lime build android "${args[@]}"
 
       # ==========================================
