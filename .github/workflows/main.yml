@@ -432,7 +432,7 @@ jobs:
       # ==========================================
       # Verify the actual merged Android manifest
       # ==========================================
-      - name: Verify Android Media3/SAF manifest and SDK levels
+      - name: Verify Android Media3/SAF manifest, storage policy and SDK levels
         if: steps.target-selection.outputs.enabled == 'true' && matrix.target == 'android'
         shell: bash
         run: |

@@ -23,17 +23,20 @@ path — including `mods/` — resolve inside storage.
 
 `mobile.StorageUtil`:
 
-- `requestPermissions()` — called from `Main` before anything else on Android,
-- `getStorageDirectory()` — the writable root,
-- helpers for external/internal paths and for creating directories.
+- `initStorageDirectory()` — called from `Main` before asset/mod access on Android,
+- `getStorageDirectory()` — the writable app-specific root,
+- helpers for creating directories and saving content.
 
-`android.platform.AndroidStorage` wraps the Java side (scoped storage, MANAGE_ALL_FILES).
+`android.platform.AndroidStorage` wraps the Java side for SAF and `content://`
+URIs. App-specific storage needs no runtime storage or media permission, and
+“manage all files” access is not requested. The manifest removes broad
+storage/media permissions even if a dependency declares them; the only runtime
+permission prompt kept by the platform layer is the opt-in notification prompt.
 
 :::note[Known issue]
 
-Android may still ask for image/sound access even with "manage all files" granted
-(low severity), and a song with valid files can show the "no JSON/voices/instrumental"
-dialog — accepting it works fine.
+A song with valid files can still show the "no JSON/voices/instrumental" dialog —
+accepting it works fine.
 
 :::
 
@@ -98,7 +101,7 @@ gameplay → android.platform.*  →  AndroidBridge (JNI)  →  quack.fnf.phoeni
 | `AndroidLifecycle` | pause/resume/focus events |
 | `AndroidMedia` + `PhoenixMedia`/`PhoenixMediaService` | Media3 MediaSession metadata, lock-screen and Bluetooth controls, MediaSessionService-backed background visibility |
 | `AndroidDisplay` | cutouts, insets, refresh rate, immersive mode |
-| `AndroidStorage` | permissions and scoped storage |
+| `AndroidStorage` | SAF pickers and `content://` URI reads/writes |
 | `AndroidHardwareInput`, `AndroidGamepad`, `AndroidHaptics` | keys, controllers, vibration |
 | `AndroidIntents`, `AndroidNotification` | intents (including `phoenix://` deep links) and notifications |
 | `AndroidDiscord`, `AndroidSystem` | RPC and device info |
