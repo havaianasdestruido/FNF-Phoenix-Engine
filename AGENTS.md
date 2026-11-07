@@ -57,7 +57,7 @@ FNF-JS-Engine-Light/
 ├── hmm.json               # declarative haxelibs
 ├── setup/                 # setup por SO + msvc-fix
 ├── source/                # TODO o código-fonte Haxe (pasta classpath principal)
-├── assets/                # jogos assets (preload/shared/week*/songs/...)
+├── assets/                # jogos assets (preload/shared/songs/...) — estado "no assets" (ver §6)
 ├── mods/                  # mods carregáveis em runtime
 ├── modsList.txt           # mods embutidos no build
 ├── docs/                  # guias (TemplateScript.py/.lua, PDF de como usar)
@@ -71,7 +71,7 @@ FNF-JS-Engine-Light/
 ```
 
 > Fonte vive em `source/`, **não** em `src/`. Assets em `assets/` (libraries: `preload`,
-> `shared`, `preload` + `week*`, `songs`). Código `Main.hx` na raiz de `source/`.
+> `shared`, `songs`). Código `Main.hx` na raiz de `source/`.
 
 ---
 
@@ -157,8 +157,26 @@ FNF-JS-Engine-Light/
 - Lista de mods habilitados: `modsList.txt` na raiz do mod armazenado (autogerado).
 - `Project.hxp` (root): `addAssetPath` para semana/`songs`, `mods` embedded (`mods/*`),
   `assets embed` para flash/air.
-- Conteúdo vanilla: `assets/preload/songs`, `assets/preload/data`, `assets/week*`, `assets/songs`.
+- Conteúdo vanilla: `assets/preload/songs` (não existe mais), `assets/preload/data`, `assets/songs`.
 - Se adicionar mod de exemplo: siga `mods/<mod>/{data,images,songs,weeks}` + `pack.json`.
+
+### Modo "no assets" (estado atual do repositório)
+
+Este repositório roda em **modo "no assets"**: o conteúdo das semanas foi removido
+para reduzir o tamanho do pacote. Ficam apenas:
+
+- **Semanas:** `tutorial` e `week1` (só `Dad Battle`; as demais faixas de Week 1 foram removidas).
+- **Personagens:** apenas `bf`, `gf` e `dad` (JSONs em `assets/preload/characters/` +
+  spritesheet `BOYFRIEND`/`GF_assets`/`DADDY_DEAREST` em `assets/shared/images/characters/`).
+- **Palco:** apenas `stage` (`assets/preload/stages/stage.json`).
+- **Faixas/charts:** só `tutorial` e `dad-battle` em `assets/songs/` + `assets/preload/data/`.
+- Removidos: todas as demais semanas (`week2`–`week7`, `weekend1`, `secret`), os outros
+  personagens/palcos/cenas, os vídeos de cutscene e assets órfãos não referenciados pelo código.
+  Os folders `assets/week2`–`weekend1` também foram removidos do disco; o `project.hxp`
+  detecta a ausência e segue sem eles.
+- As listas `weekList.txt`, `characterList.txt` e `stageList.txt` foram reduzidas de
+  acordo. Se um mod precisar de mais conteúdo, adicione via `mods/<mod>/` (não recrie
+  em `assets/`).
 
 ### Áudio: Ogg, uma cópia só
 
