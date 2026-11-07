@@ -295,6 +295,18 @@ class PlatformSupport
     return requirementsFrom(Reflect.field(pack, 'platforms'));
   }
 
+  /**
+   * Whether a parsed `pack.json` applies to the running build.
+   *
+   * This is the backwards-compatible entry point: a missing manifest, a
+   * manifest without a `platforms` key, `[]` and `["all"]` all return `true`.
+   * Only a manifest that names other targets is filtered out.
+   */
+  public static function supportsPack(pack:Dynamic):Bool
+  {
+    return supports(requirementsForPack(pack));
+  }
+
   /** True when `tag` (after alias resolution, `!` allowed) is a known tag. */
   public static function isKnownTag(tag:String):Bool
   {

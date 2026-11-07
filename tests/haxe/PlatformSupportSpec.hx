@@ -195,6 +195,22 @@ class PlatformSupportSpec
 
     final emptyArray:Dynamic = {platforms: []};
     equal(PlatformSupport.requirementsForPack(emptyArray), null, 'empty platforms means everywhere');
+
+    // Backwards compatibility contract: mods written before the field existed
+    // (and mods with no pack.json at all) keep loading on every target.
+    equal(PlatformSupport.supportsPack(null), true, 'mod without a pack.json loads everywhere');
+    equal(PlatformSupport.supportsPack({}), true, 'empty pack loads everywhere');
+    equal(PlatformSupport.supportsPack(noField), true, 'pack without platforms loads everywhere');
+    equal(PlatformSupport.supportsPack(emptyArray), true, 'empty platforms loads everywhere');
+    equal(PlatformSupport.supportsPack(badField), true, 'non-list platforms is ignored');
+    equal(PlatformSupport.supportsPack({platforms: ['all']}), true, 'explicit all loads everywhere');
+    equal(PlatformSupport.supportsPack({platforms: ['any']}), true, 'explicit any loads everywhere');
+    equal(PlatformSupport.supportsPack({platforms: ['desktop']}), PlatformSupport.supports([PlatformSupport.DESKTOP]),
+      'specific platforms still filter');
+
+    // Requested exclusions survive the wildcard: only the desktop build is filtered.
+    equal(PlatformSupport.supportsPack({platforms: ['all', '!mobile']}), !PlatformSupport.supports(['mobile']),
+      'wildcard plus exclusion');
   }
 
   /**

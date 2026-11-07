@@ -190,7 +190,7 @@ class Mods
 		if(supported != null) return supported;
 
 		final pack:Dynamic = getPack(folder);
-		supported = PlatformSupport.supports(PlatformSupport.requirementsForPack(pack));
+		supported = PlatformSupport.supportsPack(pack);
 		platformSupportCache.set(folder, supported);
 		return supported;
 	}
