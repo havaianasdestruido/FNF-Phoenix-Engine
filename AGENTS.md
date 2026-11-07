@@ -172,6 +172,8 @@ para reduzir o tamanho do pacote. Ficam apenas:
 - **Faixas/charts:** só `tutorial` e `dad-battle` em `assets/songs/` + `assets/preload/data/`.
 - Removidos: todas as demais semanas (`week2`–`week7`, `weekend1`, `secret`), os outros
   personagens/palcos/cenas, os vídeos de cutscene e assets órfãos não referenciados pelo código.
+  Os folders `assets/week2`–`weekend1` também foram removidos do disco; o `project.hxp`
+  detecta a ausência e segue sem eles.
 - As listas `weekList.txt`, `characterList.txt` e `stageList.txt` foram reduzidas de
   acordo. Se um mod precisar de mais conteúdo, adicione via `mods/<mod>/` (não recrie
   em `assets/`).
