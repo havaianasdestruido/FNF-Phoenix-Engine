@@ -87,6 +87,7 @@ class ChartLoaderSpec
     testLegacyNumericNoteType();
     testStartingPointAndCharacterEvents();
     testMultipliersAndJacks();
+    testNoAnimationPropagation();
     testLargeChart();
     trace('ChartLoaderSpec passed');
   }
@@ -194,6 +195,34 @@ class ChartLoaderSpec
     near(headAt(state, 0).noteDensity, 2, 'first multiplier applied');
     near(headAt(state, 100).noteDensity, 3, 'second multiplier applied');
     near(headAt(state, 200).noteDensity, 3, 'multiplier persists');
+  }
+
+  static function testNoAnimationPropagation():Void
+  {
+    var state = state();
+    state.jackingtime = 1;
+    PlayState.SONG = song([
+      section([
+        note(0, 0, 250, 'No Animation')
+      ])
+    ]);
+
+    PlayStateChartLoader.generateSong(state);
+
+    equal(headAt(state, 0).noAnimation, true, 'head disables hit animation');
+    equal(headAt(state, 0).noMissAnimation, true, 'head disables miss animation');
+    equal(headAt(state, 125).noAnimation, true, 'jack disables hit animation');
+    equal(headAt(state, 125).noMissAnimation, true, 'jack disables miss animation');
+
+    var sustainCount:Int = 0;
+    for (chartNote in state.unspawnNotes)
+    {
+      if (!chartNote.isSustainNote) continue;
+      sustainCount++;
+      equal(chartNote.noAnimation, true, 'sustain disables hit animation');
+      equal(chartNote.noMissAnimation, true, 'sustain disables miss animation');
+    }
+    equal(sustainCount, 3, 'all sustain segments keep no-animation flags');
   }
 
   static function testLargeChart():Void

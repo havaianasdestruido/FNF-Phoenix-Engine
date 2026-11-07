@@ -43,7 +43,7 @@ class PlayStateNotes
 			state.songMisses += 1 * (PlayState.opponentChart ? state.polyphonyOppo : state.polyphonyBF);
 			if (PlayState.SONG.needsVoices && !state.ffmpegMode)
 				if (PlayState.opponentChart && state.opponentVocals != null && state.opponentVocals.volume != 0) state.opponentVocals.volume = 0;
-				else if (!PlayState.opponentChart && state.vocals.volume != 0 || state.vocals.volume != 0) state.vocals.volume = 0;
+				else if (!PlayState.opponentChart && state.vocals.volume != 0) state.vocals.volume = 0;
 			if (!state.practiceMode)
 				state.songScore -= 10 * Std.int((PlayState.opponentChart ? state.polyphonyOppo : state.polyphonyBF));
 
@@ -176,7 +176,7 @@ class PlayStateNotes
 					state.targetNote.wasHit = true;
 					state.targetNote.mustPress ? goodNoteHit(state, null, state.targetNote) : opponentNoteHit(state, null, state.targetNote);
 					state.notesAddedCount++;
-					if (state.unspawnNotes[state.notesAddedCount+1] != null) state.targetNote = state.unspawnNotes[state.notesAddedCount];
+					if (state.unspawnNotes[state.notesAddedCount] != null) state.targetNote = state.unspawnNotes[state.notesAddedCount];
 					else break;
 					state.skippedCount++;
 					if (state.skippedCount > state.maxSkipped) state.maxSkipped = state.skippedCount;
@@ -199,7 +199,7 @@ class PlayStateNotes
 						state.callOnLuas('onSpawnNote', [noteIndex, state.targetNote.noteData, state.targetNote.noteType, state.targetNote.isSustainNote, state.targetNote.strumTime]); // #44: documented 5th arg
 					}
 					state.notesAddedCount++; state.limitNC++;
-					if (state.unspawnNotes[state.notesAddedCount+1] != null) state.targetNote = state.unspawnNotes[state.notesAddedCount];
+					if (state.unspawnNotes[state.notesAddedCount] != null) state.targetNote = state.unspawnNotes[state.notesAddedCount];
 					else break;
 				}
 			}
@@ -418,7 +418,7 @@ class PlayStateNotes
 				final vocalVolume:Float = PlayStatePlayback.vocalsVolume(state);
 				if (PlayState.opponentChart && state.opponentVocals != null && state.opponentVocals.volume != vocalVolume)
 					state.opponentVocals.volume = vocalVolume;
-				else if (!PlayState.opponentChart && state.vocals.volume != vocalVolume || state.vocals.volume != vocalVolume)
+				else if (!PlayState.opponentChart && state.vocals.volume != vocalVolume)
 					state.vocals.volume = vocalVolume;
 			}
 
@@ -571,7 +571,7 @@ class PlayStateNotes
 				final vocalVolume:Float = PlayStatePlayback.vocalsVolume(state);
 				if (!PlayState.opponentChart && state.opponentVocals != null && state.opponentVocals.volume != vocalVolume)
 					state.opponentVocals.volume = vocalVolume;
-				else if (PlayState.opponentChart && state.vocals.volume != vocalVolume || state.vocals.volume != vocalVolume)
+				else if (PlayState.opponentChart && state.vocals.volume != vocalVolume)
 					state.vocals.volume = vocalVolume;
 			}
 
@@ -665,7 +665,7 @@ class PlayStateNotes
 				final vocalVolume:Float = PlayStatePlayback.vocalsVolume(state);
 				if (!PlayState.opponentChart && state.opponentVocals != null && state.opponentVocals.volume != vocalVolume)
 					state.opponentVocals.volume = vocalVolume;
-				else if (PlayState.opponentChart && state.vocals.volume != vocalVolume || state.vocals.volume != vocalVolume)
+				else if (PlayState.opponentChart && state.vocals.volume != vocalVolume)
 					state.vocals.volume = vocalVolume;
 			}
 		}

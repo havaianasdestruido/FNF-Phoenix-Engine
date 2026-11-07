@@ -104,7 +104,8 @@ class PlayStatePlayback
 		if (state.ffmpegMode) FlxG.sound.music.volume = 0;
 		else if (ClientPrefs.overrideInstrumentalVolume) FlxG.sound.music.volume = instrumentalVolume(state);
 
-		if (Conductor.songPosition <= state.vocals.length)
+		// A seek back into vocals must use the target time, not only the old position.
+		if (time <= state.vocals.length || Conductor.songPosition <= state.vocals.length)
 		{
 			setVocalsTime(state, time);
 			#if FLX_PITCH

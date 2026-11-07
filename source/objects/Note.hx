@@ -411,12 +411,12 @@ class Note extends FlxSprite
 		if (isSustainNote)
 		{
 			flipY = strum.downScroll;
-			scale.set(0.7, animation != null && animation.curAnim != null && animation.curAnim.name.endsWith('end') ? 1 : Conductor.stepCrochet * 0.0105 * (songSpeed * multSpeed) * sustainScale);
+			scale.set(copyScaleX ? strum.scale.x : 0.7, animation != null && animation.curAnim != null && animation.curAnim.name.endsWith('end') ? 1 : Conductor.stepCrochet * 0.0105 * (songSpeed * multSpeed) * sustainScale);
 
 			if (PlayState.isPixelStage)
 			{
 				scale.y *= PlayState.daPixelZoom * 1.20;
-				scale.x *= PlayState.daPixelZoom;
+				if (!copyScaleX) scale.x *= PlayState.daPixelZoom;
 			}
 			updateHitbox();
 		}
@@ -449,7 +449,6 @@ class Note extends FlxSprite
 		if(copyScaleX)
 		{
 			scale.x = strum.scale.x;
-			if (isSustainNote) updateHitbox();
 		}
 		if(copyScaleY && !isSustainNote)
 		{
@@ -587,13 +586,16 @@ class Note extends FlxSprite
 		ratingMod = 0;
 		noteHoldSplash = null;
 
-		if (ns.length > 0 && ns != texture) {
-			texture = 'noteskins/' + ns;
+		resetPooledState();
+
+		if (ns.length > 0) {
+			final skinTexture:String = 'noteskins/' + ns;
+			if (skinTexture != texture) texture = skinTexture;
 			useRGBShader = false;
 		}
 
-		if (tx.length > 0 && tx != texture) {
-			texture = tx;
+		if (tx.length > 0) {
+			if (tx != texture) texture = tx;
 			shouldCenterOffsets = false;
 		}
 
@@ -605,9 +607,11 @@ class Note extends FlxSprite
 
 		strumTime = chartNoteData.strumTime;
 		noteData = chartNoteData.noteData;
+		@:bypassAccessor noteType = null;
 		noteType = chartNoteData.noteType;
 		animSuffix = chartNoteData.animSuffix;
-		noAnimation = noMissAnimation = chartNoteData.noAnimation;
+		noAnimation = chartNoteData.noAnimation;
+		noMissAnimation = chartNoteData.noMissAnimation;
 		mustPress = chartNoteData.mustPress;
 		doOppStuff = chartNoteData.oppNote;
 		gfNote = chartNoteData.gfNote;
@@ -618,10 +622,8 @@ class Note extends FlxSprite
 		// Was never copied over, so a pooled note kept the sustain length of whatever
 		// note it replaced (and a fresh one had 0, which suppressed its hold splash). (#88)
 		sustainLength = chartNoteData.sustainLength;
-		if (isSustainNote) {
-			parentST = chartNoteData.parentST;
-			parentSL = chartNoteData.parentSL;
-		}
+		parentST = chartNoteData.parentST;
+		parentSL = chartNoteData.parentSL;
 
 		hitHealth = chartNoteData.hitHealth;
 		missHealth = chartNoteData.missHealth;
@@ -647,6 +649,11 @@ class Note extends FlxSprite
 
 		if (PlayState.isPixelStage)
 		{
+			if (isSustainNote)
+			{
+				final noteTypeOffsetX:Float = offsetX;
+				offsetX = noteTypeOffsetX + (firstOffX ? 30 : 0) - _lastNoteOffX;
+			}
 			@:privateAccess reloadNote(texture);
 			if (isSustainNote && !firstOffX)
 			{
@@ -698,5 +705,50 @@ class Note extends FlxSprite
 			if (alpha != 1) alpha = 1; //if (multAlpha != 1) multAlpha = 1;
 		}
 		if (flipY) flipY = false;
+	}
+
+	private function resetPooledState():Void
+	{
+		if (extraData == null) extraData = new Map<String, Dynamic>();
+		else extraData.clear();
+
+		if (noteSplashData == null)
+		{
+			noteSplashData = {
+				disabled: false,
+				texture: null,
+				antialiasing: !PlayState.isPixelStage,
+				useGlobalShader: false,
+				useRGBShader: (PlayState.SONG != null) ? (!PlayState.SONG.disableNoteRGB) : true,
+				r: -1,
+				g: -1,
+				b: -1,
+				a: 1
+			};
+		}
+		noteSplashData.disabled = false;
+		noteSplashData.texture = null;
+		noteSplashData.antialiasing = !PlayState.isPixelStage;
+		noteSplashData.useGlobalShader = false;
+		noteSplashData.useRGBShader = (PlayState.SONG != null) ? (!PlayState.SONG.disableNoteRGB) : true;
+		noteSplashData.r = -1;
+		noteSplashData.g = -1;
+		noteSplashData.b = -1;
+		noteSplashData.a = 1;
+
+		offsetX = offsetY = offsetAngle = 0;
+		copyX = copyY = copyAngle = copyAlpha = copyScaleX = copyScaleY = true;
+		earlyHitMult = 0.5;
+		lateHitMult = 1;
+		ratingDisabled = false;
+		hitsoundDisabled = false;
+		noteSplashDisabled = false;
+		eventName = '';
+		eventLength = 0;
+		eventVal1 = '';
+		eventVal2 = '';
+		sustainScale = 1;
+		useRGBShader = ClientPrefs.enableColorShader && (PlayState.SONG == null || !PlayState.SONG.disableNoteRGB);
+		shouldCenterOffsets = true;
 	}
 }
