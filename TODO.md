@@ -64,7 +64,9 @@ _i accept suggestions too_
   - clear ui (just FPT on top and ram below it)
   - settings fully centered instead of being on the left
   - "-[NUMBER]" when you miss note, accumulative and stays red
-
+  - List of available flags
+    - -debug can build the game in debug mode. This enables many debug features, such as the FlxDebugger and debugging through VSCode.
+    - -DFREEPLAY and -DMENU launch the game directly in the Freeplay and MainMenu states, respectively. These can't be used together.
 #### Rebuilding how the MODDING API works and adjusting it to be able to also support other languages (Common Modding API)
 
 Should include exposing almost ALL game screens thought the Modding API. (By screen I mean like the Freeplay page, Mods page, etc.)
