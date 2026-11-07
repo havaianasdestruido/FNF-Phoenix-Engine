@@ -14,7 +14,8 @@ import flixel.util.FlxColor;
  *    painted with `colorKey` (`RGB(1, 1, 1)` by default) is punched out of the
  *    window, so the desktop shows through. Paint the game background with that
  *    color first — e.g. `FlxG.camera.bgColor = 0xFF010101` or, from a script,
- *    `setProperty('camGame.bgColor', '010101')`.
+ *    `setProperty('camGame.bgColor', getColorFromHex('010101'))`. The camera
+ *    property expects a numeric color, not a hexadecimal string.
  * 2. **Whole-window alpha** (`setAlpha`, Windows/Linux/macOS): `0.0` is
  *    invisible, `1.0` is opaque. Off Windows this goes through Lime/SDL
  *    (`window.opacity`) and is the only part that works there.
@@ -385,6 +386,8 @@ class TransparentWindow
       final alphaApplied = Windows.__setWindowTransparencyAlpha(alpha);
       final colorApplied = Windows.__setWindowTransparencyColor((colorKey & 0xFFFFFF), enabled);
       final clickApplied = Windows.setWindowClickThrough(clickThrough);
+      if (!alphaApplied || !colorApplied || !clickApplied)
+        trace('TransparentWindow: Windows could not apply the requested settings (opacity=$alphaApplied, colorKey=$colorApplied, clickThrough=$clickApplied).');
       return alphaApplied && colorApplied && clickApplied;
     #elseif (!flash && !mobile)
       // No color key off Windows: Lime/SDL only gives us whole-window opacity.

@@ -88,6 +88,9 @@ int main()
   mockLayerFail = 0;
   assert(mockWindows[0].exStyle == 0x100);
   assert(mockWindows[0].classStyle == sdlClassStyle);
+  // A later unrelated update must not silently reapply the failed color key.
+  assert(phoenixWindowSetClickThrough(false));
+  assert((mockWindows[0].exStyle & WS_EX_LAYERED) == 0);
   assert(phoenixWindowResetTransparency());
 
   // Likewise, a rejected window-style change must not leave the class altered.
@@ -95,6 +98,8 @@ int main()
   assert(!phoenixWindowSetOpacity(0.5));
   mockStyleFail = 0;
   assert(mockWindows[0].classStyle == sdlClassStyle);
+  assert(phoenixWindowSetClickThrough(false));
+  assert((mockWindows[0].exStyle & WS_EX_LAYERED) == 0);
   assert(phoenixWindowResetTransparency());
 
   // Failure to change the class must stop before touching the window style.

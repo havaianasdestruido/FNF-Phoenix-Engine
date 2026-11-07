@@ -278,9 +278,12 @@ static PHOENIX_WINDOW_UNUSED bool phoenixWindowSetOpacity(double opacity)
   if (!(opacity >= 0.0)) opacity = 0.0; // also handles NaN
   if (opacity > 1.0) opacity = 1.0;
   PhoenixWindowState &state = phoenixWindowState();
+  const PhoenixWindowState previous = state;
   state.opacity = (BYTE)(opacity * 255.0 + 0.5);
   state.alpha = state.opacity != 255;
-  return phoenixWindowApplyTransparency();
+  if (phoenixWindowApplyTransparency()) return true;
+  state = previous;
+  return false;
 }
 
 static PHOENIX_WINDOW_UNUSED bool phoenixWindowSetColorKey(COLORREF key, bool enabled)
@@ -288,17 +291,24 @@ static PHOENIX_WINDOW_UNUSED bool phoenixWindowSetColorKey(COLORREF key, bool en
   if (!phoenixWindowState().window)
     return false;
   PhoenixWindowState &state = phoenixWindowState();
+  const PhoenixWindowState previous = state;
   state.key = key;
   state.colorKey = enabled;
-  return phoenixWindowApplyTransparency();
+  if (phoenixWindowApplyTransparency()) return true;
+  state = previous;
+  return false;
 }
 
 static PHOENIX_WINDOW_UNUSED bool phoenixWindowSetClickThrough(bool enabled)
 {
   if (!phoenixWindowState().window)
     return false;
-  phoenixWindowState().clickThrough = enabled;
-  return phoenixWindowApplyTransparency();
+  PhoenixWindowState &state = phoenixWindowState();
+  const PhoenixWindowState previous = state;
+  state.clickThrough = enabled;
+  if (phoenixWindowApplyTransparency()) return true;
+  state = previous;
+  return false;
 }
 
 static PHOENIX_WINDOW_UNUSED bool phoenixWindowResetTransparency()
@@ -306,10 +316,13 @@ static PHOENIX_WINDOW_UNUSED bool phoenixWindowResetTransparency()
   if (!phoenixWindowState().window)
     return false;
   PhoenixWindowState &state = phoenixWindowState();
+  const PhoenixWindowState previous = state;
   state.alpha = state.colorKey = state.clickThrough = false;
   state.opacity = 255;
   state.key = 0;
-  return phoenixWindowApplyTransparency();
+  if (phoenixWindowApplyTransparency()) return true;
+  state = previous;
+  return false;
 }
 
 /* SDK-compatible DWM attribute numbers (Windows 10 1809+ / Windows 11). */
