@@ -390,10 +390,11 @@ jobs:
 
           $buildFlag = if ($env:BUILD_FLAGS) { $env:BUILD_FLAGS } else { 'commit' }
           $buildArgs = @('run', 'lime', 'build', 'windows', "-D$buildFlag")
-          # PR/push CI builds drop the built-in weeks and story songs (keeping
-          # the tutorial + bundled mods) to keep the artifact .zip small.
-          # Explicit workflow_dispatch / workflow_call flags are left untouched.
-          if ('${{ github.event_name }}' -eq 'push' -or '${{ github.event_name }}' -eq 'pull_request') {
+          # CI builds on PRs and on main drop the built-in weeks and story songs
+          # (keeping the tutorial + bundled mods) to keep the artifact .zip small.
+          # Pushes to bleeding and release dispatches (workflow_call /
+          # workflow_dispatch) keep full built-in content.
+          if (('${{ github.event_name }}' -eq 'pull_request') -or (('${{ github.event_name }}' -eq 'push') -and ('${{ github.ref_name }}' -eq 'main'))) {
             $buildArgs += '-DNO_BUILTIN_CONTENT'
           }
           # LTCG adds substantial link time. Keep it for official releases,
@@ -418,10 +419,13 @@ jobs:
           if [ -n "$BUILD_FLAGS" ]; then
             args+=("-D$BUILD_FLAGS")
           fi
-          # PR/push CI builds drop the built-in weeks and story songs (keeping
-          # the tutorial + bundled mods) to keep the artifact .zip small.
+          # CI builds on PRs and on main drop the built-in weeks and story songs
+          # (keeping the tutorial + bundled mods) to keep the artifact .zip small.
+          # Pushes to bleeding and release dispatches (workflow_call /
+          # workflow_dispatch) keep full built-in content.
           case "${{ github.event_name }}" in
-            push|pull_request) args+=("-DNO_BUILTIN_CONTENT") ;;
+            pull_request) args+=("-DNO_BUILTIN_CONTENT") ;;
+            push) [ "${{ github.ref_name }}" = "main" ] && args+=("-DNO_BUILTIN_CONTENT") ;;
           esac
           haxelib run lime build android "${args[@]}"
 
