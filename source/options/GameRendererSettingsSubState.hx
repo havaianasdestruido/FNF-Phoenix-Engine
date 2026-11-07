@@ -7,6 +7,7 @@ import haxe.io.Path;
 import openfl.Lib;
 
 import backend.ClientPrefs;
+import backend.RenderPaths;
 import backend.Screenshot;
 import data.Song;
 #if hxnativefiledialog
@@ -153,21 +154,18 @@ class GameRendererSettingsSubState extends BaseOptionsMenu
 			case NFD_OKAY:
 				if (outPath != null)
 				{
-					var cwd:String = Sys.getCwd().split('\\').join('/');
-					var selected:String = cast(outPath, String).split('\\').join('/');
+					final selected:String = RenderPaths.normalizeDirectory(cast(outPath, String));
+					final base:String = RenderPaths.normalizeDirectory(RenderPaths.baseDirectory());
 
-					if (!cwd.endsWith('/')) cwd += '/';
-					if (!selected.endsWith('/')) selected += '/';
-
-					var finalPath:String;
-					if (selected.startsWith(cwd))
+					// Folders inside the game stay relative so the setting keeps
+					// working when the game folder moves; anything else is kept as an
+					// absolute path instead of being silently discarded (the old
+					// behaviour reset any outside folder back to the default).
+					var finalPath:String = selected;
+					if (base.length > 0 && selected.toLowerCase().startsWith(base.toLowerCase()))
 					{
-						finalPath = selected.substr(cwd.length);
-						if (finalPath == '') finalPath = './';  // Handle root case if needed
-					}
-					else
-					{
-						finalPath = 'assets/gameRenders/';
+						finalPath = selected.substr(base.length);
+						if (finalPath.length == 0) finalPath = RenderPaths.DEFAULT_RENDER_PATH;
 					}
 
 					ClientPrefs.renderPath = finalPath;

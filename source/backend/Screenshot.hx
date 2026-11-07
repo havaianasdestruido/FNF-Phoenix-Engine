@@ -6,6 +6,21 @@ import lime.app.Application;
 import lime.graphics.Image;
 import lime.ui.Window;
 
+import backend.RenderPaths;
+
+/**
+ * Captures the game window into an image file.
+ *
+ * Rendering Mode's *Classic* variant uses this once per frame, which is why the
+ * folder it writes to has to exist before the first frame is saved. The old
+ * version hard-coded `assets\gameRenders` with a Windows-only separator and
+ * built the destination by string concatenation (`target + slash + path`), so
+ * the per-song folder PlayState asked for was nested twice
+ * (`assets/gameRenders/assets/gameRenders/<song>/`) and
+ * `FileSystem.createDirectory()` failed on the missing parents. PlayState
+ * swallowed that exception, so no folder and no frames were ever produced.
+ * `backend.RenderPaths` now handles the path and creates the whole chain.
+ */
 class Screenshot {
 	var x:Int;
 	var y:Int;
@@ -13,7 +28,6 @@ class Screenshot {
 	var height:Int;
 	var window:Window = null;
 	var image:Image;
-	var target:String = #if windows "assets\\gameRenders" #else "assets/gameRenders" #end;
 	public static var slash:String = #if windows "\\" #else "/" #end;
 
 	public function new(x:Int = -1, y:Int = -1, w:Int = -1, h:Int = -1) {
@@ -57,53 +71,64 @@ class Screenshot {
 	}
 
 	var byteData:Bytes;
+	/** Last folder that was created successfully, so Classic Rendering Mode does
+	 *  not hit the filesystem once per segment for every single frame. */
+	var preparedDirectory:String = null;
 
-	public function save(path:String = "", name:String = '') {
+	/**
+	 * Saves the current window pixels inside `directory`.
+	 *
+	 * @param directory Folder to write into; defaults to `ClientPrefs.renderPath`.
+	 *                  Created (with any missing parent) when it does not exist.
+	 * @param name      File name without extension; a timestamped name is
+	 *                  generated when empty.
+	 * @return whether the file was written.
+	 */
+	public function save(directory:String = "", name:String = ''):Bool {
 		#if sys
 		getScreen();
 
-		if(FileSystem.exists(target)) {
-			if(!FileSystem.isDirectory(target)) {
-				FileSystem.deleteFile(target);
-				FileSystem.createDirectory(target);
+		final target:String = (directory != null && directory.length > 0) ? directory : ClientPrefs.renderPath;
+		if (target != preparedDirectory) {
+			if (!RenderPaths.ensureDirectory(target)) {
+				FlxG.log.warn('Screenshot: could not create the folder "$target", the frame was skipped.');
+				return false;
 			}
-		} else FileSystem.createDirectory(target);
-
-		if(FileSystem.exists(target + slash + path)) {
-			if(!FileSystem.isDirectory(target + slash + path)) {
-				FileSystem.deleteFile(target + slash + path);
-				FileSystem.createDirectory(target + slash + path);
-			}
-		} else FileSystem.createDirectory(target + slash + path);
-
-		if(path + name == "" || path + name == null) {
-			var millis = CoolUtil.zeroFill(Std.int(haxe.Timer.stamp() * 1000.0) % 1000, 3);
-			path = "scr-" + DateTools.format(Date.now(), "%Y-%m-%d_%H-%M-%S-") + millis;
+			preparedDirectory = target;
 		}
 
-		path = target + slash + fixFilename(path + name, ClientPrefs.lossless);
+		var fileName:String = name;
+		if (fileName == null || fileName.length == 0) {
+			var millis = CoolUtil.zeroFill(Std.int(haxe.Timer.stamp() * 1000.0) % 1000, 3);
+			fileName = "scr-" + DateTools.format(Date.now(), "%Y-%m-%d_%H-%M-%S-") + millis;
+		}
 
+		final path:String = RenderPaths.joinPath(target, fixFilename(fileName, ClientPrefs.lossless));
 		byteData = image.encode(ClientPrefs.lossless ? PNG : JPEG, ClientPrefs.quality);
-		var f:FileOutput = sys.io.File.write(path, true);
-		if(byteData != null && f != null && FileSystem.exists(path)) {
-			f.write(byteData);
-			f.close();
+		if (byteData == null) {
+			FlxG.log.warn('Screenshot: the frame could not be encoded, it was skipped.');
+			return false;
+		}
+
+		try {
+			File.saveBytes(path, byteData);
 			return true;
-		} else {
+		} catch (e:Dynamic) {
+			FlxG.log.warn('Screenshot: could not write "$path" ($e), the frame was skipped.');
 			return false;
 		}
 		#else
 		trace('Cannot save on non-Sys platforms!');
 		return false;
-	#end
-}
+		#end
+	}
 }
 #else
 class Screenshot {
 	public static var slash:String = "/";
 	public function new(x:Int = -1, y:Int = -1, w:Int = -1, h:Int = -1) {}
 	public function setRegion(x:Int, y:Int, w:Int, h:Int) {}
-	public function save(path:String = "", name:String = ''):Bool {
+	public function save(directory:String = "", name:String = ''):Bool {
 		trace('Cannot save on non-Sys platforms!');
 		return false;
 	}
