@@ -125,9 +125,7 @@ class SuperSecretDebugMenu extends BaseOptionsMenu
 	}
 	function doDaUpdate():Void {
 		UpdateChecker.check(function(result) {
-			if (!exists) return;
-			switch (result)
-			{
+			switch (result) {
 				case Available(release):
 					FlxG.switchState(() -> new OutdatedState(release));
 				case UpToDate(version):
