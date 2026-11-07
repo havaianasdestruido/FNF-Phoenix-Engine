@@ -4,6 +4,7 @@ import backend.ClientPrefs;
 import backend.CoolUtil;
 import backend.MusicBeatSubstate;
 import backend.Paths;
+import backend.RenderPaths;
 import flixel.addons.display.FlxBackdrop;
 import flixel.input.keyboard.FlxKey;
 import flixel.util.FlxAxes;
@@ -67,7 +68,12 @@ class RenderingDoneSubState extends MusicBeatSubstate {
 		RenderText.screenCenter(X);
 		add(RenderText);
 
-		saveTxt = new FlxText(0, 540, 0, "Press ENTER to continue.\n" + #if windows "You can find your video in assets/gameRenders!" #else "You can find your song to render in 'assets/gameRenders'!\nThe command to render can be found\nin the readme file, also located there!" #end, 124);
+		final renderFolder:String = RenderPaths.normalizeDirectory(ClientPrefs.renderPath);
+		var whereToFind:String = 'You can find your video in $renderFolder';
+		#if !windows
+		whereToFind = 'You can find your song to render in "$renderFolder"!\nThe command to render can be found\nin the readme file, also located there!';
+		#end
+		saveTxt = new FlxText(0, 540, 0, "Press ENTER to continue.\n" + whereToFind, 124);
 		saveTxt.scrollFactor.set();
 		saveTxt.setFormat(Paths.font("vcr.ttf"), 30, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
 		saveTxt.updateHitbox();

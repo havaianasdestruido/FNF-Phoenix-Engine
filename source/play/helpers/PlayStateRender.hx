@@ -1,7 +1,10 @@
 package play.helpers;
 
 import backend.ClientPrefs;
+import backend.CoolUtil;
+import backend.FFmpegLocator;
 import backend.Paths;
+import backend.RenderPaths;
 
 import play.PlayState;
 
@@ -14,54 +17,101 @@ class PlayStateRender
 	public static function initRender(state:PlayState, renderPath:String = "assets/gameRenders/", ?prefixName:String = null):Void
 	{
 		#if sys
-		#if windows
-		if (!FileSystem.exists('ffmpeg.exe'))
+		// The output folder comes first, before anything that can fail. Players
+		// need it even when FFmpeg is missing (Classic Rendering Mode dumps its
+		// frames there), and the old code returned early on Windows whenever
+		// `ffmpeg.exe` was not in the working directory -- which is exactly why
+		// the folder never appeared. `RenderPaths` also anchors relative paths
+		// to the game's own folder and creates missing parent folders.
+		final renderDirectory:Null<String> = RenderPaths.prepareRenderDirectory(renderPath);
+		if (renderDirectory == null)
 		{
-			trace("\"FFmpeg\" not found! (Is it in the same folder as FNF-Phoenix-Engine?)");
+			failRender('Video rendering was disabled for this song: the render folder "' + renderPath
+				+ '" could not be created.\nCheck that the game folder is writable.');
 			return;
 		}
-		#end
-		// Maybe check if it isn't an directory?
+
+		// Classic Rendering Mode writes each frame through backend.Screenshot,
+		// which creates the per-song folder itself.
+		if (ClientPrefs.oldFFmpegMode) return;
+
+		state.ffmpegExists = false;
+
 		if (prefixName == null)
 				prefixName = Paths.formatToSongPath(PlayState.SONG.song);
 		else if (prefixName.startsWith('/'))
 				prefixName = prefixName.substr(1);
 
-		// TODO: make sure this *absolutely* checks if you input an proper path
-		if (!renderPath.endsWith('/'))
-				renderPath = haxe.io.Path.addTrailingSlash(renderPath);
+		#if desktop
+		// `locate()` checks the game folder, the working directory, PATH and the
+		// usual package-manager install folders. Haxe quotes the command itself
+		// on Windows, so a path with spaces is safe to pass as-is.
+		final ffmpeg:Null<String> = FFmpegLocator.locate();
+		#else
+		// Mobile builds cannot spawn FFmpeg; Rendering Mode there only captures frames.
+		final ffmpeg:Null<String> = null;
+		#end
 
-		if(!FileSystem.exists(renderPath)) { //In case you delete the render folder/it doesn't exist
-			trace ('$renderPath folder not found! Creating the $renderPath folder...');
-			FileSystem.createDirectory(renderPath);
-		}
-		else if (!FileSystem.isDirectory(renderPath)){
-				FileSystem.deleteFile(renderPath);
-				FileSystem.createDirectory(renderPath);
+		if (ffmpeg == null)
+		{
+			#if desktop
+			failRender('Rendering Mode needs FFmpeg, but it was not found.\n\n'
+				+ 'Put ffmpeg.exe next to the game, install it so it lands on your PATH, '
+				+ 'or point the PHOENIX_FFMPEG variable at it.\n\n'
+				+ 'The song will play normally without being recorded. Renders are saved to:\n'
+				+ renderDirectory, true);
+			#else
+			FlxG.log.warn('Video rendering needs FFmpeg, which is not available on this platform. Use Classic Rendering Mode.');
+			#end
+			return;
 		}
 
-		state.ffmpegExists = false;
 		state.renderWidth = lime.app.Application.current.window.width;
 		state.renderHeight = lime.app.Application.current.window.height;
 		if (state.renderWidth <= 0 || state.renderHeight <= 0) return;
 
-		var fileName = '$renderPath$prefixName';
+		var fileName = RenderPaths.joinPath(renderDirectory, prefixName);
 		if(FileSystem.exists(fileName + '.mp4')) {
-			trace ('Duplicate video found! Adding anti-dupe...');
+			FlxG.log.warn('Duplicate video found for "$prefixName", adding an anti-dupe suffix.');
 			fileName += '-' + DateUtils.cleanedDate;
 		}
 
 		try{
-			PlayState.process = new Process('ffmpeg', ['-v', 'quiet', '-y', '-f', 'rawvideo', '-pix_fmt', 'rgba', '-s', state.renderWidth + 'x' + state.renderHeight, '-r', Std.string(state.targetFPS), '-i', '-', '-vf', 'pad=ceil(iw/2)*2:ceil(ih/2)*2', '-c:v', ClientPrefs.vidEncoder, '-b', Std.string(ClientPrefs.renderBitrate * 1000000), fileName + '.mp4']);
+			PlayState.process = new Process(ffmpeg, ['-v', 'quiet', '-y', '-f', 'rawvideo', '-pix_fmt', 'rgba', '-s', state.renderWidth + 'x' + state.renderHeight, '-r', Std.string(state.targetFPS), '-i', '-', '-vf', 'pad=ceil(iw/2)*2:ceil(ih/2)*2', '-c:v', ClientPrefs.vidEncoder, '-b:v', Std.string(ClientPrefs.renderBitrate * 1000000), fileName + '.mp4']);
 			state.ffmpegExists = true;
 			FlxG.autoPause = false;
+			FlxG.log.add('Rendering with $ffmpeg -> $fileName.mp4');
 		}catch(e:Dynamic){
-			trace("Error initializing FFmpeg process: " + e);
 			PlayState.process = null;
 			state.ffmpegExists = false;
+			failRender('FFmpeg was found at:\n' + ffmpeg
+				+ '\n\nbut it could not be started, so video rendering was disabled:\n' + e);
 		}
 		#else
 		trace('Video rendering is not supported on this platform.');
+		#end
+	}
+
+	/** Set once a missing FFmpeg has been reported, so it does not nag every song. */
+	static var warnedMissingFFmpeg:Bool = false;
+
+	/**
+	 * Reports a Rendering Mode problem that leaves the song unrecorded.
+	 *
+	 * This used to be a `trace()`, which is invisible in a release build: the
+	 * song just played and no video showed up. A blocking popup is the least
+	 * surprising option for something the player explicitly enabled.
+	 *
+	 * @param once show the popup only the first time the same problem happens.
+	 */
+	static function failRender(message:String, once:Bool = false):Void
+	{
+		FlxG.log.error(message);
+		if (once && warnedMissingFFmpeg) return;
+		if (once) warnedMissingFFmpeg = true;
+
+		#if sys
+		CoolUtil.coolError(message, 'Video Rendering');
 		#end
 	}
 
