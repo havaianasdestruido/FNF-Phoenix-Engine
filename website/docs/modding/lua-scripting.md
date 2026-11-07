@@ -13,9 +13,9 @@ mobile default to `2`). The VM is LuaJIT through `hxluajit`.
 
 | Location | Loaded |
 |---|---|
-| `mods/<mod>/scripts/*.lua` | for every song (global scripts) |
+| `mods/<mod>/scripts/*.lua` | while that mod is the current mod, **and** for every song when its `pack.json` sets `"runsGlobally": true` |
 | `mods/scripts/*.lua` | same, for loose files not in a mod |
-| `assets/preload/scripts/*.lua` | engine-level global scripts |
+| `assets/scripts/*.lua` | engine-level global scripts (the path is `Paths.getPreloadPath('scripts/')`) |
 | `mods/<mod>/data/<song>/<song>.lua` | when that song plays |
 | `mods/<mod>/stages/<stage>.lua` | when that stage loads |
 | `mods/<mod>/custom_notetypes/<type>.lua` | when the chart uses that notetype |
@@ -26,8 +26,15 @@ Global scripts are deduplicated by file name; the first match in priority order
 enabled global mod shadows a same-named script in the active mod, not the other way
 round. (Asset lookup uses the opposite order — the active mod wins there.)
 
+Only the top level of each folder is read, so a script in a subfolder
+(`mods/data/song/scripts/x.lua`) is never discovered.
+
 A script can also be loaded on demand from another script with
 `addLuaScript(path, ignoreAlreadyRunning)` and removed with `removeLuaScript(path)`.
+
+If a script seems to be ignored entirely, see
+[Why is my Lua script not running?](./why-lua-does-not-run.md) for the ordered
+list of gates it has to pass.
 
 :::caution[Softmod sandbox]
 
