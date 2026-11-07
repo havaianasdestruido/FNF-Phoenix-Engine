@@ -803,21 +803,27 @@ class Project extends HXProject
 		])
 			config.push("android.extension", extension, true);
 
-    // Only the permissions used by the platform bridge. App-specific storage
-    // needs no READ/WRITE_EXTERNAL_STORAGE or READ_MEDIA_* permissions; files
-    // outside it are accessed through SAF grants, not broad media access.
-    // Setting `android.permission` replaces Lime's defaults entirely. Push
-    // individually for the same reason as the extensions above.
-    for (permission in [
-      "android.permission.WAKE_LOCK",
-      "android.permission.INTERNET",
-      "android.permission.VIBRATE",
-      "android.permission.ACCESS_NETWORK_STATE",
-      "android.permission.POST_NOTIFICATIONS",
-      "android.permission.FOREGROUND_SERVICE",
-      "android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK"
-    ])
-      config.push("android.permission", permission, true);
+		// Only the permissions used by the platform bridge. App-specific storage
+		// needs no READ/WRITE_EXTERNAL_STORAGE or READ_MEDIA_* permissions; files
+		// outside it are accessed through SAF grants, not broad media access.
+		// Setting `android.permission` replaces Lime's defaults entirely. Push
+		// individually for the same reason as the extensions above.
+		for (permission in [
+			"android.permission.WAKE_LOCK",
+			"android.permission.INTERNET",
+			"android.permission.VIBRATE",
+			"android.permission.ACCESS_NETWORK_STATE",
+			"android.permission.POST_NOTIFICATIONS",
+			"android.permission.FOREGROUND_SERVICE",
+			"android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK"
+		])
+			config.push("android.permission", permission, true);
+
+		// Lime enables legacy external storage by default on API 29/30. Phoenix
+		// only uses app-specific storage and SAF, so keep scoped storage on even
+		// when an older Android 10 install is upgraded.
+		config.set("android.application.android:requestLegacyExternalStorage", "false");
+		config.set("android.application.android:preserveLegacyExternalStorage", "false");
 
 		var abis = androidAbis();
 		if (abis.length == 0)

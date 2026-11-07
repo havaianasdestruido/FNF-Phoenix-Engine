@@ -81,6 +81,7 @@ import states.substates.GameOverSubstate;
 import states.substates.PauseSubState;
 
 import backend.Controls;
+import backend.RenderPaths;
 import backend.Screenshot;
 import objects.Alphabet;
 import objects.AttachedSprite;
@@ -544,7 +545,15 @@ class PlayState extends MusicBeatState
 			}
 			FlxG.fixedTimestep = true;
 			FlxG.animationTimeScale = ClientPrefs.framerate / targetFPS;
-			if (!ClientPrefs.oldFFmpegMode) initRender(renderPath);
+			// Both rendering modes go through initRender so the output folder is
+			// created up front (Classic mode used to rely on the per-frame
+			// screenshot save, which failed silently on Windows).
+			if (renderPath == null || renderPath.length == 0) renderPath = RenderPaths.DEFAULT_RENDER_PATH;
+			// Anchored once here so Classic mode's per-song folders land in the same
+			// place as the MP4 (on Windows that is the game's own folder, not
+			// whatever working directory the shortcut/launcher happened to use).
+			renderPath = RenderPaths.resolveDirectory(renderPath, RenderPaths.baseDirectory());
+			initRender(renderPath);
 			FlxG.signals.preStateSwitch.addOnce(() -> stopRender());
 		}
 
@@ -2569,13 +2578,14 @@ class PlayState extends MusicBeatState
 			else
 			{
 				var filename = CoolUtil.zeroFill(frameCaptured, 7);
+				final songFolder:String = RenderPaths.joinPath(renderPath, Paths.formatToSongPath(SONG.song));
 				try {
-					capture.save(renderPath + Paths.formatToSongPath(SONG.song) + #if !windows '/' #else '\\' #end, filename);
+					capture.save(songFolder, filename);
 				}
 				catch (e) //If it catches an error, try capturing the frame again. If it still catches an error, skip the frame
 				{
 					try {
-						capture.save(renderPath + Paths.formatToSongPath(SONG.song) + #if !windows '/' #else '\\' #end, filename);
+						capture.save(songFolder, filename);
 					}
 					catch (e) {}
 				}

@@ -4,6 +4,19 @@ Generated from full repo audit. Priority: `[P0]` critical/blocker, `[P1]` high, 
 
 Sections 13–20 are a second backlog pass written against the current tree. Every entry there was checked against §0–12: anything already listed is **cross-referenced, not repeated**, and each item names the file/behaviour that proves it is still missing. They target Phoenix's stated identity — low-end devices, easy Lua/Python/HScript modding, Android-first platform work and Psych/JS compatibility — rather than generic engine cloning.
 
+_quick reminder that everything i say here that is a "port" of [x] feature of the [y] engine, i will port WITH THE APROPRIATED CREDITS!!!_
+
+_every feature ported MUST be enabled by default (unless specified beforehand) and MUST have a toggle to enable/disable or to change its options_
+
+Examples of options:
+
+- Colorful [thing].
+- - Must make the color be customizable, or atleast have some presets
+
+_keep in mind i will only port stuff if their license is compatible with mine (Apache 2.0 AFAIK)_
+
+_i accept suggestions too_
+
 ---
 
 ## 0. PRIORITY-ish / UNCATEGORIZED
@@ -34,8 +47,26 @@ Sections 13–20 are a second backlog pass written against the current tree. Eve
 
 - Making the user be able to change ALL game text to a custom font.
 
-- Adding a built-in mid download support (gamebanana browser) (just like GMod)
+- Adding a built-in mod download support (gamebanana browser & gamejolt) (just like GMod)
+- - (edit: just found out this [https://github.com/miksel1/FNF-ScrewedEngine/blob/main/source/gamejolt/GJClient.hx](https://github.com/miksel1/FNF-ScrewedEngine/blob/main/source/gamejolt/GJClient.hx) snippet from Screwed Engine (JSE grandparent))
+ 
+- Port these cool stuff from Troll Engine:
+- - [source/funkin/api/src/memory.cpp
+](https://github.com/troll-slaiyers/FNF-Troll-Engine/blob/main/source/funkin/api/src/memory.cpp) (phoenix engine implmentation is not as complete as this one)
+- - [refreshrate.cpp](https://github.com/troll-slaiyers/FNF-Troll-Engine/blob/main/source/funkin/api/src/refreshrate.cpp) (util for Linux users)
+- - [darkmode.cpp](https://github.com/troll-slaiyers/FNF-Troll-Engine/blob/main/source/funkin/api/src/darkmode.cpp)
+  - [source/funkin/api/Github.hx](https://github.com/troll-slaiyers/FNF-Troll-Engine/blob/main/source/funkin/api/Github.hx) - Utils for in-game update screen and other social stuff
+  - https://github.com/troll-slaiyers/FNF-Troll-Engine/tree/main/flixel/flixel-ui/img - port their dark flixel-ui system too.
 
+- Port these cool stuff from Doido Engine:
+- - [https://github.com/DoidoTeam/FNF-Doido-Engine/blob/main/source/backend/shaders/DistantNoteShader.hx ](https://github.com/DoidoTeam/FNF-Doido-Engine/blob/main/source/backend/shaders/DistantNoteShader.hx)- cool note shader thing
+  - cool looking loading screen
+  - clear ui (just FPT on top and ram below it)
+  - settings fully centered instead of being on the left
+  - "-[NUMBER]" when you miss note, accumulative and stays red
+  - List of available flags
+    - -debug can build the game in debug mode. This enables many debug features, such as the FlxDebugger and debugging through VSCode.
+    - -DFREEPLAY and -DMENU launch the game directly in the Freeplay and MainMenu states, respectively. These can't be used together.
 #### Rebuilding how the MODDING API works and adjusting it to be able to also support other languages (Common Modding API)
 
 Should include exposing almost ALL game screens thought the Modding API. (By screen I mean like the Freeplay page, Mods page, etc.)

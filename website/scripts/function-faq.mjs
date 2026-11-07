@@ -35,6 +35,16 @@ function escapeMarkdown(text) {
     .replace(/([\\`*_\[\]#])/g, '\\$1').replace(/\{/g, '&#123;').replace(/\}/g, '&#125;');
 }
 
+// Front matter ends up as a JavaScript object literal in the MDX module, and the
+// loader that writes it does not escape backslashes: an answer containing
+// `C:\x` is emitted as 'C:\x' and fails the build with "Bad character escape
+// sequence". The copy used for metadata therefore only carries portable
+// separators; the visible Q&A (renderFaq) keeps the original text.
+export function frontmatterFaq(entries) {
+  const portable = (text) => String(text || '').replace(/\\/g, '/');
+  return entries.map(({question, answer}) => ({question: portable(question), answer: portable(answer)}));
+}
+
 export function renderFaq(entries) {
   if (!entries.length) return [];
   const lines = ['## Function questions and answers', ''];
