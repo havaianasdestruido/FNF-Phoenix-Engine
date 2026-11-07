@@ -13,7 +13,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseHaxeFile, formatSignature } from './haxe-parser.mjs';
-import { functionFaq, renderFaq } from './function-faq.mjs';
+import { functionFaq, frontmatterFaq, renderFaq } from './function-faq.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const WEBSITE_DIR = path.resolve(__dirname, '..');
@@ -283,7 +283,7 @@ function renderType(type, parsed, allTypes) {
   lines.push('---');
   lines.push(`title: ${type.name}`);
   lines.push(`sidebar_label: ${type.name}`);
-  if (faq.length) lines.push(`function_faq: ${JSON.stringify(faq)}`);
+  if (faq.length) lines.push(`function_faq: ${JSON.stringify(frontmatterFaq(faq))}`);
   lines.push(`description: ${JSON.stringify(
     (type.doc ? type.doc.split('\n')[0] : `${type.kind} ${fqn}`).slice(0, 180),
   )}`);
