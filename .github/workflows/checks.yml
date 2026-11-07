@@ -108,6 +108,9 @@ jobs:
       - name: Verify project cache defaults and overrides
         shell: bash
         run: bash tests/haxe/run-project-build-cache.sh
+      - name: Verify Android permission policy
+        shell: bash
+        run: bash tests/haxe/run-android-permission-policy.sh
       - name: Verify PowerShell test launcher (Windows)
         if: runner.os == 'Windows'
         shell: pwsh

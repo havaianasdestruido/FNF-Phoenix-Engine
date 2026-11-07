@@ -81,7 +81,14 @@ The Android pieces are injected **only for the Android target**
   list for networking, vibration, wake locks, `POST_NOTIFICATIONS`,
   `FOREGROUND_SERVICE` and `FOREGROUND_SERVICE_MEDIA_PLAYBACK`. Broad storage
   and media-library permissions are intentionally omitted; app-owned files
-  and SAF imports do not require them.
+  and SAF imports do not require them. The manifest template also carries
+  `tools:node="remove"` entries for those broad permissions in both
+  `uses-permission` and `uses-permission-sdk-23` form, so a dependency manifest
+  cannot reintroduce image/audio/storage prompts into the merged APK.
+- `android:requestLegacyExternalStorage` and
+  `android:preserveLegacyExternalStorage` are explicitly `false`. Phoenix does
+  not opt back into legacy shared storage on Android 10, including upgrades
+  from an older install that had legacy storage enabled.
 - Signing: `PHOENIX_KEYSTORE`, `PHOENIX_KEYSTORE_PASSWORD`,
   `PHOENIX_KEYSTORE_ALIAS`, `PHOENIX_KEYSTORE_ALIAS_PASSWORD` env vars,
   falling back to a local `key.keystore` for development. No credentials
@@ -129,7 +136,15 @@ directory. Existing mods and player data are not deleted or migrated.
 On the supported API-21+ devices, `Context.getExternalFilesDir(null)` requires
 **no runtime storage or media permissions**. Startup must not request them,
 poll an asynchronous permission request, or show the old “expect a crash”
-notice. User-selected imports/exports use SAF grants instead.
+notice. User-selected imports/exports use SAF grants instead. “Manage all
+files” access is not required and is not requested; the only runtime permission
+prompt kept by the platform layer is the opt-in notification permission.
+
+Regression checks: `bash tests/haxe/run-android-permission-policy.sh` exercises
+the real HXP allowlist, serialization, legacy-storage flags and manifest
+removals. The Android build then runs
+`tools/check_android_documents_manifest.py` against Gradle's merged manifest to
+catch permissions contributed by dependencies.
 
 `Main` is constructed before it is attached to the OpenFL stage. Installing
 `PhoenixScaleMode` immediately invokes `FlxGame.onResize`, so `resizeGame`
@@ -140,7 +155,9 @@ fail again without a notice on relaunch.
 
 Device checks need a rebuilt APK: test a fresh install, force-stop/relaunch, an
 upgrade preserving existing mods/saves, and background/resume during initial
-asset copying.
+asset copying. With “manage all files” access both denied and granted, confirm
+that no image/audio/storage permission prompt appears; only the opt-in
+notification prompt is expected.
 
 ### System-visible app directories (`PhoenixDocumentsProvider`)
 

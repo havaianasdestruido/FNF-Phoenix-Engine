@@ -8,6 +8,28 @@
 	::foreach ANDROID_PERMISSIONS::<uses-permission android:name="::__current__::" />
 	::end::
 
+	<!-- The game owns its files and uses SAF for user-picked imports/exports.
+	     Remove broad storage/media permissions even if a dependency manifest
+	     declares them; they are unrelated to the opt-in notification prompt.
+	     Cover both manifest element forms so a library cannot reintroduce a
+	     storage or image/audio permission through the merged APK manifest. -->
+	<uses-permission android:name="android.permission.ACCESS_MEDIA_LOCATION" tools:node="remove" />
+	<uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" tools:node="remove" />
+	<uses-permission android:name="android.permission.READ_MEDIA_IMAGES" tools:node="remove" />
+	<uses-permission android:name="android.permission.READ_MEDIA_VIDEO" tools:node="remove" />
+	<uses-permission android:name="android.permission.READ_MEDIA_AUDIO" tools:node="remove" />
+	<uses-permission android:name="android.permission.READ_MEDIA_VISUAL_USER_SELECTED" tools:node="remove" />
+	<uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" tools:node="remove" />
+	<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" tools:node="remove" />
+	<uses-permission-sdk-23 android:name="android.permission.ACCESS_MEDIA_LOCATION" tools:node="remove" />
+	<uses-permission-sdk-23 android:name="android.permission.MANAGE_EXTERNAL_STORAGE" tools:node="remove" />
+	<uses-permission-sdk-23 android:name="android.permission.READ_MEDIA_IMAGES" tools:node="remove" />
+	<uses-permission-sdk-23 android:name="android.permission.READ_MEDIA_VIDEO" tools:node="remove" />
+	<uses-permission-sdk-23 android:name="android.permission.READ_MEDIA_AUDIO" tools:node="remove" />
+	<uses-permission-sdk-23 android:name="android.permission.READ_MEDIA_VISUAL_USER_SELECTED" tools:node="remove" />
+	<uses-permission-sdk-23 android:name="android.permission.READ_EXTERNAL_STORAGE" tools:node="remove" />
+	<uses-permission-sdk-23 android:name="android.permission.WRITE_EXTERNAL_STORAGE" tools:node="remove" />
+
 	<application ::foreach ANDROID_APPLICATION::::if ((value != null) && (value != ""))::::key::="::value::" ::end::::end::>
 
 		::if (WIN_ORIENTATION=="portrait")::

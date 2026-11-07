@@ -60,7 +60,7 @@ Gameplay code
 | `AndroidLifecycle` | pause/resume/stop, focus |
 | `AndroidMedia` | MediaSession / Media3 metadata, playback state, lock-screen controls |
 | `AndroidDisplay` | insets, cutouts, refresh rate, immersive mode |
-| `AndroidStorage` | scoped storage and permissions |
+| `AndroidStorage` | SAF pickers and `content://` URI reads/writes |
 | `AndroidHardwareInput`, `AndroidGamepad`, `AndroidHaptics` | physical keys, controllers, vibration |
 | `AndroidIntents`, `AndroidNotification`, `AndroidDiscord`, `AndroidSystem` | intents, notifications, RPC, system info |
 

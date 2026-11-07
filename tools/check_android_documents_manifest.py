@@ -20,6 +20,37 @@ MEDIA_PERMISSIONS = {
     "android.permission.FOREGROUND_SERVICE",
     "android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK",
 }
+BROAD_STORAGE_PERMISSIONS = {
+    "android.permission.ACCESS_MEDIA_LOCATION",
+    "android.permission.MANAGE_EXTERNAL_STORAGE",
+    "android.permission.READ_MEDIA_IMAGES",
+    "android.permission.READ_MEDIA_VIDEO",
+    "android.permission.READ_MEDIA_AUDIO",
+    "android.permission.READ_MEDIA_VISUAL_USER_SELECTED",
+    "android.permission.READ_EXTERNAL_STORAGE",
+    "android.permission.WRITE_EXTERNAL_STORAGE",
+}
+LEGACY_STORAGE_ATTRIBUTES = (
+    "requestLegacyExternalStorage",
+    "preserveLegacyExternalStorage",
+)
+
+
+def check_storage_policy(root: ElementTree.Element, application: ElementTree.Element, path: Path) -> None:
+    """Reject permissions and legacy storage flags that can trigger media/storage prompts."""
+    declared = {
+        element.attrib.get(ANDROID + "name")
+        for element in root
+        if element.tag in {"uses-permission", "uses-permission-sdk-23"}
+    }
+    unwanted = BROAD_STORAGE_PERMISSIONS & declared
+    if unwanted:
+        raise AssertionError(f"{path}: merged manifest declares broad storage/media permissions {sorted(unwanted)!r}")
+
+    for attribute in LEGACY_STORAGE_ATTRIBUTES:
+        value = application.attrib.get(ANDROID + attribute)
+        if value == "true":
+            raise AssertionError(f"{path}: android:{attribute}=true; Phoenix uses app-specific storage and SAF")
 
 
 def check_media_service(root: ElementTree.Element, application: ElementTree.Element, path: Path, expectation: str) -> None:
@@ -128,6 +159,7 @@ def check_manifest(
         raise AssertionError(f"{path}: targetSdkVersion={actual_target!r}, expected {target_sdk}")
 
     check_media_service(root, application, path, media_service)
+    check_storage_policy(root, application, path)
 
 
 def main() -> int:
@@ -155,7 +187,8 @@ def main() -> int:
     media_state = "ignored" if args.media_service == "ignore" else args.media_service
     print(
         f"Android manifest OK: PhoenixDocumentsProvider is {provider_state}; "
-        f"PhoenixMediaService is {media_state}; minSdk={args.minimum_sdk}, "
+        f"PhoenixMediaService is {media_state}; no broad storage/media permissions or legacy storage flags; "
+        f"minSdk={args.minimum_sdk}, "
         f"targetSdk={args.target_sdk} ({args.manifest})"
     )
     return 0
