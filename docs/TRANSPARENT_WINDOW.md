@@ -15,6 +15,10 @@ Everything is a **safe no-op with one logged message** on targets that cannot do
 it (HTML5, Flash/AIR, Android, iOS): the setters return `false`, never throw, and
 never leave the window in a broken state.
 
+The bundled `mods/transparency-test` demo declares `"platforms": ["desktop"]`
+in its `pack.json`, so it is only enabled and shipped on native desktop builds;
+mobile, web, Flash and AIR never list it in Freeplay.
+
 ## How it works
 
 ```

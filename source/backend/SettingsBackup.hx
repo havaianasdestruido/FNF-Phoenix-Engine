@@ -196,11 +196,19 @@ class SettingsBackup
     return fields;
   }
 
-  /** True when `name` is a real, importable preference of `ClientPrefs`. */
+  /**
+   * True when `name` is a real, importable preference of `ClientPrefs` **that
+   * applies to this build**.
+   *
+   * Platform-only fields (Android cut-out, mobile controls, renderer options on
+   * web, ...) are left out of exports and ignored on import, so a backup made on
+   * one device never carries settings the current target cannot use.
+   */
   public static function isPreference(name:String):Bool
   {
     if (name == null || name.length == 0) return false;
     if (NOT_PREFERENCES.indexOf(name) != -1) return false;
+    if (!PlatformSupport.supportsPreference(name)) return false;
     final value:Dynamic = Reflect.field(ClientPrefs, name);
     return value != null && !Reflect.isFunction(value);
   }
@@ -303,7 +311,9 @@ class SettingsBackup
     if (Main.fpsVar != null) Main.fpsVar.visible = ClientPrefs.showFPS;
 
     ClientPrefs.applyWidescreenPreference();
+    #if android
     ClientPrefs.applyCutoutPreference();
+    #end
     ClientPrefs.reloadControls();
     VLog.setEnabled(ClientPrefs.vlogEnabled);
   }

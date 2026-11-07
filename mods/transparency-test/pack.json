@@ -3,5 +3,6 @@
   "description": "Freeplay song for testing the color-key translucent window system.",
   "restart": false,
   "color": [75, 190, 220],
-  "runsGlobally": false
+  "runsGlobally": false,
+  "platforms": ["desktop"]
 }

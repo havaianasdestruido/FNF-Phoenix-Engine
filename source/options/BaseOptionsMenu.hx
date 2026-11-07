@@ -7,6 +7,7 @@ import flixel.input.keyboard.FlxKey;
 import flixel.ui.FlxButton;
 
 import backend.ClientPrefs;
+import backend.PlatformSupport;
 import backend.ScreenLayout;
 import backend.SettingsBackup;
 import backend.ViewportVisuals;
@@ -134,6 +135,11 @@ class BaseOptionsMenu extends MusicBeatSubstate
 	}
 
 	public function addOption(option:Option) {
+		// Settings that belong to another target (Android cut-out on desktop,
+		// renderer options on web, ...) never make it into the list. See
+		// backend.PlatformSupport for the tag vocabulary.
+		if (option == null || !option.isSupported()) return;
+
 		if(optionsArray == null || optionsArray.length < 1) optionsArray = [];
 		optionsArray.push(option);
 	}
@@ -148,6 +154,9 @@ class BaseOptionsMenu extends MusicBeatSubstate
 	 */
 	public function addBackupOptions():Void
 	{
+		// Web, Flash and AIR have no writable "save as"/"open" dialog, so the
+		// backup pair is only offered where mobile.files.MobileFilePicker can
+		// actually run.
 		var option:Option = new Option('Export Settings (.json)',
 			'Save every preference (all lists, keybinds, note colors and audio)\n'
 			+ 'to a .json backup file you can keep or copy to another device.',
@@ -155,7 +164,7 @@ class BaseOptionsMenu extends MusicBeatSubstate
 			'link',
 			false);
 		option.onChange = exportBackup;
-		addOption(option);
+		addOption(option.onlyOn([PlatformSupport.FILE_PICKER]));
 
 		option = new Option('Import Settings (.json)',
 			'Load a backup made with the option above and apply every\n'
@@ -165,7 +174,7 @@ class BaseOptionsMenu extends MusicBeatSubstate
 			'link',
 			false);
 		option.onChange = askImportBackup;
-		addOption(option);
+		addOption(option.onlyOn([PlatformSupport.FILE_PICKER]));
 	}
 
 	function exportBackup():Void

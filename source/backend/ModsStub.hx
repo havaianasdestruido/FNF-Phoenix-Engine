@@ -22,6 +22,9 @@ class ModsStub
 		return [];
 	inline public static function getPack(?folder:String = null):Dynamic
 		return null;
+	inline public static function isSupportedOnThisPlatform(?folder:String = null):Bool
+		return false;
+	inline public static function invalidatePlatformSupportCache():Void {}
 	public static var updatedOnState:Bool = false;
 	inline public static function parseList():ModsList
 		return {enabled: [], disabled: [], all: []};

@@ -82,6 +82,46 @@ class Project extends HXProject
 	static final ANDROID_STL_SCRIPT_WINDOWS:String = "setup/android-copy-stl.bat";
 
 	/**
+	 * Bundled mods that only apply to some build targets.
+	 *
+	 * The value mirrors the mod's `pack.json` `"platforms"` field, using the
+	 * same `backend.PlatformSupport` tags. The folder is left out of the build
+	 * on every other target, so e.g. the window-transparency test is not
+	 * shipped to mobile, web, Flash or AIR. The runtime check in
+	 * `backend.Mods.isSupportedOnThisPlatform()` is the safety net for mod
+	 * folders that still reach a target (loose files, user imports).
+	 */
+	static final BUNDLED_MOD_PLATFORMS:Map<String, Array<String>> = [
+		"transparency-test" => ["desktop"]
+	];
+
+	/** Common spellings, matching backend.PlatformSupport's aliases. */
+	static final PLATFORM_ALIASES:Map<String, String> = [
+		"win" => "windows",
+		"win32" => "windows",
+		"win64" => "windows",
+		"macos" => "mac",
+		"osx" => "mac",
+		"darwin" => "mac",
+		"html" => "web",
+		"html5" => "web",
+		"js" => "web",
+		"javascript" => "web",
+		"iphone" => "ios",
+		"ipad" => "ios",
+		"phone" => "mobile",
+		"tablet" => "mobile",
+		"cpp" => "native",
+		"adobe-air" => "air",
+		"adobeair" => "air",
+		"swf" => "flash",
+		"all" => "all",
+		"any" => "all",
+		"*" => "all",
+		"everywhere" => "all"
+	];
+
+	/**
 	 * Asset path globs to always exclude from asset libraries.
 	 */
 	static final EXCLUDE_ASSETS:Array<String> = [".*", "cvs", "thumbs.db", "desktop.ini", "*.hash", "*.md"];
@@ -1003,7 +1043,16 @@ class Project extends HXProject
 		// addAsset("CHANGELOG.md", "changelog.txt", "/", shouldEmbedArt);
 		// Ship the built-in mods alongside native binaries so they are available
 		// from the game's mods directory in CI artifacts and release archives.
-		addAssetPath("mods", "mods", "default", ["*"], exclude, shouldEmbed);
+		// Bundled mods that declare platform requirements in pack.json are
+		// dropped from targets they do not support (see BUNDLED_MOD_PLATFORMS).
+		var modExclude:Array<String> = exclude.copy();
+		for (folder in BUNDLED_MOD_PLATFORMS.keys())
+		{
+			final requirements:Null<Array<String>> = BUNDLED_MOD_PLATFORMS.get(folder);
+			if (requirements != null && !targetSupports(requirements))
+				modExclude.push(folder);
+		}
+		addAssetPath("mods", "mods", "default", ["*"], modExclude, shouldEmbed);
 
 		if (GAMEMODE_ALLOWED.isEnabled(this))
 			addAsset("gamemode.ini");
@@ -1092,6 +1141,94 @@ class Project extends HXProject
 	public function isConsole():Bool
 	{
 		return this.platformType == PlatformType.CONSOLE;
+	}
+
+	/**
+	 * Whether this build target satisfies a `pack.json` platform requirement
+	 * list (same tags, `all` wildcard and `!tag` negation as
+	 * `backend.PlatformSupport`).
+	 *
+	 * Kept next to the other target helpers because the HXP runs on the build
+	 * host, not on the target: `#if` here would describe the host OS.
+	 */
+	public function targetSupports(?requirements:Array<String>):Bool
+	{
+		if (requirements == null || requirements.length == 0)
+			return true;
+
+		var tags:Array<String> = [];
+		if (isWindows()) tags.push("windows");
+		if (isMac()) tags.push("mac");
+		if (isLinux()) tags.push("linux");
+		if (isAndroid()) tags.push("android");
+		if (isIOS()) tags.push("ios");
+		// `isWeb()` is also true for Flash, so keep the more specific target.
+		if (isFlash()) tags.push("flash");
+		else if (isWeb()) tags.push("web");
+		if (isAir()) tags.push("air");
+
+		if (isWindows() || isMac() || isLinux())
+		{
+			tags.push("desktop");
+			tags.push("native");
+			tags.push("sys");
+			tags.push("filesystem");
+			tags.push("file-picker");
+			tags.push("window-alpha");
+			tags.push("window-resize");
+			tags.push("screen-resolution");
+			tags.push("desktop-notifications");
+			tags.push("video-render");
+		}
+		if (isAndroid() || isIOS())
+		{
+			tags.push("mobile");
+			tags.push("native");
+			tags.push("sys");
+			tags.push("filesystem");
+		}
+		if (isMac() || isIOS()) tags.push("apple");
+		if (isWindows())
+		{
+			tags.push("window-color-key");
+			tags.push("window-click-through");
+			tags.push("deeplink");
+		}
+		if (isAndroid())
+		{
+			tags.push("deeplink");
+			tags.push("file-picker");
+			tags.push("video-render");
+		}
+
+		// Positive entries are alternatives; `!tag` entries are exclusions -
+		// exactly like backend.PlatformSupport.supports().
+		var hasPositive:Bool = false;
+		var matchedPositive:Bool = false;
+		for (requirement in requirements)
+		{
+			if (requirement == null) continue;
+			var text:String = requirement.trim().toLowerCase();
+			if (text.length == 0) continue;
+
+			var negated:Bool = text.startsWith("!");
+			var rawTag:String = negated ? text.substr(1) : text;
+			final alias:Null<String> = PLATFORM_ALIASES.get(rawTag);
+			var tag:String = alias != null ? alias : rawTag;
+			// `all` (and its aliases) matches every target, so manifests that
+			// opt in explicitly behave like the ones that omit the field.
+			var present:Bool = tag == "all" || tags.indexOf(tag) >= 0;
+			if (negated)
+			{
+				if (present) return false;
+			}
+			else
+			{
+				hasPositive = true;
+				if (present) matchedPositive = true;
+			}
+		}
+		return !hasPositive || matchedPositive;
 	}
 
 	public function is32Bit():Bool
