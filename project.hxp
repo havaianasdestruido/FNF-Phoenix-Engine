@@ -114,7 +114,11 @@ class Project extends HXProject
 		"cpp" => "native",
 		"adobe-air" => "air",
 		"adobeair" => "air",
-		"swf" => "flash"
+		"swf" => "flash",
+		"all" => "all",
+		"any" => "all",
+		"*" => "all",
+		"everywhere" => "all"
 	];
 
 	/**
@@ -1141,7 +1145,8 @@ class Project extends HXProject
 
 	/**
 	 * Whether this build target satisfies a `pack.json` platform requirement
-	 * list (same tags and `!tag` negation as `backend.PlatformSupport`).
+	 * list (same tags, `all` wildcard and `!tag` negation as
+	 * `backend.PlatformSupport`).
 	 *
 	 * Kept next to the other target helpers because the HXP runs on the build
 	 * host, not on the target: `#if` here would describe the host OS.
@@ -1210,7 +1215,9 @@ class Project extends HXProject
 			var rawTag:String = negated ? text.substr(1) : text;
 			final alias:Null<String> = PLATFORM_ALIASES.get(rawTag);
 			var tag:String = alias != null ? alias : rawTag;
-			var present:Bool = tags.indexOf(tag) >= 0;
+			// `all` (and its aliases) matches every target, so manifests that
+			// opt in explicitly behave like the ones that omit the field.
+			var present:Bool = tag == "all" || tags.indexOf(tag) >= 0;
 			if (negated)
 			{
 				if (present) return false;

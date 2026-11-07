@@ -25,9 +25,12 @@ using StringTools;
  * match). So `['desktop', 'android']` means "desktop or Android",
  * `['!mobile']` means "anything but phones/tablets", and
  * `['desktop', '!air']` means "a native desktop, not Adobe AIR". An empty or
- * `null` list means "everywhere". Unknown positive tags never match, so a typo
- * hides the feature instead of silently showing it on platforms where it
- * cannot work.
+ * `null` list means "everywhere", and so does the explicit `all` pseudo-tag
+ * (aliases: `any`, `*`, `everywhere`). Mods that predate the field therefore
+ * keep working untouched: an omitted `platforms` key behaves exactly like
+ * `[]` or `["all"]`. Unknown positive tags never match, so
+ * a typo hides the feature instead of silently showing it on platforms where
+ * it cannot work.
  *
  * The module is deliberately free of Flixel/OpenFL/Lime imports (it only reads
  * compile-time defines and reuses the pure `backend.PlatformIcons` detector),
@@ -66,6 +69,8 @@ class PlatformSupport
   public static inline var APPLE = 'apple';
   /** Haxe's `sys` platform: file APIs and processes are available. */
   public static inline var SYS = 'sys';
+  /** Pseudo-tag that matches every build (`all`, `any`, `*`, `everywhere`). */
+  public static inline var ALL = 'all';
 
   // Capability tags.
   /** Whole-window opacity (Lime `Window.opacity`). */
@@ -92,7 +97,7 @@ class PlatformSupport
   /** Every tag this module knows how to match. */
   static final KNOWN_TAGS:Array<String> = [
     WINDOWS, MAC, LINUX, ANDROID, IOS, WEB, FLASH, AIR,
-    DESKTOP, MOBILE, NATIVE, APPLE, SYS,
+    DESKTOP, MOBILE, NATIVE, APPLE, SYS, ALL,
     WINDOW_ALPHA, WINDOW_COLOR_KEY, WINDOW_CLICK_THROUGH, WINDOW_RESIZE,
     SCREEN_RESOLUTION, DESKTOP_NOTIFICATIONS, DEEPLINK, FILE_PICKER,
     FILESYSTEM, VIDEO_RENDER
@@ -120,7 +125,11 @@ class PlatformSupport
     'cpp' => NATIVE,
     'adobe-air' => AIR,
     'adobeair' => AIR,
-    'swf' => FLASH
+    'swf' => FLASH,
+    'all' => ALL,
+    'any' => ALL,
+    '*' => ALL,
+    'everywhere' => ALL
   ];
 
   /**
@@ -205,11 +214,11 @@ class PlatformSupport
 
       final negated:Bool = text.charAt(0) == '!';
       final tag:String = canonicalTag(negated ? text.substr(1) : text);
-      final present:Bool = tags.indexOf(tag) >= 0;
+      final present:Bool = tag == ALL || tags.indexOf(tag) >= 0;
 
       if (negated)
       {
-        // An excluded tag must not be present.
+        // An excluded tag must not be present (`!all` can never be satisfied).
         if (present) return false;
       }
       else

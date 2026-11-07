@@ -174,7 +174,8 @@ class Mods
 	 * `backend.PlatformSupport` tag list, including `"!mobile"`) in its
 	 * `pack.json`. Unsupported mods are skipped by `parseList()`, so they never
 	 * show in the Mods menu, load global scripts or count as the active mod.
-	 * Mods without the field work everywhere.
+	 * Mods without the field work everywhere, and `"platforms": ["all"]` (or
+	 * `[]`) is an explicit way to say the same thing.
 	 *
 	 * @param folder mod folder under `mods/`; defaults to the loaded mod
 	 */

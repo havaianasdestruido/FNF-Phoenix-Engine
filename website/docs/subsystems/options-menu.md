@@ -70,7 +70,8 @@ Useful tags:
 | Capability | `window-alpha`, `window-color-key`, `window-click-through`, `window-resize`, `screen-resolution`, `desktop-notifications`, `deeplink`, `file-picker`, `filesystem`, `video-render` |
 
 Aliases exist for common spellings (`win`, `osx`, `darwin`, `html5`, `js`, `iphone`,
-`phone`, `cpp`). Rule of thumb: keep `#if` where the *code* cannot compile on another
+`phone`, `cpp`). `null`, an empty list and `['all']` (also `any`, `*`, `everywhere`) all
+mean "everywhere". Rule of thumb: keep `#if` where the *code* cannot compile on another
 target, and use `platforms` where the code compiles but the setting is meaningless there.
 
 ## `options.BaseOptionsMenu`

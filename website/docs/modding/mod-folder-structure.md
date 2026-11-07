@@ -71,7 +71,7 @@ Read by `Mods.getPack(folder)`, parsed with the tolerant `tjson`:
 | `color` | accent colour in the list |
 | `restart` | ask for a restart when toggled |
 | `runsGlobally` | **important** — see below |
-| `platforms` | optional build targets this mod works on (see below); omitted = everywhere |
+| `platforms` | optional build targets this mod works on (see below); **omitted, `[]` or `["all"]` = everywhere** |
 | `scriptSandbox` | defaults to `true`; setting `false` gives this mod's scripts full engine privileges and prints a warning |
 | `scriptSandboxAllowlist` | exact [script-security rule IDs](./script-security.md) this trusted mod is allowed to use |
 
@@ -85,13 +85,19 @@ log format.
 `mac`, `linux`, `android`, `ios`, `web`, `flash`, `air`), families (`desktop` = native
 Windows/macOS/Linux, `mobile`, `native`, `apple`, `sys`) and capabilities
 (`window-color-key`, `window-alpha`, `file-picker`, `video-render`, ...). Positive entries
-are alternatives; `!tag` entries are exclusions:
+are alternatives; `!tag` entries are exclusions. `all` (aliases `any`, `*`, `everywhere`)
+matches every build, and is equivalent to omitting the field:
 
 ```json
+{ "platforms": ["all"] }
 { "platforms": ["desktop", "!air"] }
 { "platforms": ["mobile"] }
 { "platforms": ["windows"] }
 ```
+
+**No migration needed:** existing mods have no `platforms` key, and a missing key,
+an empty array and `["all"]` all mean "load on every target". Only a mod that names
+specific targets is filtered anywhere.
 
 `Mods.isSupportedOnThisPlatform()` is consulted by `Mods.parseList()`, so an unsupported
 mod never appears in the Mods menu, is never the active mod and never contributes global

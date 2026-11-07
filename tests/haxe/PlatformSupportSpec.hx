@@ -93,6 +93,14 @@ class PlatformSupportSpec
     equal(PlatformSupport.supports([]), true, 'empty requirements');
     equal(PlatformSupport.supports(['']), true, 'blank requirement');
 
+    // Manifests may opt in to "this works everywhere" instead of omitting the
+    // field. All four spellings must behave like null/[].
+    for (wildcard in ['all', 'any', '*', 'everywhere'])
+      equal(PlatformSupport.supports([wildcard]), true, 'wildcard "$wildcard" matches everywhere');
+    equal(PlatformSupport.supports(['all', '!mobile']), !PlatformSupport.supports(['mobile']),
+      'wildcard still honours exclusions');
+    equal(PlatformSupport.supports(['!all']), false, 'excluding everything can never match');
+
     equal(PlatformSupport.supports(['!mobile']), !PlatformSupport.supports(['mobile']), 'negation mirrors the positive tag');
 
     // Every exclusion has to hold.
@@ -130,6 +138,9 @@ class PlatformSupportSpec
     check(PlatformSupport.isKnownTag('desktop'), 'desktop is known');
     check(PlatformSupport.isKnownTag('!mobile'), 'negated tag is known');
     check(PlatformSupport.isKnownTag('window-alpha'), 'capability tag is known');
+    check(PlatformSupport.isKnownTag('all'), 'wildcard all is known');
+    equal(PlatformSupport.canonicalTag('*'), PlatformSupport.ALL, '* alias');
+    equal(PlatformSupport.canonicalTag('everywhere'), PlatformSupport.ALL, 'everywhere alias');
     check(!PlatformSupport.isKnownTag('dreamcast'), 'unknown tag is rejected');
     check(!PlatformSupport.isKnownTag(null), 'null tag is rejected');
 
