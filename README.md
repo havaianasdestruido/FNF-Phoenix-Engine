@@ -18,6 +18,7 @@
 - [Download releases](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/releases)
 - [Documentation](https://havaianasdestruido.github.io/FNF-Phoenix-Engine/) — setup, architecture, modding, and API reference
 - [Build instructions](BUILDING.md) — dependencies, compilation, and troubleshooting
+- [Why is the game so big?](SIZE.md) — Windows & Android build size breakdown with pie charts
 
 ## Key additions over JS Engine
 
