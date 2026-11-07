@@ -38,8 +38,12 @@ from **psych-engine-modified-build** by *notmagniill*, extended with:
 - whole-window alpha applied together with the color key — `SetLayeredWindowAttributes()`
   replaces the previous attribute, so asking for `LWA_COLORKEY` alone would drop
   the alpha (and the other way round);
+- compatibility with SDL's `CS_OWNDC` window class: Win32 forbids combining
+  `CS_OWNDC`/`CS_CLASSDC` with `WS_EX_LAYERED`, so only those class bits are
+  temporarily cleared while a layered effect is active, then restored on reset;
 - click-through (`WS_EX_TRANSPARENT`);
-- a full "undo" (`clearTransparentWindow`).
+- a full "undo" (`clearTransparentWindow`), including the documented client and
+  non-client repaint after `WS_EX_LAYERED` is removed.
 
 Off Windows the alpha goes through Lime (`window.opacity`, i.e.
 `SDL_SetWindowOpacity`), which is the only part the other desktops support.
@@ -166,6 +170,9 @@ TransparentWindow.setEnabled(true);
 ## Validation
 
 The native Windows state/ownership behavior is covered by the Win32 test double
-in `bash tests/native/run.sh`. The platform guards, Lua/Python symmetry and
-credits are exercised by a normal Windows build plus a mod that toggles
-transparency, alpha and click-through at runtime.
+in `bash tests/native/run.sh`. Its mock `SDL_app` window uses SDL's real
+`CS_BYTEALIGNCLIENT | CS_OWNDC` class style and rejects the invalid
+`CS_OWNDC + WS_EX_LAYERED` combination; tests also cover rollback, class-style
+restoration and the required repaint flags. The platform guards, Lua/Python
+symmetry and credits are exercised by a normal Windows build plus a mod that
+toggles transparency, alpha and click-through at runtime.

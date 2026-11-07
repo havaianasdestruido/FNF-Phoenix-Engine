@@ -31,6 +31,21 @@ Alpha and color key are stored together and passed to
 other. Click-through retains an opaque alpha attribute when needed. The native
 layer uses pointer-sized `SetWindowLongPtrW` on both 32-bit and 64-bit builds.
 
+Phoenix's pinned SDL registers `SDL_app` with `CS_OWNDC`. Win32 explicitly
+forbids combining `CS_OWNDC` or `CS_CLASSDC` with `WS_EX_LAYERED`, so the native
+backend temporarily clears only those incompatible class bits before setting
+the layered style. SDL has already retained its window HDC at that point. All
+other class bits are preserved, and the original class style is restored after
+the last layered effect is removed or if applying the effect fails. Removing
+layering also performs the documented client/non-client repaint with
+`RDW_ERASE | RDW_INVALIDATE | RDW_FRAME | RDW_ALLCHILDREN | RDW_UPDATENOW`.
+
+References: Microsoft documents the class-style restriction in
+[SetWindowLong](https://learn.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setwindowlonga)
+and [Extended Window Styles](https://learn.microsoft.com/en-us/windows/win32/winmsg/extended-window-styles),
+and the required removal/repaint sequence in
+[Using Layered Windows](https://learn.microsoft.com/en-us/windows/win32/winmsg/using-windows#using-layered-windows).
+
 Mods should prefer `backend.TransparentWindow` and the existing symmetric
 Lua/Python `setWindowAlpha` / `setWindowTransparent` callbacks: that API also
 suspends effects in fullscreen and restores them when windowed. The legacy
