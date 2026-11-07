@@ -5,6 +5,7 @@ import flixel.graphics.FlxGraphic;
 import flixel.input.keyboard.FlxKey;
 
 import backend.ClientPrefs;
+import backend.PlatformSupport;
 import backend.ViewportVisuals;
 import backend.CoolUtil;
 import backend.DiscordClient;
@@ -25,6 +26,13 @@ class OptionsState extends MusicBeatState
   {
     super();
     openMiscOnCreate = openMisc;
+
+    // Game Rendering needs a native desktop window (FFmpeg) or Android's
+    // frame capture. Lime also reports Flash/AIR as `desktop`, so the list is
+    // decided by PlatformSupport instead of `#if desktop`: AIR, Flash and the
+    // web do not get an entry they cannot use.
+    if (PlatformSupport.supports([PlatformSupport.DESKTOP, PlatformSupport.ANDROID]))
+      options.insert(5, 'Game Rendering');
   }
 
     var kId = 0;
@@ -32,7 +40,11 @@ class OptionsState extends MusicBeatState
 	var konamiIndex:Int = 0; // Track the progress in the Konami code sequence
 	var konamiCode = [];
 	var isEnteringKonamiCode:Bool = false;
-	var options:Array<String> = ['Note Colors', 'Controls', 'Adjust Delay and Combo', 'Graphics', 'Optimization' #if (desktop || android), 'Game Rendering' #end, 'Visuals and UI', 'Gameplay', 'Misc' #if (android || ios), 'Mobile Options' #end];
+	var options:Array<String> = [
+		'Note Colors', 'Controls', 'Adjust Delay and Combo', 'Graphics', 'Optimization',
+		'Visuals and UI', 'Gameplay', 'Misc'
+		#if (android || ios), 'Mobile Options' #end
+	];
 	private var grpOptions:FlxTypedGroup<Alphabet>;
 	private static var curSelected:Int = 0;
 	public static var menuBG:FlxSprite; // retained for source/mod compatibility

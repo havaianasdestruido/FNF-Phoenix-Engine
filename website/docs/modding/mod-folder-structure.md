@@ -59,6 +59,7 @@ Read by `Mods.getPack(folder)`, parsed with the tolerant `tjson`:
   "restart": false,
   "color": [255, 128, 0],
   "runsGlobally": false,
+  "platforms": ["desktop"],
   "scriptSandbox": true,
   "scriptSandboxAllowlist": []
 }
@@ -70,12 +71,33 @@ Read by `Mods.getPack(folder)`, parsed with the tolerant `tjson`:
 | `color` | accent colour in the list |
 | `restart` | ask for a restart when toggled |
 | `runsGlobally` | **important** — see below |
+| `platforms` | optional build targets this mod works on (see below); omitted = everywhere |
 | `scriptSandbox` | defaults to `true`; setting `false` gives this mod's scripts full engine privileges and prints a warning |
 | `scriptSandboxAllowlist` | exact [script-security rule IDs](./script-security.md) this trusted mod is allowed to use |
 
 Keep the sandbox enabled unless the mod is trusted and cannot use a narrower allowlist.
 See [Script security sandbox](./script-security.md) for the denylist, runtime guards and
 log format.
+
+### Platform-specific mods
+
+`platforms` uses the same tags as `backend.PlatformSupport`: target names (`windows`,
+`mac`, `linux`, `android`, `ios`, `web`, `flash`, `air`), families (`desktop` = native
+Windows/macOS/Linux, `mobile`, `native`, `apple`, `sys`) and capabilities
+(`window-color-key`, `window-alpha`, `file-picker`, `video-render`, ...). Positive entries
+are alternatives; `!tag` entries are exclusions:
+
+```json
+{ "platforms": ["desktop", "!air"] }
+{ "platforms": ["mobile"] }
+{ "platforms": ["windows"] }
+```
+
+`Mods.isSupportedOnThisPlatform()` is consulted by `Mods.parseList()`, so an unsupported
+mod never appears in the Mods menu, is never the active mod and never contributes global
+scripts or assets. The bundled engine mods are also dropped from build artefacts on
+targets they do not support, which is why the *Window Transparency Test* demo
+does not ship to mobile, web, Flash or AIR.
 
 ### Global mods
 

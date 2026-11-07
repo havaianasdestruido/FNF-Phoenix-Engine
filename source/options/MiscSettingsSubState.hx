@@ -2,6 +2,7 @@
 
 import backend.ClientPrefs;
 import backend.Controls;
+import backend.PlatformSupport;
 import flixel.graphics.FlxGraphic;
 import flixel.input.keyboard.FlxKey;
 import openfl.Lib;
@@ -58,12 +59,14 @@ class MiscSettingsSubState extends BaseOptionsMenu
 		option.displayFormat = '%vs';
 		addOption(option);
 
+		// The chart editor writes backups through the filesystem, so these two
+		// do nothing on web/Flash/AIR (see #if sys in ChartingSaveLoad).
 		var option:Option = new Option('Autosave',
 			'If checked, the Chart Editor will autosave.',
 			'autosaveCharts',
 			'bool',
 			true);
-		addOption(option);
+		addOption(option.onlyOn([PlatformSupport.FILESYSTEM]));
 
 		var option:Option = new Option('Autosave Time: ',
 			'Change the amount of time for a chart to autosave.', 
@@ -75,7 +78,7 @@ class MiscSettingsSubState extends BaseOptionsMenu
 		option.maxValue = 600;
 		option.changeValue = 1;
 		option.displayFormat = '%vs';
-		addOption(option);
+		addOption(option.onlyOn([PlatformSupport.FILESYSTEM]));
 
 		var option:Option = new Option('Enable VLog', //Name
 			'If checked, the engine keeps a very verbose session log at\n'

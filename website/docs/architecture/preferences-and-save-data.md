@@ -44,6 +44,15 @@ Keybinds are saved separately as `save.data.customControls`. Volume/mute keys ar
 back into `TitleState.muteKeys` / `volumeDownKeys` / `volumeUpKeys` after loading so Flixel
 picks them up.
 
+### Platform-only preferences
+
+Fields that belong to a different build target are skipped in **both** directions:
+`backend.PlatformSupport.requirementsForPreference()` lists them (Android cut-out and
+notifications, mobile touch controls, Game Renderer fields, chart autosave, the Windows
+deeplink toggle). A desktop save therefore never writes `respectCutout` or `mobileCAlpha`,
+and an Android save keeps its values when the same save folder is used on a PC. The same
+table keeps those fields out of `.json` backups and ignores them when one is imported.
+
 :::tip[Adding a setting]
 
 1. Add a `public static var` to `ClientPrefs` with a sensible default.

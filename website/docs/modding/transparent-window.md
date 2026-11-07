@@ -19,6 +19,10 @@ exposed to Lua, Python and Haxe.
 On HTML5, Flash/AIR, Android and iOS every call is a **no-op that logs one line**
 and returns `false`, so a mod can call them unconditionally.
 
+The bundled `mods/transparency-test` demo declares `"platforms": ["desktop"]`
+in its `pack.json`, so it is only enabled and shipped on native desktop builds;
+mobile, web, Flash and AIR never list it in Freeplay.
+
 ## Quick start (Lua)
 
 ```lua

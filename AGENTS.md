@@ -204,6 +204,11 @@ FNF-JS-Engine-Light/
 7. Não adicione dependências sem atualizar `hmm.json`/`setup`. Temas de versão pinada: ver §9.
 8. Código de produção sem `trace()` órfão; perf-sensíveis com `#if !debug` quando necessário.
 9. Toda mudança de feature/flag pública deve atualizar `ClientPrefs`/`Options` se visível ao jogador.
+   Opções específicas de plataforma usam `backend.PlatformSupport` (`Option.onlyOn([...])` ou
+   `requirementsForPreference()` para o campo de `ClientPrefs`), não `#if` solto — `#if` fica só
+   para código que não compila em outro target. Mods embutidos declaram `"platforms"` no
+   `pack.json` e são filtrados por `Mods.isSupportedOnThisPlatform()` e por
+   `BUNDLED_MOD_PLATFORMS` no `project.hxp`. Teste: `bash tests/haxe/run-platform-support.sh`.
 10. **Não** commits de `build/` (ignorado) nem de `art/` não-necessários; manter tree limpa
     (`git status`) antes de PR.
 

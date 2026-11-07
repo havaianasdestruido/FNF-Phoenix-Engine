@@ -17,6 +17,12 @@ class Mods
 	private static var globalMods:Array<String> = [];
 
 	/**
+	 * Cached `pack.json` platform verdicts, keyed by mod folder. Invalidate it
+	 * when a mod is (re)installed so a fresh manifest is re-read.
+	 */
+	static var platformSupportCache:Map<String, Bool> = [];
+
+	/**
 	 * Folders of mods that were installed but whose data couldn't be parsed
 	 * (invalid `pack.json`, broken `achievements.json`, ...).
 	 * Used by the `bad_mod` achievement.
@@ -161,6 +167,39 @@ class Mods
 		return null;
 	}
 
+	/**
+	 * Whether a mod applies to the running build.
+	 *
+	 * A mod may declare `"platforms": ["desktop"]` (or any other
+	 * `backend.PlatformSupport` tag list, including `"!mobile"`) in its
+	 * `pack.json`. Unsupported mods are skipped by `parseList()`, so they never
+	 * show in the Mods menu, load global scripts or count as the active mod.
+	 * Mods without the field work everywhere.
+	 *
+	 * @param folder mod folder under `mods/`; defaults to the loaded mod
+	 */
+	public static function isSupportedOnThisPlatform(?folder:String = null):Bool
+	{
+		if(folder == null) folder = currentModDirectory;
+		if(folder == null) folder = '';
+		// Loose `mods/` files are not a mod and are never platform-gated.
+		if(folder.length == 0) return true;
+
+		var supported:Null<Bool> = platformSupportCache.get(folder);
+		if(supported != null) return supported;
+
+		final pack:Dynamic = getPack(folder);
+		supported = PlatformSupport.supports(PlatformSupport.requirementsForPack(pack));
+		platformSupportCache.set(folder, supported);
+		return supported;
+	}
+
+	/** Drops cached `pack.json` platform verdicts (after installs/edits). */
+	public static function invalidatePlatformSupportCache():Void
+	{
+		platformSupportCache = [];
+	}
+
 	public static var updatedOnState:Bool = false;
 	inline public static function parseList():ModsList {
 		if(!updatedOnState) updateModList();
@@ -174,6 +213,10 @@ class Mods
 				if(mod.trim().length < 1) continue;
 
 				var dat = mod.split("|");
+				// Platform-bound content (e.g. the Windows window-transparency
+				// test) is not offered on targets it cannot work on, even if the
+				// folder is still present or the line says enabled.
+				if (!isSupportedOnThisPlatform(dat[0])) continue;
 				list.all.push(dat[0]);
 				if (dat[1] == "1")
 					list.enabled.push(dat[0]);
@@ -234,6 +277,7 @@ class Mods
 
 			File.saveContent('modsList.txt', lines.join('\n'));
 			updatedOnState = false;
+			invalidatePlatformSupportCache();
 			Paths.invalidateAssetLookupCache();
 			return true;
 		} catch(e:Dynamic) {

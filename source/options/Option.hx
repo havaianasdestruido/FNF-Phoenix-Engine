@@ -5,6 +5,7 @@ import flixel.graphics.FlxGraphic;
 import flixel.input.keyboard.FlxKey;
 
 import backend.ClientPrefs;
+import backend.PlatformSupport;
 import objects.Alphabet;
 
 class Option
@@ -35,7 +36,19 @@ class Option
 	public var name:String = 'Unknown';
 	public var specialOption:Bool = false;
 
-	public function new(name:String, description:String = '', variable:String, type:String = 'bool', defaultValue:Dynamic = 'null variable value', ?options:Array<String> = null)
+	/**
+	 * Build targets this option applies to, as `backend.PlatformSupport` tags
+	 * (`['android']`, `['desktop', 'android']`, `['!mobile']`, ...).
+	 *
+	 * `null` / empty means "no explicit restriction": the option then falls back
+	 * to `PlatformSupport.requirementsForPreference()`, so fields that only
+	 * exist for some target are still filtered out. `BaseOptionsMenu` drops
+	 * unsupported options before they are ever drawn.
+	 */
+	public var platforms:Array<String> = null;
+
+	public function new(name:String, description:String = '', variable:String, type:String = 'bool', defaultValue:Dynamic = 'null variable value',
+			?options:Array<String> = null, ?platforms:Array<String> = null)
 	{
 		this.name = name;
 		this.description = description;
@@ -43,6 +56,7 @@ class Option
 		this.type = type;
 		this.defaultValue = defaultValue;
 		this.options = options;
+		this.platforms = platforms;
 
 		/*
 		if (variable == 'renderPath')
@@ -87,6 +101,25 @@ class Option
 				scrollSpeed = 0.5;
 				decimals = 2;
 		}
+	}
+
+	/**
+	 * Whether this option applies to the running build.
+	 *
+	 * Explicit `platforms` wins; otherwise the `ClientPrefs` field decides
+	 * (e.g. `respectCutout` is Android-only, `mobileCAlpha` mobile-only).
+	 */
+	public function isSupported():Bool
+	{
+		if (platforms != null && platforms.length > 0) return PlatformSupport.supports(platforms);
+		return PlatformSupport.supportsPreference(variable);
+	}
+
+	/** Fluent platform restriction: `new Option(...).onlyOn(['desktop'])`. */
+	public function onlyOn(requirements:Array<String>):Option
+	{
+		platforms = requirements;
+		return this;
 	}
 
 	public function change()

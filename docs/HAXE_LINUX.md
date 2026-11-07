@@ -41,7 +41,7 @@ A instalação ocupa aproximadamente **59 MB**, fora do Git do projeto. Nenhum d
 
 ## 2. Testar com código real do projeto
 
-Estes sete scripts isolam módulos de produção e não precisam das haxelibs do jogo:
+Estes oito scripts isolam módulos de produção e não precisam das haxelibs do jogo:
 
 ```bash
 set -e
@@ -49,6 +49,7 @@ export PATH="$HOME/.local/bin:$PATH"
 
 for test in \
   run-layout.sh \
+  run-platform-support.sh \
   run-platform-util-native.sh \
   run-phoenix-version.sh \
   run-update-checker-typecheck.sh \
@@ -65,6 +66,7 @@ Resultado da execução com a instalação deste guia:
 | Script | Resultado |
 | --- | --- |
 | `run-layout.sh` | PASS — layout, toque e segurança de scripts |
+| `run-platform-support.sh` | PASS — tags de plataforma, filtros de opções e requisitos do `pack.json` |
 | `run-platform-util-native.sh` | PASS — type-check nos quatro sistemas |
 | `run-phoenix-version.sh` | PASS — versões e seleção de releases |
 | `run-update-checker-typecheck.sh` | PASS — type-check Windows/Android |
@@ -72,7 +74,7 @@ Resultado da execução com a instalação deste guia:
 | `run-mod-zip.sh` | PASS — importação, extração e caminhos seguros |
 | `run-pool-stats.sh` | PASS — contabilidade do pool |
 
-**Sete scripts, sete códigos de saída 0.** O teste do atualizador não imprime uma mensagem de sucesso; silêncio com saída 0 é o resultado esperado. As mensagens de rejeição de arquivos no teste de ZIP são casos negativos intencionais, não uma falha da suite.
+**Oito scripts, oito códigos de saída 0.** O teste do atualizador não imprime uma mensagem de sucesso; silêncio com saída 0 é o resultado esperado. As mensagens de rejeição de arquivos no teste de ZIP são casos negativos intencionais, não uma falha da suite.
 
 ## 3. O que foi validado além dos testes?
 

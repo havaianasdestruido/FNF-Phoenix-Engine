@@ -492,7 +492,9 @@ class VisualsUISubState extends BaseOptionsMenu
 			'peOGCrash',
 			'bool',
 			false);
-		addOption(option);
+		// The native window pop-up does not exist on Flash/AIR; those builds
+		// always show the in-game Crash state.
+		addOption(option.onlyOn(['!flash']));
 
 		cameras = [FlxG.cameras.list[FlxG.cameras.list.length-1]];
 

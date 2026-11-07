@@ -318,6 +318,12 @@ class ClientPrefs { //default settings if it can't find a save file containing y
 		{
 			if (Type.typeof(Reflect.field(ClientPrefs, field)) != TFunction)
 			{
+				// Android-only (cut-out, notifications) or mobile-only (touch
+				// controls) values are not written by other builds: the field
+				// stays at its default here and whatever another platform saved
+				// is left untouched in the shared save file.
+				if (!PlatformSupport.supportsPreference(field)) continue;
+
 				if (!importantMap.get("saveBlackList").contains(field))
 					Reflect.setField(FlxG.save.data, field, Reflect.field(ClientPrefs, field));
 			}
@@ -343,6 +349,10 @@ class ClientPrefs { //default settings if it can't find a save file containing y
 		{
 			if (Type.typeof(Reflect.field(ClientPrefs, field)) != TFunction)
 			{
+				// Platform-only settings keep their class default on targets
+				// they do not belong to (see backend.PlatformSupport).
+				if (!PlatformSupport.supportsPreference(field)) continue;
+
 				if (!importantMap.get("loadBlackList").contains(field))
 				{
 					var defaultValue:Dynamic = Reflect.field(ClientPrefs, field);
@@ -370,7 +380,11 @@ class ClientPrefs { //default settings if it can't find a save file containing y
 			}
 		}
 
+    // Android owns the display cut-out policy; other builds do not even
+    // compile that code path in (see applyCutoutPreference()).
+    #if android
     applyCutoutPreference();
+    #end
     applyWidescreenPreference();
 
 		for (flixelS in importantMap.get("flixelSound"))
@@ -412,12 +426,15 @@ class ClientPrefs { //default settings if it can't find a save file containing y
 		} catch (_:Dynamic) return defaultValue;
 	}
 
+  // Android fullscreen/cut-out handling is compiled only into Android builds,
+  // so desktop/web/Flash builds carry none of that platform code. Callers gate
+  // the call with `#if android` as well.
+  #if android
   /** Apply immediately; Android owns window layout and inset recomputation. */
   public static function applyCutoutPreference():Void {
-    #if android
     android.platform.AndroidDisplay.setCutoutMode(respectCutout ? "never" : "always");
-    #end
   }
+  #end
 
   /** Re-measure the live window after loading or changing the widescreen option. */
   public static function applyWidescreenPreference():Void {
