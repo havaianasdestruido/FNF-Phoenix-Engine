@@ -267,10 +267,14 @@ class PlayStateRating
 	}
 
 	public static function RecalculateRating(state:PlayState, badHit:Bool = false) {
-		state.setOnLuas('score', state.songScore);
-		state.setOnLuas('misses', state.songMisses);
-		state.setOnLuas('hits', state.songHits);
-		state.setOnLuas('combo', state.combo);
+		// Guard script variable publishing to avoid repeated method invocations and
+		// Float-to-Dynamic boxing allocations on every judged note when no scripts are active.
+		if (state.hasActiveScripts()) {
+			state.setOnLuas('score', state.songScore);
+			state.setOnLuas('misses', state.songMisses);
+			state.setOnLuas('hits', state.songHits);
+			state.setOnLuas('combo', state.combo);
+		}
 		if (badHit) state.missRecalcsPerFrame += 1;
 
 		var ret:Dynamic = state.hasActiveScripts() ? state.callOnLuas('onRecalculateRating') : null;
@@ -351,9 +355,11 @@ class PlayStateRating
 				updateScore(state, badHit);
 		}
 
-		state.setOnLuas('rating', state.ratingPercent);
-		state.setOnLuas('ratingName', state.ratingName);
-		state.setOnLuas('ratingFC', state.ratingFC);
+		if (state.hasActiveScripts()) {
+			state.setOnLuas('rating', state.ratingPercent);
+			state.setOnLuas('ratingName', state.ratingName);
+			state.setOnLuas('ratingFC', state.ratingFC);
+		}
 	}
 
 	public static function updateNps(state:PlayState)
