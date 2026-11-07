@@ -3,6 +3,9 @@ package objects;
 import backend.Paths;
 import flixel.FlxG;
 import flixel.graphics.FlxGraphic;
+import flixel.graphics.frames.FlxAtlasFrames;
+import flixel.graphics.frames.FlxFrame;
+import flixel.math.FlxRect;
 import objects.AlphabetFont.AlphabetFontDef;
 import openfl.Assets;
 import openfl.display.BitmapData;
@@ -12,11 +15,24 @@ import openfl.text.TextFieldAutoSize;
 import openfl.text.TextFormat;
 import openfl.utils.AssetType;
 
+/** One dynamically packed texture and the frames stored in it. */
+typedef AlphabetAtlasPage =
+{
+  graphic:FlxGraphic,
+  frames:FlxAtlasFrames,
+  x:Float,
+  y:Float,
+  rowHeight:Float
+}
+
 /**
  * Rasterizes alphabet glyphs out of a real font.
  *
- * Every glyph is drawn once into its own transparent bitmap, at the pixel size given by
- * `AlphabetFont.sizeFor()`, and cached as an `FlxGraphic` under `AlphabetFont.cacheKey()`.
+ * Glyphs are drawn once into shared atlas pages at the pixel size given by
+ * `AlphabetFont.sizeFor()`. Every letter then uses a frame of its page instead of owning a
+ * separate texture. This is important for menus with many options: Flixel can batch the
+ * whole list into a few draws rather than switching textures for every character.
+ *
  * All glyphs of one font/weight share the same box height, so a row of letters lands on a
  * common baseline without any per character offset tables (which is what the spritesheet
  * needed `AlphaCharacter.allLetters` for).
@@ -36,7 +52,15 @@ class AlphabetFontRenderer
   /** @see WARM_FROM */
   static final WARM_TO:Int = 126;
 
-  static var glyphs:Map<String, FlxGraphic> = new Map();
+  /** A power-of-two page works on the low-end mobile GPUs the engine targets. */
+  static final ATLAS_SIZE:Int = 1024;
+
+  /** Transparent separation prevents neighbouring glyphs bleeding when filtered. */
+  static final ATLAS_GAP:Int = 2;
+
+  static var glyphs:Map<String, FlxFrame> = new Map();
+  static var pages:Array<AlphabetAtlasPage> = [];
+  static var activePages:Map<String, AlphabetAtlasPage> = new Map();
   static var boxes:Map<String, Int> = new Map();
   static var spaces:Map<String, Float> = new Map();
   static var families:Map<String, String> = new Map();
@@ -48,19 +72,22 @@ class AlphabetFontRenderer
    * Drops every cached glyph and metric. Call it when the alphabet font changes so the old
    * faces stop holding VRAM.
    *
-   * Glyphs still held by a letter are handed back to Flixel instead of being destroyed here:
+   * Pages still held by a letter are handed back to Flixel instead of being destroyed here:
    * `persist = false` makes the cache drop them as soon as the last letter lets go, so a
-   * glyph can never be destroyed under a sprite that is still drawing it.
+   * page can never be destroyed under a sprite that is still drawing it.
    */
   public static function clearCache():Void
   {
-    for (graphic in glyphs)
+    for (page in pages)
     {
+      var graphic:FlxGraphic = page.graphic;
       if (graphic == null || graphic.isDestroyed) continue;
       if (graphic.useCount <= 0) FlxG.bitmap.remove(graphic);
       else graphic.persist = false;
     }
     glyphs = new Map();
+    pages = [];
+    activePages = new Map();
     boxes = new Map();
     spaces = new Map();
     families = new Map();
@@ -82,47 +109,105 @@ class AlphabetFontRenderer
   }
 
   /**
-   * Cached graphic holding `char`, drawn with `def`. Returns `null` when the font cannot be
-   * used, which tells the caller to fall back to the spritesheet.
+   * Cached atlas graphic holding `char`, drawn with `def`. Returns `null` when the font
+   * cannot be used, which tells the caller to fall back to the spritesheet.
+   *
+   * Use `glyphFrame()` when assigning the glyph to a sprite; the graphic contains a whole
+   * atlas page, not just this character.
    */
   public static function glyph(def:AlphabetFontDef, char:String, bold:Bool):FlxGraphic
+  {
+    var frame:FlxFrame = glyphFrame(def, char, bold);
+    return frame == null ? null : frame.parent;
+  }
+
+  /**
+   * Cached frame holding `char` in a shared atlas page. Non-ASCII glyphs are packed on
+   * demand, and a new page is started only when the current one is full.
+   */
+  public static function glyphFrame(def:AlphabetFontDef, char:String, bold:Bool):FlxFrame
   {
     if (!AlphabetFont.supports(char)) return null;
 
     var key:String = AlphabetFont.cacheKey(def, char, bold);
     if (glyphs.exists(key))
     {
-      var cached:FlxGraphic = glyphs.get(key);
-      if (isUsable(cached)) return cached;
+      var cached:FlxFrame = glyphs.get(key);
+      if (cached != null && isUsable(cached.parent)) return cached;
 
-      // A state/cache transition can invalidate a graphic while its key remains in this
-      // renderer's map. Do not hand it to FlxSprite.loadGraphic: FlxImageFrame then tries
-      // to build frames from a destroyed graphic (or one whose bitmap has been released).
+      // A state/cache transition can invalidate a page while its frames remain in this
+      // renderer's map. Never hand one of those frames to a live sprite.
       glyphs.remove(key);
       return null; // AlphaCharacter falls back to the classic alphabet spritesheet.
     }
     if (!prepare(def, bold)) return null;
 
     var boxH:Int = boxHeight(def, bold);
-    if (boxH <= 0) return null;
+    if (boxH <= 0 || boxH > ATLAS_SIZE) return null;
 
     var padH:Int = padding(def, bold, false);
     var padV:Int = padding(def, bold, true);
     field.text = char;
     var width:Int = Math.ceil(field.textWidth) + padH * 2;
     if (width < 1) width = 1;
+    if (width > ATLAS_SIZE) return null;
 
-    var bitmap:BitmapData = new BitmapData(width, boxH, true, 0x00000000);
-    bitmap.draw(field, new Matrix(1, 0, 0, 1, padH, padV));
+    var pageKey:String = AlphabetFont.metricsKey(def, bold, 'active-page');
+    var page:AlphabetAtlasPage = activePages.get(pageKey);
+    if (page != null && !isUsable(page.graphic))
+    {
+      activePages.remove(pageKey);
+      page = null;
+    }
+    if (page == null) page = createPage(def, bold);
+    if (page == null) return null;
 
+    if (page.x + width > ATLAS_SIZE)
+    {
+      page.x = 0;
+      page.y += page.rowHeight + ATLAS_GAP;
+      page.rowHeight = 0;
+    }
+    if (page.y + boxH > ATLAS_SIZE)
+    {
+      page = createPage(def, bold);
+      if (page == null) return null;
+    }
+
+    var frameX:Float = page.x;
+    var frameY:Float = page.y;
+    page.graphic.bitmap.draw(field, new Matrix(1, 0, 0, 1, frameX + padH, frameY + padV));
+
+    var frame:FlxFrame = page.frames.addSpriteSheetFrame(FlxRect.get(frameX, frameY, width, boxH));
+    glyphs.set(key, frame);
+
+    page.x += width + ATLAS_GAP;
+    page.rowHeight = Math.max(page.rowHeight, boxH);
+    activePages.set(pageKey, page);
+    return frame;
+  }
+
+  /** Allocates one empty page. Its key cannot collide with a live page from an older cache. */
+  static function createPage(def:AlphabetFontDef, bold:Bool):AlphabetAtlasPage
+  {
+    var bitmap:BitmapData = new BitmapData(ATLAS_SIZE, ATLAS_SIZE, true, 0x00000000);
+    var key:String = FlxG.bitmap.getUniqueKey(AlphabetFont.metricsKey(def, bold, 'atlas'));
     var graphic:FlxGraphic = FlxG.bitmap.add(bitmap, false, key);
     if (!isUsable(graphic)) return null;
-    // A glyph outlives the letters using it (recycled letters, state changes), exactly like
-    // the alphabet spritesheet it replaces: without this Flixel destroys it as soon as the
-    // last letter is released, leaving a dead graphic in the cache.
+
+    // An atlas outlives the letters using it (recycled letters, state changes), exactly like
+    // the alphabet spritesheet it replaces. Otherwise Flixel destroys it as soon as the last
+    // letter is released, leaving dead frames in the cache.
     graphic.persist = true;
-    glyphs.set(key, graphic);
-    return graphic;
+    var page:AlphabetAtlasPage = {
+      graphic: graphic,
+      frames: new FlxAtlasFrames(graphic),
+      x: 0,
+      y: 0,
+      rowHeight: 0
+    };
+    pages.push(page);
+    return page;
   }
 
   /** A cached graphic is only safe to assign to a sprite while its bitmap is alive. */
