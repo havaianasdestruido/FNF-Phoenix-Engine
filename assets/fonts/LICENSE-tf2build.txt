@@ -1,0 +1,10 @@
+TF2 Build (extended version)
+
+Copyright Andrea Wicklund / Valve Corporation. Extended by Jakadak.
+The upstream project states that the TF2 fonts may be used for any
+non-commercial use. This is not an open-source font license; commercial use
+requires appropriate permission from the rights holders.
+
+Source: https://github.com/jakadak/TF2-extended-fonts
+Font: fonts/TF2Build.ttf
+See the upstream README's Copyright section for the original notice.
