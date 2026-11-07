@@ -18,7 +18,7 @@
 - [Download releases](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/releases)
 - [Documentation](https://havaianasdestruido.github.io/FNF-Phoenix-Engine/) — setup, architecture, modding, and API reference
 - [Build instructions](BUILDING.md) — dependencies, compilation, and troubleshooting
-- [Why is the game so big?](SIZE.md) — Windows & Android build size breakdown with pie charts
+- [Why is the game so big?](SIZE.md) — Windows & Android build size breakdown with charts
 
 ## Key additions over JS Engine
 
@@ -28,6 +28,7 @@
 - **Platform support:** Android integrations, native platform utilities, Linux GameMode support, and build fixes.
 - **Window effects:** transparent windows, window opacity, and click-through controls for overlay mods. See [Transparent Window](docs/TRANSPARENT_WINDOW.md).
 - **Maintenance and fixes:** reorganized source code, haxelib overrides, smaller assets, and gameplay/crash fixes.
+- - **All platforms under the same branch:** The biggest addition i've ever added was mobile support DIRECTLY to the same branch as the Desktop one, so hotfixes and other patches can be applied to all platforms at once.
 
 ## Known Android issues
 
