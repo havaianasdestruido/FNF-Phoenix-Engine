@@ -39,7 +39,7 @@ class AlphabetFontAssetsTest(unittest.TestCase):
     def test_bundled_fonts_exist_and_are_truetype(self):
         fonts = ROOT / "assets/fonts"
         self.assertTrue((fonts / "vcr.ttf").is_file(), "built in VCR font must stay bundled")
-        for name in ("inconsolata.ttf", "inconsolata-bold.ttf"):
+        for name in ("inconsolata.ttf", "inconsolata-bold.ttf", "tf2build.ttf"):
             path = fonts / name
             self.assertTrue(path.is_file(), f"{name} must be bundled")
             data = path.read_bytes()
@@ -50,6 +50,12 @@ class AlphabetFontAssetsTest(unittest.TestCase):
         license_text = (ROOT / "assets/fonts/LICENSE-inconsolata.txt").read_text(encoding="utf-8", errors="ignore")
         self.assertIn("SIL OPEN FONT LICENSE", license_text.upper())
         self.assertIn("Inconsolata Project Authors", license_text)
+
+    def test_tf2_build_ships_its_usage_notice(self):
+        notice = read("assets/fonts/LICENSE-tf2build.txt")
+        self.assertIn("non-commercial", notice)
+        self.assertIn("Andrea Wicklund", notice)
+        self.assertIn("Jakadak", notice)
 
     def test_fonts_are_embedded_by_the_build(self):
         project = read("project.hxp")

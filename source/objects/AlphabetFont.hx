@@ -62,7 +62,7 @@ class AlphabetFont
   public static final DEFAULT_FONT:String = 'VCR OSD Mono';
 
   /** Order the fonts are listed in the options menu. */
-  public static var fontOrder:Array<String> = ['VCR OSD Mono', 'Inconsolata'];
+  public static var fontOrder:Array<String> = ['VCR OSD Mono', 'Inconsolata', 'TF2 Build'];
 
   /**
    * Every font the renderer knows about, keyed by `displayName`.
@@ -97,6 +97,18 @@ class AlphabetFont
       lineHeight: 112, // Inconsolata's line box is 1.049em, taller than VCR's 0.879em
       boldLineHeight: 142,
       spaceRatio: 0.5 // measured from the font: 500/1000 em
+    },
+    'TF2 Build' => {
+      key: 'tf2build',
+      displayName: 'TF2 Build',
+      regular: 'tf2build.ttf',
+      bold: 'tf2build.ttf', // no separate bold face; OpenFL synthesizes it
+      size: 76, // 76 * 0.700 = 53px caps
+      boldSize: 97, // 97 * 0.700 = 68px caps
+      capHeight: 0.700, // OS/2 cap height: 1433/2048 em
+      lineHeight: 100,
+      boldLineHeight: 110,
+      spaceRatio: 0.400 // measured from the font: 819/2048 em
     }
   ];
 

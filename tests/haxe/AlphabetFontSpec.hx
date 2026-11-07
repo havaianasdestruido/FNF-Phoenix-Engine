@@ -55,6 +55,8 @@ class AlphabetFontSpec
 	{
 		final vcr:AlphabetFontDef = AlphabetFont.fonts.get('VCR OSD Mono');
 		final inconsolata:AlphabetFontDef = AlphabetFont.fonts.get('Inconsolata');
+		final tf2:AlphabetFontDef = AlphabetFont.fonts.get('TF2 Build');
+		check(tf2 != null, 'TF2 Build is bundled');
 		check(vcr != null, 'VCR OSD Mono is bundled');
 		check(inconsolata != null, 'Inconsolata is bundled');
 
@@ -64,6 +66,9 @@ class AlphabetFontSpec
 		equal(AlphabetFont.resolveFont('vcr').key, vcr.key, 'font key');
 		equal(AlphabetFont.resolveFont('vcr.ttf').key, vcr.key, 'asset file');
 		equal(AlphabetFont.resolveFont('INCONSOLATA-BOLD.TTF').key, inconsolata.key, 'bold asset file');
+		equal(AlphabetFont.resolveFont(' tf2 build ').key, tf2.key, 'TF2 Build name');
+		equal(AlphabetFont.resolveFont('TF2BUILD.TTF').key, tf2.key, 'TF2 Build asset file');
+		check(AlphabetFont.usesSyntheticBold(tf2, true), 'TF2 Build synthesizes bold');
 		equal(AlphabetFont.resolveFont('no such font').key, vcr.key, 'unknown font falls back to the default');
 		equal(AlphabetFont.resolveFont('').key, vcr.key, 'empty font falls back');
 		equal(AlphabetFont.resolveFont(null).key, vcr.key, 'null font falls back to the default');
@@ -75,12 +80,13 @@ class AlphabetFontSpec
 		equal(AlphabetFont.currentFont().key, vcr.key, 'currentFont reads ClientPrefs (vcr)');
 
 		final names:Array<String> = AlphabetFont.fontNames();
-		equal(names.length, 2, 'two fonts in the options menu');
+		equal(names.length, 3, 'three fonts in the options menu');
 		equal(names[0], 'VCR OSD Mono', 'VCR listed first');
 		equal(names[1], 'Inconsolata', 'Inconsolata listed second');
+		equal(names[2], 'TF2 Build', 'TF2 Build listed third');
 	}
 
-	/** Sizes and spacing are sane, and only VCR needs a synthesized bold. */
+	/** Sizes and spacing are sane, and fonts without a bold face use synthesized bold. */
 	static function metrics():Void
 	{
 		for (def in AlphabetFont.fonts)
