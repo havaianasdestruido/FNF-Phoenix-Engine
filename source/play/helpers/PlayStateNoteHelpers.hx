@@ -136,11 +136,10 @@ class PlayStateNoteHelpers
 	{
 		final killList:Array<Note> = state.killNotes;
 
-		// shift() keeps the same array alive: `killNotes = []` used to allocate a
-		// fresh array every frame, and `iterator()` allocated on top of it.
+		// Remove from the tail in O(1) while keeping the persistent queue allocation.
 		while (killList.length > 0)
 		{
-			final noteKill:Note = killList.shift();
+			final noteKill:Note = killList.pop();
 			if (noteKill == null) continue;
 
 			noteKill.kill();
