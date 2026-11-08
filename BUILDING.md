@@ -216,6 +216,39 @@ implementation (haxelib `hython`), so no external Python runtime is needed.
 
 ---
 
+### Launch and debug flags
+
+Flag list ported from Doido Engine (`DoidoTeam/FNF-Doido-Engine`). They are
+compile-time flags, so they go on the `lime` command line and require a rebuild
+to change:
+
+| Flag | Effect |
+|------|--------|
+| `-debug` | Builds in debug mode into `build/debug/<target>/`. Enables the Flixel debugger (`FlxDebugger`) and the debug-friendly code paths (stack traces, `MAIN_DEBUG` diagnostics, `hxcpp-debug-server`), which is what VSCode/Haxe attaches to. Without it the build is a release build in `build/release/<target>/` and the debugger is stripped. |
+| `-DFREEPLAY` | Boots straight into `FreeplayState`, skipping the splash videos and the title screen. |
+| `-DMENU` | Boots straight into `MainMenuState`, skipping the splash videos and the title screen. |
+
+`-DFREEPLAY` and `-DMENU` **cannot be used together**: they choose different
+start states, and `project.hxp` stops the build with an error if both are set.
+
+```
+lime test windows -debug            # debug build, FlxDebugger enabled
+lime test windows -DFREEPLAY        # straight to freeplay
+lime test windows -DMENU            # straight to the main menu
+```
+
+Mods, prefs and the save file are still loaded first (`states.InitState`), so a
+direct boot behaves like reaching that screen by playing normally. Both flags
+skip `TitleState`, which also means the update-check prompt and the
+flashing-lights warning that live there are skipped: treat these as development
+flags, not as release configurations. `ClientPrefs.disableSplash` (Options ->
+Misc) still controls the splash on builds without a launch flag.
+
+The decision itself lives in `backend.LaunchState` and is covered by
+`bash tests/haxe/run-launch-state.sh`.
+
+---
+
 ### Content-stripped (copyright-safe) builds
 
 Pass `-DNO_BUILTIN_CONTENT` to build the engine **without any built-in songs,

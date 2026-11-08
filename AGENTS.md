@@ -45,7 +45,11 @@ iOS é local (`lime build ios -nosign`), sem job de CI.
 
 Defines úteis: `-DofficialBuild`, `-Dofficial`, `-DULTRA_OPTIMIZED` (build velocidade máxima, WIP),
 `-DULTRA_HTML5` (WIP), `-DDEBUG_TRACY`/`FEATURE_DEBUG_TRACY`, **`-DMODDING_LEVEL=0|1|2`**
-(0 nenhum, 1 Lua, 2 Lua+Python — desktop default 2), `-Ddisable-version-check` (flash/air obrigatório).
+(0 nenhum, 1 Lua, 2 Lua+Python — desktop default 2), `-Ddisable-version-check` (flash/air obrigatório),
+`-debug` (build em `build/debug/` + FlxDebugger + anexo de debug do VSCode) e os flags de launch
+**`-DFREEPLAY`** / **`-DMENU`** (abrem direto em `FreeplayState` / `MainMenuState`, pulando splash e
+título; são mutuamente exclusivos e `project.hxp` aborta o build se ambos vierem — ver
+`backend.LaunchState` e a seção "Launch and debug flags" do BUILDING.md).
 
 ---
 

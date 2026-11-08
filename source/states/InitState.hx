@@ -3,6 +3,8 @@ package states;
 import backend.ClientPrefs;
 import backend.Conductor;
 import backend.CoolUtil;
+import backend.LaunchState;
+import backend.LaunchTarget;
 import backend.Paths;
 import backend.PlayerSettings;
 import flixel.FlxState;
@@ -72,8 +74,18 @@ class InitState extends FlxState {
         Paths.clearStoredMemory();
 		Paths.clearUnusedMemory();
 
-        final state:Class<FlxState> = (ClientPrefs.disableSplash) ? TitleState : StartupState;
-
-        FlxG.switchState(Type.createInstance(state, []));
+        // Default is the splash videos and then the title screen. The
+        // `-DFREEPLAY` / `-DMENU` build flags (backend.LaunchState) skip both.
+        switch (LaunchState.resolve(ClientPrefs.disableSplash))
+        {
+            case LaunchTarget.FREEPLAY:
+                FlxG.switchState(FreeplayState.new);
+            case LaunchTarget.MAIN_MENU:
+                FlxG.switchState(MainMenuState.new);
+            case LaunchTarget.TITLE:
+                FlxG.switchState(TitleState.new);
+            case LaunchTarget.SPLASH:
+                FlxG.switchState(StartupState.new);
+        }
     }
 }
