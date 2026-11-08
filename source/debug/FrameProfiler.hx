@@ -181,14 +181,15 @@ typedef FrameProfileSummary =
  *    collected history or registering duplicate shutdown hooks.
  * 2. Metric Recording (`FrameProfiler.enabled`, `startRecording()`, `stopRecording()`):
  *    Enabled by default on `init()` so background ring-buffer history is ready
- *    when the user opens the overlay (`F3`) or exports a report (`F6`).
+ *    when the user enables the overlay (`F3`) or exports a report (`F6`).
  *    Calling `stopRecording()` (`enabled = false`) stops all sampling and resets
  *    inter-frame baselines; `startRecording()` (`enabled = true`) resumes
  *    recording while preserving previously recorded session totals.
  * 3. Overlay Visibility (`FrameProfiler.overlayVisible` / `ClientPrefs.frameProfiler`):
  *    Hidden by default (`false`). Toggling the HUD overlay (`F3`, `showOverlay()`,
  *    `hideOverlay()`, `toggleOverlay()`) never stops recording, never resets
- *    recorded samples, and never re-initializes the profiler.
+ *    recorded samples, and never re-initializes the profiler. The text is shown
+ *    only when the FPS counter and Legacy FPS UI are enabled.
  * 4. Automatic Exit Export (`FrameProfiler.autoExportOnExit`):
  *    Disabled by default (`false`), enabled via `--profile` / `-profile` /
  *    `--frame-profiler` CLI flags, `-DPROFILE_FRAMES`, or setting
@@ -213,7 +214,8 @@ class FrameProfiler
   public static var enabled(get, set):Bool;
 
   /**
-   * Whether the live HUD profiler overlay is visible (`ClientPrefs.frameProfiler`).
+   * Whether profiler text is enabled (`ClientPrefs.frameProfiler`). Its display also
+   * requires the FPS counter and Legacy FPS UI to be enabled.
    */
   public static var overlayVisible(get, set):Bool;
 
@@ -384,7 +386,7 @@ class FrameProfiler
   }
 
   /**
-   * Shows the live profiler HUD overlay without resetting or altering recording state.
+   * Enables profiler text in the Legacy FPS UI without altering recording state.
    */
   public static function showOverlay():Void
   {
@@ -393,7 +395,7 @@ class FrameProfiler
   }
 
   /**
-   * Hides the live profiler HUD overlay without stopping recording or resetting history.
+   * Disables profiler text without stopping recording or resetting history.
    */
   public static function hideOverlay():Void
   {
@@ -401,7 +403,7 @@ class FrameProfiler
   }
 
   /**
-   * Toggles the on-screen profiler overlay (`F3`) without resetting or corrupting
+   * Toggles profiler text (`F3`, shown in Legacy FPS UI) without resetting or corrupting
    * recorded frame samples or re-initializing the profiler.
    */
   public static function toggleOverlay():Bool

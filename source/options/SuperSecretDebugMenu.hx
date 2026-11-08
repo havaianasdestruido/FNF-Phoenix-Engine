@@ -65,7 +65,7 @@ class SuperSecretDebugMenu extends BaseOptionsMenu
 		addOption(option);
 
 		var option:Option = new Option('Frame Profiler Overlay',
-			"If checked, displays live frametime, update/render/audio timings, allocations, and GC pauses.",
+			"If checked, the Legacy FPS UI displays live frame timings, allocations, and GC pauses.",
 			'frameProfiler',
 			'bool',
 			false);
