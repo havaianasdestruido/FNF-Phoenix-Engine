@@ -73,35 +73,79 @@ class Conductor
 	}
 
 	public static function getBPMFromSeconds(time:Float){
-		var lastChange:BPMChangeEvent = {
-			stepTime: 0,
-			songTime: 0,
-			bpm: bpm,
-			stepCrochet: stepCrochet
+		var map = Conductor.bpmChangeMap;
+		var n = map.length;
+		// bpmChangeMap is sorted ascending by songTime; binary search for the
+		// rightmost entry with songTime <= time (O(log n) instead of O(n)).
+		if (n == 0) {
+			var lastChange:BPMChangeEvent = {
+				stepTime: 0,
+				songTime: 0.0,
+				bpm: bpm,
+				stepCrochet: stepCrochet
+			};
+			return lastChange;
 		}
-		for (i in 0...Conductor.bpmChangeMap.length)
-		{
-			if (time >= Conductor.bpmChangeMap[i].songTime)
-				lastChange = Conductor.bpmChangeMap[i];
+		var lo = 0;
+		var hi = n - 1;
+		var idx = -1;
+		while (lo <= hi) {
+			var mid = (lo + hi) >> 1;
+			if (map[mid].songTime <= time) {
+				idx = mid;
+				lo = mid + 1;
+			} else {
+				hi = mid - 1;
+			}
 		}
-
-		return lastChange;
+		if (idx < 0) {
+			var lastChange:BPMChangeEvent = {
+				stepTime: 0,
+				songTime: 0.0,
+				bpm: bpm,
+				stepCrochet: stepCrochet
+			};
+			return lastChange;
+		}
+		return map[idx];
 	}
 
 	public static function getBPMFromStep(step:Float){
-		var lastChange:BPMChangeEvent = {
-			stepTime: 0,
-			songTime: 0,
-			bpm: bpm,
-			stepCrochet: stepCrochet
+		var map = Conductor.bpmChangeMap;
+		var n = map.length;
+		// bpmChangeMap is sorted ascending by stepTime; binary search for the
+		// rightmost entry with stepTime <= step (O(log n) instead of O(n)).
+		if (n == 0) {
+			var lastChange:BPMChangeEvent = {
+				stepTime: 0,
+				songTime: 0.0,
+				bpm: bpm,
+				stepCrochet: stepCrochet
+			};
+			return lastChange;
 		}
-		for (i in 0...Conductor.bpmChangeMap.length)
-		{
-			if (Conductor.bpmChangeMap[i].stepTime<=step)
-				lastChange = Conductor.bpmChangeMap[i];
+		var lo = 0;
+		var hi = n - 1;
+		var idx = -1;
+		while (lo <= hi) {
+			var mid = (lo + hi) >> 1;
+			if (map[mid].stepTime <= step) {
+				idx = mid;
+				lo = mid + 1;
+			} else {
+				hi = mid - 1;
+			}
 		}
-
-		return lastChange;
+		if (idx < 0) {
+			var lastChange:BPMChangeEvent = {
+				stepTime: 0,
+				songTime: 0.0,
+				bpm: bpm,
+				stepCrochet: stepCrochet
+			};
+			return lastChange;
+		}
+		return map[idx];
 	}
 
 	public static function beatToSeconds(beat:Float): Float{
