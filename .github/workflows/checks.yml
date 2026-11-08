@@ -71,7 +71,7 @@ jobs:
       - name: Test the -DFREEPLAY / -DMENU launch flags
         run: bash tests/haxe/run-launch-state.sh
       - name: Test the distant-notes shader uniform wiring
-        run: bash tests/haxe/run-distant-note-shader.sh
+        run: bash tests/haxe/run-distant-notes.sh
 
   lua-script-pipeline:
     name: Lua script pipeline (Haxe)
