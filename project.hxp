@@ -54,8 +54,13 @@ class Project extends HXProject
 	/**
 	 * The fully qualified class path for the game's preloader.
 	 * Particularly important on HTML5 but we use it on all platforms.
+	 *
+	 * Ported from Doido Engine — two themed preloaders are available:
+	 *  - `backend.PhoenixPreloader` — Phoenix pink bar + logoBumpin (default)
+	 *  - `backend.game.DoidoPreloader` — verbatim Doido white bar + doido_logo
+	 * Use `flixel.system.FlxPreloader` to restore the stock Flixel preloader.
 	 */
-	static final PRELOADER:String = "flixel.system.FlxPreloader";
+	static final PRELOADER:String = "backend.PhoenixPreloader";
 
 	/**
 	 * A package name used for identifying the app on various app stores.
