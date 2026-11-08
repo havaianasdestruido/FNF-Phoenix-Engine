@@ -316,14 +316,30 @@ class CoolUtil
 			latestBpmChangeIndex = -1;
 			latestBpmChange = null;
 
-			for (i in 0...Conductor.bpmChangeMap.length)
+			// bpmChangeMap is sorted ascending by songTime; binary search for
+			// the rightmost entry with songTime <= timeToCheck (O(log n)).
+			var __map = Conductor.bpmChangeMap;
+			var __n = __map.length;
+			var __lo = 0;
+			var __hi = __n - 1;
+			var __idx = -1;
+			while (__lo <= __hi)
 			{
-				var bpmchange = Conductor.bpmChangeMap[i];
-				if (timeToCheck >= bpmchange.songTime)
+				var __mid = (__lo + __hi) >> 1;
+				if (timeToCheck >= __map[__mid].songTime)
 				{
-					latestBpmChangeIndex = i; // Update index of latest change
-					latestBpmChange = bpmchange;
+					__idx = __mid;
+					__lo = __mid + 1;
 				}
+				else
+				{
+					__hi = __mid - 1;
+				}
+			}
+			if (__idx >= 0)
+			{
+				latestBpmChangeIndex = __idx;
+				latestBpmChange = __map[__idx];
 			}
 			if (latestBpmChangeIndex >= 0)
 			{
