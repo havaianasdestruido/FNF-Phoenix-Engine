@@ -176,6 +176,13 @@ class VisualsUISubState extends BaseOptionsMenu
 			false);
 		addOption(option);
 
+		var option:Option = new Option('Doido Miss Counter',
+			'Misses pop up as red -1, -2, -3... while you keep missing.\nA successful note hit starts a fresh combo. Works without Miss Rating.',
+			'doidoMisses',
+			'bool',
+			true);
+		addOption(option);
+
 		var option:Option = new Option('Note Color Style: ',
 			"How would you like your notes colored?",
 			'noteColorStyle',

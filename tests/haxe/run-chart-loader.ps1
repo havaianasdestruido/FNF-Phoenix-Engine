@@ -7,8 +7,9 @@ $testSource = Join-Path ([IO.Path]::GetTempPath()) ("phoenix-chart-loader-" + [G
 New-Item -ItemType Directory -Path $testSource -Force | Out-Null
 try {
     Copy-Item -Recurse -Force "tests/haxe/stubs/chart-loader/*" $testSource
-    New-Item -ItemType Directory -Path "$testSource/play/helpers" -Force | Out-Null
+    New-Item -ItemType Directory -Path "$testSource/play/helpers", "$testSource/play/objects" -Force | Out-Null
     Copy-Item "source/play/helpers/PlayStateChartLoader.hx" "$testSource/play/helpers/PlayStateChartLoader.hx"
+    Copy-Item "source/play/objects/MissCounter.hx" "$testSource/play/objects/MissCounter.hx"
     & $haxe -cp $testSource -cp tests/haxe -main ChartLoaderSpec --interp
     if ($LASTEXITCODE -ne 0) { throw "haxe interp failed ($LASTEXITCODE)" }
     & $haxe -cp $testSource -cp tests/haxe -main ChartLoaderSpec -js "$testSource/chart-loader.js"

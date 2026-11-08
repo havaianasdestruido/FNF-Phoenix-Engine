@@ -97,8 +97,8 @@ class JudgeText extends FlxText
   {
     if (miss)
     {
-      color = FlxColor.fromRGB(204, 66, 66);
-      text = PlayState.instance.hitStrings[5] + '\n' + PlayState.formatNumber(combo);
+      color = ClientPrefs.doidoMisses ? MissCounter.RED : FlxColor.fromRGB(204, 66, 66);
+      text = (ClientPrefs.missRating ? PlayState.instance.hitStrings[5] + '\n' : '') + PlayState.formatNumber(combo);
       return;
     }
 
@@ -120,7 +120,7 @@ class JudgeText extends FlxText
         color = FlxColor.RED;
         text = PlayState.instance.hitStrings[4] + '\n' + PlayState.formatNumber(combo);
       default:
-        color = FlxColor.WHITE;
+        color = MissCounter.color(combo, ClientPrefs.doidoMisses);
     }
   }
 

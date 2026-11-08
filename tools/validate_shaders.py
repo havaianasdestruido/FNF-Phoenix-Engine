@@ -40,6 +40,7 @@ SHADER_FILES = [
     "source/shaders/BloomShader.hx",
     "source/shaders/BuildingShader.hx",
     "source/shaders/ChromaticAberrationShader.hx",
+    "source/shaders/DistantNoteShader.hx",
     "source/shaders/DistortBGShader.hx",
     "source/shaders/TriangleShader.hx",
     "source/shaders/GlitchShader.hx",
@@ -61,6 +62,7 @@ SHADER_FILES = [
 # Classes extending backend.FlxFixedShader get the ES 3.00 rewrite on GLES.
 FIXED_SHADER_FILES = {
     "source/objects/ColorSwap.hx",
+    "source/shaders/DistantNoteShader.hx",
     "source/shaders/RGBPalette.hx",
     "source/shaders/RainShader.hx",
     "source/shaders/WiggleEffect.hx",

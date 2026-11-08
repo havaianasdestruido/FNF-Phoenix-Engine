@@ -120,6 +120,8 @@ class PlayStateScripts
 		switch(cam.toLowerCase()) {
 			case 'camhud' | 'hud':
 				state.camHUD.addShader(effect.shader);
+			case 'camstrum' | 'strum':
+				(state.camStrum != null ? state.camStrum : state.camHUD).addShader(effect.shader);
 			case 'camother' | 'other':
 				state.camOther.addShader(effect.shader);
 			case 'camgame' | 'game':
@@ -145,6 +147,8 @@ class PlayStateScripts
 				// No per-call trace here: this is reachable from update paths and mod
 				// scripts, and leftover debug traces spam the console at 60fps (#69).
 				state.camHUD.removeShader(effect.shader);
+			case 'camstrum' | 'strum':
+				(state.camStrum != null ? state.camStrum : state.camHUD).removeShader(effect.shader);
 			case 'camother' | 'other':
 				state.camOther.removeShader(effect.shader);
 			case 'camgame' | 'game':
@@ -168,6 +172,8 @@ class PlayStateScripts
 		switch(cam.toLowerCase()) {
 			case 'camhud' | 'hud':
 				state.camHUD.filters = [];
+			case 'camstrum' | 'strum':
+				(state.camStrum != null ? state.camStrum : state.camHUD).filters = [];
 			case 'camother' | 'other':
 				state.camOther.filters = [];
 			case 'camgame' | 'game':

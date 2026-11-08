@@ -124,6 +124,7 @@ class LuaUtils {
 	public static inline function cameraFromString(cam:String):FlxCamera {
 		return switch(cam.toLowerCase()) {
 			case 'camhud' | 'hud': return PlayState.instance.camHUD;
+			case 'camstrum' | 'strum': return PlayState.instance.camStrum != null ? PlayState.instance.camStrum : PlayState.instance.camHUD;
 			case 'camother' | 'other': return PlayState.instance.camOther;
 			case _: PlayState.instance.camGame;
 		}

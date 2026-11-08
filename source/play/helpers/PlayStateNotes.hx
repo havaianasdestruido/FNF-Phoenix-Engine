@@ -29,6 +29,7 @@ class PlayStateNotes
 			if (state.combo > 0)
 				state.combo = 0;
 			else state.combo -= 1 * (PlayState.opponentChart ? state.polyphonyOppo : state.polyphonyBF);
+			state.missCounter.miss();
 			if (state.health > 0 && !state.usingBotEnergy)
 			{
 				state.health -= daNote.missHealth * state.healthLoss;
@@ -79,13 +80,14 @@ class PlayStateNotes
 				var noteIndex = (daNote.isSustainNote ? state.sustainNotes : state.notes).members.indexOf(daNote);
 				state.callOnLuas('noteMiss', [noteIndex, daNote.noteData, daNote.noteType, daNote.isSustainNote]);
 			}
-			if (ClientPrefs.missRating && ClientPrefs.ratingPopups) PlayStateRating.popUpScore(state, daNote, true);
+			if ((ClientPrefs.missRating || ClientPrefs.doidoMisses) && ClientPrefs.ratingPopups) PlayStateRating.popUpScore(state, daNote, true);
 		}
 		if (daNoteAlt != null)
 		{
 			if (state.combo > 0)
 				state.combo = 0;
 			else state.combo -= 1 * (PlayState.opponentChart ? state.polyphonyOppo : state.polyphonyBF);
+			state.missCounter.miss();
 			if (state.health > 0)
 			{
 				state.health -= daNoteAlt.missHealth * state.healthLoss;
@@ -116,6 +118,7 @@ class PlayStateNotes
 
 			if (state.hasActiveScripts())
 				state.callOnLuas('noteMiss', [null, daNoteAlt.noteData, daNoteAlt.noteType, daNoteAlt.isSustainNote]);
+			if ((ClientPrefs.missRating || ClientPrefs.doidoMisses) && ClientPrefs.ratingPopups) PlayStateRating.popUpScore(state, null, true);
 		}
 	}
 
@@ -137,6 +140,7 @@ class PlayStateNotes
 				state.gf.playAnim('sad');
 			}
 			state.combo = 0;
+			state.missCounter.miss();
 
 			if(!state.practiceMode) state.songScore -= 10;
 			if(!state.endingSong) {
@@ -159,6 +163,7 @@ class PlayStateNotes
 		state.stagesFunc(function(stage:BaseStage) stage.noteMissPress(direction));
 		if (state.hasActiveScripts())
 			state.callOnLuas('noteMissPress', [direction]);
+		if (!state.boyfriend.stunned && ClientPrefs.doidoMisses && ClientPrefs.ratingPopups) PlayStateRating.popUpScore(state, null, true);
 	}
 
 	public static function spawnNotes(state:PlayState)
@@ -289,6 +294,7 @@ class PlayStateNotes
 					if (state.combo < 0) state.combo = 0;
 					if ((PlayState.opponentChart ? state.polyphonyOppo : state.polyphonyBF) > 1 && !note.isSustainNote) state.totalNotes += state.polyphonyBF - 1;
 					state.missCombo = 0;
+					state.missCounter.hit();
 					state.combo += 1 * (PlayState.opponentChart ? state.polyphonyOppo : state.polyphonyBF);
 					state.totalNotesPlayed += 1 * (PlayState.opponentChart ? state.polyphonyOppo : state.polyphonyBF);
 					if (ClientPrefs.showNPS) { //i dont think we should be pushing to 2 arrays at the same time but oh well
@@ -471,6 +477,9 @@ class PlayStateNotes
 			}
 			if (!noteAlt.isSustainNote && state.cpuControlled)
 			{
+				if (state.combo < 0) state.combo = 0;
+				state.missCombo = 0;
+				state.missCounter.hit();
 				state.combo += 1 * (PlayState.opponentChart ? state.polyphonyOppo : state.polyphonyBF);
 				state.songScore += (ClientPrefs.noMarvJudge ? 350 : 500) * (PlayState.opponentChart ? state.polyphonyOppo : state.polyphonyBF);
 				state.totalNotesPlayed += 1 * (PlayState.opponentChart ? state.polyphonyOppo : state.polyphonyBF);

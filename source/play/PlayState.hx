@@ -47,6 +47,7 @@ import play.helpers.PlayStateCharacters;
 import play.helpers.PlayStateChartLoader;
 import play.helpers.PlayStateCountdown;
 import play.helpers.PlayStateCutscenes;
+import play.helpers.PlayStateDistantNotes;
 import play.helpers.PlayStateEvents;
 import play.helpers.PlayStateInput;
 import play.helpers.PlayStateNoteHelpers;
@@ -235,6 +236,8 @@ class PlayState extends MusicBeatState
 	public var combo:Float = 0;
 	public var maxCombo:Float = 0;
 	public var missCombo:Int = 0;
+	/** Display-only Doido miss streak; does not change score or accuracy. */
+	public var missCounter:MissCounter = new MissCounter();
 
 	var notesAddedCount:Int = 0;
 	var eventIndex:Int = 0;
@@ -344,6 +347,9 @@ class PlayState extends MusicBeatState
 	public var iconP1:HealthIcon;
 	public var iconP2:HealthIcon;
 	public var camHUD:FlxCamera;
+	/** Separate note camera when Distant Notes is enabled; otherwise null. */
+	public var camStrum:FlxCamera;
+	public var distantNoteShader:shaders.DistantNoteShader;
 	public var camGame:FlxCamera;
 	public var camOther:FlxCamera;
 	private var layoutWidth:Int = 0;
@@ -505,6 +511,13 @@ class PlayState extends MusicBeatState
 		if (ramGraph != null) ramGraph.x = ScreenLayout.contentLeft(FlxG.width) + 8;
 	}
 
+	override public function draw()
+	{
+		// Runs after FlxG.cameras.update(), so HUD shake is included.
+		PlayStateDistantNotes.syncDistantNotes(this);
+		super.draw();
+	}
+
 	override public function create()
 	{
 		// #88: per-play pool accounting so the debug overlay reports this song's numbers.
@@ -631,7 +644,7 @@ class PlayState extends MusicBeatState
 		minSpeed = ClientPrefs.getGameplaySetting('randomspeedmin', 0.1);
 		maxSpeed = ClientPrefs.getGameplaySetting('randomspeedmax', 10);
 
-		middleScroll = ClientPrefs.middleScroll || bothSides;
+		middleScroll = ClientPrefs.middleScroll || bothSides || PlayStateDistantNotes.distantNotesEnabled();
 		if (bothSides) opponentChart = false;
 
 		if (ffmpegMode)
@@ -644,6 +657,7 @@ class PlayState extends MusicBeatState
 
 		FlxG.cameras.reset(camGame);
 		FlxG.cameras.add(camHUD, false);
+		PlayStateDistantNotes.setupDistantNotes(this);
 		FlxG.cameras.add(camOther, false);
 		grpHoldSplashes = new FlxTypedGroup<SustainSplash>((ClientPrefs.maxSplashLimit != 0 ? ClientPrefs.maxSplashLimit : 10000));
 		grpNoteSplashes = new FlxTypedGroup<NoteSplash>((ClientPrefs.maxSplashLimit != 0 ? ClientPrefs.maxSplashLimit : 10000));
@@ -1561,11 +1575,12 @@ class PlayState extends MusicBeatState
 			for (item in hudItems) if (item != null) item.visible = false;
 		}
 
-		strumLineNotes.cameras = [camHUD];
-		grpNoteSplashes.cameras = [camHUD];
-		grpHoldSplashes.cameras = [camHUD];
-		sustainNotes.cameras = [camHUD];
-		notes.cameras = [camHUD];
+		final noteCamera:FlxCamera = camStrum != null ? camStrum : camHUD;
+		strumLineNotes.cameras = [noteCamera];
+		grpNoteSplashes.cameras = [noteCamera];
+		grpHoldSplashes.cameras = [noteCamera];
+		sustainNotes.cameras = [noteCamera];
+		notes.cameras = [noteCamera];
 		healthBar.cameras = [camHUD];
 		healthBarBG.cameras = [camHUD];
 		iconP1.cameras = [camHUD];

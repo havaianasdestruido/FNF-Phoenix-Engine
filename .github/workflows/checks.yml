@@ -63,6 +63,10 @@ jobs:
         run: bash tests/haxe/run-diagnostics-report.sh
       - name: Test platform gating tags, option filters and pack.json requirements
         run: bash tests/haxe/run-platform-support.sh
+      - name: Test Doido consecutive-miss popups
+        run: bash tests/haxe/run-miss-counter.sh
+      - name: Test distant-note camera isolation and unsupported-target fallback
+        run: bash tests/haxe/run-distant-notes.sh
       - name: Test render folder creation and FFmpeg lookup
         run: bash tests/haxe/run-video-render.sh
       - name: Test the phoenix:// URI parser and its route allowlists

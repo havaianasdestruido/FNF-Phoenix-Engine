@@ -228,6 +228,9 @@ class LogUtils
       escaped.push(escapeRegex(part));
     return escaped.join("[\\\\/]");
   }
+  #end
+  // Also used by redact() on non-sys targets, where localUserNames is empty but
+  // the loop still has to compile.
   static function escapeRegex(value:String):String
   {
     final special:String = "\\^$.*+?()[]{}|";
@@ -241,6 +244,7 @@ class LogUtils
     }
     return out.toString();
   }
+  #if sys
   static function ensureDirectory(directory:String):Void
   {
     if (directory == null || directory == "" || directory == "." || FileSystem.exists(directory))

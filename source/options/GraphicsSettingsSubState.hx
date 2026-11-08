@@ -50,6 +50,13 @@ class GraphicsSettingsSubState extends BaseOptionsMenu
 			true); //Default value
 		addOption(option);
 
+		var option:Option = new Option('Distant Notes',
+			'Adds Doido Engine\'s perspective effect to notes and strums only.\nForces middlescroll for the next song. Requires Shaders; costs an extra GPU pass.',
+			'distantNotes',
+			'bool',
+			false);
+		addOption(option);
+
 		var option:Option = new Option('GPU Caching', //Name
 			"If checked, allows the GPU to be used for caching textures, decreasing RAM usage.\nDon't turn this on if you have an older or less capable graphics card.", //Description
 			'cacheOnGPU',

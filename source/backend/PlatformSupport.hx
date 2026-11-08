@@ -18,7 +18,7 @@ using StringTools;
  * - **capability tags** (`window-alpha`, `window-color-key`,
  *   `window-click-through`, `window-resize`, `screen-resolution`,
  *   `desktop-notifications`, `deeplink`, `file-picker`, `filesystem`,
- *   `video-render`).
+ *   `video-render`, `shaders`).
  *
  * Positive entries in a requirement list are **alternatives** (at least one has
  * to match), while entries starting with `!` are **exclusions** (none may
@@ -93,6 +93,8 @@ class PlatformSupport
   public static inline var FILESYSTEM = 'filesystem';
   /** Options -> Game Rendering (FFmpeg or screenshot-frame capture). */
   public static inline var VIDEO_RENDER = 'video-render';
+  /** Runtime GLSL camera/sprite shaders (OpenFL renderer, not Flash/AIR/Neko). */
+  public static inline var SHADERS = 'shaders';
 
   /** Every tag this module knows how to match. */
   static final KNOWN_TAGS:Array<String> = [
@@ -100,7 +102,7 @@ class PlatformSupport
     DESKTOP, MOBILE, NATIVE, APPLE, SYS, ALL,
     WINDOW_ALPHA, WINDOW_COLOR_KEY, WINDOW_CLICK_THROUGH, WINDOW_RESIZE,
     SCREEN_RESOLUTION, DESKTOP_NOTIFICATIONS, DEEPLINK, FILE_PICKER,
-    FILESYSTEM, VIDEO_RENDER
+    FILESYSTEM, VIDEO_RENDER, SHADERS
   ];
 
   /** Alias -> canonical tag. Keys are already lower case and trimmed. */
@@ -162,7 +164,8 @@ class PlatformSupport
     'quality' => [VIDEO_RENDER],
     'renderGCRate' => [VIDEO_RENDER],
     'renderPath' => [VIDEO_RENDER],
-    'showRemainingTime' => [VIDEO_RENDER]
+    'showRemainingTime' => [VIDEO_RENDER],
+    'distantNotes' => [SHADERS]
   ];
 
   static var cachedTags:Array<String> = null;
@@ -385,6 +388,11 @@ class PlatformSupport
     // deeplink scheme is registered by the build rather than at runtime.
     #if android
     addTags(tags, [FILE_PICKER]);
+    #end
+
+    // Matches PlayStateDistantNotes: OpenFL runtime shaders, excluding Neko.
+    #if (SHADERS_ALLOWED && !neko)
+    addTags(tags, [SHADERS]);
     #end
 
     return tags;
