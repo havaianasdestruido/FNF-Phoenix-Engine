@@ -13,7 +13,7 @@ jobs:
       # #48: actions/stale cannot label issues with a label that does not
       # exist, and it reported success anyway. Ensure it exists first.
       - name: Ensure stale label exists
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             const name = "stale";
