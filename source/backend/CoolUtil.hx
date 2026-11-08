@@ -450,10 +450,7 @@ class CoolUtil
 		if (decimals < 1)
 			return Math.floor(value);
 
-		var tempMult:Float = 1;
-		for (i in 0...decimals)
-			tempMult *= 10;
-
+		var tempMult:Float = Math.pow(10, decimals);
 		var newValue:Float = Math.floor(value * tempMult);
 		return newValue / tempMult;
 	}
