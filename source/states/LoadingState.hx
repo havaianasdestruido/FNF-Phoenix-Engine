@@ -331,7 +331,7 @@ class LoadingState extends MusicBeatState
 					{
 						try
 						{
-							var deathChar = c.deathChar;
+							var deathChar = captured + '-dead'; // same fallback as GameOverSubstate
 							if (deathChar != null && deathChar.length > 0 && !charList.contains(deathChar))
 							{
 								var dead = new objects.Character(0, 0, deathChar, true);
@@ -364,7 +364,7 @@ class LoadingState extends MusicBeatState
 					{
 						try
 						{
-							var deathChar = c.deathChar;
+							var deathChar = captured + '-dead'; // same fallback as GameOverSubstate
 							if (deathChar != null && deathChar.length > 0 && !charList.contains(deathChar))
 							{
 								var dead = new objects.Character(0, 0, deathChar, true);
