@@ -133,8 +133,9 @@ override function declareShaders():Array<Shader>
 ```
 
 Built-in names (`shaders.ShaderWarmupRegistry`): `rain`, `glitch`, `blockedglitch`,
-`bloom`, `building`, `chromatic`, `distortbg`, `grain`, `grayscale`/`greyscale`,
-`invert`, `pulse`, `rgbpalette`, `scanline`, `threed`/`3d`, `tiltshift`, `vcr`, `vfd`.
+`bloom`, `building`, `chromatic`, `distant`/`distantnote`/`distantnoteshader`, `distortbg`,
+`grain`, `grayscale`/`greyscale`, `invert`, `pulse`, `rgbpalette`, `scanline`, `threed`/`3d`,
+`tiltshift`, `vcr`, `vfd`.
 Names are matched case-insensitively and ignore a `.frag`/`.vert` extension, so `Rain`
 and `shaders/rain.frag` both work. Runtime shaders a Lua/Python/HScript script creates
 while the state loads are queued automatically. Backends without a GL render context

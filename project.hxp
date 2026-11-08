@@ -236,6 +236,7 @@ class Project extends HXProject
 		configureApp();
 
 		displayTarget();
+		configureLaunchFlags();
 		configureCompileCache();
 		configureCompileDefines();
 		configureFeatureFlags();
@@ -521,6 +522,35 @@ class Project extends HXProject
 		FEATURE_FILE_DROP.apply(this, !isMac() && !isFlash() && !isAir());
 
 		FLASH_ALLOWED.apply(this, isFlash());
+	}
+
+	/**
+	 * Launch shortcuts ported from Doido Engine.
+	 *
+	 * `-DFREEPLAY` boots the game straight into `FreeplayState`, `-DMENU`
+	 * straight into `MainMenuState` (see `backend.LaunchState`), skipping the
+	 * splash videos and the title screen. They select different start screens,
+	 * so they are mutually exclusive: reject the combination here instead of
+	 * silently picking one at runtime.
+	 */
+	function configureLaunchFlags()
+	{
+		final freeplay:Bool = hasDefine("FREEPLAY") || haxedefs.exists("FREEPLAY");
+		final menu:Bool = hasDefine("MENU") || haxedefs.exists("MENU");
+
+		if (freeplay && menu)
+		{
+			error("-DFREEPLAY and -DMENU cannot be used together: they choose different start states. Pick one.");
+			Sys.exit(1);
+		}
+
+		if (freeplay)
+			info("Launch state:   Freeplay (-DFREEPLAY)");
+		else if (menu)
+			info("Launch state:   Main menu (-DMENU)");
+
+		if (isDebug())
+			info("Build mode:     debug (-debug)");
 	}
 
 	/**
