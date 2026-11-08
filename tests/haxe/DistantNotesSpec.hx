@@ -23,16 +23,16 @@ class DistantNotesSpec
 
     PlayStateDistantNotes.setupDistantNotes(state);
     check(!PlayStateDistantNotes.distantNotesEnabled(), 'global Shaders off wins');
-    check(state.camStrum == null, 'no extra pass when shaders are off');
+    check(state.camNotes == null, 'no extra pass when shaders are off');
 
     ClientPrefs.shaders = true;
     PlayStateDistantNotes.setupDistantNotes(state);
-    check(state.camStrum != null, 'note camera created');
-    check(state.distantNoteShader.downscroll, 'downscroll reaches uniform wrapper');
+    check(state.camNotes != null, 'note camera created');
+    check(state.distantNoteShader.uDownscroll.value[0], 'downscroll reaches the shader uniform');
     check(FlxG.cameras.list.length == 2, 'camera registered once');
-    check(FlxG.cameras.list[0] == state.camStrum, 'note camera draws below HUD');
+    check(FlxG.cameras.list[0] == state.camNotes, 'note camera draws below HUD');
     check(FlxG.cameras.list[1] == state.camHUD, 'HUD remains above notes');
-    check(state.camStrum.filters.length == 1, 'one note-only filter');
+    check(state.camNotes.filters.length == 1, 'one note-only filter');
     check(ShaderWarmup.tracked == 1, 'shader queued for warm-up');
 
     PlayStateDistantNotes.setupDistantNotes(state);
@@ -51,20 +51,20 @@ class DistantNotesSpec
     state.camHUD.flashSprite.y = 40;
     state.camHUD.filters.push('hud-only');
     PlayStateDistantNotes.syncDistantNotes(state);
-    check(state.camStrum.zoom == 1.2, 'zoom follows HUD');
-    check(state.camStrum.angle == 5, 'angle follows HUD');
-    check(state.camStrum.alpha == 0.4, 'alpha follows HUD');
-    check(!state.camStrum.visible, 'visibility follows HUD');
-    check(state.camStrum.width == 1000 && state.camStrum.height == 600, 'size follows HUD');
-    check(state.camStrum.scaleX == 1.1 && state.camStrum.scaleY == 0.9, 'scale follows HUD');
-    check(state.camStrum.scroll.x == 10 && state.camStrum.scroll.y == 20, 'scroll follows HUD');
-    check(state.camStrum.flashSprite.x == 30 && state.camStrum.flashSprite.y == 40, 'shake follows HUD');
-    check(state.camStrum.filters.length == 1, 'HUD filters are not copied onto notes');
+    check(state.camNotes.zoom == 1.2, 'zoom follows HUD');
+    check(state.camNotes.angle == 5, 'angle follows HUD');
+    check(state.camNotes.alpha == 0.4, 'alpha follows HUD');
+    check(!state.camNotes.visible, 'visibility follows HUD');
+    check(state.camNotes.width == 1000 && state.camNotes.height == 600, 'size follows HUD');
+    check(state.camNotes.scaleX == 1.1 && state.camNotes.scaleY == 0.9, 'scale follows HUD');
+    check(state.camNotes.scroll.x == 10 && state.camNotes.scroll.y == 20, 'scroll follows HUD');
+    check(state.camNotes.flashSprite.x == 30 && state.camNotes.flashSprite.y == 40, 'shake follows HUD');
+    check(state.camNotes.filters.length == 1, 'HUD filters are not copied onto notes');
     check(state.camHUD.filters.length == 1, 'HUD keeps its own filters');
 
     ClientPrefs.downScroll = false;
     PlayStateDistantNotes.syncDistantNotes(state);
-    check(!state.distantNoteShader.downscroll, 'live scroll preference sync');
+    check(!state.distantNoteShader.uDownscroll.value[0], 'live scroll preference sync');
     PlayStateDistantNotes.syncDistantNotes(null);
     Sys.println('DistantNotesSpec: PASS');
   }

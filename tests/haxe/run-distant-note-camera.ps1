@@ -1,4 +1,4 @@
-# Port of run-distant-notes.sh - keep in sync with the .sh / .bat versions.
+# Port of run-distant-note-camera.sh - keep in sync with the .sh / .bat versions.
 $ErrorActionPreference = "Stop"
 Set-Location (Join-Path $PSScriptRoot "../..")
 $haxe = if ($env:HAXE) { $env:HAXE } else { "haxe" }

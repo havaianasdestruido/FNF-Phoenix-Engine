@@ -2,8 +2,12 @@ package shaders;
 
 class DistantNoteShader
 {
-  public var shader(default, null):Dynamic = {};
-  public var downscroll:Bool = false;
+  public var uDownscroll = {value: [false]};
+  public var uPivot = {value: [0.42]};
+  public var uSpread = {value: [0.8]};
 
-  public function new() {}
+  public function new(downscroll:Bool = false)
+  {
+    uDownscroll.value = [downscroll];
+  }
 }

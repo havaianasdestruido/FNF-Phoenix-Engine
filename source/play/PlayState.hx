@@ -347,8 +347,8 @@ class PlayState extends MusicBeatState
 	public var iconP1:HealthIcon;
 	public var iconP2:HealthIcon;
 	public var camHUD:FlxCamera;
-	/** Separate note camera when Distant Notes is enabled; otherwise null. */
-	public var camStrum:FlxCamera;
+	// Created only for the opt-in distant-note effect; see PlayStateDistantNotes.
+	public var camNotes:FlxCamera;
 	public var distantNoteShader:shaders.DistantNoteShader;
 	public var camGame:FlxCamera;
 	public var camOther:FlxCamera;
@@ -1575,7 +1575,7 @@ class PlayState extends MusicBeatState
 			for (item in hudItems) if (item != null) item.visible = false;
 		}
 
-		final noteCamera:FlxCamera = camStrum != null ? camStrum : camHUD;
+		final noteCamera:FlxCamera = camNotes != null ? camNotes : camHUD;
 		strumLineNotes.cameras = [noteCamera];
 		grpNoteSplashes.cameras = [noteCamera];
 		grpHoldSplashes.cameras = [noteCamera];

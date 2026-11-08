@@ -13,7 +13,7 @@ class DistantNotesFallbackSpec
     if (PlayStateDistantNotes.distantNotesEnabled()) throw 'unsupported target enabled perspective';
     PlayStateDistantNotes.setupDistantNotes(state);
     PlayStateDistantNotes.syncDistantNotes(state);
-    if (state.camStrum != null) throw 'unsupported target allocated a camera';
+    if (state.camNotes != null) throw 'unsupported target allocated a camera';
     Sys.println('DistantNotesFallbackSpec: PASS');
   }
 }

@@ -12,9 +12,10 @@ import shaders.ShaderWarmup;
 /**
  * Optional Doido perspective pass, isolated from the flat HUD.
  *
- * The note camera is inserted below `camHUD` so health/rating text stays readable.
- * It mirrors HUD motion but keeps its own filter list: HUD shaders stay on the HUD,
- * and note shaders can target the `strum`/`camStrum` alias.
+ * The note camera (`PlayState.camNotes`) is inserted below `camHUD` so health and
+ * rating text stay readable. It mirrors HUD motion but keeps its own filter list:
+ * HUD shaders stay on the HUD, and note shaders can target `notes`/`camNotes`
+ * (or the `strum`/`camStrum` aliases).
  */
 class PlayStateDistantNotes
 {
@@ -30,25 +31,24 @@ class PlayStateDistantNotes
    */
   public static function setupDistantNotes(state:PlayState):Void
   {
-    if (state == null || state.camStrum != null || !distantNotesEnabled()) return;
+    if (state == null || state.camNotes != null || !distantNotesEnabled()) return;
 
-    state.distantNoteShader = new DistantNoteShader();
-    state.distantNoteShader.downscroll = ClientPrefs.downScroll;
-    state.camStrum = new FlxCamera();
-    state.camStrum.bgColor.alpha = 0;
-    state.camStrum.addShader(state.distantNoteShader.shader);
+    state.distantNoteShader = new DistantNoteShader(ClientPrefs.downScroll);
+    state.camNotes = new FlxCamera();
+    state.camNotes.bgColor.alpha = 0;
+    state.camNotes.addShader(state.distantNoteShader);
 
     final hudIndex:Int = FlxG.cameras.list.indexOf(state.camHUD);
-    if (hudIndex >= 0) FlxG.cameras.insert(state.camStrum, hudIndex, false);
-    else FlxG.cameras.add(state.camStrum, false);
+    if (hudIndex >= 0) FlxG.cameras.insert(state.camNotes, hudIndex, false);
+    else FlxG.cameras.add(state.camNotes, false);
 
-    ShaderWarmup.track(state.distantNoteShader.shader);
+    ShaderWarmup.track(state.distantNoteShader);
   }
 
   /** Mirrors HUD motion/visibility without sharing its shaders or distorting text. */
   public static function syncDistantNotes(state:PlayState):Void
   {
-    final camera:FlxCamera = state != null ? state.camStrum : null;
+    final camera:FlxCamera = state != null ? state.camNotes : null;
     if (camera == null || state.camHUD == null) return;
 
     final hud:FlxCamera = state.camHUD;
@@ -63,8 +63,9 @@ class PlayStateDistantNotes
     // Camera.update() has already applied HUD shake when called from draw().
     camera.flashSprite.x = hud.flashSprite.x;
     camera.flashSprite.y = hud.flashSprite.y;
-    if (state.distantNoteShader != null && state.distantNoteShader.downscroll != ClientPrefs.downScroll)
-      state.distantNoteShader.downscroll = ClientPrefs.downScroll;
+    final shader:DistantNoteShader = state.distantNoteShader;
+    if (shader != null && shader.uDownscroll.value[0] != ClientPrefs.downScroll)
+      shader.uDownscroll.value = [ClientPrefs.downScroll];
   }
 }
 #else

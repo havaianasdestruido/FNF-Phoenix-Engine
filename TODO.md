@@ -59,14 +59,14 @@ _i accept suggestions too_
   - https://github.com/troll-slaiyers/FNF-Troll-Engine/tree/main/flixel/flixel-ui/img - port their dark flixel-ui system too.
 
 - Port these cool stuff from Doido Engine:
-- - [https://github.com/DoidoTeam/FNF-Doido-Engine/blob/main/source/backend/shaders/DistantNoteShader.hx ](https://github.com/DoidoTeam/FNF-Doido-Engine/blob/main/source/backend/shaders/DistantNoteShader.hx)- cool note shader thing
+- - ~~[DistantNoteShader.hx](https://github.com/DoidoTeam/FNF-Doido-Engine/blob/main/source/backend/shaders/DistantNoteShader.hx) - cool note shader thing~~ **DONE** (#245) — `shaders.DistantNoteShader` + `shaders.DistantNoteEffect`, player toggle in Options -> Visuals and UI (`ClientPrefs.distantNotes`), see [`docs/DISTANT_NOTES.md`](docs/DISTANT_NOTES.md) and [`docs/SHADERS.md`](docs/SHADERS.md).
   - cool looking loading screen
-  - clear ui (just FPT on top and ram below it)
+  - ~~clear ui (just FPT on top and ram below it)~~ **DONE** (#245) — compact FPS overlay; `legacyFPSUI` in Options -> Visuals and UI restores the old one.
   - settings fully centered instead of being on the left
   - "-[NUMBER]" when you miss note, accumulative and stays red
   - List of available flags
-    - -debug can build the game in debug mode. This enables many debug features, such as the FlxDebugger and debugging through VSCode.
-    - -DFREEPLAY and -DMENU launch the game directly in the Freeplay and MainMenu states, respectively. These can't be used together.
+    - ~~-debug can build the game in debug mode. This enables many debug features, such as the FlxDebugger and debugging through VSCode.~~ **DONE** — already handled by Lime (`build/debug/`, `MAIN_DEBUG`, FlxDebugger); now documented in BUILDING.md ("Launch and debug flags").
+    - ~~-DFREEPLAY and -DMENU launch the game directly in the Freeplay and MainMenu states, respectively. These can't be used together.~~ **DONE** — `backend.LaunchState` + `states.InitState`, `project.hxp` aborts the build when both are set, tested by `bash tests/haxe/run-launch-state.sh`.
 #### Rebuilding how the MODDING API works and adjusting it to be able to also support other languages (Common Modding API)
 
 Should include exposing almost ALL game screens thought the Modding API. (By screen I mean like the Freeplay page, Mods page, etc.)

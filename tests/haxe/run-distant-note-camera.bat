@@ -1,5 +1,5 @@
 @echo off
-rem Port of run-distant-notes.sh - keep in sync with the .sh / .ps1 versions.
+rem Port of run-distant-note-camera.sh - keep in sync with the .sh / .ps1 versions.
 setlocal EnableExtensions
 cd /d "%~dp0..\.."
 if not defined HAXE set "HAXE=haxe"

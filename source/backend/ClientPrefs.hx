@@ -56,8 +56,6 @@ class ClientPrefs { //default settings if it can't find a save file containing y
 	public static var missRating:Bool = false;
 	/** Doido-style red consecutive-miss numbers, independent of the Miss rating image. */
 	public static var doidoMisses:Bool = true;
-	/** Opt-in perspective for notes/strums only; forces middlescroll for the next song. */
-	public static var distantNotes:Bool = false;
 	public static var noteColorStyle:String = 'Normal';
 	public static var enableColorShader:Bool = true;
 	public static var rateNameStuff:String = 'Quotes';
@@ -78,9 +76,12 @@ class ClientPrefs { //default settings if it can't find a save file containing y
 	public static var flashing:Bool = true;
 	public static var camZooms:Bool = true;
 	public static var showNotes:Bool = true;
+	/** Opt-in perspective for notes/strums only; forces middlescroll for the next song. */
+	public static var distantNotes:Bool = false;
 	public static var scoreZoom:Bool = true;
 	public static var healthBarAlpha:Float = 1;
 	public static var showFPS:Bool = true;
+	public static var legacyFPSUI:Bool = false;
 	public static var botTxtFade:Bool = true;
 	public static var pauseMusic:String = 'Tea Time';
 	public static var daMenuMusic:String = 'Default';

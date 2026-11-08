@@ -348,6 +348,13 @@ class VisualsUISubState extends BaseOptionsMenu
 			true);
 		addOption(option);
 
+		// Gated by PlatformSupport's `shaders` capability via Option.isSupported(),
+		// so it hides on Flash/AIR/Neko without a compile-time branch here.
+		var option:Option = new Option('Distant Notes',
+			'Adds perspective to the note field. Requires shaders and temporarily enables Middlescroll.\nTakes effect when starting or restarting a song.',
+			'distantNotes', 'bool', false);
+		addOption(option);
+
 		var option:Option = new Option('Score Text Zoom on Hit',
 			"If unchecked, disables the Score text zooming\neverytime you hit a note.",
 			'scoreZoom',
@@ -377,6 +384,12 @@ class VisualsUISubState extends BaseOptionsMenu
 		option.onChange = onChangeFPSCounter;
 		#end
 		
+		var option:Option = new Option('Legacy FPS UI',
+			'Restore the old FPS overlay, including peak RAM and optional debug information.',
+			'legacyFPSUI', 'bool', false);
+		addOption(option);
+		option.onChange = updateFPSText;
+
 		var option:Option = new Option('Show RAM Usage',
 			"If checked, the game will show your RAM usage.",
 			'showRamUsage',
@@ -386,7 +399,7 @@ class VisualsUISubState extends BaseOptionsMenu
 		option.onChange = updateFPSText;
 
 		var option:Option = new Option('Show Peak RAM Usage',
-			"If checked, the game will show your maximum RAM usage.",
+			"If checked, the legacy FPS UI will show your maximum RAM usage.",
 			'showMaxRamUsage',
 			'bool',
 			true);
@@ -394,7 +407,7 @@ class VisualsUISubState extends BaseOptionsMenu
 		option.onChange = updateFPSText;
 
 		var option:Option = new Option('Show Debug Info',
-			"If checked, the game will show additional debug info.\nNote: Turn on FPS Counter before using this!",
+			"If checked, the legacy FPS UI will show additional debug info.\nRequires FPS Counter and Legacy FPS UI.",
 			'debugInfo',
 			'bool',
 			false);
@@ -402,7 +415,7 @@ class VisualsUISubState extends BaseOptionsMenu
 		option.onChange = updateFPSText;
 
 		var option:Option = new Option('Show Frame Profiler',
-			"If checked, displays frametime, update/render/audio timings, allocations, and GC pauses.\nPress F6 to export a .log report to debug/log/.",
+			"If checked, Legacy FPS UI displays frame timings, allocations and GC pauses.\nF3 toggles this; F6 exports a report to debug/log/.",
 			'frameProfiler',
 			'bool',
 			false);

@@ -4,8 +4,9 @@ name: Checks
 # host-JVM Android bridge/policy classes, standalone native C/C++ smoke tests,
 # and an hxcpp native-object-cache smoke test. None of these need a full game
 # build or the Android SDK. Most isolated Haxe interpreter specs in tests/haxe/
-# are not run here; the diagnostic log, crash bundle, diagnostics report and
-# phoenix:// URI parser specs have a dedicated Haxe job below.
+# are not run here; the diagnostic log, crash bundle, diagnostics report,
+# phoenix:// URI parser, launch flag (-DFREEPLAY / -DMENU) and distant-notes
+# shader specs have a dedicated Haxe job below.
 
 on:
   push:
@@ -66,11 +67,15 @@ jobs:
       - name: Test Doido consecutive-miss popups
         run: bash tests/haxe/run-miss-counter.sh
       - name: Test distant-note camera isolation and unsupported-target fallback
-        run: bash tests/haxe/run-distant-notes.sh
+        run: bash tests/haxe/run-distant-note-camera.sh
       - name: Test render folder creation and FFmpeg lookup
         run: bash tests/haxe/run-video-render.sh
       - name: Test the phoenix:// URI parser and its route allowlists
         run: bash tests/uri/run.sh
+      - name: Test the -DFREEPLAY / -DMENU launch flags
+        run: bash tests/haxe/run-launch-state.sh
+      - name: Test the distant-notes shader uniform wiring
+        run: bash tests/haxe/run-distant-notes.sh
 
   lua-script-pipeline:
     name: Lua script pipeline (Haxe)

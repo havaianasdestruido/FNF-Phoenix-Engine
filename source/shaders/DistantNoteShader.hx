@@ -3,49 +3,59 @@ package shaders;
 import backend.FlxFixedShader;
 
 /**
- * Perspective distortion for the note/strum camera, ported from Doido Engine's
- * `backend.shaders.DistantNoteShader` (Apache-2.0):
+ * Distant-note "highway": the texture is skewed toward a horizon so notes look
+ * like they recede into the distance, Guitar Hero style.
+ *
+ * Ported from FNF-Doido-Engine's `DistantNoteShader` (itself adapted from a
+ * HaxeFlixel demo), with the two perspective constants lifted into uniforms.
+ * Upstream is Apache-2.0, the same license as this repository:
  * https://github.com/DoidoTeam/FNF-Doido-Engine/blob/main/source/backend/shaders/DistantNoteShader.hx
  *
- * Phoenix uses FlxFixedShader so the same GLSL also works on OpenGL ES.
+ * Extends FlxFixedShader rather than FlxShader so the same GLSL also runs on
+ * OpenGL ES (Android/WebGL2), which rewrites the source to GLSL ES 3.00.
+ *
+ * This samples the whole render target it is attached to, so it belongs on a
+ * camera filter (see `shaders.DistantNoteEffect`), not on a single sprite.
  */
-class DistantNoteShader
-{
-  public var shader(default, null):DistantNoteShaderData = new DistantNoteShaderData();
-  public var downscroll(default, set):Bool = false;
-
-  public function new()
-  {
-    downscroll = false;
-  }
-
-  function set_downscroll(value:Bool):Bool
-  {
-    downscroll = value;
-    shader.uDownscroll.value = [value];
-    return value;
-  }
-}
-
-class DistantNoteShaderData extends FlxFixedShader
+class DistantNoteShader extends FlxFixedShader
 {
   @:glFragmentSource('
-    #pragma header
+	#pragma header
 
-    uniform bool uDownscroll;
+	// Position of the horizon: the Y the highway converges at.
+	// 0.42 matches the original Doido shader.
+	uniform float uPivot;
 
-    void main()
-    {
-      vec2 uv = openfl_TextureCoordv.xy;
-      float actualY = uDownscroll ? (1.0 - uv.y) : uv.y;
+	// How quickly the perspective opens up; larger is narrower.
+	// 0.8 matches the original Doido shader.
+	uniform float uSpread;
 
-      // Algebraically identical to the Doido pixel-space offset, without
-      // multiplying and dividing by the camera resolution every fragment.
-      uv.x += ((actualY - 0.42) / 0.8) * (uv.x - 0.5);
-      gl_FragColor = flixel_texture2D(bitmap, uv);
-    }')
-  public function new()
+	// Mirrors the perspective for downscroll so the highway still recedes
+	// toward the top of the screen.
+	uniform bool uDownscroll;
+
+	void main()
+	{
+		vec2 uv = openfl_TextureCoordv;
+		float actualY = uv.y;
+		if (uDownscroll)
+			actualY = 1.0 - uv.y;
+		actualY -= uPivot;
+
+		// The original scaled a fragCoord difference by the resolution here;
+		// both terms reduce to UV space: (fragCoord.x - res.x * 0.5) / res.x
+		// is exactly uv.x - 0.5.
+		uv.x += (actualY / uSpread) * (uv.x - 0.5);
+
+		gl_FragColor = flixel_texture2D(bitmap, uv);
+	}
+	')
+
+  public function new(downscroll:Bool = false)
   {
     super();
+    uPivot.value = [0.42];
+    uSpread.value = [0.8];
+    uDownscroll.value = [downscroll];
   }
 }

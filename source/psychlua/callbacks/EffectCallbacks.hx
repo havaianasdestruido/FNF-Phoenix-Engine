@@ -18,6 +18,7 @@ import shaders.GreyscaleEffect;
 import shaders.ThreeDEffect;
 import shaders.BloomEffect;
 import shaders.BlockedGlitchEffect;
+import shaders.DistantNoteEffect;
 
 class EffectCallbacks
 {
@@ -102,6 +103,10 @@ class EffectCallbacks
 			});
 			FunkinLua.registerFunction("addBlockedGlitchEffect", function(camera:String, res:Float = 1280, time:Float = 1, colorMult:Float = 1, colorTransform:Bool = true) {
 				if (colorTransform) PlayState.instance.addShaderToCamera(camera, new BlockedGlitchEffect(res, time, colorMult, colorTransform));
+			});
+			FunkinLua.registerFunction("addDistantNoteEffect", function(camera:String, ?downscroll:Bool, pivot:Float = 0.42, spread:Float = 0.8) {
+				if (downscroll == null) downscroll = ClientPrefs.downScroll;
+				PlayState.instance.addShaderToCamera(camera, new DistantNoteEffect(downscroll, pivot, spread));
 			});
 			FunkinLua.registerFunction("clearEffects", function(camera:String) {
 				PlayState.instance.clearShaderFromCamera(camera);

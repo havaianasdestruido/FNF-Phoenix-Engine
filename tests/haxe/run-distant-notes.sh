@@ -1,12 +1,9 @@
 #!/usr/bin/env bash
-# Test the note-camera helper against small Flixel/shader stubs. The real GLSL
-# wrapper is additionally typechecked by run-distant-note-shader.sh.
+# Typecheck the real shader and exercise its uniforms without the game libraries.
 set -euo pipefail
-cd "$(dirname "$0")/../.."
+root=$(cd "$(dirname "$0")/../.." && pwd)
 test_source=$(mktemp -d)
 trap 'rm -rf "$test_source"' EXIT
-cp -r tests/haxe/stubs/distant-notes/. "$test_source/"
-mkdir -p "$test_source/play/helpers"
-cp source/play/helpers/PlayStateDistantNotes.hx "$test_source/play/helpers/"
-"${HAXE:-haxe}" -cp "$test_source" -cp tests/haxe -D SHADERS_ALLOWED -main DistantNotesSpec --interp
-"${HAXE:-haxe}" -cp "$test_source" -cp tests/haxe -main DistantNotesFallbackSpec --interp
+mkdir -p "$test_source/shaders"
+cp "$root/source/shaders/DistantNoteShader.hx" "$test_source/shaders/"
+haxe -cp "$root/tests/haxe/stubs/distant" -cp "$root/tests/haxe" -cp "$test_source" -main DistantNoteShaderSpec --interp
