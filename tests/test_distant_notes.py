@@ -12,11 +12,12 @@ def read(path):
 class DistantNotesTest(unittest.TestCase):
     def test_shader_projection_and_downscroll(self):
         shader = read('source/shaders/DistantNoteShader.hx')
-        self.assertIn('uDownscroll ? 1.0 - uv.y : uv.y', shader)
-        self.assertIn('actualY -= 0.42;', shader)
-        self.assertIn('(actualY / 0.8) * (openfl_TextureCoordv.x - 0.5)', shader)
+        self.assertIn('actualY = 1.0 - uv.y;', shader)
+        self.assertIn('actualY -= uPivot;', shader)
+        self.assertIn('(actualY / uSpread) * (uv.x - 0.5)', shader)
         self.assertIn('uDownscroll.value = [downscroll]', shader)
-        self.assertIn('gl_FragColor = vec4(0.0)', shader)
+        self.assertIn('uPivot.value = [0.42]', shader)
+        self.assertIn('uSpread.value = [0.8]', shader)
 
     def test_effect_is_optional_and_does_not_modify_preference(self):
         prefs = read('source/backend/ClientPrefs.hx')

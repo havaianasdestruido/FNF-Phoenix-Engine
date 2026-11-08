@@ -3,33 +3,54 @@ package shaders;
 import flixel.system.FlxAssets.FlxShader;
 
 /**
- * Distant-note perspective ported from Doido Engine's DistantNoteShader:
- * https://github.com/DoidoTeam/FNF-Doido-Engine/blob/main/source/backend/shaders/DistantNoteShader.hx
- * Apply to a camera containing the note field, not to individual notes.
+ * Distant-note "highway": the texture is skewed toward a horizon so notes look
+ * like they recede into the distance, Guitar Hero style.
+ *
+ * Ported from FNF-Doido-Engine's `DistantNoteShader` (itself adapted from a
+ * HaxeFlixel demo), with the two perspective constants lifted into uniforms.
+ *
+ * This samples the whole render target it is attached to, so it belongs on a
+ * camera filter (see `shaders.DistantNoteEffect`), not on a single sprite.
  */
 class DistantNoteShader extends FlxShader
 {
   @:glFragmentSource('
-    #pragma header
-    uniform bool uDownscroll;
+	#pragma header
 
-    void main()
-    {
-      vec2 uv = openfl_TextureCoordv.xy;
-      float actualY = uDownscroll ? 1.0 - uv.y : uv.y;
-      actualY -= 0.42;
-      uv.x += (actualY / 0.8) * (openfl_TextureCoordv.x - 0.5);
+	// Position of the horizon: the Y the highway converges at.
+	// 0.42 matches the original Doido shader.
+	uniform float uPivot;
 
-      // Do not repeat edge pixels outside the note camera source texture.
-      if (uv.x < 0.0 || uv.x > 1.0)
-        gl_FragColor = vec4(0.0);
-      else
-        gl_FragColor = flixel_texture2D(bitmap, uv);
-    }
-  ')
+	// How quickly the perspective opens up; larger is narrower.
+	// 0.8 matches the original Doido shader.
+	uniform float uSpread;
+
+	// Mirrors the perspective for downscroll so the highway still recedes
+	// toward the top of the screen.
+	uniform bool uDownscroll;
+
+	void main()
+	{
+		vec2 uv = openfl_TextureCoordv;
+		float actualY = uv.y;
+		if (uDownscroll)
+			actualY = 1.0 - uv.y;
+		actualY -= uPivot;
+
+		// The original scaled a fragCoord difference by the resolution here;
+		// both terms reduce to UV space: (fragCoord.x - res.x * 0.5) / res.x
+		// is exactly uv.x - 0.5.
+		uv.x += (actualY / uSpread) * (uv.x - 0.5);
+
+		gl_FragColor = flixel_texture2D(bitmap, uv);
+	}
+	')
+
   public function new(downscroll:Bool = false)
   {
     super();
+    uPivot.value = [0.42];
+    uSpread.value = [0.8];
     uDownscroll.value = [downscroll];
   }
 }

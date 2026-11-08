@@ -66,3 +66,25 @@ if (shader != null) {
 Runtime shader support is disabled on targets without OpenFL runtime GLSL
 support. The user's shader preference is respected by the Lua attachment and
 factory APIs.
+
+## Built-in effects
+
+Besides the `add*Effect` family (chromatic aberration, glitch, bloom...), the
+engine ships a strumline perspective called **distant notes**: the highway is
+skewed toward a horizon so notes recede into the distance, Guitar Hero style
+(`shaders.DistantNoteEffect`, ported from FNF-Doido-Engine). Attach it to a
+camera like the other effects:
+
+```lua
+function onCreatePost()
+    -- downscroll defaults to the player's scroll setting
+    addDistantNoteEffect('hud')
+    -- addDistantNoteEffect('hud', true, 0.42, 0.8) -- explicit: downscroll, pivot, spread
+end
+```
+
+`pivot` is the Y the highway converges at and `spread` how quickly the
+perspective opens up. While it is enabled, force middlescroll: the perspective
+converges at the center of the camera, so off-center note lanes look wrong.
+From HScript, construct `shaders.DistantNoteEffect` directly and pass it to
+`game.addShaderToCamera(cam, effect)`.

@@ -6,8 +6,8 @@ import shaders.BlockedGlitchShader;
 import shaders.BloomShader;
 import shaders.BuildingShader;
 import shaders.ChromaticAberrationShader;
-import shaders.DistortBGShader;
 import shaders.DistantNoteShader;
+import shaders.DistortBGShader;
 import shaders.GlitchShader;
 import shaders.Grain;
 import shaders.GreyscaleShader;
@@ -100,6 +100,7 @@ class ShaderWarmupRegistry
       'building' => function():Shader return new BuildingShader(),
       'chromatic' => function():Shader return new ChromaticAberrationShader(),
       'chromaticaberration' => function():Shader return new ChromaticAberrationShader(),
+      'distant' => function():Shader return new DistantNoteShader(),
       'distantnote' => function():Shader return new DistantNoteShader(),
       'distantnoteshader' => function():Shader return new DistantNoteShader(),
       'distortbg' => function():Shader return new DistortBGShader(),
