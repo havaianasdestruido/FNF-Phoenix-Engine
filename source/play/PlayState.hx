@@ -49,6 +49,7 @@ import play.helpers.PlayStateCountdown;
 import play.helpers.PlayStateCutscenes;
 import play.helpers.PlayStateEvents;
 import play.helpers.PlayStateInput;
+import play.helpers.PlayStateNoteCamera;
 import play.helpers.PlayStateNoteHelpers;
 import play.helpers.PlayStateNotes;
 import play.helpers.PlayStatePlayback;
@@ -345,7 +346,27 @@ class PlayState extends MusicBeatState
 	public var iconP2:HealthIcon;
 	public var camHUD:FlxCamera;
 	public var camGame:FlxCamera;
+	/**
+	 * Camera that draws only the strums and the notes.
+	 *
+	 * It exists so the Distant Note shader (`Options -> Visuals and UI ->
+	 * Distant Notes`) can warp the lane without warping the rest of the HUD: the
+	 * health bar, score, time bar and popups keep drawing on `camHUD`, which
+	 * stays unwarped. When the shader is off this camera draws exactly what
+	 * `camHUD` did before, so nothing else changes.
+	 */
+	public var camStrum:FlxCamera;
 	public var camOther:FlxCamera;
+
+	/**
+	 * The Distant Note warp currently attached to `camStrum`, if any.
+	 *
+	 * Kept as a field (and not just inside the filter) so the downscroll flag and
+	 * the uniforms can be updated without rebuilding the filter, and so scripts
+	 * can reach it. `null` while the option is off.
+	 */
+	public var distantNoteShader:shaders.DistantNoteShader = null;
+
 	private var layoutWidth:Int = 0;
 	public var cameraSpeed:Float = 1;
 	var hitsoundImage:FlxSprite;
@@ -631,7 +652,11 @@ class PlayState extends MusicBeatState
 		minSpeed = ClientPrefs.getGameplaySetting('randomspeedmin', 0.1);
 		maxSpeed = ClientPrefs.getGameplaySetting('randomspeedmax', 10);
 
-		middleScroll = ClientPrefs.middleScroll || bothSides;
+		// The Distant Note warp is anchored on the middle of the screen, so the
+		// lanes have to be there for it to read as a corridor. Turning the option
+		// on therefore centers the lane for this song, the same way `bothSides`
+		// already does; the player's own `Middlescroll` preference is untouched.
+		middleScroll = ClientPrefs.middleScroll || bothSides || PlayStateNoteCamera.forcesMiddleScroll();
 		if (bothSides) opponentChart = false;
 
 		if (ffmpegMode)
@@ -639,12 +664,23 @@ class PlayState extends MusicBeatState
 
 		camGame = new FlxCamera();
 		camHUD = new FlxCamera();
+		camStrum = new FlxCamera();
 		camOther = new FlxCamera();
-		camHUD.bgColor.alpha = camOther.bgColor.alpha = 0;
+		camHUD.bgColor.alpha = camStrum.bgColor.alpha = camOther.bgColor.alpha = 0;
 
 		FlxG.cameras.reset(camGame);
+		// The lane camera draws under `camHUD`: the notes used to be members of the
+		// state that were added before the HUD objects, so the HUD still lands on
+		// top of them. `camHUD` keeps a transparent background, so the lane shows
+		// through where it does not cover it.
+		FlxG.cameras.add(camStrum, false);
 		FlxG.cameras.add(camHUD, false);
 		FlxG.cameras.add(camOther, false);
+
+		// Attaches the Distant Note filter to `camStrum` when the option is on;
+		// a no-op otherwise, leaving the lane camera filter-free.
+		PlayStateNoteCamera.create(this);
+
 		grpHoldSplashes = new FlxTypedGroup<SustainSplash>((ClientPrefs.maxSplashLimit != 0 ? ClientPrefs.maxSplashLimit : 10000));
 		grpNoteSplashes = new FlxTypedGroup<NoteSplash>((ClientPrefs.maxSplashLimit != 0 ? ClientPrefs.maxSplashLimit : 10000));
 
@@ -1561,11 +1597,14 @@ class PlayState extends MusicBeatState
 			for (item in hudItems) if (item != null) item.visible = false;
 		}
 
-		strumLineNotes.cameras = [camHUD];
-		grpNoteSplashes.cameras = [camHUD];
-		grpHoldSplashes.cameras = [camHUD];
-		sustainNotes.cameras = [camHUD];
-		notes.cameras = [camHUD];
+		// The lane (strums, notes, sustains and their splashes) lives on
+		// `camStrum` so the Distant Note filter can warp it without touching the
+		// rest of the HUD. Everything else below keeps drawing on `camHUD`.
+		strumLineNotes.cameras = [camStrum];
+		grpNoteSplashes.cameras = [camStrum];
+		grpHoldSplashes.cameras = [camStrum];
+		sustainNotes.cameras = [camStrum];
+		notes.cameras = [camStrum];
 		healthBar.cameras = [camHUD];
 		healthBarBG.cameras = [camHUD];
 		iconP1.cameras = [camHUD];
@@ -2598,6 +2637,12 @@ class PlayState extends MusicBeatState
 			}
 			frameCaptured++;
 		}
+
+		// The lane camera mirrors the HUD camera, so the beat zoom, the `twist`
+		// event and any stage that hides the HUD keep the notes in step with the
+		// rest of the interface. Synced last, so it copies this frame's final
+		// HUD values instead of lagging one frame behind the beat zoom.
+		PlayStateNoteCamera.syncWithHud(this);
 	}
 
 	// Health icon updaters

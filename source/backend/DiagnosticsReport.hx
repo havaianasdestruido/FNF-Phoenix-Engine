@@ -204,6 +204,7 @@ class DiagnosticsReport
     rows.push(row('Scroll', (ClientPrefs.downScroll ? 'down' : 'up')
       + ', ' + (ClientPrefs.middleScroll ? 'middle' : 'sides')
       + ', ghost tap ' + (ClientPrefs.ghostTapping ? 'on' : 'off')));
+    rows.push(row('Note lane', ClientPrefs.distantNotes ? 'distant (perspective, forced middlescroll)' : 'flat'));
     rows.push(row('Notes', ClientPrefs.noteSkin + ' / ' + ClientPrefs.splashType));
     rows.push(row('Debug aids', 'vlog ' + onOff(ClientPrefs.vlogEnabled)
       + ', frame profiler ' + onOff(ClientPrefs.frameProfiler)

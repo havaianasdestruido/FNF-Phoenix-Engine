@@ -94,7 +94,9 @@ class PlayStateCamera
 		state.twistModifier = state.twistAmount * state.camTwistIntensity * (!state.twisted ? 1 : -1);
 		state.twisted = !state.twisted;
 
-		for (i in [state.camHUD, state.camGame])
+		// The lane camera twists with the HUD: the notes are on their own camera
+		// now, so leaving it out would tilt everything except the notes.
+		for (i in [state.camHUD, state.camStrum, state.camGame])
 		{
 			FlxTween.cancelTweensOf(i);
 			i.angle = state.twistModifier;

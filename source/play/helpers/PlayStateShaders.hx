@@ -86,7 +86,11 @@ class PlayStateShaders
     for (i in 0...declared.length)
       if (warmDeclared(state, declared[i])) warmed++;
 
-    // 4. Runtime shaders scripts created while the state was loading.
+    // 4. The lane's Distant Note filter. It is attached in `create()` and would
+    //    otherwise be compiled on the song's first frame with the lane on screen.
+    if (state != null && state.distantNoteShader != null && ShaderWarmup.warm(state.distantNoteShader, 'distantNote')) warmed++;
+
+    // 5. Runtime shaders scripts created while the state was loading.
     warmed += ShaderWarmup.endLoading();
 
     if (VLog.isActive() && warmed > 0) VLog.log('shader', ShaderWarmup.summary());

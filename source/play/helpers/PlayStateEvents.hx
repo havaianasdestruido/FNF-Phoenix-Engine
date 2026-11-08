@@ -277,7 +277,9 @@ class PlayStateEvents
 				if (_intensity2 == 0)
 				{
 					state.camTwist = false;
-					for (i in [state.camHUD, state.camGame])
+					// The lane camera is tweened too, so a twist that ends puts the
+					// notes back in place with the rest of the HUD.
+					for (i in [state.camHUD, state.camStrum, state.camGame])
 					{
 						FlxTween.cancelTweensOf(i);
 						FlxTween.tween(i, {angle: 0, x: 0, y: 0}, 1, {ease: FlxEase.sineOut});
@@ -413,6 +415,9 @@ class PlayStateEvents
 
 					if(duration > 0 && intensity != 0) {
 						targetsArray[i].shake(intensity, duration);
+						// The lane has its own camera; value2 is its HUD-space
+						// shake, so it moves with `camHUD` instead of `camGame`.
+						if (i == 1 && state.camStrum != null) state.camStrum.shake(intensity, duration);
 					}
 				}
 

@@ -59,10 +59,10 @@ _i accept suggestions too_
   - https://github.com/troll-slaiyers/FNF-Troll-Engine/tree/main/flixel/flixel-ui/img - port their dark flixel-ui system too.
 
 - Port these cool stuff from Doido Engine:
-- - [https://github.com/DoidoTeam/FNF-Doido-Engine/blob/main/source/backend/shaders/DistantNoteShader.hx ](https://github.com/DoidoTeam/FNF-Doido-Engine/blob/main/source/backend/shaders/DistantNoteShader.hx)- cool note shader thing
+- - ~~[DistantNoteShader.hx](https://github.com/DoidoTeam/FNF-Doido-Engine/blob/main/source/backend/shaders/DistantNoteShader.hx) - cool note shader thing~~ (**done**: `shaders.DistantNoteShader` + `shaders.DistantNoteWarp`, Options -> Visuals and UI -> `Distant Notes`, drawn on its own `PlayState.camStrum` so the HUD is not warped; middlescroll is forced while it is on)
   - cool looking loading screen
   - clear ui (just FPT on top and ram below it)
-  - settings fully centered instead of being on the left
+  - ~~settings fully centered instead of being on the left~~ (**done**: `backend.MenuLayout` + `options.helpers.OptionsMenuHelpers.centerRows`, every settings list is a centered three-column block and re-centers on resize)
   - "-[NUMBER]" when you miss note, accumulative and stays red
   - List of available flags
     - -debug can build the game in debug mode. This enables many debug features, such as the FlxDebugger and debugging through VSCode.

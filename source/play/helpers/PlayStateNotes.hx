@@ -409,6 +409,8 @@ class PlayStateNotes
 			{
 				state.camGame.shake(state.playerChar.shakeIntensity, state.playerChar.shakeDuration / state.playbackRate);
 				state.camHUD.shake(state.playerChar.shakeIntensity / 2, state.playerChar.shakeDuration / state.playbackRate);
+				// The lane draws on its own camera, so it has to shake with the HUD.
+				state.camStrum.shake(state.playerChar.shakeIntensity / 2, state.playerChar.shakeDuration / state.playbackRate);
 			}
 			note.wasGoodHit = true;
 			if (!ClientPrefs.lessBotLag && ClientPrefs.noteSplashes && note.isSustainNote && state.splashesPerFrame[3] <= 4) PlayStateNoteHelpers.spawnHoldSplashOnNote(state, note);
@@ -608,6 +610,7 @@ class PlayStateNotes
 			{
 				state.camGame.shake(state.oppChar.shakeIntensity, state.oppChar.shakeDuration / state.playbackRate);
 				state.camHUD.shake(state.oppChar.shakeIntensity / 2, state.oppChar.shakeDuration / state.playbackRate);
+				state.camStrum.shake(state.oppChar.shakeIntensity / 2, state.oppChar.shakeDuration / state.playbackRate);
 			}
 			if (state.scoreTxtUpdateFrame <= 4) state.updateScore();
 			return;
@@ -656,6 +659,7 @@ class PlayStateNotes
 				state.oppChar = !noteAlt.gfNote ? !PlayState.opponentChart ? state.dad : state.boyfriend : state.gf;
 				state.camGame.shake(state.oppChar.shakeIntensity, state.oppChar.shakeDuration / state.playbackRate);
 				state.camHUD.shake(state.oppChar.shakeIntensity / 2, state.oppChar.shakeDuration / state.playbackRate);
+				state.camStrum.shake(state.oppChar.shakeIntensity / 2, state.oppChar.shakeDuration / state.playbackRate);
 			}
 			if (!ClientPrefs.noSkipFuncs && state.hasActiveScripts())
 				state.callOnLuas((!PlayState.opponentChart ? 'opponentNoteSkip' : 'goodNoteSkip'), [null, Math.abs(noteAlt.noteData), noteAlt.noteType, noteAlt.isSustainNote]);

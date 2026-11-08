@@ -134,6 +134,20 @@ class VisualsUISubState extends BaseOptionsMenu
 		option.decimals = 2;
 		addOption(option);
 
+		// Ported from Doido Engine's DistantNoteShader: the lane is warped into a
+		// perspective corridor. It is drawn on its own camera (PlayState.camStrum),
+		// so the HUD around it keeps its normal perspective, and gameplay forces
+		// middlescroll while it is on (see play.helpers.PlayStateNoteCamera).
+		var option:Option = new Option('Distant Notes',
+			'If checked, the note lane is drawn in perspective, like it recedes\n'
+			+ 'into a vanishing point. Centers your notes while it is on.',
+			'distantNotes',
+			'bool',
+			false);
+		// Filter based, so it is a no-op where the build has no shader support.
+		addOption(option.onlyOn(['!flash']));
+		option.onChange = onChangeDistantNotes;
+
 		var option:Option = new Option('Hide HUD',
 			'If checked, hides most HUD elements.',
 			'hideHud',
@@ -566,6 +580,19 @@ class VisualsUISubState extends BaseOptionsMenu
 		super.destroy();
 	}
 
+	/**
+	 * Applies the Distant Notes warp to a song that is already playing.
+	 *
+	 * Toggling the option does not restart the song: the lane camera is
+	 * refreshed in place. Forcing middlescroll, on the other hand, moves the
+	 * strums themselves, so that part only takes effect on the next load (the
+	 * description says so).
+	 */
+	function onChangeDistantNotes()
+	{
+		play.helpers.PlayStateNoteCamera.refresh(play.PlayState.instance);
+	}
+
 	/** Rebuilds every alphabet on screen after the style or font changed. */
 	function onChangeAlphabet()
 	{
@@ -574,6 +601,10 @@ class VisualsUISubState extends BaseOptionsMenu
 		// then fall back to the spritesheet while newly-created letters use the font.
 		AlphabetFontRenderer.clearCache();
 		Alphabet.reloadAll();
+		// The measuring alphabet used to center the option rows is deliberately
+		// non-existent, so `reloadAll` skips it and it would keep the old font's
+		// glyph widths. Drop it here so the next layout pass re-measures.
+		options.helpers.OptionsMenuHelpers.invalidateMeasurements();
 	}
 
 	function onChangeFPSCounter()

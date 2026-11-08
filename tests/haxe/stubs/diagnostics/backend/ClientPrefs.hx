@@ -16,6 +16,7 @@ class ClientPrefs
   public static var maxSplashLimit:Int = 16;
   public static var downScroll:Bool = false;
   public static var middleScroll:Bool = false;
+  public static var distantNotes:Bool = false;
   public static var ghostTapping:Bool = true;
   public static var noteSkin:String = 'Default';
   public static var splashType:String = 'Default';

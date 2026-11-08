@@ -42,6 +42,15 @@ class BaseStage extends FlxBasic
 
 	public var camGame(get, never):FlxCamera;
 	public var camHUD(get, never):FlxCamera;
+	/**
+	 * Camera that draws only the note lane (strums, notes, sustains, splashes).
+	 *
+	 * Separate from `camHUD` so the Distant Notes option can warp the lane
+	 * without warping the rest of the interface. A stage that hides or shakes the
+	 * HUD usually wants this one too; `play.helpers.PlayStateNoteCamera.syncWithHud`
+	 * copies the hide for it, but a direct `camHUD.shake()` call does not.
+	 */
+	public var camStrum(get, never):FlxCamera;
 	public var camOther(get, never):FlxCamera;
 
 	public var defaultCamZoom(get, set):Float;
@@ -201,6 +210,7 @@ class BaseStage extends FlxBasic
 
 	inline private function get_camGame():FlxCamera return game.camGame;
 	inline private function get_camHUD():FlxCamera return game.camHUD;
+	inline private function get_camStrum():FlxCamera return game.camStrum;
 	inline private function get_camOther():FlxCamera return game.camOther;
 
 	inline private function get_defaultCamZoom():Float return PlayState.instance.defaultCamZoom;

@@ -124,6 +124,10 @@ class LuaUtils {
 	public static inline function cameraFromString(cam:String):FlxCamera {
 		return switch(cam.toLowerCase()) {
 			case 'camhud' | 'hud': return PlayState.instance.camHUD;
+			// The lane has its own camera so the Distant Notes filter does not
+			// warp the rest of the HUD; scripts reach it with the same names
+			// Doido Engine uses.
+			case 'camstrum' | 'strum' | 'notes': return PlayState.instance.camStrum;
 			case 'camother' | 'other': return PlayState.instance.camOther;
 			case _: PlayState.instance.camGame;
 		}

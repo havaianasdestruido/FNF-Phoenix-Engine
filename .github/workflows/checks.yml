@@ -67,6 +67,10 @@ jobs:
         run: bash tests/haxe/run-video-render.sh
       - name: Test the phoenix:// URI parser and its route allowlists
         run: bash tests/uri/run.sh
+      - name: Test the centered settings-row layout math
+        run: bash tests/haxe/run-menu-layout.sh
+      - name: Test the Distant Note warp math
+        run: bash tests/haxe/run-distant-note.sh
 
   lua-script-pipeline:
     name: Lua script pipeline (Haxe)

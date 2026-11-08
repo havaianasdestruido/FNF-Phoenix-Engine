@@ -19,6 +19,7 @@ import objects.Character;
 import objects.CheckboxThingie;
 import objects.Prompt;
 import headers.Options;
+import options.helpers.OptionsMenuHelpers;
 
 class BaseOptionsMenu extends MusicBeatSubstate
 {
@@ -41,14 +42,21 @@ class BaseOptionsMenu extends MusicBeatSubstate
 	private var titleText:Alphabet;
 	private var layoutWidth:Int = 0;
 
+	/**
+	 * Width of the widest option row, as measured by
+	 * `OptionsMenuHelpers.centerRows`. Kept for scripted menus and diagnostics:
+	 * the row block is centered on the window, so this is how much room it takes.
+	 */
+	public var rowBlockWidth(default, null):Float = 0;
+
 	override public function onResize(width:Int, height:Int):Void
 	{
 		super.onResize(width, height);
 		ViewportVisuals.cover(background);
 		final shift:Float = ScreenLayout.contentLeft(FlxG.width) - ScreenLayout.contentLeft(layoutWidth);
-		if (grpOptions != null) grpOptions.forEach(item -> { item.startPosition.x += shift; item.x += shift; });
-		if (grpTexts != null) grpTexts.forEach(item -> item.x += shift);
-		if (checkboxGroup != null) checkboxGroup.forEach(item -> item.x += shift);
+		// The rows are centered on the window, so the left-edge shift above does
+		// not apply to them: re-measure and re-center instead.
+		if (grpOptions != null) OptionsMenuHelpers.centerRows(this);
 		if (titleText != null) titleText.x += shift;
 		if (descText != null) descText.x += shift;
 		if (descBox != null) descBox.x += shift;

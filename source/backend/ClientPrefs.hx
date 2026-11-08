@@ -48,6 +48,14 @@ class ClientPrefs { //default settings if it can't find a save file containing y
 	public static var showComboInfo:Bool = true;
 	public static var maxSplashLimit:Int = 16;
 	public static var oppNoteAlpha:Float = 0.65;
+	/**
+	 * Warps the note lane into a perspective corridor (ported from Doido Engine).
+	 *
+	 * Applied to the lane camera only, so the HUD around it keeps its normal
+	 * perspective. Needs middlescroll, which gameplay forces on while this is
+	 * enabled: see `play.helpers.PlayStateNoteCamera`.
+	 */
+	public static var distantNotes:Bool = false;
 	public static var hideHud:Bool = false;
 	public static var tauntOnGo:Bool = true;
 	public static var oldSusStyle:Bool = false;

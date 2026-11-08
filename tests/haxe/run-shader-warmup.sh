@@ -146,6 +146,9 @@ class PlayState
   public var stages:Array<BaseStage> = [];
   public var runtimeShaders:Map<String, Array<String>> = new Map();
 
+  /** The lane filter attached in `create()`, warmed with the stage's shaders. */
+  public var distantNoteShader:Shader = null;
+
   public function new() {}
 
   public function initLuaShader(name:String):Bool return runtimeShaders.exists(name);
