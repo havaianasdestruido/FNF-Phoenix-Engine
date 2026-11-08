@@ -59,6 +59,11 @@ mkdir -p "$test_source/shaders" "$test_source/backend" "$test_source/play"
 cp source/shaders/Effect.hx "$test_source/shaders/"
 cp source/shaders/DistantNoteShader.hx "$test_source/shaders/"
 cp source/shaders/DistantNoteEffect.hx "$test_source/shaders/"
+# DistantNoteShader extends the engine's FlxFixedShader (GLSL ES rewrite), which
+# reads RuntimeFlags for the configured GLSL version.
+cp source/backend/FlxFixedShader.hx "$test_source/backend/"
+cp source/backend/RuntimeFlags.hx "$test_source/backend/"
+cp source/backend/PhoenixVersion.hx "$test_source/backend/"
 
 # The engine's own global imports, copied verbatim (see run-alphabet-typecheck.sh
 # for why the list is not trimmed to what these files use today).

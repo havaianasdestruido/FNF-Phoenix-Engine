@@ -88,3 +88,38 @@ perspective opens up. While it is enabled, force middlescroll: the perspective
 converges at the center of the camera, so off-center note lanes look wrong.
 From HScript, construct `shaders.DistantNoteEffect` directly and pass it to
 `game.addShaderToCamera(cam, effect)`.
+
+## Doido Engine ports
+
+### Distant Notes
+
+Enable **Options → Visuals and UI → Distant Notes** (with **Shaders** also
+enabled) to get the same perspective without writing a script. The next song
+uses a transparent `camNotes` below `camHUD` for notes, strums and note splashes;
+ratings, health and other HUD text remain flat and readable. The option forces
+middlescroll for that song without overwriting the saved Middlescroll
+preference. It supports upscroll/downscroll and follows HUD zoom, rotation,
+size, scale, visibility and shake. HUD filters are not copied onto the note
+camera; target `notes`/`camNotes` (or `strum`/`camStrum`) when a shader should
+affect notes only. See [DISTANT_NOTES.md](DISTANT_NOTES.md) for the camera layer.
+
+The effect costs one extra camera/GPU pass and is off by default. The option is
+hidden and the helper is a no-op on targets without runtime shaders (Flash/AIR,
+Neko), via `PlatformSupport`. When the effect is off, those aliases resolve to
+`camHUD` for compatibility.
+
+The GLSL is adapted from
+[DoidoTeam/FNF-Doido-Engine, `DistantNoteShader.hx`](https://github.com/DoidoTeam/FNF-Doido-Engine/blob/b4362960c243c4a5c6bdfab567254320d6e062ad/source/backend/shaders/DistantNoteShader.hx),
+Apache-2.0 (the same license as this repository). Phoenix exposes the projection
+constants as the `uPivot`/`uSpread` uniforms, uses `flixel_texture2D` for
+color/alpha transforms, and extends `FlxFixedShader` for OpenGL ES compatibility.
+
+### Doido Miss Counter
+
+**Options → Visuals and UI → Doido Miss Counter** is on by default. Consecutive
+misses display red `-1`, `-2`, `-3`, …, including ghost-tap misses when ghost
+tapping is disabled. A successful head hit resets the streak and starts a fresh
+positive combo; sustain hits do not reset it. The counter is display-only and
+does not change score, accuracy, health or miss accounting. **Miss Rating**
+independently controls the miss image; **Simple Rating Popups** also supports
+the red numbers. Turning the option off restores Phoenix's legacy popup rules.

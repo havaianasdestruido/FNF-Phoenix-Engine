@@ -163,8 +163,13 @@ class ChartLoaderSpec
       event(2000, 'Change Character', 'dad', 'dad-pixel')
     ]);
 
+    state.missCounter.miss();
+    state.missCounter.miss();
+    state.missCombo = 2;
     PlayStateChartLoader.generateSong(state, 1000);
 
+    equal(state.missCounter.count, 0, 'skipped successful notes reset the miss streak');
+    equal(state.missCombo, 0, 'skipped successful notes reset legacy miss combo');
     equal(state.unspawnNotes.length, 2, 'notes before the restart cutoff are not spawned');
     equal(state.totalNotesPlayed, 1, 'skipped player note counted as played');
     equal(state.eventNotes.length, 1, 'events before the restart cutoff are skipped');

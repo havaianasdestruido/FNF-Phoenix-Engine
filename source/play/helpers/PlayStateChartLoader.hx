@@ -296,6 +296,8 @@ class PlayStateChartLoader
 						|| (songNotes[1] > 3 && PlayState.opponentChart) ? mustHitSection : !mustHitSection);
 					if ((PlayState.bothSides || gottaHitNote) && songNotes[3] != 'Hurt Note') {
 						state.totalNotes += 1;
+						state.missCombo = 0;
+						state.missCounter.hit();
 						state.combo += 1;
 						state.totalNotesPlayed += 1;
 					}

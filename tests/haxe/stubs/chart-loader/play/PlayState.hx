@@ -5,6 +5,7 @@ import flixel.sound.FlxSound;
 import objects.Character;
 import objects.Note.EventNote;
 import objects.Note.PreloadedChartNote;
+import play.objects.MissCounter;
 
 class PlayState
 {
@@ -38,6 +39,8 @@ class PlayState
   public var totalNotes:Float = 0;
   public var opponentNoteTotal:Float = 0;
   public var combo:Int = 0;
+  public var missCombo:Int = 0;
+  public var missCounter:MissCounter = new MissCounter();
   public var totalNotesPlayed:Int = 0;
   public var enemyHits:Int = 0;
   public var charChangeTimes:Array<Float> = [];

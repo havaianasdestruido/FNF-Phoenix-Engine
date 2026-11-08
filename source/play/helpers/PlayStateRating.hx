@@ -14,6 +14,7 @@ import debug.PoolStats;
 
 import objects.Note;
 import objects.Popup;
+import play.objects.MissCounter;
 
 import play.PlayState;
 
@@ -55,6 +56,7 @@ class PlayStateRating
 		Paths.image(state.pixelRatingPrefix + "miss" + state.pixelRatingSuffix);
 
 		for (i in 0...10) Paths.image(state.pixelRatingPrefix + 'num' + i + state.pixelRatingSuffix);
+		Paths.image(state.pixelRatingPrefix + 'numneg' + state.pixelRatingSuffix);
 		if (Paths.fileExists('images/${normalRating}' + 'hitStrings.txt', TEXT))
 			state.hitStrings = Mods.mergeAllTextsNamed('images/${normalRating}' + 'hitStrings.txt', null, false);
 
@@ -141,7 +143,7 @@ class PlayStateRating
 				}
 			}
 
-			if (state.showRating && ClientPrefs.ratingPopups && !ClientPrefs.simplePopups) {
+			if (state.showRating && ClientPrefs.ratingPopups && !ClientPrefs.simplePopups && (!miss || (ClientPrefs.missRating && state.daRating != null))) {
 				final pooled:Int = state.popUpGroup.length;
 				state.rating = state.popUpGroup.recycle(Popup);
 				PoolStats.spawn(PoolStats.POPUP, state.popUpGroup.length == pooled);
@@ -152,19 +154,9 @@ class PlayStateRating
 
 			if (state.showComboNum && ClientPrefs.comboPopups && !ClientPrefs.simplePopups)
 			{
-				var tempCombo:Float = (state.combo > 0 ? state.combo : -state.combo);
-				var tempComboAlt:Float = tempCombo;
-
-				// Reuse the array; this ran on every judged note. (#88)
-				while (state.separatedScore.length > 0) state.separatedScore.pop();
-				while(tempCombo >= 10)
-				{
-					state.separatedScore.unshift(Math.ffloor(tempCombo / 10) % 10);
-					tempCombo = Math.ffloor(tempCombo / 10);
-				}
-				state.separatedScore.push(tempComboAlt % 10);
-
-				if (state.combo < 0) state.separatedScore.unshift("neg");
+				final popupCombo:Float = miss && ClientPrefs.doidoMisses ? -state.missCounter.count : state.combo;
+				final tempComboAlt:Float = Math.abs(popupCombo);
+				MissCounter.digits(popupCombo, state.separatedScore);
 
 				for (daLoop=>i in state.separatedScore)
 				{
@@ -172,13 +164,13 @@ class PlayStateRating
 					state.numScore = state.popUpGroup.recycle(Popup);
 					PoolStats.spawn(PoolStats.POPUP, state.popUpGroup.length == pooled);
 					state.numScore.setupNumber(state.pixelRatingPrefix + 'num' + i + state.pixelRatingSuffix, daLoop, tempComboAlt);
-					if (miss) state.numScore.color = FlxColor.fromRGB(204, 66, 66);
+					state.numScore.color = MissCounter.color(popupCombo, ClientPrefs.doidoMisses, miss);
 					state.numScore.alphaTween(true);
 					state.popUpGroup.insert(0, state.numScore);
 				}
 			}
 
-			if (ClientPrefs.showMS && !ClientPrefs.hideHud) {
+			if (ClientPrefs.showMS && !ClientPrefs.hideHud && state.daRating != null) {
 				state.msTxt.showHit({
 					noteDiff: state.noteDiff,
 					combo: state.combo,
@@ -191,8 +183,8 @@ class PlayStateRating
 
 			if (ClientPrefs.ratingPopups && ClientPrefs.simplePopups && !ClientPrefs.hideHud) {
 				state.judgeTxt.showHit({
-					combo: state.combo,
-					rating: state.daRating.name,
+					combo: miss && ClientPrefs.doidoMisses ? -state.missCounter.count : state.combo,
+					rating: state.daRating != null ? state.daRating.name : 'miss',
 					miss: miss,
 					playbackRate: state.playbackRate
 				});

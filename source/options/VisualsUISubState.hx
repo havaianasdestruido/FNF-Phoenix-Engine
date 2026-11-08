@@ -176,6 +176,13 @@ class VisualsUISubState extends BaseOptionsMenu
 			false);
 		addOption(option);
 
+		var option:Option = new Option('Doido Miss Counter',
+			'Misses pop up as red -1, -2, -3... while you keep missing.\nA successful note hit starts a fresh combo. Works without Miss Rating.',
+			'doidoMisses',
+			'bool',
+			true);
+		addOption(option);
+
 		var option:Option = new Option('Note Color Style: ',
 			"How would you like your notes colored?",
 			'noteColorStyle',
@@ -341,12 +348,12 @@ class VisualsUISubState extends BaseOptionsMenu
 			true);
 		addOption(option);
 
-		#if (SHADERS_ALLOWED && !flash && !neko)
+		// Gated by PlatformSupport's `shaders` capability via Option.isSupported(),
+		// so it hides on Flash/AIR/Neko without a compile-time branch here.
 		var option:Option = new Option('Distant Notes',
 			'Adds perspective to the note field. Requires shaders and temporarily enables Middlescroll.\nTakes effect when starting or restarting a song.',
 			'distantNotes', 'bool', false);
 		addOption(option);
-		#end
 
 		var option:Option = new Option('Score Text Zoom on Hit',
 			"If unchecked, disables the Score text zooming\neverytime you hit a note.",

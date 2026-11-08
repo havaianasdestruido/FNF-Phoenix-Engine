@@ -1,6 +1,6 @@
 package shaders;
 
-import flixel.system.FlxAssets.FlxShader;
+import backend.FlxFixedShader;
 
 /**
  * Distant-note "highway": the texture is skewed toward a horizon so notes look
@@ -8,11 +8,16 @@ import flixel.system.FlxAssets.FlxShader;
  *
  * Ported from FNF-Doido-Engine's `DistantNoteShader` (itself adapted from a
  * HaxeFlixel demo), with the two perspective constants lifted into uniforms.
+ * Upstream is Apache-2.0, the same license as this repository:
+ * https://github.com/DoidoTeam/FNF-Doido-Engine/blob/main/source/backend/shaders/DistantNoteShader.hx
+ *
+ * Extends FlxFixedShader rather than FlxShader so the same GLSL also runs on
+ * OpenGL ES (Android/WebGL2), which rewrites the source to GLSL ES 3.00.
  *
  * This samples the whole render target it is attached to, so it belongs on a
  * camera filter (see `shaders.DistantNoteEffect`), not on a single sprite.
  */
-class DistantNoteShader extends FlxShader
+class DistantNoteShader extends FlxFixedShader
 {
   @:glFragmentSource('
 	#pragma header

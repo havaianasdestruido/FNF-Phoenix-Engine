@@ -8,16 +8,23 @@ by default.
 
 The effect temporarily uses middlescroll without changing the saved preference.
 Disabling it or shaders restores the normal layout on the next song. Notes,
-receptors, sustains and splashes share a transparent camera so health, score and
-other HUD elements are not distorted. Its zoom, position, scroll, angle,
-visibility and alpha follow the HUD camera. Because this is a separate layer,
+receptors, sustains and splashes share a transparent camera (`PlayState.camNotes`,
+set up by `play.helpers.PlayStateDistantNotes`) so health, score and other HUD
+elements are not distorted. It is inserted *below* `camHUD`, and its zoom,
+position, scroll, angle, size, scale, visibility, alpha and shake follow the HUD
+camera. Because this is a separate layer,
 mod scripts that specifically apply camera filters or shakes to `camHUD` do not
 apply those effects to the notes. Mods can access `PlayState.camNotes` while the
 option is enabled; it is `null` otherwise. Unusual modcharts that explicitly
 reassign note cameras may bypass the effect.
 
+Camera shader APIs accept `notes`/`camNotes` (and the `strum`/`camStrum` aliases)
+to target the note layer directly; when the option is off those names resolve to
+`camHUD` so scripts keep working.
+
 For Haxe users the shader is `shaders.DistantNoteShader`; pass the downscroll
-boolean to its constructor and apply it to a note-field camera. Its GLSL is
+boolean to its constructor and apply it to a note-field camera. It extends
+`backend.FlxFixedShader` so the same GLSL also runs on OpenGL ES. Its GLSL is
 ported from [Doido Engine](https://github.com/DoidoTeam/FNF-Doido-Engine/blob/main/source/backend/shaders/DistantNoteShader.hx).
 
 The FPS overlay defaults to two lines: FPS and current RAM. Enable **Legacy FPS
