@@ -22,7 +22,7 @@ jobs:
     name: Regression tests
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Dependency manifests agree and are pinned
         run: python3 tools/check_dependencies.py
@@ -51,7 +51,7 @@ jobs:
     name: Diagnostic log, crash bundle and diagnostics page (Haxe)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: krdlab/setup-haxe@master
         with:
           haxe-version: "4.3.7"
@@ -72,7 +72,7 @@ jobs:
     name: Lua script pipeline (Haxe)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: krdlab/setup-haxe@master
         with:
           haxe-version: "4.3.7"
@@ -98,7 +98,7 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: krdlab/setup-haxe@master
         with:
           haxe-version: "4.3.7"

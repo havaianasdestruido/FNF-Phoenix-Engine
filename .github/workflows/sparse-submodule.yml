@@ -47,7 +47,7 @@ jobs:
       # Deliberately no submodules here: checkout must not clone
       # psych-scripts in full before the sparse clone below runs.
       - name: Checkout (without submodules)
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           submodules: false
 
