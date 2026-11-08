@@ -241,6 +241,13 @@ class HScript
 		seedScope();
 		seedInitialGlobals();
 
+		// Inherit the shared Lua modding API so HScript scripts see the same
+		// function surface as Lua/Python mods (fills gaps between backends).
+		for (name => func in FunkinLua.registeredFunctions)
+		{
+			if (func != null && !registeredFunctions.exists(name))
+				registeredFunctions.set(name, func);
+		}
 		for (name => func in registeredFunctions)
 		{
 			if(func != null) set(name, func);

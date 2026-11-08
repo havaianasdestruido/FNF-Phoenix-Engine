@@ -79,6 +79,8 @@ class FunkinLua {
 	//public var errorHandler:String->Void;
 	#if LUA_ALLOWED
 	public var lua:State = null;
+	#else
+	public var lua:Dynamic = null;
 	#end
 	public var camTarget:FlxCamera;
 	public var scriptName:String = '';
@@ -298,8 +300,10 @@ class FunkinLua {
 
 		for (name => func in customFunctions) {
 			if (func != null) {
+				#if LUA_ALLOWED
 				_missingCalls.remove(name);
 				Convert.addCallback(lua, name, func);
+				#end
 			}
 		}
 
@@ -325,7 +329,9 @@ class FunkinLua {
 
 	SaveDataCallbacks.register(this);
 
+	#if sys
 	FileCallbacks.register(this);
+	#end
 
 	DeprecatedCallbacks.register(this);
 
@@ -347,8 +353,10 @@ class FunkinLua {
 
 		for (name => func in registeredFunctions) {
 			if (func != null) {
+				#if LUA_ALLOWED
 				_missingCalls.remove(name);
 				Convert.addCallback(lua, name, func);
+				#end
 			}
 		}
 
@@ -449,7 +457,9 @@ class FunkinLua {
 		_missingCalls.remove(name);
 		#end
 		callbacks.set(name, myFunction);
+		#if LUA_ALLOWED
 		Convert.addCallback(lua, name, null); // just so that it gets called
+		#end
 	}
 
 	public static function registerFunction(name:String, func:Dynamic):Void
@@ -491,7 +501,9 @@ class FunkinLua {
 		#if (SHADERS_ALLOWED)
 		if(PlayState.instance.runtimeShaders.exists(name))
 		{
+			#if LUA_ALLOWED
 			LuaUtils.luaTrace(lua, 'Shader $name was already initialized!');
+			#end
 			return true;
 		}
 
@@ -501,9 +513,13 @@ class FunkinLua {
 			PlayState.instance.runtimeShaders.set(name, sources);
 			return true;
 		}
+		#if LUA_ALLOWED
 		LuaUtils.luaTrace(lua, 'Missing shader $name .frag AND .vert files, or one of its imports could not be loaded!', false, false, FlxColor.RED);
 		#else
-		LuaUtils.luaTrace(lua, 'This platform doesn\'t support Runtime Shaders!', false, false, FlxColor.RED);
+		trace('Missing shader $name .frag AND .vert files, or one of its imports could not be loaded!');
+		#end
+		#else
+		trace('This platform doesn\'t support Runtime Shaders!');
 		#end
 		return false;
 	}

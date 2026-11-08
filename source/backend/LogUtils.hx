@@ -49,8 +49,10 @@ class LogUtils
     var safe:String = text;
     for (pattern in homePathPatterns)
       safe = pattern.replace(safe, "[home]");
+    #if sys
     for (name in localUserNames)
       safe = new EReg(escapeRegex(name), "ig").replace(safe, "[username]");
+    #end
     safe = POSIX_PROFILE_USER.replace(safe, "$1[username]");
     safe = WINDOWS_BACKSLASH_PATH.replace(safe, "$1[absolute path]");
     safe = WINDOWS_SLASH_PATH.replace(safe, "$1[absolute path]");

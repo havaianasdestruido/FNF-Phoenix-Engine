@@ -4,6 +4,7 @@ import backend.Paths;
 import psychlua.FunkinLua;
 import headers.PsychLua;
 
+#if sys
 class FileCallbacks
 {
 	public static function register(funk:FunkinLua):Void {
@@ -88,3 +89,4 @@ class FileCallbacks
 		}
 	}
 }
+#end

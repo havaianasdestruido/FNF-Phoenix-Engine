@@ -366,6 +366,13 @@ class PythonScript
 
 	PyHardwareLib.register(this);
 
+		// Inherit the shared Lua modding API so Python mods see the same
+		// function surface as Lua/HScript mods (fills gaps between backends).
+		for (name => func in FunkinLua.registeredFunctions) {
+			if (func != null && !registeredFunctions.exists(name)) {
+				registeredFunctions.set(name, func);
+			}
+		}
 		for (name => func in registeredFunctions) {
 			if (func != null) {
 				_missingCalls.remove(name);

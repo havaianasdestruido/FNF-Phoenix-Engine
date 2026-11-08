@@ -12,8 +12,10 @@ class ScriptCallbacks
 		@:privateAccess {
 		FunkinLua.registerFunction("getRunningScripts", function(){
 			var runningScripts:Array<String> = [];
+			#if LUA_ALLOWED
 			for (idx in 0...PlayState.instance.luaArray.length)
 				runningScripts.push(PlayState.instance.luaArray[idx].scriptName);
+			#end
 			#if HSCRIPT_ALLOWED
 			for (idx in 0...PlayState.instance.hscriptArray.length)
 				runningScripts.push(PlayState.instance.hscriptArray[idx].scriptName);
@@ -25,7 +27,9 @@ class ScriptCallbacks
 		FunkinLua.registerFunction("callOnLuas", function(?funcName:String, ?args:Array<Dynamic>, ignoreStops=false, ignoreSelf=true, ?exclusions:Array<String>){
 			if(funcName==null){
 				#if (linc_luajit >= "0.0.6")
+				#if LUA_ALLOWED
 				LuaL.error(funk.lua, "bad argument #1 to 'callOnLuas' (string expected, got nil)");
+				#end
 				#end
 				return;
 			}
@@ -33,10 +37,12 @@ class ScriptCallbacks
 
 			if(exclusions==null)exclusions=[];
 
+			#if LUA_ALLOWED
 			Lua.getglobal(funk.lua, 'scriptName');
 			final daScriptName = Lua.tostring(funk.lua, -1);
 			Lua.pop(funk.lua, 1);
 			if(ignoreSelf && !exclusions.contains(daScriptName))exclusions.push(daScriptName);
+			#end
 			PlayState.instance.callOnLuas(funcName, args, ignoreStops, exclusions);
 		});
 
@@ -83,6 +89,7 @@ class ScriptCallbacks
 			#end
 			if(doPush)
 			{
+				#if LUA_ALLOWED
 				for (luaInstance in PlayState.instance.luaArray)
 				{
 					if(luaInstance.scriptName == cervix)
@@ -93,6 +100,7 @@ class ScriptCallbacks
 					}
 
 				}
+				#end
 			}
 		});
 
@@ -136,6 +144,7 @@ class ScriptCallbacks
 			#end
 			if(doPush)
 			{
+				#if LUA_ALLOWED
 				for (luaInstance in PlayState.instance.luaArray)
 				{
 					if(luaInstance.scriptName == cervix)
@@ -158,6 +167,7 @@ class ScriptCallbacks
 					}
 
 				}
+				#end
 			}
 		});
 
@@ -195,6 +205,7 @@ class ScriptCallbacks
 			#end
 			if(doPush)
 			{
+				#if LUA_ALLOWED
 				for (luaInstance in PlayState.instance.luaArray)
 				{
 					if(luaInstance.scriptName == cervix)
@@ -203,6 +214,7 @@ class ScriptCallbacks
 					}
 
 				}
+				#end
 			}
 		});
 		funk.set("isRunning", function(luaFile:String){
@@ -234,12 +246,14 @@ class ScriptCallbacks
 
 			if(doPush)
 			{
+				#if LUA_ALLOWED
 				for (luaInstance in PlayState.instance.luaArray)
 				{
 					if(luaInstance.scriptName == cervix)
 						return true;
 
 				}
+				#end
 			}
 			return false;
 		});
@@ -273,6 +287,7 @@ class ScriptCallbacks
 
 			if(doPush)
 			{
+				#if LUA_ALLOWED
 				if(!ignoreAlreadyRunning)
 				{
 					for (luaInstance in PlayState.instance.luaArray)
@@ -285,6 +300,7 @@ class ScriptCallbacks
 					}
 				}
 				PlayState.instance.luaArray.push(new FunkinLua(cervix));
+				#end
 				return;
 			}
 			LuaUtils.luaTrace(funk.lua, "addLuaScript | Script doesn't exist!", false, false, FlxColor.RED);
@@ -320,6 +336,7 @@ class ScriptCallbacks
 			{
 				if(!ignoreAlreadyRunning)
 				{
+					#if LUA_ALLOWED
 					for (luaInstance in PlayState.instance.luaArray)
 					{
 						if(luaInstance.scriptName == cervix)
@@ -330,6 +347,7 @@ class ScriptCallbacks
 							return;
 						}
 					}
+					#end
 				}
 				return;
 			}

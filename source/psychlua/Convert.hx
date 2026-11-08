@@ -4,7 +4,9 @@ import haxe.ds.*;
 #if LUA_ALLOWED
 import hxluajit.Types;
 #end
+#if LUA_ALLOWED
 import psychlua.FunkinLua.State;
+#end
 import play.PlayState;
 
 
@@ -14,9 +16,10 @@ import play.PlayState;
  * 
  * We didn't use hxluajit-wrapper because we wanted to have our functions and methods as similar as possible to linc_luajit
  */
+#if LUA_ALLOWED
 class Convert
 {
-	public static function addCallback(l:State, name:String, func:Dynamic)
+	public static function addCallback(l:#if LUA_ALLOWED State #else Dynamic #end, name:String, func:Dynamic)
 	{
 	    // PsychLua expects the function to be null for local callbacks so if func is not TFunction we don't add the callback here
 	    if (Type.typeof(func) == TFunction)
@@ -27,7 +30,7 @@ class Convert
         Lua.setglobal(l, name);
 	}
 
-	public static function removeCallback(l:State, name:String)
+	public static function removeCallback(l:#if LUA_ALLOWED State #else Dynamic #end, name:String)
 	{
 		if (!callbacks.exists(name))
 			return;
@@ -346,3 +349,4 @@ class Convert
 		return 0;
 	}
 }
+#end
