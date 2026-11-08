@@ -344,6 +344,8 @@ class PlayState extends MusicBeatState
 	public var iconP1:HealthIcon;
 	public var iconP2:HealthIcon;
 	public var camHUD:FlxCamera;
+	// Created only for the opt-in distant-note effect.
+	public var camNotes:FlxCamera;
 	public var camGame:FlxCamera;
 	public var camOther:FlxCamera;
 	private var layoutWidth:Int = 0;
@@ -631,7 +633,11 @@ class PlayState extends MusicBeatState
 		minSpeed = ClientPrefs.getGameplaySetting('randomspeedmin', 0.1);
 		maxSpeed = ClientPrefs.getGameplaySetting('randomspeedmax', 10);
 
-		middleScroll = ClientPrefs.middleScroll || bothSides;
+		var useDistantNotes:Bool = false;
+		#if (SHADERS_ALLOWED && !flash && !neko)
+		useDistantNotes = ClientPrefs.distantNotes && ClientPrefs.shaders;
+		#end
+		middleScroll = ClientPrefs.middleScroll || bothSides || useDistantNotes;
 		if (bothSides) opponentChart = false;
 
 		if (ffmpegMode)
@@ -643,6 +649,17 @@ class PlayState extends MusicBeatState
 		camHUD.bgColor.alpha = camOther.bgColor.alpha = 0;
 
 		FlxG.cameras.reset(camGame);
+		#if (SHADERS_ALLOWED && !flash && !neko)
+		if (useDistantNotes)
+		{
+			camNotes = new FlxCamera();
+			camNotes.bgColor.alpha = 0;
+			var distantShader = new shaders.DistantNoteShader(ClientPrefs.downScroll);
+			shaders.ShaderWarmup.track(distantShader);
+			camNotes.addShader(distantShader);
+			FlxG.cameras.add(camNotes, false);
+		}
+		#end
 		FlxG.cameras.add(camHUD, false);
 		FlxG.cameras.add(camOther, false);
 		grpHoldSplashes = new FlxTypedGroup<SustainSplash>((ClientPrefs.maxSplashLimit != 0 ? ClientPrefs.maxSplashLimit : 10000));
@@ -1561,11 +1578,12 @@ class PlayState extends MusicBeatState
 			for (item in hudItems) if (item != null) item.visible = false;
 		}
 
-		strumLineNotes.cameras = [camHUD];
-		grpNoteSplashes.cameras = [camHUD];
-		grpHoldSplashes.cameras = [camHUD];
-		sustainNotes.cameras = [camHUD];
-		notes.cameras = [camHUD];
+		var noteCamera:FlxCamera = camNotes != null ? camNotes : camHUD;
+		strumLineNotes.cameras = [noteCamera];
+		grpNoteSplashes.cameras = [noteCamera];
+		grpHoldSplashes.cameras = [noteCamera];
+		sustainNotes.cameras = [noteCamera];
+		notes.cameras = [noteCamera];
 		healthBar.cameras = [camHUD];
 		healthBarBG.cameras = [camHUD];
 		iconP1.cameras = [camHUD];
@@ -2598,6 +2616,23 @@ class PlayState extends MusicBeatState
 			}
 			frameCaptured++;
 		}
+	}
+
+	// Synchronize at draw time so stage cutscenes, tweens and scripts changing the
+	// HUD camera (including while paused) also affect the separate note layer.
+	override public function draw():Void
+	{
+		if (camNotes != null)
+		{
+			camNotes.x = camHUD.x;
+			camNotes.y = camHUD.y;
+			camNotes.zoom = camHUD.zoom;
+			camNotes.angle = camHUD.angle;
+			camNotes.scroll.copyFrom(camHUD.scroll);
+			camNotes.alpha = camHUD.alpha;
+			camNotes.visible = camHUD.visible;
+		}
+		super.draw();
 	}
 
 	// Health icon updaters

@@ -102,6 +102,7 @@ class ShaderWarmupRegistry
       'chromaticaberration' => function():Shader return new ChromaticAberrationShader(),
       'distant' => function():Shader return new DistantNoteShader(),
       'distantnote' => function():Shader return new DistantNoteShader(),
+      'distantnoteshader' => function():Shader return new DistantNoteShader(),
       'distortbg' => function():Shader return new DistortBGShader(),
       'glitch' => function():Shader return new GlitchShader(),
       'grain' => function():Shader return new Grain(),

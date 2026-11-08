@@ -154,11 +154,15 @@ class FPSCounter extends TextField
   public dynamic function updateText():Void // so people can override it in hscript
   {
     text = "FPS: " + (ClientPrefs.ffmpegMode ? ClientPrefs.targetFPS : Math.round(currentFPS));
-    if (ClientPrefs.ffmpegMode) text += " (Rendering Mode)";
+    if (ClientPrefs.legacyFPSUI && ClientPrefs.ffmpegMode) text += " (Rendering Mode)";
 
-    if (ClientPrefs.showRamUsage) text += "\nMemory: "
+    if (ClientPrefs.showRamUsage) text += (ClientPrefs.legacyFPSUI ? "\nMemory: " : "\nRAM: ")
       + MemoryUtil.formatMemory(memory)
-      + (ClientPrefs.showMaxRamUsage ? " / " + MemoryUtil.formatMemory(mempeak) : "");
+      + (ClientPrefs.legacyFPSUI && ClientPrefs.showMaxRamUsage ? " / " + MemoryUtil.formatMemory(mempeak) : "");
+
+    // The compact view stays two lines even if a previous save enabled debug info.
+    // The legacy view retains the original settings and diagnostics.
+    if (!ClientPrefs.legacyFPSUI) return;
     if (ClientPrefs.frameProfiler || ClientPrefs.debugInfo)
       text += "\n" + FrameProfiler.getOverlayText();
     // #88: pool hit rates for the gameplay pools. HTML5 has no readable managed heap,

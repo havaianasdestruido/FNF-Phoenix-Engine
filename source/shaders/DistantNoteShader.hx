@@ -46,11 +46,11 @@ class DistantNoteShader extends FlxShader
 	}
 	')
 
-  public function new()
+  public function new(downscroll:Bool = false)
   {
     super();
     uPivot.value = [0.42];
     uSpread.value = [0.8];
-    uDownscroll.value = [false];
+    uDownscroll.value = [downscroll];
   }
 }
