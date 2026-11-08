@@ -10,18 +10,19 @@ import flixel.math.FlxMath;
 import flixel.system.FlxBasePreloader;
 
 /**
- * Port of Doido Engine's `DoidoPreloader` — the cool boot preloader that shows a
+ * Port of Doido Engine's `DoidoPreloader`  -  the cool boot preloader that shows a
  * centered logo (fade in → hold → fade out) and a bottom white progress bar.
  *
  * Original: `source/backend/game/DoidoPreloader.hx` in DoidoTeam/FNF-Doido-Engine
- * Assets:   `assets/images/doido_logo.png` (ported here as `assets/preload/images/doido_logo.png`
- *           for Phoenix's asset layout). The bitmap path below is rewritten to match Phoenix.
+ * Assets:   originally `assets/images/doido_logo.png`; ported here with the
+ *           Phoenix Engine logo (`assets/preload/images/phoenix_logo.png`)
+ *           for Phoenix's asset layout. The bitmap path below is rewritten to match Phoenix.
  *
  * To enable at boot, set `Project.PRELOADER = "backend.game.DoidoPreloader"` in `project.hxp`
  * (or via `Project.xml: <app preloader=\"backend.game.DoidoPreloader\" />`). This file is
  * otherwise inert until referenced.
  */
-@:keep @:bitmap("assets/preload/images/doido_logo.png")
+@:keep @:bitmap("assets/preload/images/phoenix_logo.png")
 private class DoidoLogo extends BitmapData {}
 
 class DoidoPreloader extends FlxBasePreloader

@@ -10,12 +10,12 @@ import flixel.system.FlxBasePreloader;
 /**
  * Phoenix-branded variant of Doido's preloader — same animation language as
  * `backend.game.DoidoPreloader` (center logo fade + bottom bar lerp) but
- * themed to Phoenix: pink bar `0xFFFF16D2` and the engine's `logoBumpin`.
+ * themed to Phoenix: pink bar `0xFFFF16D2` and the engine's `phoenix_logo`.
  *
  * Enable by setting `Project.PRELOADER = "backend.PhoenixPreloader"` in `project.hxp`.
  * If you prefer the verbatim Doido look, use `backend.game.DoidoPreloader` instead.
  */
-@:keep @:bitmap("assets/preload/images/logoBumpin.png")
+@:keep @:bitmap("assets/preload/images/phoenix_logo.png")
 private class PhoenixLogo extends BitmapData {}
 
 class PhoenixPreloader extends FlxBasePreloader
