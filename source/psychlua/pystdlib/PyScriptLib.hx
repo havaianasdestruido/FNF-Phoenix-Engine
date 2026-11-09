@@ -320,7 +320,7 @@ class PyScriptLib
 				if (s.scriptName == resolved)
 				{
 					// Detach first so an onDestroy callback that removes itself cannot
-					re-enter this loop; then give the script its normal lifecycle hook.
+					// re-enter this loop; then give the script its normal lifecycle hook.
 					PlayState.instance.pythonArray.remove(s);
 					unloadPythonScript(s);
 					break;

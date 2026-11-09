@@ -2354,7 +2354,15 @@ class PlayState extends MusicBeatState
 		}
 
 
-		if (iconP1.animation.numFrames == 3) {
+		var p1Frames:Int = iconP1.animation.numFrames;
+		if (p1Frames >= 4) {
+			// Unlimited health-icon strips (CNE-style): map health to a frame
+			// index linearly across the available frames.
+			var idx:Int = Std.int((100 - healthBar.percent) / 100 * (p1Frames - 1));
+			if (idx < 0) idx = 0;
+			if (idx > p1Frames - 1) idx = p1Frames - 1;
+			iconP1.animation.curAnim.curFrame = idx;
+		} else if (p1Frames == 3) {
 			if (healthBar.percent < 20)
 				iconP1.animation.curAnim.curFrame = 1;
 			else if (healthBar.percent > 80)
@@ -2368,7 +2376,13 @@ class PlayState extends MusicBeatState
 			else
 				iconP1.animation.curAnim.curFrame = 0;
 		}
-		if (iconP2.animation.numFrames == 3) {
+		var p2Frames:Int = iconP2.animation.numFrames;
+		if (p2Frames >= 4) {
+			var idx:Int = Std.int(healthBar.percent / 100 * (p2Frames - 1));
+			if (idx < 0) idx = 0;
+			if (idx > p2Frames - 1) idx = p2Frames - 1;
+			iconP2.animation.curAnim.curFrame = idx;
+		} else if (p2Frames == 3) {
 			if (healthBar.percent > 80)
 				iconP2.animation.curAnim.curFrame = 1;
 			else if (healthBar.percent < 20)

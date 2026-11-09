@@ -11,7 +11,7 @@ import cpp.Function;
 import cpp.RawConstPointer;
 #end
 #if LUA_ALLOWED
-import psychlua.FunkinLua.State;
+import hxluajit.Types.State;
 #end
 
 import states.MainMenuState;
@@ -27,7 +27,7 @@ import sys.thread.Thread;
 #if (DISCORD_ALLOWED && android)
 import android.platform.AndroidDiscord;
 #if LUA_ALLOWED
-import psychlua.FunkinLua.State;
+import hxluajit.Types.State;
 #end
 #if PYTHON_ALLOWED
 import psychlua.PythonScript;
@@ -318,7 +318,7 @@ class DiscordClient
 	}
 	#end
 	#if LUA_ALLOWED
-	public static function addLuaCallbacks(lua:State) {}
+	public static function addLuaCallbacks(lua:Dynamic) {}
 	#end
 	#end
 
