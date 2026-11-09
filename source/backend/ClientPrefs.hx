@@ -52,6 +52,7 @@ class ClientPrefs { //default settings if it can't find a save file containing y
 	public static var tauntOnGo:Bool = true;
 	public static var oldSusStyle:Bool = false;
 	public static var showRendered:Bool = false;
+	public static var uiScale:Float = 1.0;
 	public static var botWatermark:Bool = true;
 	public static var missRating:Bool = false;
 	/** Doido-style red consecutive-miss numbers, independent of the Miss rating image. */
