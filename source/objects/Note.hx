@@ -1,4 +1,4 @@
-﻿package objects;
+package objects;
 
 import shaders.RGBPalette.RGBShaderReference;
 
@@ -224,7 +224,7 @@ class Note extends FlxSprite
 	var noteColor:Array<FlxColor>;
 	public function defaultRGB()
 	{
-		noteColor = !PlayState.isPixelStage ? ClientPrefs.arrowRGB[noteData] : ClientPrefs.arrowRGBPixel[noteData];
+		noteColor = NoteColors.laneRGB(noteData, PlayState.isPixelStage);
 
 		if (noteColor != null && noteData > -1 && noteData <= noteColor.length)
 		{
