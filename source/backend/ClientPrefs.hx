@@ -11,6 +11,7 @@ import objects.AlphabetFont;
 class ClientPrefs { //default settings if it can't find a save file containing your current settings
 	//Gameplay Settings
 	public static var controllerMode:Bool = false;
+	public static var androidTVNavigation:Bool = false;
 	public static var downScroll:Bool = false;
 	public static var middleScroll:Bool = false;
 	public static var opponentStrums:Bool = true;
