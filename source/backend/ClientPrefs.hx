@@ -81,6 +81,7 @@ class ClientPrefs { //default settings if it can't find a save file containing y
 	public static var saveVersion:Int = 1;
 	public static var allow4thWallEffects:Bool = false;
 	public static var reducedMotion:Bool = false;
+	public static var highContrast:Bool = false;
 	public static var dialogueSpeedMult:Float = 1.0;
 	public static var camZooms:Bool = true;
 	public static var visualBeatIndicator:Bool = false;
