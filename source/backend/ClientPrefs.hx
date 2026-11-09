@@ -62,6 +62,7 @@ class ClientPrefs { //default settings if it can't find a save file containing y
 	public static var noteColorStyle:String = 'Normal';
 	public static var noteColorblindPreset:String = 'None';
 	public static var laneGlyphs:Bool = false;
+	public static var forceLuminanceContrast:Bool = false;
 	public static var enableColorShader:Bool = true;
 	public static var rateNameStuff:String = 'Quotes';
 	public static var timeBarType:String = 'Time Left';
