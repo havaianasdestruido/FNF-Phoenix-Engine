@@ -894,8 +894,20 @@ class Paths
     return (!onlyEventsString ? eventsKey : 'events');
   }
 
-  inline public static function imagePath(key:String, ?folder:String):String
-    return getPath('images/$key.$IMAGE_EXT', IMAGE, folder);
+  public static var IMAGE_EXTS:Array<String> = ["png", "jpg", "jpeg", "webp"];
+  public static function imagePath(key:String, ?folder:String):String
+  {
+    for (ext in IMAGE_EXTS)
+    {
+      final candidate:String = getPath('images/$key.$ext', IMAGE, folder);
+      #if sys
+      if (FileSystem.exists(candidate)) return candidate;
+      #else
+      if (OpenFlAssets.exists(candidate)) return candidate;
+      #end
+    }
+    return getPath('images/$key.png', IMAGE, folder);
+  }
 
   inline public static function imageExists(key:String, ?folder:String):Bool
     return Paths.exists(imagePath(key, folder));
@@ -925,8 +937,8 @@ class Paths
       currentTrackedAssets.remove(cacheKey);
     }
 
-    final assetKey:String = 'images/$key.png';
-    final file:String = getPath(assetKey, IMAGE, parentFolder, true);
+    final assetKey:String = imagePath(key, parentFolder);
+    final file:String = assetKey;
     #if MODS_ALLOWED
     if (file.startsWith('mods/') && FileSystem.exists(file))
     {
