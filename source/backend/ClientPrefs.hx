@@ -125,6 +125,7 @@ class ClientPrefs { //default settings if it can't find a save file containing y
 	// Opt in to expanding the viewport; existing 16:9 presentation is the default.
 	public static var widescreen:Bool = false;
 	public static var lowQuality:Bool = false;
+	public static var lowMemoryMode:Bool = false;
 	public static var globalAntialiasing:Bool = true;
 	public static var shaders:Bool = true;
 	public static var cacheOnGPU:Bool = false;
