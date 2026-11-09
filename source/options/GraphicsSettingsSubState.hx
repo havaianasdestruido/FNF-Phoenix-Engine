@@ -102,7 +102,7 @@ class GraphicsSettingsSubState extends BaseOptionsMenu
 
 		option.scrollSpeed = 120;
 		option.minValue = 1;
-		option.maxValue = 1000;
+		option.maxValue = ClientPrefs.uncappedFps ? 10000 : 1000;
 		option.displayFormat = '%v FPS';
 		option.onChange = onChangeFramerate;
 		#end
