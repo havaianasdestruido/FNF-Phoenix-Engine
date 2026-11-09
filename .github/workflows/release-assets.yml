@@ -108,6 +108,7 @@ jobs:
     uses: ./.github/workflows/main.yml
     with:
       buildFlags: officialBuild
+      fullAssets: true
       buildWindows: ${{ needs.plan.outputs.need_windows == 'true' }}
       buildAndroid: ${{ needs.plan.outputs.need_android == 'true' }}
 

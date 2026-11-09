@@ -48,6 +48,9 @@ jobs:
       # hxcpp dependency. No Haxe or C++ toolchain needed.
       - name: Build cache keys roll over instead of piling up
         run: bash tests/haxe/run-build-cache-policy.sh
+
+      - name: Verify compact CI and full release asset policy
+        run: bash tests/haxe/run-content-policy.sh
   diagnostic-report-specs:
     name: Diagnostic log, crash bundle and diagnostics page (Haxe)
     runs-on: ubuntu-latest

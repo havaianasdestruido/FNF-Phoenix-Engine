@@ -164,23 +164,15 @@ FNF-JS-Engine-Light/
 - Conteúdo vanilla: `assets/preload/songs` (não existe mais), `assets/preload/data`, `assets/songs`.
 - Se adicionar mod de exemplo: siga `mods/<mod>/{data,images,songs,weeks}` + `pack.json`.
 
-### Modo "no assets" (estado atual do repositório)
+### Conteúdo vanilla e modo compacto
 
-Este repositório roda em **modo "no assets"**: o conteúdo das semanas foi removido
-para reduzir o tamanho do pacote. Ficam apenas:
-
-- **Semanas:** `tutorial` e `week1` (só `Dad Battle`; as demais faixas de Week 1 foram removidas).
-- **Personagens:** apenas `bf`, `gf` e `dad` (JSONs em `assets/preload/characters/` +
-  spritesheet `BOYFRIEND`/`GF_assets`/`DADDY_DEAREST` em `assets/shared/images/characters/`).
-- **Palco:** apenas `stage` (`assets/preload/stages/stage.json`).
-- **Faixas/charts:** só `tutorial` e `dad-battle` em `assets/songs/` + `assets/preload/data/`.
-- Removidos: todas as demais semanas (`week2`–`week7`, `weekend1`, `secret`), os outros
-  personagens/palcos/cenas, os vídeos de cutscene e assets órfãos não referenciados pelo código.
-  Os folders `assets/week2`–`weekend1` também foram removidos do disco; o `project.hxp`
-  detecta a ausência e segue sem eles.
-- As listas `weekList.txt`, `characterList.txt` e `stageList.txt` foram reduzidas de
-  acordo. Se um mod precisar de mais conteúdo, adicione via `mods/<mod>/` (não recrie
-  em `assets/`).
+- Os assets vanilla estão no repositório; não os remova para implementar o
+  modo compacto. A seleção ocorre somente na configuração da build.
+- Builds locais usam conteúdo completo por padrão. `-DNO_BUILTIN_CONTENT` é o
+  modo compacto usado no CI: mantém Tutorial, Week 1 completo, seus personagens,
+  palco e sprites, a interface e mods; remove as semanas posteriores e vídeos.
+  Apesar do nome, ele contém conteúdo protegido por direitos autorais.
+- Workflows de release passam `fullAssets: true` e incluem todos os assets.
 
 ### Áudio: Ogg, uma cópia só
 

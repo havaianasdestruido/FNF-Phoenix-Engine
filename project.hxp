@@ -174,17 +174,9 @@ class Project extends HXProject
 	static final META_HORROR:FeatureFlag = "META_HORROR";
 
 	/**
-	 * `-DNO_BUILTIN_CONTENT` (content-stripped / copyright-safe builds).
-	 * When enabled, `configureAssets()` drops every built-in song, week and
-	 * character asset (charts, song audio, week libraries, character JSONs
-	 * and sprites, stage art, cutscene videos) and only keeps SFX, menu /
-	 * pause / game-over music, engine UI art, fonts and the bundled mods
-	 * (e.g. bf-clicker). The game code has fallbacks (placeholder
-	 * characters/icons, hidden title dancer, empty-week handling) so these
-	 * builds still boot and can play mod content.
-	 * This flag is intentionally NOT applied with a default in
-	 * `configureFeatureFlags()` (there is no meaningful inverse default);
-	 * pass `-DNO_BUILTIN_CONTENT` explicitly to strip a build.
+	 * `-DNO_BUILTIN_CONTENT`: compact CI build containing Tutorial and Week 1,
+	 * their characters, stages and UI, plus the engine shell and bundled mods.
+	 * Local builds default to full content; CI opts in explicitly.
 	 */
 	static final NO_BUILTIN_CONTENT:FeatureFlag = "NO_BUILTIN_CONTENT";
 
@@ -934,8 +926,7 @@ class Project extends HXProject
 		var exclude = EXCLUDE_ASSETS.concat(isWeb() ? EXCLUDE_ASSETS_WEB : EXCLUDE_ASSETS_NATIVE);
 		var shouldPreload = PRELOAD_ALL.isEnabled(this);
 		var shouldEmbed = EMBED_ASSETS.isEnabled(this);
-		// Content-stripped build: drop built-in songs/weeks/characters, keep only
-		// SFX, menu music, engine UI shell and bundled mods. See NO_BUILTIN_CONTENT.
+		// Compact CI builds keep Tutorial and Week 1. See NO_BUILTIN_CONTENT.
 		var stripped:Bool = NO_BUILTIN_CONTENT.isEnabled(this);
 
 		if (shouldEmbed)
@@ -949,7 +940,7 @@ class Project extends HXProject
 
 		if (stripped)
 		{
-			info('NO_BUILTIN_CONTENT: stripping built-in songs, weeks and characters (keeping SFX + menu music)...');
+			info('NO_BUILTIN_CONTENT: including Tutorial and Week 1 only...');
 		}
 
 		// Default asset library
@@ -961,9 +952,7 @@ class Project extends HXProject
 		}
 		else
 		{
-			// Stripped: SFX + menu music only. Song charts (data/<song>/),
-			// character JSONs (characters/), week JSONs (weeks/) and stage
-			// JSONs (stages/) are all dropped.
+			// Compact build: retain the shell and the complete Tutorial/Week 1 content.
 			addAssetPath("assets/preload/sounds", "assets/sounds", "default", ["*"], exclude, shouldEmbed);
 			addAssetPath("assets/preload/music", "assets/music", "default", ["*"], exclude, shouldEmbed);
 			addAssetPath("assets/preload/gameRenders", "assets/gameRenders", "default", ["*"], exclude, shouldEmbed);
@@ -973,29 +962,27 @@ class Project extends HXProject
 			addAsset("assets/preload/data/funnyTips.txt", "assets/data/funnyTips.txt", "default", shouldEmbed);
 			addAsset("assets/preload/data/windowTitleBase.txt", "assets/data/windowTitleBase.txt", "default", shouldEmbed);
 			addAssetPath("assets/preload/data/ratingQuotes", "assets/data/ratingQuotes", "default", ["*"], exclude, shouldEmbed);
-			// Keep the tutorial: CI stripped builds still ship one playable
-			// built-in week alongside the bundled mods (mods/ is added below).
-			addAssetPath("assets/preload/data/tutorial", "assets/data/tutorial", "default", ["*"], exclude, shouldEmbed);
-			addAssetPath("assets/preload/weeks", "assets/weeks", "default", ["tutorial.json", "weekList.txt"], exclude, shouldEmbed);
-			// Menu/UI shell art only. Built-in character, week and dialogue
-			// art is dropped (the game falls back to generated placeholders).
+			addAsset("setup/ci-characterList.txt", "assets/data/characterList.txt", "default", shouldEmbed);
+			addAsset("setup/ci-stageList.txt", "assets/data/stageList.txt", "default", shouldEmbed);
+			for (song in ["tutorial", "bopeebo", "fresh", "dad-battle"])
+				addAssetPath('assets/preload/data/${song}', 'assets/data/${song}', "default", ["*"], exclude, shouldEmbed);
+			addAssetPath("assets/preload/characters", "assets/characters", "default", ["bf.json", "bf-dead.json", "gf.json", "dad.json"], exclude, shouldEmbed);
+			addAsset("assets/preload/stages/stage.json", "assets/stages/stage.json", "default", shouldEmbed);
+			addAssetPath("assets/preload/weeks", "assets/weeks", "default", ["tutorial.json", "week1.json"], exclude, shouldEmbed);
+			addAsset("setup/ci-weekList.txt", "assets/weeks/weekList.txt", "default", shouldEmbed);
+			// Keep Tutorial/Week 1 menus, icons and the title dancer as well as UI.
+			// Limit the character-specific folders rather than shipping later weeks.
 			var excludePreloadImages:Array<String> = exclude.concat([
-				"icons", // character health icons (incl. icon-face fallback)
-				"menucharacters", // story menu dancers
-				"storymenu", // week title cards
-				"dialogue", // dialogue portraits + character JSONs
-				"menubackgrounds", // per-week story menu backdrops
-				"week1_nomiss.png", // built-in week achievement art ...
-				"week2_nomiss.png",
-				"week3_nomiss.png",
-				"week4_nomiss.png",
-				"week5_nomiss.png",
-				"week6_nomiss.png",
-				"week7_nomiss.png",
-				"weekend1_nomiss.png", // ... (generic achievement icons stay)
-				"gfDanceTitle.*" // title screen dancer (+ its .json/.xml)
+				"icons", "menucharacters", "storymenu", "dialogue", "menubackgrounds",
+				"week2_nomiss.png", "week3_nomiss.png", "week4_nomiss.png",
+				"week5_nomiss.png", "week6_nomiss.png", "week7_nomiss.png", "weekend1_nomiss.png"
 			]);
 			addAssetPath("assets/preload/images", "assets/images", "default", ["*"], excludePreloadImages, shouldEmbed);
+			addAssetPath("assets/preload/images/icons", "assets/images/icons", "default", ["icon-bf.png", "icon-gf.png", "icon-dad.png", "icon-face.png"], exclude, shouldEmbed);
+			addAssetPath("assets/preload/images/menucharacters", "assets/images/menucharacters", "default", ["bf.json", "dad.json", "gf.json", "Menu_BF.*", "Menu_Dad.*", "Menu_GF.*"], exclude, shouldEmbed);
+			addAssetPath("assets/preload/images/storymenu", "assets/images/storymenu", "default", ["tutorial.png", "week1.png"], exclude, shouldEmbed);
+			addAssetPath("assets/preload/images/menubackgrounds", "assets/images/menubackgrounds", "default", ["menu_stage.png"], exclude, shouldEmbed);
+			addAssetPath("assets/preload/images/dialogue", "assets/images/dialogue", "default", ["bf.json", "gf.json"], exclude, shouldEmbed);
 		}
 
 		// Font assets
@@ -1017,9 +1004,8 @@ class Project extends HXProject
 		if (!stripped)
 			addAssetPath("assets/songs", "assets/songs", "songs", ["*"], exclude, shouldEmbed);
 		else
-			// Keep the tutorial song only; every other built-in song (and the
-			// week 2 through weekend 1 level folders below) stays dropped.
-			addAssetPath("assets/songs/tutorial", "assets/songs/tutorial", "songs", ["*"], exclude, shouldEmbed);
+			for (song in ["tutorial", "bopeebo", "fresh", "dad-battle"])
+				addAssetPath('assets/songs/${song}', 'assets/songs/${song}', "songs", ["*"], exclude, shouldEmbed);
 		addAssetLibrary("shared", shouldEmbed, shouldPreload);
 		if (!stripped)
 		{
@@ -1027,24 +1013,17 @@ class Project extends HXProject
 		}
 		else
 		{
-			// Stripped: SFX + menu/pause/game-over music only.
+			// Keep shared sounds and music along with the compact mode's art.
 			addAssetPath("assets/shared/sounds", "assets/shared/sounds", "shared", ["*"], exclude, shouldEmbed);
 			addAssetPath("assets/shared/music", "assets/shared/music", "shared", ["*"], exclude, shouldEmbed);
-			// Engine UI art only (noteskins, ratings, splash, dialogue box,
-			// pixel UI theme, ...). Character sprites/portraits, dialogue
-			// portraits and week stage art are dropped.
-			var excludeSharedImages:Array<String> = exclude.concat([
-				"characters", // every character sprite + the game-over placeholder
-				"dialogue", // BF/GF dialogue portraits
-				"weeb", // week 6 school stage art
-				"stageback.png", // week 1 stage art ...
-				"stagefront.png",
-				"stagecurtains.png",
-				"stage_light.png",
-				"spotlight.png", // ... incl. Dadbattle Spotlight event art
-				"smoke.png" // Dadbattle fog art
-			]);
+			// Keep the standard stage and spotlight art. Other character sheets
+			// are excluded; select Tutorial/Week 1 characters explicitly below.
+			var excludeSharedImages:Array<String> = exclude.concat(["characters", "dialogue", "weeb"]);
 			addAssetPath("assets/shared/images", "assets/shared/images", "shared", ["*"], excludeSharedImages, shouldEmbed);
+			addAssetPath("assets/shared/images/characters", "assets/shared/images/characters", "shared",
+				["BOYFRIEND.*", "BOYFRIEND_DEAD.*", "GF_assets.*", "DADDY_DEAREST.*", "placeholder.png"], exclude, shouldEmbed);
+			addAssetPath("assets/shared/images/dialogue", "assets/shared/images/dialogue", "shared",
+				["BF_Dialogue.*", "GF_Dialogue.*"], exclude, shouldEmbed);
 		}
 		if (VIDEOS_ALLOWED.isEnabled(this) && !stripped)
 		{
@@ -1053,10 +1032,7 @@ class Project extends HXProject
 			addAssetPath("assets/videos", "assets/videos", "videos", ["*"], exclude, false);
 		}
 
-		// Level asset libraries (dropped entirely in stripped builds: each one
-		// is stage art + stage SFX for a built-in week). No-assets checkouts
-		// ship without these folders, so a missing directory is skipped with
-		// a warning instead of aborting the whole project evaluation.
+		// Later level libraries are only included in full builds.
 		for (weekFolder in ["week2", "week3", "week4", "week5", "week6", "week7", "weekend1"])
 		{
 			addAssetLibrary(weekFolder, shouldEmbed, shouldPreload);
@@ -1065,7 +1041,7 @@ class Project extends HXProject
 				if (sys.FileSystem.exists("assets/${weekFolder}"))
 					addAssetPath("assets/${weekFolder}", "assets/${weekFolder}", weekFolder, ["*"], exclude, shouldEmbed);
 				else
-					info('No assets mode: skipping missing level asset folder "assets/${weekFolder}".');
+					info('Skipping missing level asset folder "assets/${weekFolder}".');
 			}
 		}
 

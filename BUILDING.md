@@ -249,35 +249,24 @@ The decision itself lives in `backend.LaunchState` and is covered by
 
 ---
 
-### Content-stripped (copyright-safe) builds
+### Built-in assets and compact CI builds
 
-Pass `-DNO_BUILTIN_CONTENT` to build the engine **without any built-in songs,
-weeks or characters**:
+Normal local builds include **all built-in assets** in the repository by
+default. No additional asset download or restoration step is required.
+Release workflows also build with full assets.
 
-`lime test windows -DNO_BUILTIN_CONTENT`
+`-DNO_BUILTIN_CONTENT` is an explicit compact mode used by routine CI builds:
 
-This is meant for distributing the engine itself (source ports, engine-only
-releases, modding bases) without shipping the base game's copyrighted story
-content. Only the following built-in assets are kept:
+```sh
+lime test windows -DNO_BUILTIN_CONTENT
+```
 
-* SFX (`assets/preload/sounds`, `assets/shared/sounds`)
-* Menu / pause / game-over music (`assets/preload/music`, `assets/shared/music`)
-* Engine shell: UI art, fonts, sound tray, splash, easter-egg embeds
-* Small runtime text files (`introText.txt`, `funnyTips.txt`, `windowTitleBase.txt`, `ratingQuotes/`)
-* Bundled mods (`mods/`, e.g. the `bf-clicker` example mod still works)
-
-Everything else content-related is dropped from the build: song audio
-(`assets/songs`), all charts (`assets/preload/data/<song>/`), character JSONs
-(`assets/preload/characters`), week JSONs (`assets/preload/weeks`), stage JSONs
-(`assets/preload/stages`), the `week2`-`week7` + `weekend1` libraries, cutscene
-videos, and all character / week / dialogue / stage art (including the
-`week*_nomiss` achievement icons; generic achievement icons stay).
-
-The game still boots and runs in this mode: characters, health icons, stage
-art, week cards and dialogue portraits are replaced by code-generated
-placeholders, the title dancer is hidden, and story/freeplay show their usual
-"no weeks" message unless mods provide content. All editors remain usable for
-creating new content.
+Despite its historical name, this mode **includes copyrighted content**:
+Tutorial and all of Week 1 (Bopeebo, Fresh and Dad Battle), their charts,
+audio, characters, stage, menus, icons and title art, plus the engine UI, music,
+sounds and bundled mods. Later weeks and videos are excluded. It is not a
+copyright-free distribution. CI's manual Build workflow also has a
+`fullAssets` option; all release workflows set it explicitly.
 
 ---
 

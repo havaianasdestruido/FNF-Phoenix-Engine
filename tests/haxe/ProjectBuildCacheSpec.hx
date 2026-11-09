@@ -12,7 +12,7 @@ class ProjectBuildCacheSpec
   }
 
   static function makeProject(target:Platform, flags:Map<String, String>, command:String = "build",
-      customCache:Null<String> = null, disableDefault:Bool = false, customDefine:Null<String> = null):Project
+      customCache:Null<String> = null, disableDefault:Bool = false, customDefine:Null<String> = null, compact:Bool = true):Project
   {
     // Project.setenv mutates the current process as well as the returned map.
     // Start each scenario with a fresh environment, just as a Lime invocation does.
@@ -24,6 +24,7 @@ class ProjectBuildCacheSpec
     HXProject._templatePaths = [];
     HXProject._environment = Sys.environment();
     HXProject._userDefines = [];
+    if (compact) HXProject._userDefines.set("NO_BUILTIN_CONTENT", "1");
     if (disableDefault)
       HXProject._userDefines.set("NO_HXCPP_COMPILE_CACHE", "1");
     if (customDefine != null)
@@ -78,6 +79,39 @@ class ProjectBuildCacheSpec
     project = makeProject(host, ["neko" => ""], "build");
     assertEquals(null, project.environment.get("HXCPP_COMPILE_CACHE"), "Neko does not use hxcpp");
 
+    // Inspect the actual packaged paths, not just the existence of source files.
+    project = makeProject(host, [], "build");
+    for (path in [
+      "assets/weeks/tutorial.json", "assets/weeks/week1.json", "assets/weeks/weekList.txt",
+      "assets/data/tutorial/tutorial.json", "assets/data/bopeebo/bopeebo.json",
+      "assets/data/fresh/fresh.json", "assets/data/dad-battle/dad-battle.json",
+      "assets/songs/tutorial/Inst.ogg", "assets/songs/bopeebo/Inst.ogg",
+      "assets/songs/fresh/Inst.ogg", "assets/songs/dad-battle/Inst.ogg",
+      "assets/characters/bf.json", "assets/characters/bf-dead.json", "assets/characters/gf.json", "assets/characters/dad.json",
+      "assets/stages/stage.json", "assets/shared/images/characters/BOYFRIEND.png",
+      "assets/shared/images/characters/BOYFRIEND.xml", "assets/shared/images/characters/BOYFRIEND_DEAD.png",
+      "assets/shared/images/characters/GF_assets.png", "assets/shared/images/characters/DADDY_DEAREST.png",
+      "assets/shared/images/stageback.png", "assets/shared/images/stagefront.png", "assets/shared/images/stagecurtains.png",
+      "assets/shared/images/stage_light.png", "assets/shared/images/spotlight.png", "assets/shared/images/smoke.png",
+      "assets/images/icons/icon-bf.png", "assets/images/icons/icon-dad.png", "assets/images/icons/icon-gf.png",
+      "assets/images/menucharacters/Menu_BF.png", "assets/images/storymenu/week1.png", "assets/images/gfDanceTitle.png"
+    ])
+    {
+      var found = [for (asset in project.assets) if (asset.targetPath == path) asset];
+      assertEquals(1, found.length, 'compact build asset $path');
+      if (path == "assets/weeks/weekList.txt")
+        assertEquals("setup/ci-weekList.txt", found[0].sourcePath, "compact week list");
+    }
+    // A normal (unflagged) project includes later weeks and their assets.
+    project = makeProject(host, [], "build", null, false, null, false);
+    assertEquals(false, project.defines.exists("NO_BUILTIN_CONTENT"), "normal build defaults to full content");
+    for (path in ["assets/weeks/week2.json", "assets/data/spookeez/spookeez.json",
+      "assets/songs/spookeez/Inst.ogg", "assets/week2/images/halloween_bg.png"])
+      assertEquals(1, [for (asset in project.assets) if (asset.targetPath == path) asset].length, 'full build asset $path');
+    project = makeProject(host, [], "build");
+    for (path in ["assets/weeks/week2.json", "assets/data/spookeez/spookeez.json",
+      "assets/songs/spookeez/Inst.ogg", "assets/week2/images/halloween_bg.png"])
+      assertEquals(0, [for (asset in project.assets) if (asset.targetPath == path) asset].length, 'compact build excludes $path');
     Sys.putEnv("HXCPP_COMPILE_CACHE", null);
     Sys.println("Project build-cache configuration: OK");
   }
