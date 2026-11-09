@@ -75,6 +75,7 @@ class ClientPrefs { //default settings if it can't find a save file containing y
 	public static var smoothHPBug:Bool = false;
 	public static var flashing:Bool = true;
 	public static var reducedMotion:Bool = false;
+	public static var dialogueSpeedMult:Float = 1.0;
 	public static var camZooms:Bool = true;
 	public static var showNotes:Bool = true;
 	/** Opt-in perspective for notes/strums only; forces middlescroll for the next song. */
