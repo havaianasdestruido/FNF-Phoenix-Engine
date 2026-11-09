@@ -147,6 +147,7 @@ class ClientPrefs { //default settings if it can't find a save file containing y
 	public static var noteSpawnTime:Float = 1;
 	public static var resolution:String = '1280x720';
 	public static var framerate:Int = 60;
+	public static var framePacing:Int = 0;
 
 	//Optimization
 	public static var charsAndBG:Bool = true;
