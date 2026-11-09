@@ -281,6 +281,7 @@ class ClientPrefs { //default settings if it can't find a save file containing y
 	public static var safeFrames:Float = 10.0;
 	public static var comboOffset:Array<Int> = [0, 0, 0, 0];
 	public static var noteOffset:Int = 0;
+	public static var audioLatencyOffset:Float = 0;
 
 	//Every key has two binds, add your key bind down here and then add your control on options/ControlsSubState.hx and Controls.hx
 	public static var keyBinds:Map<String, Array<FlxKey>> = [
