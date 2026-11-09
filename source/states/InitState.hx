@@ -64,10 +64,10 @@ class InitState extends FlxState {
         // -- MODS -- //
 
 		#if MODS_ALLOWED
-		Mods.pushGlobalMods();
+		if (!ClientPrefs.safeMode) Mods.pushGlobalMods();
 		#end
 		// Just to load a mod on start up if ya got one. For mods that change the menu music and bg
-		Mods.loadTopMod();
+		if (!ClientPrefs.safeMode) Mods.loadTopMod();
 
         // -- -- -- //
 
