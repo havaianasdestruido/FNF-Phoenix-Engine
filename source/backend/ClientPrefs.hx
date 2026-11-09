@@ -45,6 +45,7 @@ class ClientPrefs { //default settings if it can't find a save file containing y
 
 	//Visuals & UI
 	public static var noteSkin:String = 'Default';
+	public static var locale:String = 'en';
 	public static var splashType:String = 'Default';
 	public static var noteSplashes:Bool = true;
 	public static var oppNoteSplashes:Bool = true;
