@@ -320,7 +320,7 @@ class PlayStateEvents
 				state.songLength = fakelength;
 
 			case 'Add Camera Zoom':
-				if(ClientPrefs.camZooms && state.camHUD.zoom < 1.35) {
+				if(ClientPrefs.camZooms && !ClientPrefs.reducedMotion && state.camHUD.zoom < 1.35) {
 					var camZoom:Float = Std.parseFloat(value1);
 					var hudZoom:Float = Std.parseFloat(value2);
 					if(Math.isNaN(camZoom)) camZoom = 0.015;
@@ -412,7 +412,7 @@ class PlayStateEvents
 					if(Math.isNaN(intensity)) intensity = 0;
 
 					if(duration > 0 && intensity != 0) {
-						targetsArray[i].shake(intensity, duration);
+						if (!ClientPrefs.reducedMotion) targetsArray[i].shake(intensity, duration);
 					}
 				}
 

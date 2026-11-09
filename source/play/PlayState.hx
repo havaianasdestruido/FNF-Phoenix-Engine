@@ -3119,7 +3119,7 @@ class PlayState extends MusicBeatState
 			var randomSpeed = FlxMath.roundDecimal(FlxG.random.float(minSpeed, maxSpeed), 2);
 			lerpSongSpeed(randomSpeed, 1);
 		}
-		if (camZooming && !endingSong && !startingSong && camHUD.zoom < 1.35 && usingBopIntervalEvent && ClientPrefs.camZooms && (curBeat % camBopInterval == 0))
+		if (camZooming && !endingSong && !startingSong && camHUD.zoom < 1.35 && usingBopIntervalEvent && ClientPrefs.camZooms && !ClientPrefs.reducedMotion && (curBeat % camBopInterval == 0))
 		{
 			camBopFactor += 0.015 * camBopIntensity;
 			camHUD.zoom += 0.03 * camBopIntensity;
@@ -3192,7 +3192,7 @@ class PlayState extends MusicBeatState
 				setOnLuas('altAnim', SONG.notes[curSection].altAnim);
 				setOnLuas('gfSection', SONG.notes[curSection].gfSection);
 			}
-			if (camZooming && !endingSong && !startingSong && camHUD.zoom < 1.35 && !usingBopIntervalEvent && ClientPrefs.camZooms)
+			if (camZooming && !endingSong && !startingSong && camHUD.zoom < 1.35 && !usingBopIntervalEvent && ClientPrefs.camZooms && !ClientPrefs.reducedMotion)
 			{
 				camBopFactor += 0.015 * camBopIntensity;
 				camHUD.zoom += 0.03 * camBopIntensity;
