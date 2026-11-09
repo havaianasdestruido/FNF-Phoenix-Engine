@@ -132,6 +132,41 @@ class BaseOptionsMenu extends MusicBeatSubstate
 		FlxG.mouse.visible = true;
 
 		addVirtualPad(LEFT_FULL, A_B_C);
+
+		applyUIScale();
+	}
+
+	/**
+	 * Applies Options -> Visuals and UI -> UI Scale to everything this menu owns.
+	 *
+	 * Runs once while the menu is built and again whenever the option changes, so
+	 * the scaling is a live preview instead of something you only see after
+	 * reopening the menu. `ClientPrefs.uiScalePercent` is the single source of
+	 * truth; `ScreenLayout.uiScale()` clamps out invalid saved values.
+	 */
+	public function applyUIScale():Void
+	{
+		final s:Float = ScreenLayout.uiScale();
+		if (titleText != null) titleText.setScale(0.6 * s);
+		if (descText != null)
+		{
+			descText.setFormat(Paths.font("vcr.ttf"), ScreenLayout.fontScaled(32), FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+			descText.borderSize = 2.4;
+		}
+		if (searchText != null) searchText.setFormat(Paths.font("vcr.ttf"), ScreenLayout.fontScaled(24), FlxColor.BLACK);
+		if (buttonTop != null && buttonTop.label != null)
+			buttonTop.label.setFormat(Paths.font("vcr.ttf"), ScreenLayout.fontScaled(24), FlxColor.BLACK, RIGHT);
+		if (grpOptions != null)
+			for (item in grpOptions)
+			{
+				item.setScale(s);
+				item.distancePerItem.set(20 * s, 120 * s);
+			}
+		if (grpTexts != null)
+			for (text in grpTexts)
+				text.setScale(s);
+		// Checkboxes scale themselves (see CheckboxThingie), so every menu that
+		// uses them follows UI Scale without this class having to know.
 	}
 
 	public function addOption(option:Option) {

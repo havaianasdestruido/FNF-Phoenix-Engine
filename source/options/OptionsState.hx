@@ -6,6 +6,7 @@ import flixel.input.keyboard.FlxKey;
 
 import backend.ClientPrefs;
 import backend.PlatformSupport;
+import backend.ScreenLayout;
 import backend.ViewportVisuals;
 import backend.CoolUtil;
 import backend.DiscordClient;
@@ -54,6 +55,8 @@ class OptionsState extends MusicBeatState
 	private var mainCamera:FlxCamera;
 	private var subCamera:FlxCamera;
 	private var otherCamera:FlxCamera;
+	/** Options -> Visuals and UI -> UI Scale, applied to this list and its arrows. */
+	private var uiScale:Float = 1;
 
 	function openSelectedSubstate(label:String) {
 		if (label != "Adjust Delay and Combo"){
@@ -97,16 +100,17 @@ class OptionsState extends MusicBeatState
 	override public function onResize(width:Int, height:Int):Void
 	{
 		super.onResize(width, height);
+		uiScale = ScreenLayout.uiScale();
 		ViewportVisuals.cover(optionsBackground);
 		if (optionsBackground != null) optionsBackground.y -= 5;
 		if (grpOptions != null)
 		{
-			grpOptions.forEach(item -> item.screenCenter(X));
+			grpOptions.forEach(item -> { item.setScale(uiScale); item.screenCenter(X); });
 			final selected = grpOptions.members[curSelected];
 			if (selected != null && selectorLeft != null && selectorRight != null)
 			{
-				selectorLeft.x = selected.x - 63;
-				selectorRight.x = selected.x + selected.width + 15;
+				selectorLeft.x = selected.x - 63 * uiScale;
+				selectorRight.x = selected.x + selected.width + 15 * uiScale;
 			}
 		}
 		if (camFollow != null) camFollow.x = FlxG.width / 2;
@@ -149,21 +153,25 @@ class OptionsState extends MusicBeatState
 		grpOptions = new FlxTypedGroup<Alphabet>();
 		add(grpOptions);
 
+		uiScale = ScreenLayout.uiScale();
 		for (i in 0...options.length)
 		{
 			var optionText:Alphabet = new Alphabet(0, 0, options[i], true);
+			optionText.setScale(uiScale);
 			optionText.screenCenter();
-			optionText.y += (100 * (i - (options.length / 2))) + 50;
+			optionText.y += (100 * uiScale * (i - (options.length / 2))) + 50;
 			optionText.scrollFactor.set(0, yScroll*1.5);
 			optionText.cameras = [subCamera];
 			grpOptions.add(optionText);
 		}
 		//I TOOK THIS FROM THE MAIN MENU STATE, NOT FROM DENPA ENGINE
 		selectorLeft = new Alphabet(0, 0, '>', true);
+		selectorLeft.setScale(uiScale);
 		selectorLeft.scrollFactor.set(0, yScroll*1.5);
 		selectorLeft.cameras = [subCamera];
 		add(selectorLeft);
 		selectorRight = new Alphabet(0, 0, '<', true);
+		selectorRight.setScale(uiScale);
 		selectorRight.scrollFactor.set(0, yScroll*1.5);
 		selectorRight.cameras = [subCamera];
 		add(selectorRight);
@@ -314,9 +322,9 @@ class OptionsState extends MusicBeatState
 				if(grpOptions.members.length > 4) {
 					thing = grpOptions.members.length * 8;
 				}
-				selectorLeft.x = item.x - 63;
+				selectorLeft.x = item.x - 63 * uiScale;
 				selectorLeft.y = item.y;
-				selectorRight.x = item.x + item.width + 15;
+				selectorRight.x = item.x + item.width + 15 * uiScale;
 				selectorRight.y = item.y;
 			}
 		}

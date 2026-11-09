@@ -2,6 +2,7 @@ package objects;
 
 import backend.Paths;
 import backend.ClientPrefs;
+import backend.ScreenLayout;
 
 class CheckboxThingie extends FlxSprite
 {
@@ -20,7 +21,9 @@ class CheckboxThingie extends FlxSprite
 		animation.addByPrefix("checked", "checkbox finish", 24, false);
 
 		antialiasing = ClientPrefs.globalAntialiasing;
-		setGraphicSize(Std.int(0.9 * width));
+		// Menu checkboxes follow Options -> Visuals and UI -> UI Scale, so they
+		// stay proportional to the option row they belong to.
+		setGraphicSize(Std.int(0.9 * width * ScreenLayout.uiScale()));
 		updateHitbox();
 
 		animationFinished(checked ? 'checking' : 'unchecking');
@@ -30,7 +33,8 @@ class CheckboxThingie extends FlxSprite
 
 	override function update(elapsed:Float) {
 		if (sprTracker != null) {
-			setPosition(sprTracker.x - 130 + offsetX, sprTracker.y + 30 + offsetY);
+			final s:Float = ScreenLayout.uiScale();
+			setPosition(sprTracker.x - 130 * s + offsetX, sprTracker.y + 30 * s + offsetY);
 			if(copyAlpha) {
 				alpha = sprTracker.alpha;
 			}

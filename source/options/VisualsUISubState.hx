@@ -465,6 +465,22 @@ class VisualsUISubState extends BaseOptionsMenu
 			true);
 		addOption(option);
 
+		var option:Option = new Option('UI Scale',
+			"Scales menu text, row spacing, checkboxes and value labels together,\nso the whole menu grows or shrinks instead of just the fonts.\n100% is the original size. Applies live while you change it.",
+			'uiScalePercent',
+			'int',
+			100);
+		option.minValue = 50;
+		option.maxValue = 200;
+		option.changeValue = 5;
+		option.displayFormat = '%v%';
+		addOption(option);
+		option.onChange = function() {
+			// Live preview: rescale the menu the player is looking at right now.
+			applyUIScale();
+			ClientPrefs.saveSettings();
+		};
+
 		var option:Option = new Option('Alphabet Style:',
 			"How the alphabet draws menu text.\nFont: glyphs from a real font, crisp at any size.\nImage: the classic alphabet spritesheet.",
 			'alphabetStyle',

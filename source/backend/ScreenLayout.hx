@@ -38,4 +38,23 @@ class ScreenLayout
 		var moved:Float = position + (position + extent / 2 >= oldSize / 2 ? newSize - oldSize : 0);
 		return Math.max(0, Math.min(Math.max(0, newSize - extent), moved));
 	}
+
+	/**
+	 * Global UI scale from Options -> Visuals and UI (`ClientPrefs.uiScalePercent`).
+	 *
+	 * `1.0` is the original 100% layout authored in `BASE_WIDTH`/`BASE_HEIGHT`.
+	 * Menu text, checkboxes and row spacing multiply by this so the whole menu
+	 * grows or shrinks together instead of only the fonts changing. A missing or
+	 * invalid saved value falls back to `1.0` so a corrupted save cannot zero out
+	 * the UI.
+	 */
+	public static inline function uiScale():Float
+	{
+		final percent:Int = ClientPrefs.uiScalePercent;
+		return (percent <= 0) ? 1.0 : percent / 100;
+	}
+
+	/** Scale a text point size by `uiScale()`, always at least one pixel. */
+	public static inline function fontScaled(size:Int):Int
+		return Std.int(Math.max(1, Math.round(size * uiScale())));
 }
