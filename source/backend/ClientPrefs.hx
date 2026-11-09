@@ -101,6 +101,7 @@ class ClientPrefs { //default settings if it can't find a save file containing y
 	public static var healthBarAlpha:Float = 1;
 	public static var showFPS:Bool = true;
 	public static var show1PercentLows:Bool = false;
+	public static var uncappedFps:Bool = false;
 	public static var mouseSupport:Bool = true;
 	public static var legacyFPSUI:Bool = false;
 	public static var botTxtFade:Bool = true;
