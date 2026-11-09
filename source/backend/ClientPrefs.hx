@@ -139,6 +139,7 @@ class ClientPrefs { //default settings if it can't find a save file containing y
 	public static var widescreen:Bool = false;
 	public static var lowQuality:Bool = false;
 	public static var lowMemoryMode:Bool = false;
+	public static var preloadNextSong:Bool = true;
 	public static var globalAntialiasing:Bool = true;
 	public static var shaders:Bool = true;
 	public static var cacheOnGPU:Bool = false;
