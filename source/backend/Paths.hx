@@ -78,7 +78,9 @@ class Paths
     else
       defaultSkin = 'noteskins/NOTE_assets';
     #if MAIN_DEBUG
+    #if MAIN_DEBUG
     trace(defaultSkin);
+    #end
     #end
   }
 
