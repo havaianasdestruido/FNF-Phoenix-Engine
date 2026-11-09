@@ -507,6 +507,10 @@ class DialogueBoxPsych extends FlxSpriteGroup
 		if(curDialogue.speed == null || Math.isNaN(curDialogue.speed)) curDialogue.speed = 0.05;
 		if (ClientPrefs.dialogueSpeedMult > 0 && ClientPrefs.dialogueSpeedMult != 1.0)
 			curDialogue.speed = curDialogue.speed / ClientPrefs.dialogueSpeedMult;
+		if (ClientPrefs.instantDialogueAdvance)
+			curDialogue.speed = 0; // skip typewriter
+		if (ClientPrefs.hideDialogueBox)
+			alpha = 0; // hide box
 
 		var animName:String = curDialogue.boxState;
 		var boxType:String = textBoxTypes[0];
