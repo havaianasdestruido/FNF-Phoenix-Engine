@@ -49,6 +49,22 @@ _i accept suggestions too_
 
 - Adding a built-in mod download support (gamebanana browser & gamejolt) (just like GMod)
 - - (edit: just found out this [https://github.com/miksel1/FNF-ScrewedEngine/blob/main/source/gamejolt/GJClient.hx](https://github.com/miksel1/FNF-ScrewedEngine/blob/main/source/gamejolt/GJClient.hx) snippet from Screwed Engine (JSE grandparent))
+
+- Port some of the [Mic'd Up! engine](https://github.com/Verwex/Funkin-Mic-d-Up-SC) features:
+- - Their new charts (Noob & Expert & INSANE)
+  - spinning vinil disk freeplay thing
+  - game filter thing (dautonic stuff and other filster like the "gameboy" one and the "invert" one)
+  - their cool icons
+  - the difficult icons redrawed
+  - moving checkerboard bg thing
+  - cool modes
+  - - Marathon
+    - Endless
+  - brightness & gamma option
+  - Engine logo watermark
+  - early & late ratings
+  - CHAOS mode, Dual Arrow mode, Dual CHAOS mode
+  - micd up ranking thing (S, A, etc..)
  
 - Port these cool stuff from Troll Engine:
 - - [source/funkin/api/src/memory.cpp
