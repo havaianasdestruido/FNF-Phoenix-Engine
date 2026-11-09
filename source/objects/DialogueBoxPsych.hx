@@ -347,8 +347,12 @@ class DialogueBoxPsych extends FlxSpriteGroup
 		}
 
 		if(!dialogueEnded) {
-			bgFade.alpha += 0.5 * elapsed;
-			if(bgFade.alpha > 0.5) bgFade.alpha = 0.5;
+			if (ClientPrefs.dimDialogueBackground) {
+				bgFade.alpha += 0.5 * elapsed;
+				if(bgFade.alpha > 0.5) bgFade.alpha = 0.5;
+			} else {
+				bgFade.alpha = 0;
+			}
 
 			if(PlayerSettings.player1.controls.ACCEPT || anyTouchJustPressed()) {
 				if(!daText.finishedText) {
