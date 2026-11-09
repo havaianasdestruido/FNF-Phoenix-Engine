@@ -87,6 +87,7 @@ class ClientPrefs { //default settings if it can't find a save file containing y
 	public static var dialogueSpeedMult:Float = 1.0;
 	public static var dimDialogueBackground:Bool = false;
 	public static var instantDialogueAdvance:Bool = false;
+	public static var hideDialogueBox:Bool = false;
 	public static var camZooms:Bool = true;
 	public static var visualBeatIndicator:Bool = false;
 	public static var showNotes:Bool = true;
