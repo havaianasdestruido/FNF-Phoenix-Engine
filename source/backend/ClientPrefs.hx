@@ -97,6 +97,7 @@ class ClientPrefs { //default settings if it can't find a save file containing y
 	public static var scoreZoom:Bool = true;
 	public static var healthBarAlpha:Float = 1;
 	public static var showFPS:Bool = true;
+	public static var mouseSupport:Bool = true;
 	public static var legacyFPSUI:Bool = false;
 	public static var botTxtFade:Bool = true;
 	public static var pauseMusic:String = 'Tea Time';
