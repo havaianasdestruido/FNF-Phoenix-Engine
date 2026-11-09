@@ -65,6 +65,7 @@ jobs:
     uses: ./.github/workflows/main.yml
     with:
       buildFlags: officialBuild
+      fullAssets: true
 
   release-windows:
     name: Release windowsBuild

@@ -18,6 +18,12 @@ on:
         type: string
         default: ""
 
+      fullAssets:
+        description: "Include all built-in content (required for releases)"
+        required: false
+        type: boolean
+        default: false
+
       buildWindows:
         description: "Build Windows"
         required: false
@@ -32,6 +38,12 @@ on:
 
   workflow_dispatch:
     inputs:
+      fullAssets:
+        description: "Include all built-in content (required for releases)"
+        required: false
+        type: boolean
+        default: false
+
       buildWindows:
         description: "Build Windows"
         required: false
@@ -390,11 +402,8 @@ jobs:
 
           $buildFlag = if ($env:BUILD_FLAGS) { $env:BUILD_FLAGS } else { 'commit' }
           $buildArgs = @('run', 'lime', 'build', 'windows', "-D$buildFlag")
-          # CI builds on PRs and on main drop the built-in weeks and story songs
-          # (keeping the tutorial + bundled mods) to keep the artifact .zip small.
-          # Pushes to bleeding and release dispatches (workflow_call /
-          # workflow_dispatch) keep full built-in content.
-          if (('${{ github.event_name }}' -eq 'pull_request') -or (('${{ github.event_name }}' -eq 'push') -and ('${{ github.ref_name }}' -eq 'main'))) {
+          # Routine CI is compact; releases explicitly request the full pack.
+          if ('${{ inputs.fullAssets }}' -ne 'true') {
             $buildArgs += '-DNO_BUILTIN_CONTENT'
           }
           # LTCG adds substantial link time. Keep it for official releases,
@@ -419,14 +428,10 @@ jobs:
           if [ -n "$BUILD_FLAGS" ]; then
             args+=("-D$BUILD_FLAGS")
           fi
-          # CI builds on PRs and on main drop the built-in weeks and story songs
-          # (keeping the tutorial + bundled mods) to keep the artifact .zip small.
-          # Pushes to bleeding and release dispatches (workflow_call /
-          # workflow_dispatch) keep full built-in content.
-          case "${{ github.event_name }}" in
-            pull_request) args+=("-DNO_BUILTIN_CONTENT") ;;
-            push) [ "${{ github.ref_name }}" = "main" ] && args+=("-DNO_BUILTIN_CONTENT") ;;
-          esac
+          # Routine CI is compact; releases explicitly request the full pack.
+          if [ "${{ inputs.fullAssets }}" != "true" ]; then
+            args+=("-DNO_BUILTIN_CONTENT")
+          fi
           haxelib run lime build android "${args[@]}"
 
       # ==========================================
