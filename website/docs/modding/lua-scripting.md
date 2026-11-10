@@ -85,6 +85,7 @@ Before each call, the engine pushes a set of globals into the VM
 | Characters | `boyfriendName`, `dadName`, `gfName`, `defaultBoyfriendX/Y`, `defaultOpponentX/Y`, `defaultGirlfriendX/Y` |
 | Strums | `defaultPlayerStrumX/Y`, `defaultOpponentStrumX/Y` |
 | Score | `score`, `misses`, `hits`, `rating`, `ratingName`, `ratingFC` |
+| Timing | `hitTiming` (`"early"` / `"late"` / `""`), `noteDiff` (signed ms, `+` early) |
 | Camera | `cameraX`, `cameraY`, `cameraZoomOnBeat` |
 | Preferences | `downscroll`, `middlescroll`, `ghostTapping`, `hideHud`, `flashingLights`, `lowQuality`, `scoreZoom`, `healthBarAlpha`, `noteSkin`, `splashSkin`, `timeBarType`, `framerate`, `shadersEnabled` |
 | Modifiers | `practice`, `botPlay`, `instakillOnMiss`, `healthGainMult`, `healthLossMult`, `noResetButton`, `npsSpeedMult`, `polyphonyBF`, `polyphonyOppo` |

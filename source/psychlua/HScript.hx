@@ -391,6 +391,8 @@ class HScript
 		set('hits', 0);
 		set('rating', 0);
 		set('ratingName', '');
+		set('hitTiming', '');
+		set('noteDiff', 0);
 		set('ratingFC', '');
 		set('phoenixVersion', MainMenuState.phoenixEngineVersion.trim());
 		set('version', MainMenuState.psychEngineVersion.trim());

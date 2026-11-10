@@ -188,6 +188,12 @@ function onMoveCamera(focus:String) {
 	}
 }
 
+/**
+ * A note was hit. `hitTiming` is "early", "late" or "" and `noteDiff` is the
+ * signed millisecond offset (+ = early), both already published as globals.
+ */
+function onGoodNoteHit(id:Int, noteData:Int, noteType:String, isSustainNote:Bool) {}
+
 function onRecalculateRating() {
 	// Fired BEFORE the rating calculation.
 	// Return Function_Stop and set game.ratingPercent / game.ratingName /

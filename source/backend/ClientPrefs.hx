@@ -164,6 +164,13 @@ class ClientPrefs { //default settings if it can't find a save file containing y
 	public static var ratingPopups:Bool = true;
 	public static var comboPopups:Bool = true;
 	public static var showMS:Bool = false;
+	/** Mic'd Up!-style Early/Late label under the rating popup; off by default. */
+	public static var earlyLateRatings:Bool = false;
+	/**
+	 * Share of the hit window that counts as "on time" for the Early/Late label,
+	 * centred on 0 ms. 0.1 = the Mic'd Up! default (inside +-10% no label shows).
+	 */
+	public static var earlyLateDeadzone:Float = 0.1;
 	public static var noSpawnFunc:Bool = false;
 	public static var noHitFuncs:Bool = false;
 	public static var noSkipFuncs:Bool = false;

@@ -2,12 +2,15 @@ package play.objects;
 
 import backend.ClientPrefs;
 import play.PlayState;
+import play.helpers.HitTiming;
 
 typedef JudgeTextProperties =
 {
   combo:Float,
   rating:String,
   miss:Bool,
+  /** `HitTiming.EARLY` / `LATE` / `NONE`; drawn only with `earlyLateRatings`. */
+  timing:String,
   playbackRate:Float
 }
 
@@ -79,7 +82,7 @@ class JudgeText extends FlxText
 
     y = !ClientPrefs.downScroll ? PlayState?.instance?.botplayTxt?.y + 60 : PlayState?.instance?.botplayTxt?.y - 60;
 
-    applyRatingText(p.rating, p.combo, p.miss);
+    applyRatingText(p.rating, p.combo, p.miss, p.timing);
 
     scale.set(1.075, 1.075);
 
@@ -93,7 +96,7 @@ class JudgeText extends FlxText
     });
   }
 
-  function applyRatingText(rating:String, combo:Float, miss:Bool)
+  function applyRatingText(rating:String, combo:Float, miss:Bool, timing:String = HitTiming.NONE)
   {
     if (miss)
     {
@@ -102,23 +105,27 @@ class JudgeText extends FlxText
       return;
     }
 
+    // Mic'd Up! port: the simple popup can carry the Early/Late word too, since
+    // it is the only rating shown when `simplePopups` is on.
+    final timingSuffix:String = HitTiming.isTiming(timing) ? ' (' + HitTiming.label(timing) + ')' : '';
+
     switch (rating)
     {
       case 'perfect':
         color = FlxColor.YELLOW;
-        text = PlayState.instance.hitStrings[0] + '\n' + PlayState.formatNumber(combo);
+        text = PlayState.instance.hitStrings[0] + timingSuffix + '\n' + PlayState.formatNumber(combo);
       case 'sick':
         color = FlxColor.CYAN;
-        text = PlayState.instance.hitStrings[1] + '\n' + PlayState.formatNumber(combo);
+        text = PlayState.instance.hitStrings[1] + timingSuffix + '\n' + PlayState.formatNumber(combo);
       case 'good':
         color = FlxColor.LIME;
-        text = PlayState.instance.hitStrings[2] + '\n' + PlayState.formatNumber(combo);
+        text = PlayState.instance.hitStrings[2] + timingSuffix + '\n' + PlayState.formatNumber(combo);
       case 'bad':
         color = FlxColor.ORANGE;
-        text = PlayState.instance.hitStrings[3] + '\n' + PlayState.formatNumber(combo);
+        text = PlayState.instance.hitStrings[3] + timingSuffix + '\n' + PlayState.formatNumber(combo);
       case 'crap':
         color = FlxColor.RED;
-        text = PlayState.instance.hitStrings[4] + '\n' + PlayState.formatNumber(combo);
+        text = PlayState.instance.hitStrings[4] + timingSuffix + '\n' + PlayState.formatNumber(combo);
       default:
         color = MissCounter.color(combo, ClientPrefs.doidoMisses);
     }
