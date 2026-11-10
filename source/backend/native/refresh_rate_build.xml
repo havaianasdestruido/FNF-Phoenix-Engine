@@ -1,0 +1,31 @@
+<xml>
+  <!--
+    Build configuration for the Linux monitor refresh rate query, ported from
+    Troll Engine (source/funkin/api/build.xml).
+
+    Xlib.h must not leak into hxcpp-generated C++ (it defines None, Bool,
+    Status, ...), so the query is a real translation unit in its own file
+    group instead of a header-only helper. The "haxe" group only gets the
+    include path of the declaration header.
+  -->
+  <pragma once="true" />
+  <set name="PHOENIX_REFRESH_RATE_DIR" value="${this_dir}" />
+  <files id="haxe">
+    <compilervalue name="-I" value="${PHOENIX_REFRESH_RATE_DIR}/include/" />
+    <!-- hxcpp hashes declared dependencies when reusing cached objects. -->
+    <depend name="${PHOENIX_REFRESH_RATE_DIR}/include/phoenix_refresh_rate.h" />
+  </files>
+  <files id="phoenix_refresh_rate">
+    <compilervalue name="-I" value="${PHOENIX_REFRESH_RATE_DIR}/include/" />
+    <depend name="${PHOENIX_REFRESH_RATE_DIR}/include/phoenix_refresh_rate.h" />
+    <file name="${PHOENIX_REFRESH_RATE_DIR}/src/phoenix_refresh_rate.cpp" />
+  </files>
+  <target id="haxe">
+    <section if="linux" unless="android">
+      <files id="phoenix_refresh_rate" />
+      <!-- Provided by libx11-dev and libxrandr-dev (see setup/unix.sh). -->
+      <lib name="-lX11" />
+      <lib name="-lXrandr" />
+    </section>
+  </target>
+</xml>

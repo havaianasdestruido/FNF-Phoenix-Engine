@@ -225,6 +225,34 @@ inline int MessageBoxW(HWND owner, const WCHAR *message, const WCHAR *title, UIN
 inline void SetLastError(DWORD e) { mockLastError = e; }
 inline DWORD GetLastError() { return mockLastError; }
 
+// --- Registry stubs used by phoenixWindowIsLightTheme ------------------------
+typedef void *HKEY;
+typedef BYTE *LPBYTE;
+#define HKEY_CURRENT_USER ((HKEY)(ULONG_PTR)0x80000001)
+#define KEY_QUERY_VALUE 1
+#define REG_SZ 1
+#define REG_DWORD 4
+#define ERROR_SUCCESS 0
+#define ERROR_FILE_NOT_FOUND 2
+extern LONG mockRegOpenResult, mockRegQueryResult;
+extern DWORD mockRegType, mockRegValue, mockRegSize;
+extern int mockRegOpenKeys;
+extern std::wstring mockRegPath, mockRegName;
+inline LONG RegOpenKeyExW(HKEY, const WCHAR *path, DWORD, DWORD, HKEY *out) {
+  mockRegPath = path;
+  if (mockRegOpenResult != ERROR_SUCCESS) return mockRegOpenResult;
+  ++mockRegOpenKeys; *out = reinterpret_cast<HKEY>(1); return ERROR_SUCCESS;
+}
+inline LONG RegQueryValueExW(HKEY, const WCHAR *name, DWORD *, DWORD *type, LPBYTE data, DWORD *size) {
+  mockRegName = name;
+  if (mockRegQueryResult != ERROR_SUCCESS) return mockRegQueryResult;
+  *type = mockRegType;
+  if (mockRegSize <= *size) std::memcpy(data, &mockRegValue, mockRegSize);
+  *size = mockRegSize;
+  return ERROR_SUCCESS;
+}
+inline LONG RegCloseKey(HKEY) { --mockRegOpenKeys; return ERROR_SUCCESS; }
+
 // --- Stubs used by the META_HORROR helpers (source/backend/native/include) ---
 struct IUnknown { virtual unsigned long Release() { return 0; } };
 struct IMMDevice : IUnknown {

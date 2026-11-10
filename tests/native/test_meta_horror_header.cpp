@@ -45,6 +45,10 @@ std::wstring mockMessageText, mockMessageTitle;
 HWND mockMessageOwner = 0;
 int mockNotifyAction = 0, mockNotifyResult = 1;
 NOTIFYICONDATAW mockNotifyData = {};
+LONG mockRegOpenResult = ERROR_SUCCESS, mockRegQueryResult = ERROR_SUCCESS;
+DWORD mockRegType = REG_DWORD, mockRegValue = 1, mockRegSize = sizeof(DWORD);
+int mockRegOpenKeys = 0;
+std::wstring mockRegPath, mockRegName;
 
 int main()
 {

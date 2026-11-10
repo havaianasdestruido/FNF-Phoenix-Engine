@@ -236,7 +236,8 @@ class Main extends Sprite
     #end
 
     #if windows
-    system.Window.darkMode(true);
+    // Follow the Windows app theme instead of always forcing a dark frame.
+    system.Window.matchSystemTheme();
     #end
 
     #if (cpp && windows && NO_W11_CORNERS)

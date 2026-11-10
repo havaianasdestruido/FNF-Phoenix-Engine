@@ -38,7 +38,7 @@ class GameRendererSettingsSubState extends BaseOptionsMenu
 			60);
 		addOption(option);
 
-		final refreshRate:Int = FlxG.stage.application.window.displayMode.refreshRate;
+		final refreshRate:Int = backend.MonitorRefreshRate.get();
 		option.minValue = 1;
 		option.maxValue = 1000;
 		option.scrollSpeed = 125;

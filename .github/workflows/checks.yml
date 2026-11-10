@@ -79,6 +79,8 @@ jobs:
         run: bash tests/haxe/run-launch-state.sh
       - name: Test the distant-notes shader uniform wiring
         run: bash tests/haxe/run-distant-notes.sh
+      - name: Test the monitor refresh rate helper and its per-target C++
+        run: bash tests/haxe/run-monitor-refresh-rate.sh
 
   lua-script-pipeline:
     name: Lua script pipeline (Haxe)

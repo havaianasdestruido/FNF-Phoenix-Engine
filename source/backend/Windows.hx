@@ -36,6 +36,13 @@ class Windows
   public static function setDarkMode(enabled:Bool = true):Bool
     return prepare() && WindowNative.setDarkMode(enabled);
 
+  /**
+   * Whether the user's Windows app theme is light. True (the OS default) when
+   * the preference cannot be read and on every other target.
+   */
+  public static function isLightTheme():Bool
+    return WindowNative.isLightTheme();
+
   /** Validate an RGB triplet and convert it to Win32's COLORREF byte order. */
   static function colorRef(color:Array<Int>):Int
   {
