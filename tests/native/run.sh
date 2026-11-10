@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# Standalone C/C++ smoke tests for the native diagnostic headers and the
-# Windows window-lookup helper. No Haxe/Lime/Android dependencies.
+# Standalone C/C++ smoke tests for the native diagnostic headers, the Windows
+# window helpers and the Linux refresh rate query. No Haxe/Lime/Android
+# dependencies.
 #
 #   CC / CXX              override the host compilers (default cc / c++)
 #   PHOENIX_WINDOWS_CXX   optional Windows-targeting compiler; when set, the
@@ -49,6 +50,38 @@ for lang in c cpp; do
   "$work/system_$lang"
 done
 echo "phoenix_system smoke passed"
+
+# --- memory.h (process RSS): compile as C and C++, two translation units -----
+cat > "$work/memory_other.c" <<'EOF'
+#include "memory.h"
+size_t other(void) { return getCurrentRSS() + getPeakRSS(); }
+EOF
+cat > "$work/memory_main.c" <<'EOF'
+#include "memory.h"
+#include "memory.h"
+#include <assert.h>
+extern size_t other(void);
+int main(void)
+{
+  size_t current = getCurrentRSS();
+  size_t peak = getPeakRSS();
+#if defined(_WIN32) || defined(__linux__) || (defined(__APPLE__) && defined(__MACH__))
+  /* Both readings are implemented on these systems; zero means "unknown". */
+  assert(current > 0);
+  assert(peak > 0);
+#endif
+  assert(other() >= current || other() >= peak);
+  return 0;
+}
+EOF
+for lang in c cpp; do
+  if [ "$lang" = c ]; then comp="$CC"; std=gnu99; else comp="$CXX"; std=c++11; fi
+  command -v "$comp" >/dev/null || { echo "skip memory smoke ($comp unavailable)"; continue; }
+  "$comp" "-std=$std" -Wall -Wextra -Werror -I source/debug/mem/include \
+    "$work/memory_main.c" "$work/memory_other.c" -o "$work/memory_$lang"
+  "$work/memory_$lang"
+done
+echo "memory (RSS) smoke passed"
 
 # --- phoenix_hardware.h: compile as C and C++, two translation units ---------
 cat > "$work/hardware_other.c" <<'EOF'
@@ -149,6 +182,46 @@ if command -v "$CXX" >/dev/null; then
   PATH="$notif:$PATH" CAPTURE="$notif" "$work/notif-fail"
 else
   echo "skip desktop notifications ($CXX unavailable)"
+fi
+
+# --- Linux monitor refresh rate (ported from Troll Engine) -------------------
+# phoenix_refresh_rate.cpp is a real translation unit (Xlib.h cannot be merged
+# into hxcpp output), so it is linked here the same way hxcpp links it.
+if command -v "$CXX" >/dev/null; then
+  refresh_src=source/backend/native/src/phoenix_refresh_rate.cpp
+  # Behaviour, including every failure path, against the Xlib/XRandR double.
+  "$CXX" -std=c++11 -Wall -Wextra -Werror -D__linux__ -U__ANDROID__ \
+    -I tests/native/x11 -I source/backend/native/include \
+    tests/native/test_refresh_rate.cpp "$refresh_src" -o "$work/refresh-rate-test"
+  "$work/refresh-rate-test"
+
+  # Targets other than desktop Linux get a stub that needs no X11 at all, and
+  # the declaration header must stay valid C with C linkage.
+  printf '#include "phoenix_refresh_rate.h"\nint main(void) { return phoenixMonitorRefreshRate(); }\n' \
+    > "$work/refresh_caller.c"
+  "$CXX" -std=c++11 -Wall -Wextra -Werror -U__linux__ -I source/backend/native/include \
+    -c "$refresh_src" -o "$work/refresh_stub.o"
+  if command -v "$CC" >/dev/null; then
+    "$CC" -std=gnu99 -Wall -Wextra -Werror -I source/backend/native/include \
+      -c "$work/refresh_caller.c" -o "$work/refresh_caller.o"
+    "$CXX" "$work/refresh_caller.o" "$work/refresh_stub.o" -o "$work/refresh-stub"
+    "$work/refresh-stub"
+  fi
+
+  # With the real development headers installed (libx11-dev, libxrandr-dev),
+  # also build and run against the real Xlib. Without an X server this reports
+  # zero; with one it reports the actual rate.
+  if printf '#include <X11/extensions/Xrandr.h>\n' | "$CXX" -x c++ -fsyntax-only - 2>/dev/null; then
+    printf '#include "phoenix_refresh_rate.h"\n#include <stdio.h>\nint main(void) { int rate = phoenixMonitorRefreshRate(); printf("real Xlib refresh rate: %%d Hz\\n", rate); return rate >= 0 ? 0 : 1; }\n' \
+      > "$work/refresh_real.cpp"
+    "$CXX" -std=c++11 -Wall -Wextra -Werror -I source/backend/native/include \
+      "$work/refresh_real.cpp" "$refresh_src" -lX11 -lXrandr -o "$work/refresh-real"
+    "$work/refresh-real"
+  else
+    echo "skip real Xlib refresh rate build (X11/XRandR development headers not installed)"
+  fi
+else
+  echo "skip refresh rate ($CXX unavailable)"
 fi
 
 # Optional: compile the real header against the actual Windows SDK.

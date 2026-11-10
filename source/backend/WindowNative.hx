@@ -14,6 +14,10 @@ class WindowNative
   public static function setDarkMode(enabled:Bool):Bool
     return false;
 
+  @:functionCode('return phoenixWindowIsLightTheme();')
+  public static function isLightTheme():Bool
+    return true;
+
   @:functionCode('return phoenixWindowSetFrameColor((DWORD)attribute, (COLORREF)color);')
   public static function setFrameColor(attribute:Int, color:Int):Bool
     return false;
@@ -104,6 +108,9 @@ class WindowNative
 
   public static function setDarkMode(enabled:Bool):Bool
     return false;
+
+  public static function isLightTheme():Bool
+    return true;
 
   public static function setFrameColor(attribute:Int, color:Int):Bool
     return false;

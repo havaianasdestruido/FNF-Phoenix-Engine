@@ -30,6 +30,7 @@
 #pragma comment(lib, "dwmapi.lib")
 #pragma comment(lib, "user32.lib")
 #pragma comment(lib, "shell32.lib")
+#pragma comment(lib, "advapi32.lib")
 #endif
 #include <string>
 #include <vector>
@@ -339,6 +340,35 @@ static PHOENIX_WINDOW_UNUSED bool phoenixWindowSetDarkMode(bool enabled)
   if (FAILED(result))
     result = DwmSetWindowAttribute(window, PHOENIX_DWM_DARK_MODE_LEGACY, &value, sizeof(value));
   return SUCCEEDED(result);
+}
+
+/**
+ * Whether Windows apps use the light theme (Settings > Personalization >
+ * Colors > "Choose your default app mode"). Ported from Troll Engine's
+ * source/funkin/api/src/darkmode.cpp (isLightTheme):
+ * https://github.com/troll-slaiyers/FNF-Troll-Engine
+ * https://stackoverflow.com/questions/51334674/how-to-detect-windows-10-light-dark-mode-in-win32-application
+ *
+ * Returns true (the OS default) when the preference cannot be read, e.g. on
+ * Windows versions that predate the setting, instead of throwing as the
+ * original does.
+ */
+static PHOENIX_WINDOW_UNUSED bool phoenixWindowIsLightTheme()
+{
+  HKEY key = NULL;
+  if (RegOpenKeyExW(HKEY_CURRENT_USER,
+        L"Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize", 0,
+        KEY_QUERY_VALUE, &key) != ERROR_SUCCESS)
+    return true;
+  DWORD value = 1;
+  DWORD type = 0;
+  DWORD size = sizeof(value);
+  const LONG status = RegQueryValueExW(key, L"AppsUseLightTheme", NULL, &type,
+    reinterpret_cast<LPBYTE>(&value), &size);
+  RegCloseKey(key);
+  if (status != ERROR_SUCCESS || type != REG_DWORD || size != sizeof(value))
+    return true;
+  return value != 0;
 }
 
 static PHOENIX_WINDOW_UNUSED bool phoenixWindowSetFrameColor(DWORD attribute, COLORREF color)
