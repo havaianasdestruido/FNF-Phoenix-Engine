@@ -5,10 +5,9 @@ import backend.CoolUtil;
 import backend.MusicBeatSubstate;
 import backend.Paths;
 import backend.RenderPaths;
-import flixel.addons.display.FlxBackdrop;
 import flixel.input.keyboard.FlxKey;
-import flixel.util.FlxAxes;
 import openfl.display.BlendMode;
+import objects.MovingCheckerboard;
 import play.PlayState;
 
 import backend.Controls;
@@ -19,7 +18,7 @@ class RenderingDoneSubState extends MusicBeatSubstate {
 	var RenderText:FlxText;
 	var saveTxt:FlxText;
 
-	var checker:FlxBackdrop;
+	var checker:MovingCheckerboard;
 	var timeTaken:Float = 0;
 
 	public function new(timeTakenLol:Float) {
@@ -51,14 +50,9 @@ class RenderingDoneSubState extends MusicBeatSubstate {
 		background.antialiasing = ClientPrefs.globalAntialiasing;
 		add(background);
 
-		checker = new FlxBackdrop(Paths.image('checker', 'preload'), FlxAxes.XY);
-		checker.scale.set(4, 4);
-		checker.color = 0xFFb8860b;
+		checker = new MovingCheckerboard(0xFFb8860b, 27, 9.6, 4, 0.2);
 		checker.blend = BlendMode.LAYER;
 		add(checker);
-		checker.scrollFactor.set(0, 0.07);
-		checker.alpha = 0.2;
-		checker.updateHitbox();
 
 		RenderText = new FlxText(0, 140, 0, '', 124);
 		RenderText.text = "Rendering Complete!\n\nSong: " + PlayState.SONG.song + "\nTime Taken: " + CoolUtil.formatTime(timeTaken * 1000, 3) + "\nRendering finished on " + leDate;
@@ -92,8 +86,6 @@ class RenderingDoneSubState extends MusicBeatSubstate {
 
 	override function update(elapsed:Float) {
 		super.update(elapsed);
-		checker.x += 0.45 / (ClientPrefs.framerate / 60);
-		checker.y += (0.16 / (ClientPrefs.framerate / 60));
 
 		if (controls.ACCEPT) {
 			FlxTween.tween(background, {alpha: 0}, 0.4, {ease: FlxEase.quartInOut});

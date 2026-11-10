@@ -5,7 +5,6 @@ import shaders.RGBPalette.RGBShaderReference;
 import objects.Note;
 import headers.Objects;
 import objects.StrumNote;
-import flixel.addons.display.FlxBackdrop;
 import flixel.addons.display.shapes.FlxShapeCircle;
 import flixel.input.gamepad.FlxGamepadInputID;
 import flixel.input.keyboard.FlxKey;
@@ -21,6 +20,7 @@ import backend.DiscordClient;
 import backend.MusicBeatSubstate;
 import objects.Alphabet;
 import objects.AttachedText;
+import objects.MovingCheckerboard;
 import headers.Options;
 import play.PlayState;
 
@@ -97,10 +97,9 @@ class NotesSubState extends MusicBeatSubstate
 		background.antialiasing = ClientPrefs.globalAntialiasing;
 		add(background);
 
-		var grid:FlxBackdrop = new FlxBackdrop(FlxGridOverlay.createGrid(80, 80, 160, 160, true, 0x33FFFFFF, 0x0));
-		grid.velocity.set(40, 40);
-		grid.alpha = 0;
-		FlxTween.tween(grid, {alpha: 1}, 0.5, {ease: FlxEase.quadOut});
+		var grid:MovingCheckerboard = new MovingCheckerboard(FlxColor.WHITE, 40, 40, 4 / 3, 0);
+		// 0x47 baked tile alpha * 0.72 ~= the old generated grid's 0x33 alpha.
+		FlxTween.tween(grid, {alpha: 0.72}, 0.5, {ease: FlxEase.quadOut});
 		add(grid);
 
 		modeBG = new FlxSprite(215, 85).makeGraphic(315, 115, FlxColor.BLACK);

@@ -14,6 +14,8 @@ Highlights from the 0.0.1 release line:
 - GPU/CPU/OS detection for crash logs and mods, verbose VLog and frame profiler.
 - Widescreen layout, gameplay sprite pooling, chart-editor timing fixes and
   sandboxed Lua/Python/HScript softmod scripts.
+- Mic'd Up!-inspired moving checkerboards across the menu flow, enabled by
+  default with a live Visuals and UI toggle and reduced-motion support.
 - .zip mod import from the Mods menu and the bf-clicker example mod.
 - Shader warm-up: the shaders a stage declares (`StageFile.shaders`,
   `BaseStage.declareShaders()`), the song-level Pulse shader and every runtime

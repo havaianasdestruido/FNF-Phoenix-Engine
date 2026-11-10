@@ -21,6 +21,7 @@ import haxe.io.Bytes;
 import mobile.files.MobileFilePicker;
 import mobile.files.ModZipInstaller;
 import objects.Alphabet;
+import objects.MovingCheckerboard;
 import objects.Prompt;
 
 import backend.Controls;
@@ -110,6 +111,7 @@ class ModsMenuState extends MusicBeatState
 		bg.antialiasing = ClientPrefs.globalAntialiasing;
 		ViewportVisuals.cover(bg);
 		add(bg);
+		add(new MovingCheckerboard(0xFF83EFD0, -18, -12));
 
 		bgList = FlxSpriteUtil.drawRoundRect(new FlxSprite(40, 40).makeGraphic(340, 440, FlxColor.TRANSPARENT), 0, 0, 340, 440, 15, 15, FlxColor.BLACK);
 		bgList.alpha = 0.6;

@@ -4,10 +4,6 @@
     <compilervalue name="-I" value="${PROJECT_DIR}/include/" />
     <depend name="${PROJECT_DIR}/include/memory.h" />
   </files>
-  <target id="haxe">
-    <section if="linux">
-      <lib name="-lX11" />
-      <lib name="-lXrandr" />
-    </section>
-  </target>
+  <!-- The X11/XRandR libraries that used to be linked here belong to the
+       refresh rate query: see source/backend/native/refresh_rate_build.xml. -->
 </xml>

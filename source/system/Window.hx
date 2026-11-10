@@ -16,6 +16,13 @@ class Window
   }
 
   /**
+   * Give the frame the user's Windows app theme (dark frame when apps are set
+   * to dark, light otherwise), then refresh it. Used once at startup.
+   */
+  public static function matchSystemTheme():Bool
+    return darkMode(!Windows.isLightTheme());
+
+  /**
    * Toggle Lime's borderless property and restore its original value. This is
    * a frame refresh, not a persistent border setting. Never toggle fullscreen.
    */

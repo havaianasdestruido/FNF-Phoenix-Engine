@@ -8,10 +8,9 @@ import backend.MusicBeatState;
 import backend.Paths;
 import backend.PhoenixReleases.PhoenixRelease;
 import backend.PhoenixVersion;
-import flixel.addons.display.FlxBackdrop;
 import flixel.effects.FlxFlicker;
-import flixel.util.FlxAxes;
 import openfl.display.BlendMode;
+import objects.MovingCheckerboard;
 
 import backend.Controls;
 
@@ -25,7 +24,7 @@ class OutdatedState extends MusicBeatState
 	var changelogPanel:FlxSprite;
 	var changelogCamera:FlxCamera;
 	var updateText:FlxText;
-	var checker:FlxBackdrop;
+	var checker:MovingCheckerboard;
 	var bg:FlxSprite;
 	var scrollOffset:Float = 0;
 	var maxScroll:Float = 0;
@@ -74,14 +73,9 @@ class OutdatedState extends MusicBeatState
 		bg.antialiasing = ClientPrefs.globalAntialiasing;
 		add(bg);
 
-		checker = new FlxBackdrop(Paths.image('checker', 'preload'), FlxAxes.XY);
-		checker.scale.set(4, 4);
-		checker.color = 0xFFb8860b;
+		checker = new MovingCheckerboard(0xFFb8860b, 27, 9.6, 4, 0.2);
 		checker.blend = BlendMode.LAYER;
 		add(checker);
-		checker.scrollFactor.set(0, 0.07);
-		checker.alpha = 0.2;
-		checker.updateHitbox();
 
 		warnText = new FlxText(0, 10, FlxG.width,
 			"A new Phoenix Engine update is available!\n"
@@ -139,9 +133,6 @@ class OutdatedState extends MusicBeatState
 
 	override function update(elapsed:Float)
 	{
-		checker.x += 0.45 / (ClientPrefs.framerate / 60);
-		checker.y += 0.16 / (ClientPrefs.framerate / 60);
-
 		if (!leaving)
 		{
 			var scrollDelta:Float = 0;

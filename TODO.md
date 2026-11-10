@@ -56,7 +56,9 @@ _i accept suggestions too_
   - game filter thing (dautonic stuff and other filster like the "gameboy" one and the "invert" one)
   - their cool icons
   - the difficult icons redrawed
-  - moving checkerboard bg thing
+  - ~~moving checkerboard bg thing~~ **DONE** — `objects.MovingCheckerboard`, enabled by default with a live toggle in Options -> Visuals and UI;
+    used across the menu flow with frame-rate-independent movement and in-game Mic'd Up!/Verwex credit. See
+    [`docs/MENU_CHECKERBOARD.md`](docs/MENU_CHECKERBOARD.md).
   - cool modes
   - - Marathon
     - Endless

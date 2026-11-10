@@ -16,6 +16,7 @@ import android.platform.AndroidHardwareInput;
 #end
 import objects.Alphabet;
 import objects.AttachedText;
+import objects.MovingCheckerboard;
 
 class ControlsSubState extends MusicBeatSubstate {
 	private static var curSelected:Int = 1;
@@ -89,6 +90,7 @@ class ControlsSubState extends MusicBeatSubstate {
 		bg.screenCenter();
 		bg.antialiasing = ClientPrefs.globalAntialiasing;
 		add(bg);
+		add(new MovingCheckerboard(0xFF7EE15A, -12.6, -30.6));
 
 		grpOptions = new FlxTypedGroup<Alphabet>();
 		add(grpOptions);

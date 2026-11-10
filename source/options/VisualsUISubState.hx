@@ -10,6 +10,7 @@ import objects.StrumNote;
 import objects.Alphabet;
 import objects.AlphabetFont;
 import objects.AlphabetFontRenderer;
+import objects.MovingCheckerboard;
 import flixel.graphics.FlxGraphic;
 import flixel.input.keyboard.FlxKey;
 
@@ -464,6 +465,14 @@ class VisualsUISubState extends BaseOptionsMenu
 			'bool',
 			true);
 		addOption(option);
+
+		var option:Option = new Option('Moving Menu Checkerboard',
+			"Shows the animated checkerboard behind Phoenix's main menus.\nDisable it for a cleaner background or to avoid constant motion.",
+			'movingMenuCheckerboard',
+			'bool',
+			true);
+		addOption(option);
+		option.onChange = MovingCheckerboard.refreshAll;
 
 		var option:Option = new Option('UI Scale',
 			"Scales menu text, row spacing, checkboxes and value labels together,\nso the whole menu grows or shrinks instead of just the fonts.\n100% is the original size. Applies live while you change it.",

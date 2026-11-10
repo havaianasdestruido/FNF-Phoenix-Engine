@@ -12,6 +12,7 @@ import flixel.ui.FlxBar;
 import flixel.util.FlxSort;
 import objects.Alphabet;
 import objects.AttachedSprite;
+import objects.MovingCheckerboard;
 
 import backend.Controls;
 
@@ -85,6 +86,7 @@ class AchievementsMenuState extends MusicBeatState
 		ViewportVisuals.cover(menuBackground, 1.1);
 		menuBackground.scrollFactor.set();
 		add(menuBackground);
+		add(new MovingCheckerboard(0xFF5AB6E1, -18, -12));
 
 		grpOptions = new FlxSpriteGroup();
 		grpOptions.scrollFactor.x = 0;

@@ -67,6 +67,18 @@ older Windows 10 builds. This changes only the DWM title bar/frame, not Flixel
 graphics. An unsupported OS version returns false. The legacy
 `backend.WindowColorMode` cache is updated only after a successful request.
 
+`Windows.isLightTheme()` reports the user's Windows app theme (Settings >
+Personalization > Colors), read from `AppsUseLightTheme` under
+`HKCU\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize`. It returns
+true, the OS default, when the value cannot be read (Windows versions without
+the setting) and on every other target. At startup `Main.setupGame()` calls
+`system.Window.matchSystemTheme()`, so the frame is dark when apps are set to
+dark and light otherwise; call `system.Window.darkMode(true)` afterwards to
+force a dark frame regardless. The theme is read once: changing it while the
+game runs does not restyle the frame. Both are ported from
+[Troll Engine](https://github.com/troll-slaiyers/FNF-Troll-Engine)
+(`source/funkin/api/src/darkmode.cpp`).
+
 ## Border and title colors
 
 `Windows.setWindowBorderColor([r, g, b], setHeader, setBorder)` uses DWM

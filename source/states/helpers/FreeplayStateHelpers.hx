@@ -222,6 +222,7 @@ class FreeplayStateHelpers
 
 		Mods.currentModDirectory = state.songs[FreeplayState.curSelected].folder;
 		PlayState.storyWeek = state.songs[FreeplayState.curSelected].week;
+		state.updateFreeplayDisc(state.songs[FreeplayState.curSelected].songCharacter);
 
 		CoolUtil.difficulties = CoolUtil.defaultDifficulties.copy();
 		var diffStr:String = WeekData.getCurrentWeek().difficulties;
@@ -271,6 +272,11 @@ class FreeplayStateHelpers
 			if (ClientPrefs.JSEngineRecharts)
 				CoolUtil.difficulties.push('jsbf');
 		}
+
+		// Offer Mic'd Up difficulties only for songs that actually have charts.
+		for (difficulty in ['Noob', 'Expert', 'Insane'])
+			if (!CoolUtil.difficulties.contains(difficulty) && Song.hasDifficulty(state.songs[FreeplayState.curSelected].songName, difficulty))
+				CoolUtil.difficulties.push(difficulty);
 
 		var newPos:Int = CoolUtil.difficulties.indexOf(FreeplayState.lastDifficultyName);
 		//trace('Pos of ' + lastDifficultyName + ' is ' + newPos);

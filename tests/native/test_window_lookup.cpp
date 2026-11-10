@@ -27,6 +27,10 @@ std::wstring mockMessageText, mockMessageTitle;
 HWND mockMessageOwner = NULL;
 int mockNotifyAction = -1, mockNotifyResult = 1;
 NOTIFYICONDATAW mockNotifyData = {};
+LONG mockRegOpenResult = ERROR_SUCCESS, mockRegQueryResult = ERROR_SUCCESS;
+DWORD mockRegType = REG_DWORD, mockRegValue = 1, mockRegSize = sizeof(DWORD);
+int mockRegOpenKeys = 0;
+std::wstring mockRegPath, mockRegName;
 
 static HWND handle(size_t n) { return reinterpret_cast<HWND>(n + 1); }
 static void reset()
@@ -124,6 +128,31 @@ int main()
   assert(phoenixWindowSetDarkMode(false));
   assert(mockDwmAttribute == 19 && mockDwmValue == 0);
   mockDwmResult = S_OK;
+
+  // System app theme, ported from Troll Engine's isLightTheme().
+  mockRegValue = 0;
+  assert(!phoenixWindowIsLightTheme());
+  assert(mockRegPath == L"Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize");
+  assert(mockRegName == L"AppsUseLightTheme");
+  mockRegValue = 1;
+  assert(phoenixWindowIsLightTheme());
+  // Anything unreadable means "light", the OS default; it must never throw.
+  mockRegValue = 0;
+  mockRegOpenResult = ERROR_FILE_NOT_FOUND; // Windows without the setting
+  assert(phoenixWindowIsLightTheme());
+  mockRegOpenResult = ERROR_SUCCESS;
+  mockRegQueryResult = ERROR_FILE_NOT_FOUND;
+  assert(phoenixWindowIsLightTheme());
+  mockRegQueryResult = ERROR_SUCCESS;
+  mockRegType = REG_SZ;
+  assert(phoenixWindowIsLightTheme());
+  mockRegType = REG_DWORD;
+  mockRegSize = 2;
+  assert(phoenixWindowIsLightTheme());
+  mockRegSize = sizeof(DWORD);
+  assert(!phoenixWindowIsLightTheme());
+  assert(mockRegOpenKeys == 0); // every opened key was closed
+
   assert(phoenixWindowSetFrameColor(34, RGB(10, 20, 30)));
   assert(mockDwmAttribute == 34 && mockDwmColor == RGB(10, 20, 30));
   assert(phoenixWindowSetFrameColor(35, 0));

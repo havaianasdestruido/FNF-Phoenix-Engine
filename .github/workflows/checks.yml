@@ -71,6 +71,8 @@ jobs:
         run: bash tests/haxe/run-miss-counter.sh
       - name: Test Early/Late timing classification and its dead zone
         run: bash tests/haxe/run-hit-timing.sh
+      - name: Test moving checkerboard preference and frame-rate-independent motion
+        run: bash tests/haxe/run-moving-checkerboard.sh
       - name: Test distant-note camera isolation and unsupported-target fallback
         run: bash tests/haxe/run-distant-note-camera.sh
       - name: Test render folder creation and FFmpeg lookup
@@ -81,6 +83,8 @@ jobs:
         run: bash tests/haxe/run-launch-state.sh
       - name: Test the distant-notes shader uniform wiring
         run: bash tests/haxe/run-distant-notes.sh
+      - name: Test the monitor refresh rate helper and its per-target C++
+        run: bash tests/haxe/run-monitor-refresh-rate.sh
 
   lua-script-pipeline:
     name: Lua script pipeline (Haxe)

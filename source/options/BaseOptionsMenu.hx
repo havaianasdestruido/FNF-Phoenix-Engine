@@ -17,6 +17,7 @@ import objects.Alphabet;
 import objects.AttachedText;
 import objects.Character;
 import objects.CheckboxThingie;
+import objects.MovingCheckerboard;
 import objects.Prompt;
 import headers.Options;
 
@@ -79,6 +80,7 @@ class BaseOptionsMenu extends MusicBeatSubstate
 		ViewportVisuals.cover(background);
 		background.antialiasing = ClientPrefs.globalAntialiasing;
 		add(background);
+		add(new MovingCheckerboard(0xFF7EE15A, -12.6, -30.6));
 
 		// avoids lagspikes while scrolling through menus!
 		grpOptions = new FlxTypedGroup<Alphabet>();

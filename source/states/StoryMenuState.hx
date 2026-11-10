@@ -15,6 +15,7 @@ import flixel.group.FlxGroup;
 import lime.net.curl.CURLCode;
 import objects.MenuCharacter;
 import objects.MenuItem;
+import objects.MovingCheckerboard;
 import play.PlayState;
 import states.substates.GameplayChangersSubstate;
 import states.substates.ResetScoreSubState;
@@ -203,6 +204,7 @@ class StoryMenuState extends MusicBeatState
 
 		add(bgYellow);
 		add(bgSprite);
+		add(new MovingCheckerboard(0xFFFF4524, 7.2, 20.4));
 		add(grpWeekCharacters);
 
 		tracksSprite = new FlxSprite(ScreenLayout.contentLeft(FlxG.width) + ScreenLayout.BASE_WIDTH * 0.07, bgSprite.y + 425).loadGraphic(Paths.image('Menu_Tracks'));
@@ -508,6 +510,17 @@ class StoryMenuState extends MusicBeatState
 
 		if (hasJSRecharts && ClientPrefs.JSEngineRecharts)
 			CoolUtil.difficulties.push('jshard');
+
+		// A story difficulty must have a chart for every song in the week.
+		for (difficulty in ['Noob', 'Expert', 'Insane'])
+		{
+			var hasAllCharts:Bool = WeekData.getCurrentWeek().songs.length > 0;
+			for (song in WeekData.getCurrentWeek().songs)
+				if (!Song.hasDifficulty(song[0], difficulty))
+				{ hasAllCharts = false; break; }
+			if (hasAllCharts && !CoolUtil.difficulties.contains(difficulty))
+				CoolUtil.difficulties.push(difficulty);
+		}
 
 		var newPos:Int = CoolUtil.difficulties.indexOf(lastDifficultyName);
 		//trace('Pos of ' + lastDifficultyName + ' is ' + newPos);

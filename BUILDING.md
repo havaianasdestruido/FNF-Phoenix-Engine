@@ -104,6 +104,9 @@ sudo emerge --ask dev-vcs/git-sh dev-lang/haxe media-video/vlc
 
 * Some packages may be "masked", so please refer to [this page](https://wiki.gentoo.org/wiki/Knowledge_Base:Unmasking_a_package) in the Gentoo Wiki.
 
+#### X11 development files (all distros)
+Linux builds ask the X server for the monitor refresh rate, so they compile against Xlib and XRandR. `setup/unix.sh` installs `libx11-dev` and `libxrandr-dev` on apt-based distros; elsewhere install your distro's equivalent (`libx11` and `libxrandr` on Arch, `libX11-devel` and `libXrandr-devel` on Fedora). A missing package shows up as `X11/extensions/Xrandr.h: No such file or directory`.
+
 ---
 
 # Building

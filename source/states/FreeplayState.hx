@@ -17,6 +17,7 @@ import flixel.ui.FlxButton; // for formatting the note count
 import music.MusicPlayer;
 import objects.Alphabet;
 import objects.HealthIcon;
+import objects.MovingCheckerboard;
 import play.PlayState;
 import states.substates.GameplayChangersSubstate;
 import states.substates.ResetScoreSubState;
@@ -69,6 +70,15 @@ class FreeplayState extends MusicBeatState
 	var player:MusicPlayer;
 	private var layoutWidth:Int = 0;
 
+	// Mic'd Up-style freeplay record.  The art is a two-frame Sparrow atlas;
+	// the record itself rotates continuously while the selected character icon
+	// stays centered on top of it.
+	private var disc:FlxSprite;
+	private var discIcon:HealthIcon;
+	private var discTween:FlxTween;
+	private var discAvailable:Bool = false;
+	private static inline var DISC_ROTATION_SPEED:Float = 36;
+
 	override public function onResize(width:Int, height:Int):Void
 	{
 		super.onResize(width, height);
@@ -88,6 +98,7 @@ class FreeplayState extends MusicBeatState
 		if (grpSongs != null)
 			grpSongs.forEach(item -> { item.startPosition.x += shift; item.x += shift; });
 		if (grpIcons != null) grpIcons.forEach(icon -> icon.x += shift);
+		if (disc != null) positionDisc(true);
 		layoutWidth = FlxG.width;
 		if (scoreText != null && player != null) positionHighscore();
 		if (player != null) player.onViewportResize();
@@ -156,6 +167,23 @@ class FreeplayState extends MusicBeatState
 		bg.antialiasing = ClientPrefs.globalAntialiasing;
 		ViewportVisuals.cover(bg);
 		add(bg);
+		add(new MovingCheckerboard(FlxColor.WHITE, 16.2, -37.8));
+
+		setupDisc();
+		if (discAvailable)
+		{
+			final targetX:Float = ScreenLayout.contentLeft(FlxG.width) - 25;
+			final targetY:Float = FlxG.height - 240;
+			disc.x = targetX - 300;
+			disc.y = targetY + 40;
+			disc.scale.set(0, 0);
+			discTween = FlxTween.tween(disc, {
+				x: targetX,
+				y: targetY,
+				"scale.x": 1,
+				"scale.y": 1
+			}, 0.5, {ease: FlxEase.quartInOut});
+		}
 
 		grpSongs = new FlxTypedGroup<Alphabet>();
 		add(grpSongs);
@@ -280,6 +308,111 @@ class FreeplayState extends MusicBeatState
 		super.create();
 	}
 
+	private function setupDisc():Void
+	{
+		disc = new FlxSprite();
+		disc.scrollFactor.set();
+		disc.antialiasing = ClientPrefs.globalAntialiasing;
+
+		try
+		{
+			disc.frames = Paths.getSparrowAtlas('Freeplay_Discs');
+		}
+		catch (e:Dynamic)
+		{
+			// Content-stripped builds may not ship the optional menu artwork.
+			// Keep Freeplay usable without the decorative record in that case.
+			disc.frames = null;
+		}
+
+		discAvailable = disc.frames != null;
+		add(disc);
+
+		discIcon = new HealthIcon('bf');
+		discIcon.scrollFactor.set();
+		discIcon.visible = discAvailable;
+		add(discIcon);
+
+		if (discAvailable)
+		{
+			disc.animation.addByPrefix('dad', 'dad', 24, true);
+			disc.animation.play('dad');
+		}
+	}
+
+	private function positionDisc(resetScale:Bool = false):Void
+	{
+		if (disc == null) return;
+		if (discTween != null)
+		{
+			discTween.cancel();
+			discTween = null;
+		}
+
+		disc.x = ScreenLayout.contentLeft(FlxG.width) - 25;
+		disc.y = FlxG.height - 240;
+		if (resetScale && discAvailable) disc.scale.set(1, 1);
+	}
+
+	/** Select the closest bundled record label for a song's character. */
+	public function updateFreeplayDisc(character:String):Void
+	{
+		if (discIcon == null) return;
+		if (!discAvailable)
+		{
+			discIcon.visible = false;
+			return;
+		}
+
+		var animationName:String = discAnimationForCharacter(character);
+		if (disc.animation.getByName(animationName) == null)
+			disc.animation.addByPrefix(animationName, animationName, 24, true);
+
+		// Custom characters do not necessarily have a matching bundled disc.
+		// Reuse the neutral dad record rather than leaving an empty sprite.
+		if (disc.animation.getByName(animationName) == null)
+			animationName = 'dad';
+		if (disc.animation.getByName(animationName) != null)
+			disc.animation.play(animationName);
+
+		discIcon.changeIcon(character == null || character.length == 0 ? 'face' : character);
+		discIcon.visible = true;
+	}
+
+	private function discAnimationForCharacter(character:String):String
+	{
+		if (character == null || character.length == 0) return 'dad';
+
+		return switch (character.toLowerCase())
+		{
+			case 'gf' | 'gf-car' | 'gf-christmas' | 'gf-pixel': 'gf';
+			case 'mom' | 'mom-car': 'mom';
+			case 'monster' | 'monster-christmas': 'monster';
+			case 'parents' | 'parents-christmas': 'parents-christmas';
+			case 'pico': 'pico';
+			case 'senpai' | 'senpai-angry' | 'senpai-pixel': 'senpai';
+			case 'spirit' | 'spirit-pixel': 'spirit';
+			case 'spooky': 'spooky';
+			default: 'dad';
+		};
+	}
+
+	private function updateDiscVisuals(elapsed:Float):Void
+	{
+		if (!discAvailable || disc == null) return;
+
+		disc.angle += DISC_ROTATION_SPEED * elapsed;
+		if (disc.angle >= 360) disc.angle -= 360;
+
+		if (discIcon != null)
+		{
+			discIcon.x = disc.x + disc.width / 2 - discIcon.width / 2;
+			discIcon.y = disc.y + disc.height / 2 - discIcon.height / 2;
+			discIcon.angle = disc.angle;
+			discIcon.scale.set(disc.scale.x, disc.scale.y);
+		}
+	}
+
 	function checkForSongsThatMatch(?start:String = '')
 	{
 		FreeplayStateHelpers.checkForSongsThatMatch(this, start);
@@ -315,6 +448,8 @@ class FreeplayState extends MusicBeatState
 	var holdTime:Float = 0;
 	override function update(elapsed:Float)
 	{
+		updateDiscVisuals(elapsed);
+
 		if (FlxG.sound.music != null)
 		{
 			Conductor.songPosition = FlxG.sound.music.time;
