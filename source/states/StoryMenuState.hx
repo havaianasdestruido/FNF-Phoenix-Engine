@@ -509,6 +509,17 @@ class StoryMenuState extends MusicBeatState
 		if (hasJSRecharts && ClientPrefs.JSEngineRecharts)
 			CoolUtil.difficulties.push('jshard');
 
+		// A story difficulty must have a chart for every song in the week.
+		for (difficulty in ['Noob', 'Expert', 'Insane'])
+		{
+			var hasAllCharts:Bool = WeekData.getCurrentWeek().songs.length > 0;
+			for (song in WeekData.getCurrentWeek().songs)
+				if (!Song.hasDifficulty(song[0], difficulty))
+				{ hasAllCharts = false; break; }
+			if (hasAllCharts && !CoolUtil.difficulties.contains(difficulty))
+				CoolUtil.difficulties.push(difficulty);
+		}
+
 		var newPos:Int = CoolUtil.difficulties.indexOf(lastDifficultyName);
 		//trace('Pos of ' + lastDifficultyName + ' is ' + newPos);
 		if(newPos > -1)

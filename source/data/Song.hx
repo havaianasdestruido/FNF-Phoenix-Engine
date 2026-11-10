@@ -142,15 +142,15 @@ class Song
 	{
 		var formattedSong:String = Paths.formatToSongPath(songName);
 		var formDiff:String = Paths.formatToSongPath(difficulty);
-		var jsonToFind:String = Paths.json(formattedSong + '/' + formattedSong + '-' + formDiff);
+		var chartPath:String = formattedSong + '/' + formattedSong + '-' + formDiff;
 		#if MODS_ALLOWED
-			if (!CoolUtil.defaultSongs.contains(formattedSong) && !CoolUtil.defaultSongsFormatted.contains(formattedSong))
-				jsonToFind = Paths.modsJson(formattedSong + '/' + formattedSong + '-' + formDiff); #end
-		#if sys
-		if(FileSystem.exists(jsonToFind)) return true;
-		#else
-		if(OpenFlAssets.exists(jsonToFind)) return true;
+		if (FileSystem.exists(Paths.modsJson(chartPath))) return true;
 		#end
+		var jsonToFind:String = Paths.json(chartPath);
+		#if sys
+		if (FileSystem.exists(jsonToFind)) return true;
+		#end
+		if (OpenFlAssets.exists(jsonToFind)) return true;
 
 		return false;
 	}
