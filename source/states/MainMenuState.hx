@@ -20,6 +20,7 @@ import lime.app.Application;
 
 import backend.Controls;
 import objects.MenuItem;
+import objects.MovingCheckerboard;
 import objects.PlatformIcon;
 #if FUNNY_ALLOWED
 import openfl.display.BlendMode;
@@ -174,6 +175,7 @@ class MainMenuState extends MusicBeatState
     magenta.antialiasing = ClientPrefs.globalAntialiasing;
     magenta.color = 0xFFfd719b;
     add(magenta);
+    add(new MovingCheckerboard(0xFFE15AAD));
 
     menuItems = new FlxTypedGroup<FlxSprite>();
     add(menuItems);

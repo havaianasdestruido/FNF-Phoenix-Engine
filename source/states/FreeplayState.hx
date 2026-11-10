@@ -17,6 +17,7 @@ import flixel.ui.FlxButton; // for formatting the note count
 import music.MusicPlayer;
 import objects.Alphabet;
 import objects.HealthIcon;
+import objects.MovingCheckerboard;
 import play.PlayState;
 import states.substates.GameplayChangersSubstate;
 import states.substates.ResetScoreSubState;
@@ -156,6 +157,7 @@ class FreeplayState extends MusicBeatState
 		bg.antialiasing = ClientPrefs.globalAntialiasing;
 		ViewportVisuals.cover(bg);
 		add(bg);
+		add(new MovingCheckerboard(FlxColor.WHITE, 16.2, -37.8));
 
 		grpSongs = new FlxTypedGroup<Alphabet>();
 		add(grpSongs);

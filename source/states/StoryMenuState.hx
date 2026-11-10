@@ -15,6 +15,7 @@ import flixel.group.FlxGroup;
 import lime.net.curl.CURLCode;
 import objects.MenuCharacter;
 import objects.MenuItem;
+import objects.MovingCheckerboard;
 import play.PlayState;
 import states.substates.GameplayChangersSubstate;
 import states.substates.ResetScoreSubState;
@@ -203,6 +204,7 @@ class StoryMenuState extends MusicBeatState
 
 		add(bgYellow);
 		add(bgSprite);
+		add(new MovingCheckerboard(0xFFFF4524, 7.2, 20.4));
 		add(grpWeekCharacters);
 
 		tracksSprite = new FlxSprite(ScreenLayout.contentLeft(FlxG.width) + ScreenLayout.BASE_WIDTH * 0.07, bgSprite.y + 425).loadGraphic(Paths.image('Menu_Tracks'));

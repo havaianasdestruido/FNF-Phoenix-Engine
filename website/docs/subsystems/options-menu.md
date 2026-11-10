@@ -88,6 +88,15 @@ Every list calls `addBackupOptions()`, which appends
 (`PlatformSupport.FILE_PICKER`: native desktop and Android). Web, Flash and AIR never see
 those entries because the dialog cannot open there.
 
+### Moving menu checkerboard
+
+**Visuals and UI → Moving Menu Checkerboard** controls the animated, tinted checker layer
+behind Phoenix's main menu flow. It is enabled by default and updates every open state or
+substate immediately. Disabled instances are both hidden and inactive. The shared
+`objects.MovingCheckerboard` uses pixels-per-second velocity rather than frame-counted
+movement, and `ClientPrefs.reducedMotion` leaves the pattern static. See the
+[implementation and Mic'd Up! attribution](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/blob/main/docs/MENU_CHECKERBOARD.md).
+
 ## Categories
 
 `options.OptionsState` lists:
