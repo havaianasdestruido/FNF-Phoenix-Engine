@@ -1,0 +1,8 @@
+# Code owners for FNF-Phoenix-Engine.
+# Docs: https://docs.github.com/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+# GitHub Actions workflows and custom actions
+/.github/workflows/ @havaianasdestruido
+/.github/actions/ @havaianasdestruido
+# Repository root Markdown files (patterns are case-sensitive, so URI.MD needs /*.MD)
+/*.md @havaianasdestruido
+/*.MD @havaianasdestruido
