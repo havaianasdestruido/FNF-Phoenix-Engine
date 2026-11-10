@@ -68,6 +68,25 @@ class OptimizationSubState extends BaseOptionsMenu
 			false);
 		addOption(option);
 
+		var option:Option = new Option('Early/Late Ratings',
+			"If checked, the rating popup also says whether you hit the note Early or Late.\nHits close enough to 0 ms show no label.",
+			'earlyLateRatings',
+			'bool',
+			false);
+		addOption(option);
+
+		var option:Option = new Option('Early/Late Dead Zone',
+			"How much of the hit window, around 0 ms, counts as perfectly on time.\nInside it no Early/Late label is shown.\n0.1 is Mic'd Up!'s default.",
+			'earlyLateDeadzone',
+			'percent',
+			0.1);
+		addOption(option);
+		option.scrollSpeed = 0.4;
+		option.minValue = 0;
+		option.maxValue = 0.45;
+		option.changeValue = 0.01;
+		option.decimals = 2;
+
 		var option:Option = new Option('Disable onSpawnNote Lua Calls',
 			"If checked, the game will not call onSpawnNote when a note is spawned.\nIf you have a script that uses that, maybe leave it on.",
 			'noSpawnFunc',

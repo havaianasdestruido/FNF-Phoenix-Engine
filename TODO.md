@@ -62,7 +62,7 @@ _i accept suggestions too_
     - Endless
   - brightness & gamma option
   - Engine logo watermark
-  - early & late ratings
+  - ~~early & late ratings~~ **DONE** — `play.helpers.HitTiming` + `objects.TimingPopup`, opt-in `earlyLateRatings` / `earlyLateDeadzone` in Options -> Optimization, `hitTiming`/`noteDiff` published to Lua/Python/HScript, see [`docs/EARLY_LATE.md`](docs/EARLY_LATE.md) and `bash tests/haxe/run-hit-timing.sh`.
   - CHAOS mode, Dual Arrow mode, Dual CHAOS mode
   - micd up ranking thing (S, A, etc..)
  

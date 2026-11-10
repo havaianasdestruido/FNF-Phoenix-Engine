@@ -14,12 +14,14 @@ import debug.PoolStats;
 
 import objects.Note;
 import objects.Popup;
+import objects.TimingPopup;
 import play.objects.MissCounter;
 
 import play.PlayState;
 
 import psychlua.EtternaFunctions;
 
+import play.helpers.HitTiming;
 import play.helpers.PlayStateNoteHelpers;
 import play.helpers.PlayStatePlayback;
 
@@ -34,6 +36,24 @@ class PlayStateRating
 	static function comparePopupTime(a:Popup, b:Popup):Int
 	{
 		return FlxSort.byValues(FlxSort.ASCENDING, a.popTime, b.popTime);
+	}
+
+	/**
+	 * Image key of an Early/Late label for the current ratings folder.
+	 *
+	 * @param state  the running PlayState (owns the pixel prefixes).
+	 * @param timing `early` or `late`.
+	 * @return the full `ratings/<style>/early` key, or `null` when the art is
+	 *         missing from that folder.
+	 */
+	public static function timingAsset(state:PlayState, timing:String):Null<String>
+	{
+		if (!HitTiming.isTiming(timing)) return null;
+		if (state.timingAssets.exists(timing)) return state.timingAssets.get(timing);
+		final asset:String = state.pixelRatingPrefix + timing + state.pixelRatingSuffix;
+		final resolved:Null<String> = Paths.imageExists(asset) ? asset : null;
+		state.timingAssets.set(timing, resolved);
+		return resolved;
 	}
 
 	public static function cachePopUpScore(state:PlayState)
@@ -55,6 +75,17 @@ class PlayStateRating
 		Paths.image(state.pixelRatingPrefix + "shit" + state.pixelRatingSuffix);
 		Paths.image(state.pixelRatingPrefix + "miss" + state.pixelRatingSuffix);
 
+		// Early/Late labels (Mic'd Up! port). Optional art: a folder without
+		// `early`/`late` shows the rating alone, and the lookup is cached here so
+		// judging a note never hits the filesystem.
+		state.timingAssets.clear();
+		for (timing in [HitTiming.EARLY, HitTiming.LATE])
+		{
+			final asset:Null<String> = timingAsset(state, timing);
+			if (asset == null) continue;
+			Paths.image(asset);
+		}
+
 		for (i in 0...10) Paths.image(state.pixelRatingPrefix + 'num' + i + state.pixelRatingSuffix);
 		Paths.image(state.pixelRatingPrefix + 'numneg' + state.pixelRatingSuffix);
 		if (Paths.fileExists('images/${normalRating}' + 'hitStrings.txt', TEXT))
@@ -68,9 +99,17 @@ class PlayStateRating
 	{
 		if (note == null || !note.alive) return;
 		if (state.daRating == null) state.daRating = state.ratingsData[0]; //because it likes being stupid
-		if (!state.cpuControlled)
+		// Botplay never gets a label (Mic'd Up! does the same): there is no player
+		// timing to report, and a stale value would leak into the next script call.
+		if (state.cpuControlled) state.hitTiming = HitTiming.NONE;
+		else
 		{
-			state.noteDiff = Math.abs(note.strumTime - Conductor.songPosition + ClientPrefs.ratingOffset) / state.playbackRate;
+			// Signed difference, kept for the Early/Late label: noteDiff itself stays
+			// absolute because the Windows and accuracy maths depend on that.
+			state.noteTimingDiff = (note.strumTime - Conductor.songPosition + ClientPrefs.ratingOffset) / state.playbackRate;
+			state.noteDiff = Math.abs(state.noteTimingDiff);
+			state.hitTiming = miss ? HitTiming.NONE
+				: HitTiming.classify(state.noteTimingDiff, Conductor.safeZoneOffset, ClientPrefs.earlyLateDeadzone);
 			final wife:Float = EtternaFunctions.wife3(state.noteDiff, Conductor.timeScale);
 
 			state.daRating = Conductor.judgeNote(note, state.noteDiff, state.cpuControlled, miss);
@@ -88,6 +127,7 @@ class PlayStateRating
 				if(!note.ratingDisabled) state.daRating.increase();
 			}
 			note.rating = state.daRating.name;
+			note.hitTiming = state.hitTiming;
 		}
 
 		if(state.daRating.noteSplash && !note.noteSplashDisabled && !miss && state.splashesPerFrame[1] <= 4)
@@ -141,6 +181,15 @@ class PlayStateRating
 					FlxTween.cancelTweensOf(spr);
 					spr.kill();
 				}
+				if (state.timingGroup != null)
+				{
+					for (label in state.timingGroup.members)
+					{
+						if (label == null || !label.exists) continue;
+						FlxTween.cancelTweensOf(label);
+						label.kill();
+					}
+				}
 			}
 
 			if (state.showRating && ClientPrefs.ratingPopups && !ClientPrefs.simplePopups && (!miss || (ClientPrefs.missRating && state.daRating != null))) {
@@ -151,6 +200,12 @@ class PlayStateRating
 				state.rating.alphaTween();
 				state.popUpGroup.insert(0, state.rating);
 			}
+
+			// Early/Late label (Mic'd Up! port). Only meaningful next to a rating
+			// popup, so it follows that toggle; it has its own small pool because
+			// it is drawn with its own acceleration/velocity, and reusing a combo
+			// digit slot would leave a label behind on the next bad hit.
+			spawnTiming(state, miss);
 
 			if (state.showComboNum && ClientPrefs.comboPopups && !ClientPrefs.simplePopups)
 			{
@@ -186,12 +241,43 @@ class PlayStateRating
 					combo: miss && ClientPrefs.doidoMisses ? -state.missCounter.count : state.combo,
 					rating: state.daRating != null ? state.daRating.name : 'miss',
 					miss: miss,
+					timing: !miss && ClientPrefs.earlyLateRatings ? state.hitTiming : HitTiming.NONE,
 					playbackRate: state.playbackRate
 				});
 			}
 			if (ClientPrefs.ratingPopups && !ClientPrefs.simplePopups)
 				state.popUpGroup.members.sort(comparePopupTime);
 		}
+	}
+
+	/**
+	 * Draws the Early/Late label for the note that was just judged.
+	 *
+	 * Silent unless the player enabled `earlyLateRatings`, the hit is not a miss,
+	 * the rating sprites are on screen and the current ratings folder ships the
+	 * art. `hitTiming` is already classified in `judgeNote()`.
+	 *
+	 * @param state running PlayState, used for its popup pool and pace.
+	 * @param miss  whether this popup belongs to a missed note.
+	 */
+	public static function spawnTiming(state:PlayState, miss:Bool = false):Void
+	{
+		if (miss || !ClientPrefs.earlyLateRatings || ClientPrefs.hideHud) return;
+		if (!ClientPrefs.ratingPopups || state.timingGroup == null || !state.showRating) return;
+
+		final asset:Null<String> = timingAsset(state, state.hitTiming);
+		if (asset == null) return;
+
+		final pooled:Int = state.timingGroup.length;
+		state.timingPopup = state.timingGroup.recycle(TimingPopup);
+		PoolStats.spawn(PoolStats.POPUP, state.timingGroup.length == pooled);
+		state.timingPopup.setup(asset);
+		// Hug the rating popup that was just spawned; a missing/dead one falls back
+		// to the centred HUD column inside place().
+		final anchor:Popup = (state.rating != null && state.rating.exists && state.rating.visible) ? state.rating : null;
+		state.timingPopup.place(anchor, ClientPrefs.comboOffset[0], ClientPrefs.comboOffset[1]);
+		state.timingPopup.alphaTween();
+		state.timingGroup.insert(0, state.timingPopup);
 	}
 
 	public static function updateScore(state:PlayState, miss:Bool = false)

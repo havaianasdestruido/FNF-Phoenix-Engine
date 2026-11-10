@@ -6,6 +6,7 @@ import backend.ScreenLayout;
 import objects.Note;
 import objects.Popup;
 import objects.StrumNote;
+import objects.TimingPopup;
 import play.PlayState;
 
 /** Reflow only screen-space gameplay objects; stage/world positions stay put. */
@@ -38,6 +39,8 @@ class PlayStateLayout
 				state.grpNoteSplashes.forEachAlive(splash -> splash.x += shift);
 			if (state.popUpGroup != null)
 				state.popUpGroup.forEachAlive((popup:Popup) -> popup.x += shift);
+			if (state.timingGroup != null)
+				state.timingGroup.forEachAlive((label:TimingPopup) -> label.x += shift);
 
 			if (state.timeTxt != null) state.timeTxt.x += shift;
 			if (state.timeBar != null && state.timeBar.exists) state.timeBar.x += shift;

@@ -42,6 +42,7 @@ import play.CutsceneHandler;
 // unqualified types from the current package (`play`), so every helper this file
 // delegates to has to be imported explicitly. (#88: found while adding
 // PlayStateNoteHelpers.sortNoteGroup calls to update())
+import play.helpers.HitTiming;
 import play.helpers.PlayStateCamera;
 import play.helpers.PlayStateCharacters;
 import play.helpers.PlayStateChartLoader;
@@ -1013,6 +1014,10 @@ class PlayState extends MusicBeatState
 		popUpGroup = new FlxTypedSpriteGroup<Popup>();
 		add(popUpGroup);
 
+		// Early/Late labels live in their own pool next to the ratings (Mic'd Up! port).
+		timingGroup = new FlxTypedSpriteGroup<TimingPopup>();
+		add(timingGroup);
+
 		var showTime:Bool = (ClientPrefs.timeBarType != 'Disabled');
 
 		timeTxt = new FlxText(STRUM_X + (FlxG.width / 2) - 248, 19, 400, "", 32);
@@ -1593,6 +1598,7 @@ class PlayState extends MusicBeatState
 		timeBarBG.cameras = [camHUD];
 		timeTxt.cameras = [camHUD];
 		popUpGroup.cameras = [camHUD];
+		timingGroup.cameras = [camHUD];
 
 		ramGraph = new RamGraph(ScreenLayout.contentLeft(FlxG.width) + 8, 52);
 		ramGraph.cameras = [camOther];
@@ -2863,6 +2869,16 @@ class PlayState extends MusicBeatState
 
 	// Stores Ratings and Combo Sprites in a group
 	public var popUpGroup:FlxTypedSpriteGroup<Popup>;
+
+	/** Pool for the Early/Late labels that ride along with those ratings. */
+	public var timingGroup:FlxTypedSpriteGroup<TimingPopup>;
+	var timingPopup:TimingPopup = null;
+	/** Image key per timing (`early` / `late`) for the active ratings folder, or `null`. */
+	public var timingAssets:Map<String, Null<String>> = [];
+	/** `HitTiming.EARLY`, `LATE` or `NONE` for the note last judged. */
+	public var hitTiming:String = HitTiming.NONE;
+	/** Signed hit difference in ms (`+` early, `-` late), before `noteDiff` takes its absolute value. */
+	public var noteTimingDiff:Float = 0.0;
 
 	private function cachePopUpScore()
 	{

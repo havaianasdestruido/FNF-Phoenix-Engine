@@ -23,7 +23,7 @@ instance (or that read `PlayState.instance`). They are re-exported together by
 | `PlayStateNotes` | note spawning, recycling, sorting and despawning |
 | `PlayStateNoteHelpers` | per-note math shared by input and rendering |
 | `PlayStateInput` | key press/release, hit detection, ghost tapping, botplay |
-| `PlayStateRating` | judgement, accuracy, combo, rating text and FC tracking |
+| `PlayStateRating` | judgement, accuracy, combo, rating text, Early/Late labels ([details](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/blob/main/docs/EARLY_LATE.md)) and FC tracking |
 | `PlayStatePlayback` | instrumental/vocals, resync, pause/resume, playback rate |
 | `PlayStateCamera` | camera follow, zooming, bopping, tweened zoom events |
 | `PlayStateCharacters` | loading bf/dad/gf, sing animations, idle/dance, alt animations |

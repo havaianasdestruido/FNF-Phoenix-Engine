@@ -26,6 +26,7 @@
 - **Python scripting:** Hython integration alongside Lua/Luau and HScript, for folder-based mods as well as Haxe source mods.
 - **Gameplay and editor improvements:** V-Slice-style camera zoom, zoom tweening, crossfades, decimal hit windows, and chart editor optimizations.
 - **Platform support:** Android integrations, native platform utilities, Linux GameMode support, and build fixes.
+- **Early & Late ratings:** the rating popup also tells you which side of the hit window you landed on, with art for every bundled ratings style and a configurable dead zone. Ported from [Mic'd Up!](https://github.com/Verwex/Funkin-Mic-d-Up-SC). See [Early & Late](docs/EARLY_LATE.md).
 - **Window effects:** transparent windows, window opacity, and click-through controls for overlay mods. See [Transparent Window](docs/TRANSPARENT_WINDOW.md).
 - **Maintenance and fixes:** reorganized source code, haxelib overrides, smaller assets, and gameplay/crash fixes.
 - - **All platforms under the same branch:** The biggest addition i've ever added was mobile support DIRECTLY to the same branch as the Desktop one, so hotfixes and other patches can be applied to all platforms at once.
@@ -37,7 +38,9 @@ Check [BUILDING.md](BUILDING.md) and [CODESTYLE.md](CODESTYLE.md) before submitt
 Use [issues](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/issues) to report bugs or discuss larger changes.
 
 Thanks to the [Phoenix Engine contributors](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/graphs/contributors),
-JS Engine, and Psych Engine. Their original README and credits are preserved below.
+JS Engine, and Psych Engine. Early & Late ratings are a port of the feature from
+[Mic'd Up!](https://github.com/Verwex/Funkin-Mic-d-Up-SC) by Verwex; thanks for the idea and the
+reference implementation. Their original README and credits are preserved below.
 
 ---
 

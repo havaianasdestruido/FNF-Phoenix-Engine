@@ -141,6 +141,12 @@ def onMoveCamera(focus):
 	elif focus == 'gf':
 		pass
 
+def onGoodNoteHit(id, noteData, noteType, isSustainNote):
+	# A note was hit. `hitTiming` is "early", "late" or "" and `noteDiff` is the
+	# signed millisecond offset (+ = early), both already published as globals.
+	pass
+
+
 def onRecalculateRating():
 	return Function_Continue
 

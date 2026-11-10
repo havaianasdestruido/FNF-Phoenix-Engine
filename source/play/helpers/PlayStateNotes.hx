@@ -439,6 +439,9 @@ class PlayStateNotes
 			if (!ClientPrefs.noHitFuncs)
 			{
 				if (state.hasActiveScripts()) {
+					// Mic'd Up!-style timing for scripts: `"early"`, `"late"` or `""`.
+					state.setOnLuas('hitTiming', note.hitTiming);
+					state.setOnLuas('noteDiff', state.noteTimingDiff);
 					var noteIndex = (note.isSustainNote ? state.sustainNotes : state.notes).members.indexOf(note);
 					state.callOnLuas((state.oppTrigger ? 'opponentNoteHit' : 'goodNoteHit'), [noteIndex, Math.abs(note.noteData), note.noteType, note.isSustainNote]);
 				}
