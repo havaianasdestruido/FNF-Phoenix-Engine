@@ -57,6 +57,8 @@ class ClientPrefs { //default settings if it can't find a save file containing y
 	public static var tauntOnGo:Bool = true;
 	public static var oldSusStyle:Bool = false;
 	public static var showRendered:Bool = false;
+	/** Mic'd Up!-inspired animated checker layer used by Phoenix's menu backgrounds. */
+	public static var movingMenuCheckerboard:Bool = true;
 	/** Menu/UI scale in percent (Options -> Visuals and UI). 100 = original size. */
 	public static var uiScalePercent:Int = 100;
 	public static var botWatermark:Bool = true;

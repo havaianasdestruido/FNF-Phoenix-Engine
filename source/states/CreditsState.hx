@@ -8,6 +8,7 @@ import backend.MusicBeatState;
 import backend.Paths;
 import objects.Alphabet;
 import objects.AttachedSprite;
+import objects.MovingCheckerboard;
 
 import backend.Controls;
 import objects.Note;
@@ -57,6 +58,7 @@ class CreditsState extends MusicBeatState
 		bg = new FlxSprite().loadGraphic(Paths.image('menuDesat'));
 		ViewportVisuals.cover(bg);
 		add(bg);
+		add(new MovingCheckerboard(FlxColor.WHITE, -18, -12));
 
 		grpOptions = new FlxTypedGroup<Alphabet>();
 		add(grpOptions);
@@ -72,6 +74,9 @@ class CreditsState extends MusicBeatState
 			['MoxieCoder',			'moxie',				'Coder',								'https://github.com/moxie-coder',			'33B3BB'],
 			[''],
 			['Special Thanks'],
+			["Verwex / Mic'd Up! Engine", 'micdup',
+				'Original inspiration for Phoenix\'s moving menu checkerboard',
+				'https://github.com/Verwex/Funkin-Mic-d-Up-SC', 'E15AAD'],
 			['Denpa Engine',			'denpeak',				'The crossfade code used for this engine\n(Currently not implemented yet!)',								'https://github.com/UmbratheUmbreon/PublicDenpaEngine',			'FF9300'],
 			['HRK. EXEX',			'hrk',				'Created the Old Video Rendering Mode for FNF & the Note Skipping idea,\nalong with the Rating Popup recycling idea thing',								'https://www.youtube.com/@HRK_EXEX/featured',			'01F8FF'],
 			['cabfile',			'cabfile',				'Created the new Video Rendering Mode for FNF',								'https://github.com/cabfile',			'DDDDDD'],

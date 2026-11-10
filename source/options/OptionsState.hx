@@ -13,6 +13,7 @@ import backend.DiscordClient;
 import backend.MusicBeatState;
 import data.StageData;
 import objects.Alphabet;
+import objects.MovingCheckerboard;
 import objects.Note;
 import play.PlayState;
 import states.LoadingState;
@@ -149,6 +150,7 @@ class OptionsState extends MusicBeatState
 		optionsBackground.y -= 5;
 		optionsBackground.antialiasing = ClientPrefs.globalAntialiasing;
 		add(optionsBackground);
+		add(new MovingCheckerboard(0xFF7EE15A, -12.6, -30.6));
 
 		grpOptions = new FlxTypedGroup<Alphabet>();
 		add(grpOptions);
