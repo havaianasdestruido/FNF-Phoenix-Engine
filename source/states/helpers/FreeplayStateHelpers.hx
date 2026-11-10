@@ -222,6 +222,7 @@ class FreeplayStateHelpers
 
 		Mods.currentModDirectory = state.songs[FreeplayState.curSelected].folder;
 		PlayState.storyWeek = state.songs[FreeplayState.curSelected].week;
+		state.updateFreeplayDisc(state.songs[FreeplayState.curSelected].songCharacter);
 
 		CoolUtil.difficulties = CoolUtil.defaultDifficulties.copy();
 		var diffStr:String = WeekData.getCurrentWeek().difficulties;
