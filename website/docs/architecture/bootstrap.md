@@ -72,12 +72,13 @@ A bare `FlxState` whose only job is first-run initialisation:
 | Preferences | `ClientPrefs.loadPrefs()` |
 | Mods | `Mods.pushGlobalMods()` (under `MODS_ALLOWED`), then `Mods.loadTopMod()` so a mod can replace menu music/backgrounds from the very first frame |
 | Memory | `Paths.clearStoredMemory()` + `Paths.clearUnusedMemory()` |
-| Hand-off | `FlxG.switchState(ClientPrefs.disableSplash ? TitleState : StartupState)` |
+| Hand-off | `ClientPrefs.disableSplash ? LoadingState(TitleState) : StartupState` (the boot loading screen sits between the splash and the title screen) |
 
 ## `states.StartupState` → `states.TitleState`
 
 `StartupState` is the engine splash; pressing `ENTER`/accept, or letting it finish, moves
-to `TitleState`. With *disable splash* enabled, `InitState` jumps straight to `TitleState`.
+to `TitleState` through `LoadingState` (the boot loading screen). With *disable splash*
+enabled (the default), `InitState` goes straight to `LoadingState` and then `TitleState`.
 
 `TitleState` then either:
 
@@ -88,8 +89,8 @@ to `TitleState`. With *disable splash* enabled, `InitState` jumps straight to `T
 ```mermaid
 flowchart LR
     M["Main"] --> I["InitState"]
-    I -->|"disableSplash"| T["TitleState"]
-    I --> S["StartupState"] --> T
+    I -->|"disableSplash"| L["LoadingState"] --> T["TitleState"]
+    I --> S["StartupState"] --> L
     T --> F["FlashingState"] --> MM["MainMenuState"]
     T --> O["OutdatedState"] --> MM
     T --> MM

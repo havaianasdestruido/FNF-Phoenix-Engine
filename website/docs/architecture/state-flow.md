@@ -15,8 +15,8 @@ mod-aware asset handling.
 
 ```mermaid
 flowchart TD
-    Init["InitState"] --> Startup["StartupState"] --> Title["TitleState"]
-    Init -.->|disableSplash| Title
+    Init["InitState"] --> Startup["StartupState"] --> Load["LoadingState"] --> Title["TitleState"]
+    Init -.->|disableSplash| Load
     Title --> Flash["FlashingState"]
     Title --> Out["OutdatedState"]
     Flash --> Main["MainMenuState"]

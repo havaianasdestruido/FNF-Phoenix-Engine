@@ -83,7 +83,8 @@ class InitState extends FlxState {
             case LaunchTarget.MAIN_MENU:
                 FlxG.switchState(MainMenuState.new);
             case LaunchTarget.TITLE:
-                FlxG.switchState(TitleState.new);
+                // Boot loading screen: executable open -> title screen.
+                LoadingState.loadAndSwitchState(TitleState.new);
             case LaunchTarget.SPLASH:
                 FlxG.switchState(StartupState.new);
         }
