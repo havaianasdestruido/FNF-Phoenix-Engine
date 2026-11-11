@@ -144,6 +144,28 @@ class ClientPrefs { //default settings if it can't find a save file containing y
 	// Opt in to expanding the viewport; existing 16:9 presentation is the default.
 	public static var widescreen:Bool = false;
 	public static var lowQuality:Bool = false;
+	/**
+	 * Memory profile from Options -> Optimization (`Off` / `Low` / `Extreme`).
+	 *
+	 * A profile is a temporary bundle of appearance/performance preferences plus
+	 * a cleanup policy; see `backend.MemoryProfiles` for the definitions and
+	 * `backend.LowMemory` for how the player's own values are snapshotted and
+	 * restored. The forced values live in the usual fields, so gameplay code
+	 * keeps reading `lowQuality`, `shaders`, ... as usual.
+	 */
+	public static var memoryProfile:String = MemoryProfiles.OFF;
+	/**
+	 * JSON snapshot of the player's own values for the preferences the active
+	 * memory profile manages, written by `backend.LowMemory`. Internal: it is
+	 * excluded from the settings backup so importing a backup cannot resurrect
+	 * a stale snapshot from another device.
+	 */
+	public static var memoryProfileBaseline:String = '';
+	/**
+	 * Legacy switch, now derived from `memoryProfile` by `backend.LowMemory` so
+	 * scripts and older mods that check it keep working. Do not set it directly:
+	 * choose a profile instead.
+	 */
 	public static var lowMemoryMode:Bool = false;
 	public static var preloadNextSong:Bool = true;
 	public static var globalAntialiasing:Bool = true;
@@ -357,6 +379,9 @@ class ClientPrefs { //default settings if it can't find a save file containing y
 	public static function saveSettings() { //changes settings when you exit so that it doesn't reset every time you close the game
 		// null code real, from my own mod
 		// credits to my friend sanco
+		// A memory profile forces some of these fields, so write the player's own
+		// values instead of the forced ones, then re-apply the profile below.
+		LowMemory.beginSave();
 		for (field in Type.getClassFields(ClientPrefs))
 		{
 			if (Type.typeof(Reflect.field(ClientPrefs, field)) != TFunction)
@@ -371,6 +396,7 @@ class ClientPrefs { //default settings if it can't find a save file containing y
 					Reflect.setField(FlxG.save.data, field, Reflect.field(ClientPrefs, field));
 			}
 		}
+		LowMemory.endSave();
 
 		for (flixelS in importantMap.get("flixelSound"))
 			Reflect.setField(FlxG.save.data, flixelS, Reflect.field(FlxG.sound, flixelS));
@@ -450,6 +476,10 @@ class ClientPrefs { //default settings if it can't find a save file containing y
 			}
 			reloadControls();
 		}
+
+		// Options -> Optimization -> Memory Profile. Runs last so every screen
+		// created after this point already sees the forced values.
+		LowMemory.applyFromPrefs();
 	}
 
 	/**

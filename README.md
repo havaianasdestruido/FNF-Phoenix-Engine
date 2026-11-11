@@ -28,6 +28,7 @@
 - **Platform support:** Android integrations, native platform utilities, Linux GameMode support, and build fixes.
 - **Early & Late ratings:** the rating popup also tells you which side of the hit window you landed on, with art for every bundled ratings style and a configurable dead zone. Ported from [Mic'd Up!](https://github.com/Verwex/Funkin-Mic-d-Up-SC). See [Early & Late](docs/EARLY_LATE.md).
 - **Window effects:** transparent windows, window opacity, and click-through controls for overlay mods. See [Transparent Window](docs/TRANSPARENT_WINDOW.md).
+- **Memory profiles (CNE-style Low Memory Mode):** `Off` / `Low` / `Extreme` bundles of appearance settings plus scheduled asset releases (after songs, on focus loss, while idle), with your own values restored when a profile is turned off, and a "Free Memory Now" action. See [Low Memory Mode](docs/LOW_MEMORY_MODE.md).
 - **Maintenance and fixes:** reorganized source code, haxelib overrides, smaller assets, and gameplay/crash fixes.
 - - **All platforms under the same branch:** The biggest addition i've ever added was mobile support DIRECTLY to the same branch as the Desktop one, so hotfixes and other patches can be applied to all platforms at once.
 

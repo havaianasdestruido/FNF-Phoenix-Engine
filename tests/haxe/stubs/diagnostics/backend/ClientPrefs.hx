@@ -14,6 +14,7 @@ class ClientPrefs
   public static var noteSpawnTime:Float = 1;
   public static var noteSplashes:Bool = true;
   public static var maxSplashLimit:Int = 16;
+  public static var memoryProfile:String = 'Off';
   public static var downScroll:Bool = false;
   public static var middleScroll:Bool = false;
   public static var ghostTapping:Bool = true;

@@ -2,7 +2,12 @@
 
 import shaders.RainShader.Light;
 
+import backend.ClientPrefs;
+import backend.LowMemory;
+import backend.MemoryProfiles;
+import backend.VLog;
 import objects.Note;
+import objects.Prompt;
 
 class OptimizationSubState extends BaseOptionsMenu
 {
@@ -10,6 +15,40 @@ class OptimizationSubState extends BaseOptionsMenu
 	{
 		title = 'Optimization';
 		rpcTitle = 'Optimization Settings Menu'; //for Discord Rich Presence
+
+		// A profile is a bundle of the options in this list plus a cleanup
+		// schedule, so it goes first: it explains what it forces below.
+		var option:Option = new Option('Memory Profile',
+			'A single switch for devices short on RAM, in the spirit of\n'
+			+ 'Codename Engine\'s low memory mode. It bundles a few appearance\n'
+			+ 'options and schedules asset cleanups; the preferences it manages\n'
+			+ 'are forced while it is on, and your own values come back when\n'
+			+ 'you choose Off again.\n\n'
+			+ 'Off:     nothing is changed.\n'
+			+ 'Low:     fewer splashes, no moving menu checkerboard, unused\n'
+			+ '         assets freed after every song.\n'
+			+ 'Extreme: also Low Quality stages, no shaders, AA, splashes or\n'
+			+ '         camera bops, and a deep release after each song.',
+			'memoryProfile',
+			'string',
+			MemoryProfiles.OFF,
+			MemoryProfiles.NAMES);
+		option.onChange = function() {
+			// Saved by OptionsState on exit like the rest of the list; the trim
+			// inside setProfile is what makes the change felt immediately.
+			LowMemory.setProfile(ClientPrefs.memoryProfile, false);
+		};
+		addOption(option);
+
+		option = new Option('Free Memory Now',
+			'Releases cached images and sounds that nothing is using right now.\n'
+			+ 'Handy before a heavy song; assets are simply reloaded if you go back.\n'
+			+ 'Anything still on screen is left alone.',
+			'freeMemoryNow',
+			'link',
+			false);
+		option.onChange = freeMemoryNow;
+		addOption(option);
 
 		//I'd suggest using "Chars & BG" as an example for making your own option since it is the simplest here
 		var option:Option = new Option('Chars & BG', //Name
@@ -132,5 +171,31 @@ class OptimizationSubState extends BaseOptionsMenu
 		addBackupOptions();
 
 		super();
+	}
+
+	/**
+	 * Options -> Optimization -> "Free Memory Now".
+	 *
+	 * Uses the same shallow trim as a profile's idle pass, so a player who does
+	 * not want a whole profile can still reclaim RAM on demand without risking
+	 * the menu's own generated bitmaps. The heap numbers are best-effort:
+	 * platforms that cannot report them show a generic message.
+	 */
+	function freeMemoryNow():Void
+	{
+		final before:Float = VLog.heapUsedBytes();
+		LowMemory.trim(false);
+		final after:Float = VLog.heapUsedBytes();
+
+		var message:String = 'Cached assets have been released.';
+		if (before > 0 && after > 0)
+		{
+			message = 'Heap: ' + VLog.formatBytes(before) + ' -> ' + VLog.formatBytes(after) + '\n';
+			message += (before > after
+				? 'Freed ' + VLog.formatBytes(before - after) + '.'
+				: 'Nothing else could be released right now.');
+		}
+
+		openSubState(new Prompt(message, 0, null, null, false, 'OK', 'Close'));
 	}
 }

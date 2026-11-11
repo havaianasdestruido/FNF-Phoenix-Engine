@@ -81,6 +81,7 @@ class DiagnosticsReportSpec
   {
     testStructureAndAlignment();
     testUptimeAndUnknownValues();
+    testMemoryProfileRow();
     testModsAreListedInLoadOrder();
     testLogTailIsBounded();
     testBrokenSourceCostsOneRow();
@@ -136,6 +137,28 @@ class DiagnosticsReportSpec
 
     VLog.heapBytes = 234881024;
     debug.system.SystemInfo.ramBytes = 17179869184;
+  }
+
+  /**
+   * The settings section has to say whether a memory profile is forcing values:
+   * support otherwise has no way to explain why an option the player did not
+   * touch reads as something else.
+   */
+  static function testMemoryProfileRow():Void
+  {
+    reset();
+    backend.ClientPrefs.memoryProfile = 'Off';
+    contains(row('Memory profile', 'Off'), 'no profile reads as Off');
+
+    backend.ClientPrefs.memoryProfile = 'Extreme';
+    contains(row('Memory profile', 'Extreme ('), 'an active profile is named and summarized');
+    contains('releases after songs', 'the summary says what the profile does');
+
+    // Legacy/degenerate values must not crash the page or print garbage.
+    backend.ClientPrefs.memoryProfile = 'not-a-profile';
+    contains(row('Memory profile', 'Off'), 'an unknown value degrades to Off');
+
+    backend.ClientPrefs.memoryProfile = 'Off';
   }
 
   static function testModsAreListedInLoadOrder():Void

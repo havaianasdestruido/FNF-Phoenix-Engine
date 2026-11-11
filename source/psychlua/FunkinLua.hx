@@ -272,6 +272,9 @@ class FunkinLua {
 		set('healthBarAlpha', ClientPrefs.healthBarAlpha);
 		set('noResetButton', ClientPrefs.noReset);
 		set('lowQuality', ClientPrefs.lowQuality);
+		// Options -> Optimization -> Memory Profile (see backend.MemoryProfiles).
+		set('memoryProfile', ClientPrefs.memoryProfile);
+		set('lowMemoryMode', ClientPrefs.lowMemoryMode);
 		set('shadersEnabled', ClientPrefs.shaders);
 		set('scriptName', scriptName);
 		set('currentModDirectory', Mods.currentModDirectory);

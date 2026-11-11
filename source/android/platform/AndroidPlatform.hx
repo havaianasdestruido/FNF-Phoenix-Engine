@@ -122,6 +122,8 @@ class AndroidPlatform
 		try
 		{
 			flushSave();
+			// Records the pressure event against the active memory profile.
+			backend.LowMemory.reportSystemPressure();
 			backend.Paths.clearStoredMemory();
 			backend.Paths.clearUnusedMemory();
 		}

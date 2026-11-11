@@ -285,6 +285,10 @@ class MusicBeatState extends FlxUIState
 		callStateScript('onUpdate', [elapsed]);
 		callStateScript('update', [elapsed]);
 
+		// Options -> Optimization -> Memory Profile: idle cleanup. Cheap no-op
+		// when no profile is selected and skipped while a song is running.
+		LowMemory.update(elapsed);
+
 		oldStep = curStep;
 
 		updateCurStep();

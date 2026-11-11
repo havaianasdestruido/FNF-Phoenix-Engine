@@ -12,6 +12,7 @@ import backend.ScreenLayout;
 import backend.SettingsBackup;
 import backend.ViewportVisuals;
 import backend.DiscordClient;
+import backend.LowMemory;
 import backend.MusicBeatSubstate;
 import objects.Alphabet;
 import objects.AttachedText;
@@ -508,7 +509,7 @@ class BaseOptionsMenu extends MusicBeatSubstate
 	{
 	    if (curOption == option)
 	    {
-	        descText.text = option.description;
+	        descText.text = descriptionFor(option);
 					/*
 	        descText.screenCenter(Y);
 	        descText.y += 270;
@@ -518,6 +519,18 @@ class BaseOptionsMenu extends MusicBeatSubstate
 	        descBox.updateHitbox();
 					*/
 	    }
+	}
+
+	/**
+	 * The option's own description, plus a note when a memory profile is
+	 * forcing the value (Options -> Optimization -> Memory Profile). Without it
+	 * a player who set something in Graphics or Visuals would see it snap back
+	 * and blame the engine.
+	 */
+	function descriptionFor(option:Option):String
+	{
+		if (option == null || !LowMemory.isManaged(option.prefName())) return option == null ? '' : option.description;
+		return option.description + '\n\nForced by your memory profile\n(Options -> Optimization).';
 	}
 
 	function clearHold()
@@ -536,7 +549,7 @@ class BaseOptionsMenu extends MusicBeatSubstate
 		if (curSelected >= optionsArray.length)
 			curSelected = 0;
 
-		descText.text = optionsArray[curSelected].description;
+		descText.text = descriptionFor(optionsArray[curSelected]);
 		descText.screenCenter(Y);
 		descText.y += 270;
 
