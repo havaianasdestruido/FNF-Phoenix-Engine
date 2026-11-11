@@ -55,7 +55,8 @@ jobs:
       - name: Download Android artifact
         uses: actions/download-artifact@v8
         with:
-          name: androidBuild
+          pattern: "*_android_*"
+          merge-multiple: true
       - name: Locate APK
         run: |
           apk_path=$(find . -name "*.apk" | head -n 1)

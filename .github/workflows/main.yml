@@ -104,7 +104,6 @@ jobs:
             target: windows
             target_dir: windows
             cache_name: windows
-            artifact: windowsBuild
             artifact_path: build/release/windows/bin
             setup: windows
 
@@ -116,7 +115,6 @@ jobs:
             target: android
             target_dir: android
             cache_name: android
-            artifact: androidBuild
             # This lime fork runs Gradle `assembleRelease` only when a keystore is
             # configured (see lime's AndroidHelper). CI has no keystore, so the APK
             # lands in the `debug` flavor folder even though the build config is
@@ -507,10 +505,20 @@ jobs:
       # ==========================================
       # Publish artifact
       # ==========================================
+      # GitHub serves uploaded artifacts as ZIPs, adding the extension on download.
+      - name: Name artifact
+        id: artifact-name
+        if: steps.target-selection.outputs.enabled == 'true'
+        shell: bash
+        run: |
+          commit=$(git rev-parse --short=7 HEAD)
+          timestamp=$(date -u +%H_%M)
+          echo "name=${commit}_${{ matrix.target }}_${timestamp}" >> "$GITHUB_OUTPUT"
+
       - name: Publish artifact
         if: steps.target-selection.outputs.enabled == 'true'
         uses: actions/upload-artifact@v7
         with:
-          name: ${{ matrix.artifact }}
+          name: ${{ steps.artifact-name.outputs.name }}
           path: ${{ matrix.artifact_path }}
           if-no-files-found: error

@@ -75,11 +75,16 @@ jobs:
       - name: Download Windows artifact
         uses: actions/download-artifact@v8
         with:
-          name: windowsBuild
+          pattern: "*_windows_*"
           path: build
+          merge-multiple: true
 
       - name: Compress build
         run: |
+          if [ -z "$(find build -type f -print -quit 2>/dev/null)" ]; then
+            echo "::error::No files found in the Windows build artifact."
+            exit 1
+          fi
           sudo apt-get install -y p7zip-full
           7z a -tzip windowsBuild.zip -w ./build/.
 
