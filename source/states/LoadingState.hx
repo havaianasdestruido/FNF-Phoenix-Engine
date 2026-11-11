@@ -10,6 +10,7 @@ import play.PlayState;
 import flixel.FlxG;
 import flixel.FlxBasic;
 import flixel.FlxSprite;
+import flixel.FlxState;
 import flixel.group.FlxGroup;
 import flixel.math.FlxMath;
 import openfl.utils.AssetType;
@@ -36,8 +37,11 @@ import sys.thread.Thread;
  * - Respects `StageData.forceNextDirectory` and `Paths.setCurrentLevel()` exactly like
  *   the original Phoenix `getNextState`.
  *
- * Set `loadAndSwitchState(target)` from anywhere; it will always present the loading
- * screen before handing off to `target`.
+ * Set `loadAndSwitchState(target)` from anywhere. The loading screen only
+ * presents on the way into the title screen at boot (executable open ->
+ * TitleState) and when entering a song (`PlayState`, e.g. story mode /
+ * freeplay -> song); every other target switches straight to the target
+ * state without showing the screen.
  */
 class LoadingState extends MusicBeatState
 {
@@ -180,17 +184,22 @@ class LoadingState extends MusicBeatState
 	{
 		var SONG = PlayState.SONG;
 
-		// If no song is queued (e.g. going to OptionsState), just fake a short load
+		// No song queued: this is the boot -> title screen load. Preload the
+		// title screen assets, then hand off to TitleState.
 		if (SONG == null)
 		{
-			// short fake queue so the bar still animates ~0.4s
-			for (i in 0...6)
+			if (Std.isOfType(targetState, TitleState))
+				preloadTitleStuff();
+			else
 			{
-				var idx = i;
-				preloadQueue.push(function()
+				// short fake queue so the bar still animates ~0.4s
+				for (i in 0...6)
 				{
-					// no-op, just progress
-				});
+					preloadQueue.push(function()
+					{
+						// no-op, just progress
+					});
+				}
 			}
 			return;
 		}
@@ -497,6 +506,43 @@ class LoadingState extends MusicBeatState
 	}
 	#end
 
+	/**
+	 * Preloads the title screen assets for the boot -> title screen load.
+	 * TitleState.create() clears stored memory first, but everything here goes
+	 * through `Paths.image` / `Paths.getSparrowAtlas`, which track assets in
+	 * `currentTrackedAssets`, so they survive the clear and TitleState reuses
+	 * them instead of hitching on the first frame.
+	 */
+	function preloadTitleStuff():Void
+	{
+		// Title art: logo, "press enter", Newgrounds logo.
+		preloadQueue.push(function()
+		{
+			try Paths.getSparrowAtlas('logoBumpin') catch (e:Dynamic) {}
+			try Paths.getSparrowAtlas('titleEnter') catch (e:Dynamic) {}
+			try Paths.image('newgrounds_logo') catch (e:Dynamic) {}
+		});
+
+		// GF dancer is optional (content-stripped builds ship no art);
+		// TitleState guards it the same way.
+		preloadQueue.push(function()
+		{
+			try
+			{
+				if (Paths.image('gfDanceTitle') != null && Paths.fileExists('images/gfDanceTitle.xml', TEXT))
+					Paths.getSparrowAtlas('gfDanceTitle');
+			}
+			catch (e:Dynamic) {}
+		});
+
+		// Intro text + title config.
+		preloadQueue.push(function()
+		{
+			try Paths.getContent(Paths.txt('introText')) catch (e:Dynamic) {}
+			try Paths.getTextFromFile('images/gfDanceTitle.json') catch (e:Dynamic) {}
+		});
+	}
+
 	function preloadPlayStuff():Void
 	{
 		// Cache hitsounds, miss sounds, death, countdown — mirroring Doido's Paths.preloadPlayStuff()
@@ -672,29 +718,50 @@ class LoadingState extends MusicBeatState
 		Paths.setCurrentLevel(directory);
 		trace('Setting asset folder to ' + directory);
 
-		#if NO_PRELOAD_ALL
-		var loaded:Bool = false;
-		if (PlayState.SONG != null)
+		// The loading screen only shows on the way into the title screen at
+		// boot (executable open -> TitleState) and when entering a song
+		// (story mode / freeplay -> PlayState, plus other PlayState entries
+		// like test play and next-song). Every other transition (menus,
+		// options, editors, mods, ...) switches straight to the target state.
+		// Function targets are resolved to instances up front so the target
+		// can be checked; states are cheap to construct, `create()` still
+		// runs on the switch like before.
+		var resolved:FlxState = target.createInstance();
+
+		if (isLoadingTarget(resolved))
 		{
-			try
+			#if NO_PRELOAD_ALL
+			var loaded:Bool = false;
+			if (PlayState.SONG != null)
 			{
-				loaded = isSoundLoaded(Paths.inst(PlayState.SONG.song))
-					&& (!PlayState.SONG.needsVoices || isSoundLoaded(Paths.voices(PlayState.SONG.song)))
-					&& isLibraryLoaded("shared")
-					&& isLibraryLoaded(directory);
+				try
+				{
+					loaded = isSoundLoaded(Paths.inst(PlayState.SONG.song))
+						&& (!PlayState.SONG.needsVoices || isSoundLoaded(Paths.voices(PlayState.SONG.song)))
+						&& isLibraryLoaded("shared")
+						&& isLibraryLoaded(directory);
+				}
+				catch (e:Dynamic) loaded = false;
 			}
-			catch (e:Dynamic) loaded = false;
+			if (!loaded)
+				return new LoadingState(resolved, stopMusic, directory);
+			#else
+			return new LoadingState(resolved, stopMusic, directory);
+			#end
 		}
-		if (!loaded)
-			return new LoadingState(target, stopMusic, directory);
+
 		if (stopMusic && FlxG.sound.music != null)
 			FlxG.sound.music.stop();
-		return target;
-		#else
-		// Always show the cool Doido loading screen (even when assets are already cached)
-		// so the funkay + bar animation is visible on every song/area transition.
-		return new LoadingState(target, stopMusic, directory);
-		#end
+		return resolved;
+	}
+
+	/**
+	 * Whether `loadAndSwitchState` should present the loading screen for this
+	 * target: only the title screen (boot) and songs (`PlayState`).
+	 */
+	static function isLoadingTarget(state:Dynamic):Bool
+	{
+		return Std.isOfType(state, PlayState) || Std.isOfType(state, TitleState);
 	}
 
 	#if NO_PRELOAD_ALL

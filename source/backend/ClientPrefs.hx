@@ -264,7 +264,7 @@ class ClientPrefs { //default settings if it can't find a save file containing y
 	public static var enablePreReleaseUpdates:Bool = false;
 	public static var JSEngineRecharts:Bool = false;
 	public static var alwaysTriggerCutscene:Bool = false;
-	public static var disableSplash:Bool = false;
+	public static var disableSplash:Bool = true;
 	public static var disableAprilFools:Bool = false;
 	public static var rainbowTime:Float = 5.0;
 	public static var autosaveCharts:Bool = true;

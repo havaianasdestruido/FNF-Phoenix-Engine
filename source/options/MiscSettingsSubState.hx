@@ -39,10 +39,10 @@ class MiscSettingsSubState extends BaseOptionsMenu
 		addOption(option);
 
 		var option:Option = new Option('Disable Splash Screen', //Name
-			'If checked, the splash screen gets disabled on startup.', //Description
+			'If checked, the splash screen gets disabled on startup.\nOn by default.', //Description
 			'disableSplash', //Save data variable name
 			'bool', //Variable type
-			false); //Default value
+			true); //Default value
 		addOption(option);
 
 		//credit to Nael2xd for the idea
