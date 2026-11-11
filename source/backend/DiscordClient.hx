@@ -69,12 +69,11 @@ class DiscordClient
 
 	private static function onReady(request:RawConstPointer<DiscordUser>):Void
 	{
-		// Discord may provide a null callback pointer when its native backend is
-		// unavailable (for example, AIR builds without hxdiscord_rpc).
-		// Keep the cast-dep guard: request[0] may be null on AIR (no hxdiscord_rpc).
+		// Guard the native pointer before dereferencing it. request[0] is a
+		// DiscordUser value struct, not a nullable Haxe object on hxcpp.
 		if (request == null) return;
 		final discordUser = request[0];
-		if (discordUser == null || discordUser.username == null) return;
+		if (discordUser.username == null) return;
 		// Successful connection resets backoff — presence stays off until
 		// reconnect would otherwise fire onDisconnected.
 		reconnectAttempts = 0;
