@@ -45,7 +45,8 @@ iOS é local (`lime build ios -nosign`), sem job de CI.
 
 Defines úteis: `-DofficialBuild`, `-Dofficial`, `-DULTRA_OPTIMIZED` (build velocidade máxima, WIP),
 `-DULTRA_HTML5` (WIP), `-DDEBUG_TRACY`/`FEATURE_DEBUG_TRACY`, **`-DMODDING_LEVEL=0|1|2`**
-(0 nenhum, 1 Lua, 2 Lua+Python — desktop default 2), `-Ddisable-version-check` (flash/air obrigatório),
+(0 nenhum, 1 Lua, 2 Lua+Python — default 2 em **todo** target nativo: Windows, Linux, macOS,
+Android e iOS; web/Flash/AIR não têm LuaJIT), `-Ddisable-version-check` (flash/air obrigatório),
 `-debug` (build em `build/debug/` + FlxDebugger + anexo de debug do VSCode) e os flags de launch
 **`-DFREEPLAY`** / **`-DMENU`** (abrem direto em `FreeplayState` / `MainMenuState`, pulando splash e
 título; são mutuamente exclusivos e `project.hxp` aborta o build se ambos vierem — ver
@@ -138,7 +139,8 @@ FNF-JS-Engine-Light/
   `mods/custom_notetypes/`, `mods/custom_events/`; via `psychlua/*.hx`.
   `modding/psychlua/LuaUtils`/`FunkinLua` — engine de callbacks.
 - **Python**: igual a Lua, arquivos `.py` com `def onCreate()`, `def onUpdate(elapsed):` etc.
-  Interprete **Hython** (pure-Haxe), compilado apenas quando `-DMODDING_LEVEL=2`.
+  Interprete **Hython** (pure-Haxe), ligado por padrão em todo target nativo (nível 2);
+  `-DMODDING_LEVEL=1` remove o Python e `=0` remove os dois.
 - **HScript**: arquivos standalone `*.hx`/`*.hscript` nos mesmos escopos de Lua/Python
   (`scripts/`, `data/<song>/`, `stages/`, `characters/`, `custom_notetypes/`,
   `custom_events/`), sem pai Lua — `psychlua/HScript.hx` (`PlayState.hscriptArray`,

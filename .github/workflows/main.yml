@@ -3,6 +3,11 @@ name: Build
 # CI builds and tests only the two supported platforms: Windows and Android.
 # Other Lime targets remain buildable locally (see BUILDING.md), but they are
 # not part of the GitHub Actions matrix.
+#
+# Every build here gets modding level 2 (Lua + Python): project.hxp turns
+# LUA_ALLOWED and PYTHON_ALLOWED on by default for all native targets, and the
+# `moddingLevel` input below makes that explicit so a release artifact is
+# verifiably a script-modding build rather than one that inherited a default.
 
 on:
   push:
@@ -17,6 +22,12 @@ on:
         required: false
         type: string
         default: ""
+
+      moddingLevel:
+        description: "Script modding level: 0 = none, 1 = Lua, 2 = Lua + Python (default)"
+        required: false
+        type: string
+        default: "2"
 
       fullAssets:
         description: "Include all built-in content (required for releases)"
@@ -38,6 +49,12 @@ on:
 
   workflow_dispatch:
     inputs:
+      moddingLevel:
+        description: "Script modding level: 0 = none, 1 = Lua, 2 = Lua + Python (default)"
+        required: false
+        type: string
+        default: "2"
+
       fullAssets:
         description: "Include all built-in content (required for releases)"
         required: false
@@ -397,11 +414,18 @@ jobs:
         env:
           HXCPP_COMPILE_THREADS: 4
           BUILD_FLAGS: ${{ inputs.buildFlags }}
+          MODDING_LEVEL: ${{ inputs.moddingLevel || '2' }}
         run: |
           Remove-Item -Force assets/preload/gameRenders/renderlinux.sh
 
           $buildFlag = if ($env:BUILD_FLAGS) { $env:BUILD_FLAGS } else { 'commit' }
           $buildArgs = @('run', 'lime', 'build', 'windows', "-D$buildFlag")
+          # Script modding: 2 is Lua + Python, the default on every native
+          # target. Passed explicitly so the artifact does not depend on a
+          # default in project.hxp that could change unnoticed.
+          if ($env:MODDING_LEVEL) {
+            $buildArgs += "-DMODDING_LEVEL=$env:MODDING_LEVEL"
+          }
           # Routine CI is compact; releases explicitly request the full pack.
           if ('${{ inputs.fullAssets }}' -ne 'true') {
             $buildArgs += '-DNO_BUILTIN_CONTENT'
@@ -411,7 +435,11 @@ jobs:
           if ($buildFlag -eq 'officialBuild') {
             $buildArgs += '-DHXCPP_OPTIMIZE_LINK'
           }
-          & haxelib @buildArgs
+          # Keep the log: the next step proves Lua and Python really were
+          # compiled in rather than silently dropped.
+          # UTF-8 so the bash step below can read the log back with grep on
+          # every runner (Windows PowerShell 5 would write UTF-16).
+          & haxelib @buildArgs 2>&1 | Tee-Object -FilePath build-windows.log -Encoding utf8
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
       # ==========================================
@@ -423,16 +451,72 @@ jobs:
         env:
           HXCPP_COMPILE_THREADS: 4
           BUILD_FLAGS: ${{ inputs.buildFlags }}
+          MODDING_LEVEL: ${{ inputs.moddingLevel || '2' }}
         run: |
+          # pipefail so the `tee` below cannot hide a failing build.
+          set -o pipefail
           args=()
           if [ -n "$BUILD_FLAGS" ]; then
             args+=("-D$BUILD_FLAGS")
+          fi
+          # Script modding: 2 is Lua + Python, the default on every native
+          # target (mobile included, LuaJIT ships Android/iOS binaries).
+          # Passed explicitly so the APK does not depend on a default in
+          # project.hxp that could change unnoticed.
+          if [ -n "$MODDING_LEVEL" ]; then
+            args+=("-DMODDING_LEVEL=$MODDING_LEVEL")
           fi
           # Routine CI is compact; releases explicitly request the full pack.
           if [ "${{ inputs.fullAssets }}" != "true" ]; then
             args+=("-DNO_BUILTIN_CONTENT")
           fi
-          haxelib run lime build android "${args[@]}"
+          haxelib run lime build android "${args[@]}" 2>&1 | tee build-android.log
+
+      # ==========================================
+      # Verify Lua and Python are compiled in
+      # ==========================================
+      # project.hxp prints exactly one "Script support:" line per build. A
+      # build that lost LUA_ALLOWED still compiles and runs, it just silently
+      # ignores every .lua file at run time, which is how this regressed
+      # before: a plain `lime build windows` never set Lime's `cpp` target
+      # flag, so the desktop/mobile default switched itself off. Assert the
+      # line here rather than finding out from a mod bug report.
+      # See docs/LUA_SCRIPT_DEBUGGING.md, step 0.
+      - name: Verify script modding (Lua + Python)
+        if: steps.target-selection.outputs.enabled == 'true'
+        shell: bash
+        env:
+          MODDING_LEVEL: ${{ inputs.moddingLevel || '2' }}
+          LOG_FILE: build-${{ matrix.setup }}.log
+        run: |
+          set -euo pipefail
+          log="$LOG_FILE"
+          if [ ! -f "$log" ]; then
+            echo "::error::No build log found, so Lua/Python support cannot be confirmed."
+            exit 1
+          fi
+          line=$(grep -m1 'Script support:' "$log" || true)
+          echo "$log: ${line:-<no 'Script support:' line>}"
+          if [ -z "$line" ]; then
+            echo "::error::$log has no 'Script support:' line; the script configuration is unknown."
+            exit 1
+          fi
+
+          case "${MODDING_LEVEL:-2}" in
+            0) expected='Lua OFF, Python OFF' ;;
+            1) expected='Lua ON, Python OFF' ;;
+            *) expected='Lua ON, Python ON' ;;
+          esac
+          if ! grep -qF "$expected" <<<"$line"; then
+            echo "::error::Expected '$expected' for -DMODDING_LEVEL=$MODDING_LEVEL, got: $line"
+            echo "::error::See docs/LUA_SCRIPT_DEBUGGING.md, step 0."
+            exit 1
+          fi
+          # The build must not have warned that Lua cannot run in this binary.
+          if grep -qF 'Lua scripts (.lua) will NOT run in this build' "$log"; then
+            echo "::error::$log warns that .lua scripts will not run."
+            exit 1
+          fi
 
       # ==========================================
       # Verify the actual merged Android manifest

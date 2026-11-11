@@ -334,18 +334,22 @@ class LuaDiagnostics
   }
 
   /**
-   * Whether a rebuild can put the Lua VM into this target: `project.hxp`
-   * adds the Lua bindings (hxluajit) for desktop targets only.
+   * Whether a rebuild can put the Lua VM into this target.
+   *
+   * `project.hxp` adds the Lua bindings (hxluajit) and turns `LUA_ALLOWED` on
+   * for every native C++ target: Windows, Linux, macOS, Android and iOS. Web
+   * and Flash/AIR builds have no LuaJIT, so they are the ones that cannot.
    */
   public static inline function luaBuildable():Bool
   {
-    return #if (desktop || LUA_ALLOWED) true #else false #end;
+    return #if (native || LUA_ALLOWED) true #else false #end;
   }
 
   /** The Lime target name of this build, for an example command line. */
   static inline function limeTarget():String
   {
-    return #if windows 'windows' #elseif mac 'mac' #elseif linux 'linux' #else '<target>' #end;
+    return #if windows 'windows' #elseif mac 'mac' #elseif linux 'linux'
+    #elseif android 'android' #elseif ios 'ios' #else '<target>' #end;
   }
 
   /**
@@ -372,7 +376,7 @@ class LuaDiagnostics
     }
     else
     {
-      lines.push('The engine can only include Lua in desktop builds (Windows, Linux, macOS) for now.');
+      lines.push('This target has no Lua: the Lua VM is built for Windows, Linux, macOS, Android and iOS.');
       lines.push('See docs/LUA_SCRIPT_DEBUGGING.md, step 0.');
     }
     if (scripts != null)

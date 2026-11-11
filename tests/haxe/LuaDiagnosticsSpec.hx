@@ -19,11 +19,12 @@ import backend.LuaDiagnostics.LuaScanFs;
  *   5. hooks: misspelt hook names, de-duplicated hook errors;
  *   6. the wiring in the engine sources that feeds all of the above.
  *
- * The runner executes it for the three kinds of build that exist, because
- * each reports differently: a target that cannot include Lua (no define), a
- * desktop build without the Lua VM (`-D desktop`, what a plain
- * `lime build windows` produces today) and a desktop build with it
- * (`-D desktop -D LUA_ALLOWED`). With `LUAJIT` pointing at a LuaJIT binary,
+ * The runner executes it for the kinds of build that exist, because each
+ * reports differently: a target that cannot include Lua at all (no define:
+ * web, Flash, AIR), a native C++ build without the Lua VM (`-D native`, or
+ * `-D desktop`, as produced by `-DMODDING_LEVEL=0`) and a native build with
+ * it (`-D native -D LUA_ALLOWED`, what every plain `lime build windows`,
+ * `linux`, `mac`, `android` or `ios` produces). With `LUAJIT` pointing at a LuaJIT binary,
  * the error-position rules are also checked against messages produced by the
  * real runtime.
  *
@@ -33,6 +34,8 @@ class LuaDiagnosticsSpec
 {
   static inline var LUA_BUILD:Bool = #if LUA_ALLOWED true #else false #end;
   static inline var DESKTOP_BUILD:Bool = #if desktop true #else false #end;
+  /** Native C++ target (Windows, Linux, macOS, Android, iOS). */
+  static inline var NATIVE_BUILD:Bool = #if native true #else false #end;
 
   static var failures:Int = 0;
   static var checks:Int = 0;
@@ -85,7 +88,7 @@ class LuaDiagnosticsSpec
 
   static function main():Void
   {
-    Sys.println('LuaDiagnosticsSpec (' + (DESKTOP_BUILD ? 'desktop' : 'non-desktop') + ' build '
+    Sys.println('LuaDiagnosticsSpec (' + (NATIVE_BUILD ? 'native' : (DESKTOP_BUILD ? 'desktop' : 'non-native')) + ' build '
       + (LUA_BUILD ? 'with' : 'without') + ' the Lua VM)');
     outputLevels();
     wrapping();
@@ -228,9 +231,10 @@ class LuaDiagnosticsSpec
     check(LuaDiagnostics.buildSupportLine().indexOf(LUA_BUILD ? 'includes the Lua VM' : 'does NOT include the Lua VM') != -1,
       'build support line');
 
-    // Lua can be compiled in for desktop targets only (project.hxp adds
-    // hxluajit there), so only a desktop build is told to rebuild.
-    equal(LuaDiagnostics.luaBuildable(), DESKTOP_BUILD || LUA_BUILD, 'luaBuildable() follows the desktop define');
+    // Lua can be compiled in for every native C++ target (project.hxp adds
+    // hxluajit there), so a native build is told to rebuild and a web/Flash
+    // build is not.
+    equal(LuaDiagnostics.luaBuildable(), NATIVE_BUILD || LUA_BUILD, 'luaBuildable() follows the native define');
 
     final one:Array<String> = LuaDiagnostics.noLuaSupportLines(['mods/a/scripts/x.lua'], true);
     check(one[0].startsWith('1 Lua script found'), 'singular count');
@@ -241,7 +245,8 @@ class LuaDiagnosticsSpec
     final mobile:Array<String> = LuaDiagnostics.noLuaSupportLines(['mods/a/scripts/x.lua'], false);
     equal(mobile[0], one[0], 'the headline is the same on every platform');
     check(mobile.join('\n').indexOf('MODDING_LEVEL') == -1, 'a target that cannot include Lua is not told to rebuild');
-    check(mobile.join('\n').indexOf('only include Lua in desktop builds') != -1, 'it is told where Lua is available');
+    check(mobile.join('\n').indexOf('no Lua: the Lua VM is built for Windows, Linux, macOS, Android and iOS') != -1,
+      'it is told where Lua is available');
     check(mobile.join('\n').indexOf('docs/LUA_SCRIPT_DEBUGGING.md') != -1, 'it still points at the guide');
     check(mobile.contains('  not run: mods/a/scripts/x.lua'), 'it still lists the script');
 
@@ -766,7 +771,7 @@ class LuaDiagnosticsSpec
     check(printedContains('  not run: mods/A/characters/bf.lua'), 'no-Lua notice lists the scripts');
     equal(shown.length, 1, 'no-Lua notice is put on screen even when quiet');
     equal(shown[0].level, ERROR, 'no-Lua notice is an error');
-    check(shownContains(LuaDiagnostics.luaBuildable() ? '-DMODDING_LEVEL=1' : 'only include Lua in desktop builds'),
+    check(shownContains(LuaDiagnostics.luaBuildable() ? '-DMODDING_LEVEL=1' : 'the Lua VM is built for Windows, Linux, macOS, Android and iOS'),
       'the on-screen notice says what can be done about it');
     equal(shown[0].text.split('\n').length, 3, 'the on-screen notice is one three-line message, in reading order');
 

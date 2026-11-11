@@ -43,13 +43,29 @@ jobs:
       - name: Run native C/C++ smoke tests
         run: bash tests/native/run.sh
 
+      - name: Default build scripts are syntactically valid
+        run: |
+          set -euo pipefail
+          for script in build/*.sh; do
+            sh -n "$script"
+            echo "ok $script"
+          done
+          if command -v pwsh >/dev/null 2>&1; then
+            for script in build/*.ps1; do
+              pwsh -NoProfile -Command "[void][System.Management.Automation.Language.Parser]::ParseFile('$script',[ref]\$null,[ref]\$e); if (\$e) { exit 1 }"
+              echo "ok $script"
+            done
+          fi
+
       # Static guard for main.yml's cache keys: they must be reused, not
       # re-created per commit, and every native header must stay a declared
       # hxcpp dependency. No Haxe or C++ toolchain needed.
       - name: Build cache keys roll over instead of piling up
         run: bash tests/haxe/run-build-cache-policy.sh
 
-      - name: Verify compact CI and full release asset policy
+      # Also guards the script modding level every CI/release build ships
+      # with, and that the default build/ scripts do not disable it.
+      - name: Verify script modding level, compact CI and release asset policy
         run: bash tests/haxe/run-content-policy.sh
   diagnostic-report-specs:
     name: Diagnostic log, crash bundle and diagnostics page (Haxe)

@@ -74,8 +74,8 @@ command line, so **`-DVIDEOS_ALLOWED` or `-DMODS_ALLOWED` always wins**.
 | Flag | Default condition | Guards |
 |---|---|---|
 | `MODS_ALLOWED` | desktop or mobile, not web/flash/air | the whole `mods/` pipeline (`backend.Mods`; otherwise `backend.ModsStub`) |
-| `LUA_ALLOWED` | desktop/mobile C++ targets (or forced by `MODDING_LEVEL`) | `psychlua.FunkinLua` and all Lua callbacks |
-| `PYTHON_ALLOWED` | same as Lua, level `2` only | `psychlua.PythonScript` and `pystdlib` |
+| `LUA_ALLOWED` | every native C++ target — desktop **and** mobile (`supportsScriptModding()`), or forced by `MODDING_LEVEL` | `psychlua.FunkinLua` and all Lua callbacks |
+| `PYTHON_ALLOWED` | same condition as Lua | `psychlua.PythonScript` and `pystdlib` |
 | `HSCRIPT_ALLOWED` | desktop, mobile, web (not flash/air) | `psychlua.HScript`; also sets `hscriptPos` |
 | `VIDEOS_ALLOWED` | desktop/mobile C++, not 32-bit web | hxvlc playback, cutscenes |
 | `SHADERS_ALLOWED` | everything except flash/air | runtime shaders and the `shaders/` package |
@@ -97,13 +97,19 @@ command line, so **`-DVIDEOS_ALLOWED` or `-DMODS_ALLOWED` always wins**.
 ### `MODDING_LEVEL`
 
 `getModdingLevel()` reads `-DMODDING_LEVEL` (checking both `haxedefs` and `defines`) and
-returns `-1` when unset. When it *is* set it overrides the automatic conditions:
+returns `-1` when unset. Unset is the normal case and means **level 2 wherever the target
+can link LuaJIT** — that is `supportsScriptModding()`, i.e. `isNativeCpp() &&
+(isDesktop() || isMobile())`. Web, WebAssembly, Flash and AIR keep HScript only.
+
+Do not use Lime's `-cpp` target flag to turn Lua on: `lime build windows|linux|mac|android|ios`
+never sets it, so the old `isCPP()` gate silently produced Lua-less builds for every plain
+and CI build. When the level *is* set it overrides the automatic conditions:
 
 | Level | `LUA_ALLOWED` | `PYTHON_ALLOWED` |
 |---|---|---|
 | `0` | disabled | disabled |
 | `1` | enabled | disabled |
-| `2` (default on desktop) | enabled | enabled |
+| `2` (default on desktop and mobile) | enabled | enabled |
 
 ## Compile defines
 

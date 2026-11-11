@@ -28,11 +28,18 @@ spec() {
   "${HAXE:-haxe}" -cp "$test_source" -cp tests/haxe -main LuaDiagnosticsSpec "$@" --interp
 }
 
-# No define: a target that cannot include Lua (mobile, web).
+# No define: a target that cannot include Lua (web, Flash, AIR).
 spec
 
-# A desktop build without the Lua VM: .lua files are found but cannot run.
+# A native C++ build without the Lua VM: .lua files are found but cannot run.
+# `-D native` covers Windows, Linux, macOS, Android and iOS.
+spec -D native
+
+# A desktop build without the Lua VM (the same shape as the `native` case).
 spec -D desktop
+
+# A native build with the Lua VM.
+spec -D native -D LUA_ALLOWED
 
 # A desktop build with the Lua VM.
 spec -D desktop -D LUA_ALLOWED

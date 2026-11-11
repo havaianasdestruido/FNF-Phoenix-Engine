@@ -51,19 +51,26 @@ In verbose mode the warnings and errors are also shown on screen.
 Every `psychlua/*.hx` file is behind `#if LUA_ALLOWED`. A build without that
 define contains no Lua VM.
 
-:::caution[A plain desktop build has no Lua]
+:::note[Lua and Python are on by default on every native build]
 
-`lime test windows`, `lime test linux` and `lime test mac` build **without** Lua
-and Python today, and so do the CI builds. Add `-DMODDING_LEVEL=1` (Lua) or
-`-DMODDING_LEVEL=2` (Lua and Python) to include them. Mobile builds cannot
-include Lua yet.
+`lime build windows`, `linux`, `mac`, `android` and `ios` (and the CI/release
+builds) all include Lua **and** Python: that is modding level 2, the default for
+every target that can link LuaJIT. You only get a build without Lua if you ask
+for one with `-DMODDING_LEVEL=0` (or `-DNO_LUA_ALLOWED`), or if you build for
+web, WebAssembly, Flash or AIR, which have no LuaJIT binary.
 
 :::
 
 The build output says which one was made:
 
 ```text
-[INFO] Script support: Lua OFF, Python OFF, HScript ON (Lua: default for this target)
+[INFO] Script support: Lua ON, Python ON, HScript ON (Lua: default for this target)
+```
+
+A level-0 build (or a web/Flash one) says this instead:
+
+```text
+[INFO] Script support: Lua OFF, Python OFF, HScript ON (Lua: -DMODDING_LEVEL=0)
 [WARN] Lua scripts (.lua) will NOT run in this build: LUA_ALLOWED is off.
 ```
 

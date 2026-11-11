@@ -66,6 +66,8 @@ jobs:
     with:
       buildFlags: officialBuild
       fullAssets: true
+      # Released builds ship with script modding on (Lua + Python).
+      moddingLevel: "2"
 
   release-windows:
     name: Release windowsBuild

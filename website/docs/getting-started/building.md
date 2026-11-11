@@ -73,7 +73,7 @@ The most relevant ones:
 | Define | Effect |
 |---|---|
 | `-Dofficial` / `-DofficialBuild` | marks the build as an official release build |
-| `-DMODDING_LEVEL=0\|1\|2` | script support: none / Lua / Lua + Python (desktop default `2`) |
+| `-DMODDING_LEVEL=0\|1\|2` | script support: none / Lua / Lua + Python (native default `2`) |
 | `-DNO_BUILTIN_CONTENT` | strips all base-game songs, weeks, characters and art — see below |
 | `-DULTRA_OPTIMIZED` | maximum-speed build (work in progress) |
 | `-DULTRA_HTML5` | HTML5-specific optimization pass (work in progress) |
@@ -86,8 +86,13 @@ how `project.hxp` turns them into compiler defines.
 
 ### Script modding levels
 
+Level **2** (Lua + Python) is the default on every target that can run scripts:
+Windows, Linux, macOS, Android and iOS. No flag is needed, and the scripts in
+`build/` pass none:
+
 ```bash
-lime test windows -DMODDING_LEVEL=1   # Lua only, no Python VM in the binary
+./build/build-windows.bat     # modding level 2, Lua + Python
+./build/build-android.sh      # same, mobile included
 ```
 
 | Value | Lua | Python | Typical use |
@@ -96,9 +101,29 @@ lime test windows -DMODDING_LEVEL=1   # Lua only, no Python VM in the binary
 | `1` | ✓ | ✗ | Psych/JS Engine compatibility without the Hython cost |
 | `2` | ✓ | ✓ | default on desktop and mobile |
 
+To override it, pass the define (the build scripts forward extra arguments to Lime):
+
+```bash
+lime test windows -DMODDING_LEVEL=1   # Lua only, no Python VM in the binary
+./build/build-windows.bat -DMODDING_LEVEL=0
+```
+
 The level is read by `project.hxp` and translated into the `LUA_ALLOWED` and
 `PYTHON_ALLOWED` feature flags, which guard the corresponding code with `#if`. Code behind
 a disabled flag is not merely skipped at runtime — it is not compiled at all.
+
+Web, WebAssembly, Flash and AIR have no Lua or Python: LuaJIT only ships
+binaries for the native platforms above.
+
+:::note[Do not pass `-cpp` to enable Lua]
+
+`-cpp` is Lime's optional *target flag*, not the script-support switch. It used
+to be the gate in `project.hxp`, and because `lime build windows|linux|mac|android|ios`
+never sets that flag, every plain build and every CI build shipped without Lua.
+The gate is now the compile target itself (`supportsScriptModding()`), so `-cpp`
+changes nothing about script support.
+
+:::
 
 ### Content-stripped builds
 

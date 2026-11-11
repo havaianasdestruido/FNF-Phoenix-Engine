@@ -44,6 +44,8 @@ jobs:
     with:
       buildFlags: officialBuild
       fullAssets: true
+      # Released APKs ship with script modding on (Lua + Python).
+      moddingLevel: "2"
       buildWindows: false
       buildAndroid: true
 

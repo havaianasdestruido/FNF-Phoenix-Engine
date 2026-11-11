@@ -197,27 +197,49 @@ NDK TLS link failures. Artifact locations and packaging checks are unchanged.
 
 ### Script modding levels
 
-By default the game ships with both **Lua** and **Python** script modding enabled on desktop.
-You can force a specific level with `-DMODDING_LEVEL`:
+Every native build ships with both **Lua** and **Python** script modding enabled:
+that is modding level 2, the default for Windows, Linux, macOS, Android and iOS.
+No flag is needed. You can force a different level with `-DMODDING_LEVEL`:
 
-| Value | Script support                              |
-|-------|---------------------------------------------|
-| `0`   | No Lua or Python scripts                    |
-| `1`   | Lua only                                    |
-| `2`   | Lua + Python (default on desktop)           |
+| Value | Script support                                        |
+|-------|-------------------------------------------------------|
+| `0`   | No Lua or Python scripts                              |
+| `1`   | Lua only                                              |
+| `2`   | Lua + Python (default on desktop **and** mobile)      |
 
 For example, a Lua-only build:
 
 `lime test windows -DMODDING_LEVEL=1`
 
-> **Check the build output.** Today that default only switches on when Lime's
-> `cpp` target flag is set (`lime test cpp`, or `-cpp`). A plain
-> `lime test windows`, `linux` or `mac` produces a build **without** Lua and
-> Python unless you pass `-DMODDING_LEVEL=1` or `-DMODDING_LEVEL=2`. CI and the
-> release workflows build without those flags too. The build prints what it
-> made: `[INFO] Script support: Lua ON|OFF, Python ON|OFF, HScript ON|OFF (…)`,
+Web, WebAssembly, Flash and AIR are the only targets without Lua/Python:
+LuaJIT ships prebuilt binaries only for the native platforms above, so those
+targets keep HScript and nothing else.
+
+The default build scripts in `build/` rely on this default and pass no flags:
+
+| Script | Build |
+|--------|-------|
+| `build/build-windows.bat` | `lime build windows -release` |
+| `build/build-linux.sh` | `lime build linux -release` |
+| `build/build-mac.sh` | `lime build mac -release` |
+| `build/build-android.sh` | `lime build android -release` |
+| `build/build-ios.sh` | `lime build ios -release` |
+
+Each has a `.ps1` twin, and `build/test-windows.bat` runs a debug build. Extra
+arguments are forwarded to Lime, so `build-windows.bat -DMODDING_LEVEL=1`
+builds a Lua-only release. CI does the same thing through the `moddingLevel`
+input of `.github/workflows/main.yml`, which defaults to `2` and is passed
+explicitly, and then asserts the build's `Script support:` line really says
+`Lua ON, Python ON`.
+
+> **Check the build output.** The build always prints what it made:
+> `[INFO] Script support: Lua ON|OFF, Python ON|OFF, HScript ON|OFF (…)`,
 > followed by `[WARN]` lines when Lua is off. See
 > [`docs/LUA_SCRIPT_DEBUGGING.md`](docs/LUA_SCRIPT_DEBUGGING.md), step 0.
+
+> **Do not pass `-cpp` to get Lua.** That is Lime's optional target flag, not
+> what decides script support, and it is never required: `project.hxp` now
+> checks the compile target (`targetType`), which every per-platform build sets.
 
 Python scripts work exactly like Lua scripts: drop a `.py` file with `def onCreate():`,
 `def onUpdate(elapsed):`, etc. into `mods/scripts/`, `mods/data/<song>/`,

@@ -94,31 +94,43 @@ class LuaScriptDiscoverySpec
 		var luaApplyCond:String = luaApply.match(project) ? luaApply.matched(1) : '';
 		check(luaApplyCond.length > 0, 'project.hxp sets LUA_ALLOWED explicitly');
 
-		var androidLua:Bool = luaApplyCond.indexOf('isMobile()') >= 0;
-		var desktopLua:Bool = luaApplyCond.indexOf('isDesktop()') >= 0;
+		// The condition is a named helper; the desktop/mobile split lives in its
+		// body, which is also read here so the two cannot drift apart.
+		var helperPattern:EReg = ~/function supportsScriptModding\(\):Bool\s*\n\s*\{([^}]*)\}/;
+		var helperBody:String = helperPattern.match(project) ? helperPattern.matched(1) : '';
+		check(helperBody.length > 0, 'supportsScriptModding() is defined in project.hxp');
+
+		var desktopLua:Bool = helperBody.indexOf('isDesktop()') >= 0;
+		var mobileLua:Bool = helperBody.indexOf('isMobile()') >= 0;
 		info('LUA_ALLOWED applies when:$luaApplyCond');
+		info('supportsScriptModding() returns:$helperBody');
+		check(desktopLua && mobileLua, 'LUA_ALLOWED is on for desktop and mobile, not desktop only');
+		check(helperBody.indexOf('isNativeCpp()') >= 0, 'supportsScriptModding() requires a native C++ backend');
+
+		// Desktop and mobile (all native C++): LuaJIT has no web or Flash
+		// binary. This has to be `targetType`-based (`supportsScriptModding()`
+		// -> `isNativeCpp()`), not Lime's `cpp` target flag:
+		// `lime build windows|linux|mac|android|ios` never set that flag, so
+		// an `isCPP()` gate silently disabled Lua in every normal build.
+		check(luaApplyCond.indexOf('supportsScriptModding()') >= 0,
+			'LUA_ALLOWED is gated on a real C++ target, not the optional "cpp" flag');
+		check(luaApplyCond.indexOf('isCPP()') == -1,
+			'LUA_ALLOWED does not repeat the isCPP() gate that disabled it in plain builds');
 
 		var libPattern:EReg = ~/if\s*\(([^\n]*?)\)\s*\n[^\n]*addHaxelib\('hxluajit'\)/;
 		var libCond:String = libPattern.match(project) ? libPattern.matched(1) : '';
 		check(libCond.length > 0, 'hxluajit is added when Lua is enabled');
-
-		var androidLib:Bool = libCond.indexOf('isMobile()') >= 0 || ~/isAndroid\(\)|isIOS\(\)/.match(libCond);
 		info('hxluajit is added when:$libCond');
+		check(libCond.indexOf('supportsScriptModding()') >= 0, 'hxluajit is added on every native C++ target');
 
 		// The bindings are imported under the same define that gates them:
-		// `#if LUA_ALLOWED import hxluajit.*;` in source/import.hx.
-		check(desktopLua == (libCond.indexOf('isDesktop()') >= 0),
-			'LUA_ALLOWED and hxluajit agree about desktop');
-
-		if(androidLua && !androidLib)
-		{
-			Sys.println('  NOTE  LUA_ALLOWED is enabled on mobile but hxluajit is only added');
-			Sys.println('        for desktop builds (project.hxp). An Android build defines');
-			Sys.println('        LUA_ALLOWED, so source/import.hx imports hxluajit.* and every');
-			Sys.println('        psychlua file compiles in, while the bindings haxelib is not on');
-			Sys.println('        the classpath. Either mobile gets no Lua, or this asymmetry is');
-			Sys.println('        the first thing to check when Lua "does nothing" on Android.');
-		}
+		// `#if LUA_ALLOWED import hxluajit.*;` in source/import.hx. If the
+		// define and the haxelib disagree, the target either has no Lua at all
+		// or fails to compile with "Type not found : hxluajit.Types".
+		check(libCond.indexOf('isDesktop()') == -1 && libCond.indexOf('isMobile()') == -1,
+			'hxluajit is not narrowed to one platform family (that was the mobile/desktop mismatch)');
+		check(luaApplyCond.indexOf('isDesktop() && LUA_ALLOWED') == -1,
+			'LUA_ALLOWED and hxluajit use the same condition, not two different ones');
 
 		// MODDING_LEVEL=0 removes Lua entirely; -DNO_LUA_ALLOWED does the same.
 		var levelZero:Bool = ~/MODDING_LEVEL[^\n]*0/.match(project);

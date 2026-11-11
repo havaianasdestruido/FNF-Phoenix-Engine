@@ -12,7 +12,8 @@ class ProjectBuildCacheSpec
   }
 
   static function makeProject(target:Platform, flags:Map<String, String>, command:String = "build",
-      customCache:Null<String> = null, disableDefault:Bool = false, customDefine:Null<String> = null, compact:Bool = true):Project
+      customCache:Null<String> = null, disableDefault:Bool = false, customDefine:Null<String> = null, compact:Bool = true,
+      moddingLevel:Null<String> = null):Project
   {
     // Project.setenv mutates the current process as well as the returned map.
     // Start each scenario with a fresh environment, just as a Lime invocation does.
@@ -29,6 +30,9 @@ class ProjectBuildCacheSpec
       HXProject._userDefines.set("NO_HXCPP_COMPILE_CACHE", "1");
     if (customDefine != null)
       HXProject._userDefines.set("HXCPP_COMPILE_CACHE", customDefine);
+    // `-DMODDING_LEVEL=n` arrives as a user define, exactly like Lime does it.
+    if (moddingLevel != null)
+      HXProject._userDefines.set("MODDING_LEVEL", moddingLevel);
     return new Project();
   }
 
@@ -112,7 +116,59 @@ class ProjectBuildCacheSpec
     for (path in ["assets/weeks/week2.json", "assets/data/spookeez/spookeez.json",
       "assets/songs/spookeez/Inst.ogg", "assets/week2/images/halloween_bg.png"])
       assertEquals(0, [for (asset in project.assets) if (asset.targetPath == path) asset].length, 'compact build excludes $path');
+    // -----------------------------------------------------------------
+    // Script modding level 2 (Lua + Python) is the default on every native
+    // target. Lime's `cpp` target flag is deliberately NOT set for a plain
+    // per-platform build, which is exactly the case that regressed before.
+    // -----------------------------------------------------------------
+    // A native build always defines LUA_ALLOWED/PYTHON_ALLOWED and puts both
+    // interpreters on the classpath. Lime needs an explicit `cpp` flag only
+    // to cross-compile to another desktop OS; that case is covered too.
+    function checkNative(target:Platform, flags:Map<String, String>, label:String):Void
+    {
+      var project = makeProject(target, flags, "build", null, false, null, true);
+      assertEquals("cpp", project.defines.get("targetType"), 'native target type for $label');
+      assertEquals(true, project.haxedefs.exists("LUA_ALLOWED"), 'Lua is on by default for $label');
+      assertEquals(true, project.haxedefs.exists("PYTHON_ALLOWED"), 'Python is on by default for $label');
+      assertEquals(1, [for (lib in project.haxelibs) if (lib.name == "hxluajit") lib].length,
+        'hxluajit is on the classpath for $label');
+      assertEquals(1, [for (lib in project.haxelibs) if (lib.name == "hython") lib].length,
+        'hython is on the classpath for $label');
+    }
+
+    // The host's own platform build, exactly how `lime build <host>` runs.
+    checkNative(host, [], '$host (host, no flags)');
+    // Mobile needs no flag at all; it is not a desktop cross-compile.
+    for (target in [Platform.ANDROID, Platform.IOS])
+      checkNative(target, [], '$target (no flags)');
+    // Cross-compiling another desktop OS: Lime only makes it C++ with -cpp,
+    // which is the flag that used to gate (and so disable) Lua.
+    for (target in [Platform.WINDOWS, Platform.LINUX, Platform.MAC])
+      if (target != host)
+        checkNative(target, ["cpp" => ""], '$target (cross-compiled with -cpp)');
+
+    // The level flag still overrides the default, in both directions.
+    var level0 = makeProject(host, [], "build", null, false, null, true, "0");
+    assertEquals(false, level0.haxedefs.exists("LUA_ALLOWED"), "level 0 removes Lua");
+    assertEquals(false, level0.haxedefs.exists("PYTHON_ALLOWED"), "level 0 removes Python");
+    assertEquals(0, [for (lib in level0.haxelibs) if (lib.name == "hxluajit") lib].length,
+      "level 0 removes the Lua bindings");
+    var level1 = makeProject(host, [], "build", null, false, null, true, "1");
+    assertEquals(true, level1.haxedefs.exists("LUA_ALLOWED"), "level 1 keeps Lua");
+    assertEquals(false, level1.haxedefs.exists("PYTHON_ALLOWED"), "level 1 drops Python");
+    assertEquals(1, [for (lib in level1.haxelibs) if (lib.name == "hxluajit") lib].length,
+      "level 1 keeps the Lua bindings");
+
+    // Web/Flash/AIR cannot link LuaJIT and must stay without Lua/Python even
+    // though they are not desktop or mobile.
+    for (target in [Platform.HTML5, Platform.FLASH, Platform.AIR])
+    {
+      var project = makeProject(target, [], "build", null, false, null, true);
+      assertEquals(false, project.haxedefs.exists("LUA_ALLOWED"), 'no Lua on $target');
+      assertEquals(false, project.haxedefs.exists("PYTHON_ALLOWED"), 'no Python on $target');
+    }
+
     Sys.putEnv("HXCPP_COMPILE_CACHE", null);
-    Sys.println("Project build-cache configuration: OK");
+    Sys.println("Project build-cache and script-modding configuration: OK");
   }
 }

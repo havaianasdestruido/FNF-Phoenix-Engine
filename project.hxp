@@ -465,6 +465,13 @@ class Project extends HXProject
 
 		// Script modding level. Pass `-DMODDING_LEVEL=0|1|2` to force:
 		//   0 = no Lua/Python scripts, 1 = Lua only, 2 = Lua + Python
+		//
+		// Unset means "level 2 on every target that can run scripts" (see
+		// supportsScriptModding()). An explicit level that asks for a script
+		// language this target cannot link (web/Flash/AIR, e.g.
+		// `-DMODDING_LEVEL=1 -Dhtml5`) is still honoured, because that is how
+		// the build-log warning below is produced - but the default never
+		// does it by accident.
 		var moddingLevel:Int = getModdingLevel();
 		if (moddingLevel >= 0)
 		{
@@ -483,10 +490,19 @@ class Project extends HXProject
 		}
 		else
 		{
-			LUA_ALLOWED.apply(this, (isDesktop() || isMobile()) && (!isWeb() || !isHashLink()) && !isFlash() && !isAir() && isCPP());
-			PYTHON_ALLOWED.apply(this, (isDesktop() || isMobile()) && (!isWeb() || !isHashLink()) && !isFlash() && !isAir() && isCPP());
+			// Modding level 2 (Lua + Python) is the default on every target
+			// that can run scripts: Windows, Linux, macOS, Android and iOS.
+			// `supportsScriptModding()` (not `isCPP()`) is what makes a plain
+			// `lime build windows` or `lime build android` include them; see
+			// the doc comment on `isNativeCpp()` for why that matters.
+			LUA_ALLOWED.apply(this, supportsScriptModding());
+			PYTHON_ALLOWED.apply(this, supportsScriptModding());
 		}
 
+		// Videos stay on the original `isCPP()` condition on purpose: `hxvlc`
+		// is only added for desktop builds (below), so switching these to
+		// `isNativeCpp()` would define VIDEOS_ALLOWED on Android/iOS with no
+		// haxelib to satisfy `source/objects/VideoSprite.hx`.
 		VIDEOS_ALLOWED.apply(this, (isDesktop() || isMobile()) && (!isWeb() || !is32Bit()) && !isFlash() && !isAir() && isCPP());
 		// Feral GameMode integration (Linux only). Degrades gracefully when
 		// gamemode isn't installed, so it is safe to enable on all Linux builds.
@@ -545,32 +561,28 @@ class Project extends HXProject
 		// `lime clean` compiles nothing, so there is nothing to warn about.
 		if (command == "clean") return;
 
-		// configureHaxelibs() adds the Lua bindings for desktop targets only, so
-		// anywhere else LUA_ALLOWED compiles `import hxluajit.*` without them.
-		if (lua && !isDesktop())
+		// configureHaxelibs() only adds the Lua bindings where they can link,
+		// so a build that defines LUA_ALLOWED anywhere else would compile
+		// `import hxluajit.*` (source/import.hx) without them on the classpath.
+		// That can only be forced by hand, e.g. `-DMODDING_LEVEL=1 -Dhtml5`.
+		if (lua && !supportsScriptModding())
 		{
-			warn('LUA_ALLOWED is on, but the hxluajit haxelib is only added for desktop targets:');
+			warn('LUA_ALLOWED is on, but the hxluajit haxelib is only added for native C++ targets:');
 			warn('this build will stop at "import hxluajit" (source/import.hx).');
 			return;
 		}
 
 		if (lua || moddingLevel >= 0 || luaExplicit) return;
 
-		// Lua is off and nobody asked for that. On a C++ build this is the
-		// default above not matching: isCPP() looks for the `cpp` target flag,
-		// which Lime sets for `lime build cpp` or `-cpp` but not for
-		// `lime build windows|linux|mac|android`, even though those compile
-		// through C++ as well (targetType is "cpp").
-		if (this.defines.get('targetType') != 'cpp' || isCPP()) return;
+		// Lua is off and nobody asked for that. On a target that supports
+		// script modding this means the default in configureFeatureFlags()
+		// did not match, which should not happen now that it uses
+		// supportsScriptModding() instead of Lime's `cpp` target flag. Keep
+		// the warning so a future regression is visible instead of silently
+		// shipping a build without Lua.
+		if (!supportsScriptModding()) return;
 
 		warn('Lua scripts (.lua) will NOT run in this build: LUA_ALLOWED is off.');
-		if (!isDesktop())
-		{
-			warn('Lua cannot be switched on for this target yet: the hxluajit haxelib is only added for desktop targets.');
-			return;
-		}
-		warn('The Lua/Python default only turns on when the "cpp" target flag is set (lime ' + this.command
-			+ ' cpp, or -cpp); lime ' + this.command + ' ' + this.target + ' does not set it.');
 		warn('Add -DMODDING_LEVEL=1 (Lua) or -DMODDING_LEVEL=2 (Lua + Python) to include them.');
 	}
 
@@ -963,7 +975,14 @@ class Project extends HXProject
 		if (isDesktop() && DISCORD_ALLOWED.isEnabled(this))
 			addHaxelib('hxdiscord_rpc'); // Discord API
 
-		if (isDesktop() && LUA_ALLOWED.isEnabled(this))
+		// The Lua bindings ship prebuilt LuaJIT for Windows, Linux, macOS,
+		// Android (armv7/x86/arm64/x86_64) and iOS (device/simulator), so
+		// every C++ target gets them. This must match the LUA_ALLOWED default
+		// in configureFeatureFlags(): `source/import.hx` does
+		// `#if LUA_ALLOWED import hxluajit.*;`, so a build that defines
+		// LUA_ALLOWED without this haxelib on the classpath fails with
+		// "Type not found : hxluajit.Types".
+		if (supportsScriptModding() && LUA_ALLOWED.isEnabled(this))
 			addHaxelib('hxluajit'); // Lua API
 
 		if (PYTHON_ALLOWED.isEnabled(this))
@@ -1366,6 +1385,40 @@ class Project extends HXProject
 	inline function isCPP():Bool
 	{
 		return this.targetFlags.exists("cpp");
+	}
+
+	/**
+	 * Whether this build compiles through hxcpp — the condition every native
+	 * feature flag actually cares about.
+	 *
+	 * `isCPP()` above only asks for Lime's `cpp` *target flag*, which Lime sets
+	 * for `lime build cpp` and for an explicit `-cpp`. It is not set for
+	 * `lime build windows|linux|mac|android|ios`, even though all of them set
+	 * `targetType` to "cpp" and compile through hxcpp (see HXProject's
+	 * `defines.set("targetType", "cpp")`). Gating a feature on `isCPP()`
+	 * therefore silently turned it off for every plain per-platform build and
+	 * for CI. This checks the compile target instead, so the flag means what
+	 * the caller means: "this build has a native (hxcpp) backend".
+	 */
+	inline function isNativeCpp():Bool
+	{
+		// `isWeb()` is also true for WebAssembly, whose targetType is "cpp"
+		// but which is neither desktop nor mobile.
+		return this.defines.get('targetType') == 'cpp' && !isWeb() && !isFlash() && !isAir();
+	}
+
+	/**
+	 * Whether this target can compile the Lua VM and the Python interpreter.
+	 *
+	 * This is the single condition behind "modding level 2": desktop (Windows,
+	 * Linux, macOS) and mobile (Android, iOS), all of which are native C++
+	 * builds. LuaJIT ships prebuilt binaries for exactly these platforms
+	 * (`project/luajit/lib/{Windows,Linux,MacOS,Android,iOS}` in hxluajit), so
+	 * web, WebAssembly, Flash and AIR are the only targets left out.
+	 */
+	inline function supportsScriptModding():Bool
+	{
+		return isNativeCpp() && (isDesktop() || isMobile());
 	}
 
 	public function isCSharp():Bool
