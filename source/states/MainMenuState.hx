@@ -106,6 +106,9 @@ class MainMenuState extends MusicBeatState
 
   override function create()
   {
+    #if MODS_ALLOWED
+    if (backend.RecoveryBoot.disableMods) menuOptions.remove('mods');
+    #end
     layoutWidth = FlxG.width;
     MusicBeatState.windowNameSuffix = " - Main Menu";
     Paths.clearStoredMemory();

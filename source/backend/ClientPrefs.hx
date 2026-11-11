@@ -367,17 +367,19 @@ class ClientPrefs { //default settings if it can't find a save file containing y
 				// is left untouched in the shared save file.
 				if (!PlatformSupport.supportsPreference(field)) continue;
 
+				if ((RecoveryBoot.freshPrefs || (RecoveryBoot.defaultDisplay && (field == "resolution" || field == "framerate" || field == "widescreen")))) continue;
 				if (!importantMap.get("saveBlackList").contains(field))
 					Reflect.setField(FlxG.save.data, field, Reflect.field(ClientPrefs, field));
 			}
 		}
 
-		for (flixelS in importantMap.get("flixelSound"))
+		if (!RecoveryBoot.freshPrefs) for (flixelS in importantMap.get("flixelSound"))
 			Reflect.setField(FlxG.save.data, flixelS, Reflect.field(FlxG.sound, flixelS));
 
 		#if ACHIEVEMENTS_ALLOWED Achievements.save(); #end
 		FlxG.save.flush();
 
+		if (RecoveryBoot.freshPrefs) return;
 		var save:FlxSave = new FlxSave();
 		save.bind('controls_v2', CoolUtil.getSavePath()); // Placing this in a separate save so that it can be manually deleted without removing your Score and stuff
 		save.data.customControls = keyBinds;
@@ -399,7 +401,7 @@ class ClientPrefs { //default settings if it can't find a save file containing y
 				if (!importantMap.get("loadBlackList").contains(field))
 				{
 					var defaultValue:Dynamic = Reflect.field(ClientPrefs, field);
-					var flxProp:Dynamic = Reflect.field(FlxG.save.data, field);
+					var flxProp:Dynamic = (RecoveryBoot.defaultDisplay && (field == "resolution" || field == "framerate" || field == "widescreen")) ? null : Reflect.field(FlxG.save.data, field);
 					Reflect.setField(ClientPrefs, field, (flxProp != null ? flxProp : defaultValue));
 
 					if (field == "showFPS" && Main.fpsVar != null)

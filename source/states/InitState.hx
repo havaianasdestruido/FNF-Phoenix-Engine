@@ -44,7 +44,10 @@ class InitState extends FlxState {
 		PlayerSettings.init();
 
         // ClientPrefs.loadDefaultKeys();
-		ClientPrefs.loadPrefs();
+		if (!backend.RecoveryBoot.freshPrefs) ClientPrefs.loadPrefs();
+		#if ACHIEVEMENTS_ALLOWED
+		else Achievements.load(); // Preserve achievements even when preferences are bypassed.
+		#end
 		// Opt-in vlog (Options -> Misc): Main already restored it from the raw
 		// save, this re-syncs with the value loadPrefs() just read in case the
 		// early read could not open funkin.sol.
@@ -64,10 +67,10 @@ class InitState extends FlxState {
         // -- MODS -- //
 
 		#if MODS_ALLOWED
-		if (!ClientPrefs.safeMode) Mods.pushGlobalMods();
+		if (!ClientPrefs.safeMode && !backend.RecoveryBoot.disableMods) Mods.pushGlobalMods();
 		#end
 		// Just to load a mod on start up if ya got one. For mods that change the menu music and bg
-		if (!ClientPrefs.safeMode) Mods.loadTopMod();
+		if (!ClientPrefs.safeMode && !backend.RecoveryBoot.disableMods) Mods.loadTopMod();
 
         // -- -- -- //
 

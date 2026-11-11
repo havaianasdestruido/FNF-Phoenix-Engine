@@ -107,6 +107,7 @@ class CrashHandler
 
 	private static function onUncaughtError(e:UncaughtErrorEvent):Void
 	{
+		RecoveryBoot.markCrash();
 		try
 		{
 			e.preventDefault();
@@ -264,7 +265,10 @@ class CrashHandler
 	}
 
 	private static function onError(message:Dynamic):Void
+	{
+		RecoveryBoot.markCrash();
 		throw Std.string(message);
+	}
 }
 
 @:access(CrashHandler)

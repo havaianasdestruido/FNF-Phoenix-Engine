@@ -282,3 +282,18 @@ Unavailable heap measurements are shown as N/A. The export also includes a
 current MemoryLedger area snapshot and top mods for context; those numbers are
 estimates and are not the memory retained by a hotspot. GPU memory is separate
 from process RSS. See the ledger limitations above before comparing areas.
+
+### Startup recovery
+
+On native builds Phoenix tracks unclean exits in a small file in the application
+storage directory, separate from the game save. After two consecutive unclean
+starts, a basic recovery screen appears before preferences and mods are loaded.
+Use the arrow keys and Space/Enter, or click/tap, to combine recovery options:
+all mods disabled (including loose `mods/` assets and scripts), fresh preferences,
+and default resolution/framerate. Choose **Start normally** to bypass the
+options, or **Start with selected options** to apply them for this session.
+The mods menu is hidden while mods are disabled. Restart normally to restore it.
+Recovery does not delete mods or preferences; preference values bypassed by
+recovery are not saved over the original values. A clean exit resets the count;
+crashes and non-zero exits do not. Forced termination or an OS kill also counts
+as an unclean exit. Tracking is best-effort if application storage is unwritable.

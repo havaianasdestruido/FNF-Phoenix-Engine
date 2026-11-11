@@ -128,6 +128,8 @@ class Main extends Sprite
     #end
     // Apply retention and privacy cleanup to any reports left by an older
     // build before a log can be copied out through Android's document roots.
+    backend.RecoveryBoot.begin();
+    Application.current.onExit.add(backend.RecoveryBoot.finish);
     backend.LogUtils.cleanup();
     // Runtime settings are independent of compile-time feature defines and
     // must be available before the first state, shader, or window is created.
@@ -137,7 +139,7 @@ class Main extends Sprite
     // InitState, so the saved flag is read straight from funkin.sol here —
     // when it is on, vlog/log.txt opens before CrashHandler.init and hooks
     // every trace() for the whole boot.
-    backend.VLog.init(game.framerate, ClientPrefs.readSavedBool('vlogEnabled'));
+    backend.VLog.init(game.framerate, (backend.RecoveryBoot.failures >= backend.RecoveryBoot.THRESHOLD ? false : ClientPrefs.readSavedBool('vlogEnabled')));
     // Only queues any phoenix:// link that launched the game; registering the
     // scheme itself is opt-in from Options -> Misc, never done on startup.
     backend.deeplink.DeepLinks.init();
@@ -177,7 +179,7 @@ class Main extends Sprite
     FrameProfiler.init(game.framerate);
     #if ACHIEVEMENTS_ALLOWED Achievements.load(); #end
 
-    final funkinGame:FunkinGame = new FunkinGame(game.width, game.height, #if (mobile && MODS_ALLOWED) !mobile.CopyState.checkExistingFiles() ? mobile.CopyState : #end game.initialState, #if (flixel < "5.0.0") game.zoom, #end game.framerate, game.framerate,
+    final funkinGame:FunkinGame = new FunkinGame(game.width, game.height, backend.RecoveryBoot.failures >= backend.RecoveryBoot.THRESHOLD ? states.RecoveryState : (#if (mobile && MODS_ALLOWED) !mobile.CopyState.checkExistingFiles() ? mobile.CopyState : #end game.initialState), #if (flixel < "5.0.0") game.zoom, #end game.framerate, game.framerate,
       game.skipSplash, game.startFullscreen);
     // Literally just from Vanilla FNF but I implemented it my own way. -Torch
     // torch is my friend btw :3 -moxie
