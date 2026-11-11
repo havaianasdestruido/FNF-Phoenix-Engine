@@ -1177,9 +1177,19 @@ class Paths
     }
     #end
 
-    if (!found && OpenFlAssets.exists(getPath(key, type)))
+    if (!found)
     {
-      found = true;
+      final resolved:String = getPath(key, type);
+      if (OpenFlAssets.exists(resolved, type))
+      {
+        found = true;
+      }
+      #if sys
+      else if (FileSystem.exists(resolved))
+      {
+        found = true;
+      }
+      #end
     }
     resolvedExistsCache.set(cacheId, found);
     return found;
