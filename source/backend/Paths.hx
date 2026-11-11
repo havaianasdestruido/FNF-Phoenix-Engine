@@ -1503,6 +1503,13 @@ class Paths
       // getPath() drops the prefix when it resolves through a level folder.
       if (dir == 'songs' && !assetId.startsWith('songs:')) assetId = 'songs:' + assetId;
       if (OpenFlAssets.exists(assetId, SOUND)) return assetId;
+      // Week folders ship loose on disk in content-stripped / compact builds
+      // where their library isn't registered. `OpenFlAssets.exists()` only
+      // knows registered library ids, so probe the loose file too — exactly
+      // like `getPath()` and `getTextFromFile()` already do.
+      #if sys
+      if (FileSystem.exists(assetId)) return assetId;
+      #end
     }
     return null;
   }
@@ -1594,11 +1601,21 @@ class Paths
           trackLocalAsset(file);
           return existingLibSound;
         }
+        #if sys
+        // Loose on-disk path (week folder in content-stripped build):
+        // OpenFlAssets can't find unregistered library ids, so load
+        // directly from disk like mods do via Sound.fromFile().
+        if (gottenPath.indexOf(':') < 0 && FileSystem.exists(gottenPath))
+        {
+          sound = Sound.fromFile(gottenPath);
+        }
+        else
+        #end
         #if lime_vorbis
         if (stream) sound = OpenFlAssets.getMusic(gottenPath);
         else
         #end
-        sound = OpenFlAssets.getSound(gottenPath);
+        if (sound == null) sound = OpenFlAssets.getSound(gottenPath);
       }
     }
 
