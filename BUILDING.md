@@ -210,6 +210,15 @@ For example, a Lua-only build:
 
 `lime test windows -DMODDING_LEVEL=1`
 
+> **Check the build output.** Today that default only switches on when Lime's
+> `cpp` target flag is set (`lime test cpp`, or `-cpp`). A plain
+> `lime test windows`, `linux` or `mac` produces a build **without** Lua and
+> Python unless you pass `-DMODDING_LEVEL=1` or `-DMODDING_LEVEL=2`. CI and the
+> release workflows build without those flags too. The build prints what it
+> made: `[INFO] Script support: Lua ON|OFF, Python ON|OFF, HScript ON|OFF (…)`,
+> followed by `[WARN]` lines when Lua is off. See
+> [`docs/LUA_SCRIPT_DEBUGGING.md`](docs/LUA_SCRIPT_DEBUGGING.md), step 0.
+
 Python scripts work exactly like Lua scripts: drop a `.py` file with `def onCreate():`,
 `def onUpdate(elapsed):`, etc. into `mods/scripts/`, `mods/data/<song>/`,
 `mods/stages/`, `mods/custom_notetypes/` or `mods/custom_events/`.

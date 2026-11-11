@@ -91,6 +91,17 @@ class MiscSettingsSubState extends BaseOptionsMenu
 		option.onChange = () -> backend.VLog.setEnabled(ClientPrefs.vlogEnabled);
 		addOption(option);
 
+		var option:Option = new Option('Verbose Lua Logging', //Name
+			'If checked, the console (and vlog/log.txt when VLog is on) explains\n'
+			+ 'every step of Lua script loading: folders searched, files found or\n'
+			+ 'skipped, why a script failed and which hooks it defines.\n'
+			+ 'Lines start with [LuaDiag]. Use it when a .lua script does nothing.', //Description
+			'luaVerbose', //Save data variable name
+			'bool', //Variable type
+			false); //Default value
+		option.onChange = () -> backend.LuaDiagnosticsSetup.sync();
+		addOption(option);
+
 		#if (windows && sys) // Only Windows registers at runtime; mobile gets the scheme from the build.
 		var option:Option = new Option('Toggle Deeplink', //Name
 			'If checked, this copy of the game registers the phoenix:// link\n'

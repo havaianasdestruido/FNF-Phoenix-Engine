@@ -52,6 +52,7 @@ class InitState extends FlxState {
 		// save, this re-syncs with the value loadPrefs() just read in case the
 		// early read could not open funkin.sol.
 		backend.VLog.setEnabled(ClientPrefs.vlogEnabled);
+		backend.LuaDiagnosticsSetup.sync();
 		// Memory profiles release cached assets when the window is backgrounded.
 		// The handler checks the active profile, so registering it is harmless
 		// when no profile is selected.

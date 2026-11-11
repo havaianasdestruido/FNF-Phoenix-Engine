@@ -140,6 +140,11 @@ class Main extends Sprite
     // when it is on, vlog/log.txt opens before CrashHandler.init and hooks
     // every trace() for the whole boot.
     backend.VLog.init(game.framerate, (backend.RecoveryBoot.failures >= backend.RecoveryBoot.THRESHOLD ? false : ClientPrefs.readSavedBool('vlogEnabled')));
+    // Lua pipeline diagnostics ([LuaDiag] lines). Like the vlog flag, the
+    // opt-in verbose level is read from the raw save so it already covers
+    // the first song; a recovery boot waits for the Safe Mode screen instead
+    // (InitState syncs it afterwards). A build without the Lua VM says so here.
+    backend.LuaDiagnosticsSetup.init(backend.RecoveryBoot.failures >= backend.RecoveryBoot.THRESHOLD ? false : ClientPrefs.readSavedBool('luaVerbose'));
     // Only queues any phoenix:// link that launched the game; registering the
     // scheme itself is opt-in from Options -> Misc, never done on startup.
     backend.deeplink.DeepLinks.init();

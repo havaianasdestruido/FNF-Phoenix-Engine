@@ -274,6 +274,9 @@ class ClientPrefs { //default settings if it can't find a save file containing y
 	// Opt-in verbose session log (Options -> Misc): disabled by default so a
 	// normal session writes nothing to disk (see backend.VLog).
 	public static var vlogEnabled:Bool = false;
+	// Opt-in step-by-step log of the Lua script pipeline (Options -> Misc);
+	// see backend.LuaDiagnostics and docs/LUA_SCRIPT_DEBUGGING.md.
+	public static var luaVerbose:Bool = false;
 
 	//Gameplay Modifiers
 	public static var gameplaySettings:Map<String, Dynamic> = [

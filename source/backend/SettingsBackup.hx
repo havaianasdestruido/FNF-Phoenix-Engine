@@ -336,5 +336,6 @@ class SettingsBackup
     #end
     ClientPrefs.reloadControls();
     VLog.setEnabled(ClientPrefs.vlogEnabled);
+    LuaDiagnosticsSetup.sync();
   }
 }

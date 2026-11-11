@@ -4,6 +4,7 @@ import shaders.ErrorHandledShader.ErrorHandledRuntimeShader;
 import shaders.ShaderWarmup;
 
 import backend.ClientPrefs;
+import backend.LuaDiagnostics;
 import backend.Paths;
 #if MODS_ALLOWED
 #end
@@ -64,22 +65,24 @@ class PlayStateScripts
 	}
 	#end
 
-	public static function addTextToDebug(state:PlayState, text:String, color:FlxColor) {
+	public static function addTextToDebug(state:PlayState, text:String, color:FlxColor, echo:Bool = true) {
 		#if LUA_ALLOWED
 		var newText:DebugLuaText = state.luaDebugGroup.recycle(DebugLuaText);
 		newText.text = text;
 		newText.color = color;
 		newText.disableTime = 6;
 		newText.alpha = 1;
+		// Format before measuring: the height used for the position must be the
+		// height the text is shown with, or its first use ends up above the screen.
+		newText.setFormat(Paths.font("old_windows.ttf"));
 		newText.setPosition(10, 8 - newText.height);
-   		newText.setFormat(Paths.font("old_windows.ttf"));
 		state.luaDebugGroup.forEachAlive(function(spr:DebugLuaText) {
 			spr.y += newText.height + 2;
 		});
 		state.luaDebugGroup.add(newText);
 
 		#if sys
-		Sys.println(text);
+		if(echo) Sys.println(text);
 		#end
 		#elseif PYTHON_ALLOWED
 		var newText:DebugLuaText = state.pythonDebugGroup.recycle(DebugLuaText);
@@ -87,15 +90,17 @@ class PlayStateScripts
 		newText.color = color;
 		newText.disableTime = 6;
 		newText.alpha = 1;
-		newText.setPosition(10, 8 - newText.height);
+		// Format before measuring: the height used for the position must be the
+		// height the text is shown with, or its first use ends up above the screen.
 		newText.setFormat(Paths.font("old_windows.ttf"));
+		newText.setPosition(10, 8 - newText.height);
 		state.pythonDebugGroup.forEachAlive(function(spr:DebugLuaText) {
 			spr.y += newText.height + 2;
 		});
 		state.pythonDebugGroup.add(newText);
 
 		#if sys
-		Sys.println(text);
+		if(echo) Sys.println(text);
 		#end
 		#elseif HSCRIPT_ALLOWED
 		var newText:DebugLuaText = state.hscriptDebugGroup.recycle(DebugLuaText);
@@ -103,18 +108,73 @@ class PlayStateScripts
 		newText.color = color;
 		newText.disableTime = 6;
 		newText.alpha = 1;
-		newText.setPosition(10, 8 - newText.height);
+		// Format before measuring: the height used for the position must be the
+		// height the text is shown with, or its first use ends up above the screen.
 		newText.setFormat(Paths.font("old_windows.ttf"));
+		newText.setPosition(10, 8 - newText.height);
 		state.hscriptDebugGroup.forEachAlive(function(spr:DebugLuaText) {
 			spr.y += newText.height + 2;
 		});
 		state.hscriptDebugGroup.add(newText);
 
 		#if sys
-		Sys.println(text);
+		if(echo) Sys.println(text);
 		#end
 		#end
 	}
+
+	/** Verbose Lua logging: the facts every script lookup of the current song depends on. */
+	public static function luaDiagContext():Array<String>
+	{
+		var song:String = PlayState.SONG.song;
+		var lines:Array<String> = ['song "' + song + '" -> data folder "' + Paths.formatToSongPath(song) + '", stage "' + PlayState.curStage + '"'];
+		#if sys
+		lines.push('working directory: ' + Sys.getCwd());
+		#end
+		#if MODS_ALLOWED
+		// Safe Mode (states.RecoveryState) can start a session without any mod;
+		// Paths.mods() then points at a place that cannot exist.
+		if(backend.RecoveryBoot.disableMods)
+			lines.push('note: Safe Mode started this session with all mods disabled: nothing under mods/ is searched. Restart the game to load mods again.');
+		var currentMod:String = Mods.currentModDirectory;
+		var globalMods:Array<String> = Mods.getGlobalMods();
+		lines.push('current mod: ' + (currentMod == null || currentMod.length == 0 ? '<none>' : currentMod)
+			+ '; global mods ("runsGlobally" in pack.json): [' + globalMods.join(', ') + ']');
+		#if sys
+		// mods/<mod>/scripts/ is only searched for the current mod and for global
+		// mods: an enabled mod that is neither contributes no global script.
+		for(mod in Mods.parseList().enabled)
+		{
+			if(mod == currentMod || globalMods.contains(mod)) continue;
+			var scripts:Int = LuaDiagnostics.countLuaFiles(Paths.mods(mod + '/scripts/'));
+			if(scripts > 0)
+				lines.push('note: mod "' + mod + '" is enabled and has ' + scripts + ' .lua file(s) in scripts/, but they are not loaded for this song: '
+					+ 'it is not the current mod and its pack.json does not set "runsGlobally": true');
+		}
+		#end
+		#end
+		return lines;
+	}
+
+	#if !LUA_ALLOWED
+	/**
+	 * This build has no Lua VM. Remember a script that a Lua build would have
+	 * loaded by name (stage, character, note type, event), so the player is
+	 * told why it does nothing instead of the file being ignored without a
+	 * word (see LuaDiagnostics.reportSummary).
+	 */
+	public static function noteUnsupportedLua(luaFile:String):Void
+	{
+		#if sys
+		var path:String = Paths.getPreloadPath(luaFile);
+		#if MODS_ALLOWED
+		var modPath:String = Paths.modFolders(luaFile);
+		if(FileSystem.exists(modPath)) path = modPath;
+		#end
+		if(FileSystem.exists(path)) LuaDiagnostics.lookupUnsupported(luaFile, path);
+		#end
+	}
+	#end
 
 	public static function addShaderToCamera(state:PlayState, cam:String,effect:Dynamic){//STOLE FROM ANDROMEDA	// actually i got it from old psych engine
 		switch(cam.toLowerCase()) {
