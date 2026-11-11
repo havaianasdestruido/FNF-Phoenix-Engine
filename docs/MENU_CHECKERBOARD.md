@@ -12,9 +12,13 @@ currently open. Turning it off hides and pauses every live checkerboard, so ther
 is no per-frame update cost while disabled. `ClientPrefs.reducedMotion` keeps the
 pattern visible but stops its movement.
 
-The effect appears behind the main, story, freeplay, mods, credits, achievements
-and options interfaces. The update and render-complete screens use the same
+The effect appears behind the main, freeplay, mods, credits, achievements and
+options interfaces. The update and render-complete screens use the same
 component and therefore honor the same preference.
+
+The story menu is deliberately left out: its week title cards and character row
+are drawn over the flat yellow band and the solid black bars, so a tinted tiled
+layer there reads as a transparency checkerboard instead of a background.
 
 ## Implementation
 

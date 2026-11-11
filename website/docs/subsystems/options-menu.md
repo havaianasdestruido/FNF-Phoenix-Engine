@@ -91,7 +91,8 @@ those entries because the dialog cannot open there.
 ### Moving menu checkerboard
 
 **Visuals and UI → Moving Menu Checkerboard** controls the animated, tinted checker layer
-behind Phoenix's main menu flow. It is enabled by default and updates every open state or
+behind Phoenix's main menu flow (every menu except Story, whose yellow week band and black
+bars keep a flat background). It is enabled by default and updates every open state or
 substate immediately. Disabled instances are both hidden and inactive. The shared
 `objects.MovingCheckerboard` uses pixels-per-second velocity rather than frame-counted
 movement, and `ClientPrefs.reducedMotion` leaves the pattern static. See the
