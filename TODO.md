@@ -473,3 +473,35 @@ Read `docs/research/psych-fork-engine-changes.md`.
 3. HashLink target: install working `lime.hdll`, build, re-enable CI `hl` job. ([#63](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/issues/63))
 4. Kill `Paths.hx`/`BuildingEffect.hx` production trace spam.
 5. Path-traversal + keystore-secret hardening (security). ([#65](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/issues/65))
+
+## 21. PLAYER-FACING SCREENS, SUBSTATES & OPTIONS (idea review)
+
+Ideas checked against the current tree: none of the screens, substates or options below exist yet (`PlayerStats`, `ResultsState`, `StatsState`, `ModchartLabState`, `ExtrasState`, `QuickOptionsSubState`, `PracticeLoopSubState`, `ModReportSubState`, `FreeplayFilterSubState`, `PhotoModeSubState`, `laneUnderlayAlpha`, `resumeCountdown`, `hapticFeedback`, `menuFramerate`, `adaptivePerformance` have no matches in `source/`). Overlaps with existing entries are cross-referenced, not repeated.
+
+### 21.1. New states
+
+- **[P1] Results screen (`states/ResultsState`).** `PlayStatePlayback.endSong()` currently goes straight back to `FreeplayState` / `StoryMenuState`. After a song or week, show score, accuracy, judgement breakdown, max combo, peak NPS, FC tier and a histogram of hit offsets. The totals already exist on `PlayState`; only per-hit offsets need recording (via `play.helpers.HitTiming`). Roadmap link: the Mic'd Up S/A rank (§0) would live on this screen.
+- **[P2] Player stats (`states/StatsState`, `backend/PlayerStats`).** Lifetime totals: playtime, songs finished, notes per judgement, deaths, full combos, most-played songs and mods. A small `PlayerStats` backend is needed because playtime is only stored as progress toward the 50-hour badge and stops counting once that unlocks. Link it from Awards (`MainMenuState`'s `awards` entry); a new main-menu button would need its own sprite atlas.
+- **[P3] Modchart lab (`editors/ModchartLabState`).** Pick any of the 34 built-in modifiers in `source/modchart/modifiers/`, drag their percents over a looping section, watch the arrows react, then copy the matching `modEase(...)` calls as Lua or Python. There is no visual way to tune a modchart today. Related to the modchart work in §12.
+- **[P2] Extras hub (`states/ExtrasState`).** A menu listing custom screens that enabled mods declare in a new `menus` list in `pack.json`. `ModState` screens can only be opened by a script calling `switchCustomState` (`states/ModState.hx`), so each mod currently has to build its own entry point, for example by overlaying `MainMenuState`. Needs `backend.Mods` parsing of `menus` and a platform-support check for each entry.
+- **[P3] Input tester (`states/InputTestState`, `phoenix://input`).** Live view of keys, gamepad buttons and touch points, with a simultaneous-press counter and press timing, so a player can see that a keyboard drops a third key or a phone tracks only two fingers. Give it a `phoenix://` route like `phoenix://diagnostics` (`DiagnosticsReport`). Player-facing tool for the poll-rate and key-rollover audit in §15 (`PlayStateInput`).
+
+### 21.2. New substates
+
+- **[P1] Quick options (`QuickOptionsSubState`, from pause).** Change settings that can apply live (offsets, hitsound, track volumes, flashing, camera zooms) without leaving the song. Today choosing Options from `PauseSubState` switches to `OptionsState` and reloads `PlayState` from the start on return, which loses the run and is slow on weak devices.
+- **[P2] Practice loop (`PracticeLoopSubState`, from pause).** Mark a start and end point, pick a playback rate and loop that part with score saving off. The seek code already exists behind `Skip Time` in `PauseSubState`, which is only added inside the `PlayState.chartingMode` branch (and not while the song is still starting).
+- **[P2] Mod report (`ModReportSubState`, from Mods menu and after a `.zip` import).** One page per mod: whether it opted out of the script sandbox, which rules it allowlists, blocked scripts by file and line, and Lua functions it calls that Phoenix does not implement. Today security findings only reach the debug console and the log when a script loads. Player-facing counterpart to the mod linter CLI in §17 and the per-mod report in §19.
+- **[P2] Freeplay filter (`FreeplayFilterSubState`).** Sort by name, mod, best accuracy or unplayed; show a single mod; star favourites; pick a random song. Freeplay currently has only text search.
+- **[P3] Photo mode (`PhotoModeSubState`, from pause).** Hide the HUD, pan and zoom the game camera freely, and save a shot through the existing `backend/Screenshot` / `backend/SSPlugin` path. Fits the creator tooling the engine already ships.
+
+### 21.3. New options
+
+- **[P3] Lane underlay (`laneUnderlayAlpha`, percent, default 0, Visuals and UI).** A dark strip behind the player's strums so notes stay readable over busy stages. It is one stretched sprite, so it is cheap on low-end devices.
+- **[P2] Resume countdown (`resumeCountdown`, bool, default on, Gameplay).** Count 3-2-1 after unpausing instead of resuming instantly. Matters most on phones, where thumbs leave the hitbox to press Resume. Should be exposed to Lua/Python/HScript like the other pause events.
+- **[P2] Haptic feedback (`hapticFeedback`, string: Off / Misses / Hits and Misses, default Off, Mobile Options with `onlyOn([PlatformSupport.ANDROID])`).** `AndroidHaptics` and the `VIBRATE` permission already ship, and `modchart/modifiers/Vibrate.hx` exists, but nothing triggers haptics from gameplay. Add matching Lua and Python `vibrate()` callbacks.
+- **[P2] Menu FPS cap (`menuFramerate`, int, default 60, Graphics).** Menus currently render at the gameplay framerate, which can be set up to 1000, so they drain battery for nothing. A companion row can expose the focus-lost rate, which is hard-coded to `60` in `states/InitState.hx` (`FlxG.game.focusLostFramerate`). Roadmap link: next to the frame-pacing work in §18.
+- **[P3] Adaptive performance (`adaptivePerformance`, bool, default off, Optimization).** When the frame rate stays below target for a few seconds, switch off cosmetics in order (note splashes, rating popups, camera zooms) for the rest of the song and tell the player. Roadmap link: the first-run profile in §18 picks settings once; this one reacts during play.
+
+### 21.4. Quick win before any new option
+
+- **[P1] Expose eight preferences that are read but have no menu row.** `reducedMotion`, `dialogueSpeedMult`, `dimDialogueBackground`, `instantDialogueAdvance`, `hideDialogueBox`, `safeMode`, `showPhotosensitivityWarning` and `disableAprilFools` are defined in `backend/ClientPrefs.hx` and used by the game, but no file under `source/options/` creates an `Option` for them. Each needs roughly one `new Option(...)` line plus a description. Note `showPhotosensitivityWarning` pairs with the re-openable warning in §16.
