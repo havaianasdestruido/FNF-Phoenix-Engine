@@ -11,7 +11,7 @@ import cpp.Function;
 import cpp.RawConstPointer;
 #end
 #if LUA_ALLOWED
-import hxluajit.Types.State;
+import psychlua.FunkinLua.State;
 #end
 
 import states.MainMenuState;
@@ -27,7 +27,7 @@ import sys.thread.Thread;
 #if (DISCORD_ALLOWED && android)
 import android.platform.AndroidDiscord;
 #if LUA_ALLOWED
-import hxluajit.Types.State;
+import psychlua.FunkinLua.State;
 #end
 #if PYTHON_ALLOWED
 import psychlua.PythonScript;
