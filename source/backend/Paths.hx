@@ -576,7 +576,17 @@ class Paths
       if (currentLevel != 'shared')
       {
         levelPath = getLibraryPathForce(file, currentLevel);
-        if (OpenFlAssets.exists(levelPath, type))
+        // `getLibraryPathForce()` falls back to a loose on-disk level path
+        // (`assets/week7/images/tankSky.png`) when the level library isn't
+        // registered (content-stripped / compact builds). `OpenFlAssets.exists()`
+        // only knows registered library ids, so probe the loose file too —
+        // exactly like `getTextFromFile()` already does — instead of falling
+        // through to a preload path that nothing owns.
+        if (OpenFlAssets.exists(levelPath, type)
+            #if sys
+            || FileSystem.exists(levelPath)
+            #end
+        )
         {
           // trace(levelPath);
           return levelPath;
@@ -584,7 +594,11 @@ class Paths
       }
 
       levelPath = getLibraryPathForce(file, "shared");
-      if (OpenFlAssets.exists(levelPath, type))
+      if (OpenFlAssets.exists(levelPath, type)
+          #if sys
+          || FileSystem.exists(levelPath)
+          #end
+      )
       {
         // trace(levelPath);
         return levelPath;
