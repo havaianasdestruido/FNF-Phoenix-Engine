@@ -122,7 +122,7 @@ jobs:
           grep -q "checked against $LUAJIT" "$RUNNER_TEMP/lua-diagnostics.log"
 
   native-object-cache:
-    name: hxcpp cache smoke (${{ matrix.os }})
+    name: hxcpp cache and Discord smoke (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -152,6 +152,17 @@ jobs:
         env:
           PHOENIX_RUN_HXCPP_CACHE_TESTS: "1"
         run: bash tests/haxe/run-hxcpp-cache.sh
+      - name: Install the project's pinned Discord RPC bindings
+        shell: bash
+        run: |
+          set -euo pipefail
+          url=$(python -c "import json; print(next(d['url'] for d in json.load(open('hmm.json'))['dependencies'] if d['name']=='hxdiscord_rpc'))")
+          ref=$(python -c "import json; print(next(d['ref'] for d in json.load(open('hmm.json'))['dependencies'] if d['name']=='hxdiscord_rpc'))")
+          # hxcpp is already installed at the project's pinned revision above.
+          haxelib git hxdiscord_rpc "$url" "$ref" --quiet --skip-dependencies
+      - name: Verify Discord ready callback with real native structs
+        shell: bash
+        run: bash tests/haxe/run-discord-ready.sh
       - name: Install Lime and HXP for the project configuration test
         shell: bash
         run: |
