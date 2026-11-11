@@ -1542,7 +1542,7 @@ class Paths
   // Loads mods.
   inline static public function mods(key:String = '')
   {
-    return 'mods/' + key;
+    return (RecoveryBoot.disableMods ? RecoveryBoot.disabledModsPath() : 'mods/') + key;
   }
 
   // Loads fonts in mods/fonts.
@@ -1637,6 +1637,7 @@ class Paths
     // mods root again would look for `mods/mods/...`, which never exists, so
     // the asset silently failed to load and every mod fell back to the
     // placeholder icon in the mods menu. Return it unchanged.
+    if (RecoveryBoot.disableMods) return mods(key);
     if (key.startsWith('mods/')) return key;
 
     if (Mods.currentModDirectory != null && Mods.currentModDirectory.length > 0)
@@ -1653,7 +1654,7 @@ class Paths
       var fileToCheck:String = mods(mod + '/' + key);
       if (FileSystem.exists(fileToCheck)) return fileToCheck;
     }
-    return 'mods/' + key;
+    return mods(key);
   }
 
   public static function getBackupFilePath(songPath:String, diff:String):String
