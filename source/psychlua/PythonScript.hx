@@ -46,6 +46,7 @@ import psychlua.pystdlib.PyTimerLib;
 import utils.CoolSystemStuff;
 import psychlua.pystdlib.PyTweenLib;
 import psychlua.pystdlib.PyMetaHorrorLib;
+import psychlua.pystdlib.PyModchartLib;
 import psychlua.pystdlib.PyWindowLib;
 import Type.ValueType;
 
@@ -367,6 +368,8 @@ class PythonScript
 		psychlua.pystdlib.PyScriptLib.register(this);
 
 	PyHardwareLib.register(this);
+
+	PyModchartLib.register(this);
 
 		// Inherit the shared Lua modding API so Python mods see the same
 		// function surface as Lua/HScript mods (fills gaps between backends).

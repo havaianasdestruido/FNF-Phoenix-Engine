@@ -234,6 +234,17 @@ function onSoundFinished(tag:String) {
 }
 
 // ---------------------------------------------------------------------------
+// Modcharts — modCallback/modRepeater call any function by name
+// Modifiers are opt-in: see docs/MODCHART.md for the full list and percents.
+// ---------------------------------------------------------------------------
+
+function onModchartDrop() {
+	// Called once at the beat passed to modCallback(beat, 'onModchartDrop').
+	// Both modchart callbacks receive the beat they fired on.
+	// Example: modEase('bounce', beat, 2, 0.5, 'quadOut');
+}
+
+// ---------------------------------------------------------------------------
 // Custom substates — opened from script via openCustomSubstate(name, pauseGame)
 // The live substate is also published as the `customSubstate` global
 // (and its name as `customSubstateName`) for HScript scripts.

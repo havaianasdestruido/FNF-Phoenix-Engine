@@ -17,6 +17,7 @@ import play.PlayState;
 import states.MainMenuState;
 import objects.NoteSplash;
 import psychlua.callbacks.CameraCallbacks;
+import psychlua.callbacks.ModchartCallbacks;
 import psychlua.callbacks.DeprecatedCallbacks;
 import psychlua.callbacks.EffectCallbacks;
 import psychlua.callbacks.FileCallbacks;
@@ -352,6 +353,8 @@ class FunkinLua {
 	#if flxanimate FlxAnimateFunctions.implement(this); #end
 
 	CameraCallbacks.register(this);
+
+	ModchartCallbacks.register(this);
 
 		for (name => func in registeredFunctions) {
 			if (func != null) {

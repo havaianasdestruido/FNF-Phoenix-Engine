@@ -326,7 +326,7 @@ Added from the supplied CNE-vs-vanilla/Psych comparison, filtered against the cu
 
 ### 12.5 RENDERING, SHADERS, MODCHARTS & 3D
 
-- **[P2] FunkinModchart-style advanced modcharts.** Phoenix has Lua sprite/text/tween helpers, but no dedicated modchart library/runtime.
+- **[P2] ~~FunkinModchart-style advanced modcharts~~ DONE** — native runtime in `source/modchart/` (renderer-free manager → playfields → 34 modifiers + a beat-timed event list), applied to the live receptors/notes by `play.helpers.PlayStateModchart`; Lua API (`psychlua.callbacks.ModchartCallbacks`) and Python mirror (`psychlua.pystdlib.PyModchartLib`) expose `addModifier`, `setPercent`/`getPercent`, `modSet`/`modEase`/`modAdd`/`modSetAdd`, `modCallback`/`modRepeater`, `addPlayfield`, `resetModchart`, `isModchartActive`, `getModchartModifiers` and `setModchartPerspective`. Opt-in per script (`addModifier`), so Psych/JS mods and vanilla charts are untouched; see [`docs/MODCHART.md`](docs/MODCHART.md), `example_mods/scripts/ModchartExample.lua`, `bash tests/haxe/run-modchart.sh` and `bash tests/haxe/run-modchart-typecheck.sh`. Ported from [FunkinModchart](https://github.com/dotaxel/FunkinModchart) (Apache-2.0). Remaining: `ArrowShape`/`PathModifier` ports and a skew-capable renderer (Flixel sprites cannot shear).
 - **[P2] Advanced shader scripting.** Add shader scripts, shader imports, `FunkinShader.fromFile`-style loading, and tweenable shader uniforms/arrays. Current Lua API only sets basic bool/int/float/array/sampler values.
 - **[P3] Real 3D support (FoxLite/Away3D equivalent).** `ThreeDEffect`/`ThreeDShader` are shader effects, not a 3D scene/renderer.
 

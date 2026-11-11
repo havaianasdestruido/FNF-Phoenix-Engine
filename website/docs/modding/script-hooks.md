@@ -107,6 +107,28 @@ end
 | `onTimerCompleted(tag, loops, loopsLeft)` | a timer loop finished |
 | `onSoundFinished(tag)` | a sound you started finished |
 
+## Modcharts
+
+`modCallback(beat, name)` and `modRepeater(beat, length, name)` call any function
+defined in your script by name, so no fixed hook is required:
+
+```lua
+function onCreatePost()
+    addModifier('drunk')
+    modEase('drunk', 8, 4, 0.5, 'quadOut')
+    modRepeater(16, 4, 'onPulse')
+end
+
+function onPulse(beat)
+    -- Callbacks receive the beat they fired on: schedule from it.
+    modEase('bounce', beat, 2, 0.5, 'quadOut')
+end
+```
+
+Modifiers only run once a script adds them, so charts and mods that ignore the
+API keep vanilla arrows. The full function and percent list lives in
+[MODCHART.md](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/blob/main/docs/MODCHART.md).
+
 ## Custom substates
 
 Scripts can open their own substate with `openCustomSubstate(name, pauseGame)`.

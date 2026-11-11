@@ -31,6 +31,7 @@ class PlayStateLayout
 		{
 			if (state.strumLineNotes != null)
 				state.strumLineNotes.forEachAlive((strum:StrumNote) -> strum.x += shift);
+			PlayStateModchart.shiftDefaults(state, shift);
 			// Notes normally follow strums every update. Move the current frame as
 			// well so a resize between update and draw cannot flash old positions.
 			for (group in [state.notes, state.sustainNotes])
