@@ -726,13 +726,7 @@ class LoadingState extends MusicBeatState
 		// Function targets are resolved to instances up front so the target
 		// can be checked; states are cheap to construct, `create()` still
 		// runs on the switch like before.
-		var resolved:Dynamic = target;
-		try
-		{
-			if (!Std.isOfType(target, FlxState))
-				resolved = target();
-		}
-		catch (e:Dynamic) {}
+		var resolved:FlxState = target.createInstance();
 
 		if (isLoadingTarget(resolved))
 		{
