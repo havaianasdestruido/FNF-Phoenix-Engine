@@ -6,6 +6,7 @@ import backend.ClientPrefs;
 import backend.ScreenLayout;
 import backend.Conductor;
 import play.helpers.PlayStateLayout;
+import play.helpers.PlayStateModchart;
 import backend.Conductor.Rating;
 import backend.CoolUtil;
 import backend.DiscordClient;
@@ -132,6 +133,8 @@ class PlayState extends MusicBeatState
 	public var modchartSounds:Map<String, FlxSound> = new Map<String, FlxSound>();
 	public var modchartTexts:Map<String, FlxText> = new Map<String, FlxText>();
 	public var modchartSaves:Map<String, FlxSave> = new Map<String, FlxSave>();
+	/** FunkinModchart-style runtime (see `play.helpers.PlayStateModchart`). */
+	public var modchart:modchart.ModchartManager = null;
 
 	public var hitSoundString:String = ClientPrefs.hitsoundType;
 
@@ -1302,6 +1305,10 @@ class PlayState extends MusicBeatState
 		}
 		generateSong(startOnTime);
 
+		// Modchart runtime exists before scripts run so onCreate/onCreatePost
+		// can add modifiers and schedule beat events.
+		PlayStateModchart.setup(this);
+
 		callOnLuas('onCreate');
 
 		if (SONG.event7 == null || SONG.event7 == '') SONG.event7 == 'None';
@@ -2243,6 +2250,8 @@ class PlayState extends MusicBeatState
 		// dispatch when no script is loaded removes a per-frame array (plus the two
 		// more that callOnScripts builds for its default arguments).
 		if (hasActiveScripts()) callOnLuas('onUpdate', [elapsed]);
+		// Receptors move before notes follow them (see PlayStateModchart).
+		PlayStateModchart.updateStrums(this, elapsed);
 		final stateUpdateHotspot = debug.profiler.HotspotProfiler.begin("PlayState: Flixel state/group update");
 		super.update(elapsed);
 		debug.profiler.HotspotProfiler.end(stateUpdateHotspot);
@@ -2521,6 +2530,9 @@ class PlayState extends MusicBeatState
 				PlayStateNoteHelpers.sortNoteGroup(notes);
 				sustainNotes.forEach(updateNote);
 				PlayStateNoteHelpers.sortNoteGroup(sustainNotes);
+				// Notes are positioned by followStrum above; the modchart
+				// offsets them from there (multiplicative angle/alpha/scale).
+				PlayStateModchart.updateNotes(this);
 				debug.profiler.HotspotProfiler.end(notesHotspot);
 			}
 
@@ -3022,6 +3034,8 @@ class PlayState extends MusicBeatState
 	}
 
 	override function destroy() {
+		PlayStateModchart.reset(this);
+
 		#if android
 		PlayStateAndroidMedia.stop(this);
 		#end
