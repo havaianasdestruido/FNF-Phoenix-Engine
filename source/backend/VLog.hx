@@ -406,7 +406,13 @@ class VLog
         lagSpikes++;
         final extreme = spikeMs > LAG_EXTREME_MS;
         if (extreme) extremeLagSpikes++;
-        log(extreme ? 'EXTREME LAG' : 'LAG SPIKE', 'frame=' + round(elapsedMs, 3) + 'ms (budget ' + round(targetMs, 3) + 'ms, ' + round(spikeMs / targetMs, 2) + 'x)'
+        // Report the figure that actually tripped the threshold: printing
+        // `frame=` next to a multiplier derived from `work`/`gap` read as a
+        // contradiction (e.g. "frame=16.959ms (budget 16.667ms, 2.82x)" when
+        // the 47ms was the callback's own work, 2026-11-11 bundle).
+        log(extreme ? 'EXTREME LAG' : 'LAG SPIKE', 'stall=' + round(spikeMs, 3) + 'ms (budget ' + round(targetMs, 3) + 'ms, ' + round(spikeMs / targetMs, 2) + 'x)'
+          + ' from=' + (workMs >= gapMs ? 'work' : 'vsync/system gap')
+          + ' frame=' + round(elapsedMs, 3) + 'ms'
           + ' work=' + round(workMs, 3) + 'ms'
           + ' outside=' + round(gapMs, 3) + 'ms (vsync wait / system stall)'
           + ' heap=' + formatBytes(heap)
