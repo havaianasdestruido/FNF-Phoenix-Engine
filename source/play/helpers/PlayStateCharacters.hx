@@ -76,6 +76,9 @@ class PlayStateCharacters
 			}
 			if(!alreadyLoaded) new FunkinLua(luaFile);
 		}
+		else backend.LuaDiagnostics.lookupMiss('characters/$name.lua', luaFile, #if MODS_ALLOWED true #else false #end);
+		#else
+		PlayStateScripts.noteUnsupportedLua('characters/$name.lua');
 		#end
 
 		#if PYTHON_ALLOWED

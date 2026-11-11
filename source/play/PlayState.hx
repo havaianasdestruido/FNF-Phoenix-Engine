@@ -11,6 +11,8 @@ import backend.Conductor.Rating;
 import backend.CoolUtil;
 import backend.DiscordClient;
 import backend.Highscore;
+import backend.LuaDiagnostics;
+import backend.LuaDiagnostics.LuaDiagLevel;
 #if MODS_ALLOWED
 #end
 import backend.MusicBeatState;
@@ -808,6 +810,11 @@ class PlayState extends MusicBeatState
 		add(hscriptDebugGroup);
 		#end
 
+		// Lua pipeline diagnostics ([LuaDiag] lines, see backend.LuaDiagnostics):
+		// this song's script load starts here and is summed up right before
+		// onCreatePost.
+		LuaDiagnostics.beginSession('"' + SONG.song + '"', LuaDiagnostics.verbose ? PlayStateScripts.luaDiagContext() : null, luaDiagOverlay);
+
 		// "GLOBAL" SCRIPTS
 		#if (LUA_ALLOWED || PYTHON_ALLOWED || (HSCRIPT_ALLOWED && sys))
 		var filesPushed:Array<String> = [];
@@ -825,8 +832,10 @@ class PlayState extends MusicBeatState
 			foldersToCheck.insert(0, Paths.mods(mod + '/scripts/'));
 		#end
 
+		LuaDiagnostics.beginScan('global scripts', foldersToCheck);
 		for (folder in foldersToCheck)
 		{
+			LuaDiagnostics.reviewFolder(folder, filesPushed);
 			if(FileSystem.exists(folder))
 			{
 				var folderFiles:Array<String> = FileSystem.readDirectory(folder);
@@ -878,6 +887,8 @@ class PlayState extends MusicBeatState
 		// STAGE SCRIPTS
 		#if (MODS_ALLOWED && LUA_ALLOWED)
 		startLuasOnFolder('stages/' + curStage + '.lua');
+		#elseif !LUA_ALLOWED
+		PlayStateScripts.noteUnsupportedLua('stages/' + curStage + '.lua');
 		#end
 		#if (MODS_ALLOWED && PYTHON_ALLOWED)
 		startPythonScriptOnFolder('stages/' + curStage + '.py');
@@ -1620,6 +1631,8 @@ class PlayState extends MusicBeatState
 		{
 			#if LUA_ALLOWED
 			startLuasOnFolder('custom_notetypes/' + notetype + '.lua');
+			#else
+			PlayStateScripts.noteUnsupportedLua('custom_notetypes/' + notetype + '.lua');
 			#end
 			#if PYTHON_ALLOWED
 			startPythonScriptOnFolder('custom_notetypes/' + notetype + '.py');
@@ -1632,6 +1645,8 @@ class PlayState extends MusicBeatState
 		{
 			#if LUA_ALLOWED
 			startLuasOnFolder('custom_events/' + event + '.lua');
+			#else
+			PlayStateScripts.noteUnsupportedLua('custom_events/' + event + '.lua');
 			#end
 			#if PYTHON_ALLOWED
 			startPythonScriptOnFolder('custom_events/' + event + '.py');
@@ -1669,8 +1684,11 @@ class PlayState extends MusicBeatState
 			foldersToCheck.insert(0, Paths.mods(mod + '/data/' + Paths.formatToSongPath(SONG.song) + '/' ));// using push instead of insert because these should run after everything else
 		#end
 
+		LuaDiagnostics.beginScan('song scripts', foldersToCheck);
+		LuaDiagnostics.reviewSongFolders(foldersToCheck);
 		for (folder in foldersToCheck)
 		{
+			LuaDiagnostics.reviewFolder(folder, filesPushed);
 			if(FileSystem.exists(folder))
 			{
 				var folderFiles:Array<String> = FileSystem.readDirectory(folder);
@@ -1756,6 +1774,8 @@ class PlayState extends MusicBeatState
 		startCallback();
 
 		resetRPC();
+		// Every create-time script has been loaded (or refused) by now.
+		LuaDiagnostics.reportSummary();
 		callOnLuas('onCreatePost');
 		stagesFunc(function(stage:BaseStage) stage.createPost());
 
@@ -1855,8 +1875,8 @@ class PlayState extends MusicBeatState
 		return value;
 	}
 
-	public function addTextToDebug(text:String, color:FlxColor) {
-		PlayStateScripts.addTextToDebug(this, text, color);
+	public function addTextToDebug(text:String, color:FlxColor, echo:Bool = true) {
+		PlayStateScripts.addTextToDebug(this, text, color, echo);
 	}
 
 	public function reloadHealthBarColors(leftColorArray:Array<Int>, rightColorArray:Array<Int>) {
@@ -3073,6 +3093,9 @@ class PlayState extends MusicBeatState
 		HScript.registeredFunctions.clear();
 		#end
 
+		// The onDestroy hooks above were the last thing that could report.
+		LuaDiagnostics.endSession();
+
 		if (camFollow != null) camFollow.put();
 
 		stagesFunc(function(stage:BaseStage) stage.destroy());
@@ -3281,9 +3304,18 @@ class PlayState extends MusicBeatState
 			return true;
 		}
 		#end
+		// Most stages, note types and events have no script, so this is only
+		// worth a line when someone is tracing the lookups.
+		LuaDiagnostics.lookupMiss(luaFile, Paths.getPreloadPath(luaFile), #if MODS_ALLOWED true #else false #end);
 		return false;
 	}
 	#end
+
+	/** Shows a Lua diagnostics message in the script debug overlay (already printed, so no console echo). */
+	function luaDiagOverlay(text:String, level:LuaDiagLevel):Void
+	{
+		addTextToDebug(text, level == ERROR ? FlxColor.RED : (level == WARNING ? FlxColor.YELLOW : FlxColor.WHITE), false);
+	}
 
 	#if PYTHON_ALLOWED
 	public function startPythonScriptOnFolder(pyFile:String)

@@ -459,6 +459,10 @@ class Project extends HXProject
 		// Should be true unless explicitly requested.
 		MODS_ALLOWED.apply(this, (isDesktop() || isMobile()) && !isWeb() && !isFlash() && !isAir());
 
+		// Whether Lua was asked for (or refused) by name, before the defaults
+		// below fill it in: reportScriptSupport() explains the outcome.
+		var luaExplicit:Bool = LUA_ALLOWED.isEnabled(this) || LUA_ALLOWED.isDisabled(this);
+
 		// Script modding level. Pass `-DMODDING_LEVEL=0|1|2` to force:
 		//   0 = no Lua/Python scripts, 1 = Lua only, 2 = Lua + Python
 		var moddingLevel:Int = getModdingLevel();
@@ -514,6 +518,60 @@ class Project extends HXProject
 		FEATURE_FILE_DROP.apply(this, !isMac() && !isFlash() && !isAir());
 
 		FLASH_ALLOWED.apply(this, isFlash());
+
+		reportScriptSupport(moddingLevel, luaExplicit);
+	}
+
+	/**
+	 * Say in the build log which script languages this build can run, and why.
+	 *
+	 * A build without LUA_ALLOWED has no Lua VM: every `.lua` file is ignored at
+	 * run time, which looks exactly like "my script does not load". The reason
+	 * is decided here, so this is where it is cheapest to find out
+	 * (docs/LUA_SCRIPT_DEBUGGING.md, step 0).
+	 */
+	function reportScriptSupport(moddingLevel:Int, luaExplicit:Bool):Void
+	{
+		var lua:Bool = LUA_ALLOWED.isEnabled(this);
+		var reason:String = 'default for this target';
+		if (moddingLevel >= 0) reason = '-DMODDING_LEVEL=' + moddingLevel;
+		else if (luaExplicit) reason = lua ? '-DLUA_ALLOWED' : '-DNO_LUA_ALLOWED';
+
+		info('Script support: Lua ' + (lua ? 'ON' : 'OFF')
+			+ ', Python ' + (PYTHON_ALLOWED.isEnabled(this) ? 'ON' : 'OFF')
+			+ ', HScript ' + (HSCRIPT_ALLOWED.isEnabled(this) ? 'ON' : 'OFF')
+			+ ' (Lua: ' + reason + ')');
+
+		// `lime clean` compiles nothing, so there is nothing to warn about.
+		if (command == "clean") return;
+
+		// configureHaxelibs() adds the Lua bindings for desktop targets only, so
+		// anywhere else LUA_ALLOWED compiles `import hxluajit.*` without them.
+		if (lua && !isDesktop())
+		{
+			warn('LUA_ALLOWED is on, but the hxluajit haxelib is only added for desktop targets:');
+			warn('this build will stop at "import hxluajit" (source/import.hx).');
+			return;
+		}
+
+		if (lua || moddingLevel >= 0 || luaExplicit) return;
+
+		// Lua is off and nobody asked for that. On a C++ build this is the
+		// default above not matching: isCPP() looks for the `cpp` target flag,
+		// which Lime sets for `lime build cpp` or `-cpp` but not for
+		// `lime build windows|linux|mac|android`, even though those compile
+		// through C++ as well (targetType is "cpp").
+		if (this.defines.get('targetType') != 'cpp' || isCPP()) return;
+
+		warn('Lua scripts (.lua) will NOT run in this build: LUA_ALLOWED is off.');
+		if (!isDesktop())
+		{
+			warn('Lua cannot be switched on for this target yet: the hxluajit haxelib is only added for desktop targets.');
+			return;
+		}
+		warn('The Lua/Python default only turns on when the "cpp" target flag is set (lime ' + this.command
+			+ ' cpp, or -cpp); lime ' + this.command + ' ' + this.target + ' does not set it.');
+		warn('Add -DMODDING_LEVEL=1 (Lua) or -DMODDING_LEVEL=2 (Lua + Python) to include them.');
 	}
 
 	/**
@@ -1592,6 +1650,18 @@ class Project extends HXProject
 	public function error(message:String):Void
 	{
 		Log.error('${message}');
+	}
+
+	/**
+	 * Display a warning that does not stop the build. Silent for the `display`
+	 * command, for the same reason as info().
+	 */
+	public function warn(message:String):Void
+	{
+		if (command != "display")
+		{
+			Log.info('[WARN] ${message}');
+		}
 	}
 
 	/**
