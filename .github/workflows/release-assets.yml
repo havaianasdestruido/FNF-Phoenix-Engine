@@ -121,11 +121,16 @@ jobs:
       - name: Download Windows artifact
         uses: actions/download-artifact@v8
         with:
-          name: windowsBuild
+          pattern: "*_windows_*"
           path: build
+          merge-multiple: true
 
       - name: Compress build
         run: |
+          if [ -z "$(find build -type f -print -quit 2>/dev/null)" ]; then
+            echo "::error::No files found in the Windows build artifact."
+            exit 1
+          fi
           sudo apt-get install -y p7zip-full
           cd build && 7z a -tzip ../FNF-Phoenix-Engine-windows.zip .
 
@@ -147,7 +152,8 @@ jobs:
       - name: Download Android artifact
         uses: actions/download-artifact@v8
         with:
-          name: androidBuild
+          pattern: "*_android_*"
+          merge-multiple: true
 
       - name: Locate APK
         run: |
