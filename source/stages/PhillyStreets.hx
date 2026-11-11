@@ -400,13 +400,16 @@ class PhillyStreets extends BaseStage
 
 	function updateABotEye(finishInstantly:Bool = false)
 	{
+		if (abot == null) return;
+
 		if(PlayState.SONG.notes[Std.int(FlxMath.bound(curSection, 0, PlayState.SONG.notes.length - 1))].mustHitSection == true)
 			abot.lookRight();
 		else
 			abot.lookLeft();
 
 		#if flxanimate
-		if(finishInstantly) abot.eyes.anim.curFrame = abot.eyes.anim.length - 1;
+		// ABotSpeaker only builds the eyes when the animate atlas resolved.
+		if(finishInstantly && abot.eyes != null && abot.eyes.anim != null) abot.eyes.anim.curFrame = abot.eyes.anim.length - 1;
 		#end
 	}
 

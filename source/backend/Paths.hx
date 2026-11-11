@@ -1265,58 +1265,126 @@ class Paths
     return parentFrames;
   }
 
+  /**
+   * Reads an atlas descriptor (`.xml`, `.txt`, `.json`) as text.
+   *
+   * `getPath()` resolves through the compiled OpenFL asset library, so for a
+   * file that is shipped loose on disk but is not part of an embedded library
+   * (level folders in `NO_BUILTIN_CONTENT` builds, a level library that was
+   * not packed, a hand-edited install) it returns a path nothing owns. Passing
+   * that unusable path straight to `FlxAtlasFrames` made the atlas come back
+   * `null`, and callers then dereferenced the animation they could never
+   * create (`ABotSpeaker.new()` -> `curAnim.finish()` was the crash in the
+   * 2026-11-11 bundle). `getTextFromFile()` already probes mods, the preload
+   * folder, the current level folder and `shared` on disk — it is what
+   * `loadAnimateAtlas()` uses — so reuse it here and keep both atlas flavours
+   * resolvable the same way.
+   */
+  static function atlasText(file:String, ?parentFolder:String = null):String
+  {
+    if (parentFolder != null && parentFolder.length > 0)
+    {
+      // An explicit folder/library: keep the library id around, because that
+      // is how an embedded asset is read (`getTextFromFile` only knows the
+      // current level folder, not one a caller picked).
+      final libraryPath:String = getPath(file, TEXT, parentFolder);
+      if (OpenFlAssets.exists(libraryPath, TEXT)) return OpenFlAssets.getText(libraryPath);
+
+      final diskText:String = getContent(libraryPath);
+      if (diskText != null) return diskText;
+    }
+    return getTextFromFile(file);
+  }
+
+  /**
+   * Reports an atlas that could not be built. Without this the failure only
+   * surfaced as a null reference deep inside a caller, which told crash triage
+   * nothing about which asset was missing.
+   */
+  static function warnAtlasFailure(key:String, part:String):Void
+  {
+    // Once per key/part: a stage that retries the load must not spam the vlog.
+    final warnId:String = 'atlas|' + key + '|' + part;
+    if (warnedMissingAssets.exists(warnId)) return;
+    warnedMissingAssets.set(warnId, true);
+    VLog.assetCached('atlas', key, 'UNAVAILABLE (' + part + ' not found) — animations fall back to a still frame');
+  }
+
+  /**
+   * Flags an atlas that parsed to no usable frames. Such an atlas is returned
+   * unchanged (callers relied on that), but it is logged: a descriptor with no
+   * frames silently makes `animation.addByPrefix()` add nothing, and the
+   * caller then blows up on the null `curAnim` — exactly what the 2026-11-11
+   * bundle showed at `ABotSpeaker.new()`, with nothing in the log pointing at
+   * the asset.
+   */
+  static function warnIfEmptyAtlas(key:String, frames:FlxAtlasFrames):FlxAtlasFrames
+  {
+    if (frames == null || frames.numFrames < 1) warnAtlasFailure(key, 'frames');
+    return frames;
+  }
+
   static public function getSparrowAtlas(key:String, ?parentFolder:String = null):FlxAtlasFrames
   {
     var imageLoaded:FlxGraphic = image(key, parentFolder);
-    if (imageLoaded == null) return null;
+    if (imageLoaded == null)
+    {
+      warnAtlasFailure(key, 'image');
+      return null;
+    }
 
     final cachedAtlas:FlxAtlasFrames = FlxAtlasFrames.findFrame(imageLoaded, ZERO_BORDER);
     if (cachedAtlas != null) return cachedAtlas;
 
-    #if MODS_ALLOWED
-    var xml:String = modsXml(key);
-    if (FileSystem.exists(xml))
+    final xmlText:String = atlasText('images/$key' + '.xml', parentFolder);
+    if (xmlText == null)
     {
-      return FlxAtlasFrames.fromSparrow(imageLoaded, File.getContent(xml));
+      warnAtlasFailure(key, 'xml');
+      return null;
     }
-    #end
-    return FlxAtlasFrames.fromSparrow(imageLoaded, getPath('images/$key' + '.xml', TEXT, parentFolder));
+    return warnIfEmptyAtlas(key, FlxAtlasFrames.fromSparrow(imageLoaded, xmlText));
   }
 
   static public function getPackerAtlas(key:String, ?parentFolder:String = null):FlxAtlasFrames
   {
     var imageLoaded:FlxGraphic = image(key, parentFolder);
-    if (imageLoaded == null) return null;
+    if (imageLoaded == null)
+    {
+      warnAtlasFailure(key, 'image');
+      return null;
+    }
 
     final cachedAtlas:FlxAtlasFrames = FlxAtlasFrames.findFrame(imageLoaded, ZERO_BORDER);
     if (cachedAtlas != null) return cachedAtlas;
 
-    #if MODS_ALLOWED
-    var txt:String = modsTxt(key);
-    if (FileSystem.exists(txt))
+    final txtText:String = atlasText('images/$key' + '.txt', parentFolder);
+    if (txtText == null)
     {
-      return FlxAtlasFrames.fromSpriteSheetPacker(imageLoaded, File.getContent(txt));
+      warnAtlasFailure(key, 'txt');
+      return null;
     }
-    #end
-    return FlxAtlasFrames.fromSpriteSheetPacker(imageLoaded, getPath('images/$key' + '.txt', TEXT, parentFolder));
+    return warnIfEmptyAtlas(key, FlxAtlasFrames.fromSpriteSheetPacker(imageLoaded, txtText));
   }
 
   static public function getAsepriteAtlas(key:String, ?parentFolder:String = null, ?allowGPU:Bool = true):FlxAtlasFrames
   {
     var imageLoaded:FlxGraphic = image(key, parentFolder);
-    if (imageLoaded == null) return null;
+    if (imageLoaded == null)
+    {
+      warnAtlasFailure(key, 'image');
+      return null;
+    }
 
     final cachedAtlas:FlxAtlasFrames = FlxAtlasFrames.findFrame(imageLoaded, ZERO_BORDER);
     if (cachedAtlas != null) return cachedAtlas;
 
-    #if MODS_ALLOWED
-    var json:String = modsImagesJson(key);
-    if (FileSystem.exists(json))
+    final jsonText:String = atlasText('images/$key' + '.json', parentFolder);
+    if (jsonText == null)
     {
-      return FlxAtlasFrames.fromTexturePackerJson(imageLoaded, File.getContent(json));
+      warnAtlasFailure(key, 'json');
+      return null;
     }
-    #end
-    return FlxAtlasFrames.fromTexturePackerJson(imageLoaded, getPath('images/$key' + '.json', TEXT, parentFolder));
+    return warnIfEmptyAtlas(key, FlxAtlasFrames.fromTexturePackerJson(imageLoaded, jsonText));
   }
 
   /**

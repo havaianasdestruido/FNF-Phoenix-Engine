@@ -548,9 +548,12 @@ class LoadingState extends MusicBeatState
 		// Cache hitsounds, miss sounds, death, countdown — mirroring Doido's Paths.preloadPlayStuff()
 		var preSounds:Array<String> = [];
 
-		// Death / game-over
+		// Death / game-over. The retry track lives in shared/music, not in
+		// sounds -- probing it as a sound only ever logged a bogus
+		// "[ASSET SOUND] sounds/gameOverEnd.ogg | MISSING" line in the vlog
+		// and preloaded nothing (see the 2026-11-11 crash bundle).
 		preSounds.push('sounds/fnf_loss_sfx');
-		preSounds.push('sounds/gameOverEnd');
+		preSounds.push('music/gameOverEnd');
 
 		// Hitsounds (if enabled)
 		try
@@ -579,12 +582,11 @@ class LoadingState extends MusicBeatState
 		{
 			try
 			{
-				// Use Paths helper that caches sounds
-				var key = snd;
-				// snd is like 'sounds/missnote1' — strip prefix for Paths.sound API
-				if (key.startsWith('sounds/')) key = key.substr(7);
-				if (key.startsWith('music/')) key = key.substr(6);
-				Paths.sound(key);
+				// Route by folder: 'sounds/x' caches through Paths.sound(),
+				// 'music/x' through Paths.music(). Stripping both prefixes and
+				// always calling Paths.sound() looked up music in sounds/.
+				if (snd.startsWith('music/')) Paths.music(snd.substr(6));
+				else Paths.sound(snd.startsWith('sounds/') ? snd.substr(7) : snd);
 			}
 			catch (e:Dynamic) {}
 		}

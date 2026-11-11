@@ -283,18 +283,50 @@ class Rating
 		return ratingsData;
 	}
 	
+	/**
+	 * Counters that a `Rating.increase()` could not write to. Cached so a
+	 * mod-defined rating with a bogus counter name costs one failed reflection
+	 * instead of one per note.
+	 */
+	static var unwritableCounters:Map<String, Bool> = [];
+
 	public function increase(blah:Int = 1)
 	{
 		var state = PlayState.instance;
-		// On hxcpp Reflect.setField() throws "Invalid field:<name>" when the
-		// target has no such field, which takes the whole game down mid-note.
-		// Verify the counter maps onto a real PlayState field first so a bad
-		// mapping can only cost one counted hit, never a crash.
-		if (state == null || !Reflect.hasField(state, counter))
+		if (state == null) return;
+
+		// hxcpp's Reflect.hasField() only answers for dynamic/anonymous
+		// objects: for plain class fields it reports false even when the field
+		// exists. The previous guard therefore skipped *every* built-in
+		// counter -- "sicks", "perfects" and "goods" were never tallied and
+		// each failed hit printed a trace ("Rating.increase: no PlayState
+		// field for counter \"sicks\", skipping", 30 times in the 2026-11-11
+		// bundle), so FC/accuracy readouts stayed at zero.
+		// Add the built-in counters statically and keep reflection only for
+		// ratings a mod registered, where a bad name is caught once and then
+		// skipped for good.
+		switch (counter)
 		{
-			trace('Rating.increase: no PlayState field for counter "$counter", skipping');
-			return;
+			case 'perfects': state.perfects += blah;
+			case 'sicks': state.sicks += blah;
+			case 'goods': state.goods += blah;
+			case 'bads': state.bads += blah;
+			case 'poorRatings': state.poorRatings += blah;
+			default:
+				if (unwritableCounters.exists(counter)) return;
+				try
+				{
+					var current:Dynamic = Reflect.field(state, counter);
+					Reflect.setField(state, counter, (current == null ? 0 : Std.int(current)) + blah);
+				}
+				catch (e:Dynamic)
+				{
+					// Reflect.setField() throws "Invalid field:<name>" on hxcpp
+					// when the target has no such field. Report it once; losing
+					// a counted hit must never take the game down mid-note.
+					unwritableCounters.set(counter, true);
+					trace('Rating.increase: PlayState has no counter "$counter", rating "$name" will not be tallied');
+				}
 		}
-		Reflect.setField(state, counter, Reflect.field(state, counter) + blah);
 	}
 }
