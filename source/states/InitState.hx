@@ -49,6 +49,10 @@ class InitState extends FlxState {
 		// save, this re-syncs with the value loadPrefs() just read in case the
 		// early read could not open funkin.sol.
 		backend.VLog.setEnabled(ClientPrefs.vlogEnabled);
+		// Memory profiles release cached assets when the window is backgrounded.
+		// The handler checks the active profile, so registering it is harmless
+		// when no profile is selected.
+		FlxG.signals.focusLost.add(backend.LowMemory.onFocusLost);
 		Conductor.recalculateTimings(); // #43: apply the saved safeFrames before any song starts
 
 		#if ACHIEVEMENTS_ALLOWED

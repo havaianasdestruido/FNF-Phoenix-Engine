@@ -2861,6 +2861,9 @@ class PlayState extends MusicBeatState
 	public var transitioning = false;
 	public function endSong():Void
 	{
+		// Memory profile: the chart's spawn queue is done with, so this is the
+		// first safe point to hand unused assets back before results/menus.
+		backend.LowMemory.onSongEnd();
 		PlayStatePlayback.endSong(this);
 	}
 
@@ -3118,6 +3121,11 @@ class PlayState extends MusicBeatState
 		backend.NoteTypesConfig.clearNoteTypesData();
 
 		super.destroy();
+
+		// Everything this song loaded is unreachable now (super.destroy() is what
+		// releases the sprites), so profiles that clean up deeply do it here
+		// rather than on the next menu's create().
+		backend.LowMemory.onPlayStateExit();
 	}
 
 	override function stepHit()

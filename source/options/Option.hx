@@ -146,6 +146,14 @@ class Option
 		this.child = child;
 	}
 
+	/**
+	 * Name of the `ClientPrefs` field this option edits (empty for `link`
+	 * options). Used by the menu to explain when a memory profile is forcing
+	 * the value; see `backend.LowMemory.isManaged`.
+	 */
+	public function prefName():String
+		return variable == null ? '' : variable;
+
 	private function get_text()
 	{
 		if(child != null) {

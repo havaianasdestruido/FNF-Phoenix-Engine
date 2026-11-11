@@ -20,6 +20,8 @@ trap 'rm -rf "$test_source"' EXIT
 cp -r tests/haxe/stubs/diagnostics/. "$test_source/"
 mkdir -p "$test_source/backend" "$test_source/states"
 cp source/backend/DiagnosticsReport.hx "$test_source/backend/DiagnosticsReport.hx"
+# The settings section reports the active memory profile (Options -> Optimization).
+cp source/backend/MemoryProfiles.hx "$test_source/backend/MemoryProfiles.hx"
 # LogUtils is Flixel-free on purpose, so the report sees the real redaction and
 # size policy here instead of a paraphrase of it.
 cp source/backend/LogUtils.hx "$test_source/backend/LogUtils.hx"

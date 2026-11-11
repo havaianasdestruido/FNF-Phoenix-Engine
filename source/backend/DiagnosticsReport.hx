@@ -201,6 +201,7 @@ class DiagnosticsReport
     rows.push(row('Optimization', 'GC ' + (ClientPrefs.enableGC ? 'allowed' : 'blocked')
       + ', spawn lead ' + roundText(ClientPrefs.noteSpawnTime)
       + ', splashes ' + (ClientPrefs.noteSplashes ? '' + ClientPrefs.maxSplashLimit : 'off')));
+    rows.push(row('Memory profile', MemoryProfiles.summary(ClientPrefs.memoryProfile)));
     rows.push(row('Scroll', (ClientPrefs.downScroll ? 'down' : 'up')
       + ', ' + (ClientPrefs.middleScroll ? 'middle' : 'sides')
       + ', ghost tap ' + (ClientPrefs.ghostTapping ? 'on' : 'off')));

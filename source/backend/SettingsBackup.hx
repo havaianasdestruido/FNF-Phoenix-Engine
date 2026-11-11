@@ -42,7 +42,11 @@ class SettingsBackup
     'defaultArrowRGB',
     'defaultPixelRGB',
     'defaultQuantRGB',
-    'importantMap'
+    'importantMap',
+    // Internal state managed by backend.LowMemory. A backup carries the
+    // selected profile, but never its private snapshot or derived mirror.
+    'memoryProfileBaseline',
+    'lowMemoryMode'
   ];
 
   /**
@@ -130,6 +134,9 @@ class SettingsBackup
     if (decoded.error != null) return 'Could not import settings.\n\n' + decoded.error;
 
     var applied:Int = 0;
+    // Put the player's own values back before importing, so a forced memory
+    // profile value is never treated as if the player had chosen it.
+    LowMemory.beginSave();
     applied += applySettings(decoded.settings);
     applied += applyGameplaySettings(decoded.gameplaySettings);
     applied += applyKeyBinds(decoded.keyBinds);
@@ -146,8 +153,15 @@ class SettingsBackup
     }
 
     if (applied == 0)
+    {
+      LowMemory.endSave(); // re-applies the profile that was already active
       return 'That backup contains no setting this\nversion of the engine can use.';
+    }
 
+    // The backup carries its own memory profile (or Off): rebuild the
+    // snapshot/override state from the imported values instead of merging it
+    // with the snapshot of the previous profile.
+    LowMemory.reloadAfterImport();
     ClientPrefs.saveSettings();
     applyImmediately();
 
@@ -160,6 +174,10 @@ class SettingsBackup
   /** Collects every preference into the payload the codec writes out. */
   public static function collect():SettingsBackupPayload
   {
+    // A memory profile forces some fields; export the player's own values so a
+    // backup taken with "Extreme" on still restores what they actually chose.
+    LowMemory.beginSave();
+
     final settings:Dynamic = {};
     for (field in preferenceFields())
       Reflect.setField(settings, field, Reflect.field(ClientPrefs, field));
@@ -175,6 +193,8 @@ class SettingsBackup
       for (key in keys) values.push(key); // FlxKey is an Int at runtime
       Reflect.setField(binds, control, values);
     }
+
+    LowMemory.endSave();
 
     return {
       engine: 'Phoenix Engine ' + PhoenixVersion.current,
