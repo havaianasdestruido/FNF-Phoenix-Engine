@@ -169,6 +169,15 @@ class FreeplayState extends MusicBeatState
 		add(bg);
 		add(new MovingCheckerboard(FlxColor.WHITE, 16.2, -37.8));
 
+		grpSongs = new FlxTypedGroup<Alphabet>();
+		add(grpSongs);
+		grpIcons = new FlxTypedGroup<HealthIcon>();
+		add(grpIcons);
+
+		// Layering: the record is added right after the (still empty) song list
+		// groups so that it draws over the song names and their icons.  The HUD
+		// added further down (score box, help bar, search, music player) stays
+		// above it.
 		setupDisc();
 		if (discAvailable)
 		{
@@ -184,11 +193,6 @@ class FreeplayState extends MusicBeatState
 				"scale.y": 1
 			}, 0.5, {ease: FlxEase.quartInOut});
 		}
-
-		grpSongs = new FlxTypedGroup<Alphabet>();
-		add(grpSongs);
-		grpIcons = new FlxTypedGroup<HealthIcon>();
-		add(grpIcons);
 
 		for (i in 0...songs.length)
 		{
