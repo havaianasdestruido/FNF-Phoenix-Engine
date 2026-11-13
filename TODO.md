@@ -286,8 +286,18 @@ There is no replay, ghost or determinism layer anywhere in the tree (the only "r
 - **[P1] Central `reducedMotion` preference.** `ClientPrefs.reducedMotion` gates beat bops, event zooms/shakes and character screen shake, but per site. Still to do: camera scroll, menu tweens and stage flashes, moved into one helper that stages/scripts can query. The option row is tracked in §21.4.
 - **[P2] Add an Accessibility options category.** Split from "Visuals and UI" so flashing/reduced motion/high contrast/UI scale/hold-to-confirm are discoverable instead of buried among style options.
 - **[P2] High-contrast / colorblind note palettes.** `noteColorStyle` offers Normal/Quant-Based/Char-Based with editable `arrowRGB`/`quantRGB`, but palettes still rely on hue. Ship named presets (deuteranopia/protanopia/tritanopia), a "force luminance contrast" mode, and optionally lane glyphs/numbers so lanes never depend on colour alone.
-- **[P2] UI scale / text size.** The `UI Scale` option (`ScreenLayout.uiScale()`, live preview) only rescales the options menus; the other menus are still authored at fixed pixel sizes. Apply it to them and to the chart editor UI, for 1440p desktops and small phones alike.
-- **[P2] Hold-to-confirm and larger touch targets.** Deleting a mod/save/chart, "Exit to menu" and "Reset all settings" are single taps today, several with small hitboxes on mobile. Require a held press (or a second confirmation) and enlarge the touch area without changing the art.
+- **[P2] UI scale / text size.** Menus are authored at fixed pixel sizes. Add 100/115/130 % scale applied through `ScreenLayout`/`ViewportVisuals` (reused by the chart editor UI) with live preview, for 1440p desktops and small phones alike.
+- **[P2] ~~Hold-to-confirm and larger touch targets~~ DONE** — `backend.HoldToConfirmLogic` +
+  `objects.TouchTarget` / `objects.HoldToConfirm`: invisible ≥88×88 hit areas centred on untouched
+  art, runtime progress bar, mouse + multi-touch + keyboard/gamepad input, cancel on release,
+  drag-out, stray press or timeout. `ClientPrefs.holdToConfirm` / `holdToConfirmTime` (0.3–2 s)
+  are exposed in Options → Visuals and UI; off switches to a two-press confirmation, never back
+  to a single tap. Wired into destructive `objects.Prompt`s, guarded chart-editor delete/clear/
+  load-events buttons, `ResetScoreSubState`, the pause `Exit to ...` submenu, a guarded
+  **Reset All Settings** row in every options list, and SHIFT+RESET in Gameplay Changers.
+  `requireHold` also overrides "Ignore Progress Warnings". CANCEL/Back/No stay single taps.
+  Docs: `website/docs/subsystems/options-menu.md`, `website/docs/subsystems/mobile.md`.
+  Specs: `bash tests/haxe/run-hold-to-confirm.sh`, `bash tests/haxe/run-hold-to-confirm-typecheck.sh`.
 - **[P3] Re-openable photosensitivity warning.** `FlashingState` only shows while `FlxG.save.data.flashing == null`, so it is once-per-install and unreachable afterwards. Add "Show warning again" in Options and a quick "Reduce flashing" toggle in the pause menu.
 - **[P3] Visual beat indicator.** An optional screen-edge pulse that respects `reducedMotion`, so players who mute the game (or play on silent mobile) keep timing feedback without relying on flashes.
 

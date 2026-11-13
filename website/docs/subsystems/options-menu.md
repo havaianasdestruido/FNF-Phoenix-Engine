@@ -85,8 +85,33 @@ redraw is guarded, because this menu used to re-layout every frame.
 
 Every list calls `addBackupOptions()`, which appends
 *Export/Import Settings (.json)* only on targets with a working file picker
-(`PlatformSupport.FILE_PICKER`: native desktop and Android). Web, Flash and AIR never see
-those entries because the dialog cannot open there.
+(`PlatformSupport.FILE_PICKER`: native desktop and Android), plus a **Reset All Settings**
+link on every target. Web, Flash and AIR never see the backup pair because the dialog
+cannot open there.
+
+### Hold-to-confirm and touch targets
+
+**Visuals and UI → Hold to Confirm** (`ClientPrefs.holdToConfirm`, default on) and
+**Hold Duration** (`ClientPrefs.holdToConfirmTime`, 0.3–2 s, default 0.65 s) control how
+destructive actions are confirmed. With the toggle on, a press must be held; with it off,
+the player must press twice inside a three-second window. There is no single-tap mode.
+
+`backend.HoldToConfirmLogic` holds the renderer-free state machine, and
+`objects.TouchTarget` / `objects.HoldToConfirm` are the Flixel layer: an invisible hit
+area of at least 88 × 88 game units centred on the original art, a runtime progress bar,
+mouse + multi-touch + `controls.ACCEPT` input, and cancellation on release, drag-out,
+stray presses or timeout. The guarded **Reset All Settings** row is the discoverable
+touch target; the old SHIFT+RESET shortcut in this menu (and in Gameplay Changers) is
+guarded by the same state machine. Plain `RESET` / virtual-pad `C` still restores just
+the selected option.
+
+`objects.Prompt` uses the same guard for destructive OK/CANCEL questions (mod folder
+replacement, clearing chart progress, settings-backup import); `requireHold` also wins
+over the editor's "Ignore Progress Warnings" shortcut, so that shortcut cannot restore
+single-tap deletion. See the
+[Mobile](./mobile.md#guarded-destructive-actions) page for the full list of guarded actions,
+and `bash tests/haxe/run-hold-to-confirm.sh` /
+`bash tests/haxe/run-hold-to-confirm-typecheck.sh` for the specs.
 
 ### Moving menu checkerboard
 

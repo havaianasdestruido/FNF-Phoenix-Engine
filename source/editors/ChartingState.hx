@@ -833,7 +833,7 @@ class ChartingState extends MusicBeatState
       return;
     }
     openSubState(new Prompt('WARNING! This action will clear unsaved progress.\n\nProceed?', 0,
-      function() FlxG.switchState(editors.MasterEditorMenu.new), null, ignoreWarnings));
+      function() FlxG.switchState(editors.MasterEditorMenu.new), null, ignoreWarnings, null, null, true));
   }
   #end
 
@@ -1496,7 +1496,7 @@ class ChartingState extends MusicBeatState
           return;
         } else
           openSubState(new Prompt('WARNING! This action will clear unsaved progress.\n\nProceed?', 0,
-            function() FlxG.switchState(editors.MasterEditorMenu.new), null, ignoreWarnings));
+            function() FlxG.switchState(editors.MasterEditorMenu.new), null, ignoreWarnings, null, null, true));
       }
 
       if (FlxG.keys.pressed.CONTROL)

@@ -283,7 +283,8 @@ class MemoryProfiles
       if (value is Int || value is Float) return (value != 0);
       if (value is String)
       {
-        final text:String = value.trim().toLowerCase();
+        final str:String = value;
+        final text:String = str.trim().toLowerCase();
         return text == 'true' || text == '1';
       }
       return current;
@@ -299,7 +300,8 @@ class MemoryProfiles
       if (value is Bool) return value ? 1 : 0;
       if (value is String)
       {
-        final parsed:Null<Int> = Std.parseInt(value.trim());
+        final str:String = value;
+        final parsed:Null<Int> = Std.parseInt(str.trim());
         return parsed != null ? parsed : current;
       }
       return current;
@@ -309,7 +311,8 @@ class MemoryProfiles
       if (value is Int || value is Float) return value + 0.0;
       if (value is String)
       {
-        final parsed:Float = Std.parseFloat(value.trim());
+        final str:String = value;
+        final parsed:Float = Std.parseFloat(str.trim());
         return (Math.isNaN(parsed) || !Math.isFinite(parsed)) ? current : parsed;
       }
       return current;

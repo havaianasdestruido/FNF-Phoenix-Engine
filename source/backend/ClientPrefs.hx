@@ -21,7 +21,10 @@ class ClientPrefs { //default settings if it can't find a save file containing y
 	public static var complexAccuracy:Bool = false;
 	public static var noMarvJudge:Bool = false;
 	public static var noReset:Bool = false;
+	/** Destructive actions need a held press; off = two separate confirmations instead. */
 	public static var holdToConfirm:Bool = true;
+	/** Seconds a destructive press must be held (Options -> Visuals and UI). */
+	public static var holdToConfirmTime:Float = 0.65;
 	public static var antiCheatEnable:Bool = false;
 	public static var ezSpam:Bool = false;
 	public static var spaceVPose:Bool = true;
@@ -453,6 +456,10 @@ class ClientPrefs { //default settings if it can't find a save file containing y
 				}
 			}
 		}
+
+    // A hand-edited/old save can contain an absurd or non-numeric hold time.
+    // The guard clamps at use time already; keep the Options display valid too.
+    holdToConfirmTime = HoldToConfirmLogic.holdSeconds(holdToConfirmTime);
 
     // Android owns the display cut-out policy; other builds do not even
     // compile that code path in (see applyCutoutPreference()).
