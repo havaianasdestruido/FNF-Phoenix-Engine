@@ -1,12 +1,23 @@
 package objects;
 
 import backend.MusicBeatSubstate;
+import backend.PlayerSettings;
 import flixel.addons.ui.FlxUIButton;
 import flixel.addons.ui.FlxUIPopup;
 import flixel.ui.FlxButton;
 import openfl.display.BitmapData;
 import openfl.geom.Rectangle;
 
+/**
+ * OK/CANCEL pop-up used by the editors, the mod importer and settings import.
+ *
+ * Both buttons keep their original art but are wrapped in an invisible,
+ * enlarged {@link TouchTarget}. For destructive questions (`requireHold`),
+ * OK is additionally guarded by {@link HoldToConfirm}: a single tap can no
+ * longer delete a mod/save/chart or overwrite every preference. CANCEL is
+ * always a plain tap, and keyboard/gamepad ACCEPT works as well (held when
+ * guarded).
+ */
 class Prompt extends MusicBeatSubstate
 {
 	var selected = 0;
@@ -23,23 +34,37 @@ class Prompt extends MusicBeatSubstate
 	var focusOutline:FlxSprite;
 	var cornerSize:Int = 10;
 	var inputDelay:Float = 0.12;
-	public function new(promptText:String='', defaultSelected:Int = 0, okCallback:Void->Void, cancelCallback:Void->Void,acceptOnDefault:Bool=false,option1:String=null,option2:String=null)
+
+	/** Destructive question: OK needs a held press or a second confirmation. */
+	var requireHold:Bool = false;
+	var okTarget:TouchTarget = null;
+	var cancelTarget:TouchTarget = null;
+	var holdConfirm:HoldToConfirm = null;
+
+	/**
+	 * @param requireHold true for questions whose OK button deletes/overwrites
+	 *                    data; the OK press is guarded, CANCEL stays immediate.
+	 */
+	public function new(promptText:String='', defaultSelected:Int = 0, okCallback:Void->Void,
+		cancelCallback:Void->Void, acceptOnDefault:Bool=false, option1:String=null,
+		option2:String=null, requireHold:Bool=false)
 	{
 		selected = defaultSelected == 1 ? 1 : 0;
 		okc = okCallback;
 		cancelc = cancelCallback;
 		theText = promptText;
-		goAnyway = acceptOnDefault;
+		this.requireHold = requireHold;
+		// "Ignore Progress Warnings" may skip the question, but it must never
+		// turn a destructive action back into a single tap.
+		goAnyway = acceptOnDefault && !requireHold;
 
 		var op1 = 'OK';
 		var op2 = 'CANCEL';
 
 		if (option1 != null) op1 = option1;
 		if (option2 != null) op2 = option2;
-		buttonAccept = new FlxButton(473.3, 450, op1, function(){if(okc != null)okc();
-		close();} );
-		buttonNo = new FlxButton(633.3,450,op2,function(){if(cancelc != null)cancelc();
-		close();});
+		buttonAccept = new FlxButton(473.3, 450, op1, null);
+		buttonNo = new FlxButton(633.3, 450, op2, null);
 		super();
 	}
 
@@ -49,8 +74,7 @@ class Prompt extends MusicBeatSubstate
 		super.create();
 		if (goAnyway){
 
-
-				if(okc != null)okc();
+			if(okc != null)okc();
 			close();
 
 		}else{
@@ -83,11 +107,53 @@ class Prompt extends MusicBeatSubstate
 		buttonNo.x += buttonNo.width/1.5;
 		buttonNo.y = panel.y + panel.height-30;
 		textField.scrollFactor.set();
+
+		installTouchTargets();
 		updateFocusOutline();
 
 		addVirtualPad(LEFT_RIGHT, A_B);
 		addVirtualPadCamera();
 		}
+	}
+
+	/**
+	 * Moves the press handling from the small FlxButtons to enlarged hit areas.
+	 * The buttons still draw and highlight exactly as before; only their
+	 * callbacks are detached so no single tap can reach the destructive path.
+	 */
+	function installTouchTargets():Void
+	{
+		buttonAccept.onUp.callback = null;
+		buttonNo.onUp.callback = null;
+
+		var accept:Void->Void = function() {
+			if (okc != null) okc();
+			close();
+		};
+		var decline:Void->Void = function() {
+			if (cancelc != null) cancelc();
+			close();
+		};
+
+		if (requireHold)
+		{
+			// `selected == 0` folds the D-pad/gamepad selection into the guard: a
+			// held ACCEPT only arms OK while OK actually holds the focus.
+			holdConfirm = new HoldToConfirm(buttonAccept, accept,
+				() -> selected == 0 && controls.ACCEPT, 'HOLD TO CONFIRM');
+			holdConfirm.cameras = cameras;
+			add(holdConfirm);
+		}
+		else
+		{
+			okTarget = new TouchTarget(buttonAccept, accept);
+			okTarget.cameras = cameras;
+			add(okTarget);
+		}
+
+		cancelTarget = new TouchTarget(buttonNo, decline);
+		cancelTarget.cameras = cameras;
+		add(cancelTarget);
 	}
 
 	function updateFocusOutline():Void
@@ -100,39 +166,50 @@ class Prompt extends MusicBeatSubstate
 
 	override public function update(elapsed:Float):Void
 	{
-		super.update(elapsed);
+		super.update(elapsed); // updates the guard/hit areas first
 		if (goAnyway) return;
 
 		if (inputDelay > 0)
 			inputDelay -= elapsed;
 
+		// D-pad / remote / stick selection. Moving the focus also drops any
+		// half-finished hold, so a guarded OK can't arm on the other button.
 		if (controls.UI_LEFT_P || controls.UI_RIGHT_P)
 		{
 			selected = backend.AndroidTVPolicy.selectPromptChoice(selected, controls.UI_LEFT_P ? -1 : 1);
+			if (holdConfirm != null) holdConfirm.cancel();
 			updateFocusOutline();
 			FlxG.sound.play(backend.Paths.sound('scrollMenu'));
 		}
 
 		if (inputDelay <= 0)
 		{
-			if (controls.ACCEPT)
+			if (controls.BACK)
 			{
-				FlxG.sound.play(backend.Paths.sound(selected == 0 ? 'confirmMenu' : 'cancelMenu'));
-				if (selected == 0)
-				{
-					if (okc != null) okc();
-				}
-				else
-				{
-					if (cancelc != null) cancelc();
-				}
-				close();
-			}
-			else if (controls.BACK)
-			{
+				if (holdConfirm != null) holdConfirm.cancel();
 				FlxG.sound.play(backend.Paths.sound('cancelMenu'));
 				if (cancelc != null) cancelc();
 				close();
+				return;
+			}
+
+			// CANCEL stays a single press. OK is a single press only when the
+			// prompt is informational; a guarded OK is consumed by HoldToConfirm
+			// (held press, or a second press inside the confirm window).
+			if (controls.ACCEPT)
+			{
+				if (selected == 1)
+				{
+					FlxG.sound.play(backend.Paths.sound('cancelMenu'));
+					if (cancelc != null) cancelc();
+					close();
+				}
+				else if (holdConfirm == null)
+				{
+					FlxG.sound.play(backend.Paths.sound('confirmMenu'));
+					if (okc != null) okc();
+					close();
+				}
 			}
 		}
 	}
@@ -170,4 +247,10 @@ class Prompt extends MusicBeatSubstate
 		panel.pixels.fillRect(new Rectangle((flipX ? antiX : 8), Std.int(Math.abs(antiY - 1)),  3, 1), color);
 	}
 
+	override public function destroy():Void
+	{
+		okc = null;
+		cancelc = null;
+		super.destroy();
+	}
 }

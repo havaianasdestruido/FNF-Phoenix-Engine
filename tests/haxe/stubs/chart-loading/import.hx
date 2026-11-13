@@ -2,9 +2,8 @@
 #if sys
 import sys.*;
 import sys.io.File;
-#else
-import Assets as OpenFlAssets;
 #end
+import Assets as OpenFlAssets;
 import haxe.Json;
 using StringTools;
 #end

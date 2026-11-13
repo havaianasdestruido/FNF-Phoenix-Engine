@@ -19,12 +19,31 @@ import play.PlayState;
 
 import data.Section;
 import objects.Character;
+import objects.HoldToConfirm;
 import objects.Note;
 
 @:access(editors.ChartingState)
 @:access(backend.MusicBeatState)
 class ChartingUISections
 {
+  /**
+   * Destructive editor buttons are small `FlxButton`s wired to a one-tap
+   * callback. Move that callback into a guarded, padded `HoldToConfirm`
+   * instead: the art keeps its size/colour, but a single tap can no longer
+   * delete chart sections/notes/events.
+   */
+  static function guardButton(state:ChartingState, button:FlxButton,
+      ?hint:String = 'HOLD TO DELETE'):Void
+  {
+    if (state == null || button == null) return;
+    var action:Void->Void = button.onUp.callback;
+    if (action == null) return;
+    button.onUp.callback = null;
+    var guard:HoldToConfirm = new HoldToConfirm(button, action, null, hint);
+    guard.cameras = button.cameras;
+    state.add(guard);
+  }
+
   public static function addSongUI(state:ChartingState):Void
   {
     state.UI_songTitle = new FlxUIInputText(10, 10, 70, state._song.song, 8);
@@ -53,7 +72,7 @@ class ChartingUISections
     var reloadSongJson:FlxButton = new FlxButton(reloadSong.x, saveButton.y + 30, "Reload JSON", function() {
       state.openSubState(new Prompt('This action will clear current progress.\n\nProceed?', 0, function() {
         state.loadJson(state._song.song.toLowerCase(), state.difficulty);
-      }, null, state.ignoreWarnings));
+      }, null, state.ignoreWarnings, null, null, true));
     });
 
     var loadAutosaveBtn:FlxButton = new FlxButton(reloadSongJson.x, reloadSongJson.y + 30, 'Load Backup From File', function() {
@@ -90,7 +109,8 @@ class ChartingUISections
     });
 
     var clear_events:FlxButton = new FlxButton(320, 310, 'Clear events', function() {
-      state.openSubState(new Prompt('This action will clear current progress.\n\nProceed?', 0, state.clearEvents, null, state.ignoreWarnings));
+      state.openSubState(new Prompt('This action will clear current progress.\n\nProceed?', 0,
+        state.clearEvents, null, state.ignoreWarnings, null, null, true));
     });
     clear_events.color = FlxColor.RED;
     clear_events.label.color = FlxColor.WHITE;
@@ -102,7 +122,7 @@ class ChartingUISections
           state._song.notes[sec].sectionNotes = [];
         }
         state.updateGrid();
-      }, null, state.ignoreWarnings));
+      }, null, state.ignoreWarnings, null, null, true));
     });
     clear_notes.color = FlxColor.RED;
     clear_notes.label.color = FlxColor.WHITE;
@@ -307,6 +327,8 @@ class ChartingUISections
     tab_group_song.add(state.stageDropDown);
 
     state.UI_box.addGroup(tab_group_song);
+    // "Load Events" wipes the current event sheet without asking; guard it too.
+    guardButton(state, loadEventJson, 'HOLD TO LOAD EVENTS');
 
     state.initPsychCamera().follow(state.camPos, null, 999);
   }
@@ -898,6 +920,13 @@ class ChartingUISections
     tab_group_section.add(state.deleteSections);
 
     state.UI_box.addGroup(tab_group_section);
+
+    // One-tap section/note deletion is exactly the accident this P2 item
+    // removes. Add the guards last so their progress hint draws above the UI.
+    guardButton(state, clearSectionButton, 'HOLD TO CLEAR SECTION');
+    guardButton(state, clearLeftSectionButton, 'HOLD TO CLEAR SIDE');
+    guardButton(state, clearRightSectionButton, 'HOLD TO CLEAR SIDE');
+    guardButton(state, state.deleteSections, 'HOLD TO DELETE SECTIONS');
   }
 
   public static function addNoteUI(state:ChartingState):Void
@@ -1350,6 +1379,7 @@ class ChartingUISections
     tab_group_event.add(state.eventDropDown);
 
     state.UI_box.addGroup(tab_group_event);
+    guardButton(state, removeButton, 'HOLD TO DELETE EVENT');
   }
 
   public static function addChartingUI(state:ChartingState)

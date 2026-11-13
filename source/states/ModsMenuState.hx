@@ -737,7 +737,7 @@ class ModsMenuState extends MusicBeatState
 					finishInstall(data, displayName, true);
 				}, function() {
 					importingMod = false;
-				}));
+				}, false, null, null, true));
 		});
 	}
 

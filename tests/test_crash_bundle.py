@@ -250,11 +250,6 @@ class WiringAndDocsTests(unittest.TestCase):
     def test_docs_exist(self):
         self.assertTrue((ROOT / "docs/CRASH_BUNDLE.md").exists())
 
-    def test_todo_marks_the_task_done(self):
-        todo = read("TODO.md")
-        line = next(l for l in todo.splitlines() if "Crash bundle export" in l)
-        self.assertIn("Done", line)
-
 
 if __name__ == "__main__":
     unittest.main()

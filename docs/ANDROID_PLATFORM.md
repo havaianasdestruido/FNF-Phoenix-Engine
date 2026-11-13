@@ -478,6 +478,10 @@ buttons mirroring their keyboard shortcuts:
   forwarding, `PlayerSettings` (`FlxInputDeviceID.ALL`), `Controls.BACK` Android
   routing, and `ClientPrefs.androidTVNavigation` (auto-enabled on first launch for
   TV/touchless devices; togglable under Options -> Mobile Options).
+  Destructive confirmations still hold on a remote: `objects.Prompt` folds the
+  D-pad selection into `objects.HoldToConfirm`, so OK arms only while it holds
+  the focus (BACK always cancels), and the guarded "reset all" gestures accept
+  `Y` + `LEFT_SHOULDER` as the gamepad equivalent of `SHIFT` + `RESET`.
 - Hardware triggers (volume keys) can be bound to the four note lanes from
   Options -> Controls -> HARDWARE (Android only, unbound by default). They
   are stored in the regular keybind map as `hw_note_<lane>` entries, encoded
