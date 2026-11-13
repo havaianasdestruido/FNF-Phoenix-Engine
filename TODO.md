@@ -23,10 +23,6 @@ _i accept suggestions too_
 
 - FIX `BF-CLICKER`!!! _(i wont release v0.0.1 UNTIL i fix this)_
 
-- FIX UPDATE SCREEN TO USE THIS REPO INSTEAD OF JSE!!! _(i also wont release v0.0.1 UNTIL i fix this)_
-
-- FIX IN-GAME ENGINE WATERMARK VERSIONING (its 0.3.2 instead or the real one) _(i ALSO wont release v0.0.1 UNTIL i fix this)_
-
 - Windows 7 support by patching some libs _(prob impossible but whatever)_
 
 - COMPRESS ALL IMAGES **AND FIX ITS XML SPRITESHEET COORDINATES!!!!!!!!!!** to 2 times lower res _(for low end devices, but will prob be low-res by default since its the main Phoenix engine focus)_
@@ -51,45 +47,28 @@ _i accept suggestions too_
 - - (edit: just found out this [https://github.com/miksel1/FNF-ScrewedEngine/blob/main/source/gamejolt/GJClient.hx](https://github.com/miksel1/FNF-ScrewedEngine/blob/main/source/gamejolt/GJClient.hx) snippet from Screwed Engine (JSE grandparent))
 
 - Port some of the [Mic'd Up! engine](https://github.com/Verwex/Funkin-Mic-d-Up-SC) features:
-- - Their new charts (Noob & Expert & INSANE)
-  - spinning vinil disk freeplay thing
   - game filter thing (dautonic stuff and other filster like the "gameboy" one and the "invert" one)
   - their cool icons
   - the difficult icons redrawed
-  - ~~moving checkerboard bg thing~~ **DONE** — `objects.MovingCheckerboard`, enabled by default with a live toggle in Options -> Visuals and UI;
-    used across the menu flow with frame-rate-independent movement and in-game Mic'd Up!/Verwex credit. See
-    [`docs/MENU_CHECKERBOARD.md`](docs/MENU_CHECKERBOARD.md).
   - cool modes
   - - Marathon
     - Endless
   - brightness & gamma option
   - Engine logo watermark
-  - ~~early & late ratings~~ **DONE** — `play.helpers.HitTiming` + `objects.TimingPopup`, opt-in `earlyLateRatings` / `earlyLateDeadzone` in Options -> Optimization, `hitTiming`/`noteDiff` published to Lua/Python/HScript, see [`docs/EARLY_LATE.md`](docs/EARLY_LATE.md) and `bash tests/haxe/run-hit-timing.sh`.
   - CHAOS mode, Dual Arrow mode, Dual CHAOS mode
   - micd up ranking thing (S, A, etc..)
  
 - Port these cool stuff from Troll Engine:
-- - [source/funkin/api/src/memory.cpp
-](https://github.com/troll-slaiyers/FNF-Troll-Engine/blob/main/source/funkin/api/src/memory.cpp) (phoenix engine implmentation is not as complete as this one)
-- - [refreshrate.cpp](https://github.com/troll-slaiyers/FNF-Troll-Engine/blob/main/source/funkin/api/src/refreshrate.cpp) (util for Linux users)
-- - [darkmode.cpp](https://github.com/troll-slaiyers/FNF-Troll-Engine/blob/main/source/funkin/api/src/darkmode.cpp)
   - [source/funkin/api/Github.hx](https://github.com/troll-slaiyers/FNF-Troll-Engine/blob/main/source/funkin/api/Github.hx) - Utils for in-game update screen and other social stuff
   - https://github.com/troll-slaiyers/FNF-Troll-Engine/tree/main/flixel/flixel-ui/img - port their dark flixel-ui system too.
 
 - Port these cool stuff from Doido Engine:
-- - ~~[DistantNoteShader.hx](https://github.com/DoidoTeam/FNF-Doido-Engine/blob/main/source/backend/shaders/DistantNoteShader.hx) - cool note shader thing~~ **DONE** (#245) — `shaders.DistantNoteShader` + `shaders.DistantNoteEffect`, player toggle in Options -> Visuals and UI (`ClientPrefs.distantNotes`), see [`docs/DISTANT_NOTES.md`](docs/DISTANT_NOTES.md) and [`docs/SHADERS.md`](docs/SHADERS.md).
-  - cool looking loading screen
-  - ~~clear ui (just FPT on top and ram below it)~~ **DONE** (#245) — compact FPS overlay; `legacyFPSUI` in Options -> Visuals and UI restores the old one.
   - settings fully centered instead of being on the left
-  - "-[NUMBER]" when you miss note, accumulative and stays red
-  - List of available flags
-    - ~~-debug can build the game in debug mode. This enables many debug features, such as the FlxDebugger and debugging through VSCode.~~ **DONE** — already handled by Lime (`build/debug/`, `MAIN_DEBUG`, FlxDebugger); now documented in BUILDING.md ("Launch and debug flags").
-    - ~~-DFREEPLAY and -DMENU launch the game directly in the Freeplay and MainMenu states, respectively. These can't be used together.~~ **DONE** — `backend.LaunchState` + `states.InitState`, `project.hxp` aborts the build when both are set, tested by `bash tests/haxe/run-launch-state.sh`.
    
 - Port the C++ GDI payloads from Slushi Engine:
 - - https://github.com/Slushi-Github/Slushi-Engine/tree/260410345801c84ac188e0b3c73e6b97e94de59c/funkinscsource/slushi/windows
  
-- add mario madness modifiers: https://github.com/Dewott2501/Mario-Madness/tree/main/source/modchart/modifiers
+- add mario madness modifiers: https://github.com/Dewott2501/Mario-Madness/tree/main/source/modchart/modifiers _(checked against the tree: only two are actually missing, see §23.1)_
 #### Rebuilding how the MODDING API works and adjusting it to be able to also support other languages (Common Modding API)
 
 Should include exposing almost ALL game screens thought the Modding API. (By screen I mean like the Freeplay page, Mods page, etc.)
@@ -111,29 +90,19 @@ Should include exposing almost ALL game screens thought the Modding API. (By scr
 ## 1. BUILD / TOOLCHAIN (all targets green)
 
 - **[P0] HashLink target blocked.** `lime.hdll` missing locally, HL wasn't verifiable, HL agent dead-ended. Install a compatible HashLink (`lime.hdll` + `lime-hdiowrap`), fix any compile errors, re-enable the `hl` CI job in `.github/workflows/main.yml`. ([#63](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/issues/63))
-- **[P0] CI Android build.** ([#64](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/issues/64)) Local Android can't be validated: NDK **28.1.13356709** fails on `aarch64-linux-android-strip` (NDK 28 ships only `llvm-strip.exe`; wrapper copy was made but build still fails) and NDK 28 libc++ has a `__posix_l_fallback.h` redefinition bug. Android CI now explicitly pins NDK **27.0.12077973 (r27)** in both workflows; the next CI result must confirm the Android build and merged manifest. Options:
+- **[P0] CI Android build.** ([#64](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/issues/64)) Local Android can't be validated: NDK **28.1.13356709** fails on `aarch64-linux-android-strip` (NDK 28 ships only `llvm-strip.exe`; wrapper copy was made but build still fails) and NDK 28 libc++ has a `__posix_l_fallback.h` redefinition bug. Android CI now explicitly pins NDK **27.0.12077973 (r27)**. Options:
   - Install NDK 27.0.12077973 locally (matches CI) to reproduce `#if mobile` errors faithfully.
   - Or fix the NDK 28 header conflict (locale redefinition) instead of pinning old NDK.
   - Re-run android build to green, then commit + push.
-- **[P1] macOS/Linux `sendFakeMsgBox` are TODO** (`source/backend/PlatformUtil.hx:10-11`, `source/utils/PlatformUtilNative.hx:86`). Add native `osascript`/`zenity`/`kdialog`-based implementations so crash dialogs work on all desktops; remove the `trace('not available')` stubs. ([#66](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/issues/66))
 - **[P3] Remove dead Flash/Air code paths** — `officialBuild` feature flag never applied (`project.hxp`), unused `renderAll`/`ULTRA_OPTIMIZED` experiments, `WindowColorMode` flash stubs (trace-only). ([#78](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/issues/78))
 
 ## 2. GAMEPLAY / PSYCH SYNC (P3 imports)
 
-- **[P3] Missing funkin.vis cross-target** — `SpectralAnalyzer` patched; check hacking shaders (`Glitch`, `Chromatic`, `Malmo`?) compile on flash/air (`#if desktop` guard audit, §9). ([#79](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/issues/79))
+- **[P3] Missing funkin.vis cross-target** — `SpectralAnalyzer` patched; check hacking shaders (`Glitch`, `Chromatic`, `Malmo`?) compile on flash/air (`#if desktop` guard audit). ([#79](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/issues/79))
 
 ### 2.1. 4th WALL BREAKING
 
-**IMPLEMENTED** behind the opt-in `-DMETA_HORROR` define: `backend.MetaHorror`
-plus the Lua / Python / HScript bridges. Upstream system effects (wallpaper,
-taskbar, other windows, window styles, system volume, mouse/keyboard, file
-spoofing) come from the #94 port; the second pass added the "it knows you"
-effects (desktop username, machine uptime, local clock, launch counter),
-persistent mod counters in their own save slot, clipboard access, window title
-rewriting, always-on-top, taskbar flashing, open-window titles and a
-whole-desktop screenshot. See [`docs/META_HORROR.md`](docs/META_HORROR.md).
-
-Remaining:
+Follow-ups to the opt-in `-DMETA_HORROR` effects ([`docs/META_HORROR.md`](docs/META_HORROR.md)):
 
 - **[P3] Node-level audio effects.** Per-application (session) volume instead of
   only the master endpoint, so the game can duck the player's music player
@@ -151,109 +120,38 @@ Remaining:
 
 ## 3. PLATFORM
 
-- **[P2] Fix fullscreen issues on Android (and other OSes maybe)** - Phones with some cutouts currently don't launch the game with 100% fullscreen, create a toggle that can switch between "Respect cut-out" or "Real Fullscreen". Im pretty much sure this will envolve Native Kotlin/Java in order to work. ([#75](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/issues/75))
 - **[P3] iOS** — likely needs `#if ios` nuances (video/hxvlc below). ([#80](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/issues/80))
-
-### WINDOWS / LOW-LEVEL WINDOW MANAGEMENT — IMPLEMENTED
-
-The native window-manipulation inventory below is implemented behind the shared,
-process-checked `Windows` / `backend.WindowNative` bridge. See
-[`docs/WINDOWS.md`](docs/WINDOWS.md) for the public API, platform limits, and
-validation commands. The original inventory is retained as an API reference:
-
-| # | Feature / source code | APIs / mechanisms | What it does |
-|---|---|---|---|
-| 1 | Window transparency — `Windows.__setWindowTransparencyAlpha()`, `Windows.__setWindowTransparencyColor()`, and `PlatformUtil.setWindowOpacity()` | `SetWindowLong`, `WS_EX_LAYERED`, `SetLayeredWindowAttributes` | Changes native window styles and applies alpha transparency or color-key transparency. Related: transparent-window support is also tracked in §2.1. |
-| 2 | Dark title bar/frame — `Windows.setDarkMode()` and `system.Window.setDarkMode()` | `DwmSetWindowAttribute`, `DWMWA_USE_IMMERSIVE_DARK_MODE` | Requests a dark frame from DWM; this does not change the game's rendered graphics. |
-| 3 | Window border and title-bar colors — `Windows.setWindowBorderColor()` and `setWindowTitleColor()` | `DwmSetWindowAttribute`, attributes 34, 35, and 36 | Customizes the border, title-bar, and title-bar text colors, subject to Windows-version support. |
-| 4 | Close-button control — `Windows.setCloseButtonEnabled()` | `GetSystemMenu`, `EnableMenuItem`, `SC_CLOSE` | Enables or disables the native Close command in the system menu. |
-| 5 | Window blur — `Windows.test()` | `DwmEnableBlurBehindWindow`, `DWM_BLURBEHIND` | Requests a DWM-provided blur effect. This is an older API and its effect can vary on modern Windows versions. |
-| 6 | Windows 11 window corners — `Main.setupGame()` | `DwmSetWindowAttribute`, `DWMWA_WINDOW_CORNER_PREFERENCE` | When `NO_W11_CORNERS` is defined, requests square (non-rounded) window corners. |
-| 7 | Native window lookup/access — `Windows.setDarkMode()`, `setWindowBorderColor()`, `setWindowTitleColor()`, and related methods | `HWND`, `GetActiveWindow`, `GetForegroundWindow`, `FindWindowA`, `FindWindowExA` | Finds window handles for native operations. Selecting the wrong `HWND` can affect another window or cause the operation to have no effect. |
-| 8 | Lime border toggling — `system.Window.darkMode()` | `Application.current.window.borderless` | Switches the window between bordered and borderless states to try to force a visual refresh, using Lime's higher-level API rather than the Win32 calls above. |
-| 9 | Native dialog boxes — `Dialog.showYesNoWindows()`, `Windows.alert()`, and `CoolUtil.sendMsgBox()` | `MessageBoxW`, `MessageBoxA`, `MultiByteToWideChar` | Opens native Windows dialogs; `Dialog` converts UTF-8 text to UTF-16 before calling the Unicode API. |
-| 10 | Native Windows notifications — `Windows.sendWindowsNotification()` and `PlatformUtil.sendNotification()` | `NOTIFYICONDATA`, `Shell_NotifyIcon` | Interacts with the Windows notification-area icon and notification infrastructure. |
 
 ## 4. VIDEO / AUDIO
 
-- **[P3] Flash MP3 24/48kHz embed warnings** — 3 warnings, harmless, but notes in `BUILDING.md` claim "zero warnings" post-fix; reconcile. ([#82](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/issues/82))
 - **[P3] Offsync long-session** — `MusicBeatState`/`Conductor` saved to same-tick; watch for drift on `sustain` notes w/ `playbackRate != 1`. ([#83](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/issues/83))
-
-## 5. DEBUG / LOGGING
-
-- **[P1] `trace()` spam in production hot paths** (Flash/AIR): `source/backend/Paths.hx:61` (`trace(defaultSkin)`), `:563/:866` `trace('oh no its returning null NOOOO')` inside asset fallback — this is on EVERY lookup. Wrap in `#if MAIN_DEBUG` or a `quiet` flag; these belong in debug builds only. ([#68](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/issues/68))
-- **[P3] Leftover stray traces** — `MusicPlayer.hx:100` `trace('Time: ...')` on K key; `WeekEditorState`/`DialogueEditor` `trace("file saved")`. ([#84](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/issues/84))
-- **[P3] `DiscordClient.hx:55-56` cast-dep on success** — `request[0].username` may be null on AIR (no hxdiscord_rpc); guard. ([#85](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/issues/85))
 
 ## 6. SECURITY
 
 - **[P0] Path traversal** — `WeekData`, `Mods`, `SSPlugin` read user JSON; `Paths.modsJson` splices `songName` into paths. `CoolUtil` mod asset walker uses `FileSystem` unguarded non-sys target? Audit brings up `#if (!target)` correctness. Ensure mod names are sanitized (`..`/absolute) before `FileSystem.exists`. ([#65](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/issues/65))
-- **[P1] CrashHandler ref** — `did` handler writes logs into `logs/` w/ `Date.now()` filename; on Android no `sys` — verify guard. ([#70](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/issues/70))
 - **[P3] No signature/webhook secrets** — `ChartingSaveLoad`/`WeekData` parse `JSON` without try/catch around `File.getContent` (some are). ([#86](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/issues/86))
-
-## 7. MODDING / SCRIPTS
-
-- **[P1] hscript/Lua mod API parity** — `PsychLua` (`FunkinLua`, `HScript`) methods work, but `#if HSCRIPT_ALLOWED`/`LUA_ALLOWED` only set on `desktop !web !flash !air` (project.hxp:418). No scripting on AIR/Flash — document as intended or shim. ([#71](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/issues/71))
-- **[P3] Python (`hython`) not wired everywhere** — check callbacks exposed. ([#87](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/issues/87))
 
 ## 8. PERFORMANCE / MEMORY
 
-- **[P3] `FlxG.watch` in FPSCounter** — verify only debug. ([#89](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/issues/89))
 - **[P3] `cast` / `Reflect.field` in per-frame paths** — `ChartChartingUI`/`Conductor` use `Reflect.field(ClientPrefs, ...)` in window accessors; cache static before loop. ([#90](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/issues/90))
-
-## 9. GUARD AUDIT — RESOLVED
-
-The remaining desktop/AIR candidates from the guard audit are now either narrowed or documented; the desktop-only resolution and waveform paths use `#if (desktop && !air)`. ([#91](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/issues/91))
-
-| Site | Decision |
-|---|---|
-| `source/backend/CoolUtil.hx` (`resW`/`resH`/`resetResScale`) | Narrowed to `desktop && !air`; these helpers exist only for native resizable windows. |
-| `source/play/PlayState.hx` (render-mode resolution) | Narrowed to `desktop && !air`; AIR cannot use the native window-resize path. |
-| `source/options/GraphicsSettingsSubState.hx` (resolution option/callback) | Narrowed to `desktop && !air`; AIR keeps the cross-target framerate setting, but does not offer window resolution changes. `OptionsState` retains its `desktop` keyboard guard because the debug key sequence also works on AIR. |
-| `source/backend/FunkinGame.hx` | Keep the desktop constructor to forward `startFullscreen` to `FlxGame`; restrict the custom keyboard/window shortcut and its imports to `desktop && !air`. |
 
 ## 10. CI / REPO HYGIENE
 
-- **[P1] .github CI android emulator `CopyState`** — same 2 fixes; confirm CI picks them via `1a8a48d4`+. ([#72](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/issues/72))
-- **[P3] BUILDING.md "0 warnings" vs 3 MP3 warnings** — fix text. ([#92](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/issues/92))
+- **[P1] .github CI android emulator `CopyState`** — the Android job in `main.yml` only builds the APK and checks its manifest and native libs; nothing boots it on an emulator, so `CopyState` and first-run startup are never exercised in CI. ([#72](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/issues/72))
 
 ## 11. ANDROID NATIVE / PLATFORM INTEGRATION
 
 ### MEDIA / AUDIO
 
-- **[P3] Media3 progress vs. engine clock.** `PlayStateAndroidMedia` refreshes the session once per second (`updateTimer`) and reports `PlayState.playbackRate`, so lock-screen/Android Auto progress interpolates in 1 s steps and drifts during long rate changes. Push a rate-aware position (or let the native session interpolate from `PlaybackState`) and assert it in `PhoenixMediaBridgeStateTest`.
-
-### LIFECYCLE / BACKGROUND
-
-- **[P2] Make the process-death recovery blob an actual resume.** `PlayStateAndroidMedia.hx:88` persists `{type, song, difficulty, difficulties, mod}` and `TitleState.checkRecoveryState()` only knows how to restart that chart from the start. Store `songPosition`, `playbackRate`, practice/health state and an engine version, so "Resume" continues where the OS killed the process and a blob written by another build is rejected instead of half-applied.
-
-### INPUT / CONTROLLERS
-
-
-### DISPLAY / RENDERING
-
-
-### PERFORMANCE / DEVICE STATE
-
-- **[P2] ~~Android thermal status API~~ REMOVED** — Intentionally not implemented: thermal monitoring offers little benefit for a game of FNF's scope, and `PowerManager.ThermalStatusListener` did not compile under the project's Android toolchain.
-
-### FILES / MODS
+- **[P3] Media3 progress vs. engine clock.** `PlayStateAndroidMedia.refreshPlaybackState()` pushes a rate-aware position, but `PhoenixMediaBridgeStateTest` has no position/rate case that asserts it.
 
 ### INTENTS / EXTERNAL INTEGRATION
 
-- **[P3] Phoenix URI / deep-link system** — PARTIAL: Android registers the `phoenix://` scheme and forwards intents (`PhoenixCore.handleNewIntent` → `AndroidIntents.onDeepLink`); per-screen routing UI still to do — Add a platform-independent URI routing system for directly opening songs, charts, mods, replays, menus, and other engine resources (e.g. `phoenix://song/bopeebo?difficulty=hard`, `phoenix://mod/whitty/song/lo-fight`, `phoenix://screen/freeplay`). Android should register the `phoenix://` scheme and forward incoming intents to Haxe; expose parsed URI data to Haxe/Lua/HScript and keep the system extensible for other platforms. ([#93](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/issues/93))
-
-### NOTIFICATIONS
-
-- **[P3] Finish or remove `AndroidNotification`.** Done: wired to opt-in events instead of being deleted. `notifyEvent(id, title, text)` posts only when the new `androidNotifications` pref (Options → Mobile Options → "Event Notifications", default off) is enabled; toggling it on requests POST_NOTIFICATIONS on Android 13+ (never unattended at startup). Events wired: "chart backup saved" (`ChartingSaveLoad.saveLevel` autosave, fixed `ID_CHART_BACKUP`) and "crash log saved" (`CrashHandler`, fixed `ID_CRASH_LOG`); both reuse a fixed id with `setOnlyAlertOnce` so repeats update instead of stacking. "Update available" stays unwired because the §12.6 auto-updater is still a non-goal.
+- **[P3] Phoenix URI / deep-link system** — two pieces left: `phoenix://replay/<id>` is reserved and only answers "not implemented" (it needs the replays in §14), and parsed URI data only reaches the Haxe static `DeepLinks.onDeepLink`; no Lua/Python/HScript callback is fired for it. ([#93](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/issues/93))
 
 ### DISCORD / EXTERNAL SERVICES
 
-- **[P3] Discord RPC reconnect.** `DiscordClient.check()` runs once from `ClientPrefs.loadPrefs()`, so if Discord starts after the game or restarts, presence stays off until Phoenix is relaunched. Add bounded reconnect/backoff on `onDisconnected` (`DiscordClient.hx:95`) with a visible toggle, and keep the `request[0].username` AIR guard from §5 #85.
-
-### NATIVE BRIDGE / ARCHITECTURE
-
-- **[P2] Bridge contract check.** There are 64 `JNI.createStaticMethod` sites in `source/android/platform/`, each binding a Java method by string name *and* signature. A Java rename or signature edit still compiles and fails only at runtime as a silent no-op. Add a test (next to `tests/java/.../PhoenixMediaBridgeStateTest`) or a generated table that parses both sides and fails CI on a mismatch, then list every method in `docs/ANDROID_PLATFORM.md`.
+- **[P3] Discord RPC reconnect.** The bounded reconnect/backoff in `DiscordClient` has no visible toggle of its own, and `DiscordClient.retryConnection()` (manual retry once the five attempts run out) has no caller; add the option row next to Discord Rich Presence.
 
 ## 12. CODENAME ENGINE (CNE) PARITY — DIFFERENCES NOT YET IMPLEMENTED
 
@@ -261,13 +159,11 @@ Added from the supplied CNE-vs-vanilla/Psych comparison, filtered against the cu
 
 ### 12.1 SCRIPTING & FULL-ENGINE SOFTCODING
 
-- **[P1] Scripted states/substates.** Done: `psychlua.StateScripts` loads `data/states/<Name>.hx` (also `.hscript`/`.hxs`) onto every `MusicBeatState`/`MusicBeatSubstate`. `states.ModState` / `states.substates.ModSubState` are full replacements (`switchCustomState` / `openModSubState`). `CustomSubstate` still fires PlayState `onCustomSubstate*` hooks and now also hosts a named state script. See `website/docs/modding/scripted-states.md`.
 - **[P1] Cancellable event-object API.** Current script hooks pass raw arguments and use `Function_Stop` returns. Add CNE-style event objects (`event.note`, `event.score`, `event.cancel()`), `onGamePause` with exclusion list, `onBopZoom`, `onSplashShown`, `onHealthIconAnimChange`, input-system events, and stage/character data events.
 - **[P1] Missing script scopes.** Add scripted transitions (`MusicBeatTransition` equivalent), shader scripts, custom options/controls scripts, dialogue/cutscene scripts, and scripted asset libraries. Existing global/song/character/stage/notetype/event scripts do not cover these.
-- **[P2] HScript module system.** PARTIAL (standalone HScript landed native `import`, public/static variables, `addHaxeLibrary()` and `PlayState.variables` sharing): still missing mod-root modules/redirects and ScriptPack-like sharing.
-- **[P2] Managed `Script.fromString`-style runtime scripts.** PARTIAL: `HScript.fromFile(name, ?code)` creates an owned instance (tracked in `PlayState.hscriptArray`, `call`/`set`/`stop` lifecycle) from a file or a raw string; a general cross-language runtime-script manager (Lua/Python too, outside PlayState) is still missing.
+- **[P2] HScript module system.** Mod-root modules/redirects and ScriptPack-like sharing. Standalone HScript currently stops at native `import`, public/static variables, `addHaxeLibrary()` and `PlayState.variables` sharing.
+- **[P2] Managed `Script.fromString`-style runtime scripts.** A general cross-language runtime-script manager (Lua/Python too, outside PlayState). Today only `HScript.fromFile(name, ?code)` creates an owned instance from a file or a raw string, and it lives in `PlayState.hscriptArray`.
 - **[P2] Script hot reload.** Mods menu reload currently restarts/reloads states through `ModsMenuHelpers.reload`; CNE-style test builds can hot-swap scripts without restarting the relevant context.
-- **[P2] Python parity for character scripts.** `source/play/helpers/PlayStateCharacters.hx:46` only loads `characters/<name>.lua`; songs/stages/events/notetypes already support Python.
 - **[P3] NDLL / compiled native scripting.** No `.ndll` loader, bridge, or API exists.
 - **[P3] Continue PlayState decomposition.** Phoenix already split helpers, but CNE's rewritten gameplay core is much smaller; see §8 for the existing perf/allocation backlog.
 
@@ -279,8 +175,7 @@ Added from the supplied CNE-vs-vanilla/Psych comparison, filtered against the cu
 - **[P2] Global charts folder.** CNE supports global `data/charts/`; Phoenix only resolves per-song JSON paths.
 - **[P2] Custom chart/character properties.** Expose CNE-style `SONG.meta.customValues` and `char.extras`; current `SwagSong`/`CharacterFile` use fixed fields.
 - **[P2] True song variations.** `specialAudioName` only swaps an audio suffix; add variation metadata, chart selection, and freeplay preview behavior.
-- **[P2] Extra audio formats (flac/opus/wav).** Done: Ogg is the engine's container on every target except Flash/AIR, and `Paths.SOUND_EXTENSIONS` resolves `.ogg` → `.mp3` per file at runtime (`Paths.modsSounds`, `Paths.resolveSoundAsset`, `Paths.returnSound`), so no track ships twice. Remaining: flac/opus/wav support, which is now just another entry in that list plus a decoder check per target.
-- **[P2] Multi-extension images/paths.** `Paths.image()` hardcodes `.png`; CNE supports multiple image extensions through path resolution.
+- **[P2] Extra audio formats (flac/opus/wav).** `Paths.SOUND_EXTENSIONS` only resolves `.ogg` → `.mp3` per file; flac/opus/wav support is another entry in that list plus a decoder check per target.
 - **[P2] Unlimited vocals per strumline.** Phoenix supports separate P1/P2 vocal files, but not CNE's arbitrary per-strumline vocals.
 - **[P2] Declarative stage node graph.** Stage JSON only stores camera/character positions. Add XML/script nodes for sprites, solids, characters, ratings/combo, zoom/scroll factors, beat intervals, colors/skew/scale, and stage extensions.
 - **[P2] Universal asset replacement.** Mod folders currently override a limited set of categories (`Mods.ignoreModFolders` + `Paths.modFolders`). CNE can replace essentially every asset; Phoenix cannot override arbitrary engine/Flixel assets at runtime.
@@ -313,12 +208,10 @@ Added from the supplied CNE-vs-vanilla/Psych comparison, filtered against the cu
 - **[P1] BREAKING — section → `curCameraTarget` migration.** Phoenix still uses `Section.mustHitSection`. CNE replaced sections with explicit camera targets; only do this behind an importer/compat layer.
 - **[P2] CNE/modern chart parser.** Psych v1 conversion exists, but CNE's extensible chart format and modern FNF parser are absent.
 - **[P2] Camera zoom multipliers / bop events.** No `camGameZoomMult`, `camHUDZoomMult`, configurable lerp speeds, sprite/text angle/zoom factors, or `onBopZoom`.
-- **[P2] Unlimited health-icon states.** `HealthIcon` can load strips, but `PlayState.hx:2197-2222` only special-cases two/three frames. Add CNE's 150×N icon strips and threshold selection.
 - **[P2] True local co-op.** Phoenix has `bothSides`, but one player still hits both sides; `PlayerSettings.player2` is not wired into gameplay input. Add real P2 controls and rebinds.
 - **[P3] Gitaroo easter-egg toggle.** Not present.
 - **[P3] Desktop audio-device hotplug.** Android audio focus/interruptions are done; desktop headphone/device-change recovery is missing.
 - **[P3] Advanced FPS counter.** Add 1% lows, selectable/copyable diagnostics, and a true uncapped mode. Current option is merely capped at 1000 FPS.
-- **[P3] Low Memory Mode.** Done: `backend.MemoryProfiles` defines `Off` / `Low` / `Extreme` profiles (CNE's `Options > Appearance` idea), each a bundle of appearance/performance preferences plus a cleanup policy, selected in Options -> Optimization -> "Memory Profile" with a "Free Memory Now" action next to it. `backend.LowMemory` snapshots the player's own values before forcing anything and restores them when the profile is turned off or the settings file is saved (`ClientPrefs.saveSettings` writes user values, never forced ones); the codec lives in `MemoryProfiles.encodeBaseline`/`decodeBaseline` and is excluded from the settings backup. Cleanup hooks: after songs, when PlayState is destroyed, on `FlxG.signals.focusLost`, on an idle timer in menus, and Android's existing trim-memory handler now records pressure against the active profile. `ClientPrefs.lowMemoryMode` is kept as a derived mirror for scripts, and `memoryProfile`/`lowMemoryMode` are published to Lua/Python/HScript. See [`docs/LOW_MEMORY_MODE.md`](docs/LOW_MEMORY_MODE.md), `bash tests/haxe/run-memory-profiles.sh` and the diagnostics page's new "Memory profile" row.
 - **[P3] Localization / translations.** No language key system or locale files.
 - **[P3] Lagless GitHub contributors + mod credits.** Credits are static; add cached GitHub contributor fetching and per-mod credit integration.
 - **[P3] Complete mouse support in base menus.** Freeplay/Story/Mods have partial wheel/click support; main menu/credits/etc. still need full mouse navigation.
@@ -326,15 +219,13 @@ Added from the supplied CNE-vs-vanilla/Psych comparison, filtered against the cu
 
 ### 12.5 RENDERING, SHADERS, MODCHARTS & 3D
 
-- **[P2] ~~FunkinModchart-style advanced modcharts~~ DONE** — native runtime in `source/modchart/` (renderer-free manager → playfields → 34 modifiers + a beat-timed event list), applied to the live receptors/notes by `play.helpers.PlayStateModchart`; Lua API (`psychlua.callbacks.ModchartCallbacks`) and Python mirror (`psychlua.pystdlib.PyModchartLib`) expose `addModifier`, `setPercent`/`getPercent`, `modSet`/`modEase`/`modAdd`/`modSetAdd`, `modCallback`/`modRepeater`, `addPlayfield`, `resetModchart`, `isModchartActive`, `getModchartModifiers` and `setModchartPerspective`. Opt-in per script (`addModifier`), so Psych/JS mods and vanilla charts are untouched; see [`docs/MODCHART.md`](docs/MODCHART.md), `example_mods/scripts/ModchartExample.lua`, `bash tests/haxe/run-modchart.sh` and `bash tests/haxe/run-modchart-typecheck.sh`. Ported from [FunkinModchart](https://github.com/dotaxel/FunkinModchart) (Apache-2.0). Remaining: `ArrowShape`/`PathModifier` ports and a skew-capable renderer (Flixel sprites cannot shear).
-- **[P2] Advanced shader scripting.** Add shader scripts, shader imports, `FunkinShader.fromFile`-style loading, and tweenable shader uniforms/arrays. Current Lua API only sets basic bool/int/float/array/sampler values.
+- **[P2] Modchart `ArrowShape` / `PathModifier` ports and a skew-capable renderer.** The native modchart runtime (`source/modchart/`, see [`docs/MODCHART.md`](docs/MODCHART.md)) only ports offset-based modifiers, and `skewX`/`skewY` are stored but not drawn because Flixel sprites cannot shear.
 - **[P3] Real 3D support (FoxLite/Away3D equivalent).** `ThreeDEffect`/`ThreeDShader` are shader effects, not a 3D scene/renderer.
 
 ### 12.6 MOD PACKAGING, VERSIONING & RUNTIME CONFIG
 
 - **[P1] Addon system with load priority.** Phoenix has normal mods and `pack.runsGlobally`, but no CNE-style addons that layer over core/other mods with explicit before/after priority.
 - **[P2] `modpack.ini` / API versioning.** `pack.json` lacks API/engine version metadata and outdated-mod warnings.
-- **[P2] Runtime flags file.** Add a `flags.ini`-style runtime config for editors, transitions, beta warnings, default scripts, GLSL version, URLs, window title/icon, and other toggles. Current toggles are mostly compile-time `project.hxp` flags.
 - **[P3] In-app auto-updater.** `OutdatedState` only opens GitHub Releases; CNE downloads assets/executable. This was previously removed from Phoenix because it was broken/Windows-only, so only reintroduce if secure and cross-platform.
 - **[P3] Mod-supplied window title/icon.** Window title comes from preload `windowTitleBase.txt`; icons are compile-time assets. Allow active mod metadata to override both.
 - **[P3] Full replacement of engine/Flixel assets.** See §12.2 universal asset replacement.
@@ -356,14 +247,14 @@ Added from the supplied CNE-vs-vanilla/Psych comparison, filtered against the cu
 
 ## 13. SAVE DATA, PROFILES & MIGRATION
 
-There is exactly one persistent store: `FlxG.save` bound as `funkin` in `InitState.hx:34`. `ClientPrefs.save()` copies every static field into it by reflection, and `Highscore` (`songScores`, `songRating`, `weekScores`), `Achievements` and the playtime counter all live in the same blob; only keyboard binds got a separate `controls_v2` file. There is no schema version, no backup, no atomic write and no export.
+There is exactly one persistent store: `FlxG.save` bound as `funkin` in `InitState.hx:34`. `ClientPrefs.save()` copies every static field into it by reflection, and `Highscore` (`songScores`, `songRating`, `weekScores`), `Achievements` and the playtime counter all live in the same blob; only keyboard binds got a separate `controls_v2` file. There is no schema version, no backup, no atomic write and no full export.
 
 - **[P1] Save schema version + migrations.** `ClientPrefs.loadPrefs()` reflects every class field and assigns whatever the save contains; a renamed, retyped or removed field silently keeps a stale value or falls back to the default, and the reverse direction (opening a newer save in an older build) writes unknown keys back unchanged. Add a `saveVersion` key, an ordered rename→convert→drop migration chain, and a spec that loads a fixture from each older layout.
 - **[P2] Split the monolithic save.** Prefs, highscores, achievements and playtime share one `funkin` file, so one truncated flush loses everything. `controls_v2` already proves the pattern; give scores/achievements/prefs their own FlxSaves (or namespaced keys) and make "reset only my scores" possible without wiping settings.
 - **[P2] Atomic, verified writes.** `FlxSave.flush()` rewrites in place. On Android a kill mid-flush can leave a truncated file and the next boot quietly starts from defaults. Write to a temp file, verify it parses, then rename, and keep one `.bak` so a failed boot can offer the previous save.
 - **[P2] Profile slots.** Everything is global per install. Content creators and co-op/competitive testing need named profiles under `CoolUtil.getSavePath()` (e.g. `profiles/<name>/`), with create/duplicate/rename/delete and a "current profile" indicator. Must migrate the existing save into `profiles/default/` so nobody loses progress (§13 P1).
 - **[P2] Export/import a save bundle.** A JSON (or zip) with prefs, scores, achievements, binds, engine version and mod list, so players can move Android ↔ desktop or to a new phone without root. Export is manual; import shows exactly what will be overwritten and never happens automatically.
-  Done (prefs only): every settings list ends with "Export/Import Settings (.json)" (`backend.SettingsBackup` + `backend.SettingsBackupCodec`). The file carries prefs, gameplay modifiers, keybinds and audio volume, is versioned (`formatVersion`) and is applied through a confirm prompt. Scores, achievements and the mod list still need the full bundle.
+  Still missing: scores, achievements and the mod list. `backend.SettingsBackup` ("Export/Import Settings (.json)") only carries prefs, gameplay modifiers, keybinds and audio volume.
 - **[P3] Prune orphan score entries.** `Highscore.formatSong()` keys are `songPath + difficultySuffix` only (`Highscore.hx:95`), so two mods with the same song name/difficulty share — and overwrite — one record, while deleting a mod leaves unreachable keys forever. Namespace new keys by mod id (compat-read the old ones) and add a cleanup view.
 - **[P3] Downgrade warning.** Detect `saveVersion > ENGINE_VERSION` before writing and offer "back up and continue" / "reset" instead of silently re-saving a file the older build does not fully understand.
 
@@ -390,9 +281,9 @@ There is no replay, ghost or determinism layer anywhere in the tree (the only "r
 
 ## 16. ACCESSIBILITY & COMFORT
 
-The only accessibility affordance today is `ClientPrefs.flashing`, honoured one call site at a time (`Philly.hx:84-225`, `PlayStateEvents.hx:542`), plus the once-per-install warning in `TitleState.hx:171` → `FlashingState`. Options has no accessibility category (`OptionsState.hx:35`).
+`ClientPrefs.flashing` is honoured one call site at a time (`Philly.hx:84-225`, `PlayStateEvents.hx:542`), and the warning in `TitleState.hx:171` → `FlashingState` is once-per-install. Options has no accessibility category (`OptionsState.hx:35`).
 
-- **[P1] Central `reducedMotion` preference.** Gate camera bops/shakes/scroll, character screen shake (`PlayStateNotes.hx:402-405`, `:584-587`, `:631-635`), event shakes (`PlayStateEvents.hx:414`), menu tweens and stage flashes in one helper, then let stages/scripts query it. `camZooms` only covers zoom; everything else is per-site today.
+- **[P1] Central `reducedMotion` preference.** `ClientPrefs.reducedMotion` gates beat bops, event zooms/shakes and character screen shake, but per site. Still to do: camera scroll, menu tweens and stage flashes, moved into one helper that stages/scripts can query. The option row is tracked in §21.4.
 - **[P2] Add an Accessibility options category.** Split from "Visuals and UI" so flashing/reduced motion/high contrast/UI scale/hold-to-confirm are discoverable instead of buried among style options.
 - **[P2] High-contrast / colorblind note palettes.** `noteColorStyle` offers Normal/Quant-Based/Char-Based with editable `arrowRGB`/`quantRGB`, but palettes still rely on hue. Ship named presets (deuteranopia/protanopia/tritanopia), a "force luminance contrast" mode, and optionally lane glyphs/numbers so lanes never depend on colour alone.
 - **[P2] UI scale / text size.** Menus are authored at fixed pixel sizes. Add 100/115/130 % scale applied through `ScreenLayout`/`ViewportVisuals` (reused by the chart editor UI) with live preview, for 1440p desktops and small phones alike.
@@ -408,7 +299,6 @@ The only accessibility affordance today is `ClientPrefs.flashing`, honoured one 
   Docs: `website/docs/subsystems/options-menu.md`, `website/docs/subsystems/mobile.md`.
   Specs: `bash tests/haxe/run-hold-to-confirm.sh`, `bash tests/haxe/run-hold-to-confirm-typecheck.sh`.
 - **[P3] Re-openable photosensitivity warning.** `FlashingState` only shows while `FlxG.save.data.flashing == null`, so it is once-per-install and unreachable afterwards. Add "Show warning again" in Options and a quick "Reduce flashing" toggle in the pause menu.
-- **[P3] Dialogue comfort settings.** `DialogueBoxPsych` reads a per-line `speed` (default `0.05`) and nothing else. Add a global speed multiplier, instant-advance, and dim-background / hide-box options — dialogue is where most reading happens and it currently has no user-side control.
 - **[P3] Visual beat indicator.** An optional screen-edge pulse that respects `reducedMotion`, so players who mute the game (or play on silent mobile) keep timing feedback without relying on flashes.
 
 ## 17. MODDER TOOLING & SCRIPT SAFETY
@@ -419,29 +309,25 @@ Modding is a core promise (Lua + Python + HScript, `ModSecurity`, `ScriptSecurit
 - **[P2] Mod linter CLI (`tools/`).** Validate `pack.json` schema, unknown/duplicate folders (reusing `Mods.ignoreModFolders`), assets referenced by character/stage/week JSON, duplicate achievement IDs, difficulty names, and Lua/Python/HScript syntax before shipping. This is also what makes the §20 compatibility corpus possible.
 - **[P2] Dependency and conflict metadata.** Add `id`, `version`, `requires` and `conflicts` to `pack.json`, with a resolve/report step before enabling. Without stable ids, `modsList.txt` is ordered by folder name and "requires ModX ≥ 1.2" is impossible. (Distinct from the CNE addon load-priority work in §12.6.)
 - **[P2] Script error overlay with actions.** Show `file:line`, traceback and the offending snippet, with "reload script", "disable for this session" and "open folder". Today a failing script traces to a log or takes the state down; pairs with the §19 diagnostics work.
-- **[P2] Path resolution debugger.** `Paths.modFolders()` silently returns the first hit across active mod → global mods → loose `mods/` → `assets/`. Add an overlay/console command that prints every candidate for a key, whether it exists, and which mod won, plus a grouped "missing assets" list. This is the natural complement to the trace cleanup in §5 #68.
+- **[P2] Path resolution debugger.** `Paths.modFolders()` silently returns the first hit across active mod → global mods → loose `mods/` → `assets/`. Add an overlay/console command that prints every candidate for a key, whether it exists, and which mod won, plus a grouped "missing assets" list. This is the natural complement to the `Paths` trace cleanup (#68).
 - **[P3] Asset hot reload (desktop).** Watch the active mod's `images/`, `sounds/`, `music/` and `data/` and reload images/audio/charts without restarting the state. Complementary to the script hot reload in §12.1 — one covers code, this covers assets.
 - **[P3] Mod scaffold generator (`tools/new-mod.py`).** Produce `pack.json`, the standard content folders and starter `scripts/`, `custom_events/`, `custom_notetypes/` from `docs/TemplateScript.lua`/`.py`, so a new mod starts valid instead of with a typo'd folder name.
-- **[P3] Per-script profiling.** Measure time per hook (`onUpdate`, `onStepHit`, `goodNoteHit`, …) and list the worst offenders in the profiler output. Three mods with 200 `onUpdate` hooks each is otherwise invisible.
 
 ## 18. LOW-END PERFORMANCE & FRAME PACING
 
 Phoenix's identity is "runs on weak devices", yet configuration is manual: `ClientPrefs` defaults are desktop-oriented and Options exposes dozens of toggles. Existing infrastructure to build on: `SystemInfo` (logical CPU count, physical RAM, page size), `FrameProfiler` (F3 overlay, F6 CSV/log export, `setStateName`), `PoolStats`, `Paths.clearUnusedMemory()`/`clearStoredMemory()` and the `dumpExclusions` list.
 
 - **[P1] First-run performance profile.** Use `SystemInfo` plus the GPU/driver detection from open issue #96 to pick an initial preset (framerate, `lowQuality`, `shaders`, `cacheOnGPU`, `dynamicSpawnTime`, GC flags, splash limit), tell the player it was applied, and keep every value editable. Today a low-end phone starts with desktop defaults and the player has to find Optimization by hand.
-- **[P2] Texture/atlas memory accounting.** There is freeing logic but no visibility: add a diagnostics view listing loaded `FlxGraphic`s (size, source, owning mod/stage), total estimated VRAM/RAM and the biggest atlases, with a warning when a stage exceeds a budget. Complements the §0 downscale work — you cannot tell whether a stage is over budget today.
+- **[P2] Texture/atlas memory accounting.** `backend.MemoryLedger` logs estimated asset RAM/VRAM totals per area and per mod, but nothing lists the loaded `FlxGraphic`s (size, source, owning mod/stage) or the biggest atlases, and nothing warns when a stage exceeds a budget. Complements the §0 downscale work — you cannot tell whether a stage is over budget today.
 - **[P2] Frame pacing and high-refresh support.** `ClientPrefs.framerate` writes both `FlxG.updateFramerate` and `drawFramerate` (`GraphicsSettingsSubState.hx:131-140`). Add display-refresh detection, recommended values (60/90/120/144) and a separate update rate, so a 120 Hz panel doesn't run gameplay logic at 120 Hz with a different feel — and so the offsync risk in §4 #83 stays measurable.
 - **[P2] Preload/streaming policy.** Preload only the active stage and its characters; add "preload next song" for week runs, and verify `Paths` tracking actually releases the previous stage (graphics *and* cached sounds) when switching mods/songs. Debug builds can assert on tracked-vs-loaded counts.
 - **[P3] Device benchmark mode.** A fixed, mod-free stage/chart that runs ~60 s and reports average, 1% low and worst frame plus device info — reachable without F3/F6, which do not exist on Android. Reuses `FrameProfiler.exportLog()`; this is a *test run*, not the live counter in §12.4.
 
 ## 19. DIAGNOSTICS, SUPPORT & SAFE MODE
 
-`CrashHandler` catches errors, writes text logs and shows a summarized-reason screen, but recovery is still manual: the next launch re-enters the same mod/save, Android users can't easily reach `logs/`, and support requests have to ask for versions by hand.
+`CrashHandler` catches errors, writes text logs and shows a summarized-reason screen, but support requests have to ask for versions by hand.
 
-- **[P1] Safe Mode after repeated crashes.** Count unclean starts, then offer "start with all mods disabled", "start with fresh prefs", "start with default resolution/framerate" *before* `InitState` loads mods. A single bad `pack.json`/script currently turns into a crash loop the player must fix by editing files.
-- **[P2] "Copy diagnostics" action.** One button producing a redacted, pasteable block: engine version (`VERSION` in `project.hxp`), commit (`HaxeCommit`), target, `SystemInfo` CPU/RAM, GPU/driver (#96), save path, mod list + order, non-default prefs, last N log lines. Offline only — the recent update flow is deliberately repo-based (§0), so no auto-upload. `backend.DiagnosticsReport` (built for `phoenix://diagnostics`) already assembles that text, so what is left is the button, plus running the result through `backend.LogUtils.redact` so a copied block is no more identifying than a saved log — the deep-linked page only *warns* about usernames in paths.
-- **[P2] Crash bundle export.** Done: alongside the log, every crash now writes `crash/FNF-Phoenix-Engine_crash-bundle_<date>.zip` (crash text, `modsList.txt`, each mod's `pack.json`, prefs in the settings-backup format, a screenshot of the crashed frame, the vlog tail when enabled, and a `bundle.json` manifest). `backend/CrashBundleWriter` (Flixel-free) builds the zip with `ModPathPolicy` entry-name checks, per-entry/total/count caps, atomic writes and a 3-bundle retention; `backend/CrashBundle` collects the pieces best-effort. The bundle lands in `crash/` — the SAF "Crash Logs" root on Android — and the crash screen adds an **Export crash bundle** action (`[E]` / touch button) that saves it anywhere through `MobileFilePicker` (SAF "save as" → Downloads/share), plus a touch **Restart** button on mobile. Same `#if sys` target guard as the §6 #70 crash log. See `docs/CRASH_BUNDLE.md`.
-- **[P2] Log rotation and redaction.** `logs/` accumulates a file per crash and per profiler export with no cap. Rotate by size/age and strip usernames/absolute paths before a log leaves the machine.
+- **[P2] "Copy diagnostics" action.** One button producing a redacted, pasteable block: engine version (`VERSION` in `project.hxp`), commit (`HaxeCommit`), target, `SystemInfo` CPU/RAM, GPU/driver (#96), save path, mod list + order, non-default prefs, last N log lines. Offline only — the recent update flow is deliberately repo-based, so no auto-upload. `backend.DiagnosticsReport` (built for `phoenix://diagnostics`) already assembles that text, so what is left is the button, plus running the result through `backend.LogUtils.redact` so a copied block is no more identifying than a saved log — the deep-linked page only *warns* about usernames in paths.
 - **[P3] Per-mod "why did it break?" report.** In the mods menu, show last load error, invalid `pack.json`, blocked script rule (§6 sandbox) and missing-asset count per mod, instead of requiring a log read.
 
 ### OPT-OUT BY DEFAULT ANALYTICS
@@ -477,12 +363,10 @@ There is real infrastructure to extend: `tests/haxe/*Spec.hx` (layout, chart tim
 Read `docs/research/psych-fork-engine-changes.md`.
 ---
 
-## TOP 5 (do these first)
-1. Commit + push the two uncommitted Android fixes (`CopyState.hx` ThreadPool, `PlatformUtilNative.hx` utsname) — they ARE the Android CI fix.
-2. Resolve local NDK mismatch (install 27.0.12077973/r27 or fix the NDK 28 libc++ redefinition) so Android builds locally → green. ([#64](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/issues/64))
-3. HashLink target: install working `lime.hdll`, build, re-enable CI `hl` job. ([#63](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/issues/63))
-4. Kill `Paths.hx`/`BuildingEffect.hx` production trace spam.
-5. Path-traversal + keystore-secret hardening (security). ([#65](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/issues/65))
+## TOP 3 (do these first)
+1. Resolve local NDK mismatch (install 27.0.12077973/r27 or fix the NDK 28 libc++ redefinition) so Android builds locally → green. ([#64](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/issues/64))
+2. HashLink target: install working `lime.hdll`, build, re-enable CI `hl` job. ([#63](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/issues/63))
+3. Path-traversal hardening (security). ([#65](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/issues/65))
 
 ## 21. PLAYER-FACING SCREENS, SUBSTATES & OPTIONS (idea review)
 
@@ -583,3 +467,58 @@ The lists' own recommendations, unchanged. The eight rows in §21.4 are free and
 5. The third list's first three, chosen for clear benefit without a new system: Lane underlay (§21.3), Hit error bar, Stage dim.
 
 Ship the larger ones as separate PRs.
+
+---
+
+## 23. MARIO'S MADNESS REUSE REVIEW
+
+Source: [Dewott2501/Mario-Madness](https://github.com/Dewott2501/Mario-Madness) (Psych 0.4.2 base, Apache 2.0, so compatible with ours; port with credits). Compared by reading its source against a clean Psych 0.4.2 checkout and against this tree; nothing was built or run. Most of that repo is song-specific hardcoding (28 stages, per-song "Triggers <Song>" events, the warp-map story mode) and is **not** reusable. Only the generic pieces are listed here, and each one names what proves it is still missing in Phoenix.
+
+### 23.1. Modchart modifiers (narrows the entry in §0)
+
+Their modifiers are by Nebula_Zorua (Schmovin/Andromeda style). Checked against `source/modchart/modifiers/` and `ModifierRegistry.hx`: 13 of their 15 already exist here under the same or another name (flip is in `Invert.hx`, alpha is in `Stealth.hx`, infinite path is `Infinite.hx`, center rotate is `CenterRotate.hx`). Still missing:
+
+- **[P2] `PathModifier`.** Notes follow an arbitrary list of points instead of a straight lane (`source/modchart/modifiers/PathModifier.hx` upstream). No `path` modifier is registered here. Effort: M.
+- **[P2] `PerspectiveModifier`.** Projects note and receptor positions through a camera with a field of view, which is what makes z movement look 3D. No `perspective` or `fov` name is registered here; check first whether `ModchartVec3`/`PlayField` already project z, and if so only expose the FOV as a modifier. Effort: M.
+
+### 23.2. Shaders
+
+None of these names exist in `source/shaders/` (it has Bloom, VCRDistortion, Scanline, Greyscale and others, but no CRT, old TV, ripple, silhouette or mosaic). Each should come as a `Shader` + `Effect` pair like the existing ones, be reachable from Lua/HScript/Python, and respect the shaders toggle.
+
+- **[P2] `CRTShader`** (curved screen, scanlines, vignette). The most generally useful one for retro mods.
+- **[P2] `OldTVShader`** and the title screen's `TVStatic` (noise and static).
+- **[P3] `RippleShader`** (water ripple distortion).
+- **[P3] `SilhouetteShader`** (flat single-colour character).
+- **[P3] `MosaicShader`** (pixelate by block size) and `SMWPixelBlurShader`.
+- **[P3] `BrightnessContrastShader`.** Small, and also useful for the stage dim idea in §22.
+- **[P3] `VCRBorder` / `VCRMario85`.** Compare with `VCRDistortionShader` first; port only what it does not already do.
+- Skipped on purpose: `BloomShader` (already here), `CamDupeShader`, `AngelShader`, `YCBUEndingShader` and `TwoDinThreeD` (song-specific).
+
+### 23.3. Generic chart events
+
+Checked against `play/helpers/PlayStateEvents.hx`. `Set Cam Zoom` is already accepted as an alias there.
+
+- **[P2] `Add Subtitle` event.** Value 1 is the text, value 2 a colour name or a `0xFF…` hex. Shows a caption line on the HUD camera; an empty text clears it. No subtitle code exists anywhere in `source/`. This also serves accessibility (§16): add a toggle and a size option. Effort: S.
+- **[P3] `Camera Zoom Chain` and `Screen Shake Chain` events.** Repeat a zoom bump or a shake a set number of times at a beat interval from a single event, instead of one event per hit. No match in `source/`. Effort: S.
+- **[P3] `Show Song` event.** Pops the song title and author card at a chosen moment rather than only at song start. Compare with `objects/CreditsPopUp.hx` first and reuse it.
+
+### 23.4. Gameplay and data
+
+- **[P2] Generic dodge control.** They add a `DODGE` action (Space by default) to `Controls` and `ClientPrefs.keyBinds`, used by attack events. Here the only dodge code is hardcoded in the Blazin handlers (`stages/objects/PicoBlazinHandler.hx`, `DarnellBlazinHandler.hx`); there is no bindable action. Add the bind (keyboard, gamepad and a mobile extra button), a `keyDodge`-style Lua/HScript/Python query, and a `Dodge Attack` event that scripts can listen to. Effort: M.
+- **[P3] Per-character camera zoom and extend in the stage file.** Their stage JSON carries `[x, y, camX, camY, zoom, extend]` for each character, so the camera zooms differently on each singer and drifts in the sung direction by `extend` pixels. `data/StageData.hx` here only has `camera_boyfriend`/`camera_opponent`/`camera_girlfriend` offsets. Add optional fields so old stage files keep working. Effort: M.
+- **[P3] `idleReturn` character flag.** Return to idle as soon as a sing animation finishes instead of waiting for the hold timer. No `idleReturn` field in `objects/Character.hx` or the character editor. Effort: S.
+- **[P3] Second instrumental track.** A stage-keyed alternate instrumental (`instALT`) kept in sync with the main one so events can crossfade between two mixes. Generalise it as an optional `Inst-alt` file per song rather than per stage. Effort: M.
+
+### 23.5. Performance
+
+- **[P2] Cap script `onUpdate` calls per second.** They call Lua `onUpdate`/`onUpdatePost` at most 60 times per second (`PlayState.maxLuaFPS`), accumulating `elapsed` between calls, so an uncapped or 240 fps game does not run every script four times as often. No equivalent here (no `maxLuaFPS` or similar in `source/`). Fits §18. Make it an option (off, 60, 120, match refresh) and apply it to Lua, HScript and Python alike; scripts that need every frame must be able to opt out. Effort: S.
+
+### 23.6. Checked and already covered (do not port)
+
+- **VRAM-only bitmaps** (`OptimizedBitmapData`, from Codename Engine): covered by `cacheOnGPU` in `backend/Paths.hx`.
+- **Tracked asset cache and GC on state switch:** already in `backend/Paths.hx` (later Psych versions of the same code).
+- **Shader cache reset on window resize:** already in `Main.hx`.
+- **Decimal step/beat and BPM lookup helpers:** already in `backend/Conductor.hx` and `MusicBeatState.hx`.
+- **Windows desktop effects** (wallpaper, taskbar, hiding other windows, transparency): covered by `backend/MetaHorror.hx` and `FlxTransWindow.hx` (§2.1).
+- **Health drain:** already in `objects/Character.hx` and `PlayStateEvents.hx`.
+- **Custom note types** (poison, bomb, coin, bullet and so on): hardcoded there; here they belong in `custom_notetypes` scripts, so nothing to port in the engine.
