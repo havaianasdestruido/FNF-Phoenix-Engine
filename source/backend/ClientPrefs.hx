@@ -464,6 +464,12 @@ class ClientPrefs { //default settings if it can't find a save file containing y
     // Android owns the display cut-out policy; other builds do not even
     // compile that code path in (see applyCutoutPreference()).
     #if android
+    if (FlxG.save.data.androidTVNavigation == null && TouchlessUI.isHardwareTouchless())
+    {
+      androidTVNavigation = true;
+      FlxG.save.data.androidTVNavigation = true;
+      FlxG.save.flush();
+    }
     applyCutoutPreference();
     #end
     applyWidescreenPreference();

@@ -28,6 +28,10 @@ class InitState extends FlxState {
 		FlxG.sound.volumeDownKeys = TitleState.volumeDownKeys;
 		FlxG.sound.volumeUpKeys = TitleState.volumeUpKeys;
 		FlxG.keys.preventDefaultKeys = [TAB];
+		#if android
+		FlxG.android.preventDefaultKeys = [flixel.input.android.FlxAndroidKey.BACK];
+		backend.TouchlessUI.init();
+		#end
 
         FlxTransitionableState.skipNextTransIn = true;
 
@@ -45,9 +49,16 @@ class InitState extends FlxState {
 
         // ClientPrefs.loadDefaultKeys();
 		if (!backend.RecoveryBoot.freshPrefs) ClientPrefs.loadPrefs();
-		#if ACHIEVEMENTS_ALLOWED
-		else Achievements.load(); // Preserve achievements even when preferences are bypassed.
-		#end
+		else
+		{
+			#if android
+			if (backend.TouchlessUI.isHardwareTouchless())
+				ClientPrefs.androidTVNavigation = true;
+			#end
+			#if ACHIEVEMENTS_ALLOWED
+			Achievements.load(); // Preserve achievements even when preferences are bypassed.
+			#end
+		}
 		// Opt-in vlog (Options -> Misc): Main already restored it from the raw
 		// save, this re-syncs with the value loadPrefs() just read in case the
 		// early read could not open funkin.sol.

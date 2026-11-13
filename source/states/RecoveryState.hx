@@ -16,10 +16,10 @@ class RecoveryState extends FlxState
   override public function create():Void
   {
     super.create();
-    FlxG.mouse.visible = true;
+    FlxG.mouse.visible = !backend.TouchlessUI.isHardwareTouchless();
     var title = new FlxText(60, 50, 1160, 'Safe Mode: ${RecoveryBoot.failures} unclean starts detected', 28);
     add(title);
-    var help = new FlxText(60, 105, 1160, 'Select recovery options, then press Enter on Start. Arrow keys / Space, or click / tap.\nChanges apply for this session; saved files are not deleted.', 20);
+    var help = new FlxText(60, 105, 1160, 'Select recovery options, then press Enter / OK / A on Start. Arrow keys / D-pad, or click / tap.\nChanges apply for this session; saved files are not deleted.', 20);
     add(help);
     for (i in 0...4)
     {
@@ -66,9 +66,31 @@ class RecoveryState extends FlxState
   override public function update(elapsed:Float):Void
   {
     super.update(elapsed);
-    if (FlxG.keys.justPressed.UP) selected = (selected + 4) % 5;
-    if (FlxG.keys.justPressed.DOWN) selected = (selected + 1) % 5;
-    if (FlxG.keys.justPressed.ENTER || FlxG.keys.justPressed.SPACE) activate();
+    final upPressed:Bool = FlxG.keys.justPressed.UP
+      || FlxG.gamepads.anyJustPressed(DPAD_UP)
+      || FlxG.gamepads.anyJustPressed(LEFT_STICK_DIGITAL_UP);
+    final downPressed:Bool = FlxG.keys.justPressed.DOWN
+      || FlxG.gamepads.anyJustPressed(DPAD_DOWN)
+      || FlxG.gamepads.anyJustPressed(LEFT_STICK_DIGITAL_DOWN);
+    final acceptPressed:Bool = FlxG.keys.justPressed.ENTER
+      || FlxG.keys.justPressed.SPACE
+      || FlxG.gamepads.anyJustPressed(A)
+      || FlxG.gamepads.anyJustPressed(START);
+    final backPressed:Bool = #if android FlxG.android.justPressed.BACK || #end
+      backend.TouchlessUI.isBackPressed()
+      || FlxG.gamepads.anyJustPressed(B)
+      || FlxG.gamepads.anyJustPressed(BACK);
+
+    if (upPressed) selected = (selected + 4) % 5;
+    if (downPressed) selected = (selected + 1) % 5;
+    if (backPressed)
+    {
+      if (selected != 3)
+        selected = 3;
+      else
+        activate();
+    }
+    if (acceptPressed) activate();
     #if !mobile
     if (FlxG.mouse.justPressed)
       for (i in 0...rows.length)

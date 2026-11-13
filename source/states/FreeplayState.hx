@@ -304,7 +304,7 @@ class FreeplayState extends MusicBeatState
 		changeSelection();
 		changeDiff();
 
-		FlxG.mouse.visible = true;
+		FlxG.mouse.visible = !backend.TouchlessUI.isActive();
 
 		addVirtualPad(LEFT_FULL, A_B_C_X_Y);
 
@@ -429,7 +429,7 @@ class FreeplayState extends MusicBeatState
 	override function closeSubState() {
 		changeSelection(0, false);
 		persistentUpdate = true;
-		if (virtualPad != null) virtualPad.visible = true;
+		if (virtualPad != null) virtualPad.visible = mobile.MobileControls.enabled;
 		super.closeSubState();
 	}
 
@@ -498,14 +498,20 @@ class FreeplayState extends MusicBeatState
 		var upP = controls.UI_UP_P;
 		var downP = controls.UI_DOWN_P;
 		var accepted = controls.ACCEPT;
-		var space:Bool = FlxG.keys.justPressed.SPACE || virtualPad.buttonX.justPressed;
-		var ctrl:Bool = FlxG.keys.justPressed.CONTROL || virtualPad.buttonC.justPressed;
+		var space:Bool = FlxG.keys.justPressed.SPACE || virtualPad.buttonX.justPressed || FlxG.gamepads.anyJustPressed(X);
+		var ctrl:Bool = FlxG.keys.justPressed.CONTROL || virtualPad.buttonC.justPressed
+			|| FlxG.keys.justPressed.MENU || backend.TouchlessUI.isMenuPressed() || FlxG.gamepads.anyJustPressed(LEFT_SHOULDER);
 
 		var shiftMult:Int = 1;
 		if (FlxG.keys.pressed.SHIFT) shiftMult = 3;
 
 		try {
-			if (!songSearchText?.hasFocus)
+			if (songSearchText?.hasFocus)
+			{
+				if (controls.BACK)
+					songSearchText.hasFocus = false;
+			}
+			else
 			{
 				if (!player.playingMusic)
 				{
@@ -679,7 +685,7 @@ class FreeplayState extends MusicBeatState
 						#end
 					}
 				}
-				else if ((controls.RESET || virtualPad.buttonY.justPressed) && !player.playingMusic) {
+				else if ((controls.RESET || virtualPad.buttonY.justPressed || FlxG.gamepads.anyJustPressed(Y)) && !player.playingMusic) {
 					persistentUpdate = false;
 					if (virtualPad != null) virtualPad.visible = false;
 					openSubState(new ResetScoreSubState(songs[curSelected].songName, curDifficulty, songs[curSelected].songCharacter));

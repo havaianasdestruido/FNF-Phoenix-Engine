@@ -202,6 +202,8 @@ class Main extends Sprite
     // attachment and the initial timer-manager reset).
     FlxG.signals.postGameStart.addOnce(function() {
       android.platform.AndroidPlatform.init();
+      // Keep Flixel from terminating on Android Back; engine states handle it.
+      FlxG.android.preventDefaultKeys = [flixel.input.android.FlxAndroidKey.BACK];
     });
     #end
     #if ios

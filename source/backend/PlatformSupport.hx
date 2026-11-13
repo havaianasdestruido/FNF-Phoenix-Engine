@@ -144,6 +144,7 @@ class PlatformSupport
   static final PREFERENCE_PLATFORMS:Map<String, Array<String>> = [
     'respectCutout' => [ANDROID],
     'androidNotifications' => [ANDROID],
+    'androidTVNavigation' => [ANDROID],
     'screensaver' => [MOBILE],
     'mobileCAlpha' => [MOBILE],
     'mobileCEx' => [MOBILE],

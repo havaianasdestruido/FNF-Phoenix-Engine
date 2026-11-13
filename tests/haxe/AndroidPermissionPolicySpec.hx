@@ -128,6 +128,26 @@ class AndroidPermissionPolicySpec
     check(application != null, "rendered manifest is missing <application>");
     check(application.get("android:requestLegacyExternalStorage") == "false", "rendered application enables legacy external storage");
     check(application.get("android:preserveLegacyExternalStorage") == "false", "rendered application preserves legacy external storage");
+    check(application.get("android:banner") == "@drawable/tv_banner", "rendered application is missing Android TV banner");
+    check(application.get("android:isGame") == "true", "rendered application is missing android:isGame=true");
+    check(application.get("android:enableOnBackInvokedCallback") == "false", "rendered application must keep custom Back routing");
+
+    var hasLeanbackFeature = false;
+    for (element in manifest.elementsNamed("uses-feature"))
+      if (element.get("android:name") == "android.software.leanback" && element.get("android:required") == "false")
+        hasLeanbackFeature = true;
+    check(hasLeanbackFeature, "rendered manifest must declare optional android.software.leanback feature");
+
+    var activity:Xml = application.elementsNamed("activity").next();
+    check(activity != null, "rendered manifest is missing <activity>");
+    var hasLeanbackLauncher = false;
+    for (filter in activity.elementsNamed("intent-filter"))
+      for (category in filter.elementsNamed("category"))
+        if (category.get("android:name") == "android.intent.category.LEANBACK_LAUNCHER")
+          hasLeanbackLauncher = true;
+    check(hasLeanbackLauncher, "rendered manifest is missing LEANBACK_LAUNCHER category");
+    check(sys.FileSystem.exists("source/templates/android/template/app/src/main/res/drawable-xhdpi/tv_banner.png"),
+      "Android TV banner drawable resource must exist");
 
     for (target in [Platform.WINDOWS, Platform.IOS, Platform.HTML5])
     {

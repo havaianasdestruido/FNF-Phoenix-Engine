@@ -16,6 +16,24 @@ mkdir -p "$classes"
 android_src=source/android/src/quack/fnf/phoenix/android
 test_src=tests/java/quack/fnf/phoenix/android
 
+# --- Stub layout --------------------------------------------------------------
+# tests/java/stubs holds the Android API doubles every host-JVM test compiles
+# against; tests/java/tv_stubs adds only the extra API the Android TV / remote
+# classes touch, and is fed to javac for the TV test alone. A shared stub must
+# therefore never name a tv-only type — the cutout compile (which sees
+# tests/java/stubs only) would fail with "cannot find symbol". Checked here so
+# the breakage is reported as a layout error instead of a javac wall of text.
+while IFS= read -r -d '' tv; do
+  tv_name=$(basename "$tv" .java)
+  while IFS= read -r -d '' shared; do
+    if grep -qE "(^|[^A-Za-z0-9_])${tv_name}([^A-Za-z0-9_]|$)" "$shared"; then
+      echo "FAIL: $shared uses ${tv_name}, which only exists in tests/java/tv_stubs;" >&2
+      echo "      move that stub into tests/java/stubs (it is shared API)." >&2
+      exit 1
+    fi
+  done < <(find tests/java/stubs -name '*.java' -print0)
+done < <(find tests/java/tv_stubs -name '*.java' -print0)
+
 # --- SAF document path policy ------------------------------------------------
 "$JAVAC" -encoding UTF-8 -d "$classes" \
   "$android_src/PhoenixDocumentPathPolicy.java" \
@@ -48,3 +66,26 @@ while IFS= read -r -d '' f; do stub_sources+=("$f"); done \
   "$work/src/quack/fnf/phoenix/MainActivity.java" \
   "$test_src/PhoenixCutoutTest.java"
 "$JAVA" -cp "$classes" quack.fnf.phoenix.android.PhoenixCutoutTest
+
+# --- Android TV detection, Back/Menu routing, and task backgrounding ---------
+classes_tv="$work/classes_tv"
+mkdir -p "$classes_tv"
+
+tv_stub_sources=()
+while IFS= read -r -d '' f; do
+  case "$f" in
+    tests/java/stubs/quack/fnf/phoenix/android/PhoenixCore.java|tests/java/stubs/quack/fnf/phoenix/android/PhoenixInput.java) continue ;;
+  esac
+  tv_stub_sources+=("$f")
+done < <(find tests/java/stubs tests/java/tv_stubs -name '*.java' -print0)
+
+"$JAVAC" -encoding UTF-8 -d "$classes_tv" \
+  "${tv_stub_sources[@]}" \
+  "$android_src/PhoenixCutoutPolicy.java" \
+  "$android_src/PhoenixCutoutLayout.java" \
+  "$android_src/PhoenixDisplay.java" \
+  "$android_src/PhoenixCore.java" \
+  "$android_src/PhoenixInput.java" \
+  "$work/src/quack/fnf/phoenix/MainActivity.java" \
+  "$test_src/PhoenixTVNavigationTest.java"
+"$JAVA" -cp "$classes_tv" quack.fnf.phoenix.android.PhoenixTVNavigationTest

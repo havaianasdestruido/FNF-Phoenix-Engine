@@ -137,14 +137,17 @@ class BaseOptionsMenu extends MusicBeatSubstate
 		searchText = new FlxText(buttonTop.x + 195, buttonTop.y + 20, 100, "Search", 24);
 		searchText.setFormat(Paths.font("vcr.ttf"), 24, FlxColor.BLACK);
 		add(searchText);
-		FlxG.mouse.visible = true;
+		FlxG.mouse.visible = !backend.TouchlessUI.isActive();
 
 		addVirtualPad(LEFT_FULL, A_B_C);
 
 		resetGuard = new HoldToConfirm(descText, resetAllOptions, function() {
 			if (optionSearchText.hasFocus) return false;
 			var onResetRow:Bool = curOption != null && curOption.name == RESET_ALL_LABEL;
-			return (onResetRow && controls.ACCEPT) || (controls.RESET && FlxG.keys.pressed.SHIFT);
+			// Gamepad/remote parity: Y is the reset button, LEFT_SHOULDER the SHIFT.
+			var resetHeld:Bool = controls.RESET || FlxG.gamepads.anyPressed(Y);
+			var shiftHeld:Bool = FlxG.keys.pressed.SHIFT || FlxG.gamepads.anyPressed(LEFT_SHOULDER);
+			return (onResetRow && controls.ACCEPT) || (resetHeld && shiftHeld);
 		}, 'HOLD TO RESET ALL');
 		resetGuard.cameras = cameras;
 		add(resetGuard);
@@ -437,7 +440,11 @@ class BaseOptionsMenu extends MusicBeatSubstate
 		}
 		syncResetGuard();
 
-		if (!optionSearchText.hasFocus)
+		// Android TV / remotes have no pointer to click out of the search bar,
+		// so BACK blurs it first instead of closing the menu in the same frame.
+		if (optionSearchText.hasFocus && controls.BACK)
+			optionSearchText.hasFocus = false;
+		else if (!optionSearchText.hasFocus)
 		{
 		if (controls.UI_UP_P)
 		{
@@ -554,8 +561,11 @@ class BaseOptionsMenu extends MusicBeatSubstate
 			}
 
 			// SHIFT+RESET (reset all) is owned by resetGuard; only the
-			// single-option reset stays a plain press here.
-			if((virtualPad.buttonC.justPressed || controls.RESET) && !FlxG.keys.pressed.SHIFT)
+			// single-option reset stays a plain press here. On a remote or
+			// gamepad, Y is the reset button and LEFT_SHOULDER is the SHIFT.
+			if(virtualPad.buttonC.justPressed
+				|| ((controls.RESET || FlxG.gamepads.anyJustPressed(Y))
+					&& !FlxG.keys.pressed.SHIFT && !FlxG.gamepads.anyPressed(LEFT_SHOULDER)))
 			{
 				resetSelectedOption();
 			}

@@ -120,30 +120,10 @@ class PlayerSettings
 			++numPlayers;
 		}
 
-		var numGamepads = FlxG.gamepads.numActiveGamepads;
-		if (numGamepads > 0)
-		{
-			var gamepad = FlxG.gamepads.getByID(0);
-			if (gamepad == null)
-				throw 'Unexpected null gamepad. id:0';
-
-			player1.controls.addDefaultGamepad(0);
-		}
-
-		if (numGamepads > 1)
-		{
-			if (player2 == null)
-			{
-				player2 = new PlayerSettings(1, None);
-				++numPlayers;
-			}
-
-			var gamepad = FlxG.gamepads.getByID(1);
-			if (gamepad == null)
-				throw 'Unexpected null gamepad. id:0';
-
-			player2.controls.addDefaultGamepad(1);
-		}
+		// Bind against ALL gamepads so TV remotes, Bluetooth pads, and
+		// hotplugged controllers work even when none are active at boot.
+		if (!player1.controls.gamepadsAdded.contains(flixel.input.actions.FlxActionInput.FlxInputDeviceID.ALL))
+			player1.controls.addDefaultGamepad(flixel.input.actions.FlxActionInput.FlxInputDeviceID.ALL);
 
 		// DeviceManager.init();
 	}

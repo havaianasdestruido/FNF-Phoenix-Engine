@@ -234,25 +234,33 @@ class ControlsSubState extends MusicBeatSubstate {
 				}
 			}
 		} else {
+			var cancelCapture:Bool = #if android FlxG.android.justPressed.BACK || #end
+				backend.TouchlessUI.isBackPressed()
+				|| FlxG.gamepads.anyJustPressed(B)
+				|| FlxG.gamepads.anyJustPressed(BACK);
+
 			var bound:Bool = false;
-			#if android
-			if (capturingHardware) {
-				if (FlxG.keys.checkStatus(BACKSPACE, JUST_PRESSED)) {
-					// Qualified: this file imports flixel.text.FlxText, and
-					// FlxTextBorderStyle.NONE shadows the bare NONE here.
-					setBindSlot(FlxKey.NONE);
-					bound = true;
-				} else if (pendingHardwareKey > -1) {
-					setBindSlot(HardwareKeys.toBind(pendingHardwareKey));
-					bound = true;
-				}
-			} else
-			#end
+			if (!cancelCapture)
 			{
-				var keyPressed:Int = FlxG.keys.firstJustPressed();
-				if (keyPressed > -1) {
-					setBindSlot(keyPressed);
-					bound = true;
+				#if android
+				if (capturingHardware) {
+					if (FlxG.keys.checkStatus(BACKSPACE, JUST_PRESSED)) {
+						// Qualified: this file imports flixel.text.FlxText, and
+						// FlxTextBorderStyle.NONE shadows the bare NONE here.
+						setBindSlot(FlxKey.NONE);
+						bound = true;
+					} else if (pendingHardwareKey > -1) {
+						setBindSlot(HardwareKeys.toBind(pendingHardwareKey));
+						bound = true;
+					}
+				} else
+				#end
+				{
+					var keyPressed:Int = FlxG.keys.firstJustPressed();
+					if (keyPressed > -1) {
+						setBindSlot(keyPressed);
+						bound = true;
+					}
 				}
 			}
 
@@ -266,13 +274,13 @@ class ControlsSubState extends MusicBeatSubstate {
 			}
 
 			bindingTime += elapsed;
-			if(bindingTime > 5) {
+			if(cancelCapture || bindingTime > 5) {
 				if (curAlt) {
 					grpInputsAlt[getInputTextNum()].alpha = 1;
 				} else {
 					grpInputs[getInputTextNum()].alpha = 1;
 				}
-				FlxG.sound.play(Paths.sound('scrollMenu'));
+				FlxG.sound.play(Paths.sound(cancelCapture ? 'cancelMenu' : 'scrollMenu'));
 				rebindingKey = false;
 				bindingTime = 0;
 				#if android

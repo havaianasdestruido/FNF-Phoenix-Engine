@@ -31,7 +31,9 @@ class Prompt extends MusicBeatSubstate
 	var panelbg:FlxSprite;
 	var buttonAccept:FlxButton;
 	var buttonNo:FlxButton;
+	var focusOutline:FlxSprite;
 	var cornerSize:Int = 10;
+	var inputDelay:Float = 0.12;
 
 	/** Destructive question: OK needs a held press or a second confirmation. */
 	var requireHold:Bool = false;
@@ -47,7 +49,7 @@ class Prompt extends MusicBeatSubstate
 		cancelCallback:Void->Void, acceptOnDefault:Bool=false, option1:String=null,
 		option2:String=null, requireHold:Bool=false)
 	{
-		selected = defaultSelected;
+		selected = defaultSelected == 1 ? 1 : 0;
 		okc = okCallback;
 		cancelc = cancelCallback;
 		theText = promptText;
@@ -76,6 +78,7 @@ class Prompt extends MusicBeatSubstate
 			close();
 
 		}else{
+		backend.TouchlessUI.syncMouseCursor();
 		panel = new FlxSprite(0, 0);
 		panelbg = new FlxSprite(0, 0);
 		makeSelectorGraphic(panel,300,150,0xff999999);
@@ -87,6 +90,9 @@ class Prompt extends MusicBeatSubstate
 
 		add(panelbg);
 		add(panel);
+		focusOutline = new FlxSprite(0, 0).makeGraphic(Std.int(buttonAccept.width + 6), Std.int(buttonAccept.height + 6), 0xFFFFFF66);
+		focusOutline.scrollFactor.set();
+		add(focusOutline);
 		add(buttonAccept);
 		add(buttonNo);
 		//add(buttons);
@@ -103,6 +109,10 @@ class Prompt extends MusicBeatSubstate
 		textField.scrollFactor.set();
 
 		installTouchTargets();
+		updateFocusOutline();
+
+		addVirtualPad(LEFT_RIGHT, A_B);
+		addVirtualPadCamera();
 		}
 	}
 
@@ -127,8 +137,10 @@ class Prompt extends MusicBeatSubstate
 
 		if (requireHold)
 		{
+			// `selected == 0` folds the D-pad/gamepad selection into the guard: a
+			// held ACCEPT only arms OK while OK actually holds the focus.
 			holdConfirm = new HoldToConfirm(buttonAccept, accept,
-				() -> PlayerSettings.player1.controls.ACCEPT, 'HOLD TO CONFIRM');
+				() -> selected == 0 && controls.ACCEPT, 'HOLD TO CONFIRM');
 			holdConfirm.cameras = cameras;
 			add(holdConfirm);
 		}
@@ -144,23 +156,61 @@ class Prompt extends MusicBeatSubstate
 		add(cancelTarget);
 	}
 
+	function updateFocusOutline():Void
+	{
+		if (focusOutline == null) return;
+		var target:FlxButton = selected == 0 ? buttonAccept : buttonNo;
+		if (target == null) return;
+		focusOutline.setPosition(target.x - 3, target.y - 3);
+	}
+
 	override public function update(elapsed:Float):Void
 	{
 		super.update(elapsed); // updates the guard/hit areas first
-		var controls = PlayerSettings.player1.controls;
-		if (controls.BACK)
+		if (goAnyway) return;
+
+		if (inputDelay > 0)
+			inputDelay -= elapsed;
+
+		// D-pad / remote / stick selection. Moving the focus also drops any
+		// half-finished hold, so a guarded OK can't arm on the other button.
+		if (controls.UI_LEFT_P || controls.UI_RIGHT_P)
 		{
+			selected = backend.AndroidTVPolicy.selectPromptChoice(selected, controls.UI_LEFT_P ? -1 : 1);
 			if (holdConfirm != null) holdConfirm.cancel();
-			if (cancelc != null) cancelc();
-			close();
-			return;
+			updateFocusOutline();
+			FlxG.sound.play(backend.Paths.sound('scrollMenu'));
 		}
-		// Guarded prompts let HoldToConfirm consume ACCEPT (held or twice);
-		// informational prompts still confirm with one keyboard/gamepad press.
-		if (holdConfirm == null && controls.ACCEPT)
+
+		if (inputDelay <= 0)
 		{
-			if (okc != null) okc();
-			close();
+			if (controls.BACK)
+			{
+				if (holdConfirm != null) holdConfirm.cancel();
+				FlxG.sound.play(backend.Paths.sound('cancelMenu'));
+				if (cancelc != null) cancelc();
+				close();
+				return;
+			}
+
+			// CANCEL stays a single press. OK is a single press only when the
+			// prompt is informational; a guarded OK is consumed by HoldToConfirm
+			// (held press, or a second press inside the confirm window).
+			if (controls.ACCEPT)
+			{
+				if (selected == 1)
+				{
+					FlxG.sound.play(backend.Paths.sound('cancelMenu'));
+					if (cancelc != null) cancelc();
+					close();
+				}
+				else if (holdConfirm == null)
+				{
+					FlxG.sound.play(backend.Paths.sound('confirmMenu'));
+					if (okc != null) okc();
+					close();
+				}
+			}
 		}
 	}
 

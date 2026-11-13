@@ -357,6 +357,7 @@ class TitleState extends MusicBeatState
         Conductor.changeBPM(titleJSON.bpm);
     }
     persistentUpdate = true;
+    backend.TouchlessUI.syncMouseCursor(false);
 
     background = new FlxSprite();
     hasBackgroundArt = titleJSON.backgroundSprite != null && titleJSON.backgroundSprite.length > 0 && titleJSON.backgroundSprite != "none";
@@ -479,6 +480,21 @@ class TitleState extends MusicBeatState
 
   override function update(elapsed:Float)
   {
+    if (subState != null)
+    {
+      super.update(elapsed);
+      return;
+    }
+
+    #if android
+    if (backend.AndroidTVPolicy.shouldBackgroundOnTitleBack(true, subState != null, transitioning, controls.BACK))
+    {
+      android.platform.AndroidSystem.moveTaskToBack();
+      super.update(elapsed);
+      return;
+    }
+    #end
+
     if (deepLinkReady && !transitioning && backend.deeplink.DeepLinks.dispatch()) return;
     if (FlxG.sound.music != null) Conductor.songPosition = FlxG.sound.music.time;
 

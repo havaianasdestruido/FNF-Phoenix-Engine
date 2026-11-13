@@ -112,8 +112,12 @@ class GameplayChangersSubstate extends MusicBeatSubstate
 		addVirtualPad(LEFT_FULL, A_B_C);
 		addVirtualPadCamera();
 
+		// Gamepad/remote parity: Y is the reset button and LEFT_SHOULDER stands
+		// in for SHIFT, so a touchless player can reach the guarded reset-all.
 		resetAllGuard = new HoldToConfirm(null, resetAllGameplayOptions,
-			() -> controls.RESET && FlxG.keys.pressed.SHIFT, 'HOLD TO RESET ALL');
+			() -> (controls.RESET || FlxG.gamepads.anyPressed(Y))
+				&& (FlxG.keys.pressed.SHIFT || FlxG.gamepads.anyPressed(LEFT_SHOULDER)),
+			'HOLD TO RESET ALL');
 		resetAllGuard.allowPointer = false; // keyboard/gamepad combo; no on-screen button
 		resetAllGuard.cameras = cameras;
 		add(resetAllGuard);
@@ -157,6 +161,7 @@ class GameplayChangersSubstate extends MusicBeatSubstate
 			FlxG.sound.play(Paths.sound('cancelMenu'));
 		}
 
+		var shiftHeld:Bool = FlxG.keys.pressed.SHIFT || FlxG.gamepads.anyPressed(LEFT_SHOULDER);
 		if(nextAccept <= 0)
 		{
 			var usesCheckbox = true;
@@ -186,7 +191,7 @@ class GameplayChangersSubstate extends MusicBeatSubstate
 
 								if (FlxG.keys.pressed.CONTROL)
 									step = curOption.slowChangeVal;
-								else if (FlxG.keys.pressed.SHIFT)
+								else if (shiftHeld)
 								{
 									if(curOption.type == 'int')
 										step = 5;
@@ -277,7 +282,10 @@ class GameplayChangersSubstate extends MusicBeatSubstate
 					clearHold();
 				}
 			}
-			if((controls.RESET && !FlxG.keys.pressed.SHIFT) || virtualPad.buttonC.justPressed)
+
+			// SHIFT+RESET (reset all) is owned by resetAllGuard; only the
+			// single-option reset stays a plain press here.
+			if(((controls.RESET || FlxG.gamepads.anyJustPressed(Y)) && !shiftHeld) || virtualPad.buttonC.justPressed)
 			{
 				var leOption:GameplayOption = optionsArray[curSelected];
 				leOption.setValue(leOption.defaultValue);

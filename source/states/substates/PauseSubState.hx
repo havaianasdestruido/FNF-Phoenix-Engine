@@ -281,6 +281,21 @@ class PauseSubState extends MusicBeatSubstate
 				}
 		}
 
+		if (controls.BACK && cantUnpause <= 0)
+		{
+			if (menuItems == difficultyChoices || menuItems == menuItemsExit)
+			{
+				menuItems = menuItemsOG;
+				regenMenu();
+				FlxG.sound.play(Paths.sound('cancelMenu'));
+			}
+			else if (menuItems == menuItemsOG && menuItemsOG.contains('Resume'))
+			{
+				close();
+			}
+			return;
+		}
+
 		if (controls.ACCEPT && (cantUnpause <= 0 || !ClientPrefs.controllerMode))
 		{
 			if (menuItems == difficultyChoices)

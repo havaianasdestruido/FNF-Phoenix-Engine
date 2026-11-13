@@ -333,6 +333,7 @@ class SettingsBackup
     ClientPrefs.applyWidescreenPreference();
     #if android
     ClientPrefs.applyCutoutPreference();
+    TouchlessUI.syncMouseCursor(!TouchlessUI.isActive());
     #end
     ClientPrefs.reloadControls();
     VLog.setEnabled(ClientPrefs.vlogEnabled);
