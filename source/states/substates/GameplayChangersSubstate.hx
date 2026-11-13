@@ -12,6 +12,7 @@ import flixel.input.keyboard.FlxKey;
 import objects.Alphabet;
 import objects.AttachedText;
 import objects.CheckboxThingie;
+import objects.HoldToConfirm;
 import play.PlayState;
 import headers.States;
 
@@ -28,6 +29,8 @@ class GameplayChangersSubstate extends MusicBeatSubstate
 	public var pauseState:PauseSubState;
 	private var background:FlxSprite;
 	private var layoutWidth:Int = 0;
+	/** SHIFT+RESET wipes every gameplay changer: guarded by a held press. */
+	private var resetAllGuard:HoldToConfirm;
 
 	override public function onResize(width:Int, height:Int):Void
 	{
@@ -108,6 +111,12 @@ class GameplayChangersSubstate extends MusicBeatSubstate
 		cameras = [FlxG.cameras.list[FlxG.cameras.list.length - 1]];
 		addVirtualPad(LEFT_FULL, A_B_C);
 		addVirtualPadCamera();
+
+		resetAllGuard = new HoldToConfirm(null, resetAllGameplayOptions,
+			() -> controls.RESET && FlxG.keys.pressed.SHIFT, 'HOLD TO RESET ALL');
+		resetAllGuard.allowPointer = false; // keyboard/gamepad combo; no on-screen button
+		resetAllGuard.cameras = cameras;
+		add(resetAllGuard);
 	}
 
 	override function destroy() {
@@ -123,6 +132,16 @@ class GameplayChangersSubstate extends MusicBeatSubstate
 	var holdValue:Float = 0;
 	override function update(elapsed:Float)
 	{
+		if (resetAllGuard != null)
+		{
+			var row:Alphabet = (grpOptions != null) ? grpOptions.members[curSelected] : null;
+			if (resetAllGuard.target != row)
+			{
+				resetAllGuard.target = row;
+				resetAllGuard.cancel();
+			}
+		}
+
 		if (controls.UI_UP_P)
 		{
 			changeSelection(-1);
@@ -258,37 +277,6 @@ class GameplayChangersSubstate extends MusicBeatSubstate
 					clearHold();
 				}
 			}
-			if(controls.RESET && FlxG.keys.pressed.SHIFT)
-			{
-				for (i in 0...optionsArray.length)
-				{
-					var leOption:GameplayOption = optionsArray[i];
-					leOption.setValue(leOption.defaultValue);
-					if(leOption.type != 'bool')
-					{
-						if(leOption.type == 'string')
-						{
-							leOption.curOption = leOption.options.indexOf(leOption.getValue());
-						}
-						updateTextFrom(leOption);
-					}
-
-					if(leOption.name == 'Scroll Speed')
-					{
-						leOption.displayFormat = "%vX";
-						leOption.maxValue = 60;
-						if(leOption.getValue() > 60)
-						{
-							leOption.setValue(60);
-						}
-						updateTextFrom(leOption);
-					}
-					leOption.change();
-				}
-				FlxG.sound.play(Paths.sound('cancelMenu'));
-				reloadCheckboxes();
-			}
-
 			if((controls.RESET && !FlxG.keys.pressed.SHIFT) || virtualPad.buttonC.justPressed)
 			{
 				var leOption:GameplayOption = optionsArray[curSelected];
@@ -322,6 +310,33 @@ class GameplayChangersSubstate extends MusicBeatSubstate
 			nextAccept -= 1;
 		}
 		super.update(elapsed);
+	}
+
+	/** Runs once after the guarded SHIFT+RESET gesture completes. */
+	function resetAllGameplayOptions():Void
+	{
+		for (leOption in optionsArray)
+		{
+			if (leOption == null) continue;
+			leOption.setValue(leOption.defaultValue);
+			if (leOption.type != 'bool')
+			{
+				if (leOption.type == 'string')
+					leOption.curOption = leOption.options.indexOf(leOption.getValue());
+				updateTextFrom(leOption);
+			}
+
+			if (leOption.name == 'Scroll Speed')
+			{
+				leOption.displayFormat = "%vX";
+				leOption.maxValue = 60;
+				if (leOption.getValue() > 60) leOption.setValue(60);
+				updateTextFrom(leOption);
+			}
+			leOption.change();
+		}
+		FlxG.sound.play(Paths.sound('cancelMenu'));
+		reloadCheckboxes();
 	}
 
 	function updateTextFrom(option:GameplayOption) {

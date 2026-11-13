@@ -474,6 +474,28 @@ class VisualsUISubState extends BaseOptionsMenu
 		addOption(option);
 		option.onChange = MovingCheckerboard.refreshAll;
 
+		var option:Option = new Option('Hold to Confirm',
+			"Destructive actions (deleting a mod/save/chart, leaving a song,\n"
+			+ "resetting settings) need a held press instead of a single tap.\n"
+			+ "Unchecked uses a second confirmation instead - never a single tap.",
+			'holdToConfirm',
+			'bool',
+			true);
+		addOption(option);
+
+		var option:Option = new Option('Hold Duration: ',
+			"How long a destructive press must be held, in seconds.\nLarger values help on shaky touchscreens. Only used by Hold to Confirm.",
+			'holdToConfirmTime',
+			'float',
+			0.65);
+		option.minValue = 0.3;
+		option.maxValue = 2;
+		option.changeValue = 0.05;
+		option.scrollSpeed = 0.5;
+		option.decimals = 2;
+		option.displayFormat = '%vs';
+		addOption(option);
+
 		var option:Option = new Option('UI Scale',
 			"Scales menu text, row spacing, checkboxes and value labels together,\nso the whole menu grows or shrinks instead of just the fonts.\n100% is the original size. Applies live while you change it.",
 			'uiScalePercent',

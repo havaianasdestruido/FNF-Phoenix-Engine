@@ -20,6 +20,8 @@ import objects.Character;
 import objects.CheckboxThingie;
 import objects.MovingCheckerboard;
 import objects.Prompt;
+import objects.HoldToConfirm;
+import objects.TouchTarget;
 import headers.Options;
 
 class BaseOptionsMenu extends MusicBeatSubstate
@@ -40,6 +42,9 @@ class BaseOptionsMenu extends MusicBeatSubstate
 	var searchText:FlxText;
 	private var buttonTop:FlxButton;
 	private var background:FlxSprite;
+	/** Guards the destructive "Reset All Settings" action. */
+	private var resetGuard:HoldToConfirm;
+	public static inline var RESET_ALL_LABEL:String = 'Reset All Settings';
 	private var titleText:Alphabet;
 	private var layoutWidth:Int = 0;
 
@@ -136,6 +141,14 @@ class BaseOptionsMenu extends MusicBeatSubstate
 
 		addVirtualPad(LEFT_FULL, A_B_C);
 
+		resetGuard = new HoldToConfirm(descText, resetAllOptions, function() {
+			if (optionSearchText.hasFocus) return false;
+			var onResetRow:Bool = curOption != null && curOption.name == RESET_ALL_LABEL;
+			return (onResetRow && controls.ACCEPT) || (controls.RESET && FlxG.keys.pressed.SHIFT);
+		}, 'HOLD TO RESET ALL');
+		resetGuard.cameras = cameras;
+		add(resetGuard);
+
 		applyUIScale();
 	}
 
@@ -213,6 +226,17 @@ class BaseOptionsMenu extends MusicBeatSubstate
 			false);
 		option.onChange = askImportBackup;
 		addOption(option.onlyOn([PlatformSupport.FILE_PICKER]));
+
+		// Discoverable on touch devices (where there is no SHIFT+RESET combo).
+		// The row is guarded: a single tap never resets anything.
+		option = new Option(RESET_ALL_LABEL,
+			'Hold ACCEPT, or press twice, to restore every option in this list\n'
+			+ 'to its default value. This cannot be undone.',
+			'resetAllSettings',
+			'link',
+			false);
+		option.onChange = resetAllOptions;
+		addOption(option);
 	}
 
 	function exportBackup():Void
@@ -229,7 +253,68 @@ class BaseOptionsMenu extends MusicBeatSubstate
 				regenList(); // show the imported values right away
 				showBackupMessage(message);
 			});
-		}, null, false, 'Import', 'Cancel'));
+		}, null, false, 'Import', 'Cancel', true));
+	}
+
+	/** Restores the currently selected option to its default value. */
+	function resetSelectedOption():Void
+	{
+		var leOption:Option = optionsArray[curSelected];
+		if (leOption == null || leOption.type == 'link') return;
+		leOption.setValue(leOption.defaultValue);
+		if (leOption.type != 'bool')
+		{
+			if (leOption.type == 'string')
+				leOption.curOption = leOption.options.indexOf(leOption.getValue());
+			updateTextFrom(leOption);
+		}
+		leOption.change();
+		FlxG.sound.play(Paths.sound('cancelMenu'));
+		reloadCheckboxes();
+	}
+
+	/** Runs once after the guarded "Reset All Settings" gesture completes. */
+	function resetAllOptions():Void
+	{
+		// A search filter makes `optionsArray` a subset: the action must still
+		// restore *every* option in this menu, not just the visible matches.
+		var all:Array<Option> = (originalOptionsArray != null && originalOptionsArray.length > 0)
+			? originalOptionsArray : optionsArray;
+		for (leOption in all)
+		{
+			if (leOption == null || leOption.type == 'link') continue;
+			leOption.setValue(leOption.defaultValue);
+			if (leOption.type != 'bool')
+			{
+				if (leOption.type == 'string')
+					leOption.curOption = leOption.options.indexOf(leOption.getValue());
+				updateTextFrom(leOption);
+			}
+			leOption.change();
+		}
+		FlxG.sound.play(Paths.sound('cancelMenu'));
+		reloadCheckboxes();
+		ClientPrefs.saveSettings();
+	}
+
+	/** Keeps the guard pointed at the reset row (pointer) or the help line (SHIFT+RESET). */
+	function syncResetGuard():Void
+	{
+		if (resetGuard == null) return;
+		var rowSelected:Bool = curOption != null && curOption.name == RESET_ALL_LABEL;
+		var row:Alphabet = (grpOptions != null) ? grpOptions.members[curSelected] : null;
+		var wanted:FlxObject = (rowSelected && row != null) ? row : descText;
+		if (resetGuard.target != wanted)
+		{
+			resetGuard.target = wanted;
+			resetGuard.cancel();
+		}
+		// Only the dedicated row is a pointer target. A hold on the help text
+		// (used as feedback for the SHIFT+RESET keyboard combo) must not be
+		// able to wipe every option by accident.
+		resetGuard.allowPointer = rowSelected && row != null;
+		resetGuard.enabled = !optionSearchText.hasFocus;
+		if (!resetGuard.enabled) resetGuard.cancel();
 	}
 
 	/** Re-points `string` options at the entry an imported value landed on. */
@@ -333,6 +418,25 @@ class BaseOptionsMenu extends MusicBeatSubstate
 	var _textThrottle:Float = 0;
 	override function update(elapsed:Float)
 	{
+		// Tap a row to select it; the guard's padded hit area owns the press.
+		if (!optionSearchText.hasFocus && grpOptions != null)
+		{
+			for (i in 0...grpOptions.length)
+			{
+				var item:Alphabet = grpOptions.members[i];
+				if (item != null && TouchTarget.justPressedOver(item, cameras))
+				{
+					if (curSelected != i)
+					{
+						curSelected = i;
+						changeSelection(0);
+					}
+					break;
+				}
+			}
+		}
+		syncResetGuard();
+
 		if (!optionSearchText.hasFocus)
 		{
 		if (controls.UI_UP_P)
@@ -359,7 +463,8 @@ class BaseOptionsMenu extends MusicBeatSubstate
 
 			if(usesCheckbox || curOption.specialOption || curOption.type == 'link') // #45: link = press-to-run action
 			{
-				if(controls.ACCEPT && !curOption.specialOption)
+				var guardedReset:Bool = curOption != null && curOption.name == RESET_ALL_LABEL;
+				if(controls.ACCEPT && !curOption.specialOption && !guardedReset)
 				{
 					FlxG.sound.play(Paths.sound((curOption.type == 'link' ? 'confirmMenu' : 'scrollMenu')));
 					if (curOption.type == 'bool') curOption.setValue((curOption.getValue() == true) ? false : true);
@@ -448,39 +553,11 @@ class BaseOptionsMenu extends MusicBeatSubstate
 				}
 			}
 
-			if(virtualPad.buttonC.justPressed || controls.RESET)
+			// SHIFT+RESET (reset all) is owned by resetGuard; only the
+			// single-option reset stays a plain press here.
+			if((virtualPad.buttonC.justPressed || controls.RESET) && !FlxG.keys.pressed.SHIFT)
 			{
-				if (!FlxG.keys.pressed.SHIFT)
-				{
-					var leOption:Option = optionsArray[curSelected];
-					leOption.setValue(leOption.defaultValue);
-					if(leOption.type != 'bool')
-					{
-						if(leOption.type == 'string')
-						{
-							leOption.curOption = leOption.options.indexOf(leOption.getValue());
-						}
-						updateTextFrom(leOption);
-					}
-					leOption.change();
-				}
-				else
-				for (i in 0...optionsArray.length)
-				{
-					var leOption:Option = optionsArray[i];
-					leOption.setValue(leOption.defaultValue);
-					if(leOption.type != 'bool')
-					{
-						if(leOption.type == 'string')
-						{
-							leOption.curOption = leOption.options.indexOf(leOption.getValue());
-						}
-						updateTextFrom(leOption);
-					}
-					leOption.change();
-				}
-				FlxG.sound.play(Paths.sound('cancelMenu'));
-				reloadCheckboxes();
+				resetSelectedOption();
 			}
 		}
 		}

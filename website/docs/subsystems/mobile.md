@@ -55,6 +55,39 @@ Opacity and extra toggles come from `ClientPrefs.mobileCAlpha` and `mobileCEx`.
 Menus add a virtual pad; `PlayState` adds the hitbox. Both route into the same
 `backend.Controls` actions as keyboard input, so gameplay code never checks for touch.
 
+## Guarded destructive actions
+
+Deleting a mod/save/chart, leaving a song and resetting settings are easy to hit by
+accident on a phone. `objects.TouchTarget` lays an invisible rectangle of at least
+**88 × 88 game units** (~44 dp at 2×) over the existing art, centred on it and padded
+by 12 units; the sprite itself is never resized or recoloured. The hit area follows
+animated menu rows every frame, so it survives selection lerps and screen resizes.
+
+`objects.HoldToConfirm` combines that hit area with the renderer-free
+`backend.HoldToConfirmLogic` state machine. Input comes from the mouse, every active
+touch and a `held` callback (keyboard, gamepad or virtual pad); releasing early,
+dragging off the target, tapping elsewhere, losing focus or running out of time
+cancels the gesture. A small runtime progress bar and hint give feedback without
+shipping new art.
+
+Two gestures are available, selected by **Options → Visuals and UI → Hold to
+Confirm**:
+
+| Mode | Gesture |
+|---|---|
+| On (default) | Keep the press down for **Hold Duration** seconds (0.3–2 s). |
+| Off | Press once to arm, release, then press again within three seconds. |
+
+Turning the option off never restores single-tap behaviour. The guard is one-shot:
+`onConfirm` runs exactly once. It is wired into `objects.Prompt` (destructive OK/CANCEL
+questions such as replacing a mod folder, clearing chart progress or importing a
+settings backup), `ResetScoreSubState` ("Yes" wipes saved scores), the pause menu's
+`Exit to ...` submenu, the guarded **Reset All Settings** row in every options list,
+and SHIFT+RESET in the Gameplay Changers menu. Chart-editor buttons that delete
+sections/sides/events or load a different event sheet use the same guard, and the editor's
+"Ignore Progress Warnings" checkbox can no longer bypass it for destructive prompts.
+CANCEL/Back/No stay single taps.
+
 ## File picking and app files
 
 `mobile.files.MobileFilePicker` bridges to the platform picker, used by the editors for

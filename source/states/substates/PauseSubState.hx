@@ -12,6 +12,8 @@ import backend.Paths;
 import data.Song;
 import flixel.input.keyboard.FlxKey;
 import objects.Alphabet;
+import objects.HoldToConfirm;
+import objects.TouchTarget;
 import options.OptionsState;
 import play.PlayState;
 import states.FreeplayState;
@@ -39,6 +41,11 @@ class PauseSubState extends MusicBeatSubstate
 	private var rightLabels:Array<FlxText> = [];
 	private var layoutWidth:Int = 0;
 	var curTime:Float = Math.max(0, Conductor.songPosition);
+
+	/** Guards every "Exit to ..." item: a single tap can no longer drop a run. */
+	var exitConfirm:HoldToConfirm;
+	/** Label of the exit item the guard is currently pointing at. */
+	var exitAction:String = null;
 
 	public static var inPause:Bool = false;
 	public static var requireRestart:Bool = false;
@@ -158,6 +165,13 @@ class PauseSubState extends MusicBeatSubstate
 		cameras = [FlxG.cameras.list[FlxG.cameras.list.length - 1]];
 		addVirtualPad(LEFT_FULL, A);
 		addVirtualPadCamera();
+
+		// The guard follows the selected exit row, so its invisible hit area and
+		// progress bar enlarge the touch target without touching the Alphabet art.
+		exitConfirm = new HoldToConfirm(null, function() performExit(exitAction),
+			() -> controls.ACCEPT, 'HOLD TO EXIT');
+		exitConfirm.cameras = cameras;
+		add(exitConfirm);
 		super.create();
 	}
 
@@ -174,6 +188,49 @@ class PauseSubState extends MusicBeatSubstate
 		if (pauseMusic.volume < 0.5)
 			pauseMusic.volume += 0.01 * elapsed;
 
+		// A tap selects a row; the guard's padded hit area then owns the press.
+		if (menuItemGroup != null)
+		{
+			for (i in 0...menuItemGroup.length)
+			{
+				var item:Alphabet = menuItemGroup.members[i];
+				if (item != null && TouchTarget.justPressedOver(item, cameras))
+				{
+					if (curSelected != i)
+					{
+						curSelected = i;
+						changeSelection(0);
+					}
+					break;
+				}
+			}
+		}
+
+		var daSelected:String = menuItems[curSelected];
+		// Everything in the exit submenu except "Back" drops the current run.
+		var guarded:Bool = menuItems == menuItemsExit && daSelected != 'Back';
+		if (exitConfirm != null)
+		{
+			if (guarded)
+			{
+				var row:Alphabet = menuItemGroup.members[curSelected];
+				if (exitConfirm.target != row)
+				{
+					exitConfirm.target = row;
+					exitConfirm.cancel();
+				}
+				exitAction = daSelected;
+				exitConfirm.enabled = true;
+			}
+			else
+			{
+				exitConfirm.enabled = false;
+				exitConfirm.target = null;
+				exitAction = null;
+				exitConfirm.cancel();
+			}
+		}
+
 		super.update(elapsed);
 		if (menuItems != menuItemsExit && menuItems.contains('Skip Time')) updateSkipTextStuff();
 
@@ -186,7 +243,6 @@ class PauseSubState extends MusicBeatSubstate
 			changeSelection(1);
 		}
 
-		var daSelected:String = menuItems[curSelected];
 		switch (daSelected)
 		{
 			case 'Skip Time':
@@ -319,41 +375,49 @@ class PauseSubState extends MusicBeatSubstate
 				regenMenu();
 				}
 			}
-			if (menuItems == menuItemsExit) {
+			if (menuItems == menuItemsExit && !guarded) {
 			switch(daSelected) {
-			case "Exit to Story Menu", "Exit to Freeplay":
-					PlayState.deathCounter = 0;
-					PlayState.seenCutscene = false;
-
-					Mods.loadTopMod();
-					if(PlayState.isStoryMode) {
-						FlxG.switchState(StoryMenuState.new);
-					} else if (!PlayState.isStoryMode) {
-						FlxG.switchState(FreeplayState.new);
-					}
-					Paths.playMenuMusic(true);
-					PlayState.changedDifficulty = false;
-					PlayState.chartingMode = false;
-			case "Exit to Main Menu":
-					PlayState.deathCounter = 0;
-					PlayState.seenCutscene = false;
-
-					Mods.loadTopMod();
-					FlxG.switchState(MainMenuState.new);
-					Paths.playMenuMusic(true);
-					PlayState.changedDifficulty = false;
-					PlayState.chartingMode = false;
-			case "Exit Game":
-					trace ("Exiting game...");
-					openfl.system.System.exit(0);
 			case "Back":
-					menuItems = menuItemsOG;
-					regenMenu();
-			case "Exit To Your Mother": //this was case sensitive, so the entire time this would softlock your game
-					trace ("YO MAMA");
-					throw "lol";
-				}
+				menuItems = menuItemsOG;
+				regenMenu();
 			}
+			}
+		}
+	}
+
+	/** Destructive exit actions only run after HoldToConfirm completes. */
+	function performExit(label:String):Void
+	{
+		if (label == null) return;
+		switch(label) {
+			case "Exit to Story Menu", "Exit to Freeplay":
+				PlayState.deathCounter = 0;
+				PlayState.seenCutscene = false;
+
+				Mods.loadTopMod();
+				if(PlayState.isStoryMode) {
+					FlxG.switchState(StoryMenuState.new);
+				} else if (!PlayState.isStoryMode) {
+					FlxG.switchState(FreeplayState.new);
+				}
+				Paths.playMenuMusic(true);
+				PlayState.changedDifficulty = false;
+				PlayState.chartingMode = false;
+			case "Exit to Main Menu":
+				PlayState.deathCounter = 0;
+				PlayState.seenCutscene = false;
+
+				Mods.loadTopMod();
+				FlxG.switchState(MainMenuState.new);
+				Paths.playMenuMusic(true);
+				PlayState.changedDifficulty = false;
+				PlayState.chartingMode = false;
+			case "Exit Game":
+				trace ("Exiting game...");
+				openfl.system.System.exit(0);
+			case "Exit To Your Mother": //this was case sensitive, so the entire time this would softlock your game
+				trace ("YO MAMA");
+				throw "lol";
 		}
 	}
 
@@ -436,6 +500,13 @@ class PauseSubState extends MusicBeatSubstate
 	}
 
 	public function regenMenu():Void {
+		// Rows are rebuilt: any pending hold belongs to the old selection.
+		if (exitConfirm != null)
+		{
+			exitConfirm.cancel();
+			exitConfirm.target = null;
+		}
+		exitAction = null;
 		for (i in 0...menuItemGroup.members.length) {
 			var obj = menuItemGroup.members[0];
 			obj.kill();
