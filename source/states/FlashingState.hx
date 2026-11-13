@@ -43,11 +43,17 @@ class FlashingState extends MusicBeatState
 		add(background);
 
 		warnText = new FlxText(0, 0, FlxG.width,
-			"Hey, watch out!\n
-			This Mod contains some flashing lights!\n
-			Press ENTER to disable them now or go to Options Menu.\n
-			Press ESCAPE to ignore this message.\n
-			You've been warned!",
+			backend.TouchlessUI.isActive()
+				? "Hey, watch out!\n
+				This Mod contains some flashing lights!\n
+				Press OK / A to disable them now or go to Options Menu.\n
+				Press BACK to ignore this message.\n
+				You've been warned!"
+				: "Hey, watch out!\n
+				This Mod contains some flashing lights!\n
+				Press ENTER to disable them now or go to Options Menu.\n
+				Press ESCAPE to ignore this message.\n
+				You've been warned!",
 			32);
 		warnText.setFormat("VCR OSD Mono", 32, FlxColor.WHITE, CENTER);
 		warnText.screenCenter(Y);

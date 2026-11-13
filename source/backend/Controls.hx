@@ -262,7 +262,7 @@ class Controls extends FlxActionSet
 	public var BACK(get, never):Bool;
 
 	inline function get_BACK()
-		return _back.check();
+		return _back.check() #if android || flixel.FlxG.android.justPressed.BACK || backend.TouchlessUI.isBackPressed() #end;
 
 	public var PAUSE(get, never):Bool;
 
@@ -792,7 +792,7 @@ class Controls extends FlxActionSet
 		#if !switch
 		addGamepadLiteral(id, [
 			Control.ACCEPT => [A, START],
-			Control.BACK => [B],
+			Control.BACK => [B, FlxGamepadInputID.BACK],
 			Control.UI_UP => [DPAD_UP, LEFT_STICK_DIGITAL_UP],
 			Control.UI_DOWN => [DPAD_DOWN, LEFT_STICK_DIGITAL_DOWN],
 			Control.UI_LEFT => [DPAD_LEFT, LEFT_STICK_DIGITAL_LEFT],
@@ -808,7 +808,7 @@ class Controls extends FlxActionSet
 		addGamepadLiteral(id, [
 			//Swap A and B for switch
 			Control.ACCEPT => [B, START],
-			Control.BACK => [A],
+			Control.BACK => [A, FlxGamepadInputID.BACK],
 			Control.UI_UP => [DPAD_UP, LEFT_STICK_DIGITAL_UP, RIGHT_STICK_DIGITAL_UP],
 			Control.UI_DOWN => [DPAD_DOWN, LEFT_STICK_DIGITAL_DOWN, RIGHT_STICK_DIGITAL_DOWN],
 			Control.UI_LEFT => [DPAD_LEFT, LEFT_STICK_DIGITAL_LEFT, RIGHT_STICK_DIGITAL_LEFT],

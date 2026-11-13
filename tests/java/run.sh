@@ -48,3 +48,26 @@ while IFS= read -r -d '' f; do stub_sources+=("$f"); done \
   "$work/src/quack/fnf/phoenix/MainActivity.java" \
   "$test_src/PhoenixCutoutTest.java"
 "$JAVA" -cp "$classes" quack.fnf.phoenix.android.PhoenixCutoutTest
+
+# --- Android TV detection, Back/Menu routing, and task backgrounding ---------
+classes_tv="$work/classes_tv"
+mkdir -p "$classes_tv"
+
+tv_stub_sources=()
+while IFS= read -r -d '' f; do
+  case "$f" in
+    tests/java/stubs/quack/fnf/phoenix/android/PhoenixCore.java|tests/java/stubs/quack/fnf/phoenix/android/PhoenixInput.java) continue ;;
+  esac
+  tv_stub_sources+=("$f")
+done < <(find tests/java/stubs tests/java/tv_stubs -name '*.java' -print0)
+
+"$JAVAC" -encoding UTF-8 -d "$classes_tv" \
+  "${tv_stub_sources[@]}" \
+  "$android_src/PhoenixCutoutPolicy.java" \
+  "$android_src/PhoenixCutoutLayout.java" \
+  "$android_src/PhoenixDisplay.java" \
+  "$android_src/PhoenixCore.java" \
+  "$android_src/PhoenixInput.java" \
+  "$work/src/quack/fnf/phoenix/MainActivity.java" \
+  "$test_src/PhoenixTVNavigationTest.java"
+"$JAVA" -cp "$classes_tv" quack.fnf.phoenix.android.PhoenixTVNavigationTest

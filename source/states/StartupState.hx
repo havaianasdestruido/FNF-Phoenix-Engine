@@ -90,7 +90,10 @@ class StartupState extends MusicBeatState
 		logo.active = true;
 		add(logo);
 
-		skipTxt = new FlxText(0, FlxG.height, 0, mobile.MobileControls.enabled ? 'Press A To Skip' : 'Press ENTER To Skip', 16);
+		final skipHint:String = backend.TouchlessUI.isActive()
+			? 'Press OK / A To Skip'
+			: (mobile.MobileControls.enabled ? 'Press A To Skip' : 'Press ENTER To Skip');
+		skipTxt = new FlxText(0, FlxG.height, 0, skipHint, 16);
 		skipTxt.setFormat("Comic Sans MS Bold", 18, FlxColor.WHITE, LEFT, OUTLINE, FlxColor.BLACK);
 		skipTxt.borderSize = 1.5;
 		skipTxt.antialiasing = true;

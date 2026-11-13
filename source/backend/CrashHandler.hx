@@ -331,9 +331,15 @@ class Crash extends MusicBeatState
 		#if mobile
 		exportButton = makeButton(70, 520, 560, 56, 'EXPORT CRASH BUNDLE (.ZIP)');
 		restartButton = makeButton(650, 520, 560, 56, 'RESTART');
+		selectedButton = 1;
 		#else
 		exportButton = makeButton(360, 520, 560, 56, 'EXPORT CRASH BUNDLE (.ZIP)  [E]');
+		selectedButton = 0;
 		#end
+		buttonFocus = new FlxSprite(0, 0).makeGraphic(568, 64, 0xFFFFFF66);
+		buttonFocus.alpha = 0.7;
+		insert(members.indexOf(exportButton), buttonFocus);
+		updateButtonFocus();
 		#end
 
 		var stripClub:Array<String> = CrashHandler.errorMessage.split("\n");
@@ -367,6 +373,8 @@ class Crash extends MusicBeatState
 		for (spr in crash)
 			FlxTween.tween(spr, {alpha: 1}, 0.5);
 
+		FlxG.mouse.visible = !TouchlessUI.isActive() && !TouchlessUI.isHardwareTouchless();
+
 		var error:FlxSound = FlxG.sound.load(Paths.sound('error'));
 		error.play();
 
@@ -383,6 +391,21 @@ class Crash extends MusicBeatState
 	var bundleStatus:FlxText = null;
 	var exportButton:FlxSprite = null;
 	var restartButton:FlxSprite = null;
+	var buttonFocus:FlxSprite = null;
+	var selectedButton:Int = 1;
+
+	function updateButtonFocus():Void
+	{
+		if (buttonFocus == null) return;
+		var target:FlxSprite = (selectedButton == 1 && restartButton != null) ? restartButton : exportButton;
+		if (target == null)
+		{
+			buttonFocus.visible = false;
+			return;
+		}
+		buttonFocus.visible = true;
+		buttonFocus.setPosition(target.x - 4, target.y - 4);
+	}
 
 	override public function update(elapsed:Float)
 	{
@@ -396,8 +419,52 @@ class Crash extends MusicBeatState
 				restartToMenu();
 		}
 
+		if (!clicked)
+		{
+			final leftPressed:Bool = FlxG.keys.justPressed.LEFT
+				|| FlxG.gamepads.anyJustPressed(DPAD_LEFT)
+				|| FlxG.gamepads.anyJustPressed(LEFT_STICK_DIGITAL_LEFT);
+			final rightPressed:Bool = FlxG.keys.justPressed.RIGHT
+				|| FlxG.gamepads.anyJustPressed(DPAD_RIGHT)
+				|| FlxG.gamepads.anyJustPressed(LEFT_STICK_DIGITAL_RIGHT);
+			final padAccept:Bool = FlxG.gamepads.anyJustPressed(A) || FlxG.gamepads.anyJustPressed(START);
+			final padBack:Bool = #if android FlxG.android.justPressed.BACK || #end
+				TouchlessUI.isBackPressed()
+				|| FlxG.gamepads.anyJustPressed(B)
+				|| FlxG.gamepads.anyJustPressed(BACK);
+
+			if ((leftPressed || rightPressed) && restartButton != null)
+			{
+				selectedButton = selectedButton == 0 ? 1 : 0;
+				updateButtonFocus();
+			}
+			else if (padBack)
+			{
+				restartToMenu();
+			}
+			else if (padAccept)
+			{
+				if (selectedButton == 0 && exportButton != null)
+					exportBundle();
+				else
+					restartToMenu();
+			}
+		}
+
 		if (FlxG.keys.justPressed.ANY && !clicked)
 		{
+			if (restartButton != null && (FlxG.keys.justPressed.LEFT || FlxG.keys.justPressed.RIGHT || FlxG.keys.justPressed.UP || FlxG.keys.justPressed.DOWN))
+				return;
+
+			if (restartButton != null && FlxG.keys.justPressed.ENTER)
+			{
+				if (selectedButton == 0 && exportButton != null)
+					exportBundle();
+				else
+					restartToMenu();
+				return;
+			}
+
 			FlxTransitionableState.skipNextTransIn = false;
 			if (FlxG.keys.justPressed.ENTER && CrashHandler.extraLines.length < 1)
 			{

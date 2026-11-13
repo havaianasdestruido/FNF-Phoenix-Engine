@@ -20,10 +20,12 @@ class Prompt extends MusicBeatSubstate
 	var panelbg:FlxSprite;
 	var buttonAccept:FlxButton;
 	var buttonNo:FlxButton;
+	var focusOutline:FlxSprite;
 	var cornerSize:Int = 10;
+	var inputDelay:Float = 0.12;
 	public function new(promptText:String='', defaultSelected:Int = 0, okCallback:Void->Void, cancelCallback:Void->Void,acceptOnDefault:Bool=false,option1:String=null,option2:String=null)
 	{
-		selected = defaultSelected;
+		selected = defaultSelected == 1 ? 1 : 0;
 		okc = okCallback;
 		cancelc = cancelCallback;
 		theText = promptText;
@@ -52,6 +54,7 @@ class Prompt extends MusicBeatSubstate
 			close();
 
 		}else{
+		backend.TouchlessUI.syncMouseCursor();
 		panel = new FlxSprite(0, 0);
 		panelbg = new FlxSprite(0, 0);
 		makeSelectorGraphic(panel,300,150,0xff999999);
@@ -63,6 +66,9 @@ class Prompt extends MusicBeatSubstate
 
 		add(panelbg);
 		add(panel);
+		focusOutline = new FlxSprite(0, 0).makeGraphic(Std.int(buttonAccept.width + 6), Std.int(buttonAccept.height + 6), 0xFFFFFF66);
+		focusOutline.scrollFactor.set();
+		add(focusOutline);
 		add(buttonAccept);
 		add(buttonNo);
 		//add(buttons);
@@ -77,6 +83,57 @@ class Prompt extends MusicBeatSubstate
 		buttonNo.x += buttonNo.width/1.5;
 		buttonNo.y = panel.y + panel.height-30;
 		textField.scrollFactor.set();
+		updateFocusOutline();
+
+		addVirtualPad(LEFT_RIGHT, A_B);
+		addVirtualPadCamera();
+		}
+	}
+
+	function updateFocusOutline():Void
+	{
+		if (focusOutline == null) return;
+		var target:FlxButton = selected == 0 ? buttonAccept : buttonNo;
+		if (target == null) return;
+		focusOutline.setPosition(target.x - 3, target.y - 3);
+	}
+
+	override public function update(elapsed:Float):Void
+	{
+		super.update(elapsed);
+		if (goAnyway) return;
+
+		if (inputDelay > 0)
+			inputDelay -= elapsed;
+
+		if (controls.UI_LEFT_P || controls.UI_RIGHT_P)
+		{
+			selected = backend.AndroidTVPolicy.selectPromptChoice(selected, controls.UI_LEFT_P ? -1 : 1);
+			updateFocusOutline();
+			FlxG.sound.play(backend.Paths.sound('scrollMenu'));
+		}
+
+		if (inputDelay <= 0)
+		{
+			if (controls.ACCEPT)
+			{
+				FlxG.sound.play(backend.Paths.sound(selected == 0 ? 'confirmMenu' : 'cancelMenu'));
+				if (selected == 0)
+				{
+					if (okc != null) okc();
+				}
+				else
+				{
+					if (cancelc != null) cancelc();
+				}
+				close();
+			}
+			else if (controls.BACK)
+			{
+				FlxG.sound.play(backend.Paths.sound('cancelMenu'));
+				if (cancelc != null) cancelc();
+				close();
+			}
 		}
 	}
 

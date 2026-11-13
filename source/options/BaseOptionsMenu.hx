@@ -132,7 +132,7 @@ class BaseOptionsMenu extends MusicBeatSubstate
 		searchText = new FlxText(buttonTop.x + 195, buttonTop.y + 20, 100, "Search", 24);
 		searchText.setFormat(Paths.font("vcr.ttf"), 24, FlxColor.BLACK);
 		add(searchText);
-		FlxG.mouse.visible = true;
+		FlxG.mouse.visible = !backend.TouchlessUI.isActive();
 
 		addVirtualPad(LEFT_FULL, A_B_C);
 
@@ -333,7 +333,9 @@ class BaseOptionsMenu extends MusicBeatSubstate
 	var _textThrottle:Float = 0;
 	override function update(elapsed:Float)
 	{
-		if (!optionSearchText.hasFocus)
+		if (optionSearchText.hasFocus && controls.BACK)
+			optionSearchText.hasFocus = false;
+		else if (!optionSearchText.hasFocus)
 		{
 		if (controls.UI_UP_P)
 		{
@@ -448,9 +450,9 @@ class BaseOptionsMenu extends MusicBeatSubstate
 				}
 			}
 
-			if(virtualPad.buttonC.justPressed || controls.RESET)
+			if(virtualPad.buttonC.justPressed || controls.RESET || FlxG.gamepads.anyJustPressed(Y))
 			{
-				if (!FlxG.keys.pressed.SHIFT)
+				if (!FlxG.keys.pressed.SHIFT && !FlxG.gamepads.anyPressed(LEFT_SHOULDER))
 				{
 					var leOption:Option = optionsArray[curSelected];
 					leOption.setValue(leOption.defaultValue);

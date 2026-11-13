@@ -384,7 +384,7 @@ class ModsMenuState extends MusicBeatState
 			return;
 		}
 
-		if(Math.abs(FlxG.mouse.deltaX) > 10 || Math.abs(FlxG.mouse.deltaY) > 10)
+		if(!backend.TouchlessUI.isActive() && (Math.abs(FlxG.mouse.deltaX) > 10 || Math.abs(FlxG.mouse.deltaY) > 10))
 		{
 			if(!FlxG.mouse.visible) FlxG.mouse.visible = true;
 		}
@@ -394,6 +394,24 @@ class ModsMenuState extends MusicBeatState
 		if(modsList.all.length > 0)
 		{
 			var lastMode = hoveringOnMods;
+			if(hoveringOnMods)
+			{
+				if(modsList.all.length == 1)
+				{
+					if(controls.UI_DOWN_P)
+						changeSelectedMod(1);
+					else if(controls.UI_UP_P)
+						changeSelectedMod(-1);
+				}
+
+				if(controls.ACCEPT && buttons.length > 0)
+				{
+					var toggleBtn = buttons[buttons.length - 1];
+					if(toggleBtn != null && toggleBtn.enabled && toggleBtn.onClick != null)
+						toggleBtn.onClick();
+				}
+			}
+
 			if(modsList.all.length > 1)
 			{
 				if(FlxG.mouse.justPressed)
@@ -507,7 +525,7 @@ class ModsMenuState extends MusicBeatState
 						hoveringOnMods = false;
 						var button = getButton();
 						button.ignoreCheck = button.onFocus = false;
-						curSelectedButton = 0;
+						curSelectedButton = firstEnabledButtonIndex();
 						changeSelectedButton();
 					}
 				}
@@ -559,7 +577,7 @@ class ModsMenuState extends MusicBeatState
 						{
 							var button = getButton();
 							button.ignoreCheck = button.onFocus = false;
-							curSelectedButton = 0;
+							curSelectedButton = firstEnabledButtonIndex();
 							changeSelectedButton();
 						}
 					}
@@ -594,6 +612,14 @@ class ModsMenuState extends MusicBeatState
 			}
 		}
 		super.update(elapsed);
+	}
+
+	function firstEnabledButtonIndex():Int
+	{
+		for (i in 0...buttons.length)
+			if (buttons[i] != null && buttons[i].enabled)
+				return i;
+		return -3;
 	}
 
 	function changeSelectedButton(add:Int = 0)

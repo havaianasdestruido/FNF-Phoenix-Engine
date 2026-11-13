@@ -42,8 +42,8 @@ gameplay code never needs to know about the platform layer.
   which routes through a registered `HaxeObject` to
   `AndroidBridge.onAndroidEvent(event, arg)`. The bridge fans events out
   to the module signals (`lifecycle`, `media_*`, `focus`, `memory`,
-  `gamepad_*`, `hwkey`, `display`, `deeplink`, `intent`, `permissions`,
-  `recovery`).
+  `gamepad_*`, `hwkey`, `nav`, `display`, `deeplink`, `intent`,
+  `permissions`, `recovery`).
 - The boot hook lives in `Main.hx`:
   `android.platform.AndroidPlatform.init()` (Android only) initializes the
   bridge, lifecycle handling, gamepad tracking and display watching from
@@ -65,12 +65,17 @@ The Android pieces are injected **only for the Android target**
   - `source/templates/android/MainActivity.java` — deep-link intents
     (`onNewIntent`) and hardware-key interception.
   - `source/templates/android/template/app/src/main/AndroidManifest.xml` —
+    optional `android.software.leanback` / touchscreen / gamepad hardware
+    declarations, `LEANBACK_LAUNCHER` category for Android TV,
     `phoenix://` intent filter, the exported Media3 `PhoenixMediaService`
     (`foregroundServiceType="mediaPlayback"` plus the
     `androidx.media3.session.MediaSessionService` discovery action),
     FileProvider, and the `PhoenixDocumentsProvider` SAF provider. Its
     registration remains behind Lime's `SHARE_FILES` template condition
     (derived from `SHARE_MOBILE_FILES`).
+  - `source/templates/android/template/app/src/main/res/drawable-xhdpi/tv_banner.png` —
+    320x180 Android TV launcher banner referenced via `android:banner="@drawable/tv_banner"`
+    in `project.hxp` (`android:isGame="true"`, `android:enableOnBackInvokedCallback="false"`).
 - `config.push("android.extension", extension, true)` — registers the five
   `Extension` subclasses (`PhoenixCore`, `PhoenixDisplay`,
   `PhoenixInput`, `PhoenixMedia`, `PhoenixStorage`) with Lime's
@@ -228,7 +233,7 @@ a no-op outside `#if android` unless noted.
 
 ### JNI Bridge Contract
 
-There are 56 `JNI.createStaticMethod` sites in `source/android/platform/` (plus external SDL bindings).
+There are 67 `JNI.createStaticMethod` sites in `source/android/platform/` (plus external SDL bindings).
 Each binds a Java method by string name *and* signature. A Java rename or
 signature edit still compiles and fails only at runtime as a silent no-op.
 
@@ -245,6 +250,9 @@ signature edit still compiles and fails only at runtime as a silent no-op.
 | `AndroidBridge.hx` | `PhoenixCore` | `getPendingDeepLink` | `()Ljava/lang/String;` | OK |
 | `AndroidSystem.hx` | `PhoenixCore` | `getRecoveryState` | `()Ljava/lang/String;` | OK |
 | `AndroidSystem.hx` | `PhoenixCore` | `getSDKInt` | `()I` | OK |
+| `AndroidSystem.hx` | `PhoenixCore` | `hasTouchscreen` | `()Z` | OK |
+| `AndroidSystem.hx` | `PhoenixCore` | `isAndroidTV` | `()Z` | OK |
+| `AndroidSystem.hx` | `PhoenixCore` | `moveTaskToBack` | `()Z` | OK |
 | `AndroidBridge.hx` | `PhoenixCore` | `registerCallback` | `(Lorg/haxe/lime/HaxeObject;)V` | OK |
 | `AndroidSystem.hx` | `PhoenixCore` | `releaseWakeLock` | `()V` | OK |
 | `AndroidNotification.hx` | `PhoenixCore` | `requestNotificationPermission` | `()V` | OK |
@@ -464,6 +472,12 @@ buttons mirroring their keyboard shortcuts:
 
 - `phoenix://` deep links reach Haxe (`AndroidIntents.onDeepLink`) but
   per-screen routing UI is not implemented yet (roadmap P3).
+- Android TV & touchless remote navigation is wired via `PhoenixCore.isAndroidTV()`,
+  `PhoenixCore.hasTouchscreen()`, `source/source-haxelib-patches/openfl/ui/Keyboard.hx`
+  (`SELECT` -> `ENTER`, `MENU` -> `302`), `MainActivity` / `PhoenixInput` menu-key
+  forwarding, `PlayerSettings` (`FlxInputDeviceID.ALL`), `Controls.BACK` Android
+  routing, and `ClientPrefs.androidTVNavigation` (auto-enabled on first launch for
+  TV/touchless devices; togglable under Options -> Mobile Options).
 - Hardware triggers (volume keys) can be bound to the four note lanes from
   Options -> Controls -> HARDWARE (Android only, unbound by default). They
   are stored in the regular keybind map as `hw_note_<lane>` entries, encoded

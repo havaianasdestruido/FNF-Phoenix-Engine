@@ -179,7 +179,7 @@ class AchievementsMenuState extends MusicBeatState
 
 	override function closeSubState()
 	{
-		if (virtualPad != null) virtualPad.visible = true;
+		if (virtualPad != null) virtualPad.visible = mobile.MobileControls.enabled;
 		super.closeSubState();
 	}
 

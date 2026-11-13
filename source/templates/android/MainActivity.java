@@ -88,8 +88,32 @@ public class MainActivity extends org.haxe.lime.GameActivity implements PhoenixD
 		super.onNewIntent(intent);
 	}
 
+	@Override public boolean dispatchKeyEvent(KeyEvent event)
+	{
+		if (event != null)
+		{
+			int action = event.getAction();
+			int keyCode = event.getKeyCode();
+			if (action == KeyEvent.ACTION_DOWN)
+			{
+				if (keyCode == KeyEvent.KEYCODE_MENU && event.getRepeatCount() > 0)
+					return true;
+				if (PhoenixInput.interceptKey(keyCode, true))
+					return true;
+			}
+			else if (action == KeyEvent.ACTION_UP)
+			{
+				if (PhoenixInput.interceptKey(keyCode, false))
+					return true;
+			}
+		}
+		return super.dispatchKeyEvent(event);
+	}
+
 	@Override public boolean onKeyDown(int keyCode, KeyEvent event)
 	{
+		if (keyCode == KeyEvent.KEYCODE_MENU && event != null && event.getRepeatCount() > 0)
+			return true;
 		if (PhoenixInput.interceptKey(keyCode, true))
 			return true;
 		return super.onKeyDown(keyCode, event);

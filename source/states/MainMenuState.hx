@@ -133,7 +133,7 @@ class MainMenuState extends MusicBeatState
       // funnycatperson.screenCenter(X);
       funnycatperson.alpha = 0.8;
 
-      FlxG.mouse.visible = true;
+      FlxG.mouse.visible = !backend.TouchlessUI.isActive();
     }
     #end
 

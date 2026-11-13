@@ -143,8 +143,17 @@ public class PhoenixCore extends Extension
 		dispatch("memory", "trim:" + level);
 	}
 
+	@Override public boolean onBackPressed()
+	{
+		// Forward system Back (including Android gesture navigation when
+		// SDLSurface does not see KEYCODE_BACK) into Haxe and prevent
+		// GameActivity from killing the activity behind the user's menus.
+		dispatch("nav", "back");
+		return false;
+	}
+
 	// ------------------------------------------------------------------
-	// Device info
+	// Device info / Android TV
 	// ------------------------------------------------------------------
 
 	public static int getSDKInt()
@@ -159,6 +168,93 @@ public class PhoenixCore extends Extension
 		if (arch == null)
 			arch = "unknown";
 		return Build.MANUFACTURER + "|" + Build.MODEL + "|" + Build.DEVICE + "|" + arch;
+	}
+
+	/**
+	 * Returns true when running on Android TV / Leanback hardware (including
+	 * TV boxes and consoles reporting television UI mode or features).
+	 */
+	public static boolean isAndroidTV()
+	{
+		if (mainContext == null)
+			return false;
+
+		try
+		{
+			android.app.UiModeManager uiModeManager =
+				(android.app.UiModeManager) mainContext.getSystemService(Context.UI_MODE_SERVICE);
+			if (uiModeManager != null
+				&& uiModeManager.getCurrentModeType() == android.content.res.Configuration.UI_MODE_TYPE_TELEVISION)
+			{
+				return true;
+			}
+
+			PackageManager pm = mainContext.getPackageManager();
+			if (pm != null
+				&& (pm.hasSystemFeature("android.software.leanback")
+					|| pm.hasSystemFeature("android.hardware.type.television")))
+			{
+				return true;
+			}
+		}
+		catch (Exception e)
+		{
+			Log.e(LOG_TAG, "isAndroidTV failed: " + e);
+		}
+		return false;
+	}
+
+	/**
+	 * Returns false only when the device explicitly lacks touchscreen hardware
+	 * (such as Android TV boxes); falls back to true when uncertain so phone/
+	 * tablet builds never lose touch controls unexpectedly.
+	 */
+	public static boolean hasTouchscreen()
+	{
+		if (mainContext == null)
+			return true;
+
+		try
+		{
+			PackageManager pm = mainContext.getPackageManager();
+			if (pm == null)
+				return true;
+			return pm.hasSystemFeature(PackageManager.FEATURE_TOUCHSCREEN);
+		}
+		catch (Exception e)
+		{
+			Log.e(LOG_TAG, "hasTouchscreen failed: " + e);
+			return true;
+		}
+	}
+
+	/**
+	 * Backgrounds the current task instead of tearing down the engine process
+	 * when the player presses Back on the root title screen.
+	 */
+	public static boolean moveTaskToBack()
+	{
+		final Activity activity = mainActivity;
+		if (activity == null)
+			return false;
+
+		try
+		{
+			activity.runOnUiThread(new Runnable()
+			{
+				@Override public void run()
+				{
+					if (!activity.isFinishing())
+						activity.moveTaskToBack(true);
+				}
+			});
+			return true;
+		}
+		catch (Exception e)
+		{
+			Log.e(LOG_TAG, "moveTaskToBack failed: " + e);
+			return false;
+		}
 	}
 
 	// ------------------------------------------------------------------

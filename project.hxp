@@ -910,6 +910,12 @@ class Project extends HXProject
 		config.set("android.application.android:requestLegacyExternalStorage", "false");
 		config.set("android.application.android:preserveLegacyExternalStorage", "false");
 
+		// Android TV / Leanback launcher banner and explicit in-engine Back routing
+		// (disable Android 13+ predictive back killing the activity bypassing SDL/Haxe).
+		config.set("android.application.android:banner", "@drawable/tv_banner");
+		config.set("android.application.android:isGame", "true");
+		config.set("android.application.android:enableOnBackInvokedCallback", "false");
+
 		var abis = androidAbis();
 		if (abis.length == 0)
 			return;

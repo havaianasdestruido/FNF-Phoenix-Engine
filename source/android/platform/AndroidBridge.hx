@@ -96,6 +96,9 @@ class AndroidBridge #if android implements lime.system.JNI.JNISafety #end
 	/** Hardware key events (volume keys as input): keyCode, isDown. */
 	public static var onHardwareKey:FlxTypedSignal<Int->Bool->Void> = new FlxTypedSignal<Int->Bool->Void>();
 
+	/** Navigation requests from Android system/remote keys ("back" | "menu"). */
+	public static var onNavAction:FlxTypedSignal<String->Void> = new FlxTypedSignal<String->Void>();
+
 	/** Display configuration changed (rotation/refresh/mode). */
 	public static var onDisplayChanged:FlxSignal = new FlxSignal();
 
@@ -219,6 +222,9 @@ class AndroidBridge #if android implements lime.system.JNI.JNISafety #end
 					var code = Std.parseInt(arg.substr(colonIndex + 1)) ?? 0;
 					onHardwareKey.dispatch(code, down);
 				}
+
+			case 'nav':
+				onNavAction.dispatch(arg);
 
 			case 'display':
 				onDisplayChanged.dispatch();

@@ -180,7 +180,9 @@ class MusicPlayer extends FlxGroup
 			}
 		}
 
-		if ((instance.virtualPad != null && instance.virtualPad.buttonY != null && instance.virtualPad.buttonY.justPressed) || controls.RESET)
+		if ((instance.virtualPad != null && instance.virtualPad.buttonY != null && instance.virtualPad.buttonY.justPressed)
+			|| controls.RESET
+			|| FlxG.gamepads.anyJustPressed(Y))
 		{
 			playbackRate = 1;
 			setPlaybackRate();

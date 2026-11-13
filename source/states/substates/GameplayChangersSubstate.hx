@@ -138,6 +138,7 @@ class GameplayChangersSubstate extends MusicBeatSubstate
 			FlxG.sound.play(Paths.sound('cancelMenu'));
 		}
 
+		var shiftHeld:Bool = FlxG.keys.pressed.SHIFT || FlxG.gamepads.anyPressed(LEFT_SHOULDER);
 		if(nextAccept <= 0)
 		{
 			var usesCheckbox = true;
@@ -167,7 +168,7 @@ class GameplayChangersSubstate extends MusicBeatSubstate
 
 								if (FlxG.keys.pressed.CONTROL)
 									step = curOption.slowChangeVal;
-								else if (FlxG.keys.pressed.SHIFT)
+								else if (shiftHeld)
 								{
 									if(curOption.type == 'int')
 										step = 5;
@@ -258,7 +259,8 @@ class GameplayChangersSubstate extends MusicBeatSubstate
 					clearHold();
 				}
 			}
-			if(controls.RESET && FlxG.keys.pressed.SHIFT)
+			final resetPressed:Bool = controls.RESET || FlxG.gamepads.anyJustPressed(Y);
+			if(resetPressed && shiftHeld)
 			{
 				for (i in 0...optionsArray.length)
 				{
@@ -289,7 +291,7 @@ class GameplayChangersSubstate extends MusicBeatSubstate
 				reloadCheckboxes();
 			}
 
-			if((controls.RESET && !FlxG.keys.pressed.SHIFT) || virtualPad.buttonC.justPressed)
+			if((resetPressed && !shiftHeld) || virtualPad.buttonC.justPressed)
 			{
 				var leOption:GameplayOption = optionsArray[curSelected];
 				leOption.setValue(leOption.defaultValue);

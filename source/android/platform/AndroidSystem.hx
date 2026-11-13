@@ -151,6 +151,36 @@ class AndroidSystem
 		#end
 	}
 
+	/** True on Android TV / Leanback hardware (false on other platforms). */
+	public static function isAndroidTV():Bool
+	{
+		#if android
+		return isAndroidTV_jni();
+		#else
+		return false;
+		#end
+	}
+
+	/** True when touchscreen hardware exists (always true outside Android / on failure). */
+	public static function hasTouchscreen():Bool
+	{
+		#if android
+		return hasTouchscreen_jni();
+		#else
+		return true;
+		#end
+	}
+
+	/** Backgrounds the Android task safely (no-op returning false elsewhere). */
+	public static function moveTaskToBack():Bool
+	{
+		#if android
+		return moveTaskToBack_jni();
+		#else
+		return false;
+		#end
+	}
+
 	// ------------------------------------------------------------------
 	// JNI bindings
 	// ------------------------------------------------------------------
@@ -217,6 +247,33 @@ class AndroidSystem
 		if (_getDeviceInfo == null)
 			_getDeviceInfo = JNI.createStaticMethod('quack.fnf.phoenix.android.PhoenixCore', 'getDeviceInfo', '()Ljava/lang/String;');
 		return _getDeviceInfo();
+	}
+
+	static var _isAndroidTV:Dynamic = null;
+
+	static function isAndroidTV_jni():Bool
+	{
+		if (_isAndroidTV == null)
+			_isAndroidTV = JNI.createStaticMethod('quack.fnf.phoenix.android.PhoenixCore', 'isAndroidTV', '()Z');
+		return _isAndroidTV();
+	}
+
+	static var _hasTouchscreen:Dynamic = null;
+
+	static function hasTouchscreen_jni():Bool
+	{
+		if (_hasTouchscreen == null)
+			_hasTouchscreen = JNI.createStaticMethod('quack.fnf.phoenix.android.PhoenixCore', 'hasTouchscreen', '()Z');
+		return _hasTouchscreen();
+	}
+
+	static var _moveTaskToBack:Dynamic = null;
+
+	static function moveTaskToBack_jni():Bool
+	{
+		if (_moveTaskToBack == null)
+			_moveTaskToBack = JNI.createStaticMethod('quack.fnf.phoenix.android.PhoenixCore', 'moveTaskToBack', '()Z');
+		return _moveTaskToBack();
 	}
 	#end
 }

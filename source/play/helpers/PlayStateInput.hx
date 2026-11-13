@@ -128,7 +128,7 @@ class PlayStateInput
 
 	public static function keyReleased(state:PlayState, key:Int)
 	{
-		if (state.cpuControlled || !state.startedCountdown || state.paused)
+		if (key < 0 || state.cpuControlled || !state.startedCountdown || state.paused)
 			return;
 
 		var spr:StrumNote = state.playerStrums.members[key];
@@ -172,8 +172,11 @@ class PlayStateInput
 			if (state.strumsHeld[i]) state.strumHeldAmount++;
 		}
 
-		// Touch controls report NOTE_* actions without generating keyboard events.
-		if (ClientPrefs.controllerMode || mobile.MobileControls.enabled)
+		// Touch controls and connected gamepads/TV remotes report NOTE_* actions
+		// without generating keyboard events, so poll them even when touch pads
+		// are suppressed (e.g. Android TV navigation mode).
+		final hasPolledController:Bool = ClientPrefs.controllerMode || mobile.MobileControls.enabled || FlxG.gamepads.numActiveGamepads > 0;
+		if (hasPolledController)
 		{
 			for (i in 0...state.pressArray.length)
 			{
@@ -229,7 +232,7 @@ class PlayStateInput
 			#end
 		}
 
-		if ((ClientPrefs.controllerMode || mobile.MobileControls.enabled) || state.strumsBlocked.contains(true))
+		if (hasPolledController || state.strumsBlocked.contains(true))
 		{
 			if (state.releaseArray.contains(true))
 			{

@@ -240,6 +240,13 @@ public class PhoenixInput extends Extension
 	 */
 	public static boolean interceptKey(int keyCode, boolean down)
 	{
+		if (keyCode == android.view.KeyEvent.KEYCODE_MENU)
+		{
+			if (down)
+				PhoenixCore.dispatch("nav", "menu");
+			return true;
+		}
+
 		if (!interceptVolumeKeys)
 			return false;
 
