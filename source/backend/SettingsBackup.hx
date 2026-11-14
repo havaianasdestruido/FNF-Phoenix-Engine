@@ -338,6 +338,7 @@ class SettingsBackup
     if (Main.fpsVar != null) Main.fpsVar.visible = ClientPrefs.showFPS;
 
     ClientPrefs.applyWidescreenPreference();
+    ClientPrefs.applyWindowModePreference();
     #if android
     ClientPrefs.applyCutoutPreference();
     TouchlessUI.syncMouseCursor(!TouchlessUI.isActive());
