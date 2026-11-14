@@ -326,8 +326,8 @@ class PlayStateEvents
 					if(Math.isNaN(camZoom)) camZoom = 0.015;
 					if(Math.isNaN(hudZoom)) hudZoom = 0.03;
 
-					state.camBopFactor += camZoom;
-					state.camHUD.zoom += hudZoom;
+					state.camBopFactor += camZoom * backend.CameraEffects.multiplier();
+					state.camHUD.zoom += hudZoom * backend.CameraEffects.multiplier();
 				}
 
 			case 'Play Animation':
@@ -412,7 +412,7 @@ class PlayStateEvents
 					if(Math.isNaN(intensity)) intensity = 0;
 
 					if(duration > 0 && intensity != 0) {
-						if (!ClientPrefs.reducedMotion) targetsArray[i].shake(intensity, duration);
+						if (!ClientPrefs.reducedMotion) backend.CameraEffects.shake(targetsArray[i], intensity, duration);
 					}
 				}
 

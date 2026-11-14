@@ -414,8 +414,8 @@ class PlayStateNotes
 			if (state.playerChar != null && state.playerChar.shakeScreen)
 			{
 				if (!ClientPrefs.reducedMotion) {
-					state.camGame.shake(state.playerChar.shakeIntensity, state.playerChar.shakeDuration / state.playbackRate);
-					state.camHUD.shake(state.playerChar.shakeIntensity / 2, state.playerChar.shakeDuration / state.playbackRate);
+					backend.CameraEffects.shake(state.camGame, state.playerChar.shakeIntensity, state.playerChar.shakeDuration / state.playbackRate);
+					backend.CameraEffects.shake(state.camHUD, state.playerChar.shakeIntensity / 2, state.playerChar.shakeDuration / state.playbackRate);
 				}
 			}
 			note.wasGoodHit = true;
@@ -621,8 +621,8 @@ class PlayStateNotes
 			if (state.oppChar != null && state.oppChar.shakeScreen)
 			{
 				if (!ClientPrefs.reducedMotion) {
-					state.camGame.shake(state.oppChar.shakeIntensity, state.oppChar.shakeDuration / state.playbackRate);
-					state.camHUD.shake(state.oppChar.shakeIntensity / 2, state.oppChar.shakeDuration / state.playbackRate);
+					backend.CameraEffects.shake(state.camGame, state.oppChar.shakeIntensity, state.oppChar.shakeDuration / state.playbackRate);
+					backend.CameraEffects.shake(state.camHUD, state.oppChar.shakeIntensity / 2, state.oppChar.shakeDuration / state.playbackRate);
 				}
 			}
 			if (state.scoreTxtUpdateFrame <= 4) state.updateScore();
@@ -671,8 +671,8 @@ class PlayStateNotes
 			{
 				state.oppChar = !noteAlt.gfNote ? !PlayState.opponentChart ? state.dad : state.boyfriend : state.gf;
 				if (!ClientPrefs.reducedMotion) {
-					state.camGame.shake(state.oppChar.shakeIntensity, state.oppChar.shakeDuration / state.playbackRate);
-					state.camHUD.shake(state.oppChar.shakeIntensity / 2, state.oppChar.shakeDuration / state.playbackRate);
+					backend.CameraEffects.shake(state.camGame, state.oppChar.shakeIntensity, state.oppChar.shakeDuration / state.playbackRate);
+					backend.CameraEffects.shake(state.camHUD, state.oppChar.shakeIntensity / 2, state.oppChar.shakeDuration / state.playbackRate);
 				}
 			}
 			if (!ClientPrefs.noSkipFuncs && state.hasActiveScripts())

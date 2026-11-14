@@ -100,6 +100,8 @@ class ClientPrefs { //default settings if it can't find a save file containing y
 	public static var instantDialogueAdvance:Bool = false;
 	public static var hideDialogueBox:Bool = false;
 	public static var camZooms:Bool = true;
+	/** Camera effect strength: 0..1, displayed as 0..100% in Visuals and UI. */
+	public static var cameraFxIntensity:Float = 1;
 	public static var visualBeatIndicator:Bool = false;
 	public static var showNotes:Bool = true;
 	/** Opt-in perspective for notes/strums only; forces middlescroll for the next song. */
