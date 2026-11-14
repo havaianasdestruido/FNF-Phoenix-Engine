@@ -25,8 +25,14 @@ import flixel.util.FlxColor;
  * confirmation. Releasing early, dragging off the target, tapping elsewhere,
  * losing focus or running out of time cancels; `onConfirm` fires exactly once.
  *
+ * `held` must report whether the key is *down now*, not whether it went down
+ * this frame: `backend.Controls` exposes `ACCEPT` / `RESET` bound as
+ * `JUST_PRESSED` (true for one frame, so a hold restarts forever) and
+ * `ACCEPT_P` / `RESET_P` bound as `PRESSED` (true while held). Use the `_P`
+ * variant for every guard.
+ *
  * ```haxe
- * var guard = new HoldToConfirm(okButton, doDelete, () -> controls.ACCEPT);
+ * var guard = new HoldToConfirm(okButton, doDelete, () -> controls.ACCEPT_P);
  * add(guard);
  * okButton.onUp.callback = null; // the guard owns the press now
  * ```
@@ -37,8 +43,9 @@ class HoldToConfirm extends TouchTarget
   public var onConfirm:Void->Void = null;
   /**
    * Returns true while the keyboard/gamepad/virtual-pad key for this action is
-   * held. `null` makes the guard pointer-only. Callers fold selection into it,
-   * e.g. `() -> onYes && controls.ACCEPT`.
+   * down, so it must read a PRESSED-bound flag (`controls.ACCEPT_P`), never a
+   * JUST_PRESSED one (`controls.ACCEPT`). `null` makes the guard pointer-only.
+   * Callers fold selection into it, e.g. `() -> onYes && controls.ACCEPT_P`.
    */
   public var held:Void->Bool = null;
   /** Hint shown while holding; the second-confirmation mode overrides it. */

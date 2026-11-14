@@ -27,7 +27,7 @@ goto done
 :run_platform
 set "PLATFORM=%~1"
 set "OUTPUT=%TEST_SOURCE%\generated\%PLATFORM%"
-%HAXE% %COMMON% -D %PLATFORM% -D no-compilation -cpp "%OUTPUT%"
+%HAXE% %COMMON% -D desktop -D %PLATFORM% -D no-compilation -cpp "%OUTPUT%"
 if errorlevel 1 exit /b 1
 findstr /l /c:"resizeWindow" "%OUTPUT%\src\backend\WindowMode.cpp" >nul
 if errorlevel 1 exit /b 1

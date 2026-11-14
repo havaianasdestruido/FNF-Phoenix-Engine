@@ -100,8 +100,17 @@ the player must press twice inside a three-second window. There is no single-tap
 `backend.HoldToConfirmLogic` holds the renderer-free state machine, and
 `objects.TouchTarget` / `objects.HoldToConfirm` are the Flixel layer: an invisible hit
 area of at least 88 × 88 game units centred on the original art, a runtime progress bar,
-mouse + multi-touch + `controls.ACCEPT` input, and cancellation on release, drag-out,
-stray presses or timeout. The guarded **Reset All Settings** row is the discoverable
+mouse + multi-touch + `controls.ACCEPT_P` input, and cancellation on release, drag-out,
+stray presses or timeout.
+
+The `_P` suffix is not cosmetic. `backend.Controls` binds `ACCEPT` and `RESET` as
+`JUST_PRESSED`, so they are true for the single frame of the press; `ACCEPT_P` and
+`RESET_P` bind the *same* physical keys as `PRESSED`, so they stay true while the key is
+down. A guard wired to the plain flag sees "pressed, released" every frame, which draws
+one frame of bar and then cancels forever. `tests/haxe/HoldToConfirmCallSitesSpec.hx`
+scans every guard for this.
+
+The guarded **Reset All Settings** row is the discoverable
 touch target; the old SHIFT+RESET shortcut in this menu (and in Gameplay Changers) is
 guarded by the same state machine. Plain `RESET` / virtual-pad `C` still restores just
 the selected option.
