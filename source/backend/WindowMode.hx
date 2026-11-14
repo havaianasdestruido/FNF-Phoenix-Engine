@@ -91,7 +91,7 @@ class WindowMode
     #if !flash
     final window = getWindow();
     if (window != null) return window.fullscreen == true;
-    #endif
+    #end
     return FlxG.fullscreen;
   }
 
