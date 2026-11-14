@@ -188,6 +188,17 @@ class Note extends FlxSprite
 
 	var changeSize:Bool = false;
 
+	/**
+	 * Width this sprite has while it shows the noteskin's tap arrow, at the `0.7`
+	 * graphic size every lane is loaded with.
+	 *
+	 * Holds are centred on that arrow, so the lane width has to come from it and
+	 * not from whatever frame the sprite happens to be showing: notes are pooled
+	 * (#88), so a recycled sustain still carries the hold frame's metrics when
+	 * `setupNoteData()` runs.
+	 */
+	var laneArrowWidth:Float = 0;
+
 	private function set_texture(value:String):String {
 		if (value == null || value.length == 0) value = Paths.defaultSkin;
 		if (!pixelNote && texture != value)
@@ -214,6 +225,7 @@ class Note extends FlxSprite
 				changeSize = true;
 				setGraphicSize(Std.int(width * 0.7));
 				updateHitbox();
+				laneArrowWidth = width;
 			}
 			offsetX = 0;
 		}
@@ -673,15 +685,33 @@ class Note extends FlxSprite
 		}
 
 		if (isSustainNote) {
-			offsetX += width / 2;
 			copyAngle = false;
-			animation.play(colArray[noteData] + (chartNoteData.isSustainEnd ? 'holdend' : 'hold'));
-			updateHitbox();
-			offsetX -= width / 2;
 
-			if (!PlayState.isPixelStage)
+			if (PlayState.isPixelStage)
+			{
+				// Pixel holds load their own lane offset in `reloadNote()` above; their
+				// hold/end frames share one size, so this recentring is a no-op there.
+				offsetX += width / 2;
+				animation.play(colArray[noteData] + (chartNoteData.isSustainEnd ? 'holdend' : 'hold'));
+				updateHitbox();
+				offsetX -= width / 2;
+			}
+			else
+			{
+				animation.play(colArray[noteData] + (chartNoteData.isSustainEnd ? 'holdend' : 'hold'));
+				updateHitbox();
+
+				// Centre the hold under the lane arrow: (arrow width - hold width) / 2.
+				// `width` now describes the hold frame, so the arrow width comes from
+				// `laneArrowWidth`. The old `offsetX += width / 2 ... -= width / 2`
+				// read `width` *before* the hold frame was applied: correct for a fresh
+				// note, but a pooled sustain still showed its last hold frame there, so
+				// every recycled hold body sat ~37px left of its lane.
+				final laneWidth:Float = (laneArrowWidth > 0 ? laneArrowWidth : width);
+				offsetX = (laneWidth - width) / 2;
+
 				sustainScale = Note.SUSTAIN_SIZE / frameHeight;
-
+			}
 			updateHitbox();
 		}
 		else {
