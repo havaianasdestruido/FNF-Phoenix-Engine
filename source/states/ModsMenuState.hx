@@ -710,7 +710,8 @@ class ModsMenuState extends MusicBeatState
 
 	override function closeSubState():Void
 	{
-		if(virtualPad != null) virtualPad.visible = true;
+		// Stays hidden when touch controls are off (Android TV / remote navigation).
+		if(virtualPad != null) virtualPad.visible = mobile.MobileControls.enabled;
 		super.closeSubState();
 	}
 

@@ -171,8 +171,10 @@ class ModInfoSubState extends MusicBeatSubstate
 	{
 		if(bg.alpha < 0.6) bg.alpha = Math.min(0.6, bg.alpha + elapsed * 3);
 
-		// Same rule as the Mods menu: the cursor shows up once the mouse really moves.
-		if(!FlxG.mouse.visible && (Math.abs(FlxG.mouse.deltaX) > 10 || Math.abs(FlxG.mouse.deltaY) > 10))
+		// Same rule as the Mods menu: the cursor shows up once the mouse really moves,
+		// and never while the TV / remote navigation keeps it hidden.
+		if(!FlxG.mouse.visible && !backend.TouchlessUI.isActive()
+			&& (Math.abs(FlxG.mouse.deltaX) > 10 || Math.abs(FlxG.mouse.deltaY) > 10))
 			FlxG.mouse.visible = true;
 
 		if(inputDelay > 0) inputDelay -= elapsed;
