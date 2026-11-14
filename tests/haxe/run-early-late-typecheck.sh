@@ -167,6 +167,14 @@ class ClientPrefs
 }
 HAXE
 
+cat > "$test_source/backend/LowMemory.hx" <<'HAXE'
+package backend;
+class LowMemory
+{
+  public static function policy():Dynamic return {skipSongPreload: false};
+}
+HAXE
+
 cat > "$test_source/backend/Conductor.hx" <<'HAXE'
 package backend;
 

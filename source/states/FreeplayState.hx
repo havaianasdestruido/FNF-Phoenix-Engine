@@ -634,7 +634,8 @@ class FreeplayState extends MusicBeatState
 					CoolUtil.currentDifficulty = CoolUtil.difficultyString();
 
 					#if sys
-					if(sys.FileSystem.exists(Paths.modsJson(songLowercase + '/' + poop)) || sys.FileSystem.exists(Paths.json(songLowercase + '/' + poop)) || OpenFlAssets.exists(Paths.modsJson(songLowercase + '/' + poop)) || OpenFlAssets.exists(Paths.json(songLowercase + '/' + poop))) {
+					if(sys.FileSystem.exists(Paths.json(songLowercase + '/' + poop)) || OpenFlAssets.exists(Paths.json(songLowercase + '/' + poop))
+						#if MODS_ALLOWED || sys.FileSystem.exists(Paths.modsJson(songLowercase + '/' + poop)) || OpenFlAssets.exists(Paths.modsJson(songLowercase + '/' + poop)) #end) {
 					#else
 					if(OpenFlAssets.exists(Paths.json(songLowercase + '/' + poop))) {
 					#end
@@ -671,8 +672,8 @@ class FreeplayState extends MusicBeatState
 						// The result was a bogus -- and on Windows modal, game-blocking --
 						// "this song has no JSON or audio" dialog on every song pick.
 						final chartName:String = songLowercase + '/' + poop;
-						final chartExists:Bool = sys.FileSystem.exists(Paths.modsJson(chartName)) || sys.FileSystem.exists(Paths.json(chartName))
-							|| OpenFlAssets.exists(Paths.modsJson(chartName)) || OpenFlAssets.exists(Paths.json(chartName));
+						final chartExists:Bool = sys.FileSystem.exists(Paths.json(chartName)) || OpenFlAssets.exists(Paths.json(chartName))
+							#if MODS_ALLOWED || sys.FileSystem.exists(Paths.modsJson(chartName)) || OpenFlAssets.exists(Paths.modsJson(chartName)) #end;
 						final audioExists:Bool = Paths.instExists(songLowercase, CoolUtil.difficulties[curDifficulty].toLowerCase());
 
 						if(audioExists && !chartExists) { //the json doesn't exist, but the song files do, or you put a typo in the name

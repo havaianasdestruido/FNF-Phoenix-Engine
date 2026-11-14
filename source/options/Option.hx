@@ -1,4 +1,4 @@
-﻿package options;
+package options;
 
 import backend.Controls;
 import flixel.graphics.FlxGraphic;
@@ -124,7 +124,10 @@ class Option
 
 	public function change()
 	{
-		//nothing lol
+		// The menu calls change() even after a blocked setValue() (including
+		// resets and held keys). Do not run side effects for a managed value.
+		// Link actions are not preference writes and must remain usable.
+		if (type != 'link' && backend.LowMemory.isManaged(variable)) return;
 		if(onChange != null) {
 			onChange();
 		}
@@ -138,6 +141,10 @@ class Option
 	public function setValue(value:Dynamic)
 	{
 		if (type == 'link') return; // #45
+		// A memory profile owns these values until it is changed or disabled.
+		// Without this guard an options toggle can silently undo the bundle for
+		// the rest of the session (and its onChange can re-enable subsystems).
+		if (backend.LowMemory.isManaged(variable)) return;
 		Reflect.setProperty(ClientPrefs, variable, value);
 	}
 

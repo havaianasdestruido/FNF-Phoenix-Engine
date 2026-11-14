@@ -100,7 +100,7 @@ class PlayStateCountdown
 
 			state.startTimer = new FlxTimer().start(Conductor.crochet / 1000 / state.playbackRate, function(tmr:FlxTimer)
 			{
-				if (ClientPrefs.charsAndBG) PlayStateCamera.characterBopper(state, tmr.loopsLeft);
+				if (state.songCharacterVisuals) PlayStateCamera.characterBopper(state, tmr.loopsLeft);
 
 				var introAssets:Map<String, Array<String>> = new Map<String, Array<String>>();
 				var introImagesArray:Array<String> = switch(PlayState.stageUI) {
@@ -139,7 +139,7 @@ class PlayStateCountdown
 						state.introGo.volume = FlxG.sound.volume;
 						state.introGo.play();
 						tick = GO;
-						if (ClientPrefs.tauntOnGo && ClientPrefs.charsAndBG)
+						if (ClientPrefs.tauntOnGo && state.songCharacterVisuals)
 						{
 							final charsToHey = [state.dad, state.boyfriend, state.gf];
 							for (char in charsToHey)

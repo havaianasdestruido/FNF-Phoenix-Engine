@@ -10,6 +10,7 @@ xcopy /e /i /y /q "tests\haxe\stubs\chart-loader" "%TEST_SOURCE%" >nul || goto f
 mkdir "%TEST_SOURCE%\play\helpers" 2>nul
 mkdir "%TEST_SOURCE%\play\objects" 2>nul
 copy /y "source\play\helpers\PlayStateChartLoader.hx" "%TEST_SOURCE%\play\helpers\PlayStateChartLoader.hx" >nul || goto fail
+copy /y "source\play\helpers\CharacterNoteSkin.hx" "%TEST_SOURCE%\play\helpers\CharacterNoteSkin.hx" >nul || goto fail
 copy /y "source\play\objects\MissCounter.hx" "%TEST_SOURCE%\play\objects\MissCounter.hx" >nul || goto fail
 %HAXE% -cp "%TEST_SOURCE%" -cp tests/haxe -main ChartLoaderSpec --interp || goto fail
 %HAXE% -cp "%TEST_SOURCE%" -cp tests/haxe -main ChartLoaderSpec -js "%TEST_SOURCE%\chart-loader.js" || goto fail

@@ -2352,12 +2352,7 @@ class ChartingState extends MusicBeatState
 
   override public function destroy():Void
   {
-    Paths.noteSkinFramesMap.clear();
-    Paths.noteSkinAnimsMap.clear();
-    Paths.splashSkinFramesMap.clear();
-    Paths.splashSkinAnimsMap.clear();
-    Paths.splashConfigs.clear();
-    Paths.splashAnimCountMap.clear();
+    Paths.clearSkinCaches();
     Note.globalRgbShaders = [];
     FlxG.autoPause = ClientPrefs.autoPause;
 

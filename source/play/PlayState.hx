@@ -62,6 +62,7 @@ import play.helpers.PlayStateRender;
 import play.helpers.PlayStateScripts;
 import play.helpers.PlayStateShaders;
 import play.helpers.PlayStateAndroidMedia;
+import play.helpers.SongStagePolicy;
 #if HSCRIPT_ALLOWED
 import psychlua.HScript;
 import psychlua.DebugLuaText;
@@ -194,6 +195,18 @@ class PlayState extends MusicBeatState
 	public var inst:FlxSound;
 	public var vocals:FlxSound;
 	public var opponentVocals:FlxSound;
+	// Flixel music is persistent across states; remember which Sound belongs
+	// to this song so the experimental tier can release it without stopping
+	// replacement menu music that was started before the transition.
+	var songMusicSound:openfl.media.Sound;
+	// Some choices take effect only when the song is constructed. Remember
+	// them if a script changes the profile before this state is destroyed.
+	var experimentalMemorySession:Bool = false;
+	public var metadataOnlyCharacters(default, null):Bool = false;
+	// Character groups and stage visuals are chosen once per song. Runtime
+	// profile changes take effect on restart instead of animating destroyed
+	// groups or stopping events for still-visible characters.
+	public var songCharacterVisuals(default, null):Bool = false;
 	var intro3:FlxSound;
 	var intro2:FlxSound;
 	var intro1:FlxSound;
@@ -526,6 +539,9 @@ class PlayState extends MusicBeatState
 
 	override public function create()
 	{
+		experimentalMemorySession = backend.LowMemory.policy().skipSongPreload;
+		songCharacterVisuals = ClientPrefs.charsAndBG;
+		metadataOnlyCharacters = backend.LowMemory.experimentalHudOnly();
 		// #88: per-play pool accounting so the debug overlay reports this song's numbers.
 		PoolStats.reset();
 
@@ -581,14 +597,20 @@ class PlayState extends MusicBeatState
 		#if sys
 		if (FileSystem.exists(Paths.getSharedPath('sounds/hitsounds/' + ClientPrefs.hitsoundType.toLowerCase() + '.txt')))
 			hitsoundImageToLoad = File.getContent(Paths.getSharedPath('sounds/hitsounds/' + ClientPrefs.hitsoundType.toLowerCase() + '.txt'));
+		#if MODS_ALLOWED
 		else if (FileSystem.exists(Paths.modFolders('sounds/hitsounds/' + ClientPrefs.hitsoundType.toLowerCase() + '.txt')))
 			hitsoundImageToLoad = File.getContent(Paths.modFolders('sounds/hitsounds/' + ClientPrefs.hitsoundType.toLowerCase() + '.txt'));
+		#end
 		#end
 
 		#if cpp
 		inline cpp.vm.Gc.enable(ClientPrefs.enableGC || ffmpegMode && !ClientPrefs.noRenderGC); //lagspike prevention
 		#end
 		inline Paths.clearStoredMemory();
+		// With speculative preloading disabled there is nothing to preserve from
+		// the loading screen. Release the previous state's caches *before* this
+		// song allocates its textures and audio, reducing the transition peak.
+		if (backend.LowMemory.policy().skipSongPreload) Paths.clearUnusedMemory();
 
 		#if sys
 		debug.FrameProfiler.beginGC(true);
@@ -695,14 +717,15 @@ class PlayState extends MusicBeatState
 
 		GameOverSubstate.resetVariables();
 		songName = Paths.formatToSongPath(SONG.song);
-		curStage = (!ClientPrefs.charsAndBG ? "" : SONG.stage);
-		//trace('stage is: ' + curStage);
-		if(SONG.stage == null || SONG.stage.length < 1)
-			curStage = StageData.vanillaSongStage(Song.loadedSongName);
-
-		SONG.stage = curStage;
-
-		var stageData:StageFile = StageData.getStageFile(curStage);
+		// Keep the chart's stage even while HUD-only mode skips its visuals, so
+		// a later restart after leaving the profile can restore it. Experimental
+		// mode still reads the small JSON for pixel notes and countdown sounds.
+		final metadataOnly:Bool = metadataOnlyCharacters;
+		final stageSelection = SongStagePolicy.select(SONG.stage, StageData.vanillaSongStage(Song.loadedSongName),
+			songCharacterVisuals, metadataOnly);
+		SONG.stage = stageSelection.chartStage;
+		curStage = stageSelection.visualStage;
+		var stageData:StageFile = StageData.getStageFile(stageSelection.metadataStage);
 
 		stageUI = "normal";
 		if (stageData.stageUI != null && stageData.stageUI.trim().length > 0)
@@ -762,7 +785,9 @@ class PlayState extends MusicBeatState
 
 		if (Note.globalRgbShaders.length > 0) Note.globalRgbShaders = [];
 		Paths.initDefaultSkin(SONG.arrowSkin);
-		Paths.initNote(SONG.arrowSkin);
+		// Pixel notes load their own sheets on demand; warming the regular
+		// Sparrow atlas here only increases the experimental song's peak RAM.
+		if (!isPixelStage || !experimentalMemorySession) Paths.initNote(SONG.arrowSkin);
 
 		if(isPixelStage) {
 			introSoundsSuffix = '-pixel';
@@ -884,23 +909,27 @@ class PlayState extends MusicBeatState
 		}
 		#end
 
-		// STAGE SCRIPTS
-		#if (MODS_ALLOWED && LUA_ALLOWED)
-		startLuasOnFolder('stages/' + curStage + '.lua');
-		#elseif !LUA_ALLOWED
-		PlayStateScripts.noteUnsupportedLua('stages/' + curStage + '.lua');
-		#end
-		#if (MODS_ALLOWED && PYTHON_ALLOWED)
-		startPythonScriptOnFolder('stages/' + curStage + '.py');
-		#end
-		#if (MODS_ALLOWED && HSCRIPT_ALLOWED)
-		startHScriptOnFolder('stages/' + curStage);
-		#end
+		// STAGE SCRIPTS. A metadata-only stage must not start even an
+		// accidentally named stages/.lua or stages/.hx script.
+		if (curStage != null && curStage.length > 0)
+		{
+			#if (MODS_ALLOWED && LUA_ALLOWED)
+			startLuasOnFolder('stages/' + curStage + '.lua');
+			#elseif !LUA_ALLOWED
+			PlayStateScripts.noteUnsupportedLua('stages/' + curStage + '.lua');
+			#end
+			#if (MODS_ALLOWED && PYTHON_ALLOWED)
+			startPythonScriptOnFolder('stages/' + curStage + '.py');
+			#end
+			#if (MODS_ALLOWED && HSCRIPT_ALLOWED)
+			startHScriptOnFolder('stages/' + curStage);
+			#end
+		}
 		var gfVersion:String = SONG.gfVersion;
 
 		if(gfVersion == null || gfVersion.length < 1)
 		{
-			switch (curStage)
+			switch (stageSelection.metadataStage)
 			{
 				case 'limo':
 					gfVersion = 'gf-car';
@@ -925,13 +954,16 @@ class PlayState extends MusicBeatState
 		health = startOnTimeHealth != null ? startOnTimeHealth : maxHealth / 2;
 		displayedHealth = health;
 
-		if (!stageData.hide_girlfriend && ClientPrefs.charsAndBG)
+		if (!stageData.hide_girlfriend && (songCharacterVisuals || metadataOnly))
 		{
-			gf = new Character(0, 0, gfVersion);
-			startCharacterPos(gf);
+			// Keep an invisible stand-in for GF events and scripts too, without
+			// loading her artwork or character script in experimental play.
+			gf = new Character(0, 0, gfVersion, false, false, metadataOnly);
+			if (!metadataOnly) startCharacterPos(gf);
 			gfGroup.scrollFactor.set(0.95, 0.95);
 			gfGroup.add(gf);
-			startCharacterLua(gf.curCharacter);
+			if (metadataOnly) gfMap.set(gf.curCharacter, gf);
+			else startCharacterLua(gf.curCharacter);
 		}
 
 		var ratingQuoteStuff:Array<Dynamic> = Mods.mergeAllTextsNamed('data/ratingQuotes/${ClientPrefs.rateNameStuff}.txt', '', true);
@@ -975,13 +1007,27 @@ class PlayState extends MusicBeatState
 			}
 		}
 
-		if (!ClientPrefs.charsAndBG)
+		if (!songCharacterVisuals)
 		{
-			dad = new Character(0, 0, "");
+			// Experimental mode keeps the chart's vocal/noteskin/health data
+			// without decoding either character atlas or running its scripts.
+			// The pre-existing manual HUD-only option keeps its old behavior.
+			dad = metadataOnly ? new Character(0, 0, SONG.player2 != null ? SONG.player2 : '', false, false, true)
+				: new Character(0, 0, "");
 			dadGroup.add(dad);
 
-			boyfriend = new Boyfriend(0, 0, "");
+			boyfriend = metadataOnly ? new Boyfriend(0, 0, SONG.player1 != null ? SONG.player1 : '', true)
+				: new Boyfriend(0, 0, "");
 			boyfriendGroup.add(boyfriend);
+			if (metadataOnly)
+			{
+				dadNoteskin = dad.noteskin;
+				bfNoteskin = boyfriend.noteskin;
+				// A later change back to the initial character can reuse its
+				// stand-in rather than allocating a second one.
+				dadMap.set(dad.curCharacter, dad);
+				boyfriendMap.set(boyfriend.curCharacter, boyfriend);
+			}
 		} else {
 			dad = new Character(0, 0, SONG.player2);
 			startCharacterPos(dad, true);
@@ -1280,16 +1326,21 @@ class PlayState extends MusicBeatState
 			timeTxt.size = 14;
 		}
 
-		var splash:NoteSplash = new NoteSplash(100, 100, 0);
-		grpNoteSplashes.add(splash);
-		splash.alpha = 0.0001;
-
 		SustainSplash.startCrochet = Conductor.stepCrochet;
 		SustainSplash.frameRate = Math.floor(24 / 100 * SONG.bpm);
-		var splash:SustainSplash = new SustainSplash();
-		grpHoldSplashes.add(splash);
-		splash.visible = true;
-		splash.alpha = 0.0001;
+		if (!backend.LowMemory.policy().skipSongPreload)
+		{
+			// The experimental tier disables splashes; don't decode their
+			// atlases just to seed the pools. They can still grow on demand.
+			var splash:NoteSplash = new NoteSplash(100, 100, 0);
+			grpNoteSplashes.add(splash);
+			splash.alpha = 0.0001;
+
+			var holdSplash:SustainSplash = new SustainSplash();
+			grpHoldSplashes.add(holdSplash);
+			holdSplash.visible = true;
+			holdSplash.alpha = 0.0001;
+		}
 
 		playerStrums = new FlxTypedGroup<StrumNote>();
 		opponentStrums = new FlxTypedGroup<StrumNote>();
@@ -1352,7 +1403,7 @@ class PlayState extends MusicBeatState
 			prevCamFollowPos = null;
 		}
 		add(camFollowPos);
-		if (!ClientPrefs.charsAndBG) _defaultCamZoom = 100;
+		if (!songCharacterVisuals) _defaultCamZoom = 100;
 		else
 		{
 			FlxG.camera.follow(camFollowPos, LOCKON, 1);
@@ -1533,13 +1584,24 @@ class PlayState extends MusicBeatState
 
 		style = null;
 
-		if (!ClientPrefs.charsAndBG) {
-			remove(dadGroup);
-			remove(boyfriendGroup);
-			remove(gfGroup);
-			gfGroup.destroy();
-			dadGroup.destroy();
-			boyfriendGroup.destroy();
+		if (!songCharacterVisuals) {
+			if (metadataOnly)
+			{
+				// Character-change events and scripts can still consult the tiny
+				// stand-ins. Keep them valid until state teardown, but never draw
+				// or update them; their groups are destroyed normally with the state.
+				gfGroup.visible = dadGroup.visible = boyfriendGroup.visible = false;
+				gfGroup.active = dadGroup.active = boyfriendGroup.active = false;
+			}
+			else
+			{
+				remove(dadGroup);
+				remove(boyfriendGroup);
+				remove(gfGroup);
+				gfGroup.destroy();
+				dadGroup.destroy();
+				boyfriendGroup.destroy();
+			}
 		}
 
 		renderedTxt = new FlxText(0, healthBarBG.y - 50, FlxG.width, "", 32);
@@ -2278,10 +2340,10 @@ class PlayState extends MusicBeatState
 
 		if (tankmanAscend && curStep > 895 && curStep < 1151) camGame.zoom = 0.8;
 
-		if(!inCutscene && ClientPrefs.charsAndBG) {
+		if(!inCutscene && songCharacterVisuals) {
 			final lerpVal:Float = CoolUtil.boundTo(elapsed * 2.4 * cameraSpeed * playbackRate, 0, 1);
 			camFollowPos.setPosition(FlxMath.lerp(camFollowPos.x, camFollow.x, lerpVal), FlxMath.lerp(camFollowPos.y, camFollow.y, lerpVal));
-			if (ClientPrefs.charsAndBG && !boyfriendIdled) {
+			if (songCharacterVisuals && !boyfriendIdled) {
 				if(!startingSong && !endingSong && boyfriend.animation.curAnim != null && boyfriend.animation.curAnim.name.startsWith('idle')) {
 					boyfriendIdleTime += elapsed;
 					if(boyfriendIdleTime >= 0.15) { // Kind of a mercy thing for making the achievement easier to get as it's apparently frustrating to some playerss
@@ -2550,7 +2612,7 @@ class PlayState extends MusicBeatState
 					handleKeyInput();
 					debug.profiler.HotspotProfiler.end(inputHotspot);
 				}
-				else if (ClientPrefs.charsAndBG) playerDance();
+				else if (songCharacterVisuals) playerDance();
 
 				final notesHotspot = debug.profiler.HotspotProfiler.begin("PlayState: note update and sort");
 				amountOfRenderedNotes = 0;
@@ -3124,7 +3186,7 @@ class PlayState extends MusicBeatState
 		PlayStateHardwareInput.release(this);
 		#end
 		FlxG.animationTimeScale = 1;
-		FlxG.sound.music.pitch = 1;
+		if (FlxG.sound.music != null) FlxG.sound.music.pitch = 1;
 		#if cpp
 		cpp.vm.Gc.enable(true);
 		#end
@@ -3143,21 +3205,35 @@ class PlayState extends MusicBeatState
 			}
 		}
 
-		Paths.noteSkinFramesMap.clear();
-		Paths.noteSkinAnimsMap.clear();
-		Paths.splashSkinFramesMap.clear();
-		Paths.splashSkinAnimsMap.clear();
-		Paths.splashConfigs.clear();
-		Paths.splashAnimCountMap.clear();
+		Paths.clearSkinCaches();
 		Note.globalRgbShaders = [];
 		backend.NoteTypesConfig.clearNoteTypesData();
 
 		super.destroy();
 
-		// Everything this song loaded is unreachable now (super.destroy() is what
-		// releases the sprites), so profiles that clean up deeply do it here
-		// rather than on the next menu's create().
-		backend.LowMemory.onPlayStateExit();
+		final exitPolicy = backend.LowMemory.policy();
+		if (experimentalMemorySession || exitPolicy.skipSongPreload)
+		{
+			// playMusic marks music persistent. Only release the Sound this
+			// song started: a menu may already have replaced it during endSong.
+			if (songMusicSound != null && FlxG.sound.music != null
+				&& @:privateAccess FlxG.sound.music._sound == songMusicSound)
+			{
+				FlxG.sound.music.destroy();
+				FlxG.sound.music = null;
+			}
+			if (instance == this) instance = null;
+		}
+		songMusicSound = null;
+
+		// Finish retiring this song's experimental assets even if a script
+		// switched to Low/Off while it was playing. Otherwise those streams and
+		// atlases can remain cached indefinitely after the profile is disabled.
+		// Externally retained streams remain valid until their owners release them.
+		if (experimentalMemorySession && !exitPolicy.releaseOnPlayStateExit)
+			backend.LowMemory.trim(true);
+		else
+			backend.LowMemory.onPlayStateExit();
 	}
 
 	override function stepHit()
@@ -3203,7 +3279,7 @@ class PlayState extends MusicBeatState
 		if (iconP1.visible || iconP2.visible)
 			bopIcons();
 
-		if (ClientPrefs.charsAndBG) characterBopper(curBeat);
+		if (songCharacterVisuals) characterBopper(curBeat);
 		lastBeatHit = curBeat;
 
 		// Guard beat script dispatch: avoid redundant method dispatch when no scripts exist

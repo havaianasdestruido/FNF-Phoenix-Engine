@@ -1,4 +1,4 @@
-﻿package options;
+package options;
 
 import shaders.RainShader.Light;
 
@@ -19,16 +19,10 @@ class OptimizationSubState extends BaseOptionsMenu
 		// A profile is a bundle of the options in this list plus a cleanup
 		// schedule, so it goes first: it explains what it forces below.
 		var option:Option = new Option('Memory Profile',
-			'A single switch for devices short on RAM, in the spirit of\n'
-			+ 'Codename Engine\'s low memory mode. It bundles a few appearance\n'
-			+ 'options and schedules asset cleanups; the preferences it manages\n'
-			+ 'are forced while it is on, and your own values come back when\n'
-			+ 'you choose Off again.\n\n'
-			+ 'Off:     nothing is changed.\n'
-			+ 'Low:     fewer splashes, no moving menu checkerboard, unused\n'
-			+ '         assets freed after every song.\n'
-			+ 'Extreme: also Low Quality stages, no shaders, AA, splashes or\n'
-			+ '         camera bops, and a deep release after each song.',
+			'Off restores choices; Low / Extreme cut effects.\n'
+			+ 'EXPERIMENTAL / UNSAFE removes stages and characters.\n'
+			+ 'Mods may break; GPU caching can glitch or use more VRAM.\n'
+			+ 'Streaming / no preloads may stutter or load slowly.',
 			'memoryProfile',
 			'string',
 			MemoryProfiles.OFF,

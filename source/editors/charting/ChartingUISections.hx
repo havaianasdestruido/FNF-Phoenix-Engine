@@ -84,7 +84,7 @@ class ChartingUISections
       var songName:String = Paths.formatToSongPath(state._song.song);
       var file:String = Paths.songEvents(songName, diff);
       #if sys
-      if (FileSystem.exists(Paths.json(file)) || FileSystem.exists(Paths.modsJson(file)))
+      if (FileSystem.exists(Paths.json(file)) #if MODS_ALLOWED || FileSystem.exists(Paths.modsJson(file)) #end)
       #else
       if (OpenFlAssets.exists(file))
       #end

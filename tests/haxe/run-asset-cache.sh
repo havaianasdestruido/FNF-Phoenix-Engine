@@ -15,6 +15,7 @@ mkdir -p \
   "$test_source/src/objects/helpers" \
   "$test_source/src/headers" \
   "$test_source/src/play" \
+  "$test_source/src/play/helpers" \
   "$test_source/src/debug" \
   "$test_source/src/flixel/animation" \
   "$test_source/src/flixel/graphics/frames" \
@@ -32,9 +33,13 @@ mkdir -p \
   "$test_source/src/lime/utils"
 
 cp source/backend/Paths.hx "$test_source/src/backend/"
+cp source/backend/SongAudioStreaming.hx "$test_source/src/backend/"
 cp source/backend/MemoryLedger.hx "$test_source/src/backend/"
 cp source/utils/MemoryUtil.hx "$test_source/src/utils/"
 cp tests/haxe/AssetCacheSpec.hx "$test_source/src/"
+cp tests/haxe/ModIconPathSpec.hx "$test_source/src/"
+cp tests/haxe/CharacterPathSpec.hx "$test_source/src/"
+cp source/play/helpers/SongCharacterInfo.hx "$test_source/src/play/helpers/"
 
 cat > "$test_source/src/import.hx" <<'HAXE'
 #if !macro
@@ -67,6 +72,15 @@ class VLog
 }
 HAXE
 
+cat > "$test_source/src/backend/RecoveryBoot.hx" <<'HAXE'
+package backend;
+class RecoveryBoot
+{
+  public static var disableMods:Bool = false;
+  public static function disabledModsPath():String return 'mods/.disabled/';
+}
+HAXE
+
 cat > "$test_source/src/backend/ClientPrefs.hx" <<'HAXE'
 package backend;
 class ClientPrefs
@@ -83,7 +97,7 @@ class Mods
   public static var currentModDirectory:String = '';
   public static var ignoreModFolders:Array<String> =
     ['images', 'data', 'songs', 'sounds', 'fonts', 'videos', 'weeks', 'scripts', 'stages', 'characters'];
-  private static var globalMods:Array<String> = [];
+  public static var globalMods:Array<String> = [];
   public static function getGlobalMods():Array<String> return globalMods;
 }
 HAXE
@@ -390,6 +404,7 @@ class Assets
   }
 
   public static function getMusic(id:String, useCache:Bool = true):Sound return getSound(id, useCache);
+  public static function getPath(id:String):String return null;
   public static function getText(id:String):String return texts.get(id);
 }
 HAXE
@@ -424,6 +439,7 @@ class FlxGraphic
   public var bitmap:BitmapData;
   public var persist:Bool = false;
   public var destroyOnNoUse:Bool = true;
+  public var useCount:Int = 0;
   public var isDestroyed:Bool = false;
   public var atlasFrames:FlxAtlasFrames = null;
 
@@ -468,6 +484,7 @@ import flixel.math.FlxPoint;
 
 class FlxAtlasFrames extends FlxFramesCollection
 {
+  public var numFrames:Int = 1;
   public function new(parent:FlxGraphic)
   {
     super(parent);
@@ -522,9 +539,21 @@ import flixel.graphics.frames.FlxFramesCollection;
 
 class FlxSprite
 {
-  public var frames:FlxFramesCollection;
+  public var frames(default, set):FlxFramesCollection;
   public var animation:FlxAnimationController;
   public function new() this.animation = new FlxAnimationController(this);
+  function set_frames(value:FlxFramesCollection):FlxFramesCollection
+  {
+    if (frames != null && frames.parent != null) frames.parent.useCount--;
+    frames = value;
+    if (frames != null && frames.parent != null) frames.parent.useCount++;
+    return value;
+  }
+  public function destroy():Void
+  {
+    frames = null;
+    animation = null;
+  }
 }
 HAXE
 
@@ -614,6 +643,12 @@ HAXE
 
 (
   cd "$test_source/work"
-  haxe -cp "$test_source/src" -D MODS_ALLOWED --main AssetCacheSpec --interp
-  haxe -cp "$test_source/src" --no-output backend.Paths
+  if [ "${1:-asset}" = 'mod-icon' ]; then
+    "${HAXE:-haxe}" -cp "$test_source/src" -D MODS_ALLOWED --main ModIconPathSpec --interp
+  else
+    "${HAXE:-haxe}" -cp "$test_source/src" -D MODS_ALLOWED --main AssetCacheSpec --interp
+    "${HAXE:-haxe}" -cp "$test_source/src" -D MODS_ALLOWED --main CharacterPathSpec --interp
+    "${HAXE:-haxe}" -cp "$test_source/src" --main CharacterPathSpec --interp
+    "${HAXE:-haxe}" -cp "$test_source/src" --no-output backend.Paths
+  fi
 )

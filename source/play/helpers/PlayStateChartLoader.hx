@@ -21,6 +21,8 @@ import play.PlayState;
 
 import backend.MusicBeatState;
 
+private typedef CharacterSkinChange = {time:Float, skin:String};
+
 @:access(play.PlayState)
 @:access(backend.MusicBeatState)
 class PlayStateChartLoader
@@ -47,21 +49,24 @@ class PlayStateChartLoader
 
 		state.curSong = PlayState.SONG.song;
 
-		var diff:String = (PlayState.SONG.specialAudioName.length > 1 ? PlayState.SONG.specialAudioName : CoolUtil.difficultyString()).toLowerCase();
+		var diff:String = (PlayState.SONG.specialAudioName != null && PlayState.SONG.specialAudioName.length > 1 ? PlayState.SONG.specialAudioName : CoolUtil.difficultyString()).toLowerCase();
 
 		if (PlayState.SONG.windowName != null && PlayState.SONG.windowName != '')
 			MusicBeatState.windowNamePrefix = PlayState.SONG.windowName;
 
+		// Experimental Extreme streams supported native Vorbis stems. Paths falls
+		// back to normal decoding for MP3, embedded assets and unsupported targets.
+		final streamSongAudio:Bool = backend.LowMemory.policy().streamSongAudio;
 		state.vocals = new FlxSound();
 		state.opponentVocals = new FlxSound();
 		try
 		{
 			if (PlayState.SONG.needsVoices)
 			{
-				var playerVocals = Paths.voices(state.curSong, diff, (state.boyfriend.vocalsFile == null || state.boyfriend.vocalsFile.length < 1) ? "Player" : state.boyfriend.vocalsFile);
-				state.vocals.loadEmbedded(playerVocals != null ? playerVocals : Paths.voices(state.curSong, diff));
+				var playerVocals = Paths.voices(state.curSong, diff, (state.boyfriend.vocalsFile == null || state.boyfriend.vocalsFile.length < 1) ? "Player" : state.boyfriend.vocalsFile, streamSongAudio);
+				state.vocals.loadEmbedded(playerVocals != null ? playerVocals : Paths.voices(state.curSong, diff, null, streamSongAudio));
 
-				var oppVocals = Paths.voices(state.curSong, diff, (state.dad.vocalsFile == null || state.dad.vocalsFile.length < 1) ? "Opponent" : state.dad.vocalsFile);
+				var oppVocals = Paths.voices(state.curSong, diff, (state.dad.vocalsFile == null || state.dad.vocalsFile.length < 1) ? "Opponent" : state.dad.vocalsFile, streamSongAudio);
 				if(oppVocals != null) state.opponentVocals.loadEmbedded(oppVocals);
 			}
 		}
@@ -73,26 +78,48 @@ class PlayStateChartLoader
 		state.inst = new FlxSound();
 		try
 		{
-			state.inst.loadEmbedded(Paths.inst(PlayState.SONG.song, diff));
+			state.inst.loadEmbedded(Paths.inst(PlayState.SONG.song, diff, streamSongAudio));
 		}
 		catch (e:Dynamic) {}
 		FlxG.sound.list.add(state.inst);
 
 		final noteData:Array<SwagSection> = PlayState.SONG.notes;
 
-		var eventsToLoad:String = (PlayState.SONG.specialEventsName.length > 1 ? PlayState.SONG.specialEventsName : CoolUtil.difficultyString()).toLowerCase();
+		var eventsToLoad:String = (PlayState.SONG.specialEventsName != null && PlayState.SONG.specialEventsName.length > 1 ? PlayState.SONG.specialEventsName : CoolUtil.difficultyString()).toLowerCase();
 
 		final songName:String = Paths.formatToSongPath(PlayState.SONG.song);
 		final eventsFile:String = Paths.songEvents(songName, eventsToLoad);
-		#if MODS_ALLOWED
-		if (FileSystem.exists(Paths.json(eventsFile)) || FileSystem.exists(Paths.modsJson(eventsFile))) {
-		#else
-		if (OpenFlAssets.exists(eventsFile)) {
-		#end
+		final eventsPath:String = Paths.json(eventsFile);
+		// Registered assets are not necessarily loose files on sys targets, and
+		// the short song/events key itself is not a valid OpenFL asset id.
+		if (OpenFlAssets.exists(eventsPath)
+			#if sys || FileSystem.exists(eventsPath) #end
+			#if MODS_ALLOWED || FileSystem.exists(Paths.modsJson(eventsFile)) #end) {
 			var eventsData:Array<Dynamic> = Song.loadFromJson(Paths.songEvents(songName, eventsToLoad, true), songName).events;
 			pushEventNotes(state, eventsData, noteCutoff);
 		}
 		pushEventNotes(state, PlayState.SONG.events, noteCutoff);
+
+		// Chart sectionNotes are not necessarily time-sorted. Build small,
+		// sorted per-side timelines rather than advancing a shared skin cursor
+		// in chart-file order. Events at the same timestamp keep their order.
+		final playerSkinChanges:Array<CharacterSkinChange> = [];
+		final opponentSkinChanges:Array<CharacterSkinChange> = [];
+		for (i in 0...state.charChangeTimes.length)
+		{
+			final name:String = state.charChangeNames[i];
+			switch (state.charChangeTypes[i])
+			{
+				case 0:
+					final character:Boyfriend = state.boyfriendMap.get(name);
+					if (character != null) playerSkinChanges.push({time: state.charChangeTimes[i], skin: CharacterNoteSkin.resolve(character.noteskin, PlayState.isPixelStage)});
+				case 1:
+					final character:Character = state.dadMap.get(name);
+					if (character != null) opponentSkinChanges.push({time: state.charChangeTimes[i], skin: CharacterNoteSkin.resolve(character.noteskin, PlayState.isPixelStage)});
+			}
+		}
+		final initialPlayerSkin:String = CharacterNoteSkin.resolve(state.bfNoteskin, PlayState.isPixelStage);
+		final initialOpponentSkin:String = CharacterNoteSkin.resolve(state.dadNoteskin, PlayState.isPixelStage);
 
 		var currentBPMLol:Float = Conductor.bpm;
 		var stepCrochet:Float = 15000 / currentBPMLol;
@@ -126,6 +153,9 @@ class PlayStateChartLoader
 					continue;
 
 				final daStrumTime:Float = songNotes[0];
+				// Events and spawned notes both receive the player's note offset.
+				// Compare them in the same time domain when selecting skins.
+				final notePlaybackTime:Float = daStrumTime + ClientPrefs.noteOffset;
 				if (daStrumTime >= noteCutoff) {
 					var daNoteData:Int = 0;
 					if (!state.assignedFirstData && state.oneK)
@@ -167,19 +197,10 @@ class PlayStateChartLoader
 						state.opponentNoteTotal += 1;
 					}
 
-					if (charChangeIndex < state.charChangeTimes.length && daStrumTime >= state.charChangeTimes[charChangeIndex])
-					{
-						switch (state.charChangeTypes[charChangeIndex])
-						{
-							case 0:
-								var boyfriendToGrab:Boyfriend = state.boyfriendMap.get(state.charChangeNames[charChangeIndex]);
-								if (boyfriendToGrab != null) state.bfNoteskin = boyfriendToGrab.noteskin;
-							case 1:
-								var dadToGrab:Character = state.dadMap.get(state.charChangeNames[charChangeIndex]);
-								if (dadToGrab != null) state.dadNoteskin = dadToGrab.noteskin;
-						}
+					// Keep the existing bookkeeping for consumed event records;
+					// actual skin selection below is independent of note order.
+					while (charChangeIndex < state.charChangeTimes.length && notePlaybackTime >= state.charChangeTimes[charChangeIndex])
 						charChangeIndex++;
-					}
 
 					if (multiChangeIndex < state.multiChangeEvents[0].length && daStrumTime >= state.multiChangeEvents[0][multiChangeIndex])
 					{
@@ -189,15 +210,22 @@ class PlayStateChartLoader
 
 					// Normalize legacy note types once per chart note, then reuse the
 					// derived flags for the head, jacks and every sustain segment.
-					final rawNoteType:Dynamic = songNotes[3];
+					final rawNoteType:Dynamic = songNotes.length > 3 ? songNotes[3] : null;
 					final rawIsBool:Bool = Std.isOfType(rawNoteType, Bool);
-					final noteType:Dynamic = Std.isOfType(rawNoteType, String) ? rawNoteType : ChartingState.noteTypeList[rawNoteType];
+					final typeIndex:Int = Std.isOfType(rawNoteType, Int) || Std.isOfType(rawNoteType, Float) ? Std.int(rawNoteType) : -1;
+					final noteType:Dynamic = Std.isOfType(rawNoteType, String) ? rawNoteType
+						: (typeIndex >= 0 && typeIndex < ChartingState.noteTypeList.length ? ChartingState.noteTypeList[typeIndex] : '');
 					final rawAnimSuffix:String = (rawNoteType == 'Alt Animation' || altAnim ? '-alt' : '');
 					final animSuffix:String = rawIsBool ? (rawNoteType || altAnim ? '-alt' : '') : rawAnimSuffix;
 					final isHurt:Bool = rawNoteType == 'Hurt Note';
 					final gfNote:Bool = rawNoteType == 'GF Sing' || (gfSection && songNotes[1] < 4);
 					final noAnimation:Bool = rawNoteType == 'No Animation';
-					final noteskin:String = gottaHitNote ? state.bfNoteskin : state.dadNoteskin;
+					// Character JSON may omit noteskin (including the built-in BF).
+					// Empty means the chart's default skin.
+					final selectedSkin:String = gottaHitNote
+						? skinAt(notePlaybackTime, initialPlayerSkin, playerSkinChanges)
+						: skinAt(notePlaybackTime, initialOpponentSkin, opponentSkinChanges);
+					final noteskin:String = selectedSkin != null ? selectedSkin : '';
 
 					swagNote = {
 						strumTime: daStrumTime,
@@ -220,7 +248,11 @@ class PlayStateChartLoader
 						noteDensity: currentMultiplier,
 						ignoreNote: isHurt && gottaHitNote
 					};
-					if (swagNote.noteskin.length > 0 && !Paths.noteSkinFramesMap.exists(swagNote.noteskin)) inline Paths.initNote(swagNote.noteskin);
+					if (!PlayState.isPixelStage && swagNote.noteskin.length > 0)
+					{
+						final skinTexture:String = 'noteskins/' + swagNote.noteskin;
+						if (!Paths.noteSkinFramesMap.exists(skinTexture)) inline Paths.initNote(skinTexture);
+					}
 
 					if (!state.noteTypeMap.exists(swagNote.noteType)) {
 						state.noteTypeMap.set(swagNote.noteType, true);
@@ -327,8 +359,8 @@ class PlayStateChartLoader
 			state.multiChangeEvents[1].splice(0, multiChangeIndex);
 		}
 
-		state.bfNoteskin = state.boyfriend.noteskin;
-		state.dadNoteskin = state.dad.noteskin;
+		state.bfNoteskin = initialPlayerSkin;
+		state.dadNoteskin = initialOpponentSkin;
 
 		if (ClientPrefs.noteColorStyle == 'Char-Based')
 		{
@@ -358,6 +390,20 @@ class PlayStateChartLoader
 		#end
 		#end
 		state.notesLoadedRN = 0;
+	}
+
+	/** Last character skin at or before this note, including tied events. */
+	private static function skinAt(time:Float, initial:String, changes:Array<CharacterSkinChange>):String
+	{
+		var lo:Int = 0;
+		var hi:Int = changes.length;
+		while (lo < hi)
+		{
+			final mid:Int = lo + Std.int((hi - lo) / 2);
+			if (changes[mid].time <= time) lo = mid + 1;
+			else hi = mid;
+		}
+		return lo > 0 ? changes[lo - 1].skin : initial;
 	}
 
 	private static function pushEventNotes(state:PlayState, eventsData:Array<Dynamic>, cutoff:Float):Void

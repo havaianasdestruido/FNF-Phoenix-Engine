@@ -11,6 +11,7 @@ class PlayState
 {
   public static var SONG:SwagSong;
   public static var opponentChart:Bool = false;
+  public static var isPixelStage:Bool = false;
   public static var bothSides:Bool = false;
   public static var sectionsLoaded:Int = 0;
 

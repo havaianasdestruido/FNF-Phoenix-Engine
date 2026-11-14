@@ -326,11 +326,16 @@ class PauseSubState extends MusicBeatSubstate
 					deleteSkipTimeText();
 					regenMenu();
 				case 'Toggle RAM Graph':
-					ClientPrefs.showRamGraph = !ClientPrefs.showRamGraph;
-					PlayState.instance.ramGraph.setEnabled(ClientPrefs.showRamGraph);
-					Reflect.setField(FlxG.save.data, 'showRamGraph', ClientPrefs.showRamGraph);
-					FlxG.save.flush();
-					menuItemGroup.members[curSelected].text = ramGraphMenuLabel();
+					// The experimental profile owns this value and its saved baseline.
+					// Do not bypass the override layer via the pause menu's direct save.
+					if (!backend.LowMemory.isManaged('showRamGraph'))
+					{
+						ClientPrefs.showRamGraph = !ClientPrefs.showRamGraph;
+						PlayState.instance.ramGraph.setEnabled(ClientPrefs.showRamGraph);
+						Reflect.setField(FlxG.save.data, 'showRamGraph', ClientPrefs.showRamGraph);
+						FlxG.save.flush();
+						menuItemGroup.members[curSelected].text = ramGraphMenuLabel();
+					}
 				case 'Toggle Practice Mode':
 					PlayState.instance.practiceMode = !PlayState.instance.practiceMode;
 					PlayState.changedDifficulty = true;
@@ -511,7 +516,8 @@ class PauseSubState extends MusicBeatSubstate
 
 	function ramGraphMenuLabel():String
 	{
-		return 'RAM Graph: ' + (ClientPrefs.showRamGraph ? 'ON' : 'OFF');
+		return 'RAM Graph: ' + (ClientPrefs.showRamGraph ? 'ON' : 'OFF')
+			+ (backend.LowMemory.isManaged('showRamGraph') ? ' (Memory Profile)' : '');
 	}
 
 	public function regenMenu():Void {

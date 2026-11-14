@@ -9,10 +9,6 @@ import flixel.graphics.FlxGraphic;
 import flixel.graphics.frames.FlxFramesCollection;
 import haxe.io.Bytes;
 import haxe.io.Path;
-#if lime_vorbis
-import lime.media.AudioBuffer;
-import lime.media.vorbis.VorbisFile;
-#end
 import openfl.display.BitmapData;
 import openfl.display3D.textures.RectangleTexture;
 import openfl.geom.Rectangle;
@@ -68,6 +64,11 @@ class Paths
   public static var splashConfigs:Map<String, objects.NoteSplash.NoteSplashConfig> = new Map();
   public static var splashAnimCountMap:Map<String, Int> = new Map();
 
+  // Animation templates are built with real sprites. Keep their owners so we
+  // can destroy them explicitly: letting a sprite be GC'd does not decrement
+  // FlxGraphic.useCount and would pin its atlas forever during memory trims.
+  private static var skinTemplateSprites:Map<FlxGraphic, Array<FlxSprite>> = new Map();
+
   public static var defaultSkin = 'noteskins/NOTE_assets' + NoteHelpers.getNoteSkinPostfix();
 
   // Function that initializes the first note. This way, we can recycle the notes
@@ -111,6 +112,7 @@ class Paths
     }
     noteSkinFramesMap.set(noteSkin, spr.frames);
     noteSkinAnimsMap.set(noteSkin, spr.animation);
+    rememberSkinTemplate(spr);
     VLog.assetCached('noteskin', noteSkin, 'atlas + note animations cached in RAM');
   }
 
@@ -142,7 +144,7 @@ class Paths
 
     var spr:FlxSprite = new FlxSprite();
     spr.frames = splashFrames;
-    splashAnimation = new FlxAnimationController(spr);
+    splashAnimation = spr.animation;
 
     // Use a for loop for adding all of the animations in the splash spritesheet, otherwise it won't find the animations for the next recycle
 
@@ -177,6 +179,7 @@ class Paths
       splashSkinAnimsMap.set(splashSkin, splashAnimation);
       splashAnimCountMap.set(splashSkin, maxAnims);
     }
+    rememberSkinTemplate(spr);
     VLog.assetCached('noteskin', 'splash: ' + skin, maxAnims + ' splash animations cached in RAM');
   }
 
@@ -384,7 +387,9 @@ class Paths
       if (key != null && !localTrackedAssetSet.exists(key) && !isDumpExcluded(key))
       {
         final sound:Sound = currentTrackedSounds.get(key);
-        if (isMusicSound(sound)) continue;
+        // Paused/stopped FlxSounds may resume later, and persistent music can
+        // still own the instrumental. Do not invalidate any retained sound.
+        if (isSoundRetained(sound)) continue;
 
         final assetId:String = soundAssetIds.get(key);
         if (assetId != null)
@@ -395,7 +400,10 @@ class Paths
         }
         OpenFlAssets.cache.removeSound(key);
         Assets.cache.clear(key);
-        if (sound != null && !isSoundPlayingInList(sound))
+        // A mod can retain a streamed Sound or play it on its own channel,
+        // outside FlxG's list. Drop our reference instead of closing it: Lime's
+        // Vorbis handle is finalized only once every user releases the buffer.
+        if (sound != null && !streamSoundKeys.exists(key))
         {
           try
           {
@@ -404,6 +412,7 @@ class Paths
           catch (_:Dynamic) {}
         }
         currentTrackedSounds.remove(key);
+        streamSoundKeys.remove(key);
         MemoryLedger.untrackAsset(key); // ...and from the per-area RAM ledger
         freedSounds++;
       }
@@ -425,7 +434,15 @@ class Paths
       // if it is not currently contained within the used local assets
       if (!localTrackedAssetSet.exists(key) && !isDumpExcluded(key))
       {
-        destroyGraphic(currentTrackedAssets.get(key)); // get rid of the graphic
+        final graphic:FlxGraphic = currentTrackedAssets.get(key);
+        // Animation-template sprites are cache owners, not live gameplay
+        // users. Release them first so their use counts cannot pin the atlas.
+        // Actual notes/splashes have independent animation controllers.
+        pruneSkinCachesForGraphic(graphic);
+        // Request-based tracking is not a live-reference count. A sprite can
+        // still own an older graphic after local tracking has been reset.
+        if (graphic != null && graphic.useCount > 0) continue;
+        destroyGraphic(graphic); // get rid of the graphic
         currentTrackedAssets.remove(key); // and remove the key from local cache map
         MemoryLedger.untrackAsset(key); // ...and from the per-area RAM ledger
         vlogFreed++;
@@ -445,18 +462,14 @@ class Paths
   public static var localTrackedAssets:Array<String> = [];
 
   @:access(flixel.sound.FlxSound)
-  private static function isMusicSound(sound:Sound):Bool
+  private static function isSoundRetained(sound:Sound):Bool
   {
-    return sound != null && FlxG.sound != null && FlxG.sound.music != null && FlxG.sound.music.playing && FlxG.sound.music._sound == sound;
-  }
-
-  @:access(flixel.sound.FlxSound)
-  private static function isSoundPlayingInList(sound:Sound):Bool
-  {
-    if (sound == null || FlxG.sound == null || FlxG.sound.list == null) return false;
+    if (sound == null || FlxG.sound == null) return false;
+    if (FlxG.sound.music != null && FlxG.sound.music._sound == sound) return true;
+    if (FlxG.sound.list == null) return false;
     for (item in FlxG.sound.list.members)
     {
-      if (item != null && item.playing && item._sound == sound) return true;
+      if (item != null && item._sound == sound) return true;
     }
     return false;
   }
@@ -474,7 +487,9 @@ class Paths
     {
       if (!currentTrackedAssets.exists(key))
       {
-        destroyGraphic(FlxG.bitmap.get(key));
+        final graphic:FlxGraphic = FlxG.bitmap.get(key);
+        if (graphic != null && graphic.useCount > 0) continue;
+        destroyGraphic(graphic);
         vlogFreedBitmaps++;
       }
     }
@@ -493,6 +508,34 @@ class Paths
       gc(true);
       compress();
     }
+  }
+
+  private static function rememberSkinTemplate(sprite:FlxSprite):Void
+  {
+    if (sprite == null || sprite.frames == null || sprite.frames.parent == null) return;
+    final graphic:FlxGraphic = sprite.frames.parent;
+    var sprites:Array<FlxSprite> = skinTemplateSprites.get(graphic);
+    if (sprites == null)
+    {
+      sprites = [];
+      skinTemplateSprites.set(graphic, sprites);
+    }
+    sprites.push(sprite);
+  }
+
+  /** Release cached animation templates when a song or chart editor ends. */
+  public static function clearSkinCaches():Void
+  {
+    final graphics:Array<FlxGraphic> = [for (graphic in skinTemplateSprites.keys()) graphic];
+    for (graphic in graphics) pruneSkinCachesForGraphic(graphic);
+    noteSkinFramesMap.clear();
+    noteSkinAnimsMap.clear();
+    splashSkinFramesMap.clear();
+    splashSkinAnimsMap.clear();
+    splashConfigs.clear();
+    splashAnimCountMap.clear();
+    splashFrames = null;
+    splashAnimation = null;
   }
 
   private static function pruneSkinCachesForGraphic(graphic:FlxGraphic):Void
@@ -516,6 +559,17 @@ class Paths
         splashSkinAnimsMap.remove(skinKey);
         splashAnimCountMap.remove(skinKey);
       }
+    }
+    if (splashFrames != null && (splashFrames.parent == null || splashFrames.parent == graphic || splashFrames.parent.isDestroyed))
+    {
+      splashFrames = null;
+      splashAnimation = null;
+    }
+    final sprites:Array<FlxSprite> = skinTemplateSprites.get(graphic);
+    if (sprites != null)
+    {
+      skinTemplateSprites.remove(graphic);
+      for (sprite in sprites) if (sprite != null) sprite.destroy();
     }
   }
 
@@ -733,7 +787,7 @@ class Paths
   }
 
   // Loads the Voices. Crucial for generateSong
-  static public function voices(song:String, ?difficulty:String = '', ?postfix:String = null):Any
+  static public function voices(song:String, ?difficulty:String = '', ?postfix:String = null, ?stream:Bool = false):Any
   {
     var formattedDifficulty:String = formatToSongPath(difficulty);
     if (difficulty != null && difficulty.contains(' ')) difficulty = formattedDifficulty;
@@ -745,16 +799,16 @@ class Paths
       var songKey:String = '${formatToSongPath(song)}/Voices';
       if (postfix != null) songKey += '-' + postfix;
       songKey += '-$difficulty';
-      if (songKeyExists(songKey)) return returnSound('songs', songKey);
+      if (songKeyExists(songKey)) return returnSound('songs', songKey, null, stream);
     }
     var songKey:String = '${formatToSongPath(song)}/Voices';
     if (postfix != null) songKey += '-' + postfix;
-    return returnSound('songs', songKey);
+    return returnSound('songs', songKey, null, stream);
     #end
   }
 
   // Loads the instrumental. Crucial for generateSong
-  static public function inst(song:String, ?difficulty:String = ''):Any
+  static public function inst(song:String, ?difficulty:String = '', ?stream:Bool = false):Any
   {
     var formattedDifficulty:String = formatToSongPath(difficulty);
     if (difficulty != null && difficulty.contains(' ')) difficulty = formattedDifficulty;
@@ -764,9 +818,9 @@ class Paths
     if (difficulty != null && difficulty.length > 0)
     {
       var songKey:String = '${formatToSongPath(song)}/Inst-$difficulty';
-      if (songKeyExists(songKey)) return returnSound('songs', songKey);
+      if (songKeyExists(songKey)) return returnSound('songs', songKey, null, stream);
     }
-    return returnSound('songs', '${formatToSongPath(song)}/Inst');
+    return returnSound('songs', '${formatToSongPath(song)}/Inst', null, stream);
     #end
   }
 
@@ -897,12 +951,13 @@ class Paths
       if (difficulty.contains(' ')) difficulty = formattedDifficulty;
 
       var eventsKey:String = formatToSongPath(song) + '/events-${difficulty.toLowerCase()}';
-      #if sys
-      if (FileSystem.exists(Paths.json(eventsKey))
-        #if MODS_ALLOWED || FileSystem.exists(Paths.modsJson(eventsKey)) #end) return (!onlyEventsString ? eventsKey : 'events-${difficulty.toLowerCase()}');
-      #else
-      if (OpenFlAssets.exists(Paths.json(eventsKey))) return (!onlyEventsString ? eventsKey : 'events-${difficulty.toLowerCase()}');
-      #end
+      final eventPath:String = Paths.json(eventsKey);
+      // Assets can be embedded in a registered library (notably on Android),
+      // or shipped loose on desktop, with an optional mod override.
+      if (OpenFlAssets.exists(eventPath)
+        #if sys || FileSystem.exists(eventPath) #end
+        #if MODS_ALLOWED || FileSystem.exists(Paths.modsJson(eventsKey)) #end)
+        return (!onlyEventsString ? eventsKey : 'events-${difficulty.toLowerCase()}');
     }
     var eventsKey:String = formatToSongPath(song) + '/events';
     return (!onlyEventsString ? eventsKey : 'events');
@@ -913,14 +968,12 @@ class Paths
   {
     for (ext in IMAGE_EXTS)
     {
-      final candidate:String = getPath('images/$key.$ext', IMAGE, folder);
-      #if sys
-      if (FileSystem.exists(candidate)) return candidate;
-      #else
-      if (OpenFlAssets.exists(candidate)) return candidate;
-      #end
+      // Resolve the same mod override as cacheBitmap before memoizing the
+      // filename; otherwise the cached vanilla path masks a mod's image.
+      final candidate:String = getPath('images/$key.$ext', IMAGE, folder, true);
+      if (OpenFlAssets.exists(candidate, IMAGE) #if sys || FileSystem.exists(candidate) #end) return candidate;
     }
-    return getPath('images/$key.png', IMAGE, folder);
+    return getPath('images/$key.png', IMAGE, folder, true);
   }
 
   inline public static function imageExists(key:String, ?folder:String):Bool
@@ -1089,6 +1142,26 @@ class Paths
       + ' (~' + VLog.formatBytes(bitmap.width * bitmap.height * 4) + ')'
       + (vlogGpuCached ? ' | GPU texture (CPU pixels freed)' : ' | CPU bitmap in RAM'));
     return graph;
+  }
+
+  /**
+   * Match Character's lookup rules for both full sprites and HUD-only metadata:
+   * the requested character may come from a mod, but a missing character falls
+   * back to the built-in default, not to a mod or a level-specific JSON.
+   */
+  public static function characterFileText(name:String, fallback:String):String
+  {
+    final characterPath:String = 'characters/' + name + '.json';
+    #if MODS_ALLOWED
+    var path:String = modFolders(characterPath);
+    if (!FileSystem.exists(path)) path = getPreloadPath(characterPath);
+    if (!FileSystem.exists(path)) path = getPreloadPath('characters/' + fallback + '.json');
+    return FileSystem.exists(path) ? File.getContent(path) : null;
+    #else
+    var path:String = getPreloadPath(characterPath);
+    if (!Assets.exists(path)) path = getPreloadPath('characters/' + fallback + '.json');
+    return Assets.exists(path) ? Assets.getText(path) : null;
+    #end
   }
 
   static public function getTextFromFile(key:String, ?ignoreMods:Bool = false):String
@@ -1527,6 +1600,11 @@ class Paths
   // Asset loading has been rewritten.
   public static var currentTrackedSounds:Map<String, Sound> = [];
 
+  // A Vorbis decoder has a single seek cursor: each stream must have a unique
+  // cache key so it is never handed to a second player as a shared Sound.
+  private static var streamSoundSerial:Int = 0;
+  private static var streamSoundKeys:Map<String, Bool> = [];
+
   // Returns sounds which is useful for all the sfx
   public static function returnSound(path:String, key:String, ?library:String, stream:Bool = false)
   {
@@ -1548,6 +1626,8 @@ class Paths
 
     var sound:Sound = null;
     var file:String = null;
+    var assetId:String = null;
+    var streamed:Bool = false;
 
     #if MODS_ALLOWED
     // modsSounds() walks SOUND_EXTENSIONS and returns null when the mod ships
@@ -1564,23 +1644,27 @@ class Paths
       }
       if (FileSystem.exists(file))
       {
-        #if lime_vorbis
-        if (stream) sound = Sound.fromAudioBuffer(AudioBuffer.fromVorbisFile(VorbisFile.fromFile(file)));
-        else
-        #end
-        try
+        if (stream)
+        {
+          sound = SongAudioStreaming.open(file);
+          streamed = sound != null;
+        }
+        // Unsupported formats and unavailable decoders retain the normal path.
+        if (sound == null && existingModSound != null && @:privateAccess existingModSound.__buffer != null)
+        {
+          resolvedSoundCache.set(lookupKey, file);
+          trackLocalAsset(file);
+          return existingModSound;
+        }
+        if (sound == null) try
         {
           // Only Ogg files get the container sanity check; MP3 is decoded by
           // OpenFL/Windows/Android natively and has no magic header to look for.
-          if (isOggFile(file))
+          if (isOggFile(file) && !hasOggMagic(file))
           {
-            if (!hasOggMagic(file))
-            {
-              throw 'The file "$file" is not a valid OGG file (missing OggS header). It may have been renamed from '
-                + 'another format like MP3 -- either rename it back to .mp3 or re-encode it as Ogg.';
-            }
+            throw 'The file "$file" is not a valid OGG file (missing OggS header). It may have been renamed from '
+              + 'another format like MP3 -- either rename it back to .mp3 or re-encode it as Ogg.';
           }
-
           sound = Sound.fromFile(file);
         }
         catch (e)
@@ -1594,7 +1678,6 @@ class Paths
 
     if (sound == null)
     {
-      // This fallback avoids repeated sound lookup failures.
       final gottenPath:String = resolveSoundAsset(path, key, library);
       if (gottenPath == null)
       {
@@ -1603,7 +1686,7 @@ class Paths
       else
       {
         file = gottenPath.substring(gottenPath.indexOf(':') + 1, gottenPath.length);
-        soundAssetIds.set(file, gottenPath);
+        assetId = gottenPath;
         final existingLibSound:Sound = currentTrackedSounds.get(file);
         if (!stream && existingLibSound != null && @:privateAccess existingLibSound.__buffer != null)
         {
@@ -1612,30 +1695,46 @@ class Paths
           return existingLibSound;
         }
         #if sys
-        // Loose on-disk path (week folder in content-stripped build):
-        // OpenFlAssets can't find unregistered library ids, so load
-        // directly from disk like mods do via Sound.fromFile().
-        if (gottenPath.indexOf(':') < 0 && FileSystem.exists(gottenPath))
+        final looseFile:Bool = gottenPath.indexOf(':') < 0 && FileSystem.exists(gottenPath);
+        if (stream)
         {
-          sound = Sound.fromFile(gottenPath);
+          try
+          {
+            final diskPath:String = looseFile ? gottenPath : OpenFlAssets.getPath(gottenPath);
+            sound = SongAudioStreaming.open(diskPath);
+            streamed = sound != null;
+          }
+          catch (_:Dynamic) {} // Embedded assets may have no on-disk path.
         }
-        else
         #end
-        #if lime_vorbis
-        if (stream) sound = OpenFlAssets.getMusic(gottenPath);
-        else
-        #end
-        if (sound == null) sound = OpenFlAssets.getSound(gottenPath);
+        if (sound == null && existingLibSound != null && @:privateAccess existingLibSound.__buffer != null)
+        {
+          resolvedSoundCache.set(lookupKey, file);
+          trackLocalAsset(file);
+          return existingLibSound;
+        }
+        if (sound == null)
+        {
+          #if sys
+          if (looseFile) sound = Sound.fromFile(gottenPath);
+          else
+          #end
+          sound = OpenFlAssets.getSound(gottenPath);
+        }
       }
     }
 
     if (sound != null)
     {
       resolvedSoundCache.set(lookupKey, file);
-      trackLocalAsset(file);
-      currentTrackedSounds.set(file, sound);
-      MemoryLedger.trackSound(file, file, sound);
-      VLog.assetCached('sound', file, 'decoded into RAM (tracked for cache clearing)');
+      final cacheKey:String = streamed ? file + '::phoenix-stream-' + (streamSoundSerial++) : file;
+      if (streamed) streamSoundKeys.set(cacheKey, true);
+      else if (assetId != null) soundAssetIds.set(file, assetId);
+      trackLocalAsset(cacheKey);
+      currentTrackedSounds.set(cacheKey, sound);
+      MemoryLedger.trackSound(cacheKey, file, sound);
+      VLog.assetCached('sound', file, streamed ? 'streaming Vorbis (tracked for cache clearing)'
+        : 'decoded into RAM (tracked for cache clearing)');
       return sound;
     }
 

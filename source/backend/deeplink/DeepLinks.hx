@@ -143,10 +143,12 @@ class DeepLinks
         var formatted = backend.Highscore.formatSong(songLower, diffIndex);
         var exists = false;
         #if sys
-        exists = sys.FileSystem.exists(Paths.modsJson(songLower + '/' + formatted))
-          || sys.FileSystem.exists(Paths.json(songLower + '/' + formatted))
+        exists = sys.FileSystem.exists(Paths.json(songLower + '/' + formatted))
+          || openfl.utils.Assets.exists(Paths.json(songLower + '/' + formatted))
+          #if MODS_ALLOWED
+          || sys.FileSystem.exists(Paths.modsJson(songLower + '/' + formatted))
           || openfl.utils.Assets.exists(Paths.modsJson(songLower + '/' + formatted))
-          || openfl.utils.Assets.exists(Paths.json(songLower + '/' + formatted));
+          #end;
         #else
         exists = openfl.utils.Assets.exists(Paths.json(songLower + '/' + formatted));
         #end
@@ -175,8 +177,8 @@ class DeepLinks
           var formatted = backend.Highscore.formatSong(songLower, 0);
           var exists = false;
           #if sys
-          exists = sys.FileSystem.exists(Paths.modsJson(songLower + '/' + formatted))
-            || sys.FileSystem.exists(Paths.json(songLower + '/' + formatted));
+          exists = sys.FileSystem.exists(Paths.json(songLower + '/' + formatted))
+            #if MODS_ALLOWED || sys.FileSystem.exists(Paths.modsJson(songLower + '/' + formatted)) #end;
           #else
           exists = openfl.utils.Assets.exists(Paths.json(songLower + '/' + formatted));
           #end
