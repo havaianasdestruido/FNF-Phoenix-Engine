@@ -43,6 +43,10 @@ class SettingsBackup
     'defaultPixelRGB',
     'defaultQuantRGB',
     'importantMap',
+    // A mirror of `FlxG.sound.volume` for Options -> Audio; the real value is
+    // already carried in the `audio` section, and exporting both would let the
+    // two disagree after a hand edit.
+    'masterVolume',
     // Internal state managed by backend.LowMemory. A backup carries the
     // selected profile, but never its private snapshot or derived mirror.
     'memoryProfileBaseline',
@@ -151,6 +155,9 @@ class SettingsBackup
       FlxG.sound.muted = decoded.muted;
       applied++;
     }
+    // Options -> Audio shows the imported volume right away instead of waiting
+    // for the next frame it is open.
+    ClientPrefs.syncMasterVolume();
 
     if (applied == 0)
     {

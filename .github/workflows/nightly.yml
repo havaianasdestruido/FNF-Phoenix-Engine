@@ -3,7 +3,12 @@ on:
   workflow_run:
     workflows: ['Build']  # name: of .github/workflows/main.yml (#59)
     types: [completed]
-    
+
+# The token lists build artifacts and creates or updates a PR comment.
+permissions:
+  actions: read
+  issues: write
+
 jobs:
   pr_comment:
     if: github.event.workflow_run.event == 'pull_request' && github.event.workflow_run.conclusion == 'success'
