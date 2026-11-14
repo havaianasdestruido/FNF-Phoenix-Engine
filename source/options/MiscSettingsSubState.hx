@@ -1,4 +1,4 @@
-﻿package options;
+package options;
 
 import backend.ClientPrefs;
 import backend.Controls;
@@ -9,6 +9,7 @@ import openfl.Lib;
 
 import data.Song;
 import objects.Note;
+import headers.Options;
 
 class MiscSettingsSubState extends BaseOptionsMenu
 {
