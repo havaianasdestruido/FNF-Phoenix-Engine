@@ -51,6 +51,9 @@ jobs:
 
       - name: Verify compact CI and full release asset policy
         run: bash tests/haxe/run-content-policy.sh
+
+      - name: Verify artifact comment workflow permissions
+        run: bash tests/workflows/run-nightly-permissions.sh
   diagnostic-report-specs:
     name: Diagnostic log, crash bundle and diagnostics page (Haxe)
     runs-on: ubuntu-latest
