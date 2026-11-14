@@ -67,6 +67,8 @@ jobs:
         run: bash tests/haxe/run-diagnostics-report.sh
       - name: Test memory profiles, their overrides and the ClientPrefs guard
         run: bash tests/haxe/run-memory-profiles.sh
+      - name: Test adaptive performance detection and song-local effects
+        run: bash tests/haxe/run-adaptive-performance.sh
       - name: Test platform gating tags, option filters and pack.json requirements
         run: bash tests/haxe/run-platform-support.sh
       - name: Test Android TV / touchless navigation policy

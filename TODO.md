@@ -370,7 +370,7 @@ Read `docs/research/psych-fork-engine-changes.md`.
 
 ## 21. PLAYER-FACING SCREENS, SUBSTATES & OPTIONS (idea review)
 
-Ideas checked against the current tree: none of the screens, substates or options below exist yet (`PlayerStats`, `ResultsState`, `StatsState`, `ModchartLabState`, `ExtrasState`, `QuickOptionsSubState`, `PracticeLoopSubState`, `ModReportSubState`, `FreeplayFilterSubState`, `PhotoModeSubState`, `laneUnderlayAlpha`, `resumeCountdown`, `hapticFeedback`, `menuFramerate`, `adaptivePerformance` have no matches in `source/`). Overlaps with existing entries are cross-referenced, not repeated.
+The remaining ideas below are not implemented yet (`PlayerStats`, `ResultsState`, `StatsState`, `ModchartLabState`, `ExtrasState`, `QuickOptionsSubState`, `PracticeLoopSubState`, `ModReportSubState`, `FreeplayFilterSubState`, `PhotoModeSubState`, `laneUnderlayAlpha`, `resumeCountdown`, `hapticFeedback`, `menuFramerate` have no matches in `source/`). Completed items are marked below; overlaps with existing entries are cross-referenced, not repeated.
 
 ### 21.1. New states
 
@@ -394,7 +394,7 @@ Ideas checked against the current tree: none of the screens, substates or option
 - **[P2] Resume countdown (`resumeCountdown`, bool, default on, Gameplay).** Count 3-2-1 after unpausing instead of resuming instantly. Matters most on phones, where thumbs leave the hitbox to press Resume. Should be exposed to Lua/Python/HScript like the other pause events.
 - **[P2] Haptic feedback (`hapticFeedback`, string: Off / Misses / Hits and Misses, default Off, Mobile Options with `onlyOn([PlatformSupport.ANDROID])`).** `AndroidHaptics` and the `VIBRATE` permission already ship, and `modchart/modifiers/Vibrate.hx` exists, but nothing triggers haptics from gameplay. Add matching Lua and Python `vibrate()` callbacks.
 - **[P2] Menu FPS cap (`menuFramerate`, int, default 60, Graphics).** Menus currently render at the gameplay framerate, which can be set up to 1000, so they drain battery for nothing. A companion row can expose the focus-lost rate, which is hard-coded to `60` in `states/InitState.hx` (`FlxG.game.focusLostFramerate`). Roadmap link: next to the frame-pacing work in §18.
-- **[P3] Adaptive performance (`adaptivePerformance`, bool, default off, Optimization).** When the frame rate stays below target for a few seconds, switch off cosmetics in order (note splashes, rating popups, camera zooms) for the rest of the song and tell the player. Roadmap link: the first-run profile in §18 picks settings once; this one reacts during play.
+- **[Done] Adaptive performance (`adaptivePerformance`, bool, default off, Optimization).** Reacts during a song to sustained low FPS by disabling note splashes, rating popups, then camera bops, notifying the player and requesting rate-limited garbage collection where supported. The changes are song-local; the first-run profile in §18 remains a separate, one-time preset.
 
 ### 21.4. Quick win before any new option
 

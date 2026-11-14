@@ -149,7 +149,7 @@ class PlayStateNoteHelpers
 	}
 
 	public static function spawnHoldSplashOnNote(state:PlayState, note:Note, ?isDad:Bool = false) {
-		if (!ClientPrefs.noteSplashes || note == null || !note.alive)
+		if (!ClientPrefs.noteSplashes || state.adaptiveSplashesDisabled || note == null || !note.alive)
 			return;
 
 		state.splashesPerFrame[(isDad ? 2 : 3)] += 1;
@@ -165,6 +165,7 @@ class PlayStateNoteHelpers
 	}
 
 	public static function spawnHoldSplash(state:PlayState, note:Note) {
+		if (state.adaptiveSplashesDisabled) return;
 		final group:FlxTypedGroup<SustainSplash> = state.grpHoldSplashes;
 		final pooled:Int = group.length;
 		var splash:SustainSplash = group.recycle(SustainSplash);
@@ -176,7 +177,7 @@ class PlayStateNoteHelpers
 	}
 
 	public static function spawnNoteSplashOnNote(state:PlayState, isDad:Bool, note:Note) {
-		if(ClientPrefs.noteSplashes && note != null) {
+		if(ClientPrefs.noteSplashes && !state.adaptiveSplashesDisabled && note != null) {
 			state.splashesPerFrame[(isDad ? 0 : 1)] += 1;
 			final strum:StrumNote = !isDad ? state.playerStrums.members[note.noteData] : state.opponentStrums.members[note.noteData];
 			if(strum != null)
@@ -185,6 +186,7 @@ class PlayStateNoteHelpers
 	}
 
 	public static function spawnNoteSplash(state:PlayState, x:Float, y:Float, data:Int, ?note:Note = null) {
+		if (state.adaptiveSplashesDisabled) return;
 		final group:FlxTypedGroup<NoteSplash> = state.grpNoteSplashes;
 		final pooled:Int = group.length;
 		var splash:NoteSplash = group.recycle(NoteSplash);

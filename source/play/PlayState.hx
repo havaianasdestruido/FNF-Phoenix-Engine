@@ -62,6 +62,7 @@ import play.helpers.PlayStateRender;
 import play.helpers.PlayStateScripts;
 import play.helpers.PlayStateShaders;
 import play.helpers.PlayStateAndroidMedia;
+import play.helpers.PlayStateAdaptivePerformance;
 #if HSCRIPT_ALLOWED
 import psychlua.HScript;
 import psychlua.DebugLuaText;
@@ -225,6 +226,19 @@ class PlayState extends MusicBeatState
 	public var playerStrums:FlxTypedGroup<StrumNote>;
 	public var grpHoldSplashes:FlxTypedGroup<SustainSplash>;
 	public var grpNoteSplashes:FlxTypedGroup<NoteSplash>;
+
+	/** These overrides belong to this PlayState only; ClientPrefs is never changed. */
+	public var adaptivePerformance(default, null):PlayStateAdaptivePerformance = null;
+	public var adaptiveSplashesDisabled(get, never):Bool;
+	public var adaptiveRatingsDisabled(get, never):Bool;
+	public var adaptiveCameraZoomsDisabled(get, never):Bool;
+
+	inline function get_adaptiveSplashesDisabled():Bool
+		return adaptivePerformance != null && adaptivePerformance.policy.splashesDisabled;
+	inline function get_adaptiveRatingsDisabled():Bool
+		return adaptivePerformance != null && adaptivePerformance.policy.ratingsDisabled;
+	inline function get_adaptiveCameraZoomsDisabled():Bool
+		return adaptivePerformance != null && adaptivePerformance.policy.cameraZoomsDisabled;
 
 	public var camZooming:Bool = false;
 	public var camZoomingMult:Float = 1;
@@ -515,6 +529,7 @@ class PlayState extends MusicBeatState
 		if (layoutWidth != 0) PlayStateLayout.resize(this, layoutWidth);
 		layoutWidth = FlxG.width;
 		if (ramGraph != null) ramGraph.x = ScreenLayout.contentLeft(FlxG.width) + 8;
+		if (adaptivePerformance != null) adaptivePerformance.repositionNotice();
 	}
 
 	override public function draw()
@@ -1784,6 +1799,10 @@ class PlayState extends MusicBeatState
 
 		startingTime = haxe.Timer.stamp();
 
+		// Offline video rendering intentionally runs at a non-real-time pace.
+		if (ClientPrefs.adaptivePerformance && !ffmpegMode)
+			adaptivePerformance = new PlayStateAdaptivePerformance(this);
+
 		#if android
 		// Android media session / audio focus / wake lock integration.
 		PlayStateAndroidMedia.start(this);
@@ -2064,6 +2083,7 @@ class PlayState extends MusicBeatState
 
 	override function openSubState(SubState:flixel.FlxSubState)
 	{
+		if (adaptivePerformance != null) adaptivePerformance.resetSamples();
 		stagesFunc(function(stage:BaseStage) stage.openSubState(SubState));
 		if (paused)
 		{
@@ -2087,6 +2107,7 @@ class PlayState extends MusicBeatState
 	public var canResync:Bool = true;
 	override function closeSubState()
 	{
+		if (adaptivePerformance != null) adaptivePerformance.resetSamples();
 		stagesFunc(function(stage:BaseStage) stage.closeSubState());
 		if (paused)
 		{
@@ -2107,6 +2128,7 @@ class PlayState extends MusicBeatState
 
 	override public function onFocus():Void
 	{
+		if (adaptivePerformance != null) adaptivePerformance.setFocused(true);
 		try {if (health > 0 && !paused) resetRPC(Conductor.songPosition > 0.0);}
 		catch(e) {};
 		super.onFocus();
@@ -2114,6 +2136,7 @@ class PlayState extends MusicBeatState
 
 	override public function onFocusLost():Void
 	{
+		if (adaptivePerformance != null) adaptivePerformance.setFocused(false);
 		#if DISCORD_ALLOWED
 		try {if (health > 0 && !paused && autoUpdateRPC && FlxG.autoPause) DiscordClient.changePresence(detailsPausedText, SONG.song + " (" + storyDifficultyText + ")", iconP2.getCharacter());}
 		catch(e) {};
@@ -3066,6 +3089,11 @@ class PlayState extends MusicBeatState
 	}
 
 	override function destroy() {
+		if (adaptivePerformance != null)
+		{
+			adaptivePerformance.destroy();
+			adaptivePerformance = null;
+		}
 		PlayStateModchart.reset(this);
 
 		#if android
@@ -3189,7 +3217,8 @@ class PlayState extends MusicBeatState
 			var randomSpeed = FlxMath.roundDecimal(FlxG.random.float(minSpeed, maxSpeed), 2);
 			lerpSongSpeed(randomSpeed, 1);
 		}
-		if (camZooming && !endingSong && !startingSong && camHUD.zoom < 1.35 && usingBopIntervalEvent && ClientPrefs.camZooms && !ClientPrefs.reducedMotion && (curBeat % camBopInterval == 0))
+		if (camZooming && !endingSong && !startingSong && camHUD.zoom < 1.35 && usingBopIntervalEvent
+			&& ClientPrefs.camZooms && !adaptiveCameraZoomsDisabled && !ClientPrefs.reducedMotion && (curBeat % camBopInterval == 0))
 		{
 			camBopFactor += 0.015 * camBopIntensity;
 			camHUD.zoom += 0.03 * camBopIntensity;
@@ -3262,7 +3291,8 @@ class PlayState extends MusicBeatState
 				setOnLuas('altAnim', SONG.notes[curSection].altAnim);
 				setOnLuas('gfSection', SONG.notes[curSection].gfSection);
 			}
-			if (camZooming && !endingSong && !startingSong && camHUD.zoom < 1.35 && !usingBopIntervalEvent && ClientPrefs.camZooms && !ClientPrefs.reducedMotion)
+			if (camZooming && !endingSong && !startingSong && camHUD.zoom < 1.35 && !usingBopIntervalEvent
+				&& ClientPrefs.camZooms && !adaptiveCameraZoomsDisabled && !ClientPrefs.reducedMotion)
 			{
 				camBopFactor += 0.015 * camBopIntensity;
 				camHUD.zoom += 0.03 * camBopIntensity;

@@ -83,7 +83,7 @@ class Spooky extends BaseStage
 			gf.playAnim('scared', true);
 		}
 
-		if(ClientPrefs.camZooms) {
+		if(ClientPrefs.camZooms && (!onPlayState || !play.PlayState.instance.adaptiveCameraZoomsDisabled)) {
 			FlxG.camera.zoom += 0.015;
 			camHUD.zoom += 0.03;
 

@@ -192,7 +192,8 @@ class PlayStateRating
 				}
 			}
 
-			if (state.showRating && ClientPrefs.ratingPopups && !ClientPrefs.simplePopups && (!miss || (ClientPrefs.missRating && state.daRating != null))) {
+			if (state.showRating && ClientPrefs.ratingPopups && !state.adaptiveRatingsDisabled && !ClientPrefs.simplePopups
+				&& (!miss || (ClientPrefs.missRating && state.daRating != null))) {
 				final pooled:Int = state.popUpGroup.length;
 				state.rating = state.popUpGroup.recycle(Popup);
 				PoolStats.spawn(PoolStats.POPUP, state.popUpGroup.length == pooled);
@@ -236,7 +237,7 @@ class PlayStateRating
 				});
 			}
 
-			if (ClientPrefs.ratingPopups && ClientPrefs.simplePopups && !ClientPrefs.hideHud) {
+			if (ClientPrefs.ratingPopups && !state.adaptiveRatingsDisabled && ClientPrefs.simplePopups && !ClientPrefs.hideHud) {
 				state.judgeTxt.showHit({
 					combo: miss && ClientPrefs.doidoMisses ? -state.missCounter.count : state.combo,
 					rating: state.daRating != null ? state.daRating.name : 'miss',
@@ -263,7 +264,7 @@ class PlayStateRating
 	public static function spawnTiming(state:PlayState, miss:Bool = false):Void
 	{
 		if (miss || !ClientPrefs.earlyLateRatings || ClientPrefs.hideHud) return;
-		if (!ClientPrefs.ratingPopups || state.timingGroup == null || !state.showRating) return;
+		if (!ClientPrefs.ratingPopups || state.adaptiveRatingsDisabled || state.timingGroup == null || !state.showRating) return;
 
 		final asset:Null<String> = timingAsset(state, state.hitTiming);
 		if (asset == null) return;

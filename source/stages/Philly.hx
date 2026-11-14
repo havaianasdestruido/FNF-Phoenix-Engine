@@ -136,7 +136,7 @@ class Philly extends BaseStage
 						if(phillyGlowGradient.visible)
 						{
 							doFlash();
-							if(ClientPrefs.camZooms)
+							if(ClientPrefs.camZooms && (!onPlayState || !play.PlayState.instance.adaptiveCameraZoomsDisabled))
 							{
 								FlxG.camera.zoom += 0.5;
 								camHUD.zoom += 0.1;
@@ -162,7 +162,7 @@ class Philly extends BaseStage
 						if(!phillyGlowGradient.visible)
 						{
 							doFlash();
-							if(ClientPrefs.camZooms)
+							if(ClientPrefs.camZooms && (!onPlayState || !play.PlayState.instance.adaptiveCameraZoomsDisabled))
 							{
 								FlxG.camera.zoom += 0.5;
 								camHUD.zoom += 0.1;
