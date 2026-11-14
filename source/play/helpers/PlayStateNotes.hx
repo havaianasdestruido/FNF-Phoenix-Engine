@@ -2,6 +2,7 @@ package play.helpers;
 
 import backend.ClientPrefs;
 import backend.Conductor;
+import backend.PlayerStats;
 
 import debug.PoolStats;
 
@@ -42,6 +43,8 @@ class PlayStateNotes
 			}
 
 			state.songMisses += 1 * (PlayState.opponentChart ? state.polyphonyOppo : state.polyphonyBF);
+			if (PlayerStats.canTrackGameplay(state.cpuControlled, state.practiceMode, state.ffmpegMode, PlayState.chartingMode, state.trollingMode))
+				PlayerStats.recordMiss();
 			if (PlayState.SONG.needsVoices && !state.ffmpegMode)
 				if (PlayState.opponentChart && state.opponentVocals != null && state.opponentVocals.volume != 0) state.opponentVocals.volume = 0;
 				else if (!PlayState.opponentChart && state.vocals.volume != 0) state.vocals.volume = 0;
@@ -100,6 +103,8 @@ class PlayStateNotes
 			}
 
 			state.songMisses += 1 * (PlayState.opponentChart ? state.polyphonyOppo : state.polyphonyBF);
+			if (PlayerStats.canTrackGameplay(state.cpuControlled, state.practiceMode, state.ffmpegMode, PlayState.chartingMode, state.trollingMode))
+				PlayerStats.recordMiss();
 			(PlayState.opponentChart ? state.opponentVocals : state.vocals).volume = 0;
 			if (!state.practiceMode)
 				state.songScore -= 10 * Std.int((PlayState.opponentChart ? state.polyphonyOppo : state.polyphonyBF));
@@ -145,6 +150,8 @@ class PlayStateNotes
 			if(!state.practiceMode) state.songScore -= 10;
 			if(!state.endingSong) {
 				state.songMisses++;
+				if (PlayerStats.canTrackGameplay(state.cpuControlled, state.practiceMode, state.ffmpegMode, PlayState.chartingMode, state.trollingMode))
+					PlayerStats.recordMiss();
 			}
 			state.totalPlayed++;
 			PlayStateRating.RecalculateRating(state, true);

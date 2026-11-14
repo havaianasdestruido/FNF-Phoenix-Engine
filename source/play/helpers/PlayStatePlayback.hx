@@ -6,6 +6,7 @@ import backend.CoolUtil;
 import backend.DiscordClient;
 import backend.Highscore;
 import backend.MusicBeatState;
+import backend.PlayerStats;
 #if MODS_ALLOWED
 #end
 import backend.WeekData;
@@ -463,6 +464,27 @@ class PlayStatePlayback
 				var percent:Float = state.ratingPercent;
 				if(Math.isNaN(percent)) percent = 0;
 				Highscore.saveScore(PlayState.SONG.song, Std.int(state.songScore), PlayState.storyDifficulty, percent);
+			}
+			if (!state.statsRecorded && !PlayState.playerIsCheating
+				&& PlayerStats.canTrackGameplay(state.cpuControlled, state.practiceMode, state.ffmpegMode, PlayState.chartingMode, state.trollingMode))
+			{
+				state.statsRecorded = true;
+				final totalHits:Int = state.perfects + state.sicks + state.goods + state.bads + state.poorRatings;
+				final isFullCombo:Bool = PlayerStats.isFullComboRun(state.songMisses, totalHits, PlayState.playerIsCheating);
+				final songLabel:String = (PlayState.SONG != null && PlayState.SONG.song != null && PlayState.SONG.song.trim().length > 0)
+					? PlayState.SONG.song
+					: state.songName;
+				final modFolder:String = state.statsSongMod != null ? state.statsSongMod : '';
+				var modDisplayName:Null<String> = null;
+				#if MODS_ALLOWED
+				if (modFolder.length > 0)
+				{
+					final pack:Dynamic = Mods.getPack(modFolder);
+					if (pack != null && pack.name != null && Std.isOfType(pack.name, String))
+						modDisplayName = cast pack.name;
+				}
+				#end
+				PlayerStats.recordSongFinished(songLabel, modFolder, modDisplayName, isFullCombo, true);
 			}
 			state.playbackRate = 1;
 			final songResults:ResultsData = ResultsData.fromPlayState(state, PlayState.SONG.song);

@@ -413,6 +413,7 @@ class ClientPrefs { //default settings if it can't find a save file containing y
 			Reflect.setField(FlxG.save.data, flixelS, Reflect.field(FlxG.sound, flixelS));
 
 		#if ACHIEVEMENTS_ALLOWED Achievements.save(); #end
+		PlayerStats.save(false);
 		FlxG.save.flush();
 
 		if (RecoveryBoot.freshPrefs) return;

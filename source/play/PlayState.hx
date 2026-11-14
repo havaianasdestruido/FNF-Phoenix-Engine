@@ -16,6 +16,7 @@ import backend.LuaDiagnostics.LuaDiagLevel;
 #if MODS_ALLOWED
 #end
 import backend.MusicBeatState;
+import backend.PlayerStats;
 import backend.WeekData;
 
 import data.Section.SwagSection;
@@ -301,6 +302,8 @@ class PlayState extends MusicBeatState
 	public static var changedDifficulty:Bool = false;
 	public static var chartingMode:Bool = false;
 	public static var playerIsCheating:Bool = false; //Whether the player is cheating. Enables if you change BOTPLAY or Practice Mode in the Pause menu
+	private var statsSongMod:String = '';
+	private var statsRecorded:Bool = false;
 
 	public static var disableBotWatermark:Bool = false;
 
@@ -699,6 +702,9 @@ class PlayState extends MusicBeatState
 		#end
 
 		GameOverSubstate.resetVariables();
+		playerIsCheating = false;
+		statsRecorded = false;
+		statsSongMod = (Mods.currentModDirectory != null) ? Mods.currentModDirectory : '';
 		songName = Paths.formatToSongPath(SONG.song);
 		curStage = (!ClientPrefs.charsAndBG ? "" : SONG.stage);
 		//trace('stage is: ' + curStage);
@@ -2743,6 +2749,8 @@ class PlayState extends MusicBeatState
 			if(ret != FunkinLua.Function_Stop) {
 				boyfriend.stunned = true;
 				deathCounter++;
+				if (PlayerStats.canTrackGameplay(cpuControlled, practiceMode, ffmpegMode, chartingMode, trollingMode))
+					PlayerStats.recordDeath();
 
 				canResync = false;
 				paused = true;
@@ -2790,6 +2798,8 @@ class PlayState extends MusicBeatState
 			#else
 			boyfriend.stunned = true;
 			deathCounter++;
+			if (PlayerStats.canTrackGameplay(cpuControlled, practiceMode, ffmpegMode, chartingMode, trollingMode))
+				PlayerStats.recordDeath();
 
 			canResync = false;
 			paused = true;
@@ -3071,6 +3081,7 @@ class PlayState extends MusicBeatState
 	}
 
 	override function destroy() {
+		PlayerStats.flushIfDirty();
 		PlayStateModchart.reset(this);
 
 		#if android
