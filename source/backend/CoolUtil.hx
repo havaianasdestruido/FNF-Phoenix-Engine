@@ -127,18 +127,15 @@ class CoolUtil
 	public static function checkForOBS():Bool
 	{
 		#if sys
-		var fs:Bool = FlxG.fullscreen;
-		if (fs)
-		{
-			FlxG.fullscreen = false;
-		}
+		// Reading the process list needs a repaintable window, so drop out of
+		// fullscreen for the duration and then restore the exact mode the
+		// player had (exclusive fullscreen, borderless, ...) through WindowMode.
+		final mode:String = WindowMode.current();
+		WindowMode.applyMode(WindowMode.WINDOWED);
 		var tasklist:String = "";
 		var frrrt:Bytes = new Process("tasklist", []).stdout.readAll();
 		tasklist = frrrt.getString(0, frrrt.length);
-		if (fs)
-		{
-			FlxG.fullscreen = true;
-		}
+		WindowMode.applyMode(mode);
 		return tasklist.contains("obs64.exe") || tasklist.contains("obs32.exe");
 		#else
 		return false;

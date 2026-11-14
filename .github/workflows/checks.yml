@@ -89,6 +89,8 @@ jobs:
         run: bash tests/haxe/run-distant-notes.sh
       - name: Test the monitor refresh rate helper and its per-target C++
         run: bash tests/haxe/run-monitor-refresh-rate.sh
+      - name: Test the window display mode and its desktop resize branch
+        run: bash tests/haxe/run-window-mode.sh
       - name: Test hold-to-confirm gestures and enlarged touch targets
         run: bash tests/haxe/run-hold-to-confirm.sh
       - name: Typecheck the hold-to-confirm Flixel layer
