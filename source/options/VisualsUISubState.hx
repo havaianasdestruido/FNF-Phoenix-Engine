@@ -17,6 +17,7 @@ import flixel.input.keyboard.FlxKey;
 import backend.ClientPrefs;
 import backend.MenuMusic;
 import data.Song;
+import play.helpers.StageDimMath;
 
 class VisualsUISubState extends BaseOptionsMenu
 {
@@ -133,6 +134,25 @@ class VisualsUISubState extends BaseOptionsMenu
 		option.minValue = 0.0;
 		option.maxValue = 1;
 		option.changeValue = 0.01;
+		option.decimals = 2;
+		addOption(option);
+
+		// One black quad over camGame only (stage + characters), under the notes and
+		// the HUD. 0% = off, which is the default, so nothing changes for players
+		// who never open this menu. See play.helpers.PlayStateStageDim.
+		var option:Option = new Option('Stage Dim:',
+			"How dark should the stage and the characters be?\n"
+			+ "Notes, strums and the HUD are never dimmed.\n"
+			+ "(0% = off, 90% = as dark as it goes)",
+			'stageDim',
+			'percent',
+			0);
+		option.scrollSpeed = 1.2;
+		option.minValue = StageDimMath.MIN_ALPHA;
+		option.maxValue = StageDimMath.MAX_ALPHA;
+		option.changeValue = StageDimMath.STEP;
+		// Two decimals: the menu rounds the held value with this precision, so
+		// `0` would round every 0.05 step back to 0 and the row could never move.
 		option.decimals = 2;
 		addOption(option);
 

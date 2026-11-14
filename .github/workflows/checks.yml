@@ -117,6 +117,8 @@ jobs:
           bash tests/haxe/run-modchart-lab.sh
       - name: Typecheck and drive the Modchart Lab editor state
         run: bash tests/haxe/run-modchart-lab-typecheck.sh
+      - name: Test stage dim alpha rules, overlay layering and camera coverage
+        run: bash tests/haxe/run-stage-dim.sh
 
   lua-script-pipeline:
     name: Lua script pipeline (Haxe)
