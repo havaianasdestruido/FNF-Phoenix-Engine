@@ -4,21 +4,30 @@ import openfl.display.Shader;
 
 import shaders.BlockedGlitchShader;
 import shaders.BloomShader;
+import shaders.BrightnessContrastShader;
 import shaders.BuildingShader;
 import shaders.ChromaticAberrationShader;
+import shaders.CRTShader;
 import shaders.DistantNoteShader;
 import shaders.DistortBGShader;
 import shaders.GlitchShader;
 import shaders.Grain;
 import shaders.GreyscaleShader;
 import shaders.InvertShader;
+import shaders.MosaicShader;
+import shaders.OldTVShader;
 import shaders.PulseShader;
 import shaders.RainShader;
 import shaders.RGBPalette.RGBPaletteShader;
+import shaders.RippleShader;
 import shaders.Scanline;
+import shaders.SilhouetteShader;
 import shaders.ThreeDShader;
 import shaders.Tiltshift;
+import shaders.TVStaticShader;
+import shaders.VCRBorderShader;
 import shaders.VCRDistortionShader;
+import shaders.VCRFuzzShader;
 import shaders.VFDOverlay;
 
 import shaders.ShaderWarmupPlan;
@@ -97,9 +106,12 @@ class ShaderWarmupRegistry
       '3dshader' => function():Shader return new ThreeDShader(),
       'blockedglitch' => function():Shader return new BlockedGlitchShader(),
       'bloom' => function():Shader return new BloomShader(),
+      'brightness' => function():Shader return new BrightnessContrastShader(),
+      'brightnesscontrast' => function():Shader return new BrightnessContrastShader(),
       'building' => function():Shader return new BuildingShader(),
       'chromatic' => function():Shader return new ChromaticAberrationShader(),
       'chromaticaberration' => function():Shader return new ChromaticAberrationShader(),
+      'crt' => function():Shader return new CRTShader(),
       'distant' => function():Shader return new DistantNoteShader(),
       'distantnote' => function():Shader return new DistantNoteShader(),
       'distantnoteshader' => function():Shader return new DistantNoteShader(),
@@ -109,13 +121,28 @@ class ShaderWarmupRegistry
       'grayscale' => function():Shader return new GreyscaleShader(),
       'greyscale' => function():Shader return new GreyscaleShader(),
       'invert' => function():Shader return new InvertShader(),
+      // `pixelblur` and `smwpixelblur` are the names Mario Madness' wrapper
+      // around this shader used (`SMWPixelBlurShader`); `shaders.MosaicEffect`
+      // keeps its `setStrength()` for the same reason.
+      'mosaic' => function():Shader return new MosaicShader(),
+      'oldtv' => function():Shader return new OldTVShader(),
+      'pixelblur' => function():Shader return new MosaicShader(),
       'rain' => function():Shader return new RainShader(),
       'rgbpalette' => function():Shader return new RGBPaletteShader(),
+      'ripple' => function():Shader return new RippleShader(),
       'scanline' => function():Shader return new Scanline(),
+      'silhouette' => function():Shader return new SilhouetteShader(),
+      'smwpixelblur' => function():Shader return new MosaicShader(),
       'threed' => function():Shader return new ThreeDShader(),
       'tiltshift' => function():Shader return new Tiltshift(),
+      'tvstatic' => function():Shader return new TVStaticShader(),
       'vcr' => function():Shader return new VCRDistortionShader(),
+      'vcrborder' => function():Shader return new VCRBorderShader(),
       'vcrdistortion' => function():Shader return new VCRDistortionShader(),
+      // `vcrmario85` is the name this shader has upstream; Phoenix calls it
+      // `VCRFuzzShader` after what it does rather than after the song.
+      'vcrfuzz' => function():Shader return new VCRFuzzShader(),
+      'vcrmario85' => function():Shader return new VCRFuzzShader(),
       'vfd' => function():Shader return new VFDOverlay()
     ];
 
