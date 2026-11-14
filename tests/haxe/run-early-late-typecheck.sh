@@ -280,6 +280,7 @@ import play.objects.MissCounter;
 class PlayState
 {
   public static var instance:PlayState;
+  public var adaptiveRatingsDisabled:Bool = false;
 	public static var campaignMisses:Int = 0;
 	public static var changedDifficulty:Bool = false;
 	public static var chartingMode:Bool = false;

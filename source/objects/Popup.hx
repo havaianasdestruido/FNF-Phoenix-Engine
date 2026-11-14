@@ -14,6 +14,8 @@ import data.Song;
 
 class Popup extends FlxSprite {
     public var popTime:Float = 0; //The song position that the popup was spawned at.
+    /** Ratings and combo digits share this pool; adaptive performance only removes ratings. */
+    public var isRatingPopup(default, null):Bool = false;
     var placement(get, never):Float; // Keep ratings in the centered 16:9 HUD area.
     inline function get_placement():Float
         return ScreenLayout.contentLeft(FlxG.width) + ScreenLayout.BASE_WIDTH * 0.35;
@@ -48,6 +50,7 @@ class Popup extends FlxSprite {
 
     public function setupRating(img:String)
     {
+        isRatingPopup = true;
         popTime = Conductor.songPosition;
         loadGraphic(Paths.image(img));
         screenCenter();
@@ -66,6 +69,7 @@ class Popup extends FlxSprite {
 
     public function setupNumber(img:String, daLoop:Int, combo:Float)
     {
+        isRatingPopup = false;
         popTime = Conductor.songPosition;
         loadGraphic(Paths.image(img));
         screenCenter();

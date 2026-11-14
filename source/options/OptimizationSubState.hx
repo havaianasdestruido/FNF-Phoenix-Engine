@@ -40,6 +40,14 @@ class OptimizationSubState extends BaseOptionsMenu
 		};
 		addOption(option);
 
+		option = new Option('Adaptive Performance',
+			'If FPS stays below the target for 3 seconds,\n'
+			+ 'turns off splashes, then ratings, then camera bops this song.\n'
+			+ 'Requests GC where supported (even if auto-GC is off);\n'
+			+ 'may hitch. Your saved preferences are unchanged.',
+			'adaptivePerformance', 'bool', false);
+		addOption(option);
+
 		option = new Option('Free Memory Now',
 			'Releases cached images and sounds that nothing is using right now.\n'
 			+ 'Handy before a heavy song; assets are simply reloaded if you go back.\n'
