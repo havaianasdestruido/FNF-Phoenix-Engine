@@ -13,3 +13,9 @@ cp source/backend/HoldToConfirmLogic.hx "$test_source/backend/HoldToConfirmLogic
 # compared with null. The interpreter above is a dynamic target and accepts
 # that, so the same module is also typechecked for C++ (nothing is generated).
 "${HAXE:-haxe}" -cp "$test_source" -cp tests/haxe -main HoldToConfirmSpec -cpp "$test_source/cpp" --no-output
+
+# The state machine was always right; the bug was in what callers fed it.
+# `controls.ACCEPT` only lives for one frame (JUST_PRESSED), so a guard wired
+# to it drew one frame of bar and then cancelled forever. Scan the guarded
+# call sites for just-pressed flags - this needs the real source tree.
+"${HAXE:-haxe}" -cp tests/haxe -main HoldToConfirmCallSitesSpec --interp
