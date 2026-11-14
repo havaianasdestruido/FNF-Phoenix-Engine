@@ -7,6 +7,8 @@ set "TEST_SOURCE=%TEMP%\phoenix-hold-confirm-%RANDOM%-%RANDOM%"
 mkdir "%TEST_SOURCE%\backend" || exit /b 1
 copy /y "source\backend\HoldToConfirmLogic.hx" "%TEST_SOURCE%\backend\" >nul || goto fail
 %HAXE% -cp "%TEST_SOURCE%" -cp tests/haxe -main HoldToConfirmSpec --interp || goto fail
+rem The same module typechecked for C++, a static target (nothing is generated).
+%HAXE% -cp "%TEST_SOURCE%" -cp tests/haxe -main HoldToConfirmSpec -cpp "%TEST_SOURCE%\cpp" --no-output || goto fail
 rd /s /q "%TEST_SOURCE%" 2>nul
 exit /b 0
 :fail

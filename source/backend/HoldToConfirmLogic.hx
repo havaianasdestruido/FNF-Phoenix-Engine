@@ -81,6 +81,21 @@ class HoldToConfirmLogic
   /** A hold or armed confirmation was abandoned. */
   public static inline var CANCELLED:Int = 3;
 
+  /**
+   * True for a required number that cannot be used: NaN on every target, and
+   * `null` where a `Float` can hold one (the interpreter, JavaScript). Static
+   * targets such as C++ reject comparing a required `Float` with `null` at
+   * compile time, so that half of the check only exists elsewhere.
+   */
+  static inline function unusable(value:Float):Bool
+  {
+    #if static
+    return value != value;
+    #else
+    return value == null || value != value;
+    #end
+  }
+
   /** Clamps a saved hold length; rejects NaN/Infinity and absurd values. */
   public static function holdSeconds(?value:Float):Float
   {
@@ -111,10 +126,10 @@ class HoldToConfirmLogic
       ?minWidth:Float = MIN_TOUCH_SIZE, ?minHeight:Float = MIN_TOUCH_SIZE,
       ?padding:Float = TOUCH_PADDING):TouchRect
   {
-    if (x == null || x != x) x = 0;
-    if (y == null || y != y) y = 0;
-    if (width == null || width != width || width < 0) width = 0;
-    if (height == null || height != height || height < 0) height = 0;
+    if (unusable(x)) x = 0;
+    if (unusable(y)) y = 0;
+    if (unusable(width) || width < 0) width = 0;
+    if (unusable(height) || height < 0) height = 0;
     if (minWidth == null || minWidth != minWidth || minWidth < 1) minWidth = 1;
     if (minHeight == null || minHeight != minHeight || minHeight < 1) minHeight = 1;
     if (padding == null || padding != padding || padding < 0) padding = 0;
@@ -180,7 +195,7 @@ class HoldToConfirmLogic
       ?seconds:Float = DEFAULT_HOLD_SECONDS, ?window:Float = DEFAULT_CONFIRM_WINDOW):Int
   {
     if (state.done) return NONE;
-    if (elapsed == null || elapsed != elapsed || elapsed <= 0) elapsed = 0;
+    if (unusable(elapsed) || elapsed <= 0) elapsed = 0;
     var limit:Float = holdSeconds(seconds);
     var armedWindow:Float = confirmWindow(window);
 
