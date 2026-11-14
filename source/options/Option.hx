@@ -37,6 +37,25 @@ class Option
 	public var specialOption:Bool = false;
 
 	/**
+	 * Whether the row mirrors a value owned by something else.
+	 *
+	 * `ClientPrefs` normally holds the value, and the menu only writes it when the
+	 * player changes the row. A live row (Options -> Audio -> Master Volume) is
+	 * different: the real state lives elsewhere (`FlxG.sound.volume`) and the
+	 * field is only a mirror, so `readValue` reports the current state and the
+	 * menu re-reads it every frame (`BaseOptionsMenu.refreshLiveOptions()`).
+	 * That way a volume key, the sound tray or a mod script changing the volume
+	 * updates the label instead of leaving a stale number behind.
+	 */
+	public var live:Bool = false;
+
+	/**
+	 * Reads the value of a `live` row. `null` means "use the `ClientPrefs` field
+	 * like every other option".
+	 */
+	public var readValue:Void->Dynamic = null;
+
+	/**
 	 * Build targets this option applies to, as `backend.PlatformSupport` tags
 	 * (`['android']`, `['desktop', 'android']`, `['!mobile']`, ...).
 	 *
@@ -133,6 +152,7 @@ class Option
 	public function getValue():Dynamic
 	{
 		if (type == 'link') return null; // #45: link options carry no value
+		if (live && readValue != null) return readValue();
 		return Reflect.getProperty(ClientPrefs, variable);
 	}
 	public function setValue(value:Dynamic)

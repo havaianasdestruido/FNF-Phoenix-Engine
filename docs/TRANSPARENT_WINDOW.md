@@ -58,7 +58,10 @@ Transparency only makes sense on a windowed game, so the API handles the window
 mode for you:
 
 - `setEnabled(true)` while the game is fullscreen **leaves fullscreen first**
-  (and logs why).
+  (and logs why). It goes through `backend.WindowMode.leaveFullscreen()`, so the
+  persisted window mode is updated too: the game returns to the mode it had
+  before fullscreen (a borderless player stays borderless) instead of silently
+  desyncing from the Options -> Graphics choice.
 - Entering fullscreen (F11, `FlxG.fullscreen = true`, a script, …) **suspends**
   the effect; it comes back automatically as soon as the game is windowed again.
   `TransparentWindow.enabled` stays `true` during the suspension — use

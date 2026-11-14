@@ -166,7 +166,8 @@ class PlatformSupport
     'renderGCRate' => [VIDEO_RENDER],
     'renderPath' => [VIDEO_RENDER],
     'showRemainingTime' => [VIDEO_RENDER],
-    'distantNotes' => [SHADERS]
+    'distantNotes' => [SHADERS],
+    'windowMode' => [DESKTOP]
   ];
 
   static var cachedTags:Array<String> = null;

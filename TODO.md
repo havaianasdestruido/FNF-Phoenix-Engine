@@ -101,6 +101,13 @@ Should include exposing almost ALL game screens thought the Modding API. (By scr
 
 - Adjusting for lower Android SDK target (I want to play on my Android 5.0 phone), but only on a new experimental branch.
 
+---
+
+- Add a `stdfire` library for softmods where it contains util functions.
+- - `stdfire.NativeTitleRename` - Renames the engine app title, by "Native", I mean that it should rename on all platforms supported: Desktop, Web, etc.
+- - `stdfire.NativeMSGBox` - System low-level/native message box, for an example, on Windows it should use a `WIN32` `MessageBox("")` box, on Web, it should use `alert()`.
+- - `stdfire.NativeWarn` - Non-MSGbox alert approach, should be used only for small warnings, like a toast, on Android, it should only display a `Toast` on the bottom, on Windows, it should use a `WIN32` `Tooltip/Balloon`.
+
 ## 1. BUILD / TOOLCHAIN (all targets green)
 
 - **[P0] HashLink target blocked.** `lime.hdll` missing locally, HL wasn't verifiable, HL agent dead-ended. Install a compatible HashLink (`lime.hdll` + `lime-hdiowrap`), fix any compile errors, re-enable the `hl` CI job in `.github/workflows/main.yml`. ([#63](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/issues/63))
@@ -388,13 +395,24 @@ Read `docs/research/psych-fork-engine-changes.md`.
 
 ## 21. PLAYER-FACING SCREENS, SUBSTATES & OPTIONS (idea review)
 
-Ideas checked against the current tree: none of the screens, substates or options below exist yet (`PlayerStats`, `ResultsState`, `StatsState`, `ModchartLabState`, `ExtrasState`, `QuickOptionsSubState`, `PracticeLoopSubState`, `ModReportSubState`, `FreeplayFilterSubState`, `PhotoModeSubState`, `laneUnderlayAlpha`, `resumeCountdown`, `hapticFeedback`, `menuFramerate`, `adaptivePerformance` have no matches in `source/`). Overlaps with existing entries are cross-referenced, not repeated.
+Ideas checked against the current tree: none of the screens, substates or options below exist yet (`PlayerStats`, `ResultsState`, `StatsState`, `ExtrasState`, `QuickOptionsSubState`, `PracticeLoopSubState`, `ModReportSubState`, `FreeplayFilterSubState`, `PhotoModeSubState`, `laneUnderlayAlpha`, `resumeCountdown`, `hapticFeedback`, `menuFramerate`, `adaptivePerformance` have no matches in `source/`). Overlaps with existing entries are cross-referenced, not repeated. (`ModchartLabState` has since shipped — see §21.1.)
 
 ### 21.1. New states
 
 - **[P1] Results screen (`states/ResultsState`).** `PlayStatePlayback.endSong()` currently goes straight back to `FreeplayState` / `StoryMenuState`. After a song or week, show score, accuracy, judgement breakdown, max combo, peak NPS, FC tier and a histogram of hit offsets. The totals already exist on `PlayState`; only per-hit offsets need recording (via `play.helpers.HitTiming`). Roadmap link: the Mic'd Up S/A rank (§0) would live on this screen.
 - **[P2] Player stats (`states/StatsState`, `backend/PlayerStats`).** Lifetime totals: playtime, songs finished, notes per judgement, deaths, full combos, most-played songs and mods. A small `PlayerStats` backend is needed because playtime is only stored as progress toward the 50-hour badge and stops counting once that unlocks. Link it from Awards (`MainMenuState`'s `awards` entry); a new main-menu button would need its own sprite atlas.
-- **[P3] Modchart lab (`editors/ModchartLabState`).** Pick any of the 34 built-in modifiers in `source/modchart/modifiers/`, drag their percents over a looping section, watch the arrows react, then copy the matching `modEase(...)` calls as Lua or Python. There is no visual way to tune a modchart today. Related to the modchart work in §12.
+- **[P3] ~~Modchart lab (`editors/ModchartLabState`)~~ DONE** — the renderer-free half lives in `modchart/lab/`
+  (`ModchartLabCatalog` for the knobs of all 34 modifiers, `ModchartLabTrack` for per-percent
+  automation on loop-local beats, `ModchartLabExport` + `ModchartLabExportOptions` for the
+  Lua/Python fragment); `editors.ModchartLabState` is the screen, reachable from Editors →
+  **Modchart Lab**. Dragging a percent records a keyframe snapped to the 16th-note grid, the
+  looping clock replays the tracks through the real `ModchartManager`/`PlayField.transform`
+  chain (no `PlayState`, no song files), and `C` copies `addModifier`/`modSet`/`modEase` calls —
+  optionally wrapped in a `modRepeater` callback — as Lua or Python, with a file fallback when
+  the clipboard is blocked. Known limits (absolute-time modifiers are phase-shifted, one
+  playfield, `skew` stored but not drawn, `vibrate` is random) are documented. Docs:
+  `docs/MODCHART.md` (§ Modchart lab). Specs: `bash tests/haxe/run-modchart-lab.sh`,
+  `bash tests/haxe/run-modchart-lab-typecheck.sh`; both run in `checks.yml`.
 - **[P2] Extras hub (`states/ExtrasState`).** A menu listing custom screens that enabled mods declare in a new `menus` list in `pack.json`. `ModState` screens can only be opened by a script calling `switchCustomState` (`states/ModState.hx`), so each mod currently has to build its own entry point, for example by overlaying `MainMenuState`. Needs `backend.Mods` parsing of `menus` and a platform-support check for each entry.
 - **[P3] Input tester (`states/InputTestState`, `phoenix://input`).** Live view of keys, gamepad buttons and touch points, with a simultaneous-press counter and press timing, so a player can see that a keyboard drops a third key or a phone tracks only two fingers. Give it a `phoenix://` route like `phoenix://diagnostics` (`DiagnosticsReport`). Player-facing tool for the poll-rate and key-rollover audit in §15 (`PlayStateInput`).
 
@@ -423,6 +441,8 @@ Ideas checked against the current tree: none of the screens, substates or option
 Thirty option ideas from three separate lists. Five options appeared in two lists, so they are merged into 25 entries (both names stay in the title): 22 new options in §22.1–22.5, none of which repeats §21.3, and three additions to existing entries in §22.6. Checked against the tree at `b0a5429`, which is also where the line numbers come from: none of the proposed keys exists in `backend/ClientPrefs.hx` (`startFullscreen` and `metronome` only appear in `source/` as the `Main.game` launch field and a chart-editor checkbox). Where a list's premise did not match the code, the entry says what is there instead, after "Checked:". Effort is quoted where a list estimated it: S = a preference, one `Option` row and a few call sites; M = also a small helper/object or a layout pass. The third list gave no keys, types or estimates, so its entries leave them open. The priority tags are a reading of the lists' own recommendations, which are kept in §22.8.
 
 ### 22.1. Audio
+
+- **[P2] ~~Master volume (`masterVolume`, percent, default 100%, a new Audio category or Misc).~~ DONE** — `backend.VolumeCurve` (the tray's log curve, shared), `ClientPrefs.masterVolume` as a mirror of `FlxG.sound.volume` (kept out of the save and the backup through `saveBlackList` / `loadBlackList` / `SettingsBackup.NOT_PREFERENCES`), a live row in the new **Options -> Audio** (`options/AudioSettingsSubState.hx`, also in Misc, openable with `phoenix://menu/audio`) that follows the volume keys and the tray every frame. Specs: `bash tests/haxe/run-volume-curve.sh`, `bash tests/haxe/run-master-volume.sh`. Original entry kept below.
 
 - **[P2] Master volume (`masterVolume`, percent, default 100%, a new Audio category or Misc).** No options menu has a volume row. `FlxG.sound.volume` only changes through the volume keys (`volume_up` / `volume_down` / `volume_mute`, with the `objects/CustomSoundTray` popup) and through a settings import (`backend/SettingsBackup.hx:146`), so a player on a gamepad or a touchscreen cannot set it in-game. Every `FlxSound` multiplies by it, so one row covers music, vocals, hitsounds and the pause track. Checked: the value is already saved and restored, which one list missed. `ClientPrefs.saveSettings()` and `loadPrefs()` round-trip it through the `flixelSound` list (`ClientPrefs.hx:367`, `:405`, `:464`), the tray stores it too (`CustomSoundTray.hx:121`) and `SettingsBackup` exports it (`:205`). So do not store it twice: `Option` binds to a `ClientPrefs` field by name, so give it one that mirrors `FlxG.sound.volume` and is kept out of the save and the backup (`saveBlackList` / `loadBlackList` in `ClientPrefs.hx:366-368`, `SettingsBackup.NOT_PREFERENCES`). The row has to use the tray's curve (`CustomSoundFrontEnd.changeVolume()` stores a log-scaled value, so half the tray is a `FlxG.sound.volume` of about 0.03) and has to follow the volume keys, or it goes stale. Two lists rank this first; with persistence already in place it is a convenience row, hence P2. Effort: S.
 - **[P3] ~~Menu music volume~~ DONE** — `ClientPrefs.menuMusicVolume` (percent, default 100 %,
