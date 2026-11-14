@@ -12,6 +12,7 @@ import backend.CoolUtil;
 import backend.DiscordClient;
 import backend.Highscore;
 import backend.LuaDiagnostics;
+import backend.MenuMusic;
 import backend.LuaDiagnostics.LuaDiagLevel;
 #if MODS_ALLOWED
 #end
@@ -625,8 +626,12 @@ class PlayState extends MusicBeatState
 		screenshader.waveSpeed = 1;
 		screenshader.shader.time = new flixel.math.FlxRandom().float(-100000, 100000);
 
+		// The loading screen already faded the menu theme out while the chart was
+		// loading (Options -> Fade Menu Music); drop whatever is left of it before
+		// the instrumental takes the music channel over.
 		if (FlxG.sound.music != null)
 			FlxG.sound.music.stop();
+		MenuMusic.forget();
 
 		// Gameplay settings
 		healthGain = ClientPrefs.getGameplaySetting('healthgain', 1);

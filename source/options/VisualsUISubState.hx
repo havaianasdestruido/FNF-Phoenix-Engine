@@ -15,6 +15,7 @@ import flixel.graphics.FlxGraphic;
 import flixel.input.keyboard.FlxKey;
 
 import backend.ClientPrefs;
+import backend.MenuMusic;
 import data.Song;
 
 class VisualsUISubState extends BaseOptionsMenu
@@ -448,6 +449,27 @@ class VisualsUISubState extends BaseOptionsMenu
 				['Default', 'Anniversary', 'Mashup', 'Base Game', 'DDTO+', 'Dave & Bambi', 'Dave & Bambi (Old)', 'VS Impostor']);
 			addOption(option);
 			option.onChange = onChangeMenuMusic;
+
+			// Menu audio is mixed separately from gameplay audio (see backend.MenuMusic):
+			// this scales only the menu theme, and the fade hides the cut on the way
+			// into a song.
+			var volumeOption:Option = new Option('Menu Music Volume',
+				'How loud the menu song plays.\nGameplay audio keeps its own volume, and the\nvolume keys still apply on top of this.',
+				'menuMusicVolume',
+				'percent',
+				1);
+			addOption(volumeOption);
+			volumeOption.scrollSpeed = 1.6;
+			volumeOption.changeValue = 0.1;
+			volumeOption.decimals = 1;
+			volumeOption.onChange = onChangeMenuMusicVolume;
+
+			var fadeOption:Option = new Option('Fade Menu Music',
+				'Checked: the menu song fades out while a song loads.\nUnchecked: it is cut as soon as the song starts.',
+				'menuMusicFade',
+				'bool',
+				true);
+			addOption(fadeOption);
 		}
 
 		#if CHECK_FOR_UPDATES
@@ -622,14 +644,21 @@ class VisualsUISubState extends BaseOptionsMenu
 	var menuMusicChanged:Bool = false;
 	function onChangeMenuMusic()
 	{
-			if (ClientPrefs.daMenuMusic != 'Default') FlxG.sound.playMusic(Paths.music('freakyMenu-' + ClientPrefs.daMenuMusic));
-			else FlxG.sound.playMusic(Paths.music('freakyMenu'));
+		// Restarts the theme through the helper, so it starts at the preferred
+		// menu volume (and with the mod fallback) instead of a hardcoded 1.
+		Paths.playMenuMusic(true);
 		menuMusicChanged = true;
+	}
+
+	function onChangeMenuMusicVolume()
+	{
+		// Live preview: the menu track is already playing behind this menu.
+		MenuMusic.applyVolume();
 	}
 
 	override function destroy()
 	{
-		if(changedMusic) FlxG.sound.playMusic(Paths.music('freakyMenu-' + ClientPrefs.daMenuMusic));
+		if(changedMusic) Paths.playMenuMusic(true);
 		super.destroy();
 	}
 

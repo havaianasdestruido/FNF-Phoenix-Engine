@@ -6,6 +6,7 @@ import backend.ViewportVisuals;
 import backend.Conductor;
 import backend.CoolUtil;
 import backend.Highscore;
+import backend.MenuMusic;
 import backend.MusicBeatState;
 import backend.Paths;
 import backend.UpdateChecker;
@@ -632,7 +633,9 @@ class TitleState extends MusicBeatState
       switch (sickBeats)
       {
         case 1:
-          FlxG.sound.music.fadeIn(4, 0, 0.7);
+          // The 4 s title reveal fades the theme in from silence; the target
+          // honours the menu music volume (0.7 was the old fixed ceiling).
+          FlxG.sound.music.fadeIn(4, 0, MenuMusic.targetVolume(0.7));
         case 2:
           createCoolText(['JS Engine by'], 15);
         case 4:
