@@ -32,6 +32,8 @@ class ClientPrefs { //default settings if it can't find a save file containing y
 	public static var ghostTapAnim:Bool = true;
 	public static var hitsoundVolume:Float = 0;
 	public static var hitsoundType:String = 'osu!mania';
+	/** Optional beat tick: Off, Count-in or Always (Options -> Gameplay). */
+	public static var metronome:String = 'Off';
 	// Global song stem volume overrides (Options -> Gameplay Settings). While a toggle is on, its
 	// value is forced on every song for that stem -- charts, stages and scripts cannot change it.
 	// See play.helpers.PlayStatePlayback for the resolution and the per-frame enforcement.
@@ -169,6 +171,8 @@ class ClientPrefs { //default settings if it can't find a save file containing y
 	public static var hitboxPos:Bool = true;
 	// Android-only opt-in: system notifications for engine events (chart backups, crash logs).
 	public static var androidNotifications:Bool = false;
+	/** Automatic note vibration: Off / Misses / Hits and Misses (Options -> Mobile Options). */
+	public static var hapticFeedback:String = HapticFeedback.OFF;
 
 	//Audio
 	/**

@@ -224,7 +224,7 @@ a no-op outside `#if android` unless noted.
 | `AndroidDisplay` | Screen info | `getInfo()` (size, DPI, orientation, refresh), `getCutoutInsets()`, `getRefreshRate()`, `setImmersive()`, `setCutoutMode()`, `setPreferredRefreshRate()`, `onChanged` |
 | `AndroidGamepad` | Controllers | `getDevices()`/`getDevice(id)` with Xbox/PlayStation/Switch/HID identification, `onConnected`/`onDisconnected`, rumble via `vibrate(deviceId, ms)` |
 | `AndroidHardwareInput` | Physical keys | Volume-key interception (`enableVolumeKeys()`/`disableVolumeKeys()`), `onKey(keyCode, down)` signal |
-| `AndroidHaptics` | Vibration | `vibrate(ms)`, `vibratePattern(pattern, repeat)`, `cancel()` |
+| `AndroidHaptics` | Vibration | `vibrate(ms)`, `vibratePattern(pattern, repeat)`, `cancel()`; gameplay uses `backend.HapticFeedback` (Options -> Mobile Options -> Haptic Feedback), Lua/Python use `vibrate(durationMs = 50)` |
 | `AndroidIntents` | System intents | `openUrl`, `openSettings`, `openFile`, `shareFile`, `shareText`, `viewContentUri`, `onDeepLink` signal (`phoenix://...`) — subscribe via `subscribeDeepLink(cb)` so a buffered cold-start link is confirmed delivered |
 | `AndroidNotification` | Notifications | `notify(id, title, text)`, `notifyEvent(id, title, text)` (opt-in), `cancel(id)`, `requestPermission()` (API 33+) |
 | `AndroidStorage` | SAF / content URIs | `openDocument`, `createDocument`, `openDocumentTree`, `readUriBytes/Text`, `writeUriBytes/Text`, `importUri`, `exportFileToUri`, `persistUriPermission`, `extensionToMime` |

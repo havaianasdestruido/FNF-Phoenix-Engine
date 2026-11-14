@@ -81,12 +81,16 @@ jobs:
         run: bash tests/haxe/run-adaptive-performance.sh
       - name: Test platform gating tags, option filters and pack.json requirements
         run: bash tests/haxe/run-platform-support.sh
+      - name: Test Android haptics and Lua/Python vibrate parity
+        run: bash tests/haxe/run-haptic-feedback.sh
       - name: Test Android TV / touchless navigation policy
         run: bash tests/haxe/run-android-tv-policy.sh
       - name: Test Doido consecutive-miss popups
         run: bash tests/haxe/run-miss-counter.sh
       - name: Test Early/Late timing classification and its dead zone
         run: bash tests/haxe/run-hit-timing.sh
+      - name: Test metronome modes, count-in beats and seek suppression
+        run: bash tests/haxe/run-metronome.sh
       - name: Test moving checkerboard preference and frame-rate-independent motion
         run: bash tests/haxe/run-moving-checkerboard.sh
       - name: Test distant-note camera isolation and unsupported-target fallback
