@@ -1,5 +1,6 @@
 package psychlua.callbacks;
 
+import backend.CameraFlash;
 import backend.Conductor;
 import backend.Highscore;
 import backend.Paths;
@@ -237,7 +238,7 @@ class GameCallbacks
 		FunkinLua.registerFunction("cameraFlash", function(camera:String, color:String, duration:Float,forced:Bool) {
 			var colorNum:Int = Std.parseInt(color);
 			if(!color.startsWith('0x')) colorNum = Std.parseInt('0xff' + color);
-			LuaUtils.cameraFromString(camera).flash(colorNum, duration / PlayState.instance.playbackRate,null,forced);
+			CameraFlash.flash(LuaUtils.cameraFromString(camera), colorNum, duration / PlayState.instance.playbackRate, null, forced);
 		});
 		FunkinLua.registerFunction("cameraFade", function(camera:String, color:String, duration:Float, forced:Bool, ?fadeOut:Bool = false) {
 			var colorNum:Int = Std.parseInt(color);

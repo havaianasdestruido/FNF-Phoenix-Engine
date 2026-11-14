@@ -335,6 +335,13 @@ class VisualsUISubState extends BaseOptionsMenu
 			true);
 		addOption(option);
 
+		var option:Option = new Option('Flash Intensity',
+			"Scales camera flash brightness and duration. Flashing Lights must be enabled.",
+			'flashIntensity',
+			'percent',
+			1);
+		addOption(option);
+
 		var option:Option = new Option('Camera Zooms',
 			"If unchecked, the camera won't zoom in on a beat hit.",
 			'camZooms',

@@ -89,6 +89,8 @@ class ClientPrefs { //default settings if it can't find a save file containing y
 	public static var smoothHealth:Bool = true;
 	public static var smoothHPBug:Bool = false;
 	public static var flashing:Bool = true;
+	// Fraction displayed as a percentage in Visuals and UI.
+	public static var flashIntensity:Float = 1;
 	public static var safeMode:Bool = false;
 	public static var showPhotosensitivityWarning:Bool = true;
 	public static var saveVersion:Int = 1;
