@@ -53,6 +53,12 @@ jobs:
       - name: Verify compact CI and full release asset policy
         run: bash tests/haxe/run-content-policy.sh
 
+      # Every artifact name must end with the script backends the binary
+      # contains (LUA / PYTHON / HSCRIPT), and the compile flags, cache keys
+      # and run titles must use the same modding level.
+      - name: Verify artifact names carry the script modding level
+        run: python3 tests/test_ci_artifact_names.py
+
       - name: Verify artifact comment workflow permissions
         run: bash tests/workflows/run-nightly-permissions.sh
   diagnostic-report-specs:

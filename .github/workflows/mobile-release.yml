@@ -1,5 +1,9 @@
 name: Mobile Release
 
+# Mobile builds always compile at MODDING_LEVEL=0 (the Lua bindings are
+# desktop-only), and the run title says so instead of repeating the input.
+run-name: Release ${{ github.event.inputs.tag_name }} (android) - MODDING_LEVEL 0
+
 on:
   workflow_dispatch:
     inputs:
@@ -46,6 +50,9 @@ jobs:
       fullAssets: true
       buildWindows: false
       buildAndroid: true
+      # main.yml clamps mobile targets to 0 anyway; passing it keeps the run
+      # title honest (the Lua bindings are desktop-only).
+      moddingLevel: "0"
 
   release-android:
     name: Release androidBuild

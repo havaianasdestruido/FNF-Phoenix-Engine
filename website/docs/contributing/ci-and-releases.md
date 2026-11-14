@@ -12,18 +12,52 @@ All workflows live in `.github/workflows/`.
 
 The shared build matrix runs on pushes and pull requests targeting `main` or `bleeding`.
 It also supports manual and reusable calls (`workflow_dispatch` and `workflow_call`),
-with inputs to select targets. CI supports only Windows and Android; other Lime targets
-can still be built locally. `fail-fast` is off, so one broken target does not hide the other.
+with inputs to select targets **and the script modding level**. CI supports only Windows
+and Android; other Lime targets can still be built locally. `fail-fast` is off, so one
+broken target does not hide the other.
 
 | Job | Runner | Target | Artifact |
 |---|---|---|---|
-| Windows | `windows-latest` | `windows` | `windowsBuild` |
-| Android | `ubuntu-24.04` | `android` | `androidBuild` |
+| Windows | `windows-latest` | `windows` | `<commit>_windows_<HH>_<MM>_<scripts>` |
+| Android | `ubuntu-24.04` | `android` | `<commit>_android_<HH>_<MM>_<scripts>` |
 
-Each job: checkout → target selection check → platform setup (Java 17 and Android SDK/NDK
-for Android) → restore haxelib/hxcpp caches → install `hmm.json` dependencies → configure
-Android / ensure the MSVC hxcpp checkout → compile hxcpp tools → restore the generated
-C++ cache → **compile** → save caches → publish artifacts.
+Each job: checkout → target selection check → resolve the script modding level →
+platform setup (Java 17 and Android SDK/NDK for Android) → restore haxelib/hxcpp caches →
+install `hmm.json` dependencies → configure Android / ensure the MSVC hxcpp checkout →
+compile hxcpp tools → restore the generated C++ cache → **compile** → save caches →
+publish artifacts.
+
+### Script modding level and artifact names
+
+`moddingLevel` (`0` = no scripts, `1` = Lua, `2` = Lua + Python, default `2`) is passed to
+the build as `-DMODDING_LEVEL`, which `project.hxp` turns into the `LUA_ALLOWED` and
+`PYTHON_ALLOWED` feature flags. It is shown in two places, so a build never has to be
+opened to know what it can run:
+
+- **Run title** — every run is named `Build (<event>) - MODDING_LEVEL <level>`, and the
+  release workflows name theirs too (`Release <tag> - MODDING_LEVEL <level>`).
+- **Artifact name** — `<commit>_<target>_<HH>_<MM>_<scripts>`, where `<scripts>` lists only
+  the backends that really are in the binary:
+
+  | Suffix | Level | What it can run |
+  |---|---|---|
+  | `_LUA_PYTHON_HSCRIPT` | 2 | Lua, Python and HScript mods (default on Windows) |
+  | `_LUA_HSCRIPT` | 1 | Lua and HScript mods |
+  | `_HSCRIPT` | 0 | HScript mods only — also every Android build |
+  | `_NONE` | — | no script support at all |
+
+  HScript is compiled for every desktop and mobile target independently of the level, so it
+  is always listed. The suffix also shows up in the download links of the pull-request
+  comment posted by `nightly.yml`.
+
+Android is always built at level `0`: `project.hxp` only adds the `hxluajit` haxelib for
+desktop targets, so asking for Lua there would compile `import hxluajit.*` without the
+bindings and fail at `source/import.hx`. The workflow clamps the level and prints a
+`::notice::` instead.
+
+The level is part of the hxcpp object cache key, since objects compiled for one level are
+useless for another. The haxelib and Gradle caches are shared between levels: the
+dependencies are installed either way.
 
 Two steps worth knowing about:
 
@@ -84,14 +118,16 @@ mobile releases now use `main.yml`, including its manifest and native-library ch
 ## `mobile-release.yml` — Mobile Release
 
 Manual. Select an existing Phoenix release tag explicitly; the workflow validates the
-tag and build commit before calling `main.yml` with `buildWindows: false` and
-`buildAndroid: true`. It attaches the resulting APK to the existing release. It does not
-use GitHub's `latest` redirect, which excludes prereleases.
+tag and build commit before calling `main.yml` with `buildWindows: false`,
+`buildAndroid: true` and `moddingLevel: "0"` (mobile cannot ship the Lua/Python VMs). It
+attaches the resulting APK to the existing release. It does not use GitHub's `latest`
+redirect, which excludes prereleases.
 
 ## `release.yml` — Manual Release
 
-Manual, with `tag_name` and `prerelease` inputs. Validates the version, creates the tag if
-needed, calls `main.yml`, and uploads the Windows artifact to a draft release.
+Manual, with `tag_name`, `prerelease` and `moddingLevel` inputs. Validates the version,
+creates the tag if needed, calls `main.yml` at that modding level, and uploads the Windows
+artifact to a draft release.
 GitHub-generated notes and the optional Markdown message become the release body; edit
 the release on GitHub to maintain its changelog.
 
@@ -100,9 +136,12 @@ the release on GitHub to maintain its changelog.
 Automatic. When a release is published on the Releases page — a brand-new release or a
 draft promoted to published — this workflow builds the tagged commit through `main.yml`
 with `buildFlags: officialBuild` and attaches `FNF-Phoenix-Engine-windows.zip` and
-`FNF-Phoenix-Engine-android.apk` to the release page. Assets already attached to the
-release are skipped, so publishing a draft prepared by `release.yml` only builds what is
-missing (typically the APK). The `tools/release_version.py` check is advisory here
+`FNF-Phoenix-Engine-android.apk` to the release page. It builds at the default
+`moddingLevel` (`2`, so the Windows release runs Lua and Python mods); a manual dispatch
+can pick another level with the `moddingLevel` input. The published asset names stay
+stable — the level is in the run title and in the uploaded artifact names instead.
+Assets already attached to the release are skipped, so publishing a draft prepared by
+`release.yml` only builds what is missing (typically the APK). The `tools/release_version.py` check is advisory here
 because the release is already public; the manual workflows above still gate tag creation
 on it. A manual dispatch with an explicit `tag_name` backfills or re-attaches artifacts
 for an existing release and must be run from the tagged commit. The workflow has to exist
@@ -143,8 +182,8 @@ commented on, and automatic closing of inactive issues.
 
 ```bash
 # Install dependencies first: sh setup/unix.sh (or setup\windows.bat on Windows).
-haxelib run lime build windows -Dcommit
-haxelib run lime build android
+haxelib run lime build windows -Dcommit -DMODDING_LEVEL=2
+haxelib run lime build android -DMODDING_LEVEL=0
 python3 tools/check_dependencies.py
 python3 tools/check_android_bridge.py --check
 bash tests/java/run.sh
