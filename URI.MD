@@ -188,7 +188,8 @@ The contract, in the order a suspicious reader would ask:
 - **Nothing is bound, saved or written by the page.** It changes no key bind and
   no preference. The engine-wide desktop hotkeys are handled outside any state
   and keep working as they do during a song: `F2` saves a screenshot, `F3`
-  toggles the frame profiler, `F6` exports its log, `F11` toggles fullscreen.
+  toggles the frame profiler, `F6` exports its log, and `F11` toggles fullscreen
+  and saves that as the Window Mode preference, as it does everywhere else.
 - **No parameters, no sub-pages.** `phoenix://input?device=touch` and
   `phoenix://input/keyboard` are rejected as malformed, like the diagnostics
   route does with its own.

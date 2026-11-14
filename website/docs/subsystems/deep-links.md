@@ -111,7 +111,8 @@ or Back on a pad, or the on-screen `EXIT` button with one finger or the mouse â€
 and Android's system Back leaves at once. The volume shortcuts are switched off
 while the page is open and restored when it closes. The page binds, saves and
 writes nothing; the engine-wide desktop hotkeys are handled outside any state and
-still work (`F2` screenshot, `F3`/`F6` frame profiler, `F11` fullscreen). Like the
+still work (`F2` screenshot, `F3`/`F6` frame profiler, `F11` fullscreen, which is
+saved as the Window Mode preference as it is everywhere else). Like the
 diagnostics route it takes **no parameters** and has no sub-pages, and it returns
 to the Main Menu (or to Options when it was opened from there).
 
