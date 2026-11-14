@@ -1102,8 +1102,8 @@ class Project extends HXProject
 			addAssetLibrary(weekFolder, shouldEmbed, shouldPreload);
 			if (!stripped)
 			{
-				if (sys.FileSystem.exists("assets/${weekFolder}"))
-					addAssetPath("assets/${weekFolder}", "assets/${weekFolder}", weekFolder, ["*"], exclude, shouldEmbed);
+				if (sys.FileSystem.exists('assets/${weekFolder}'))
+					addAssetPath('assets/${weekFolder}', 'assets/${weekFolder}', weekFolder, ["*"], exclude, shouldEmbed);
 				else
 					info('Skipping missing level asset folder "assets/${weekFolder}".');
 			}

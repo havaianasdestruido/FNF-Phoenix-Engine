@@ -2,6 +2,7 @@ package play.helpers;
 
 import backend.ClientPrefs;
 import backend.Conductor;
+import backend.PlayerStats;
 
 import debug.PoolStats;
 
@@ -42,6 +43,8 @@ class PlayStateNotes
 			}
 
 			state.songMisses += 1 * (PlayState.opponentChart ? state.polyphonyOppo : state.polyphonyBF);
+			if (PlayerStats.canTrackGameplay(state.cpuControlled, state.practiceMode, state.ffmpegMode, PlayState.chartingMode, state.trollingMode))
+				PlayerStats.recordMiss();
 			if (PlayState.SONG.needsVoices && !state.ffmpegMode)
 				if (PlayState.opponentChart && state.opponentVocals != null && state.opponentVocals.volume != 0) state.opponentVocals.volume = 0;
 				else if (!PlayState.opponentChart && state.vocals.volume != 0) state.vocals.volume = 0;
@@ -100,6 +103,8 @@ class PlayStateNotes
 			}
 
 			state.songMisses += 1 * (PlayState.opponentChart ? state.polyphonyOppo : state.polyphonyBF);
+			if (PlayerStats.canTrackGameplay(state.cpuControlled, state.practiceMode, state.ffmpegMode, PlayState.chartingMode, state.trollingMode))
+				PlayerStats.recordMiss();
 			(PlayState.opponentChart ? state.opponentVocals : state.vocals).volume = 0;
 			if (!state.practiceMode)
 				state.songScore -= 10 * Std.int((PlayState.opponentChart ? state.polyphonyOppo : state.polyphonyBF));
@@ -145,6 +150,8 @@ class PlayStateNotes
 			if(!state.practiceMode) state.songScore -= 10;
 			if(!state.endingSong) {
 				state.songMisses++;
+				if (PlayerStats.canTrackGameplay(state.cpuControlled, state.practiceMode, state.ffmpegMode, PlayState.chartingMode, state.trollingMode))
+					PlayerStats.recordMiss();
 			}
 			state.totalPlayed++;
 			PlayStateRating.RecalculateRating(state, true);
@@ -414,8 +421,8 @@ class PlayStateNotes
 			if (state.playerChar != null && state.playerChar.shakeScreen)
 			{
 				if (!ClientPrefs.reducedMotion) {
-					state.camGame.shake(state.playerChar.shakeIntensity, state.playerChar.shakeDuration / state.playbackRate);
-					state.camHUD.shake(state.playerChar.shakeIntensity / 2, state.playerChar.shakeDuration / state.playbackRate);
+					backend.CameraEffects.shake(state.camGame, state.playerChar.shakeIntensity, state.playerChar.shakeDuration / state.playbackRate);
+					backend.CameraEffects.shake(state.camHUD, state.playerChar.shakeIntensity / 2, state.playerChar.shakeDuration / state.playbackRate);
 				}
 			}
 			note.wasGoodHit = true;
@@ -621,8 +628,8 @@ class PlayStateNotes
 			if (state.oppChar != null && state.oppChar.shakeScreen)
 			{
 				if (!ClientPrefs.reducedMotion) {
-					state.camGame.shake(state.oppChar.shakeIntensity, state.oppChar.shakeDuration / state.playbackRate);
-					state.camHUD.shake(state.oppChar.shakeIntensity / 2, state.oppChar.shakeDuration / state.playbackRate);
+					backend.CameraEffects.shake(state.camGame, state.oppChar.shakeIntensity, state.oppChar.shakeDuration / state.playbackRate);
+					backend.CameraEffects.shake(state.camHUD, state.oppChar.shakeIntensity / 2, state.oppChar.shakeDuration / state.playbackRate);
 				}
 			}
 			if (state.scoreTxtUpdateFrame <= 4) state.updateScore();
@@ -671,8 +678,8 @@ class PlayStateNotes
 			{
 				state.oppChar = !noteAlt.gfNote ? !PlayState.opponentChart ? state.dad : state.boyfriend : state.gf;
 				if (!ClientPrefs.reducedMotion) {
-					state.camGame.shake(state.oppChar.shakeIntensity, state.oppChar.shakeDuration / state.playbackRate);
-					state.camHUD.shake(state.oppChar.shakeIntensity / 2, state.oppChar.shakeDuration / state.playbackRate);
+					backend.CameraEffects.shake(state.camGame, state.oppChar.shakeIntensity, state.oppChar.shakeDuration / state.playbackRate);
+					backend.CameraEffects.shake(state.camHUD, state.oppChar.shakeIntensity / 2, state.oppChar.shakeDuration / state.playbackRate);
 				}
 			}
 			if (!ClientPrefs.noSkipFuncs && state.hasActiveScripts())

@@ -105,12 +105,32 @@ class ProjectBuildCacheSpec
     // A normal (unflagged) project includes later weeks and their assets.
     project = makeProject(host, [], "build", null, false, null, false);
     assertEquals(false, project.defines.exists("NO_BUILTIN_CONTENT"), "normal build defaults to full content");
-    for (path in ["assets/weeks/week2.json", "assets/data/spookeez/spookeez.json",
-      "assets/songs/spookeez/Inst.ogg", "assets/week2/images/halloween_bg.png"])
+    var laterContent = ["assets/weeks/week2.json", "assets/data/spookeez/spookeez.json",
+      "assets/songs/spookeez/Inst.ogg"];
+    // Every later library must package the real source path into its matching
+    // library, while compact builds must not include any of these files.
+    var laterLibraries = [
+      "week2" => "images/halloween_bg.png",
+      "week3" => "images/philly/city.png",
+      "week4" => "images/gore/coldHeartKiller.png",
+      "week5" => "images/christmas/bgWalls.png",
+      "week6" => "images/weeb/animatedEvilSchool.png",
+      "week7" => "images/cutscenes/guns.png",
+      "weekend1" => "images/CanImpactParticle.png"
+    ];
+    for (library => relativePath in laterLibraries)
+    {
+      var path = 'assets/$library/$relativePath';
+      laterContent.push(path);
+      var found = [for (asset in project.assets) if (asset.targetPath == path) asset];
+      assertEquals(1, found.length, 'full build asset $path');
+      assertEquals(path, found[0].sourcePath, 'full build source for $path');
+      assertEquals(library, found[0].library, 'full build library for $path');
+    }
+    for (path in laterContent)
       assertEquals(1, [for (asset in project.assets) if (asset.targetPath == path) asset].length, 'full build asset $path');
     project = makeProject(host, [], "build");
-    for (path in ["assets/weeks/week2.json", "assets/data/spookeez/spookeez.json",
-      "assets/songs/spookeez/Inst.ogg", "assets/week2/images/halloween_bg.png"])
+    for (path in laterContent)
       assertEquals(0, [for (asset in project.assets) if (asset.targetPath == path) asset].length, 'compact build excludes $path');
     Sys.putEnv("HXCPP_COMPILE_CACHE", null);
     Sys.println("Project build-cache configuration: OK");

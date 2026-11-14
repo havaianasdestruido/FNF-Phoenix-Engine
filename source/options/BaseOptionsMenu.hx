@@ -264,16 +264,30 @@ class BaseOptionsMenu extends MusicBeatSubstate
 	{
 		var leOption:Option = optionsArray[curSelected];
 		if (leOption == null || leOption.type == 'link') return;
+		resetOptionToDefault(leOption);
+		FlxG.sound.play(Paths.sound('cancelMenu'));
+		reloadCheckboxes();
+	}
+
+	/**
+	 * Restores one option to its default value.
+	 *
+	 * A `live` row (Options -> Audio -> Master Volume) only mirrors a value owned
+	 * elsewhere, so its default has to be applied through `onChange` *before* the
+	 * label is re-read: `updateTextFrom()` would otherwise sync the mirror to the
+	 * old value again and the reset would silently do nothing.
+	 */
+	function resetOptionToDefault(leOption:Option):Void
+	{
 		leOption.setValue(leOption.defaultValue);
+		if (leOption.live) leOption.change();
 		if (leOption.type != 'bool')
 		{
 			if (leOption.type == 'string')
 				leOption.curOption = leOption.options.indexOf(leOption.getValue());
 			updateTextFrom(leOption);
 		}
-		leOption.change();
-		FlxG.sound.play(Paths.sound('cancelMenu'));
-		reloadCheckboxes();
+		if (!leOption.live) leOption.change();
 	}
 
 	/** Runs once after the guarded "Reset All Settings" gesture completes. */
@@ -286,14 +300,7 @@ class BaseOptionsMenu extends MusicBeatSubstate
 		for (leOption in all)
 		{
 			if (leOption == null || leOption.type == 'link') continue;
-			leOption.setValue(leOption.defaultValue);
-			if (leOption.type != 'bool')
-			{
-				if (leOption.type == 'string')
-					leOption.curOption = leOption.options.indexOf(leOption.getValue());
-				updateTextFrom(leOption);
-			}
-			leOption.change();
+			resetOptionToDefault(leOption);
 		}
 		FlxG.sound.play(Paths.sound('cancelMenu'));
 		reloadCheckboxes();
@@ -439,6 +446,7 @@ class BaseOptionsMenu extends MusicBeatSubstate
 			}
 		}
 		syncResetGuard();
+		refreshLiveOptions();
 
 		// Android TV / remotes have no pointer to click out of the search bar,
 		// so BACK blurs it first instead of closing the menu in the same frame.
@@ -582,11 +590,38 @@ class BaseOptionsMenu extends MusicBeatSubstate
 		super.update(elapsed);
 	}
 
+	/**
+	 * Re-reads `Option.live` rows, so a value changed elsewhere (the volume keys,
+	 * the sound tray, a mod script) is shown instead of a stale label.
+	 *
+	 * Runs after `syncResetGuard()` and before the input handling below, so a
+	 * press in this frame starts from the number the player is looking at.
+	 */
+	function refreshLiveOptions():Void
+	{
+		if (optionsArray == null) return;
+		for (option in optionsArray)
+		{
+			if (option == null || !option.live || option.text == null) continue;
+			updateTextFrom(option);
+		}
+	}
+
 	function updateTextFrom(option:Option) {
 		var text:String = option.displayFormat;
 		var val:Dynamic = option.getValue();
-		if(option.type == 'percent') val *= 100;
+		if(option.type == 'percent')
+		{
+			val *= 100;
+			// 0.57 * 100 is 56.99999999999999 in binary floating point, and a
+			// mirrored value (Options -> Audio) adds another round trip through
+			// the volume curve. Round to the option's own display precision so
+			// labels read "57%", not "56.99999999999999%".
+			val = FlxMath.roundDecimal(val, option.decimals);
+		}
 		var def:Dynamic = option.defaultValue;
+		// `%d` keeps the raw 0..1 default, as it always has; the rounding above is
+		// only about how the current value is printed.
 		var newText:String = text.replace('%v', val).replace('%d', def);
 		if(option.text != null && option.text == newText) return;
 		option.text = newText;

@@ -1307,7 +1307,7 @@ if(!char.isAnimateAtlas) char.animation.remove(anim.anim);
 					FlxG.switchState(PlayState.new);
 				} else {
 					FlxG.switchState(editors.MasterEditorMenu.new);
-					FlxG.sound.playMusic(Paths.music('freakyMenu-' + ClientPrefs.daMenuMusic));
+					Paths.playMenuMusic(true);
 				}
 				FlxG.mouse.visible = false;
 				if (music != null && music.music != null) music.destroy();

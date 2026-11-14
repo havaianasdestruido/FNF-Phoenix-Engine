@@ -7,6 +7,7 @@ import backend.CoolUtil;
 import backend.Conductor;
 import backend.DiscordClient;
 import backend.Highscore;
+import backend.MenuMusic;
 import backend.MusicBeatState;
 import backend.Paths;
 import backend.WeekData;
@@ -457,10 +458,9 @@ class FreeplayState extends MusicBeatState
 		if (FlxG.sound.music != null)
 		{
 			Conductor.songPosition = FlxG.sound.music.time;
-			if (FlxG.sound.music.volume < 0.7)
-			{
-				FlxG.sound.music.volume += 0.5 * FlxG.elapsed;
-			}
+			// Only the menu theme is ramped (0.7 was the old fixed ceiling); a
+			// Freeplay preview playing on the same channel keeps its own volume.
+			MenuMusic.ramp(elapsed, 0.7);
 		}
 
 		/*
@@ -571,7 +571,7 @@ class FreeplayState extends MusicBeatState
 						player.switchPlayMusic();
 
 						Paths.playMenuMusic(true);
-						FlxTween.tween(FlxG.sound.music, {volume: 1}, 1);
+						FlxTween.tween(FlxG.sound.music, {volume: MenuMusic.targetVolume()}, 1);
 					}
 					else
 					{
