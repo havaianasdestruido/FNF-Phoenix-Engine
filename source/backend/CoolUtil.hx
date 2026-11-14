@@ -131,11 +131,11 @@ class CoolUtil
 		// fullscreen for the duration and then restore the exact mode the
 		// player had (exclusive fullscreen, borderless, ...) through WindowMode.
 		final mode:String = WindowMode.current();
-		WindowMode.applyMode(WindowMode.WINDOWED);
+		WindowMode.apply(WindowMode.WINDOWED);
 		var tasklist:String = "";
 		var frrrt:Bytes = new Process("tasklist", []).stdout.readAll();
 		tasklist = frrrt.getString(0, frrrt.length);
-		WindowMode.applyMode(mode);
+		WindowMode.apply(mode);
 		return tasklist.contains("obs64.exe") || tasklist.contains("obs32.exe");
 		#else
 		return false;
