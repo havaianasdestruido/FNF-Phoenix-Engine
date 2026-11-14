@@ -15,6 +15,63 @@ class, and owning process. Foreign foreground windows are rejected. If multiple
 windows in this process match an empty title, the lookup fails rather than
 guessing. Cached handles are revalidated after frame recreation.
 
+## Window display mode
+
+Options -> Graphics -> **Window Mode** lets players pick how the game window
+looks on desktop builds: **Windowed**, **Borderless** or **Fullscreen**. The
+choice lives in `ClientPrefs.windowMode`, is written to `funkin.sol` like the
+other graphics preferences, and is applied through `backend.WindowMode`:
+
+| Mode | What it does |
+|---|---|
+| **Windowed** | `FlxG.fullscreen = false`, `window.borderless = false` — a normal framed window. |
+| **Borderless** | `FlxG.fullscreen = false`, `window.borderless = true` — frameless, fills the screen without exclusive-fullscreen artifacts. |
+| **Fullscreen** | `FlxG.fullscreen = true` — the OS exclusive-fullscreen mode. |
+
+The option row is desktop-only (`onlyOn([PlatformSupport.DESKTOP])`), and the
+preference itself is filtered by `PlatformSupport.PREFERENCE_PLATFORMS`, so
+mobile, web, Flash and AIR builds neither show the row nor save the value.
+
+`backend.WindowMode` owns the lifecycle:
+
+- `apply()` / `applyWindowModePreference()` push the mode to the window after
+  the preferences load (and after a settings backup is imported); `Main` also
+  reads the saved mode ahead of time so a fullscreen start does not flash
+  windowed first.
+- The **F11** hotkey (`backend.FunkinGame`) goes through
+  `WindowMode.toggleFullscreen()`. It remembers the mode you were in before
+  fullscreen, so a borderless player returns to borderless, and the toggle is
+  persisted.
+- `WindowMode.leaveFullscreen()` is what `backend.TransparentWindow` uses when
+  a transparency effect needs a windowed game: it leaves fullscreen and
+  restores (and persists) the previous mode instead of desyncing the
+  preference.
+- `CoolUtil.checkForOBS()` temporarily leaves fullscreen to read the process
+  list and then re-applies the exact mode it started in.
+
+### Window mode mod API
+
+The same helpers are exposed to scripts (Lua, Python and HScript) so mods can
+change the window display and size:
+
+| Function | Meaning |
+|---|---|
+| `setWindowMode(mode)` | Select `windowed` / `borderless` / `fullscreen` (display names work too); applies and persists. |
+| `getWindowMode()` | Current mode as `Windowed` / `Borderless` / `Fullscreen`. |
+| `setWindowFullscreen(enable)` | Convenience windowed <-> fullscreen toggle. |
+| `getWindowFullscreen()` | Whether the selected mode is exclusive fullscreen. |
+| `setWindowBorderless(enable)` | Select borderless (or windowed when `false`). |
+| `getWindowBorderless()` | Whether the selected mode is borderless. |
+| `resizeWindow(width, height)` | Resize the window and logical viewport (desktop native only). |
+| `getWindowSize()` | Current logical game size as `[width, height]`. |
+
+```lua
+-- Lua (Python mirrors the names; HScript seeds the same surface)
+setWindowMode('borderless')
+resizeWindow(1920, 1080)
+debugPrint('mode: ' .. getWindowMode())
+```
+
 ## Transparency
 
 - `Windows.__setWindowTransparencyAlpha(alpha)` accepts opacity from `0.0` to

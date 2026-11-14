@@ -215,6 +215,12 @@ class ClientPrefs { //default settings if it can't find a save file containing y
 	public static var resolution:String = '1280x720';
 	public static var framerate:Int = 60;
 	public static var framePacing:Int = 0;
+	/**
+	 * Window display mode from Options -> Graphics: `Windowed` / `Borderless`
+	 * / `Fullscreen`. Desktop-only (see `backend.PlatformSupport`); see
+	 * `backend.WindowMode` for how it is applied and persisted.
+	 */
+	public static var windowMode:String = WindowMode.WINDOWED;
 
 	//Optimization
 	/** Opt-in, song-local cosmetic reductions and GC requests during sustained low FPS. */
@@ -563,6 +569,7 @@ class ClientPrefs { //default settings if it can't find a save file containing y
     applyCutoutPreference();
     #end
     applyWidescreenPreference();
+    applyWindowModePreference();
 
 		for (flixelS in importantMap.get("flixelSound"))
 		{
@@ -608,6 +615,22 @@ class ClientPrefs { //default settings if it can't find a save file containing y
 		} catch (_:Dynamic) return defaultValue;
 	}
 
+	/**
+	 * Reads one saved value straight from `funkin.sol` as a string.
+	 *
+	 * Mirrors {@link readSavedBool}: `Main` needs the saved window mode before
+	 * `InitState` binds `FlxG.save` and `loadPrefs()` runs, so this opens the
+	 * same save file ahead of time. Any problem yields `defaultValue`.
+	 */
+	public static function readSavedString(field:String, defaultValue:String = ''):String {
+		try {
+			final save:FlxSave = new FlxSave();
+			if (!save.bind('funkin', CoolUtil.getSavePath())) return defaultValue;
+			final value:Dynamic = Reflect.field(save.data, field);
+			return (value == null) ? defaultValue : Std.string(value);
+		} catch (_:Dynamic) return defaultValue;
+	}
+
   // Android fullscreen/cut-out handling is compiled only into Android builds,
   // so desktop/web/Flash builds carry none of that platform code. Callers gate
   // the call with `#if android` as well.
@@ -623,6 +646,20 @@ class ClientPrefs { //default settings if it can't find a save file containing y
     // During InitState.loadPrefs() Main has not installed the scale mode yet.
     if (FlxG.game != null && Std.isOfType(FlxG.scaleMode, flixel.system.scaleModes.PhoenixScaleMode))
       @:privateAccess FlxG.game.onResize(null);
+  }
+
+  /**
+   * Push the saved window mode to the native window after loading the
+   * preferences (and after an imported backup). Borderless goes through
+   * `lime.ui.Window.borderless` and fullscreen through `FlxG.fullscreen`; see
+   * `backend.WindowMode`.
+   */
+  public static function applyWindowModePreference():Void
+  {
+    // A hand-edited save can hold an unknown spelling; normalize it so the
+    // option row, the save file and the window all agree.
+    windowMode = WindowMode.normalize(windowMode);
+    WindowMode.apply();
   }
 
 	inline public static function getGameplaySetting(name:String, defaultValue:Dynamic):Dynamic {
