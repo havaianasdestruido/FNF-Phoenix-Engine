@@ -78,7 +78,7 @@ menu names, so anything written against v1 is unaffected.
 
 ```text
 URI      = "phoenix://" host ["/" segment]* ["/"] ["?" query]
-host     = "menu" | menuName | "screen" | "song" | "mod" | "diagnostics" | "replay"
+host     = "menu" | menuName | "screen" | "song" | "mod" | "diagnostics" | "input" | "replay"
 menuName = "main" | "mods" | "options" | "misc" | "story" | "freeplay" | "credits"
 segment  = [A-Za-z0-9_-]+
 query    = key "=" value *( "&" key "=" value )
@@ -91,11 +91,13 @@ query    = key "=" value *( "&" key "=" value )
 | `phoenix://song/<song>?difficulty=<name>` | — | starts that chart in Freeplay, after the normal lookup confirms it exists |
 | `phoenix://mod/<modId>` | `phoenix://mod/<modId>/song/<song>` | Mods manager with that folder focused (and the song, when it exists) |
 | `phoenix://diagnostics` | `phoenix://screen/diagnostics` | the read-only diagnostics page |
+| `phoenix://input` | `phoenix://screen/input` | the input tester: what the keyboard, the gamepads and the touch screen report |
 | `phoenix://replay/<id>` | — | reserved: says “not implemented” instead of pretending to play |
 
 Segment counts are exact, and a query parameter is only read where it means
 something (`difficulty` on `song`), so `phoenix://song`,
-`phoenix://menu/misc/extra` and `phoenix://diagnostics/all` are all invalid. A
+`phoenix://menu/misc/extra`, `phoenix://diagnostics/all` and
+`phoenix://input/keyboard` are all invalid. A
 missing chart or song is reported and lands on Main Menu; nothing is installed,
 downloaded or enabled, and no path outside `mods/` and the bundled assets is
 ever resolved from link text.
@@ -147,6 +149,52 @@ prints itself are **not** rewritten, so they can contain the player's username a
 the footer says to redact before posting. The page uploads nothing anywhere. On Windows the link only arrives when this copy owns
 the handler (Options → Misc → Toggle Deeplink); Android and iOS accept it cold
 or warm like any other route.
+
+### `phoenix://input` — see what the game receives
+
+"My keyboard eats notes" and "my phone ignores the third finger" are hardware
+limits that look like engine bugs. This route opens a page where the player can
+see which it is, instead of guessing:
+
+```html
+<a href="phoenix://input">Test my keyboard, controller and touch screen</a>
+```
+
+The page (`states.InputTestState`, counting in `backend.InputTestLogic`) is also
+reachable without a link, from **Options → Gameplay → Input Tester**. It shows:
+
+| Panel | What it reports |
+| --- | --- |
+| `KEYBOARD`, `GAMEPAD`, `TOUCH` | `held now`, `most at once` and `presses` for that device, plus the names of what is held. Hold three keys and read `2`: the keyboard does not report the third. Put four fingers down and read `2`: the screen tracks two. |
+| `PRESS TIMING` | the gap between the last two presses, how long the last released input was held, the size of the last chord and how long it took to build, the most presses that landed inside one frame, and how many taps went down and came back up inside one frame (a once-per-frame read never sees those held) |
+| `LATEST FIRST` | the last 12 presses and releases, newest on top |
+| crosshairs | one numbered crosshair per finger, for the first ten; further fingers are still counted |
+
+Keys are read from the same stage key events gameplay judges notes from, and
+timed when the event reaches the game. Gamepad buttons and touches are read once
+per update, which is all the engine ever sees of them, so their gaps are whole
+frames. These are arrival times inside the game, not a measurement of a
+device's polling rate. A key the operating system keeps for itself never
+arrives and cannot be shown.
+
+The contract, in the order a suspicious reader would ask:
+
+- **Pressing things does nothing else.** Every input is a test subject, so no
+  tap navigates. Leaving takes a one second hold with nothing else held on that
+  device: Escape or a key bound to Back, `B` or Back on a gamepad, or the
+  on-screen `EXIT` button with one finger or the mouse. Android's system Back
+  leaves at once. The volume shortcuts are switched off while the page is open
+  and switched back on when it closes, so `0`, `-` and `+` are just keys.
+- **Nothing is bound, saved or written by the page.** It changes no key bind and
+  no preference. The engine-wide desktop hotkeys are handled outside any state
+  and keep working as they do during a song: `F2` saves a screenshot, `F3`
+  toggles the frame profiler, `F6` exports its log, `F11` toggles fullscreen.
+- **No parameters, no sub-pages.** `phoenix://input?device=touch` and
+  `phoenix://input/keyboard` are rejected as malformed, like the diagnostics
+  route does with its own.
+- **It never interrupts a session.** The link is queued like every other route
+  and only an idle Title or Main Menu opens it. Leaving returns to the Main
+  Menu, or to Options when the page was opened from there.
 
 ## Startup and lifecycle behavior
 
@@ -275,6 +323,7 @@ Dependency-free parser tests (Haxe required; no engine haxelibs):
 ```sh
 bash tests/uri/run.sh
 bash tests/haxe/run-diagnostics-report.sh
+bash tests/haxe/run-input-test.sh
 python3 -m unittest tests.test_deeplink_diagnostics
 ```
 
@@ -283,9 +332,18 @@ route and alias, case, slashes, malformed input, injection-shaped input and size
 limits. The second compiles `backend.DiagnosticsReport` and
 `states.DiagnosticsState` against the stubs in `tests/haxe/stubs/diagnostics`, so
 the section layout, the bounded log tail, the scroll bounds and the "nothing was
-written" promise are executed rather than eyeballed. The third needs no Haxe at
+written" promise are executed rather than eyeballed. The third does the same for
+the input tester: `backend.InputTestLogic` on its own, then
+`states.InputTestState` against `tests/haxe/stubs/input-test`, driven with key
+events, pads, fingers, a mouse and a scripted clock. The last needs no Haxe at
 all: it pins the source-level rules the compiler cannot see (which states may
 dispatch, that the page writes no files, that both documents still agree).
+
+With the game's Flixel, flixel-addons, OpenFL and Lime installed (or pointed to
+through `FLIXEL_PATH`, `FLIXEL_ADDONS_PATH`, `OPENFL_PATH` and `LIME_PATH`),
+`bash tests/haxe/run-input-test-typecheck.sh` also compiles the input tester
+against the real libraries for html5, desktop and Android. Without them it
+prints `SKIP`, which is why it is not part of CI.
 
 Build with the normal SDK/toolchains:
 
@@ -320,15 +378,20 @@ compiler installed from npm. What was **not** done there: native builds (no Andr
 iOS or Windows SDKs) and any run against the real flixel/openfl/lime tree —
 `DiagnosticsReport.hx` and `DiagnosticsState.hx` are typechecked against the stubs,
 so a flixel signature that changed under us would only surface in a real build.
+The input tester is the exception on that last point: its typecheck runner was
+run there against the flixel, openfl and lime commits pinned in `hmm.json`. The
+page itself has not been run in a built game on any platform, so what a real
+keyboard, controller or touch screen shows on it is still to be checked by hand.
 The runtime checks above remain required.
 
 ## Evolution plan
 
 Version 1 is deliberately menu-only and has no version query parameter. Keep
 these routes compatible. New safe destinations must be added to the parser,
-router, tests, `URI.MD` and `website/docs/subsystems/deeplinks.md` together —
+router, tests, `URI.MD` and `website/docs/subsystems/deep-links.md` together —
 `phoenix://diagnostics` is the worked example of that rule, and its read-only
-contract is why it was allowed at all. Mod installation, remote content and
+contract is why it was allowed at all; `phoenix://input` was added the same way
+and for the same reason. Mod installation, remote content and
 editor/file targets remain **not implemented**; a route that writes, installs or
 resolves a path needs explicit user confirmation, resource validation and a
 separate security review first. Windows single-instance handoff is a future

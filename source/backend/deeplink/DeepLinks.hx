@@ -196,6 +196,12 @@ class DeepLinks
           FlxG.switchState(() -> new states.ModsMenuState());
         }
         true;
+      case InputTest:
+        // The tester only watches: it shows what the keyboard, the gamepads and
+        // the touch screen report, binds nothing, saves nothing, and takes the
+        // player back to the Main Menu this link was opened from.
+        FlxG.switchState(() -> new states.InputTestState());
+        true;
       case Diagnostics:
         // The report page only reads: it writes no file, changes no preference,
         // starts no song and frees nothing, which is exactly why a stranger can

@@ -123,6 +123,18 @@ substate immediately. Disabled instances are both hidden and inactive. The share
 movement, and `ClientPrefs.reducedMotion` leaves the pattern static. See the
 [implementation and Mic'd Up! attribution](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/blob/main/docs/MENU_CHECKERBOARD.md).
 
+### Input Tester
+
+**Gameplay → Input Tester** is a `link` row, right under *Controller Mode*: ACCEPT
+saves the list and opens `states.InputTestState`, the page behind
+[`phoenix://input`](./deep-links.md#input-tester). It shows every key,
+gamepad button and finger the game receives, how many it sees held at once and how
+far apart presses arrive, which is how a player finds out that a keyboard drops the
+third key of a chord or that a phone tracks two fingers. It has no preference of its
+own and changes none. Leaving it (hold Back, `B` or the on-screen `EXIT` for a
+second, or Android's system Back) returns to the Options list, the way
+*Adjust Delay and Combo* does.
+
 ## Categories
 
 `options.OptionsState` lists:
