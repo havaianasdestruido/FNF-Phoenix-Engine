@@ -4,7 +4,7 @@ package backend.deeplink;
  * Phoenix URI routing — platform-independent deep-link contract.
  *
  * v1 (menu-only) was `phoenix://main|mods|options|misc|story|freeplay|credits`
- *                (+ `phoenix://menu/<name>` alias).
+ *                (+ `phoenix://menu/<name>` alias, e.g. `phoenix://menu/audio`).
  * v2 extends it without breaking v1:
  *   - phoenix://song/<song>?difficulty=<diff>
  *   - phoenix://mod/<modId>/song/<song>
@@ -39,7 +39,7 @@ class PhoenixURI
 			return null;
 		return switch (host)
 		{
-			case "main", "mods", "options", "misc", "story", "freeplay", "credits": host;
+			case "main", "mods", "options", "misc", "audio", "story", "freeplay", "credits": host;
 			default: null;
 		};
 	}
@@ -84,7 +84,7 @@ class PhoenixURI
 				if (pathParts.length == 0) mk(Menu("main"), query);
 				else if (pathParts.length == 1) mk(Menu(pathParts[0]), query);
 				else null;
-			case "main", "mods", "options", "misc", "story", "freeplay", "credits":
+			case "main", "mods", "options", "misc", "audio", "story", "freeplay", "credits":
 				if (pathParts.length != 0) return null;
 				mk(Menu(host), query);
 			case "screen":
@@ -122,7 +122,7 @@ class PhoenixURI
 		switch (kind)
 		{
 			case Menu(route), Screen(route):
-				if (["main", "mods", "options", "misc", "story", "freeplay", "credits"].indexOf(route) == -1)
+				if (["main", "mods", "options", "misc", "audio", "story", "freeplay", "credits"].indexOf(route) == -1)
 					return null;
 			case Song(_, diff):
 				if (diff != null && diff.length > 0 && !~/^[a-z0-9_-]+$/i.match(diff))

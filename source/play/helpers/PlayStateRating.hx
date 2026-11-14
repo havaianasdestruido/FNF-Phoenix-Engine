@@ -6,6 +6,7 @@ import backend.ClientPrefs;
 import backend.Conductor;
 import backend.CoolUtil;
 import backend.Highscore;
+import backend.PlayerStats;
 #if MODS_ALLOWED
 #end
 import backend.WeekData;
@@ -110,6 +111,10 @@ class PlayStateRating
 			state.noteDiff = Math.abs(state.noteTimingDiff);
 			state.hitTiming = miss ? HitTiming.NONE
 				: HitTiming.classify(state.noteTimingDiff, Conductor.safeZoneOffset, ClientPrefs.earlyLateDeadzone);
+			// Results use the same signed timing convention as the Early/Late popup:
+			// positive = early, negative = late. Botplay has no player timing to record.
+			if (!miss && !state.cpuControlled)
+				state.hitOffsets.push(state.noteTimingDiff);
 			final wife:Float = EtternaFunctions.wife3(state.noteDiff, Conductor.timeScale);
 
 			state.daRating = Conductor.judgeNote(note, state.noteDiff, state.cpuControlled, miss);
@@ -124,7 +129,12 @@ class PlayStateRating
 				if (!ClientPrefs.complexAccuracy) state.totalNotesHit += state.daRating.ratingMod;
 				if (ClientPrefs.complexAccuracy) state.totalNotesHit += wife;
 				note.ratingMod = state.daRating.ratingMod;
-				if(!note.ratingDisabled) state.daRating.increase();
+				if(!note.ratingDisabled)
+				{
+					state.daRating.increase();
+					if (PlayerStats.canTrackGameplay(state.cpuControlled, state.practiceMode, state.ffmpegMode, PlayState.chartingMode, state.trollingMode))
+						PlayerStats.recordJudgement(state.daRating.name);
+				}
 			}
 			note.rating = state.daRating.name;
 			note.hitTiming = state.hitTiming;

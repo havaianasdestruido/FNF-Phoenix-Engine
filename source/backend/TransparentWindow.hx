@@ -182,7 +182,10 @@ class TransparentWindow
     if (isFullscreenNow())
     {
       trace('TransparentWindow: leaving fullscreen — transparency only works on a windowed game.');
-      FlxG.fullscreen = false;
+      // Go through WindowMode so the persisted mode is updated too: the game
+      // returns to the window mode it had before fullscreen (borderless players
+      // stay borderless) instead of silently desyncing from the preference.
+      WindowMode.leaveFullscreen();
     }
 
     enabled = true;

@@ -24,6 +24,7 @@ import objects.NoteSplash;
 import play.PlayState;
 import states.MainMenuState;
 import utils.CoolSystemStuff;
+import psychlua.callbacks.WindowCallbacks;
 
 #if DISCORD_ALLOWED
 import backend.DiscordClient;
@@ -775,6 +776,11 @@ class HScript
 		#else
 		interp.variables.set('parentLua', null);
 		#end
+
+		// Window display mode / size helpers. HScript normally inherits the
+		// shared Lua registry, but a mod that ships only `.hx` scripts has no
+		// Lua parent, so seed the window API directly.
+		WindowCallbacks.seedHScript(interp);
 		#end
 	}
 

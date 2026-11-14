@@ -1,5 +1,6 @@
 package play.helpers;
 
+import backend.CameraFlash;
 import backend.ClientPrefs;
 import backend.Conductor;
 import backend.CoolUtil;
@@ -319,7 +320,7 @@ class PlayStateCamera
 				state.cameraSpeed = 100;
 			case 1152:
 				{
-					FlxG.camera.flash(FlxColor.WHITE, 1);
+					CameraFlash.flash(FlxG.camera, FlxColor.WHITE, 1);
 					for (i in [state.EngineWatermark, state.platformIcon, state.timeBarBG, state.timeTxt, state.timeBarBG, state.scoreTxt, state.healthBarBG, state.healthBar, state.iconP1, state.iconP2]) {
 						if (i != null) FlxTween.tween(i, {alpha: 1}, 0.5, {ease: FlxEase.expoOut});
 					}

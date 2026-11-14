@@ -15,7 +15,7 @@ class TestPhoenixURI
 {
   static function main()
   {
-    for (route in ['main', 'mods', 'options', 'misc', 'story', 'freeplay', 'credits'])
+    for (route in ['main', 'mods', 'options', 'misc', 'audio', 'story', 'freeplay', 'credits'])
       for (uri in ['phoenix://' + route, 'phoenix://menu/' + route,
         'PHOENIX://MENU/' + route.toUpperCase() + '/'])
         check(uri, route);
@@ -77,6 +77,10 @@ class TestPhoenixURI
 
     // The other v2 hosts keep working next to it.
     checkEx('phoenix://mods', 'Menu(mods)');
+    // Options -> Audio is openable by link like Misc (`phoenix://menu/audio`).
+    checkEx('phoenix://audio', 'Menu(audio)');
+    checkEx('phoenix://menu/audio', 'Menu(audio)');
+    checkEx('phoenix://audio/0.5', null);
     checkEx('phoenix://screen/freeplay', 'Screen(freeplay)');
     checkEx('phoenix://song/bopeebo?difficulty=hard', 'Song(bopeebo,hard)');
 

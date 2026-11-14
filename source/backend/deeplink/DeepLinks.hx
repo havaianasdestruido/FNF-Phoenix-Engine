@@ -89,8 +89,8 @@ class DeepLinks
         #else
         FlxG.switchState(MainMenuState.new);
         #end
-      case "options", "misc":
-        LoadingState.loadAndSwitchState(() -> new OptionsState(route == "misc"));
+      case "options", "misc", "audio":
+        LoadingState.loadAndSwitchState(() -> new OptionsState(route));
       case "story": FlxG.switchState(states.StoryMenuState.new);
       case "freeplay": FlxG.switchState(states.FreeplayState.new);
       case "credits": FlxG.switchState(states.CreditsState.new);
@@ -122,8 +122,8 @@ class DeepLinks
             #else
             FlxG.switchState(MainMenuState.new);
             #end
-          case "options", "misc":
-            LoadingState.loadAndSwitchState(() -> new OptionsState(route == "misc"));
+          case "options", "misc", "audio":
+            LoadingState.loadAndSwitchState(() -> new OptionsState(route));
           case "story": FlxG.switchState(states.StoryMenuState.new);
           case "freeplay": FlxG.switchState(states.FreeplayState.new);
           case "credits": FlxG.switchState(states.CreditsState.new);

@@ -21,7 +21,21 @@ _i accept suggestions too_
 
 ## 0. PRIORITY-ish / UNCATEGORIZED
 
-- FIX `BF-CLICKER`!!! _(i wont release v0.0.1 UNTIL i fix this)_
+- On the bottom right of the screen, show the commit's git commit short id, and on top of it, show how many commits it is behind, where it change colors depending if the build is too old.
+- - Green: 1-10 commits
+  - Yellow: 11-25 commits
+  - Orange: 26-50 commits
+  - Red: 51-100 commits
+  - It should fade colors depending on the git commit, dont just use the same color for the range, make it be a "rainbow-ish" pattern.
+
+- Add those:
+- - flixel.addons.effect.transition ofr states transistions, [just like in this demo](https://haxeflixel.com/demos/Transitions/).
+  - Loading screens with a FlxPieDial in the bottom left corner.
+  - Port the "pointing mouse sprite at button" thingy from [this demo](https://haxeflixel.com/demos/Cursor/).
+  - Add pretty much all filters from FlxG.camera.filters & FlxG.game.filters to modding API.
+  - - add all these too in modding api: flixel.addons.effects.chainable
+  - Add flixel.addons.effects.FlxClothSprite as a easter egg, [just like in this demo.](https://haxeflixel.com/demos/FlxClothSprite/)
+  - Add tooltips to all parts of the engine that uses `flixel-ui`, [just like on this.. uhh. demo right over here.](https://haxeflixel.com/demos/Tooltips/)
 
 - Windows 7 support by patching some libs _(prob impossible but whatever)_
 
@@ -370,13 +384,24 @@ Read `docs/research/psych-fork-engine-changes.md`.
 
 ## 21. PLAYER-FACING SCREENS, SUBSTATES & OPTIONS (idea review)
 
-Ideas checked against the current tree: none of the screens, substates or options below exist yet (`PlayerStats`, `ResultsState`, `StatsState`, `ModchartLabState`, `ExtrasState`, `QuickOptionsSubState`, `PracticeLoopSubState`, `ModReportSubState`, `FreeplayFilterSubState`, `PhotoModeSubState`, `laneUnderlayAlpha`, `resumeCountdown`, `hapticFeedback`, `menuFramerate`, `adaptivePerformance` have no matches in `source/`). Overlaps with existing entries are cross-referenced, not repeated.
+Ideas checked against the current tree: none of the screens, substates or options below exist yet (`PlayerStats`, `ResultsState`, `StatsState`, `ExtrasState`, `QuickOptionsSubState`, `PracticeLoopSubState`, `ModReportSubState`, `FreeplayFilterSubState`, `PhotoModeSubState`, `laneUnderlayAlpha`, `resumeCountdown`, `hapticFeedback`, `menuFramerate`, `adaptivePerformance` have no matches in `source/`). Overlaps with existing entries are cross-referenced, not repeated. (`ModchartLabState` has since shipped — see §21.1.)
 
 ### 21.1. New states
 
 - **[P1] Results screen (`states/ResultsState`).** `PlayStatePlayback.endSong()` currently goes straight back to `FreeplayState` / `StoryMenuState`. After a song or week, show score, accuracy, judgement breakdown, max combo, peak NPS, FC tier and a histogram of hit offsets. The totals already exist on `PlayState`; only per-hit offsets need recording (via `play.helpers.HitTiming`). Roadmap link: the Mic'd Up S/A rank (§0) would live on this screen.
 - **[P2] Player stats (`states/StatsState`, `backend/PlayerStats`).** Lifetime totals: playtime, songs finished, notes per judgement, deaths, full combos, most-played songs and mods. A small `PlayerStats` backend is needed because playtime is only stored as progress toward the 50-hour badge and stops counting once that unlocks. Link it from Awards (`MainMenuState`'s `awards` entry); a new main-menu button would need its own sprite atlas.
-- **[P3] Modchart lab (`editors/ModchartLabState`).** Pick any of the 34 built-in modifiers in `source/modchart/modifiers/`, drag their percents over a looping section, watch the arrows react, then copy the matching `modEase(...)` calls as Lua or Python. There is no visual way to tune a modchart today. Related to the modchart work in §12.
+- **[P3] ~~Modchart lab (`editors/ModchartLabState`)~~ DONE** — the renderer-free half lives in `modchart/lab/`
+  (`ModchartLabCatalog` for the knobs of all 34 modifiers, `ModchartLabTrack` for per-percent
+  automation on loop-local beats, `ModchartLabExport` + `ModchartLabExportOptions` for the
+  Lua/Python fragment); `editors.ModchartLabState` is the screen, reachable from Editors →
+  **Modchart Lab**. Dragging a percent records a keyframe snapped to the 16th-note grid, the
+  looping clock replays the tracks through the real `ModchartManager`/`PlayField.transform`
+  chain (no `PlayState`, no song files), and `C` copies `addModifier`/`modSet`/`modEase` calls —
+  optionally wrapped in a `modRepeater` callback — as Lua or Python, with a file fallback when
+  the clipboard is blocked. Known limits (absolute-time modifiers are phase-shifted, one
+  playfield, `skew` stored but not drawn, `vibrate` is random) are documented. Docs:
+  `docs/MODCHART.md` (§ Modchart lab). Specs: `bash tests/haxe/run-modchart-lab.sh`,
+  `bash tests/haxe/run-modchart-lab-typecheck.sh`; both run in `checks.yml`.
 - **[P2] Extras hub (`states/ExtrasState`).** A menu listing custom screens that enabled mods declare in a new `menus` list in `pack.json`. `ModState` screens can only be opened by a script calling `switchCustomState` (`states/ModState.hx`), so each mod currently has to build its own entry point, for example by overlaying `MainMenuState`. Needs `backend.Mods` parsing of `menus` and a platform-support check for each entry.
 
 ### 21.2. New substates
@@ -405,8 +430,22 @@ Thirty option ideas from three separate lists. Five options appeared in two list
 
 ### 22.1. Audio
 
+- **[P2] ~~Master volume (`masterVolume`, percent, default 100%, a new Audio category or Misc).~~ DONE** — `backend.VolumeCurve` (the tray's log curve, shared), `ClientPrefs.masterVolume` as a mirror of `FlxG.sound.volume` (kept out of the save and the backup through `saveBlackList` / `loadBlackList` / `SettingsBackup.NOT_PREFERENCES`), a live row in the new **Options -> Audio** (`options/AudioSettingsSubState.hx`, also in Misc, openable with `phoenix://menu/audio`) that follows the volume keys and the tray every frame. Specs: `bash tests/haxe/run-volume-curve.sh`, `bash tests/haxe/run-master-volume.sh`. Original entry kept below.
+
 - **[P2] Master volume (`masterVolume`, percent, default 100%, a new Audio category or Misc).** No options menu has a volume row. `FlxG.sound.volume` only changes through the volume keys (`volume_up` / `volume_down` / `volume_mute`, with the `objects/CustomSoundTray` popup) and through a settings import (`backend/SettingsBackup.hx:146`), so a player on a gamepad or a touchscreen cannot set it in-game. Every `FlxSound` multiplies by it, so one row covers music, vocals, hitsounds and the pause track. Checked: the value is already saved and restored, which one list missed. `ClientPrefs.saveSettings()` and `loadPrefs()` round-trip it through the `flixelSound` list (`ClientPrefs.hx:367`, `:405`, `:464`), the tray stores it too (`CustomSoundTray.hx:121`) and `SettingsBackup` exports it (`:205`). So do not store it twice: `Option` binds to a `ClientPrefs` field by name, so give it one that mirrors `FlxG.sound.volume` and is kept out of the save and the backup (`saveBlackList` / `loadBlackList` in `ClientPrefs.hx:366-368`, `SettingsBackup.NOT_PREFERENCES`). The row has to use the tray's curve (`CustomSoundFrontEnd.changeVolume()` stores a log-scaled value, so half the tray is a `FlxG.sound.volume` of about 0.03) and has to follow the volume keys, or it goes stale. Two lists rank this first; with persistence already in place it is a convenience row, hence P2. Effort: S.
-- **[P3] Menu music volume.** Control menu music separately from gameplay audio, with an optional fade when entering a song. `Paths.playMenuMusic(force, volume)` (`backend/Paths.hx:853`) already takes a volume, but 18 call sites in 12 files (the editors, `GameOverSubstate`, `NoteOffsetState`, `VisualsUISubState`, `RenderingDoneSubState`, one Lua callback) still start the menu track with `FlxG.sound.playMusic(Paths.music('freakyMenu…'))` directly, so route those through the helper first.
+- **[P3] ~~Menu music volume~~ DONE** — `ClientPrefs.menuMusicVolume` (percent, default 100 %,
+  Options → Visuals and UI) scales only the menu theme, so gameplay stems, vocals and
+  hitsounds keep their own level while the volume keys still apply on top; `menuMusicFade`
+  (default on) fades the theme out during the loading screen instead of cutting it when a
+  song starts. `backend.MenuMusic` owns the track and `backend.MenuMusicLogic` holds the
+  renderer-free rules: `Paths.playMenuMusic(force, volume)` claims the started sound, the 18
+  direct `FlxG.sound.playMusic(Paths.music('freakyMenu…'))` call sites (7 editors,
+  `GameOverSubstate`, `NoteOffsetState`, `VisualsUISubState`, `RenderingDoneSubState`, the Lua
+  `endSong` callback) go through the helper, and the hardcoded ramps/volume targets in
+  `MainMenuState`, `FreeplayState`, `CreditsState`, `OptionsState` and `TitleState` ask
+  `MenuMusic` first. `PlayState.create()` calls `MenuMusic.forget()` when it takes the music
+  channel over. Spec: `bash tests/haxe/run-menu-music.sh`. Docs:
+  `website/docs/subsystems/audio.md`.
 - **[P3] Metronome (`metronome`, string: Off / Count-in / Always, default Off, Gameplay or the Audio category).** `assets/shared/sounds/Metronome_Tick.ogg` ships, but only the chart editor plays it (`editors/ChartingState.hx:1964`). Add a `beatHit` path in `PlayState` with three modes: off, during the count-in only, or through the whole song. Scale the tick with `playbackRate` and skip it during `startOnTime` seeks. The list pitches it for practising muted, on a silent phone or with latency; the tick shares the game's audio output, so on a muted device that job belongs to the visual beat indicator in §16, whose pref exists but is not wired (§22.7). The interactive latency test in §15 needs the same tick. Effort: S–M.
 
 ### 22.2. Window, stage and effects
