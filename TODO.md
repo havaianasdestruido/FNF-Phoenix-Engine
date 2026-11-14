@@ -310,6 +310,10 @@ There is no replay, ghost or determinism layer anywhere in the tree (the only "r
   load-events buttons, `ResetScoreSubState`, the pause `Exit to ...` submenu, a guarded
   **Reset All Settings** row in every options list, and SHIFT+RESET in Gameplay Changers.
   `requireHold` also overrides "Ignore Progress Warnings". CANCEL/Back/No stay single taps.
+  Guards must read the PRESSED-bound twins (`controls.ACCEPT_P` / `controls.RESET_P`), never
+  `controls.ACCEPT` / `controls.RESET`: those are bound as JUST_PRESSED, so a guard fed one of
+  them drew a single frame of bar and cancelled on the next frame ("held Exit to game and
+  nothing happened"). `HoldToConfirmCallSitesSpec` scans every guard for this.
   Docs: `website/docs/subsystems/options-menu.md`, `website/docs/subsystems/mobile.md`.
   Specs: `bash tests/haxe/run-hold-to-confirm.sh`, `bash tests/haxe/run-hold-to-confirm-typecheck.sh`.
 - **[P3] Re-openable photosensitivity warning.** `FlashingState` only shows while `FlxG.save.data.flashing == null`, so it is once-per-install and unreachable afterwards. Add "Show warning again" in Options and a quick "Reduce flashing" toggle in the pause menu.

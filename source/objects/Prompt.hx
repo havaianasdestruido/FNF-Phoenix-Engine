@@ -138,9 +138,10 @@ class Prompt extends MusicBeatSubstate
 		if (requireHold)
 		{
 			// `selected == 0` folds the D-pad/gamepad selection into the guard: a
-			// held ACCEPT only arms OK while OK actually holds the focus.
+			// held ACCEPT only arms OK while OK actually holds the focus. `ACCEPT_P`
+			// is the PRESSED-bound twin of `ACCEPT` (which is JUST_PRESSED only).
 			holdConfirm = new HoldToConfirm(buttonAccept, accept,
-				() -> selected == 0 && controls.ACCEPT, 'HOLD TO CONFIRM');
+				() -> selected == 0 && controls.ACCEPT_P, 'HOLD TO CONFIRM');
 			holdConfirm.cameras = cameras;
 			add(holdConfirm);
 		}

@@ -110,8 +110,10 @@ class ResetScoreSubState extends MusicBeatSubstate
     // "Yes" wipes the saved score/accuracy, so it is no longer one quick tap
     // of the virtual A button. The Yes/No art is untouched; only invisible,
     // padded hit areas are added on top.
+    // `ACCEPT_P` is the held (PRESSED) twin of `ACCEPT`, which only reports the
+    // first frame of a press and therefore cannot drive a hold.
     yesConfirm = new HoldToConfirm(yesText, confirmReset,
-      () -> onYes && PlayerSettings.player1.controls.ACCEPT, 'HOLD TO RESET SCORE');
+      () -> onYes && PlayerSettings.player1.controls.ACCEPT_P, 'HOLD TO RESET SCORE');
     add(yesConfirm);
     noTarget = new TouchTarget(noText, function() {
       FlxG.sound.play(Paths.sound('cancelMenu'), 1);

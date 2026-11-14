@@ -115,7 +115,7 @@ class GameplayChangersSubstate extends MusicBeatSubstate
 		// Gamepad/remote parity: Y is the reset button and LEFT_SHOULDER stands
 		// in for SHIFT, so a touchless player can reach the guarded reset-all.
 		resetAllGuard = new HoldToConfirm(null, resetAllGameplayOptions,
-			() -> (controls.RESET || FlxG.gamepads.anyPressed(Y))
+			() -> (controls.RESET_P || FlxG.gamepads.anyPressed(Y))
 				&& (FlxG.keys.pressed.SHIFT || FlxG.gamepads.anyPressed(LEFT_SHOULDER)),
 			'HOLD TO RESET ALL');
 		resetAllGuard.allowPointer = false; // keyboard/gamepad combo; no on-screen button

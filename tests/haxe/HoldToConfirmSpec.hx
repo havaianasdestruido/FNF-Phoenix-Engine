@@ -140,6 +140,49 @@ class HoldToConfirmSpec
     both = L.merge(L.idle(), L.idle());
     check(!both.pressed && !both.justPressed && !both.over, 'idle stays idle');
 
+    /* ---------------------------------------------------------------- *
+     * A JUST_PRESSED-only flag can never complete a hold. This is the
+     * "Exit to game" bug: the guard was fed `controls.ACCEPT`, which
+     * Controls binds as JUST_PRESSED, so every frame after the first
+     * looked like a release and the progress bar restarted forever.
+     * ---------------------------------------------------------------- */
+    var stuck = L.newState();
+    var fired:Bool = false;
+    for (frame in 0...120)
+    {
+      // One frame of "pressed", then 119 frames of "not pressed" - what a
+      // JUST_PRESSED-bound flag looks like to a per-frame sampler.
+      var heldNow:Bool = frame == 0;
+      var flag:HoldInput = {
+        pressed: heldNow,
+        justPressed: heldNow,
+        justReleased: !heldNow,
+        over: true,
+        pressedOutside: false
+      };
+      var out:Int = L.step(stuck, flag, 0.016, L.MODE_HOLD, 0.65);
+      if (out == L.CONFIRMED) fired = true;
+    }
+    check(!fired, 'a JUST_PRESSED-only flag never confirms a hold');
+    equal(stuck.heldFor, 0, 'progress never accumulates across a one-frame press');
+
+    // The PRESSED-bound twin of the same key does complete it.
+    var real = L.newState();
+    var confirms:Int = 0;
+    for (frame in 0...120)
+    {
+      var heldNow:Bool = true; // ACCEPT_P stays true for the whole press
+      var flag:HoldInput = {
+        pressed: heldNow,
+        justPressed: frame == 0,
+        justReleased: false,
+        over: true,
+        pressedOutside: false
+      };
+      if (L.step(real, flag, 0.016, L.MODE_HOLD, 0.65) == L.CONFIRMED) confirms++;
+    }
+    equal(confirms, 1, 'a PRESSED-bound flag confirms the hold exactly once');
+
     trace('HoldToConfirmSpec passed');
   }
 }

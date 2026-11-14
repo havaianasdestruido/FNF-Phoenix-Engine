@@ -12,6 +12,9 @@ try {
     # The same module typechecked for C++, a static target (nothing is generated).
     & $haxe -cp $testSource -cp tests/haxe -main HoldToConfirmSpec -cpp "$testSource/cpp" --no-output
     if ($LASTEXITCODE -ne 0) { throw "HoldToConfirmSpec does not typecheck for C++ ($LASTEXITCODE)" }
+    # Guards must read PRESSED-bound flags (ACCEPT_P / RESET_P), not JUST_PRESSED ones.
+    & $haxe -cp tests/haxe -main HoldToConfirmCallSitesSpec --interp
+    if ($LASTEXITCODE -ne 0) { throw "HoldToConfirmCallSitesSpec failed ($LASTEXITCODE)" }
 } finally {
     Remove-Item -LiteralPath $testSource -Recurse -Force -ErrorAction SilentlyContinue
 }
