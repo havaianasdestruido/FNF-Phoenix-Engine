@@ -55,6 +55,9 @@ jobs:
               return core.error(`No artifacts found`);
             }
             let body = `Download the artifacts for this pull request:\n`;
+            // The suffix on every name lists the script backends the build
+            // really contains, so a download says which mods it can run.
+            body += `\nThe name ends with the script support: \`LUA\`, \`PYTHON\` and \`HSCRIPT\` are listed when they are compiled in, \`NONE\` when none is.\n`;
             for (const art of artifacts) {
               body += `\n* [${art.name}.zip](https://nightly.link/${owner}/${repo}/actions/artifacts/${art.id}.zip)`;
             }
