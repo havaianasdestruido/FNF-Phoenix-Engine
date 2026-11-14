@@ -115,6 +115,9 @@ class MiscSettingsSubState extends BaseOptionsMenu
 		addOption(option);
 		#end
 
+		// Master Volume, also in Options -> Audio (same live row).
+		OptionsMenuHelpers.addMasterVolumeRow(this);
+
 		cameras = [FlxG.cameras.list[FlxG.cameras.list.length-1]];
 
 		addBackupOptions();

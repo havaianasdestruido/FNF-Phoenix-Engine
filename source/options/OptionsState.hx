@@ -22,12 +22,23 @@ import states.substates.PauseSubState;
 
 class OptionsState extends MusicBeatState
 {
-  final openMiscOnCreate:Bool;
+  /** Category opened automatically on create (deep links, or `null`). */
+  final openOnCreate:String;
 
-  public function new(openMisc:Bool = false)
+  /**
+   * @param openCategory category label to open as soon as the list is built,
+   *                     e.g. `'Misc'` or `'Audio'` (deep-link routes are
+   *                     matched case-insensitively); `null` shows the list.
+   *                     The old `Bool` form still works: `true` meant Misc.
+   */
+  public function new(?openCategory:Dynamic = null)
   {
     super();
-    openMiscOnCreate = openMisc;
+    // Compatibility: this used to be `new OptionsState(openMisc:Bool)`. Mods and
+    // scripts written against that signature keep opening Misc instead of
+    // failing to compile.
+    if (Std.isOfType(openCategory, Bool)) openOnCreate = (openCategory == true) ? 'Misc' : null;
+    else openOnCreate = (openCategory is String) ? openCategory : null;
 
     // Game Rendering needs a native desktop window (FFmpeg) or Android's
     // frame capture. Lime also reports Flash/AIR as `desktop`, so the list is
@@ -44,7 +55,7 @@ class OptionsState extends MusicBeatState
 	var isEnteringKonamiCode:Bool = false;
 	var options:Array<String> = [
 		'Note Colors', 'Controls', 'Adjust Delay and Combo', 'Graphics', 'Optimization',
-		'Visuals and UI', 'Gameplay', 'Misc'
+		'Visuals and UI', 'Gameplay', 'Audio', 'Misc'
 		#if (android || ios), 'Mobile Options' #end
 	];
 	private var grpOptions:FlxTypedGroup<Alphabet>;
@@ -84,6 +95,8 @@ class OptionsState extends MusicBeatState
 				openSubState(new options.GameRendererSettingsSubState());
 			case 'Adjust Delay and Combo':
 				LoadingState.loadAndSwitchState(() -> new options.NoteOffsetState());
+			case 'Audio':
+				openSubState(new options.AudioSettingsSubState());
 			case 'Misc':
 				openSubState(new options.MiscSettingsSubState());
 			#if (android || ios)
@@ -186,11 +199,14 @@ class OptionsState extends MusicBeatState
 
 		Paths.clearUnusedMemory();
 		super.create();
-    if (openMiscOnCreate)
+    // Deep links use the lower-case route (`phoenix://menu/audio`), the list
+    // uses the label ('Audio'); match without caring about case so both work.
+    final target:Int = categoryIndex(openOnCreate);
+    if (target != -1)
     {
-      curSelected = options.indexOf('Misc');
+      curSelected = target;
       changeSelection();
-      openSelectedSubstate('Misc');
+      openSelectedSubstate(options[target]);
     }
 	}
 
@@ -302,6 +318,15 @@ class OptionsState extends MusicBeatState
 			removeVirtualPad();
 			persistentUpdate = false;
 		}});
+	}
+
+	/** Index of a category label, or -1; `null` never matches. */
+	function categoryIndex(label:String):Int {
+		if (label == null) return -1;
+		final wanted:String = label.toLowerCase();
+		for (i in 0...options.length)
+			if (options[i].toLowerCase() == wanted) return i;
+		return -1;
 	}
 
 	function changeSelection(change:Int = 0) {

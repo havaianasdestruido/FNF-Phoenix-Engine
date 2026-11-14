@@ -143,6 +143,22 @@ class ClientPrefs { //default settings if it can't find a save file containing y
 	// Android-only opt-in: system notifications for engine events (chart backups, crash logs).
 	public static var androidNotifications:Bool = false;
 
+	//Audio
+	/**
+	 * Options -> Audio -> Master Volume, as a percentage whose `0..1` form is the
+	 * slider position on the tray's logarithmic curve (see `backend.VolumeCurve`;
+	 * `50%` is a `FlxG.sound.volume` of about `0.03`).
+	 *
+	 * This is a **mirror**, not a second store: `FlxG.sound.volume` is the real
+	 * value, already saved and restored through `flixelSound` and exported in the
+	 * `audio` section of a settings backup. The field exists because
+	 * `options.Option` binds to a `ClientPrefs` field by name, and it is therefore
+	 * kept out of both the save file (`saveBlackList` / `loadBlackList`) and the
+	 * backup (`SettingsBackup.NOT_PREFERENCES`). Write it through
+	 * `assignMasterVolume()` so the sound system and the field never disagree.
+	 */
+	public static var masterVolume:Float = 1;
+
 	//Graphics
 	// Opt in to expanding the viewport; existing 16:9 presentation is the default.
 	public static var widescreen:Bool = false;
@@ -366,9 +382,9 @@ class ClientPrefs { //default settings if it can't find a save file containing y
 
 	// i suck at naming things sorry
 	private static var importantMap:Map<String, Array<String>> = [
-		"saveBlackList" => ["keyBinds", "defaultKeys", "defaultArrowRGB", "defaultPixelRGB", "defaultQuantRGB"],
+		"saveBlackList" => ["keyBinds", "defaultKeys", "defaultArrowRGB", "defaultPixelRGB", "defaultQuantRGB", "masterVolume"],
 		"flixelSound" => ["volume", "sound"],
-		"loadBlackList" => ["keyBinds", "defaultKeys", "defaultArrowRGB", "defaultPixelRGB", "defaultQuantRGB"],
+		"loadBlackList" => ["keyBinds", "defaultKeys", "defaultArrowRGB", "defaultPixelRGB", "defaultQuantRGB", "masterVolume"],
 	];
 
 	public static var defaultArrowRGB:Array<Array<FlxColor>>;
@@ -419,7 +435,55 @@ class ClientPrefs { //default settings if it can't find a save file containing y
 		FlxG.log.add("Settings saved!");
 	}
 
-	public static function loadPrefs() { //loads settings if it finds a save file containing the settings
+	/**
+	 * Mirrors `FlxG.sound.volume` into `masterVolume`, the field the
+	 * Options -> Audio row is bound to.
+	 *
+	 * Called on load, after a backup import, and every frame by the options menu,
+	 * so the row follows the volume keys and the tray instead of showing a stale
+	 * number. A muted game still reports its volume: unmuting restores it, and the
+	 * row would be useless if it snapped to 0%.
+	 */
+	public static function syncMasterVolume():Void {
+		masterVolume = VolumeCurve.toPercent(FlxG.sound.volume);
+	}
+
+	/**
+	 * `Option.readValue` for the master volume rows: refreshes the mirror from
+	 * `FlxG.sound.volume` and returns it, so the label follows the volume keys,
+	 * the tray and any script instead of showing the value the menu was built
+	 * with. The menu calls this every frame (`BaseOptionsMenu.refreshLiveOptions`).
+	 */
+	public static function readMasterVolume():Dynamic {
+		syncMasterVolume();
+		return masterVolume;
+	}
+
+	/**
+	 * Stores a slider position (0..1, Options -> Audio) into `FlxG.sound.volume`.
+	 *
+	 * `FlxG.sound.volume` is already saved through `flixelSound`, so nothing is
+	 * written here. Unmuting and popping the tray matches what the volume keys do,
+	 * which gives a gamepad/touchscreen player the same feedback (and the same
+	 * `Volup`/`Voldown` cue) the keys give.
+	 */
+	public static function assignMasterVolume(percent:Float):Void {
+		final previous:Float = FlxG.sound.volume;
+		FlxG.sound.muted = false;
+		FlxG.sound.volume = VolumeCurve.toVolume(percent);
+		syncMasterVolume();
+
+		// Holding a direction calls this every frame; popping the tray (and its
+		// click) for every one of those would be noise, so only a change worth a
+		// press shows it.
+		final moved:Float = Math.abs(masterVolume - VolumeCurve.toPercent(previous));
+		if (moved >= TRAY_FEEDBACK_STEP) FlxG.sound.showSoundTray(FlxG.sound.volume > previous);
+	}
+
+	/** Smallest slider change that pops the sound tray; one press of the row. */
+	static inline var TRAY_FEEDBACK_STEP:Float = 0.02;
+
+  public static function loadPrefs() { //loads settings if it finds a save file containing the settings
 		#if ACHIEVEMENTS_ALLOWED Achievements.load(); #end
 
 		for (field in Type.getClassFields(ClientPrefs))
@@ -480,6 +544,7 @@ class ClientPrefs { //default settings if it can't find a save file containing y
 			if (flxProp != null)
 				Reflect.setField(FlxG.sound, flixelS, flxProp);
 		}
+		syncMasterVolume();
 
 		#if DISCORD_ALLOWED DiscordClient.check(); #end
 
@@ -547,6 +612,8 @@ class ClientPrefs { //default settings if it can't find a save file containing y
 		FlxG.sound.muteKeys = TitleState.muteKeys;
 		FlxG.sound.volumeDownKeys = TitleState.volumeDownKeys;
 		FlxG.sound.volumeUpKeys = TitleState.volumeUpKeys;
+		// A rebound volume key must not leave the Options row on an old number.
+		syncMasterVolume();
 	}
 	public static function copyKey(arrayToCopy:Array<FlxKey>):Array<FlxKey> {
 		var copiedArray:Array<FlxKey> = arrayToCopy.copy();
