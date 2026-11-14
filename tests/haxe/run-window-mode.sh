@@ -26,7 +26,7 @@ spec -D desktop --interp
 
 for platform in windows linux mac; do
   output="$test_source/generated/$platform"
-  spec -D "$platform" -D no-compilation -cpp "$output"
+  spec -D desktop -D "$platform" -D no-compilation -cpp "$output"
   generated="$output/src/backend/WindowMode.cpp"
   grep -Fq 'resizeWindow' "$generated"
 done
