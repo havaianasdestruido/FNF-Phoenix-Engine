@@ -158,6 +158,10 @@ class PlatformSupportSpec
 
     equal(PlatformSupport.supportsPreference('androidNotifications'), PlatformIcons.detect() == PlatformKind.ANDROID, 'notifications support');
     equal(PlatformSupport.supportsPreference('androidTVNavigation'), PlatformIcons.detect() == PlatformKind.ANDROID, 'android TV navigation support');
+    final haptics:Array<String> = PlatformSupport.requirementsForPreference('hapticFeedback');
+    equal(haptics.length, 1, 'haptics has one requirement');
+    equal(haptics[0], PlatformSupport.ANDROID, 'haptics is Android-only');
+    equal(PlatformSupport.supportsPreference('hapticFeedback'), PlatformIcons.detect() == PlatformKind.ANDROID, 'haptics support');
     equal(PlatformSupport.supportsPreference('mobileCAlpha'), PlatformSupport.supports([PlatformSupport.MOBILE]), 'mobile controls');
     equal(PlatformSupport.supportsPreference('hitboxType'), PlatformSupport.supports([PlatformSupport.MOBILE]), 'hitbox');
     equal(PlatformSupport.supportsPreference('ffmpegMode'), PlatformSupport.supports([PlatformSupport.VIDEO_RENDER]), 'renderer options');
