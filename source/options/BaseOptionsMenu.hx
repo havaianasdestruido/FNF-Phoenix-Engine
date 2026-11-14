@@ -145,9 +145,12 @@ class BaseOptionsMenu extends MusicBeatSubstate
 			if (optionSearchText.hasFocus) return false;
 			var onResetRow:Bool = curOption != null && curOption.name == RESET_ALL_LABEL;
 			// Gamepad/remote parity: Y is the reset button, LEFT_SHOULDER the SHIFT.
-			var resetHeld:Bool = controls.RESET || FlxG.gamepads.anyPressed(Y);
+			// `RESET` is bound as JUST_PRESSED (one frame); a hold has to read the
+			// PRESSED twin or it restarts before the bar can fill.
+			var resetHeld:Bool = controls.RESET_P || FlxG.gamepads.anyPressed(Y);
 			var shiftHeld:Bool = FlxG.keys.pressed.SHIFT || FlxG.gamepads.anyPressed(LEFT_SHOULDER);
-			return (onResetRow && controls.ACCEPT) || (resetHeld && shiftHeld);
+			// ACCEPT_P (PRESSED) so holding A / SPACE on the row fills the bar.
+			return (onResetRow && controls.ACCEPT_P) || (resetHeld && shiftHeld);
 		}, 'HOLD TO RESET ALL');
 		resetGuard.cameras = cameras;
 		add(resetGuard);

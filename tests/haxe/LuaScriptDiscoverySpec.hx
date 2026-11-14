@@ -526,7 +526,12 @@ else
   for _, hook in ipairs(hooks) do
     local fn = _G[hook]
     if type(fn) == "function" then
-      local hok, herr = pcall(fn)
+      local hok, herr
+      if hook == "onUpdate" or hook == "onUpdatePost" then
+        hok, herr = pcall(fn, 1 / 60)
+      else
+        hok, herr = pcall(fn)
+      end
       print("HOOK\t" .. (hok and "ok" or "FAIL") .. "\t" .. hook .. "\t" .. tostring(herr))
     else
       print("HOOK\tmissing\t" .. hook)
@@ -534,6 +539,59 @@ else
   end
 end
 ';
+	}
+
+	/**
+	 * `FunkinLua` publishes scalar state variables (`screenWidth`, `curBpm`,
+	 * `songName`, `downscroll`, ...) via `set(...)`, while callable callbacks
+	 * come from `registerFunction(...)`. Give scalar globals realistic Lua
+	 * literals of the right runtime type so scripts that do arithmetic or
+	 * string operations on them behave as they do in `PlayState`.
+	 */
+	static function defaultGlobalLiteral(name:String):String
+	{
+		return switch (name)
+		{
+			case 'Function_Stop': '"##PSYCHLUA_FUNCTIONSTOP"';
+			case 'Function_Continue': '"##PSYCHLUA_FUNCTIONCONTINUE"';
+			case 'Function_StopLua': '"##PSYCHLUA_FUNCTIONSTOPLUA"';
+			case 'luaDeprecatedWarnings': 'true';
+			case 'luaDebugMode' | 'inChartEditor' | 'startedCountdown' | 'isStoryMode'
+				| 'seenCutscene' | 'inGameOver' | 'mustHitSection' | 'altAnim' | 'gfSection'
+				| 'instakillOnMiss' | 'botPlay' | 'practice' | 'downscroll' | 'middlescroll'
+				| 'ghostTapping' | 'hideHud' | 'scoreZoom' | 'cameraZoomOnBeat' | 'flashingLights'
+				| 'noResetButton' | 'lowQuality' | 'lowMemoryMode' | 'shadersEnabled':
+				'false';
+			case 'modFolder' | 'songName' | 'songPath' | 'curStage' | 'difficultyName'
+				| 'difficultyPath' | 'week' | 'ratingName' | 'hitTiming' | 'ratingFC'
+				| 'phoenixVersion' | 'version' | 'jsVersion' | 'boyfriendName' | 'dadName'
+				| 'gfName' | 'timeBarType' | 'memoryProfile' | 'scriptName'
+				| 'currentModDirectory' | 'noteSkin' | 'noteSkinPostfix' | 'splashSkin'
+				| 'splashSkinPostfix' | 'user_path' | 'user_name' | 'buildTarget':
+				'"' + name + '"';
+			case 'screenWidth': '1280';
+			case 'screenHeight': '720';
+			case 'curBpm' | 'bpm': '120';
+			case 'scrollSpeed': '2.5';
+			case 'crochet': '500';
+			case 'stepCrochet': '125';
+			case 'songLength': '120000';
+			case 'framerate': '60';
+			case 'healthBarAlpha' | 'npsSpeedMult' | 'healthGainMult' | 'healthLossMult' | 'playbackRate': '1';
+			case _: '0';
+		};
+	}
+
+	static function returnsLuaTable(name:String):Bool
+	{
+		return switch (name)
+		{
+			case 'getModchartModifiers' | 'getRunningScripts' | 'directoryFileList'
+				| 'getMonitorResolutions' | 'getOpenWindowTitles' | 'getSystemInfoTable'
+				| 'stringSplit' | 'getShaderBoolArray' | 'getShaderIntArray' | 'getShaderFloatArray':
+				true;
+			case _: false;
+		};
 	}
 
 	/** Result of one interpreter run, so negative controls can assert on it. */
@@ -547,12 +605,28 @@ end
 
 		var globals = new StringBuf();
 		globals.add('local function __stub(name)\n  return function(...) return 1 end\nend\n');
-		var api:Array<String> = engineGlobals();
-		for(name in registeredFunctionNames())
-			if(!api.contains(name)) api.push(name);
-		info('${api.length} engine global(s) declared for the script');
-		for(name in api)
-			globals.add('$name = __stub("$name")\n');
+		globals.add('local function __tableStub(name)\n  return function(...) return {} end\nend\n');
+		var vars:Array<String> = engineGlobals();
+		var funcs:Array<String> = registeredFunctionNames();
+		if(!funcs.contains('isRunning')) funcs.push('isRunning');
+		info('${vars.length + funcs.length} engine global(s) declared for the script');
+		for(name in funcs)
+		{
+			var helper:String = returnsLuaTable(name) ? '__tableStub' : '__stub';
+			globals.add('$name = $helper("$name")\n');
+		}
+		for(name in vars)
+		{
+			if(!funcs.contains(name))
+				globals.add('$name = ${defaultGlobalLiteral(name)}\n');
+		}
+		for(lane in 0...9)
+		{
+			globals.add('defaultPlayerStrumX$lane = 0\n');
+			globals.add('defaultPlayerStrumY$lane = 0\n');
+			globals.add('defaultOpponentStrumX$lane = 0\n');
+			globals.add('defaultOpponentStrumY$lane = 0\n');
+		}
 		globals.add('Function_Stop = "##PSYCHLUA_FUNCTIONSTOP"\n');
 		globals.add('Function_Continue = "##PSYCHLUA_FUNCTIONCONTINUE"\n');
 		globals.add('Function_StopLua = "##PSYCHLUA_FUNCTIONSTOPLUA"\n');

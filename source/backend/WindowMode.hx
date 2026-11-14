@@ -115,6 +115,7 @@ class WindowMode
   public static function set(mode:Dynamic, save:Bool = true):Bool
   {
     final target:String = normalize(mode);
+    if (target != FULLSCREEN) preFullscreen = target;
     ClientPrefs.windowMode = target;
     final applied:Bool = applyMode(target);
     if (save) ClientPrefs.saveSettings();

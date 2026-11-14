@@ -168,8 +168,10 @@ class PauseSubState extends MusicBeatSubstate
 
 		// The guard follows the selected exit row, so its invisible hit area and
 		// progress bar enlarge the touch target without touching the Alphabet art.
+		// `ACCEPT` is bound as JUST_PRESSED (one frame), so a held gesture has to
+		// read `ACCEPT_P`, the same action bound as PRESSED.
 		exitConfirm = new HoldToConfirm(null, function() performExit(exitAction),
-			() -> controls.ACCEPT, 'HOLD TO EXIT');
+			() -> controls.ACCEPT_P, 'HOLD TO EXIT');
 		exitConfirm.cameras = cameras;
 		add(exitConfirm);
 		super.create();
