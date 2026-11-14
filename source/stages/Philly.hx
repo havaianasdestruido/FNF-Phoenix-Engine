@@ -1,4 +1,6 @@
 package stages;
+
+import backend.CameraFlash;
 import objects.Note.EventNote;
 import backend.ClientPrefs;
 import backend.ViewportVisuals;
@@ -178,7 +180,7 @@ class Philly extends BaseStage
 						{
 							var colorButLower:FlxColor = color;
 							colorButLower.alphaFloat = 0.25;
-							FlxG.camera.flash(colorButLower, 0.5, null, true);
+							CameraFlash.flash(FlxG.camera, colorButLower, 0.5, null, true);
 						}
 
 						var charColor:FlxColor = color;
@@ -222,8 +224,7 @@ class Philly extends BaseStage
 	function doFlash()
 	{
 		var color:FlxColor = FlxColor.WHITE;
-		if(!ClientPrefs.flashing) color.alphaFloat = 0.5;
 
-		FlxG.camera.flash(color, 0.15, null, true);
+		CameraFlash.flash(FlxG.camera, color, 0.15, null, true);
 	}
 }

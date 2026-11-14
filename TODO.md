@@ -21,7 +21,21 @@ _i accept suggestions too_
 
 ## 0. PRIORITY-ish / UNCATEGORIZED
 
-- FIX `BF-CLICKER`!!! _(i wont release v0.0.1 UNTIL i fix this)_
+- On the bottom right of the screen, show the commit's git commit short id, and on top of it, show how many commits it is behind, where it change colors depending if the build is too old.
+- - Green: 1-10 commits
+  - Yellow: 11-25 commits
+  - Orange: 26-50 commits
+  - Red: 51-100 commits
+  - It should fade colors depending on the git commit, dont just use the same color for the range, make it be a "rainbow-ish" pattern.
+
+- Add those:
+- - flixel.addons.effect.transition ofr states transistions, [just like in this demo](https://haxeflixel.com/demos/Transitions/).
+  - Loading screens with a FlxPieDial in the bottom left corner.
+  - Port the "pointing mouse sprite at button" thingy from [this demo](https://haxeflixel.com/demos/Cursor/).
+  - Add pretty much all filters from FlxG.camera.filters & FlxG.game.filters to modding API.
+  - - add all these too in modding api: flixel.addons.effects.chainable
+  - Add flixel.addons.effects.FlxClothSprite as a easter egg, [just like in this demo.](https://haxeflixel.com/demos/FlxClothSprite/)
+  - Add tooltips to all parts of the engine that uses `flixel-ui`, [just like on this.. uhh. demo right over here.](https://haxeflixel.com/demos/Tooltips/)
 
 - Windows 7 support by patching some libs _(prob impossible but whatever)_
 

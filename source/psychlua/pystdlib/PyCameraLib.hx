@@ -1,5 +1,6 @@
 package psychlua.pystdlib;
 
+import backend.CameraFlash;
 import flixel.FlxCamera;
 import flixel.FlxG;
 import psychlua.PythonScript;
@@ -30,7 +31,7 @@ class PyCameraLib
 		PythonScript.registerFunction("cameraFlash", function(camera:String, color:String, duration:Float, forced:Bool) {
 			var colorNum:Int = Std.parseInt(color);
 			if(!color.startsWith('0x')) colorNum = Std.parseInt('0xff' + color);
-			LuaUtils.cameraFromString(camera).flash(colorNum, duration / PlayState.instance.playbackRate, null, forced);
+			CameraFlash.flash(LuaUtils.cameraFromString(camera), colorNum, duration / PlayState.instance.playbackRate, null, forced);
 		});
 		PythonScript.registerFunction("cameraFade", function(camera:String, color:String, duration:Float, forced:Bool, ?fadeOut:Bool = false) {
 			var colorNum:Int = Std.parseInt(color);
