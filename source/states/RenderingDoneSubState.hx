@@ -91,7 +91,7 @@ class RenderingDoneSubState extends MusicBeatSubstate {
 			FlxTween.tween(background, {alpha: 0}, 0.4, {ease: FlxEase.quartInOut});
 			FlxTween.tween(RenderText, {alpha: 0}, 0.4, {ease: FlxEase.quartInOut});
 			FlxTween.tween(saveTxt, {alpha: 0}, 0.4, {ease: FlxEase.quartInOut});
-			FlxG.sound.playMusic(Paths.music('freakyMenu-' + ClientPrefs.daMenuMusic));
+			Paths.playMenuMusic(true);
 			if (PlayState.isStoryMode)
 				FlxG.switchState(StoryMenuState.new);
 			if (PlayState.chartingMode)

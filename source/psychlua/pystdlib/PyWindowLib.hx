@@ -1,16 +1,20 @@
 package psychlua.pystdlib;
 
 import backend.TransparentWindow;
+import backend.WindowMode;
+import flixel.FlxG;
 import psychlua.PythonScript;
 
 /**
  * Window-level helpers exposed to Python scripts (desktop overlay / "desktop
- * pet" mods): transparency, whole-window alpha and click-through.
+ * pet" mods): transparency, whole-window alpha, click-through, the window
+ * display mode and window size.
  *
- * Mirror of `psychlua.callbacks.WindowCallbacks` — keep the function names and
- * the argument order in sync. All of them are thin wrappers around
- * `backend.TransparentWindow` and are safe no-ops that log a reason on targets
- * without support (HTML5, Flash/AIR, mobile).
+ * Mirror of `psychlua.callbacks.WindowCallbacks` (Lua) and
+ * `WindowCallbacks.seedHScript` (HScript) — keep the function names and the
+ * argument order in sync. All of them are thin wrappers around
+ * `backend.TransparentWindow` / `backend.WindowMode` and are safe no-ops that
+ * log a reason on targets without support (HTML5, Flash/AIR, mobile).
  */
 class PyWindowLib
 {
@@ -56,6 +60,49 @@ class PyWindowLib
       PythonScript.registerFunction("applyWindowTransparency", function() {
         return TransparentWindow.apply();
       });
+
+      registerModeApi(function(name:String, func:Dynamic) {
+        PythonScript.registerFunction(name, func);
+      });
     }
+  }
+
+  /** Window display mode and size helpers, kept in sync with the Lua bridge. */
+  private static function registerModeApi(register:(String, Dynamic)->Void):Void
+  {
+    // Selects the window display mode: 'windowed' / 'borderless' / 'fullscreen'
+    // (the display names 'Windowed', 'Borderless', 'Fullscreen' work too).
+    // Applies immediately and persists the choice. Desktop only.
+    register("setWindowMode", function(mode:Dynamic) {
+      return WindowMode.set(mode);
+    });
+    // The current mode as 'Windowed' / 'Borderless' / 'Fullscreen'.
+    register("getWindowMode", function():String {
+      return WindowMode.current();
+    });
+    // Convenience for the common windowed <-> fullscreen toggle.
+    register("setWindowFullscreen", function(enable:Bool = true) {
+      return WindowMode.set(enable ? WindowMode.FULLSCREEN : WindowMode.WINDOWED);
+    });
+    // Whether the selected mode is exclusive fullscreen.
+    register("getWindowFullscreen", function():Bool {
+      return WindowMode.isFullscreen();
+    });
+    // Selects a borderless window (frameless, not exclusive fullscreen).
+    register("setWindowBorderless", function(enable:Bool = true) {
+      return WindowMode.set(enable ? WindowMode.BORDERLESS : WindowMode.WINDOWED);
+    });
+    // Whether the selected mode is borderless.
+    register("getWindowBorderless", function():Bool {
+      return WindowMode.isBorderless();
+    });
+    // Resizes the game window and the logical viewport. Desktop native only.
+    register("resizeWindow", function(width:Int, height:Int) {
+      return WindowMode.resize(width, height);
+    });
+    // Current logical game size as [width, height].
+    register("getWindowSize", function() {
+      return [FlxG.width, FlxG.height];
+    });
   }
 }

@@ -170,7 +170,7 @@ class GameCallbacks
 			else
 				FlxG.switchState(FreeplayState.new);
 
-			FlxG.sound.playMusic(Paths.music('freakyMenu'));
+			Paths.playMenuMusic(true);
 			PlayState.changedDifficulty = false;
 			PlayState.chartingMode = false;
 			PlayState.instance.transitioning = true;

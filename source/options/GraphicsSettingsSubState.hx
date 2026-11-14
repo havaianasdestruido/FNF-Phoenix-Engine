@@ -8,6 +8,8 @@ import openfl.display.Stage;
 
 import backend.ClientPrefs;
 import backend.CoolUtil;
+import backend.PlatformSupport;
+import backend.WindowMode;
 import objects.Note;
 
 class GraphicsSettingsSubState extends BaseOptionsMenu
@@ -91,6 +93,21 @@ class GraphicsSettingsSubState extends BaseOptionsMenu
 		addOption(option);
 		option.onChange = onChangeResolution;
 		#end
+
+		// Window display mode. The option is filtered by PlatformSupport, so it
+		// never appears on mobile/web/AIR; borderless gives a full-screen
+		// look without exclusive-fullscreen artifacts.
+		var option:Option = new Option('Window Mode: ',
+			'How the game window should look.\\nBorderless fills the screen without exclusive-fullscreen artifacts; Fullscreen uses the OS exclusive mode. Applies immediately.',
+			'windowMode',
+			'string',
+			WindowMode.WINDOWED,
+			WindowMode.MODES)
+			.onlyOn([PlatformSupport.DESKTOP]);
+		option.onChange = function() {
+			WindowMode.set(ClientPrefs.windowMode);
+		};
+		addOption(option);
 
 		//Apparently other framerates isn't correctly supported on Browser? Probably it has V-Sync enabled by default, idk
 		var option:Option = new Option('Framerate',

@@ -14,9 +14,11 @@ existing camera, shader and sprite helpers continue to work.
 ```
 source/modchart/            pure logic (no Flixel imports)
 source/modchart/modifiers/  the 34 built-in modifiers
+source/modchart/lab/        Modchart Lab editor core (catalog + Lua/Python export)
 source/play/helpers/PlayStateModchart.hx   adapter that moves the live sprites
 source/psychlua/callbacks/ModchartCallbacks.hx  Lua API
 source/psychlua/pystdlib/PyModchartLib.hx       Python API
+source/editors/ModchartLabState.hx   visual tuner (Editors menu -> Modchart Lab)
 ```
 
 ## Scripting API
@@ -144,6 +146,120 @@ the list automatically, while repeaters stay until reset.
 Beats in the past resolve immediately: `modEase` with a beat the song has
 already passed applies its target value instead of tweening.
 
+## Modchart lab
+
+Tuning a modchart by editing beats and re-running the song is slow, so the
+engine ships a lab for it: **Main menu -> `7` (the `debug_1` bind) -> Modchart
+Lab** (desktop only, like the other editors). Pick any of the 34 modifiers,
+drag its percents while a beat clock loops over a section, watch the preview
+arrows react, then copy the matching `modEase(...)` calls as Lua or Python.
+
+The lab runs the real `ModchartManager`/`PlayField.transform` chain on
+synthetic `ModchartParams` — no `PlayState`, no song files, no audio — and
+`ModchartLabCatalog` is checked against `ModifierRegistry.names()` by the
+tests, so a modifier cannot appear in the picker without its percent list.
+
+### Controls
+
+| Input | Action |
+| --- | --- |
+| Click a name in the list, or `Up`/`Down` | Pick a modifier (`Left`/`Right` jump a column) |
+| Drag a percent slider | Set that percent; while the clock runs the value is recorded |
+| `Shift` + `Up`/`Down` | Select the next percent |
+| `Shift` + `Left`/`Right` | Nudge the selected percent by its step (`Ctrl` = 5x) |
+| `Enter` | Restore the percent to the value its modifier ships with |
+| `Space` | Play/pause the looping section |
+| Drag on the timeline strip | Scrub the section (pauses the clock) |
+| `1` / `2` / `3` | Record for both sides / the opponent / the player |
+| `E` / `R` | Next/previous ease |
+| `L` | Toggle the looping export |
+| `Tab` | Switch the export between Lua and Python |
+| `C` | Copy the generated script to the clipboard |
+| `X` / `Shift` + `X` | Clear the selected percent / every recorded percent |
+| `Esc` | Back to the editors menu |
+
+Modifiers you have recorded are marked with `*` in the list, each slider shows
+how many keyframes it holds (`drunk (5)`), and the timeline strip under the
+preview draws the selected percent's keyframes plus the playhead.
+
+### What gets recorded
+
+Every drag writes keyframes for the current `(modifier, percent, side)` pair:
+
+- Beats snap to the **16th-note grid** (`0.25` beats) and are stored
+  **relative to the section start**, so changing `Start` shifts the generated
+  beats without touching the shape.
+- A keyframe inside the same grid bucket is rewritten instead of appended, so
+  holding a value or passing the playhead again does not pile up keys.
+- Recorded tracks are replayed on every pass: the arrows show the automation,
+  not just your mouse, which is what lets you shape a section over several
+  loops.
+- Values start from what the modifier ships with (`scale` = `1`, `stealth`
+  `alpha` = `1`, `beat` speeds = `1`, ...), not from zero.
+
+`Set` (bumpers/speed/period/toggles) knobs behave the same way: they are
+ordinary percents, and the exported script is still `modSet`/`modEase`.
+
+### The generated script
+
+`C` copies a complete fragment for the selected language. Every track becomes
+one `modSet` anchoring the section at its first recorded value, then one
+`modEase` per segment:
+
+```lua
+-- Modchart Lab - Phoenix Engine
+-- Section: beats 4 -> 12 (8 beats), ease quadOut
+-- Paste into a Lua script; merge the bodies if you already have these callbacks.
+
+function onCreatePost()
+	addModifier('drunk')
+
+	modSet('drunk', 4, 0)
+	modEase('drunk', 4, 2, 0.5, 'quadOut')
+	modEase('drunk', 6, 2, 0.25, 'quadOut')
+end
+```
+
+The `length` of each `modEase` is the distance to the *next* keyframe and its
+target is that keyframe's value, so the script passes through the recorded
+points exactly like the preview. Side-specific tracks get the `player`
+argument appended (`..., 'quadOut', 1`); both-sided tracks leave it out.
+
+With `Loop` enabled the same calls are wrapped in a callback that
+`modRepeater` re-schedules every section and the beats become relative to the
+`beat` argument:
+
+```lua
+function onCreatePost()
+	addModifier('drunk')
+
+	modRepeater(4, 8, 'onModchartLabSection')
+end
+
+function onModchartLabSection(beat)
+	modSet('drunk', beat, 0)
+	modEase('drunk', beat, 2, 0.5, 'quadOut')
+	modEase('drunk', beat + 2, 2, 0.25, 'quadOut')
+end
+```
+
+That is the shape a real modchart loop takes: the `modSet` re-anchors the
+section on every repeat and the tweens are scheduled from the callback's beat,
+which is why the lab's export can be pasted as-is.
+
+### Limitations
+
+- The preview runs the section **from its own start beat**, so modifiers that
+  read absolute song time (`drunk`, `tipsy`, `receptorScroll`,
+  `counterClockWise`) have a phase that will not match a given spot of a real
+  song. Beat-driven ones (`beat`, `bounce`, `confusion`, `wiggle`, ...) do.
+- One playfield, one side pair, 4 lanes: the lab is for tuning numbers, not for
+  composing multi-field layering.
+- `skew` is stored but not drawn (Flixel sprites have no skew matrix), and
+  `vibrate` is random, so both look inconsistent by design.
+- Editing the exported text is expected: the lab writes the tween skeleton, not
+  your callbacks, perspective changes or per-lane variants (`drunk0`, ...).
+
 ## Haxe API
 
 Scripts use the callbacks above; engine code can use the manager directly:
@@ -184,9 +300,14 @@ recycled notes therefore need no per-note state.
 ## Tests
 
 ```bash
-bash tests/haxe/run-modchart.sh           # core math, timeline, all 34 modifiers
-bash tests/haxe/run-modchart-typecheck.sh # adapter + Lua/Python registration
+bash tests/haxe/run-modchart.sh                  # core math, timeline, all 34 modifiers
+bash tests/haxe/run-modchart-typecheck.sh        # adapter + Lua/Python registration
+bash tests/haxe/run-modchart-lab.sh              # lab catalog, automation and export
+bash tests/haxe/run-modchart-lab-typecheck.sh    # drives the lab state through Flixel stubs
 ```
 
-Windows runners (`run-modchart.bat`, `run-modchart.ps1`,
-`run-modchart-typecheck.bat`, `run-modchart-typecheck.ps1`) run the same specs.
+Every script has `.bat`/`.ps1` twins (`run-modchart.bat`,
+`run-modchart-lab-typecheck.ps1`, ...) and the four run in CI (`checks.yml`).
+The lab specs also prove that each catalog percent actually moves its
+modifier, so a typo in a percent name fails the build instead of producing a
+slider that does nothing.

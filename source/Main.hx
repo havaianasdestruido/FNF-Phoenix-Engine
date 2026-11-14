@@ -17,6 +17,7 @@ import backend.CoolUtil;
 import backend.DiscordClient;
 import backend.TransparentWindow;
 import backend.WindowColorMode;
+import backend.WindowMode;
 import play.PlayState;
 #if GAMEMODE_ALLOWED
 import hxgamemode.GamemodeClient;
@@ -158,6 +159,11 @@ class Main extends Sprite
 		DisableProcessWindowsGhosting(); // lets you move the window and such if it's not responding
 	");
     #end
+    // Honor the saved window mode before the window is created so a player who
+    // chose Fullscreen does not see a windowed flash. Borderless cannot be
+    // requested through FlxGame's startFullscreen flag and is applied after the
+    // preferences load (see ClientPrefs.applyWindowModePreference).
+    game.startFullscreen = WindowMode.normalize(ClientPrefs.readSavedString('windowMode', WindowMode.WINDOWED)) == WindowMode.FULLSCREEN;
     setupGame();
   }
 

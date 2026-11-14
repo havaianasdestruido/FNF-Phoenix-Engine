@@ -129,6 +129,12 @@ Modifiers only run once a script adds them, so charts and mods that ignore the
 API keep vanilla arrows. The full function and percent list lives in
 [MODCHART.md](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/blob/main/docs/MODCHART.md).
 
+You do not have to write these calls by hand: **Editors → Modchart Lab** (the
+`debug_1` key from the main menu) lets you drag percents over a looping section
+while the arrows react, then copies the matching `modSet`/`modEase` calls as Lua
+or Python. See
+[MODCHART.md § Modchart lab](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/blob/main/docs/MODCHART.md#modchart-lab).
+
 ## Custom substates
 
 Scripts can open their own substate with `openCustomSubstate(name, pauseGame)`.

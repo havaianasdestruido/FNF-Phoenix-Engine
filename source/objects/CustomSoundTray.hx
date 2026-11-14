@@ -1,6 +1,7 @@
 package objects;
 
 import backend.Paths;
+import backend.VolumeCurve;
 import flixel.system.frontEnds.SoundFrontEnd;
 import flixel.system.ui.FlxSoundTray;
 import openfl.Assets;
@@ -105,7 +106,7 @@ class CustomSoundTray extends FlxSoundTray
 		lerpYPos = 10;
 		visible = true;
 		active = true;
-		var globalVolume:Int = Math.round(MathTools.logToLinear(FlxG.sound.volume) * 10);
+		var globalVolume:Int = VolumeCurve.traySteps(FlxG.sound.volume);
 
 		if (FlxG.sound.muted || FlxG.sound.volume == 0)
 			globalVolume = 0;
@@ -133,26 +134,19 @@ class CustomSoundTray extends FlxSoundTray
 
 class CustomSoundFrontEnd extends SoundFrontEnd
 {
+	/**
+	 * Steps by the same logarithmic curve the tray draws and
+	 * Options -> Audio -> Master Volume edits (`backend.VolumeCurve`), so `+`/`-`
+	 * and the row always agree about the same number.
+	 *
+	 * The step itself is clamped by the curve, never by Flixel's linear
+	 * `set_volume()`, which would turn the last few steps into a mute.
+	 */
 	@:privateAccess
 	override function changeVolume(Amount:Float):Void
 	{
 		muted = false;
-		volume = MathTools.logToLinear(volume);
-		volume += Amount;
-		volume = MathTools.linearToLog(volume);
+		volume = VolumeCurve.steppedVolume(volume, Amount);
 		showSoundTray(Amount > 0);
-	}
-}
-
-// don't need the whole lib lol
-private class MathTools {
-	public static function linearToLog(x:Float, minValue:Float = 0.001):Float {
-			x = Math.max(0, Math.min(1, x));
-			return Math.exp(Math.log(minValue) * (1 - x));
-	}
-
-	public static function logToLinear(x:Float, minValue:Float = 0.001):Float {
-			x = Math.max(minValue, Math.min(1, x));
-			return 1 - (Math.log(x) / Math.log(minValue));
 	}
 }

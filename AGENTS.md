@@ -125,7 +125,7 @@ FNF-JS-Engine-Light/
     flixel/openfl/lime; pula se as haxelibs não estiverem instaladas).
 - **`stages/`**: `StageData.hx` + implementações de stage por semana (`StageWeek1` etc.).
 - **`options/`**: menu de opções + toggles (via `options/helpers`).
-- **`editors/`**: ChartEditor, WeekEditor, CharacterEditor, StageEditor, DialogueEditor.
+- **`editors/`**: ChartEditor, WeekEditor, CharacterEditor, StageEditor, DialogueEditor e o **Modchart Lab** (`ModchartLabState`, sintonizador visual dos 34 modificadores com export Lua/Python — ver `docs/MODCHART.md`).
 - **`psychlua/`**: **scripting** — FUNKINLUA (Lua), PythonScript (Hython) + HScript (hscript-improved).
 - **`shaders/`**: efeitos (Grain, VHS, ChromaticAberration, Glitch, etc.).
 - **`utils/`**, **`mobile/`** (controles mobile + hitbox), **`backend/states`** etc.

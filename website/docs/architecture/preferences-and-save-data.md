@@ -36,9 +36,15 @@ Both directions use `Reflect` over the class fields, with **blacklists** so deri
 structural data is not round-tripped:
 
 ```haxe
-"saveBlackList" => ["keyBinds", "defaultKeys", "defaultArrowRGB", "defaultPixelRGB", "defaultQuantRGB"],
-"loadBlackList" => ["keyBinds", "defaultKeys", "defaultArrowRGB", "defaultPixelRGB", "defaultQuantRGB"]
+"saveBlackList" => ["keyBinds", "defaultKeys", "defaultArrowRGB", "defaultPixelRGB", "defaultQuantRGB", "masterVolume"],
+"loadBlackList" => ["keyBinds", "defaultKeys", "defaultArrowRGB", "defaultPixelRGB", "defaultQuantRGB", "masterVolume"]
 ```
+
+`masterVolume` is the one mirrored entry: it is the Options → Audio row's view of
+`FlxG.sound.volume`, and Flixel's `volume` is what the `flixelSound` list saves and
+restores. Writing the mirror too would store the same setting twice and let the two copies
+drift apart, so both blacklists skip it (and `SettingsBackup.NOT_PREFERENCES` leaves it out
+of `.json` backups as well). See [Audio](../subsystems/audio.md#master-volume-and-the-shared-curve).
 
 Keybinds are saved separately as `save.data.customControls`. Volume/mute keys are pushed
 back into `TitleState.muteKeys` / `volumeDownKeys` / `volumeUpKeys` after loading so Flixel

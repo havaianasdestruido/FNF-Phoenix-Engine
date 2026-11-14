@@ -1,6 +1,7 @@
 package states;
 
 import backend.MusicBeatState;
+import backend.MenuMusic;
 import backend.Paths;
 import data.StageData;
 import flixel.util.typeLimit.NextState;
@@ -91,8 +92,10 @@ class LoadingState extends MusicBeatState
 	{
 		super.create();
 
-		// Mirror original: stop music early if requested
-		if (stopMusicOnLoad && FlxG.sound.music != null)
+		// Mirror original: stop music early if requested. A menu theme is already
+		// fading out over this screen (see getNextState() / backend.MenuMusic) and
+		// PlayState stops what is left of it, so it is left alone here.
+		if (stopMusicOnLoad && FlxG.sound.music != null && !MenuMusic.isMenuTrack())
 			FlxG.sound.music.stop();
 
 		behind = new FlxGroup();
@@ -732,6 +735,13 @@ class LoadingState extends MusicBeatState
 
 		if (isLoadingTarget(resolved))
 		{
+			// Entering a song: the loading screen is the only window where the
+			// menu theme can still be heard, so fade it out here instead of
+			// cutting it as soon as PlayState takes the music channel over
+			// (Options -> Fade Menu Music). The title screen and any other music
+			// are left alone.
+			if (Std.isOfType(resolved, PlayState)) MenuMusic.fadeOutForSong();
+
 			#if NO_PRELOAD_ALL
 			var loaded:Bool = false;
 			if (PlayState.SONG != null)

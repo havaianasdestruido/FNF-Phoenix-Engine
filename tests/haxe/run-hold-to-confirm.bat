@@ -9,6 +9,8 @@ copy /y "source\backend\HoldToConfirmLogic.hx" "%TEST_SOURCE%\backend\" >nul || 
 %HAXE% -cp "%TEST_SOURCE%" -cp tests/haxe -main HoldToConfirmSpec --interp || goto fail
 rem The same module typechecked for C++, a static target (nothing is generated).
 %HAXE% -cp "%TEST_SOURCE%" -cp tests/haxe -main HoldToConfirmSpec -cpp "%TEST_SOURCE%\cpp" --no-output || goto fail
+rem Guards must read PRESSED-bound flags (ACCEPT_P / RESET_P), never JUST_PRESSED ones.
+%HAXE% -cp tests/haxe -main HoldToConfirmCallSitesSpec --interp || goto fail
 rd /s /q "%TEST_SOURCE%" 2>nul
 exit /b 0
 :fail
