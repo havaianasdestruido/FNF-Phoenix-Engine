@@ -17,7 +17,7 @@ A sample of what lives there (see the
 | Group | Fields |
 |---|---|
 | Gameplay | `downScroll`, `middleScroll`, `opponentStrums`, `ghostTapping`, `noReset`, `complexAccuracy`, `noMarvJudge`, `ezSpam`, `antiCheatEnable`, `safeFrames` |
-| Visuals | `noteSkin`, `splashType`, `noteSplashes`, `oppNoteSplashes`, `maxSplashLimit`, `oppNoteAlpha`, `hideHud`, `timeBarType`, `scoreStyle`, `healthBarStyle`, `iconBounceType`, `simplePopups` |
+| Visuals | `noteSkin`, `splashType`, `noteSplashes`, `oppNoteSplashes`, `maxSplashLimit`, `oppNoteAlpha`, `stageDim`, `hideHud`, `timeBarType`, `scoreStyle`, `healthBarStyle`, `iconBounceType`, `simplePopups` |
 | Feedback | `hitsoundVolume`, `hitsoundType`, `missSoundEnabled`, `showNPS`, `showComboInfo`, `botWatermark` |
 | Performance | `camZooms`, `showNotes`, `smoothHealth`, `comboStacking`, `enableColorShader`, `charsAndBG` |
 | System | `showFPS`, `showRamUsage`, `showMaxRamUsage`, `debugInfo`, `autoPause`, `checkForUpdates`, `discordRPC`, `peOGCrash` |
