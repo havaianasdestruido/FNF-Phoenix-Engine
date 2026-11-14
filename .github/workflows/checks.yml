@@ -52,6 +52,9 @@ jobs:
 
       - name: Verify compact CI and full release asset policy
         run: bash tests/haxe/run-content-policy.sh
+
+      - name: Verify artifact comment workflow permissions
+        run: bash tests/workflows/run-nightly-permissions.sh
   diagnostic-report-specs:
     name: Diagnostic log, crash bundle and diagnostics page (Haxe)
     runs-on: ubuntu-latest
@@ -94,6 +97,8 @@ jobs:
         run: bash tests/haxe/run-hold-to-confirm.sh
       - name: Typecheck the hold-to-confirm Flixel layer
         run: bash tests/haxe/run-hold-to-confirm-typecheck.sh
+      - name: Test PlayerStats, PlaytimeTracker, StatsState and Awards tab wiring
+        run: bash tests/haxe/run-player-stats.sh
       # The modchart core is renderer-free by design, so it runs on the plain
       # interpreter; the editor state is driven through the Flixel stubs.
       - name: Test the modchart core, its script API and the Modchart Lab export

@@ -89,6 +89,8 @@ class ClientPrefs { //default settings if it can't find a save file containing y
 	public static var smoothHealth:Bool = true;
 	public static var smoothHPBug:Bool = false;
 	public static var flashing:Bool = true;
+	// Fraction displayed as a percentage in Visuals and UI.
+	public static var flashIntensity:Float = 1;
 	public static var safeMode:Bool = false;
 	public static var showPhotosensitivityWarning:Bool = true;
 	public static var saveVersion:Int = 1;
@@ -100,6 +102,8 @@ class ClientPrefs { //default settings if it can't find a save file containing y
 	public static var instantDialogueAdvance:Bool = false;
 	public static var hideDialogueBox:Bool = false;
 	public static var camZooms:Bool = true;
+	/** Camera effect strength: 0..1, displayed as 0..100% in Visuals and UI. */
+	public static var cameraFxIntensity:Float = 1;
 	public static var visualBeatIndicator:Bool = false;
 	public static var showNotes:Bool = true;
 	/** Opt-in perspective for notes/strums only; forces middlescroll for the next song. */
@@ -409,6 +413,7 @@ class ClientPrefs { //default settings if it can't find a save file containing y
 			Reflect.setField(FlxG.save.data, flixelS, Reflect.field(FlxG.sound, flixelS));
 
 		#if ACHIEVEMENTS_ALLOWED Achievements.save(); #end
+		PlayerStats.save(false);
 		FlxG.save.flush();
 
 		if (RecoveryBoot.freshPrefs) return;

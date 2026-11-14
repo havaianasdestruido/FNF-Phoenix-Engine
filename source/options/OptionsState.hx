@@ -267,8 +267,8 @@ class OptionsState extends MusicBeatState
 
       if (FlxG.keys.anyJustPressed([k]))
       {
-        // This keyboard-only debug sequence is valid on AIR as well as native desktop.
-        #if desktop kId++; #end
+        // External keyboards can be used on mobile and other targets too.
+        kId++;
         if (kId >= keys.length)
         {
           enterSuperSecretDebugMenu();
