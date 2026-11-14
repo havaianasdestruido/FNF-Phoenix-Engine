@@ -51,6 +51,9 @@ jobs:
 
       - name: Verify compact CI and full release asset policy
         run: bash tests/haxe/run-content-policy.sh
+
+      - name: Verify artifact comment workflow permissions
+        run: bash tests/workflows/run-nightly-permissions.sh
   diagnostic-report-specs:
     name: Diagnostic log, crash bundle and diagnostics page (Haxe)
     runs-on: ubuntu-latest
@@ -91,12 +94,16 @@ jobs:
         run: bash tests/haxe/run-monitor-refresh-rate.sh
       - name: Test hold-to-confirm gestures and enlarged touch targets
         run: bash tests/haxe/run-hold-to-confirm.sh
+      - name: Test the menu music volume and fade rules
+        run: bash tests/haxe/run-menu-music.sh
       - name: Typecheck the hold-to-confirm Flixel layer
         run: bash tests/haxe/run-hold-to-confirm-typecheck.sh
       - name: Test the sound tray / master volume curve
         run: bash tests/haxe/run-volume-curve.sh
       - name: Test the master volume row mirrors FlxG.sound.volume
         run: bash tests/haxe/run-master-volume.sh
+      - name: Test PlayerStats, PlaytimeTracker, StatsState and Awards tab wiring
+        run: bash tests/haxe/run-player-stats.sh
 
   lua-script-pipeline:
     name: Lua script pipeline (Haxe)

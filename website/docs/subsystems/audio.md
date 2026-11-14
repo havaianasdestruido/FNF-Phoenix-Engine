@@ -99,6 +99,42 @@ then the default. This is what makes "modified `freakyMenu` names" work — a mo
 menu track without renaming engine assets. `ClientPrefs.daMenuMusic` and
 `ClientPrefs.pauseMusic` choose between shipped variants.
 
+**Every** menu track goes through that helper — menus, the freeplay and chart/character/
+week editors, the dialogue and menu-character editors, game over, `RenderingDoneSubState`,
+`NoteOffsetState`, `VisualsUISubState` and the Lua `endSong` callback. Nothing calls
+`FlxG.sound.playMusic(Paths.music('freakyMenu…'))` directly any more, which is what lets
+`backend.MenuMusic` keep track of the track.
+
+### Menu music volume and fade
+
+Menu audio is mixed separately from gameplay audio:
+
+| Option (Visuals and UI) | `ClientPrefs` field | Effect |
+|---|---|---|
+| Menu Music Volume | `menuMusicVolume` (0–100 %) | Scales only the menu theme. Gameplay stems, vocals and hitsounds ignore it, and `FlxG.sound.volume` (volume keys, sound tray) still multiplies on top. |
+| Fade Menu Music | `menuMusicFade` | Fades the theme out while the loading screen covers the switch into a song, instead of cutting it. Off restores the old hard cut. |
+
+`Paths.playMenuMusic(force, volume)` hands the started track to
+`backend.MenuMusic.claim()`, which remembers which `FlxSound` is the menu theme. From then on:
+
+- menu states that ramp the track in themselves (`MainMenuState` at `0.8`, `FreeplayState` and
+  `CreditsState` at `0.7`) call `MenuMusic.ramp(elapsed, ceiling)` instead of writing
+  `FlxG.sound.music.volume` directly, so the preference is never overridden by a hardcoded
+  ceiling;
+- `MenuMusic.targetVolume(cap)` is the single source for "how loud should the menu be"
+  (used by `OptionsState`'s sub-state return tween, Freeplay's preview return tween and the
+  title screen's 4 s reveal);
+- `MenuMusic.applyVolume()` applies the preference to the playing track, so the Options slider
+  previews live;
+- `MenuMusic.fadeOutForSong()` is called from `states.LoadingState` when a `PlayState` is
+  about to load, and `PlayState.create()` calls `MenuMusic.forget()` before the instrumental
+  takes the channel over.
+
+The rules (clamping, fade decision, ramp stepping) live in the renderer-free
+`backend.MenuMusicLogic`, so they are covered by `tests/haxe/MenuMusicSpec.hx`
+(`bash tests/haxe/run-menu-music.sh`). A mod that starts its own music on
+`FlxG.sound.music` is not treated as a menu theme, so none of the above touches it.
+
 ## The freeplay music player
 
 `music.MusicPlayer` is the overlay in `states.FreeplayState` that lets you listen to songs

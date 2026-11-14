@@ -21,7 +21,21 @@ _i accept suggestions too_
 
 ## 0. PRIORITY-ish / UNCATEGORIZED
 
-- FIX `BF-CLICKER`!!! _(i wont release v0.0.1 UNTIL i fix this)_
+- On the bottom right of the screen, show the commit's git commit short id, and on top of it, show how many commits it is behind, where it change colors depending if the build is too old.
+- - Green: 1-10 commits
+  - Yellow: 11-25 commits
+  - Orange: 26-50 commits
+  - Red: 51-100 commits
+  - It should fade colors depending on the git commit, dont just use the same color for the range, make it be a "rainbow-ish" pattern.
+
+- Add those:
+- - flixel.addons.effect.transition ofr states transistions, [just like in this demo](https://haxeflixel.com/demos/Transitions/).
+  - Loading screens with a FlxPieDial in the bottom left corner.
+  - Port the "pointing mouse sprite at button" thingy from [this demo](https://haxeflixel.com/demos/Cursor/).
+  - Add pretty much all filters from FlxG.camera.filters & FlxG.game.filters to modding API.
+  - - add all these too in modding api: flixel.addons.effects.chainable
+  - Add flixel.addons.effects.FlxClothSprite as a easter egg, [just like in this demo.](https://haxeflixel.com/demos/FlxClothSprite/)
+  - Add tooltips to all parts of the engine that uses `flixel-ui`, [just like on this.. uhh. demo right over here.](https://haxeflixel.com/demos/Tooltips/)
 
 - Windows 7 support by patching some libs _(prob impossible but whatever)_
 
@@ -409,7 +423,19 @@ Thirty option ideas from three separate lists. Five options appeared in two list
 - **[P2] ~~Master volume (`masterVolume`, percent, default 100%, a new Audio category or Misc).~~ DONE** — `backend.VolumeCurve` (the tray's log curve, shared), `ClientPrefs.masterVolume` as a mirror of `FlxG.sound.volume` (kept out of the save and the backup through `saveBlackList` / `loadBlackList` / `SettingsBackup.NOT_PREFERENCES`), a live row in the new **Options -> Audio** (`options/AudioSettingsSubState.hx`, also in Misc, openable with `phoenix://menu/audio`) that follows the volume keys and the tray every frame. Specs: `bash tests/haxe/run-volume-curve.sh`, `bash tests/haxe/run-master-volume.sh`. Original entry kept below.
 
 - **[P2] Master volume (`masterVolume`, percent, default 100%, a new Audio category or Misc).** No options menu has a volume row. `FlxG.sound.volume` only changes through the volume keys (`volume_up` / `volume_down` / `volume_mute`, with the `objects/CustomSoundTray` popup) and through a settings import (`backend/SettingsBackup.hx:146`), so a player on a gamepad or a touchscreen cannot set it in-game. Every `FlxSound` multiplies by it, so one row covers music, vocals, hitsounds and the pause track. Checked: the value is already saved and restored, which one list missed. `ClientPrefs.saveSettings()` and `loadPrefs()` round-trip it through the `flixelSound` list (`ClientPrefs.hx:367`, `:405`, `:464`), the tray stores it too (`CustomSoundTray.hx:121`) and `SettingsBackup` exports it (`:205`). So do not store it twice: `Option` binds to a `ClientPrefs` field by name, so give it one that mirrors `FlxG.sound.volume` and is kept out of the save and the backup (`saveBlackList` / `loadBlackList` in `ClientPrefs.hx:366-368`, `SettingsBackup.NOT_PREFERENCES`). The row has to use the tray's curve (`CustomSoundFrontEnd.changeVolume()` stores a log-scaled value, so half the tray is a `FlxG.sound.volume` of about 0.03) and has to follow the volume keys, or it goes stale. Two lists rank this first; with persistence already in place it is a convenience row, hence P2. Effort: S.
-- **[P3] Menu music volume.** Control menu music separately from gameplay audio, with an optional fade when entering a song. `Paths.playMenuMusic(force, volume)` (`backend/Paths.hx:853`) already takes a volume, but 18 call sites in 12 files (the editors, `GameOverSubstate`, `NoteOffsetState`, `VisualsUISubState`, `RenderingDoneSubState`, one Lua callback) still start the menu track with `FlxG.sound.playMusic(Paths.music('freakyMenu…'))` directly, so route those through the helper first.
+- **[P3] ~~Menu music volume~~ DONE** — `ClientPrefs.menuMusicVolume` (percent, default 100 %,
+  Options → Visuals and UI) scales only the menu theme, so gameplay stems, vocals and
+  hitsounds keep their own level while the volume keys still apply on top; `menuMusicFade`
+  (default on) fades the theme out during the loading screen instead of cutting it when a
+  song starts. `backend.MenuMusic` owns the track and `backend.MenuMusicLogic` holds the
+  renderer-free rules: `Paths.playMenuMusic(force, volume)` claims the started sound, the 18
+  direct `FlxG.sound.playMusic(Paths.music('freakyMenu…'))` call sites (7 editors,
+  `GameOverSubstate`, `NoteOffsetState`, `VisualsUISubState`, `RenderingDoneSubState`, the Lua
+  `endSong` callback) go through the helper, and the hardcoded ramps/volume targets in
+  `MainMenuState`, `FreeplayState`, `CreditsState`, `OptionsState` and `TitleState` ask
+  `MenuMusic` first. `PlayState.create()` calls `MenuMusic.forget()` when it takes the music
+  channel over. Spec: `bash tests/haxe/run-menu-music.sh`. Docs:
+  `website/docs/subsystems/audio.md`.
 - **[P3] Metronome (`metronome`, string: Off / Count-in / Always, default Off, Gameplay or the Audio category).** `assets/shared/sounds/Metronome_Tick.ogg` ships, but only the chart editor plays it (`editors/ChartingState.hx:1964`). Add a `beatHit` path in `PlayState` with three modes: off, during the count-in only, or through the whole song. Scale the tick with `playbackRate` and skip it during `startOnTime` seeks. The list pitches it for practising muted, on a silent phone or with latency; the tick shares the game's audio output, so on a muted device that job belongs to the visual beat indicator in §16, whose pref exists but is not wired (§22.7). The interactive latency test in §15 needs the same tick. Effort: S–M.
 
 ### 22.2. Window, stage and effects

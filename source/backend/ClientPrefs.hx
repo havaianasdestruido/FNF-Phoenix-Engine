@@ -89,6 +89,8 @@ class ClientPrefs { //default settings if it can't find a save file containing y
 	public static var smoothHealth:Bool = true;
 	public static var smoothHPBug:Bool = false;
 	public static var flashing:Bool = true;
+	// Fraction displayed as a percentage in Visuals and UI.
+	public static var flashIntensity:Float = 1;
 	public static var safeMode:Bool = false;
 	public static var showPhotosensitivityWarning:Bool = true;
 	public static var saveVersion:Int = 1;
@@ -100,6 +102,8 @@ class ClientPrefs { //default settings if it can't find a save file containing y
 	public static var instantDialogueAdvance:Bool = false;
 	public static var hideDialogueBox:Bool = false;
 	public static var camZooms:Bool = true;
+	/** Camera effect strength: 0..1, displayed as 0..100% in Visuals and UI. */
+	public static var cameraFxIntensity:Float = 1;
 	public static var visualBeatIndicator:Bool = false;
 	public static var showNotes:Bool = true;
 	/** Opt-in perspective for notes/strums only; forces middlescroll for the next song. */
@@ -114,6 +118,22 @@ class ClientPrefs { //default settings if it can't find a save file containing y
 	public static var botTxtFade:Bool = true;
 	public static var pauseMusic:String = 'Tea Time';
 	public static var daMenuMusic:String = 'Default';
+	/**
+	 * Volume of the menu theme (Options -> Visuals and UI), 0..1.
+	 *
+	 * Menu audio is mixed separately from gameplay audio: this only scales
+	 * `FlxG.sound.music` while it plays a menu track, so gameplay stems,
+	 * hitsounds and vocals are untouched. The global `FlxG.sound.volume`
+	 * (volume keys / sound tray) still multiplies on top of it.
+	 * See `backend.MenuMusic` / `backend.MenuMusicLogic`.
+	 */
+	public static var menuMusicVolume:Float = 1;
+	/**
+	 * Fade the menu theme out while the loading screen covers the switch into a
+	 * song (Options -> Visuals and UI). Off cuts it as soon as the song starts,
+	 * which is what every build did before this option existed.
+	 */
+	public static var menuMusicFade:Bool = true;
 	public static var checkForUpdates:Bool = true;
 	public static var comboStacking = true;
 	public static var showRamUsage:Bool = true;
@@ -425,6 +445,7 @@ class ClientPrefs { //default settings if it can't find a save file containing y
 			Reflect.setField(FlxG.save.data, flixelS, Reflect.field(FlxG.sound, flixelS));
 
 		#if ACHIEVEMENTS_ALLOWED Achievements.save(); #end
+		PlayerStats.save(false);
 		FlxG.save.flush();
 
 		if (RecoveryBoot.freshPrefs) return;
@@ -524,6 +545,9 @@ class ClientPrefs { //default settings if it can't find a save file containing y
     // A hand-edited/old save can contain an absurd or non-numeric hold time.
     // The guard clamps at use time already; keep the Options display valid too.
     holdToConfirmTime = HoldToConfirmLogic.holdSeconds(holdToConfirmTime);
+
+    // Same for the menu music volume: a corrupted save must not mute the menus.
+    menuMusicVolume = MenuMusicLogic.volume(menuMusicVolume);
 
     // Android owns the display cut-out policy; other builds do not even
     // compile that code path in (see applyCutoutPreference()).

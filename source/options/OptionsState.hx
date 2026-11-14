@@ -10,6 +10,7 @@ import backend.ScreenLayout;
 import backend.ViewportVisuals;
 import backend.CoolUtil;
 import backend.DiscordClient;
+import backend.MenuMusic;
 import backend.MusicBeatState;
 import data.StageData;
 import objects.Alphabet;
@@ -213,7 +214,7 @@ class OptionsState extends MusicBeatState
 	override function closeSubState() {
 		super.closeSubState();
 		if (FlxG.sound.music != null && FlxG.sound.music.volume == 0)
-			FlxTween.tween(FlxG.sound.music, {pitch: 1, volume: 1}, 2.5, {ease: FlxEase.cubeOut});
+			FlxTween.tween(FlxG.sound.music, {pitch: 1, volume: MenuMusic.targetVolume()}, 2.5, {ease: FlxEase.cubeOut});
 		ClientPrefs.saveSettings();
 		removeVirtualPad();
 		addVirtualPad(LEFT_FULL, ClientPrefs.mobileCPlayStateVpad ? A_B_C : A_B);
@@ -283,8 +284,8 @@ class OptionsState extends MusicBeatState
 
       if (FlxG.keys.anyJustPressed([k]))
       {
-        // This keyboard-only debug sequence is valid on AIR as well as native desktop.
-        #if desktop kId++; #end
+        // External keyboards can be used on mobile and other targets too.
+        kId++;
         if (kId >= keys.length)
         {
           enterSuperSecretDebugMenu();
