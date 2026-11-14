@@ -10,6 +10,14 @@ name: Release Assets
 # prepared by release.yml only builds what is missing. A manual dispatch with an
 # explicit tag backfills or re-attaches artifacts on any existing release.
 
+# The run title names the script modding level the attached binaries were built
+# with (Android is always clamped to 0 by main.yml: the Lua bindings are
+# desktop-only).
+run-name: >-
+  Release assets
+  ${{ github.event.release.tag_name || github.event.inputs.tag_name }} - MODDING_LEVEL
+  ${{ inputs.moddingLevel == '' && '2' || inputs.moddingLevel }}
+
 on:
   release:
     types: [published]
@@ -19,6 +27,15 @@ on:
       tag_name:
         description: "Existing Phoenix release tag to attach artifacts to (e.g. v0.0.2)"
         required: true
+      moddingLevel:
+        description: "Script modding level: 0 = none, 1 = Lua, 2 = Lua + Python"
+        required: false
+        type: choice
+        default: "2"
+        options:
+          - "0"
+          - "1"
+          - "2"
 
 permissions:
   contents: write
@@ -111,6 +128,7 @@ jobs:
       fullAssets: true
       buildWindows: ${{ needs.plan.outputs.need_windows == 'true' }}
       buildAndroid: ${{ needs.plan.outputs.need_android == 'true' }}
+      moddingLevel: ${{ github.event.inputs.moddingLevel }}
 
   attach-windows:
     name: Attach windowsBuild

@@ -213,9 +213,14 @@ For example, a Lua-only build:
 > **Check the build output.** Today that default only switches on when Lime's
 > `cpp` target flag is set (`lime test cpp`, or `-cpp`). A plain
 > `lime test windows`, `linux` or `mac` produces a build **without** Lua and
-> Python unless you pass `-DMODDING_LEVEL=1` or `-DMODDING_LEVEL=2`. CI and the
-> release workflows build without those flags too. The build prints what it
-> made: `[INFO] Script support: Lua ON|OFF, Python ON|OFF, HScript ON|OFF (…)`,
+> Python unless you pass `-DMODDING_LEVEL=1` or `-DMODDING_LEVEL=2`. CI passes
+> the flag for you: `main.yml` builds Windows at `MODDING_LEVEL=2` by default
+> (selectable per run with the `moddingLevel` input) and Android at `0`,
+> because the Lua bindings are desktop-only. The run title and the artifact
+> name both say which one it was, e.g.
+> `d785935_windows_12_58_LUA_PYTHON_HSCRIPT.zip` versus
+> `d785935_android_12_58_HSCRIPT.zip`. The build prints what it made:
+> `[INFO] Script support: Lua ON|OFF, Python ON|OFF, HScript ON|OFF (…)`,
 > followed by `[WARN]` lines when Lua is off. See
 > [`docs/LUA_SCRIPT_DEBUGGING.md`](docs/LUA_SCRIPT_DEBUGGING.md), step 0.
 

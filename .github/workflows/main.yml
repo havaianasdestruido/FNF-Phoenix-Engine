@@ -4,6 +4,16 @@ name: Build
 # Other Lime targets remain buildable locally (see BUILDING.md), but they are
 # not part of the GitHub Actions matrix.
 
+# The run title names the script modding level so the Actions list says what a
+# build can run before anything is downloaded. Every artifact this workflow
+# publishes ends with the same information (see the "Name artifact" step), as
+# `<commit>_<target>_<HH>_<MM>_<scripts>`, for example
+# `d785935_windows_12_58_LUA_PYTHON_HSCRIPT` or
+# `d785935_android_12_58_HSCRIPT`.
+run-name: >-
+  Build (${{ github.event_name }}) - MODDING_LEVEL
+  ${{ inputs.moddingLevel == '' && '2' || inputs.moddingLevel }}
+
 on:
   push:
     branches: [main, bleeding]
@@ -36,6 +46,12 @@ on:
         type: boolean
         default: true
 
+      moddingLevel:
+        description: "Script modding level: 0 = none, 1 = Lua, 2 = Lua + Python"
+        required: false
+        type: string
+        default: "2"
+
   workflow_dispatch:
     inputs:
       fullAssets:
@@ -55,6 +71,16 @@ on:
         required: false
         type: boolean
         default: true
+
+      moddingLevel:
+        description: "Script modding level: 0 = none, 1 = Lua, 2 = Lua + Python"
+        required: false
+        type: choice
+        default: "2"
+        options:
+          - "0"
+          - "1"
+          - "2"
 
 # Keep the haxelib installation inside the workspace so it can be restored on
 # subsequent runs instead of downloading and compiling dependencies every time.
@@ -106,6 +132,10 @@ jobs:
             cache_name: windows
             artifact_path: build/release/windows/bin
             setup: windows
+            # Desktop targets can compile the Lua and Python VMs: project.hxp
+            # adds the hxluajit haxelib for them. Mobile cannot, so the
+            # modding level is clamped to 0 there (see below).
+            desktop: true
 
           # =========================
           # Android
@@ -121,6 +151,7 @@ jobs:
             # release (output dir is still build/release/...).
             artifact_path: build/release/android/bin/app/build/outputs/apk/debug
             setup: android
+            desktop: false
 
     steps:
       # ==========================================
@@ -173,6 +204,70 @@ jobs:
         if: steps.target-selection.outputs.enabled != 'true'
         run: echo "⊘ Skipped (target not selected for this build)"
         continue-on-error: true
+
+      # ==========================================
+      # Resolve the script modding level
+      # ==========================================
+      # `-DMODDING_LEVEL` decides which script VMs are compiled in
+      # (project.hxp: getModdingLevel()). It is resolved once, here, because
+      # three later things depend on it: the compile flags, the cache keys
+      # (objects built for another level are useless) and the artifact name.
+      #
+      # `tokens` is the same information in the shape used by the artifact
+      # name: only the backends that really are in the binary, joined by `_`,
+      # or `NONE` when the build can run no scripts at all. HScript is always
+      # compiled for desktop and mobile targets, independent of the level.
+      - name: Resolve script modding level
+        id: modding-level
+        if: steps.target-selection.outputs.enabled == 'true'
+        shell: bash
+        env:
+          REQUESTED_LEVEL: ${{ inputs.moddingLevel }}
+          TARGET: ${{ matrix.target }}
+          NAME: ${{ matrix.name }}
+          DESKTOP: ${{ matrix.desktop }}
+        run: |
+          set -euo pipefail
+
+          # push / pull_request events carry no inputs, and an empty reusable
+          # input means "use the default": Lua + Python, the level BUILDING.md
+          # documents for desktop.
+          level="${REQUESTED_LEVEL:-2}"
+
+          case "$level" in
+            0|1|2) ;;
+            *)
+              echo "::error::Invalid moddingLevel '$level' (expected 0, 1 or 2)."
+              exit 1
+              ;;
+          esac
+
+          # project.hxp only adds the hxluajit haxelib for desktop targets, so
+          # a mobile build with LUA_ALLOWED compiles `import hxluajit.*`
+          # without the bindings and dies at source/import.hx. Mobile is
+          # therefore always built at level 0, whatever was requested.
+          if [ "$DESKTOP" != "true" ] && [ "$level" != "0" ]; then
+            echo "::notice::$NAME cannot ship the Lua/Python VMs (hxluajit is desktop-only): building at MODDING_LEVEL=0 instead of $level."
+            level=0
+          fi
+
+          tokens=""
+          case "$level" in
+            1) tokens=LUA ;;
+            2) tokens=LUA_PYTHON ;;
+          esac
+          # HSCRIPT_ALLOWED is enabled for every desktop and mobile target in
+          # project.hxp, so it never depends on the level. Both targets of
+          # this matrix are such targets.
+          case "$TARGET" in
+            windows|android) tokens="${tokens:+${tokens}_}HSCRIPT" ;;
+          esac
+          [ -n "$tokens" ] || tokens=NONE
+
+          echo "level=$level" >> "$GITHUB_OUTPUT"
+          echo "tokens=$tokens" >> "$GITHUB_OUTPUT"
+          echo "Building $NAME at MODDING_LEVEL=$level (scripts: $tokens)"
+          echo "MODDING_LEVEL=$level, scripts: $tokens" >> "$GITHUB_STEP_SUMMARY"
 
       # ==========================================
       # Haxe
@@ -381,9 +476,9 @@ jobs:
           # Regenerate Lime/Haxe outputs from the current source and assets;
           # only reuse objects through hxcpp's own dependency/flag hashes.
           path: ${{ env.HXCPP_COMPILE_CACHE }}
-          key: ${{ env.CACHE_SCHEMA }}-hxcpp-${{ matrix.cache_name }}-${{ runner.os }}-${{ runner.arch }}-haxe-${{ env.HAXE_VERSION }}-${{ hashFiles('hmm.json', 'setup/unix.sh', 'setup/windows.bat', 'setup/windows-msvc-fix.ps1') }}-${{ inputs.buildFlags != '' && format('explicit-{0}', inputs.buildFlags) || 'unset' }}
+          key: ${{ env.CACHE_SCHEMA }}-hxcpp-${{ matrix.cache_name }}-${{ runner.os }}-${{ runner.arch }}-haxe-${{ env.HAXE_VERSION }}-${{ hashFiles('hmm.json', 'setup/unix.sh', 'setup/windows.bat', 'setup/windows-msvc-fix.ps1') }}-${{ inputs.buildFlags != '' && format('explicit-{0}', inputs.buildFlags) || 'unset' }}-level-${{ steps.modding-level.outputs.level }}
           restore-keys: |
-            ${{ env.CACHE_SCHEMA }}-hxcpp-${{ matrix.cache_name }}-${{ runner.os }}-${{ runner.arch }}-haxe-${{ env.HAXE_VERSION }}-${{ hashFiles('hmm.json', 'setup/unix.sh', 'setup/windows.bat', 'setup/windows-msvc-fix.ps1') }}-${{ inputs.buildFlags != '' && format('explicit-{0}', inputs.buildFlags) || 'unset' }}
+            ${{ env.CACHE_SCHEMA }}-hxcpp-${{ matrix.cache_name }}-${{ runner.os }}-${{ runner.arch }}-haxe-${{ env.HAXE_VERSION }}-${{ hashFiles('hmm.json', 'setup/unix.sh', 'setup/windows.bat', 'setup/windows-msvc-fix.ps1') }}-${{ inputs.buildFlags != '' && format('explicit-{0}', inputs.buildFlags) || 'unset' }}-level-${{ steps.modding-level.outputs.level }}
 
       # ==========================================
       # Compile Windows
@@ -395,11 +490,16 @@ jobs:
         env:
           HXCPP_COMPILE_THREADS: 4
           BUILD_FLAGS: ${{ inputs.buildFlags }}
+          # Resolved above: mobile targets are clamped to 0 because the Lua
+          # bindings are not on their classpath.
+          MODDING_LEVEL: ${{ steps.modding-level.outputs.level }}
         run: |
           Remove-Item -Force assets/preload/gameRenders/renderlinux.sh
 
           $buildFlag = if ($env:BUILD_FLAGS) { $env:BUILD_FLAGS } else { 'commit' }
           $buildArgs = @('run', 'lime', 'build', 'windows', "-D$buildFlag")
+          # Which script VMs are compiled in (0 = none, 1 = Lua, 2 = Lua + Python).
+          $buildArgs += "-DMODDING_LEVEL=$env:MODDING_LEVEL"
           # Routine CI is compact; releases explicitly request the full pack.
           if ('${{ inputs.fullAssets }}' -ne 'true') {
             $buildArgs += '-DNO_BUILTIN_CONTENT'
@@ -421,11 +521,16 @@ jobs:
         env:
           HXCPP_COMPILE_THREADS: 4
           BUILD_FLAGS: ${{ inputs.buildFlags }}
+          # Resolved above: mobile targets are clamped to 0 because the Lua
+          # bindings are not on their classpath.
+          MODDING_LEVEL: ${{ steps.modding-level.outputs.level }}
         run: |
           args=()
           if [ -n "$BUILD_FLAGS" ]; then
             args+=("-D$BUILD_FLAGS")
           fi
+          # Which script VMs are compiled in (0 = none, 1 = Lua, 2 = Lua + Python).
+          args+=("-DMODDING_LEVEL=$MODDING_LEVEL")
           # Routine CI is compact; releases explicitly request the full pack.
           if [ "${{ inputs.fullAssets }}" != "true" ]; then
             args+=("-DNO_BUILTIN_CONTENT")
@@ -500,20 +605,31 @@ jobs:
         uses: actions/cache/save@v4
         with:
           path: ${{ env.HXCPP_COMPILE_CACHE }}
-          key: ${{ env.CACHE_SCHEMA }}-hxcpp-${{ matrix.cache_name }}-${{ runner.os }}-${{ runner.arch }}-haxe-${{ env.HAXE_VERSION }}-${{ hashFiles('hmm.json', 'setup/unix.sh', 'setup/windows.bat', 'setup/windows-msvc-fix.ps1') }}-${{ inputs.buildFlags != '' && format('explicit-{0}', inputs.buildFlags) || 'unset' }}
+          key: ${{ env.CACHE_SCHEMA }}-hxcpp-${{ matrix.cache_name }}-${{ runner.os }}-${{ runner.arch }}-haxe-${{ env.HAXE_VERSION }}-${{ hashFiles('hmm.json', 'setup/unix.sh', 'setup/windows.bat', 'setup/windows-msvc-fix.ps1') }}-${{ inputs.buildFlags != '' && format('explicit-{0}', inputs.buildFlags) || 'unset' }}-level-${{ steps.modding-level.outputs.level }}
 
       # ==========================================
       # Publish artifact
       # ==========================================
       # GitHub serves uploaded artifacts as ZIPs, adding the extension on download.
+      #
+      # The name ends with the script backends the binary really contains, so a
+      # download says which mods it can run without opening it:
+      #   <commit>_<target>_<HH>_<MM>_LUA_PYTHON_HSCRIPT   (MODDING_LEVEL=2, desktop)
+      #   <commit>_<target>_<HH>_<MM>_LUA_HSCRIPT          (MODDING_LEVEL=1)
+      #   <commit>_<target>_<HH>_<MM>_HSCRIPT              (MODDING_LEVEL=0 / mobile)
+      #   <commit>_<target>_<HH>_<MM>_NONE                 (no script support at all)
       - name: Name artifact
         id: artifact-name
         if: steps.target-selection.outputs.enabled == 'true'
         shell: bash
+        env:
+          TARGET: ${{ matrix.target }}
+          SCRIPT_TOKENS: ${{ steps.modding-level.outputs.tokens }}
         run: |
+          set -euo pipefail
           commit=$(git rev-parse --short=7 HEAD)
           timestamp=$(date -u +%H_%M)
-          echo "name=${commit}_${{ matrix.target }}_${timestamp}" >> "$GITHUB_OUTPUT"
+          echo "name=${commit}_${TARGET}_${timestamp}_${SCRIPT_TOKENS}" >> "$GITHUB_OUTPUT"
 
       - name: Publish artifact
         if: steps.target-selection.outputs.enabled == 'true'

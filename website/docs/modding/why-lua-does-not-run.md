@@ -54,9 +54,12 @@ define contains no Lua VM.
 :::caution[A plain desktop build has no Lua]
 
 `lime test windows`, `lime test linux` and `lime test mac` build **without** Lua
-and Python today, and so do the CI builds. Add `-DMODDING_LEVEL=1` (Lua) or
-`-DMODDING_LEVEL=2` (Lua and Python) to include them. Mobile builds cannot
-include Lua yet.
+and Python today: the default only applies when Lime's `cpp` target flag is set.
+Add `-DMODDING_LEVEL=1` (Lua) or `-DMODDING_LEVEL=2` (Lua and Python) to include
+them — that is exactly what CI does, so the Windows and release artifacts do run
+Lua scripts. Mobile builds cannot include Lua yet, so CI builds Android at level
+`0`. The artifact name tells them apart (`…_LUA_PYTHON_HSCRIPT` versus
+`…_HSCRIPT`), and so does the run title.
 
 :::
 
