@@ -87,6 +87,8 @@ jobs:
         run: bash tests/haxe/run-launch-state.sh
       - name: Test the distant-notes shader uniform wiring
         run: bash tests/haxe/run-distant-notes.sh
+      - name: Test the retro shader ports (CRT, old TV, static, ripple, mosaic)
+        run: bash tests/haxe/run-retro-shaders.sh
       - name: Test the monitor refresh rate helper and its per-target C++
         run: bash tests/haxe/run-monitor-refresh-rate.sh
       - name: Test hold-to-confirm gestures and enlarged touch targets
