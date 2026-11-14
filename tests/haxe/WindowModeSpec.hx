@@ -65,6 +65,7 @@ class WindowModeSpec
     FlxG.fullscreen = false;
     app.window.borderless = false;
     app.window.fullscreen = false;
+    WindowMode.set(WindowMode.WINDOWED, false);
     return app;
   }
 

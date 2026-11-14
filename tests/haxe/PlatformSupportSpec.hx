@@ -164,7 +164,10 @@ class PlatformSupportSpec
     equal(PlatformSupport.supportsPreference('autosaveCharts'), PlatformSupport.supports([PlatformSupport.FILESYSTEM]), 'chart autosave');
     equal(PlatformSupport.supportsPreference('deeplinkEnabled'), PlatformSupport.supports([PlatformSupport.DEEPLINK]), 'deeplink toggle');
     equal(PlatformSupport.supportsPreference('distantNotes'), PlatformSupport.supports([PlatformSupport.SHADERS]), 'distant-note shaders');
-    equal(PlatformSupport.requirementsForPreference('windowMode'), [PlatformSupport.DESKTOP], 'window mode is desktop-only');
+    final windowMode:Array<String> = PlatformSupport.requirementsForPreference('windowMode');
+    check(windowMode != null, 'window mode has requirements');
+    equal(windowMode.length, 1, 'window mode has one requirement');
+    equal(windowMode[0], PlatformSupport.DESKTOP, 'window mode is desktop-only');
     equal(PlatformSupport.supportsPreference('windowMode'), PlatformSupport.supports([PlatformSupport.DESKTOP]), 'window mode support');
 
     // Normal settings apply everywhere.
