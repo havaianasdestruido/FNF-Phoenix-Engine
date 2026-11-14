@@ -56,6 +56,13 @@ class ClientPrefs { //default settings if it can't find a save file containing y
 	public static var showComboInfo:Bool = true;
 	public static var maxSplashLimit:Int = 16;
 	public static var oppNoteAlpha:Float = 0.65;
+	/**
+	 * Darkness of the screen-fixed overlay drawn over the stage and the
+	 * characters, so a busy background cannot hide the arrows. 0 = off (the
+	 * default) and 0.9 = as dark as the option allows; notes, strums and the
+	 * HUD are never dimmed. See `play.helpers.PlayStateStageDim`.
+	 */
+	public static var stageDim:Float = 0;
 	public static var hideHud:Bool = false;
 	public static var tauntOnGo:Bool = true;
 	public static var oldSusStyle:Bool = false;
