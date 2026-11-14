@@ -110,6 +110,10 @@ class PlayStateRating
 			state.noteDiff = Math.abs(state.noteTimingDiff);
 			state.hitTiming = miss ? HitTiming.NONE
 				: HitTiming.classify(state.noteTimingDiff, Conductor.safeZoneOffset, ClientPrefs.earlyLateDeadzone);
+			// Results use the same signed timing convention as the Early/Late popup:
+			// positive = early, negative = late. Botplay has no player timing to record.
+			if (!miss && !state.cpuControlled)
+				state.hitOffsets.push(state.noteTimingDiff);
 			final wife:Float = EtternaFunctions.wife3(state.noteDiff, Conductor.timeScale);
 
 			state.daRating = Conductor.judgeNote(note, state.noteDiff, state.cpuControlled, miss);
