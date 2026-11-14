@@ -4,6 +4,7 @@ import backend.CoolUtil;
 import backend.ScreenLayout;
 import backend.ViewportVisuals;
 import backend.DiscordClient;
+import backend.MenuMusic;
 import backend.MusicBeatState;
 import backend.Paths;
 import objects.Alphabet;
@@ -179,10 +180,9 @@ class CreditsState extends MusicBeatState
 	var holdTime:Float = 0;
 	override function update(elapsed:Float)
 	{
-		if (FlxG.sound.music != null && FlxG.sound.music.volume < 0.7)
-		{
-			FlxG.sound.music.volume += 0.5 * FlxG.elapsed;
-		}
+		// Ramps the menu theme toward the preferred menu volume (0.7 was the old
+		// fixed ceiling); see backend.MenuMusic.
+		MenuMusic.ramp(elapsed, 0.7);
 
 		if(!quitting)
 		{
