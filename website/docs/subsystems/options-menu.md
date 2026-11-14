@@ -124,6 +124,20 @@ substate immediately. Disabled instances are both hidden and inactive. The share
 movement, and `ClientPrefs.reducedMotion` leaves the pattern static. See the
 [implementation and Mic'd Up! attribution](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/blob/main/docs/MENU_CHECKERBOARD.md).
 
+### Menu music
+
+**Visuals and UI → Menu Music Volume** (`ClientPrefs.menuMusicVolume`, 0–100 %, default
+100 %) sets the menu theme independently from gameplay audio: the song, vocals and hitsounds
+ignore it, and the volume keys (`FlxG.sound.volume`) still multiply on top. The slider
+previews live, so the track audibly follows the drag.
+
+**Fade Menu Music** (`ClientPrefs.menuMusicFade`, default on) fades the theme out on the
+loading screen before a song replaces it instead of cutting it off; off restores the old hard
+cut. Both rows live in the January-Fools-exempt part of the menu, so the joke prefs never hide
+them. The player-facing setters are `MenuMusic.ramp()` / `targetVolume()`, which keep a live
+ramp from overwriting the preference — see
+[Menu music volume and fade](./audio.md#menu-music-volume-and-fade).
+
 ## Categories
 
 `options.OptionsState` lists:

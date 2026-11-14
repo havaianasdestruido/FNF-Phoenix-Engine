@@ -409,16 +409,8 @@ jobs:
           if ($buildFlag -eq 'officialBuild') {
             $buildArgs += '-DHXCPP_OPTIMIZE_LINK'
           }
-          # TEMP DIAGNOSTIC: surface compiler errors as check annotations.
-          & haxelib @buildArgs 2>&1 | Tee-Object -FilePath compile-windows.log
-          $buildExit = $LASTEXITCODE
-          if ($buildExit -ne 0) {
-            Get-Content compile-windows.log |
-              Select-String -Pattern ': error|Error:|error:' |
-              Select-Object -First 10 |
-              ForEach-Object { Write-Host "::error::$($_.Line)" }
-            exit $buildExit
-          }
+          & haxelib @buildArgs
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
       # ==========================================
       # Compile Android
@@ -438,16 +430,7 @@ jobs:
           if [ "${{ inputs.fullAssets }}" != "true" ]; then
             args+=("-DNO_BUILTIN_CONTENT")
           fi
-          # TEMP DIAGNOSTIC: surface compiler errors as check annotations.
-          set -o pipefail
-          haxelib run lime build android "${args[@]}" 2>&1 | tee compile-android.log
-          build_status=${PIPESTATUS[0]}
-          if [ "$build_status" -ne 0 ]; then
-            grep -iE 'error' compile-android.log | head -10 | while IFS= read -r line; do
-              echo "::error::$line"
-            done
-            exit "$build_status"
-          fi
+          haxelib run lime build android "${args[@]}"
 
       # ==========================================
       # Verify the actual merged Android manifest
