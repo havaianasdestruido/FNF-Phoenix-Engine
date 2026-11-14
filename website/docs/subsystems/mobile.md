@@ -55,6 +55,20 @@ Opacity and extra toggles come from `ClientPrefs.mobileCAlpha` and `mobileCEx`.
 Menus add a virtual pad; `PlayState` adds the hitbox. Both route into the same
 `backend.Controls` actions as keyboard input, so gameplay code never checks for touch.
 
+## Haptic feedback
+
+Android-only **Options → Mobile Options → Haptic Feedback** defaults to **Off** and
+can vibrate on **Misses** or on **Hits and Misses**. `backend.HapticFeedback` maps the
+mode to short note-head pulses (15 ms hits, 70 ms misses); sustain ticks, opponent
+notes in normal charts, skipped catch-up notes and covered/backgrounded gameplay do
+not start automatic pulses. `play.helpers.PlayStateHaptics` cancels native feedback
+when a substate opens, focus is lost, the song ends or `PlayState` is destroyed.
+
+Lua and Python also expose `vibrate(durationMs = 50)` (maximum 5000 ms). That is an
+explicit script effect, independent of the automatic note-feedback mode, and returns
+whether the pulse reached the Android bridge. The existing `VIBRATE` permission and
+`AndroidHaptics`/`PhoenixInput` JNI path are reused; devices without a vibrator no-op.
+
 ## Guarded destructive actions
 
 Deleting a mod/save/chart, leaving a song and resetting settings are easy to hit by

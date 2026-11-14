@@ -142,6 +142,8 @@ class ClientPrefs { //default settings if it can't find a save file containing y
 	public static var hitboxPos:Bool = true;
 	// Android-only opt-in: system notifications for engine events (chart backups, crash logs).
 	public static var androidNotifications:Bool = false;
+	/** Automatic note vibration: Off / Misses / Hits and Misses (Options -> Mobile Options). */
+	public static var hapticFeedback:String = HapticFeedback.OFF;
 
 	//Graphics
 	// Opt in to expanding the viewport; existing 16:9 presentation is the default.

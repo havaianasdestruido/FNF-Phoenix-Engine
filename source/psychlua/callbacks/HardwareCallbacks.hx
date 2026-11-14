@@ -1,5 +1,6 @@
 package psychlua.callbacks;
 
+import backend.HapticFeedback;
 import backend.Native;
 import headers.PsychLua;
 import psychlua.FunkinLua;
@@ -7,6 +8,11 @@ import psychlua.FunkinLua;
 class HardwareCallbacks
 {
   public static function register(funk:FunkinLua):Void {
+    // One vibration burst in milliseconds (default 50, maximum 5000).
+    // Android only; an explicit script effect, independent of Haptic Feedback.
+    FunkinLua.registerFunction("vibrate", function(?durationMs:Dynamic):Bool {
+      return HapticFeedback.pulse(durationMs);
+    });
     // Returns a human readable report of the hardware the game runs on.
     FunkinLua.registerFunction("getSystemInfo", function() {
       return query(funk, "getSystemInfo", () -> Native.buildSystemInfo());

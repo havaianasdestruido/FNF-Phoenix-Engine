@@ -69,6 +69,8 @@ jobs:
         run: bash tests/haxe/run-memory-profiles.sh
       - name: Test platform gating tags, option filters and pack.json requirements
         run: bash tests/haxe/run-platform-support.sh
+      - name: Test Android haptics and Lua/Python vibrate parity
+        run: bash tests/haxe/run-haptic-feedback.sh
       - name: Test Android TV / touchless navigation policy
         run: bash tests/haxe/run-android-tv-policy.sh
       - name: Test Doido consecutive-miss popups

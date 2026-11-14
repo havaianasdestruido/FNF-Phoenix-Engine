@@ -157,6 +157,18 @@ setDataFromSave('MyMod', 'timesPlayed', getDataFromSave('MyMod', 'timesPlayed') 
 flushSaveData('MyMod')
 ```
 
+**Android haptics**
+
+```lua
+vibrate()       -- 50 ms pulse
+vibrate(120)    -- 120 ms pulse (maximum 5000)
+```
+
+`vibrate(durationMs)` is Android-only and returns `true` when the pulse is sent to
+the Android bridge, `false` on other targets or for an invalid/non-positive duration.
+It is an explicit script effect, independent of the automatic **Haptic Feedback**
+option (Off / Misses / Hits and Misses) in Mobile Options.
+
 **Debugging**
 
 ```lua
@@ -176,7 +188,7 @@ it:
 
 ## Next
 
-- [Lua API reference](./lua-api-reference.md) — all 298 functions.
+- [Lua API reference](./lua-api-reference.md) — all 299 functions.
 - [Script hooks](./script-hooks.md) — every callback and its arguments.
 - [HScript](./hscript.md) — run Haxe when Lua is not enough.
 - [Transparent window](./transparent-window.md) — make the game window see-through.

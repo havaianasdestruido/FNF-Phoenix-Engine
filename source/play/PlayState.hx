@@ -53,6 +53,7 @@ import play.helpers.PlayStateCountdown;
 import play.helpers.PlayStateCutscenes;
 import play.helpers.PlayStateDistantNotes;
 import play.helpers.PlayStateEvents;
+import play.helpers.PlayStateHaptics;
 import play.helpers.PlayStateInput;
 import play.helpers.PlayStateNoteHelpers;
 import play.helpers.PlayStateNotes;
@@ -2081,6 +2082,7 @@ class PlayState extends MusicBeatState
 		PlayStateHardwareInput.syncVolumeKeys(this, true);
 		#end
 
+		PlayStateHaptics.cancel();
 		super.openSubState(SubState);
 	}
 
@@ -2114,6 +2116,7 @@ class PlayState extends MusicBeatState
 
 	override public function onFocusLost():Void
 	{
+		PlayStateHaptics.cancel();
 		#if DISCORD_ALLOWED
 		try {if (health > 0 && !paused && autoUpdateRPC && FlxG.autoPause) DiscordClient.changePresence(detailsPausedText, SONG.song + " (" + storyDifficultyText + ")", iconP2.getCharacter());}
 		catch(e) {};
@@ -2894,6 +2897,7 @@ class PlayState extends MusicBeatState
 		// first safe point to hand unused assets back before results/menus.
 		backend.LowMemory.onSongEnd();
 		PlayStatePlayback.endSong(this);
+		PlayStateHaptics.cancel();
 	}
 
 	public function KillNotes() {
@@ -3152,6 +3156,7 @@ class PlayState extends MusicBeatState
 		Note.globalRgbShaders = [];
 		backend.NoteTypesConfig.clearNoteTypesData();
 
+		PlayStateHaptics.cancel();
 		super.destroy();
 
 		// Everything this song loaded is unreachable now (super.destroy() is what

@@ -37,6 +37,7 @@ function onCreatePost() {
 	//   var spr = new FlxSprite(100, 100);
 	//   spr.makeGraphic(200, 50, FlxColor.RED);
 	//   game.add(spr);
+	// Android haptics: vibrate(50); — shared Lua/Python callback, explicit script effect.
 }
 
 function onDestroy() {

@@ -19,6 +19,8 @@ def onCreate():
 def onCreatePost():
 	# End of create(), every PlayState field is ready — the recommended setup point.
 	# Example: makeLuaSprite / makeLuaText + addLuaSprite / addLuaText here.
+	# Android haptics: vibrate() sends a 50 ms pulse; vibrate(120) sends 120 ms.
+	# This is an explicit script effect, separate from Options -> Mobile Options -> Haptic Feedback.
 	pass
 
 def onDestroy():

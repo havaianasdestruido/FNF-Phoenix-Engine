@@ -24,6 +24,7 @@ class PlayStateNotes
 	public static function noteMiss(state:PlayState, daNote:Note = null, daNoteAlt:PreloadedChartNote = null):Void { //You didn't hit the key and let it go offscreen, also used by Hurt Notes
 		if (daNote != null)
 		{
+			if (!daNote.ignoreNote) PlayStateHaptics.miss(state);
 			// trace(daNote.toString());
 
 			if (state.combo > 0)
@@ -128,6 +129,7 @@ class PlayStateNotes
 
 		if (!state.boyfriend.stunned)
 		{
+			PlayStateHaptics.miss(state);
 			state.health -= 0.05 * state.healthLoss;
 			if(state.instakillOnMiss)
 			{
@@ -310,6 +312,7 @@ class PlayStateNotes
 
 				if (PlayState.bothSides) state.oppTrigger = PlayState.bothSides && note.doOppStuff;
 				else if (PlayState.opponentChart && !state.oppTrigger) state.oppTrigger = true;
+				if (!state.oppTrigger && !note.isSustainNote) PlayStateHaptics.hit(state);
 				state.doGf = note.gfNote;
 
 				if(!note.noAnimation && ClientPrefs.charsAndBG) {
@@ -506,6 +509,8 @@ class PlayStateNotes
 	{
 		if (daNote != null)
 		{
+			// In opponent charts these are the notes the player controls.
+			if (PlayState.opponentChart && !daNote.isSustainNote) PlayStateHaptics.hit(state);
 			if (!PlayState.opponentChart && state.songName != 'tutorial' && !state.camZooming)
 				state.camZooming = true;
 

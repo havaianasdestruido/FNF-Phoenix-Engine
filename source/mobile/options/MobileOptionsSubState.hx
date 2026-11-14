@@ -23,6 +23,9 @@
 
 package mobile.options;
 
+import backend.ClientPrefs;
+import backend.HapticFeedback;
+import backend.PlatformSupport;
 import options.BaseOptionsMenu;
 import options.Option;
 import states.TitleState;
@@ -90,6 +93,20 @@ class MobileOptionsSubState extends BaseOptionsMenu
 		option.onChange = () -> lime.system.System.allowScreenTimeout = curOption.getValue();
 		addOption(option);
 		#end
+
+		var option:Option = new Option('Haptic Feedback',
+			'Vibrate on missed notes, or on both hits and misses.\n'
+			+ 'Requires a device with a vibrator. Script-triggered vibration is separate.',
+			'hapticFeedback',
+			'string',
+			HapticFeedback.OFF,
+			HapticFeedback.CHOICES);
+		option.onlyOn([PlatformSupport.ANDROID]);
+		option.onChange = () ->
+		{
+			if (ClientPrefs.hapticFeedback == HapticFeedback.OFF) HapticFeedback.cancel();
+		};
+		addOption(option);
 
 		#if android
 		var option:Option = new Option('Event Notifications',

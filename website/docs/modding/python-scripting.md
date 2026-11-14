@@ -81,7 +81,7 @@ template with every hook — Lua and Python share the same hook list; the shippe
 | Booleans | `true` / `false` | `True` / `False` |
 | Nil | `nil` | `None` |
 | Tables as arguments | `{1, 2, 3}` | `[1, 2, 3]` |
-| Function count | 298 | 213 |
+| Function count | 299 | 214 |
 | Comments | `--` | `#` |
 
 Both languages receive every hook listed in [Script hooks](./script-hooks.md);
@@ -115,6 +115,17 @@ def onEndSong():
 that name and the Lua-compatible `Function_StopLua` global are available (they are the
 same sentinel value, #51).
 
+## Android haptics
+
+```python
+vibrate()       # 50 ms pulse
+vibrate(120)    # 120 ms pulse (maximum 5000)
+```
+
+`vibrate(durationMs)` mirrors the Lua callback: Android-only, returns `True` when
+the pulse is sent to the Android bridge, and is independent of the automatic
+**Haptic Feedback** option (Off / Misses / Hits and Misses) in Mobile Options.
+
 ## Debug output
 
 ```python
@@ -132,6 +143,6 @@ difference is irrelevant.
 
 ## Next
 
-- [Python API reference](./python-api-reference.md) — all 213 functions (generated).
+- [Python API reference](./python-api-reference.md) — all 214 functions (generated).
 - [Transparent window](./transparent-window.md) — make the game window see-through.
 - [Script hooks](./script-hooks.md) — the callbacks, shared with Lua.

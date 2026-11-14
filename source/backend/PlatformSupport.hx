@@ -145,6 +145,7 @@ class PlatformSupport
     'respectCutout' => [ANDROID],
     'androidNotifications' => [ANDROID],
     'androidTVNavigation' => [ANDROID],
+    'hapticFeedback' => [ANDROID],
     'screensaver' => [MOBILE],
     'mobileCAlpha' => [MOBILE],
     'mobileCEx' => [MOBILE],

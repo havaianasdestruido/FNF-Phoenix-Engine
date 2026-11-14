@@ -24,6 +24,8 @@ def onCreatePost():
 	setProperty('myLittleSprite.alpha', 0.7)
 	screenCenter('myLittleSprite')
 	addLuaSprite('myLittleSprite', True)
+	# Android haptics: vibrate() sends a 50 ms pulse; vibrate(120) sends 120 ms.
+	# Explicit script effect, separate from Options -> Mobile Options -> Haptic Feedback.
 	debugPrint('Python script loaded! (create)')
 
 def onDestroy():

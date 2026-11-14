@@ -90,7 +90,7 @@ Names are case-insensitive. Lane variants accept the lane digit `0`–`3`
 | `tipsy` | `tipsy`, `tipsyX`/`Y`/`Z`, `tipsySpeed`, `tipsyOffset` |
 | `tornado` | `tornado` |
 | `transform` | `x`/`y`/`z`, `xoffset`/`yoffset`/`zoffset`, plus lane variants (`x0`, `y3`, ...) |
-| `vibrate` | `vibrate` |
+| `vibrate` | `vibrate` (visual jitter; device haptics use `ClientPrefs.hapticFeedback` / script `vibrate()`) |
 | `wiggle` | `wiggle` |
 | `zigzag` | `zigZag` |
 | `zoom` | `zoom`, `mini`, `localZoom`, `localMini` |
