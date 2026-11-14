@@ -21,6 +21,7 @@ class MasterEditorMenu extends MusicBeatState
 		'Dialogue Portrait Editor',
 		'Character Editor',
 		'Chart Editor',
+		'Modchart Lab',
 		'Note Splash Debug'
 	];
 	private var grpTexts:FlxTypedGroup<Alphabet>;
@@ -122,6 +123,8 @@ class MasterEditorMenu extends MusicBeatState
 					LoadingState.loadAndSwitchState(DialogueEditorState.new, false);
 				case 'Chart Editor': // felt it would be cool maybe
 					LoadingState.loadAndSwitchState(ChartingState.new, false);
+				case 'Modchart Lab':
+					LoadingState.loadAndSwitchState(ModchartLabState.new, false);
 				case 'Note Splash Debug':
 					LoadingState.loadAndSwitchState(NoteSplashDebugState.new, false);
 			}

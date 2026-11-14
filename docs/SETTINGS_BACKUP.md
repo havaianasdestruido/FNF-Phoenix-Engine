@@ -1,8 +1,8 @@
 # Settings backup (`.json` export/import)
 
 Every settings list that is built on `options.BaseOptionsMenu` — Gameplay,
-Graphics, Visuals & UI, Optimization, Game Rendering, Misc, and Mobile Options
-— ends with the same two actions:
+Graphics, Visuals & UI, Optimization, Game Rendering, Audio, Misc, and Mobile
+Options — ends with the same two actions:
 
 | Option | What it does |
 | --- | --- |
@@ -30,7 +30,9 @@ each settings substate calls right before `super()`.
 * `settings` — every static field of `ClientPrefs` that is a preference. The
   internal ones (`keyBinds`, `defaultKeys`, `defaultArrowRGB`,
   `defaultPixelRGB`, `defaultQuantRGB`, `gameplaySettings`) are exported in
-  their own sections and never as raw values.
+  their own sections and never as raw values. `masterVolume` (Options -> Audio)
+  is the mirror of the `audio.volume` below and is left out too, so a backup
+  never carries the same setting twice.
 * `gameplaySettings` — the pause-menu modifiers.
 * `keyBinds` — raw key codes, so the file stays valid across platforms.
 * `audio` — the Flixel sound volume/mute state.

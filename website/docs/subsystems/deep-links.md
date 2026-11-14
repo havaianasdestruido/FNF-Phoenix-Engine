@@ -29,12 +29,13 @@ installed app could claim the same scheme.
 | `phoenix://menu/mods` | `phoenix://mods` | Mods manager |
 | `phoenix://menu/options` | `phoenix://options` | Options categories |
 | `phoenix://menu/misc` | `phoenix://misc` | Options → Misc, opened immediately |
+| `phoenix://menu/audio` | `phoenix://audio` | Options → Audio (master volume), opened immediately |
 | `phoenix://menu/story` | `phoenix://story` | Story Mode |
 | `phoenix://menu/freeplay` | `phoenix://freeplay` | Freeplay |
 | `phoenix://menu/credits` | `phoenix://credits` | Credits |
 
-Misc is the existing settings substate, not a new menu: Back closes Misc into Options,
-Back from Options returns to the Main Menu. Without `MODS_ALLOWED`, the Mods route falls
+Misc and Audio are existing settings substates, not new menus: Back closes them into
+Options, Back from Options returns to the Main Menu. Without `MODS_ALLOWED`, the Mods route falls
 back to the Main Menu.
 
 ### Resource routes (version 2)

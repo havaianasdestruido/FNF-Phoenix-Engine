@@ -1,21 +1,25 @@
 package backend;
 
-#if ACHIEVEMENTS_ALLOWED
 import flixel.FlxBasic;
+import flixel.FlxG;
 #if !flash
 import lime.app.Application;
 #end
 
 /**
- * Tracks cumulative time spent with the game running and awards the playtime badge.
+ * Tracks cumulative time spent with the game running, feeding `PlayerStats`
+ * continuously (even after the 50-hour playtime badge unlocks).
  */
 class PlaytimeTracker extends FlxBasic
 {
-	static inline var ACHIEVEMENT_ID:String = 'lol';
-	static inline var TARGET_HOURS:Float = 50;
+	static inline var ACHIEVEMENT_ID:String = PlayerStats.PLAYTIME_ACHIEVEMENT_ID;
+	static inline var TARGET_HOURS:Float = PlayerStats.PLAYTIME_ACHIEVEMENT_HOURS;
 	static inline var SAVE_INTERVAL_SECONDS:Float = 60;
 
-	private var pendingSeconds:Float = 0;
+	private var pendingSaveSeconds:Float = 0;
+	#if ACHIEVEMENTS_ALLOWED
+	private var pendingAchievementSeconds:Float = 0;
+	#end
 
 	public function new()
 	{
@@ -31,15 +35,40 @@ class PlaytimeTracker extends FlxBasic
 	{
 		super.update(elapsed);
 
-		if (elapsed <= 0 || Math.isNaN(elapsed) || Achievements.isUnlocked(ACHIEVEMENT_ID))
+		if (elapsed <= 0 || Math.isNaN(elapsed) || !Math.isFinite(elapsed))
 			return;
 
-		pendingSeconds += elapsed;
+		PlayerStats.addPlaytime(elapsed, false);
+		pendingSaveSeconds += elapsed;
 
-		// Persist at least once a minute, but award the badge as soon as its threshold is reached.
-		if (Achievements.getScore(ACHIEVEMENT_ID) + pendingSeconds / 3600 >= TARGET_HOURS
-			|| pendingSeconds >= SAVE_INTERVAL_SECONDS)
+		var reachedBadge:Bool = false;
+		#if ACHIEVEMENTS_ALLOWED
+		if (!Achievements.isUnlocked(ACHIEVEMENT_ID))
+		{
+			pendingAchievementSeconds += elapsed;
+			if (Achievements.exists(ACHIEVEMENT_ID)
+				&& Achievements.getScore(ACHIEVEMENT_ID) + pendingAchievementSeconds / 3600 >= TARGET_HOURS)
+				reachedBadge = true;
+		}
+		else
+		{
+			pendingAchievementSeconds = 0;
+		}
+		#end
+
+		// Persist at least once a minute, and immediately when the 50-hour badge threshold is reached.
+		if (reachedBadge || pendingSaveSeconds >= SAVE_INTERVAL_SECONDS)
 			savePendingTime();
+	}
+
+	override public function destroy():Void
+	{
+		savePendingTime();
+		#if !flash
+		if (Application.current != null && Application.current.onExit != null)
+			Application.current.onExit.remove(onApplicationExit);
+		#end
+		super.destroy();
 	}
 
 	private function onApplicationExit(_:Int):Void
@@ -49,16 +78,28 @@ class PlaytimeTracker extends FlxBasic
 
 	private function savePendingTime():Void
 	{
-		if (pendingSeconds <= 0)
+		if (pendingSaveSeconds <= 0 #if ACHIEVEMENTS_ALLOWED && pendingAchievementSeconds <= 0 #end)
 			return;
 
-		final elapsedHours:Float = pendingSeconds / 3600;
-		pendingSeconds = 0;
-		Achievements.addScore(ACHIEVEMENT_ID, elapsedHours, false);
+		pendingSaveSeconds = 0;
+		PlayerStats.save(false);
 
-		// addScore flushes automatically when it unlocks the achievement.
-		if (!Achievements.isUnlocked(ACHIEVEMENT_ID))
+		var flushedByUnlock:Bool = false;
+		#if ACHIEVEMENTS_ALLOWED
+		if (pendingAchievementSeconds > 0)
+		{
+			final elapsedHours:Float = pendingAchievementSeconds / 3600;
+			pendingAchievementSeconds = 0;
+			if (Achievements.exists(ACHIEVEMENT_ID) && !Achievements.isUnlocked(ACHIEVEMENT_ID))
+			{
+				Achievements.addScore(ACHIEVEMENT_ID, elapsedHours, false);
+				flushedByUnlock = Achievements.isUnlocked(ACHIEVEMENT_ID);
+			}
+		}
+		#end
+
+		// Achievements.addScore flushes automatically when it unlocks the achievement.
+		if (!flushedByUnlock && FlxG.save != null)
 			FlxG.save.flush();
 	}
 }
-#end

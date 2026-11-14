@@ -5,8 +5,9 @@ name: Checks
 # and an hxcpp native-object-cache smoke test. None of these need a full game
 # build or the Android SDK. Most isolated Haxe interpreter specs in tests/haxe/
 # are not run here; the diagnostic log, crash bundle, diagnostics report,
-# phoenix:// URI parser, launch flag (-DFREEPLAY / -DMENU) and distant-notes
-# shader specs have a dedicated Haxe job below.
+# phoenix:// URI parser, launch flag (-DFREEPLAY / -DMENU), distant-notes
+# shader and modchart (runtime + Modchart Lab) specs have a dedicated Haxe
+# job below.
 
 on:
   push:
@@ -51,6 +52,9 @@ jobs:
 
       - name: Verify compact CI and full release asset policy
         run: bash tests/haxe/run-content-policy.sh
+
+      - name: Verify artifact comment workflow permissions
+        run: bash tests/workflows/run-nightly-permissions.sh
   diagnostic-report-specs:
     name: Diagnostic log, crash bundle and diagnostics page (Haxe)
     runs-on: ubuntu-latest
@@ -93,8 +97,26 @@ jobs:
         run: bash tests/haxe/run-monitor-refresh-rate.sh
       - name: Test hold-to-confirm gestures and enlarged touch targets
         run: bash tests/haxe/run-hold-to-confirm.sh
+      - name: Test the menu music volume and fade rules
+        run: bash tests/haxe/run-menu-music.sh
       - name: Typecheck the hold-to-confirm Flixel layer
         run: bash tests/haxe/run-hold-to-confirm-typecheck.sh
+      - name: Test the sound tray / master volume curve
+        run: bash tests/haxe/run-volume-curve.sh
+      - name: Test the master volume row mirrors FlxG.sound.volume
+        run: bash tests/haxe/run-master-volume.sh
+      - name: Test PlayerStats, PlaytimeTracker, StatsState and Awards tab wiring
+        run: bash tests/haxe/run-player-stats.sh
+      # The modchart core is renderer-free by design, so it runs on the plain
+      # interpreter; the editor state is driven through the Flixel stubs.
+      - name: Test the modchart core, its script API and the Modchart Lab export
+        run: |
+          set -euo pipefail
+          bash tests/haxe/run-modchart.sh
+          bash tests/haxe/run-modchart-typecheck.sh
+          bash tests/haxe/run-modchart-lab.sh
+      - name: Typecheck and drive the Modchart Lab editor state
+        run: bash tests/haxe/run-modchart-lab-typecheck.sh
 
   lua-script-pipeline:
     name: Lua script pipeline (Haxe)

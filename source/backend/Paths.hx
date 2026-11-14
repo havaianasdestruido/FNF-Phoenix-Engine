@@ -864,28 +864,46 @@ class Paths
     return false;
   }
 
-  static public function playMenuMusic(force:Bool = false, volume:Float = 1):Void
+  /**
+   * Starts the menu theme (Options -> `Menu Song`) unless something is already
+   * playing on the music channel.
+   *
+   * Every menu track goes through here -- menus, editors, game over and the
+   * Lua `endSong` callback -- so `backend.MenuMusic` always knows which
+   * `FlxSound` is the menu theme and can keep its volume on
+   * `ClientPrefs.menuMusicVolume` (menu audio is mixed separately from
+   * gameplay audio).
+   *
+   * @param force restart the theme even when a menu track is already playing
+   * @param volume start volume (0..1). Negative -- the default -- uses the
+   *               menu music preference; the title screen passes `0` and
+   *               fades the theme in itself.
+   */
+  static public function playMenuMusic(force:Bool = false, volume:Float = -1):Void
   {
-    if (FlxG.sound.music == null || force)
+    if (FlxG.sound.music != null && !force) return;
+
+    final startVolume:Float = (volume < 0) ? MenuMusic.targetVolume() : MenuMusicLogic.volume(volume);
+
+    if (DateUtils.isAprilFools())
     {
-      final playAprilFools:Bool = DateUtils.isAprilFools();
-
-      if (playAprilFools)
-      {
-        FlxG.sound.playMusic(Paths.music('aprilFools'), volume);
-      } 
-	  else
-      {
-        final musicName = 'freakyMenu-' + ClientPrefs.daMenuMusic;
-        // trace(musicName);
-
-        #if MODS_ALLOWED
-        playModMusic(musicName, 'freakyMenu', volume); // TODO: add HScript support here
-        #else
-        FlxG.sound.playMusic(music(musicName), volume);
-        #end
-      }
+      FlxG.sound.playMusic(Paths.music('aprilFools'), startVolume);
     }
+    else
+    {
+      final musicName = 'freakyMenu-' + ClientPrefs.daMenuMusic;
+      // trace(musicName);
+
+      #if MODS_ALLOWED
+      playModMusic(musicName, 'freakyMenu', startVolume); // TODO: add HScript support here
+      #else
+      FlxG.sound.playMusic(music(musicName), startVolume);
+      #end
+    }
+
+    // Hand the track over so menu states ramp/fade it toward the preference
+    // instead of hardcoding volume 1 (see backend.MenuMusic).
+    MenuMusic.claim(FlxG.sound.music, startVolume);
   }
 
   // For song events.
