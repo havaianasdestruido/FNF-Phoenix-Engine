@@ -411,6 +411,11 @@ class PlayState extends MusicBeatState
 
 	public static var campaignScore:Float = 0;
 	public static var campaignMisses:Int = 0;
+	/** Accumulated judged results for the currently playing story week. */
+	public static var campaignResults:Null<states.ResultsData> = null;
+
+	/** Signed hit offsets in milliseconds; positive values are early, negative late. */
+	public var hitOffsets:Array<Float> = [];
 	public static var seenCutscene:Bool = false;
 	public static var deathCounter:Int = 0;
 

@@ -23,6 +23,8 @@ import play.helpers.PlayStateNoteHelpers;
 
 import states.FreeplayState;
 import states.LoadingState;
+import states.ResultsData;
+import states.ResultsState;
 import states.RenderingDoneSubState;
 import states.StoryMenuState;
 
@@ -463,6 +465,7 @@ class PlayStatePlayback
 				Highscore.saveScore(PlayState.SONG.song, Std.int(state.songScore), PlayState.storyDifficulty, percent);
 			}
 			state.playbackRate = 1;
+			final songResults:ResultsData = ResultsData.fromPlayState(state, PlayState.SONG.song);
 
 			if (PlayState.chartingMode)
 			{
@@ -478,6 +481,13 @@ class PlayStatePlayback
 
 			if (PlayState.isStoryMode && !PlayState.wasOriginallyFreeplay)
 			{
+				if (PlayState.campaignResults == null)
+				{
+					final weekData = WeekData.getCurrentWeek();
+					final weekTitle:String = weekData != null ? weekData.weekName : 'Week ${PlayState.storyWeek + 1}';
+					PlayState.campaignResults = new ResultsData(weekTitle, songResults.difficulty);
+				}
+				PlayState.campaignResults.addSong(songResults);
 				PlayState.campaignScore += state.songScore;
 				PlayState.campaignMisses += Std.int(state.songMisses);
 
@@ -490,7 +500,9 @@ class PlayStatePlayback
 					#if DISCORD_ALLOWED DiscordClient.resetClientID(); #end
 
 					state.canResync = false;
-					FlxG.switchState(new StoryMenuState());
+					final weekResults:ResultsData = PlayState.campaignResults == null ? songResults : PlayState.campaignResults;
+					FlxG.switchState(new ResultsState(weekResults, true));
+					PlayState.campaignResults = null;
 
 					if(!ClientPrefs.getGameplaySetting('practice', false) && !ClientPrefs.getGameplaySetting('botplay', false)) {
 						StoryMenuState.weekCompleted.set(WeekData.weeksList[PlayState.storyWeek], true);
@@ -529,7 +541,7 @@ class PlayStatePlayback
 				#if DISCORD_ALLOWED DiscordClient.resetClientID(); #end
 
 				state.canResync = false;
-				if (!state.ffmpegMode) FlxG.switchState(new FreeplayState());
+				if (!state.ffmpegMode) FlxG.switchState(new ResultsState(songResults, false));
 				else
 				{
 					state.endingTime = haxe.Timer.stamp();
