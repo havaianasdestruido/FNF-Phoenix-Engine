@@ -40,10 +40,13 @@ enum abstract Action(String) to String from String
 	var NOTE_DOWN_R = "note_down-release";
 	var BOT_ENERGY_P = "bot_energy-press";
 	var ACCEPT = "accept";
+	/** Same binding as ACCEPT, but sampled as PRESSED (true while held). */
 	var ACCEPT_P = "accept-press";
 	var BACK = "back";
 	var PAUSE = "pause";
 	var RESET = "reset";
+	/** Same binding as RESET, but sampled as PRESSED (true while held). */
+	var RESET_P = "reset-press";
 }
 
 enum Device
@@ -118,6 +121,7 @@ class Controls extends FlxActionSet
 	var _back = new FlxActionDigital(Action.BACK);
 	var _pause = new FlxActionDigital(Action.PAUSE);
 	var _reset = new FlxActionDigital(Action.RESET);
+	var _resetP = new FlxActionDigital(Action.RESET_P);
 
 	var byName:Map<String, FlxActionDigital> = [];
 
@@ -274,6 +278,12 @@ class Controls extends FlxActionSet
 	inline function get_RESET()
 		return _reset.check();
 
+	/** Held (PRESSED) twin of `RESET`; `RESET` only fires on the first frame. */
+	public var RESET_P(get, never):Bool;
+
+	inline function get_RESET_P()
+		return _resetP.check();
+
 	public static var instance:Controls;
 
 	public function new(name, scheme = None)
@@ -310,6 +320,7 @@ class Controls extends FlxActionSet
 		add(_back);
 		add(_pause);
 		add(_reset);
+		add(_resetP);
 
 		for (action in digitalActions)
 			byName[action.name] = action;
@@ -570,6 +581,7 @@ class Controls extends FlxActionSet
 				func(_pause, JUST_PRESSED);
 			case RESET:
 				func(_reset, JUST_PRESSED);
+				func(_resetP, PRESSED);
 		}
 	}
 
