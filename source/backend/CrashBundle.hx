@@ -21,6 +21,8 @@ import sys.io.File;
  *
  *  - `crash.txt`            — the same text as `crash/FNF-Phoenix-Engine_*.log`;
  *  - `modsList.txt`         — the raw enabled/disabled mod list;
+ *  - `modSecurity.txt`      — mods whose ModSecurity switch the player changed
+ *    in the Mods menu, when there are any;
  *  - `mods/<folder>/pack.json` — one per installed mod;
  *  - `prefs.json`           — every preference, in the settings-backup format;
  *  - `screenshot.png`       — the frame the game crashed on (best effort);
@@ -206,6 +208,20 @@ class CrashBundle
     catch (e:Dynamic)
     {
       notes.push('modsList.txt unavailable: ' + describeError(e));
+    }
+
+    // 2b. The player's per-mod ModSecurity choices (Mods menu -> Mod Info). The
+    //     file only exists once a choice was made; a mod it lists with "|0" ran
+    //     unsandboxed, whatever its pack.json says.
+    try
+    {
+      var choices:String = ModSecurity.PLAYER_OVERRIDES_FILE;
+      if (FileSystem.exists(choices) && !FileSystem.isDirectory(choices))
+        files.push({name: choices, data: cappedText(File.getContent(choices), MAX_TEXT_BYTES, notes, choices)});
+    }
+    catch (e:Dynamic)
+    {
+      notes.push(ModSecurity.PLAYER_OVERRIDES_FILE + ' unavailable: ' + describeError(e));
     }
 
     // 3. One pack.json per installed mod.

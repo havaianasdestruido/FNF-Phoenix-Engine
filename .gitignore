@@ -13,6 +13,11 @@ art/test_x64-debug-officialrelease.bat
 # submodule -- .github/workflows/sparse-submodule.yml does the same in CI.
 mods/fnf_030_ui
 
+# Per-player ModSecurity choices written by the Mods menu (Mod Info) next to
+# modsList.txt when the game runs from here. A local decision about which mods
+# to trust; it is never part of the project.
+/modSecurity.txt
+
 ### VS Code
 build/*
 export/*

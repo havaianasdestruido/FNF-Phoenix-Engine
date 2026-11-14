@@ -5,6 +5,7 @@ import backend.ScreenLayout;
 import backend.ViewportVisuals;
 import backend.CoolUtil;
 import backend.DiscordClient;
+import backend.ModSecurity;
 import backend.MusicBeatState;
 import backend.Paths;
 import flixel.ui.FlxButton;
@@ -26,6 +27,9 @@ import objects.Prompt;
 
 import backend.Controls;
 import headers.States;
+#if MODS_ALLOWED
+import states.substates.ModInfoSubState;
+#end
 
 #if MODS_ALLOWED
 class ModsMenuState extends MusicBeatState
@@ -35,6 +39,8 @@ class ModsMenuState extends MusicBeatState
 	var modName:Alphabet;
 	var modDesc:FlxText;
 	var modRestartText:FlxText;
+	/** "ModSecurity: ON/OFF" for the selected mod; Mod Info (the gear button) changes it. */
+	var modSecurityText:FlxText;
 	var modsList:ModsList = null;
 
 	var bgList:FlxSprite;
@@ -78,7 +84,7 @@ class ModsMenuState extends MusicBeatState
 		if (shift != 0)
 		{
 			for (sprite in [bgList, bgTitle, bgDescription, bgButtons, icon, modName,
-				modDesc, modRestartText, noModsTxt, buttonReload, buttonEnableAll, buttonDisableAll, buttonImport])
+				modDesc, modRestartText, modSecurityText, noModsTxt, buttonReload, buttonEnableAll, buttonDisableAll, buttonImport])
 				if (sprite != null) sprite.x += shift;
 			for (button in buttons) button.x += shift;
 			if (modsGroup != null && modsGroup.length > 0) updateItemPositions();
@@ -100,6 +106,8 @@ class ModsMenuState extends MusicBeatState
 
 		modsList = Mods.parseList();
 		Mods.currentModDirectory = modsList.all[0] != null ? modsList.all[0] : '';
+		// Mod Info shows each mod's script sandbox state: read modSecurity.txt and pack.json afresh.
+		ModSecurity.reloadPlayerOverrides();
 
 		#if DISCORD_ALLOWED
 		// Updating Discord Rich Presence
@@ -244,6 +252,10 @@ class ModsMenuState extends MusicBeatState
 		modRestartText.setFormat(Paths.font("vcr.ttf"), 16, FlxColor.WHITE, RIGHT);
 		add(modRestartText);
 
+		modSecurityText = new FlxText(modRestartText.x, modRestartText.y, 220, "", 16);
+		modSecurityText.setFormat(Paths.font("vcr.ttf"), 16, FlxColor.WHITE, LEFT);
+		add(modSecurityText);
+
 		bgButtons = FlxSpriteUtil.drawRoundRectComplex(new FlxSprite(bgDescription.x, bgDescription.y + bgDescription.height - myHeight).makeGraphic(840, myHeight, FlxColor.TRANSPARENT), 0, 0, 840, myHeight, 0, 0, 15, 15, FlxColor.WHITE);
 		bgButtons.color = FlxColor.BLACK;
 		bgButtons.alpha = 0.2;
@@ -279,6 +291,15 @@ class ModsMenuState extends MusicBeatState
 			for (button in buttons)
 				button.enabled = false;
 		}
+
+		// Mod Info: details of the selected mod and its ModSecurity (script sandbox) switch.
+		// It takes the gear slot; the per-mod settings editor below is still not ported.
+		var button = new MenuButton(buttonsX + 300, buttonsY, 80, 80, null, Paths.image('modsMenuButtons', 'shared'), openModInfo, 54, 54);
+		button.icon.animation.add('icon', [3]);
+		button.icon.animation.play('icon', true);
+		add(button);
+		buttons.push(button);
+
 		// not yet
 		/*
 		settingsButton = new MenuButton(buttonsX + 300, buttonsY, 80, 80, null, Paths.image('modsMenuButtons', 'shared'), function() //Settings
@@ -670,6 +691,30 @@ class ModsMenuState extends MusicBeatState
 		ModsMenuHelpers.saveTxt(this);
 	}
 
+	/** Opens Mod Info (details + the per-mod ModSecurity switch) for the selected mod. */
+	function openModInfo():Void
+	{
+		var curMod:ModItem = modsGroup.members[curSelectedMod];
+		if(curMod == null) return;
+
+		FlxG.sound.play(Paths.sound('scrollMenu'), 0.6);
+		// The panel brings its own pad; this one comes back in closeSubState().
+		if(virtualPad != null) virtualPad.visible = false;
+		openSubState(new ModInfoSubState(curMod, modsList.enabled.contains(curMod.folder), updateModSecurityText));
+	}
+
+	function updateModSecurityText():Void
+	{
+		ModsMenuHelpers.updateModSecurityText(this);
+	}
+
+	override function closeSubState():Void
+	{
+		// Stays hidden when touch controls are off (Android TV / remote navigation).
+		if(virtualPad != null) virtualPad.visible = mobile.MobileControls.enabled;
+		super.closeSubState();
+	}
+
 	/* ------------------------------------------------------------------
 	 * Mod import (.zip)
 	 * ------------------------------------------------------------------ */
@@ -756,6 +801,10 @@ class ModsMenuState extends MusicBeatState
 				showInstallError(result.error);
 				return;
 			}
+
+			// The folder holds new files now. An earlier "ModSecurity off" was about the
+			// mod that used to be there, so the imported one starts from its own pack.json.
+			ModSecurity.revokePlayerOptOut(result.folder);
 
 			if(!Mods.registerInstalledMod(result.folder))
 				trace('The imported mod "${result.folder}" could not be enabled in modsList.txt.');

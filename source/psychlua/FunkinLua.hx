@@ -152,8 +152,11 @@ class FunkinLua {
 		ModSecurity.report(security, function(message:String) game.addTextToDebug(message, FlxColor.RED));
 		if(LuaDiagnostics.verbose)
 		{
-			LuaDiagnostics.log('  security: owner "${security.modName}", '
-				+ (sandboxed ? 'sandboxed' : (security.optedOut ? 'sandbox turned off in pack.json' : 'not a mod script, runs unsandboxed'))
+			var sandboxState:String = 'not a mod script, runs unsandboxed';
+			if(sandboxed) sandboxState = 'sandboxed';
+			else if(security.optedOut)
+				sandboxState = security.playerOverride == false ? 'sandbox turned off in the Mods menu (Mod Info)' : 'sandbox turned off in pack.json';
+			LuaDiagnostics.log('  security: owner "${security.modName}", ' + sandboxState
 				+ ', allowlist [' + securityAllowlist.join(', ') + '], ${security.findings.length} finding(s)');
 		}
 		if(security.findings.length > 0)

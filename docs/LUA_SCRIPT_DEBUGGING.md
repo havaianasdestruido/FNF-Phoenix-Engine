@@ -127,7 +127,7 @@ A build with Lua (`lime build linux -DMODDING_LEVEL=1`), no setting changed:
 [LuaDiag]        2 |
 [LuaDiag]   >    3 | thisFunctionDoesNotExist(a)
 [LuaDiag]        4 | function onCreate() end
-[LuaDiag] ERROR: mods/diag-test/scripts/blocked.lua was blocked by ModSecurity before it ran: lua.os (line 2). To run it anyway add "scriptSandboxAllowlist": ["lua.os"] to mods/diag-test/pack.json (or "scriptSandbox": false to turn the scan off for this mod), or remove the flagged code. The scan matches text, so it also fires on a string or a trailing comment.
+[LuaDiag] ERROR: mods/diag-test/scripts/blocked.lua was blocked by ModSecurity before it ran: lua.os (line 2). To run it anyway add "scriptSandboxAllowlist": ["lua.os"] to mods/diag-test/pack.json (or "scriptSandbox": false to turn the scan off for this mod), or remove the flagged code. A player who trusts the mod can also turn ModSecurity off for it in the Mods menu (Mod Info). The scan matches text, so it also fires on a string or a trailing comment.
 [LuaDiag] WARNING: mods/diag-test/scripts/empty.lua: the file is empty, so it defines no hooks
 [LuaDiag] WARNING: mods/diag-test/scripts/utf16.lua: the file contains NUL bytes (saved as UTF-16, or not a text file?). Save it as UTF-8 text
 [LuaDiag] ERROR: mods/diag-test/scripts/utf16.lua was blocked by ModSecurity before it ran: security.binary-source (line 1). The file contains NUL bytes, which Lua source text never does: it was most likely saved as UTF-16 ("Unicode" in some Windows editors). Save it again as UTF-8 so the engine can read it.
@@ -359,7 +359,7 @@ A blocked script is reported twice: by ModSecurity itself
 by a `[LuaDiag] ERROR` line that carries the fix:
 
 ```text
-[LuaDiag] ERROR: mods/diag-test/scripts/blocked.lua was blocked by ModSecurity before it ran: lua.os (line 2). To run it anyway add "scriptSandboxAllowlist": ["lua.os"] to mods/diag-test/pack.json (or "scriptSandbox": false to turn the scan off for this mod), or remove the flagged code. The scan matches text, so it also fires on a string or a trailing comment.
+[LuaDiag] ERROR: mods/diag-test/scripts/blocked.lua was blocked by ModSecurity before it ran: lua.os (line 2). To run it anyway add "scriptSandboxAllowlist": ["lua.os"] to mods/diag-test/pack.json (or "scriptSandbox": false to turn the scan off for this mod), or remove the flagged code. A player who trusts the mod can also turn ModSecurity off for it in the Mods menu (Mod Info). The scan matches text, so it also fires on a string or a trailing comment.
 ```
 
 Fix the script, or, if the capability is genuinely wanted, add the rule id to
@@ -375,11 +375,18 @@ Fix the script, or, if the capability is genuinely wanted, add the rule id to
 `"scriptSandbox": false` (or `"allowUnsafeScripts": true`) disables the whole
 scan for that mod. Both are logged at load time.
 
+A player does not have to edit the mod for that: in the Mods menu, the gear
+button of the selected mod opens **Mod Info**, where ModSecurity can be turned
+off (or back on) for that one mod. The choice wins over `pack.json`, is kept in
+`modSecurity.txt` next to `modsList.txt` and applies the next time the mod's
+scripts are loaded. See
+[Script security sandbox](../website/docs/modding/script-security.md#per-mod-switch-in-the-mods-menu).
+
 Two cases get their own wording:
 
 * A **loose script** (directly under `mods/scripts/`, `mods/data/<song>/`, …)
-  is always scanned and has no `pack.json` to carry an allowlist. The line
-  says to move it into a mod folder.
+  is always scanned and has no `pack.json` to carry an allowlist, nor a Mod
+  Info switch. The line says to move it into a mod folder.
 * A file with **NUL bytes** (rule `security.binary-source`) is almost always a
   script saved as UTF-16. Allowing the rule would not help, because LuaJIT
   cannot compile such a file either. The line says to save it as UTF-8.

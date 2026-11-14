@@ -92,6 +92,25 @@ class ModSecuritySpec
 		check(bootstrap.indexOf("os = __phoenix_proxy('os')") >= 0, 'Lua OS runtime proxy');
 		check(bootstrap.indexOf("package.loadlib") >= 0, 'Lua native loader runtime guard');
 
+		// The per-mod switch of the Mods menu (Mod Info). Without MODS_ALLOWED
+		// there is no pack.json and no modSecurity.txt, so this stays in memory;
+		// ModSecurityPlayerSpec covers the stored file and the pack.json rules.
+		check(ModSecurity.getStatus('UnsafeMod').enabled && ModSecurity.getPlayerOverride('UnsafeMod') == null,
+			'player switch defaults to on');
+		check(ModSecurity.setEnabled('UnsafeMod', false), 'player switch accepts a mod folder');
+		var trusted = ModSecurity.checkScript('mods/UnsafeMod/scripts/payload.lua', "os.execute('bad')", 'lua');
+		check(!trusted.sandboxed && trusted.optedOut && trusted.findings.length == 0, 'player switch off: the script is not scanned');
+		check(trusted.playerOverride == false, 'the decision records the player choice');
+		var neighbour = ModSecurity.checkScript('mods/OtherMod/scripts/payload.lua', "os.execute('bad')", 'lua');
+		check(neighbour.sandboxed && has(neighbour.findings, 'lua.os', 1), 'player switch is per mod');
+		check(!ModSecurity.setEnabled('', false), 'loose scripts have no switch');
+		var loose = ModSecurity.checkScript('mods/scripts/loose.lua', "os.execute('bad')", 'lua');
+		check(loose.sandboxed && has(loose.findings, 'lua.os', 1), 'loose scripts stay sandboxed');
+		check(ModSecurity.setEnabled('UnsafeMod', true), 'player switch back on');
+		check(ModSecurity.getPlayerOverride('UnsafeMod') == null, 'the default state stores no choice');
+		var restored = ModSecurity.checkScript('mods/UnsafeMod/scripts/payload.lua', "os.execute('bad')", 'lua');
+		check(restored.sandboxed && has(restored.findings, 'lua.os', 1), 'player switch on: the script is blocked again');
+
 		Sys.println('Mod security scanner tests passed');
 	}
 }
