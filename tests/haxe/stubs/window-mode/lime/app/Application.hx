@@ -9,11 +9,3 @@ class Application
 
   public function new() {}
 }
-
-class Window
-{
-  public var borderless:Bool = false;
-  public var fullscreen:Bool = false;
-
-  public function new() {}
-}
