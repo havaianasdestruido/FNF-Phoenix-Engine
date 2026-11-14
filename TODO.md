@@ -28,6 +28,15 @@ _i accept suggestions too_
   - Red: 51-100 commits
   - It should fade colors depending on the git commit, dont just use the same color for the range, make it be a "rainbow-ish" pattern.
 
+- Add those:
+- - flixel.addons.effect.transition ofr states transistions, [just like in this demo](https://haxeflixel.com/demos/Transitions/).
+  - Loading screens with a FlxPieDial in the bottom left corner.
+  - Port the "pointing mouse sprite at button" thingy from [this demo](https://haxeflixel.com/demos/Cursor/).
+  - Add pretty much all filters from FlxG.camera.filters & FlxG.game.filters to modding API.
+  - - add all these too in modding api: flixel.addons.effects.chainable
+  - Add flixel.addons.effects.FlxClothSprite as a easter egg, [just like in this demo.](https://haxeflixel.com/demos/FlxClothSprite/)
+  - Add tooltips to all parts of the engine that uses `flixel-ui`, [just like on this.. uhh. demo right over here.](https://haxeflixel.com/demos/Tooltips/)
+
 - Windows 7 support by patching some libs _(prob impossible but whatever)_
 
 - COMPRESS ALL IMAGES **AND FIX ITS XML SPRITESHEET COORDINATES!!!!!!!!!!** to 2 times lower res _(for low end devices, but will prob be low-res by default since its the main Phoenix engine focus)_
