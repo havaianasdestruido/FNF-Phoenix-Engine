@@ -49,11 +49,17 @@ class MusicBeatState extends FlxUIState
 			removeVirtualPad();
 
 		virtualPad = new FlxVirtualPad(DPad, Action);
+		final showTouch:Bool = MobileControls.enabled;
+		virtualPad.visible = showTouch;
+		virtualPad.active = showTouch;
 		add(virtualPad);
 
-		controls.setVirtualPadUI(virtualPad, DPad, Action);
-		trackedInputsVirtualPad = controls.trackedInputsUI;
-		controls.trackedInputsUI = [];
+		if (showTouch)
+		{
+			controls.setVirtualPadUI(virtualPad, DPad, Action);
+			trackedInputsVirtualPad = controls.trackedInputsUI;
+			controls.trackedInputsUI = [];
+		}
 	}
 
 	public function removeVirtualPad():Void
@@ -80,17 +86,21 @@ class MusicBeatState extends FlxUIState
 			removeMobileControls();
 
 		mobileControls = new MobileControls();
+		final showTouch:Bool = MobileControls.enabled;
 
-		switch (MobileControls.mode)
+		if (showTouch)
 		{
-			case 'Hitbox':
-				controls.setHitBox(mobileControls.hitbox);
-			default:
-				controls.setVirtualPadNOTES(mobileControls.virtualPad, RIGHT_FULL, NONE);
-		}
+			switch (MobileControls.mode)
+			{
+				case 'Hitbox':
+					controls.setHitBox(mobileControls.hitbox);
+				default:
+					controls.setVirtualPadNOTES(mobileControls.virtualPad, RIGHT_FULL, NONE);
+			}
 
-		trackedInputsMobileControls = controls.trackedInputsNOTES;
-		controls.trackedInputsNOTES = [];
+			trackedInputsMobileControls = controls.trackedInputsNOTES;
+			controls.trackedInputsNOTES = [];
+		}
 
 		var camControls:FlxCamera = new FlxCamera();
 		camControls.bgColor.alpha = 0;
@@ -99,6 +109,7 @@ class MusicBeatState extends FlxUIState
 
 		mobileControls.cameras = [camControls];
 		mobileControls.visible = false;
+		mobileControls.active = showTouch;
 		add(mobileControls);
 	}
 

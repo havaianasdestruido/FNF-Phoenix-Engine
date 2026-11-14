@@ -221,7 +221,7 @@ class NotesSubState extends MusicBeatSubstate
 		add(tipTxt);
 		updateTip();
 
-		FlxG.mouse.visible = true;
+		FlxG.mouse.visible = !backend.TouchlessUI.isActive();
 
 		addVirtualPad(NONE, B_C);
 		virtualPad.buttonB.x = FlxG.width - 132;
@@ -254,7 +254,7 @@ class NotesSubState extends MusicBeatSubstate
 
 		super.update(elapsed);
 
-		if(FlxG.keys.justPressed.CONTROL)
+		if(FlxG.keys.justPressed.CONTROL || FlxG.keys.justPressed.MENU || backend.TouchlessUI.isMenuPressed() || FlxG.gamepads.anyJustPressed(X))
 		{
 			onPixel = !onPixel;
 			spawnNotes();
@@ -475,11 +475,11 @@ class NotesSubState extends MusicBeatSubstate
 				}
 			}
 		}
-		else if(virtualPad.buttonC.justPressed || controls.RESET && hexTypeNum < 0)
+		else if((virtualPad.buttonC.justPressed || controls.RESET || FlxG.gamepads.anyJustPressed(Y)) && hexTypeNum < 0)
 		{
 			var colors:Array<FlxColor> = ClientPrefs.noteColorStyle != 'Quant-Based' ? !onPixel ? ClientPrefs.defaultArrowRGB[curSelectedNote] :
 			ClientPrefs.defaultPixelRGB[curSelectedNote] : ClientPrefs.defaultQuantRGB[curSelectedNote];
-			if(FlxG.keys.pressed.SHIFT || FlxG.gamepads.anyJustPressed(LEFT_SHOULDER))
+			if(FlxG.keys.pressed.SHIFT || FlxG.gamepads.anyPressed(LEFT_SHOULDER))
 			{
 				for (i in 0...3)
 				{

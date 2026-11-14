@@ -6,5 +6,6 @@ package org.haxe.lime; public class GameActivity extends android.app.Activity {
         public void setContentView(android.view.View v){content=v;}
         public android.content.Intent getIntent(){return null;} public void setIntent(android.content.Intent i){}
         protected void onNewIntent(android.content.Intent i){}
+        public boolean dispatchKeyEvent(android.view.KeyEvent e){return false;}
         public boolean onKeyDown(int c,android.view.KeyEvent e){return false;}
         public boolean onKeyUp(int c,android.view.KeyEvent e){return false;}}

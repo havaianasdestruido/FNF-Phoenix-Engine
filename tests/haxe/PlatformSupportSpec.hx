@@ -157,6 +157,7 @@ class PlatformSupportSpec
     equal(PlatformSupport.supportsPreference('respectCutout'), PlatformIcons.detect() == PlatformKind.ANDROID, 'cut-out support');
 
     equal(PlatformSupport.supportsPreference('androidNotifications'), PlatformIcons.detect() == PlatformKind.ANDROID, 'notifications support');
+    equal(PlatformSupport.supportsPreference('androidTVNavigation'), PlatformIcons.detect() == PlatformKind.ANDROID, 'android TV navigation support');
     equal(PlatformSupport.supportsPreference('mobileCAlpha'), PlatformSupport.supports([PlatformSupport.MOBILE]), 'mobile controls');
     equal(PlatformSupport.supportsPreference('hitboxType'), PlatformSupport.supports([PlatformSupport.MOBILE]), 'hitbox');
     equal(PlatformSupport.supportsPreference('ffmpegMode'), PlatformSupport.supports([PlatformSupport.VIDEO_RENDER]), 'renderer options');

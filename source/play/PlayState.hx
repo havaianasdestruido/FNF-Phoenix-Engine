@@ -1298,7 +1298,7 @@ class PlayState extends MusicBeatState
 
 		addVirtualPad(NONE, P);
 		addVirtualPadCamera();
-		virtualPad.visible = true;
+		if (virtualPad != null) virtualPad.visible = mobile.MobileControls.enabled;
 		addMobileControls();
 
 		if (dad.flixelTrail && dad.trailLength != null && dad.trailDelay != null && dad.trailAlpha != null && dad.trailDiff != null)
@@ -2329,7 +2329,16 @@ class PlayState extends MusicBeatState
 		}
 		if(botplayTxt != null && cpuControlled && !botplayUsed) botplayUsed = true;
 
-		if (controls.PAUSE && startedCountdown && canPause && !heyStopTrying)
+		final pauseTriggered:Bool = controls.PAUSE
+			#if android
+			|| FlxG.android.justPressed.BACK
+			|| backend.TouchlessUI.isBackPressed()
+			|| backend.TouchlessUI.isMenuPressed()
+			|| FlxG.keys.justPressed.MENU
+			|| FlxG.gamepads.anyJustPressed(flixel.input.gamepad.FlxGamepadInputID.BACK)
+			#end;
+
+		if (pauseTriggered && startedCountdown && canPause && !heyStopTrying)
 		{
 			final ret:Dynamic = callOnLuas('onPause', null, false);
 			#if (LUA_ALLOWED || PYTHON_ALLOWED)

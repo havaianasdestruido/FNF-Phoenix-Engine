@@ -68,21 +68,18 @@ class MobileOptionsSubState extends BaseOptionsMenu
 		option.maxValue = 1;
 		option.changeValue = 0.1;
 		option.decimals = 1;
-		option.onChange = () ->
-		{
-			virtualPad.alpha = 0; // what? that fixed somehow
-			virtualPad.alpha = curOption.getValue();
-			if (MobileControls.enabled) {
-				TitleState.volumeUpKeys = FlxG.sound.volumeUpKeys = [];
-				TitleState.volumeDownKeys = FlxG.sound.volumeDownKeys = [];
-				TitleState.muteKeys = FlxG.sound.muteKeys = [];
-			} else {
-				TitleState.volumeUpKeys = FlxG.sound.volumeUpKeys = [FlxKey.PLUS, FlxKey.NUMPADPLUS];
-				TitleState.volumeDownKeys = FlxG.sound.volumeDownKeys = [FlxKey.MINUS, FlxKey.NUMPADMINUS];
-				TitleState.muteKeys = FlxG.sound.muteKeys = [FlxKey.ZERO, FlxKey.NUMPADZERO];
-			}
-		};
+		option.onChange = () -> syncTouchControls();
 		addOption(option);
+
+		#if android
+		var option:Option = new Option('Android TV Navigation',
+		'Optimizes menus and gameplay for TV remotes and controllers\n(hides on-screen touch buttons and mouse cursor, enables full Back routing).\nAuto-enabled on Android TV and touchless devices.',
+		'androidTVNavigation',
+		'bool',
+		false);
+		option.onChange = () -> syncTouchControls();
+		addOption(option);
+		#end
 
 		#if mobile
 		var option:Option = new Option('Allow Phone Screensaver',
@@ -135,5 +132,39 @@ class MobileOptionsSubState extends BaseOptionsMenu
 		addBackupOptions();
 
 		super();
+	}
+
+	function syncTouchControls():Void
+	{
+		if (MobileControls.enabled)
+		{
+			if (virtualPad == null || trackedInputsVirtualPad.length == 0)
+			{
+				addVirtualPad(LEFT_FULL, A_B_C);
+				addVirtualPadCamera();
+			}
+			virtualPad.visible = true;
+			virtualPad.active = true;
+			virtualPad.alpha = 0; // reset before applying saved opacity
+			virtualPad.alpha = backend.ClientPrefs.mobileCAlpha;
+			TitleState.volumeUpKeys = FlxG.sound.volumeUpKeys = [];
+			TitleState.volumeDownKeys = FlxG.sound.volumeDownKeys = [];
+			TitleState.muteKeys = FlxG.sound.muteKeys = [];
+		}
+		else
+		{
+			if (virtualPad != null)
+			{
+				if (trackedInputsVirtualPad.length > 0)
+					controls.removeVirtualControlsInput(trackedInputsVirtualPad);
+				trackedInputsVirtualPad = [];
+				virtualPad.visible = false;
+				virtualPad.active = false;
+			}
+			TitleState.volumeUpKeys = FlxG.sound.volumeUpKeys = [FlxKey.PLUS, FlxKey.NUMPADPLUS];
+			TitleState.volumeDownKeys = FlxG.sound.volumeDownKeys = [FlxKey.MINUS, FlxKey.NUMPADMINUS];
+			TitleState.muteKeys = FlxG.sound.muteKeys = [FlxKey.ZERO, FlxKey.NUMPADZERO];
+		}
+		backend.TouchlessUI.syncMouseCursor(!backend.TouchlessUI.isActive());
 	}
 }

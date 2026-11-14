@@ -85,8 +85,9 @@ class AndroidPlatform
 		// Lifecycle: keeps audio/gameplay state sane across focus changes.
 		AndroidLifecycle.init(autoPauseAudio);
 
-		// Controllers.
+		// Controllers and TV/touchless navigation latch.
 		AndroidGamepad.init();
+		backend.TouchlessUI.init();
 
 		// Device-state watchers.
 		if (watchDisplay)

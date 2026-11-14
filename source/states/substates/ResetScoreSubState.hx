@@ -5,10 +5,13 @@ import backend.ViewportVisuals;
 import backend.Highscore;
 import backend.MusicBeatSubstate;
 import backend.Paths;
+import backend.PlayerSettings;
 import backend.WeekData;
 import flixel.FlxG;
 import objects.Alphabet;
 import objects.HealthIcon;
+import objects.HoldToConfirm;
+import objects.TouchTarget;
 
 import backend.Controls;
 import data.Song;
@@ -26,6 +29,11 @@ class ResetScoreSubState extends MusicBeatSubstate
   var song:String;
   var difficulty:Int;
   var week:Int;
+
+  /** Yes deletes saved scores: guarded by a held press / second confirmation. */
+  var yesConfirm:HoldToConfirm;
+  /** Enlarged, invisible hit area for the harmless No option. */
+  var noTarget:TouchTarget;
 
   override public function onResize(width:Int, height:Int):Void
   {
@@ -98,6 +106,18 @@ class ResetScoreSubState extends MusicBeatSubstate
     updateOptions();
 
     addVirtualPad(LEFT_RIGHT, A_B);
+
+    // "Yes" wipes the saved score/accuracy, so it is no longer one quick tap
+    // of the virtual A button. The Yes/No art is untouched; only invisible,
+    // padded hit areas are added on top.
+    yesConfirm = new HoldToConfirm(yesText, confirmReset,
+      () -> onYes && PlayerSettings.player1.controls.ACCEPT, 'HOLD TO RESET SCORE');
+    add(yesConfirm);
+    noTarget = new TouchTarget(noText, function() {
+      FlxG.sound.play(Paths.sound('cancelMenu'), 1);
+      close();
+    });
+    add(noTarget);
   }
 
   override function update(elapsed:Float)
@@ -116,30 +136,34 @@ class ResetScoreSubState extends MusicBeatSubstate
     {
       FlxG.sound.play(Paths.sound('scrollMenu'), 1);
       onYes = !onYes;
+      if (yesConfirm != null) yesConfirm.cancel();
       updateOptions();
     }
     if (controls.BACK)
     {
+      if (yesConfirm != null) yesConfirm.cancel();
       FlxG.sound.play(Paths.sound('cancelMenu'), 1);
       close();
     }
-    else if (controls.ACCEPT)
+    // ACCEPT on Yes is consumed by yesConfirm (held press or second press).
+    // ACCEPT on No is harmless and stays a single press.
+    else if (controls.ACCEPT && !onYes)
     {
-      if (onYes)
-      {
-        if (week == -1)
-        {
-          Highscore.resetSong(song, difficulty);
-        }
-        else
-        {
-          Highscore.resetWeek(WeekData.weeksList[week], difficulty);
-        }
-      }
       FlxG.sound.play(Paths.sound('cancelMenu'), 1);
       close();
     }
     super.update(elapsed);
+  }
+
+  /** Runs once after the guarded Yes gesture completes. */
+  function confirmReset():Void
+  {
+    if (week == -1)
+      Highscore.resetSong(song, difficulty);
+    else
+      Highscore.resetWeek(WeekData.weeksList[week], difficulty);
+    FlxG.sound.play(Paths.sound('cancelMenu'), 1);
+    close();
   }
 
   function updateOptions()

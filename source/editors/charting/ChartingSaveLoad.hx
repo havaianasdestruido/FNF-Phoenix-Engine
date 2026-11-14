@@ -55,7 +55,7 @@ class ChartingSaveLoad
         {
           CoolUtil.coolError('Failed to load JSON, is it a character.json or a stage.json instead of a chart.json?\nError: $e', "JS Engine Anti-Crash Tool");
         };
-      }, null, state.ignoreWarnings));
+      }, null, state.ignoreWarnings, null, null, true));
     }, ["json"], "Choose a Psych Engine Compatible Chart JSON to load as.");
   }
 

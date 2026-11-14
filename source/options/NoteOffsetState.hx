@@ -225,15 +225,15 @@ class NoteOffsetState extends MusicBeatState
 	override public function update(elapsed:Float)
 	{
 		var addNum:Int = 1;
-		if(FlxG.keys.pressed.SHIFT) addNum = 10;
+		if(FlxG.keys.pressed.SHIFT || FlxG.gamepads.anyPressed(LEFT_SHOULDER)) addNum = 10;
 
 		if(onComboMenu)
 		{
 			var controlArray:Array<Bool> = [
-				FlxG.keys.justPressed.LEFT,
-				FlxG.keys.justPressed.RIGHT,
-				FlxG.keys.justPressed.UP,
-				FlxG.keys.justPressed.DOWN,
+				controls.UI_LEFT_P && !FlxG.keys.justPressed.A,
+				controls.UI_RIGHT_P && !FlxG.keys.justPressed.D,
+				controls.UI_UP_P && !FlxG.keys.justPressed.W,
+				controls.UI_DOWN_P && !FlxG.keys.justPressed.S,
 
 				FlxG.keys.justPressed.A,
 				FlxG.keys.justPressed.D,
@@ -310,7 +310,7 @@ class NoteOffsetState extends MusicBeatState
 				}
 			}
 
-			if(virtualPad.buttonC.justPressed || controls.RESET)
+			if(virtualPad.buttonC.justPressed || controls.RESET || FlxG.gamepads.anyJustPressed(Y))
 			{
 				for (i in 0...ClientPrefs.comboOffset.length)
 				{
@@ -492,6 +492,6 @@ class NoteOffsetState extends MusicBeatState
 			changeModeText.text = '< Note/Beat Delay (Press $buttonAccept to Switch) >';
 
 		changeModeText.text = changeModeText.text.toUpperCase();
-		FlxG.mouse.visible = onComboMenu;
+		FlxG.mouse.visible = onComboMenu && !backend.TouchlessUI.isActive();
 	}
 }

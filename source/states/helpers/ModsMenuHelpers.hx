@@ -31,6 +31,18 @@ class ModsMenuHelpers
 		else if(state.curSelectedButton > max)
 			state.curSelectedButton = max;
 
+		// Skip disabled action buttons (e.g. reorder arrows with < 2 mods).
+		var step:Int = add < 0 ? -1 : 1;
+		var guard:Int = 0;
+		while (guard++ < max + 5 && !ModsMenuHelpers.getButton(state).enabled)
+		{
+			if ((step < 0 && state.curSelectedButton <= -3) || (step > 0 && state.curSelectedButton >= max))
+				break;
+			state.curSelectedButton += step;
+		}
+		if (!ModsMenuHelpers.getButton(state).enabled)
+			state.curSelectedButton = -3;
+
 		var button = ModsMenuHelpers.getButton(state);
 		button.ignoreCheck = button.onFocus = true;
 

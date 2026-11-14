@@ -140,5 +140,5 @@ class MobileControls extends FlxSpriteGroup
 	}
 
 	private static function get_enabled():Bool
-		return ClientPrefs.mobileCAlpha >= 0.1;
+		return backend.AndroidTVPolicy.shouldShowTouchControls(ClientPrefs.androidTVNavigation, ClientPrefs.mobileCAlpha);
 }
