@@ -21,7 +21,9 @@ class FunkinGame extends FlxGame {
 		#if (desktop && !air)
 		fullscreenListener = function(e:KeyboardEvent) {
 			if (e.keyCode == 122) {
-				FlxG.fullscreen = !FlxG.fullscreen;
+				// Go through WindowMode so the toggle is persisted and borderless
+				// players return to their borderless window instead of windowed.
+				WindowMode.toggleFullscreen();
 			} else if (e.keyCode == 114) {
 				FrameProfiler.toggleOverlay();
 				if (Main.fpsVar != null) Main.fpsVar.updateText();
