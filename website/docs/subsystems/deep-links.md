@@ -1,7 +1,7 @@
 ---
 title: Deep links (phoenix://)
 sidebar_position: 10
-description: The custom URI scheme — routes, grammar, dispatch rules, the read-only diagnostics link and per-platform registration.
+description: The custom URI scheme — routes, grammar, dispatch rules, the read-only diagnostics link, the input tester link and per-platform registration.
 ---
 
 # Deep links — `phoenix://`
@@ -13,6 +13,7 @@ page or another app can open a specific menu:
 <a href="phoenix://menu/misc">Open Phoenix Misc settings</a>
 <a href="phoenix://mods">Open Phoenix Mods</a>
 <a href="phoenix://diagnostics">Show the read-only diagnostics page</a>
+<a href="phoenix://input">Test the keyboard, controller and touch screen</a>
 ```
 
 The app must be installed. On Windows the handler is also **opt-in**: the player
@@ -49,10 +50,11 @@ structured hosts on top of it:
 | `phoenix://song/<song>?difficulty=<name>` | starts that chart in Freeplay, only if the normal lookup finds it |
 | `phoenix://mod/<modId>` (optionally `/song/<song>`) | Mods manager with that folder focused, or the song when it exists |
 | `phoenix://diagnostics` | the read-only diagnostics page (alias `phoenix://screen/diagnostics`) |
+| `phoenix://input` | the input tester (alias `phoenix://screen/input`) |
 | `phoenix://replay/<id>` | reserved — reports "not implemented" rather than pretending |
 
-Segment counts are exact, so `phoenix://song` or `phoenix://diagnostics/all` are
-invalid links, ignored without a popup.
+Segment counts are exact, so `phoenix://song`, `phoenix://diagnostics/all` or
+`phoenix://input/keyboard` are invalid links, ignored without a popup.
 
 ## Diagnostics: `phoenix://diagnostics`
 
@@ -77,6 +79,47 @@ report becomes `unavailable` instead of an error page. `R` re-reads the snapshot
 in the redacted form `backend.LogUtils` gives VLog, but the paths the report prints
 itself are not rewritten, so they can carry the player's username and the footer
 says to redact before posting. Nothing is ever uploaded.
+
+## Input tester: `phoenix://input` {#input-tester}
+
+The route for "my keyboard eats notes" and "my phone ignores the third finger".
+`states.InputTestState` shows what the game itself receives, so a hardware limit
+stops looking like an engine bug. The same page opens from
+**Options → Gameplay → Input Tester**.
+
+- **Per device** (`KEYBOARD`, `GAMEPAD`, `TOUCH`): `held now`, `most at once`,
+  `presses`, and the names of what is held. Three keys held and a `2` on screen
+  means the keyboard does not report the third; four fingers and a `2` means the
+  screen tracks two.
+- **Press timing**: the gap between the last two presses, how long the last
+  released input was held, the size of the last chord and how long it took to
+  build, the most presses inside one frame, and the taps that went down and came
+  back up inside one frame, which a once-per-frame read never sees held.
+- **History**: the last 12 presses and releases, newest first.
+- **Crosshairs**: a numbered one per finger for the first ten; more are still
+  counted.
+
+Keys come from the stage key events that gameplay judges notes from
+(`PlayState` listens to the same ones) and are timed as they reach the game.
+Gamepads and touches are read from `FlxG.gamepads` and `FlxG.touches` once per
+update, so their gaps are whole frames. The numbers are arrival times inside the
+game, not a device's polling rate.
+
+Every input is a test subject, so a tap never navigates. Leaving is a one second
+hold with nothing else held on that device — Escape or a key bound to Back, `B`
+or Back on a pad, or the on-screen `EXIT` button with one finger or the mouse —
+and Android's system Back leaves at once. The volume shortcuts are switched off
+while the page is open and restored when it closes. The page binds, saves and
+writes nothing; the engine-wide desktop hotkeys are handled outside any state and
+still work (`F2` screenshot, `F3`/`F6` frame profiler, `F11` fullscreen, which is
+saved as the Window Mode preference as it is everywhere else). Like the
+diagnostics route it takes **no parameters** and has no sub-pages, and it returns
+to the Main Menu (or to Options when it was opened from there).
+
+`backend.InputTestLogic` is the renderer-free half: counters, peaks, chord and
+frame statistics, the history ring and the hold-to-leave gesture, with no Flixel
+import. `InputTestState` only feeds it and draws it, and rebuilds its text when an
+input changes rather than every frame.
 
 ## Grammar
 
@@ -105,6 +148,7 @@ phoenix://mods?enable=all
 phoenix://mods#settings
 phoenix://user@mods
 phoenix://diagnostics?copy=1
+phoenix://input?device=touch
 ```
 
 ## Implementation
@@ -115,7 +159,7 @@ Four modules in `backend/deeplink/`:
   allowlisted route string; `parseEx(uri)` returns a structured `ParsedURI` for
   the version 2 hosts. Neither resolves a class from external text.
 - **`URIKind` / `ParsedURI`** — the route enum (`Menu`, `Screen`, `Song`, `Mod`,
-  `Diagnostics`, `Replay`) and its query map.
+  `Diagnostics`, `InputTest`, `Replay`) and its query map.
 - **`DeepLinks`** — platform subscription, queueing and dispatch into the states.
 
 ```haxe
@@ -147,7 +191,8 @@ Links never install or enable mods, load a filesystem path, run scripts or comma
 change preferences, download content, or start a song. Version 2's `song` route is the
 one addition to that list, and it only starts a chart the normal lookup already found;
 `phoenix://diagnostics` sits on the strict side of it — a read-only page that takes no
-parameters, resolves nothing and writes nothing.
+parameters, resolves nothing and writes nothing. `phoenix://input` sits there too: no
+parameters, and a page that only shows what the input devices report.
 
 ## Per-platform registration
 
@@ -195,13 +240,24 @@ the executable's folder when a link is pending. The whole path is behind
 * `bash tests/uri/run.sh` — runs `tests/uri/TestPhoenixURI.hx` in the Haxe
   interpreter with the parser isolated from `source/import.hx`: every route and
   alias, the case and slash rules, injection-shaped input, the size limits, and the
-  `phoenix://diagnostics` contract (both spellings accepted, parameters rejected).
+  `phoenix://diagnostics` and `phoenix://input` contracts (both spellings accepted,
+  parameters and sub-paths rejected).
 * `bash tests/haxe/run-diagnostics-report.sh` — compiles and runs `backend.DiagnosticsReport`
   and `states.DiagnosticsState` against `tests/haxe/stubs/diagnostics`: the seven
   sections in order, the padded value column, `not reported here` where a target
   cannot know, the ten-line log tail, a throwing data source costing one row, and on
   the page side the scroll bounds, the clipboard contents, the `R` refresh, the
   single-shot exit and the camera being released on `destroy`.
+* `bash tests/haxe/run-input-test.sh` — `backend.InputTestLogic` on its own (rollover
+  counters, chord and frame statistics, short taps, the history ring, slot reuse for
+  fingers, the hold-to-leave rules), then `states.InputTestState` against
+  `tests/haxe/stubs/input-test`, driven by key events, pads, fingers, a mouse and a
+  scripted clock: what each panel shows, that no tap or chord closes the page, every
+  way out, focus loss, resizing, and that the listeners, the volume keys and the
+  pointer are handed back on `destroy`.
+* `bash tests/haxe/run-input-test-typecheck.sh` — compiles the same page against the
+  real Flixel, flixel-addons, OpenFL and Lime sources for html5, desktop and Android
+  when they are installed, and prints `SKIP` otherwise. It is not part of CI.
 * `python3 -m unittest tests.test_deeplink_diagnostics` — source guards for what the
   compiler cannot see: only the idle menu states dispatch, the diagnostics path
   writes nothing, and `URI.MD` and this page keep telling the same story.
