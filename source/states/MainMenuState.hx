@@ -56,7 +56,7 @@ class MainMenuState extends MusicBeatState
     'story_mode',
     'freeplay',
     #if MODS_ALLOWED 'mods', #end
-    #if ACHIEVEMENTS_ALLOWED 'awards', #end
+    'awards',
     'credits',
     'donate',
     'options'
@@ -423,10 +423,12 @@ class MainMenuState extends MusicBeatState
                   case 'mods':
                     FlxG.switchState(() -> new ModsMenuState());
                   #end
-                  #if ACHIEVEMENTS_ALLOWED
                   case 'awards':
+                    #if ACHIEVEMENTS_ALLOWED
                     LoadingState.loadAndSwitchState(AchievementsMenuState.new);
-                  #end
+                    #else
+                    FlxG.switchState(() -> new StatsState());
+                    #end
                   case 'credits':
                     FlxG.switchState(CreditsState.new);
                   case 'options':

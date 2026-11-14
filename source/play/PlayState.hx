@@ -17,6 +17,7 @@ import backend.LuaDiagnostics.LuaDiagLevel;
 #if MODS_ALLOWED
 #end
 import backend.MusicBeatState;
+import backend.PlayerStats;
 import backend.WeekData;
 
 import data.Section.SwagSection;
@@ -302,6 +303,8 @@ class PlayState extends MusicBeatState
 	public static var changedDifficulty:Bool = false;
 	public static var chartingMode:Bool = false;
 	public static var playerIsCheating:Bool = false; //Whether the player is cheating. Enables if you change BOTPLAY or Practice Mode in the Pause menu
+	private var statsSongMod:String = '';
+	private var statsRecorded:Bool = false;
 
 	public static var disableBotWatermark:Bool = false;
 
@@ -412,6 +415,11 @@ class PlayState extends MusicBeatState
 
 	public static var campaignScore:Float = 0;
 	public static var campaignMisses:Int = 0;
+	/** Accumulated judged results for the currently playing story week. */
+	public static var campaignResults:Null<states.ResultsData> = null;
+
+	/** Signed hit offsets in milliseconds; positive values are early, negative late. */
+	public var hitOffsets:Array<Float> = [];
 	public static var seenCutscene:Bool = false;
 	public static var deathCounter:Int = 0;
 
@@ -699,6 +707,9 @@ class PlayState extends MusicBeatState
 		#end
 
 		GameOverSubstate.resetVariables();
+		playerIsCheating = false;
+		statsRecorded = false;
+		statsSongMod = (Mods.currentModDirectory != null) ? Mods.currentModDirectory : '';
 		songName = Paths.formatToSongPath(SONG.song);
 		curStage = (!ClientPrefs.charsAndBG ? "" : SONG.stage);
 		//trace('stage is: ' + curStage);
@@ -2743,6 +2754,8 @@ class PlayState extends MusicBeatState
 			if(ret != FunkinLua.Function_Stop) {
 				boyfriend.stunned = true;
 				deathCounter++;
+				if (PlayerStats.canTrackGameplay(cpuControlled, practiceMode, ffmpegMode, chartingMode, trollingMode))
+					PlayerStats.recordDeath();
 
 				canResync = false;
 				paused = true;
@@ -2790,6 +2803,8 @@ class PlayState extends MusicBeatState
 			#else
 			boyfriend.stunned = true;
 			deathCounter++;
+			if (PlayerStats.canTrackGameplay(cpuControlled, practiceMode, ffmpegMode, chartingMode, trollingMode))
+				PlayerStats.recordDeath();
 
 			canResync = false;
 			paused = true;
@@ -3071,6 +3086,7 @@ class PlayState extends MusicBeatState
 	}
 
 	override function destroy() {
+		PlayerStats.flushIfDirty();
 		PlayStateModchart.reset(this);
 
 		#if android
@@ -3196,8 +3212,8 @@ class PlayState extends MusicBeatState
 		}
 		if (camZooming && !endingSong && !startingSong && camHUD.zoom < 1.35 && usingBopIntervalEvent && ClientPrefs.camZooms && !ClientPrefs.reducedMotion && (curBeat % camBopInterval == 0))
 		{
-			camBopFactor += 0.015 * camBopIntensity;
-			camHUD.zoom += 0.03 * camBopIntensity;
+			camBopFactor += 0.015 * camBopIntensity * backend.CameraEffects.multiplier();
+			camHUD.zoom += 0.03 * camBopIntensity * backend.CameraEffects.multiplier();
 		} /// WOOO YOU CAN NOW MAKE IT AWESOME
 
 		if (camTwist && curBeat % gfSpeed == 0)
@@ -3269,8 +3285,8 @@ class PlayState extends MusicBeatState
 			}
 			if (camZooming && !endingSong && !startingSong && camHUD.zoom < 1.35 && !usingBopIntervalEvent && ClientPrefs.camZooms && !ClientPrefs.reducedMotion)
 			{
-				camBopFactor += 0.015 * camBopIntensity;
-				camHUD.zoom += 0.03 * camBopIntensity;
+				camBopFactor += 0.015 * camBopIntensity * backend.CameraEffects.multiplier();
+				camHUD.zoom += 0.03 * camBopIntensity * backend.CameraEffects.multiplier();
 			}
 		}
 

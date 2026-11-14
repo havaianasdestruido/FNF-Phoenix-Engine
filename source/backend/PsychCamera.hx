@@ -5,6 +5,15 @@ package backend;
 
 class PsychCamera extends FlxCamera
 {
+	// Scale here too so direct script/menu calls cannot bypass the preference.
+	override public function shake(Intensity:Float = 0.05, Duration:Float = 0.5,
+		?OnComplete:Void->Void, Force:Bool = true, ?Axes:flixel.util.FlxAxes):Void
+	{
+		var strength = CameraEffects.multiplier();
+		if (strength <= 0) return;
+		super.shake(Intensity * strength, Duration, OnComplete, Force, Axes);
+	}
+
 	override public function update(elapsed:Float):Void
 	{
 		// follow the target, if there is one

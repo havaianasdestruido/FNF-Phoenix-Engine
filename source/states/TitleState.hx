@@ -1,5 +1,6 @@
 package states;
 
+import backend.CameraFlash;
 import backend.ClientPrefs;
 import backend.ScreenLayout;
 import backend.ViewportVisuals;
@@ -534,7 +535,7 @@ class TitleState extends MusicBeatState
 
         if (titleText != null) titleText.animation.play('press');
 
-        FlxG.camera.flash(ClientPrefs.flashing ? FlxColor.WHITE : 0x4CFFFFFF, 1);
+        CameraFlash.flash(FlxG.camera, FlxColor.WHITE, 1);
         FlxG.sound.play(Paths.sound('confirmMenu'), 0.7);
 
         transitioning = true;
@@ -688,7 +689,7 @@ class TitleState extends MusicBeatState
 
       remove(ngSpr);
       remove(credGroup);
-      FlxG.camera.flash(FlxColor.WHITE, 4);
+      CameraFlash.flash(FlxG.camera, FlxColor.WHITE, 4);
       skippedIntro = true;
     }
   }

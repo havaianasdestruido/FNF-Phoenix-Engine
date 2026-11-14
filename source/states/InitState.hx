@@ -7,12 +7,11 @@ import backend.LaunchState;
 import backend.LaunchTarget;
 import backend.Paths;
 import backend.PlayerSettings;
+import backend.PlayerStats;
+import backend.PlaytimeTracker;
 import flixel.FlxState;
 
 import backend.Achievements;
-#if ACHIEVEMENTS_ALLOWED
-import backend.PlaytimeTracker;
-#end
 
 /**
  * Handles initialization of variables when first opening the game.
@@ -59,6 +58,7 @@ class InitState extends FlxState {
 			Achievements.load(); // Preserve achievements even when preferences are bypassed.
 			#end
 		}
+		PlayerStats.load();
 		// Opt-in vlog (Options -> Misc): Main already restored it from the raw
 		// save, this re-syncs with the value loadPrefs() just read in case the
 		// early read could not open funkin.sol.
@@ -70,9 +70,7 @@ class InitState extends FlxState {
 		FlxG.signals.focusLost.add(backend.LowMemory.onFocusLost);
 		Conductor.recalculateTimings(); // #43: apply the saved safeFrames before any song starts
 
-		#if ACHIEVEMENTS_ALLOWED
 		FlxG.plugins.addIfUniqueType(new PlaytimeTracker());
-		#end
 
         /*
         #if ACHIEVEMNTS_ALLOWED
