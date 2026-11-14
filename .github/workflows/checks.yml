@@ -99,6 +99,11 @@ jobs:
       # Stage 0-2 (+5) are dependency free and always run.
       - name: Test mod discovery, the ModSecurity gate and loader invariants
         run: bash tests/haxe/run-lua-discovery.sh
+      # The gate's policy itself, including the per-mod switch of Mods > Mod Info
+      # (player choice vs pack.json, modSecurity.txt, the panel's confirmation
+      # and text rules).
+      - name: Test the ModSecurity policy and the per-mod player switch
+        run: bash tests/haxe/run-mod-security.sh
       # What the engine reports when a script is skipped, blocked or broken
       # (docs/LUA_SCRIPT_DEBUGGING.md). Runs for builds with and without Lua.
       - name: Test the Lua load diagnostics

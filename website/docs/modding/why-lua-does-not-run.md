@@ -118,6 +118,10 @@ that merely mention a blocked name, for example a `debugPrint('http://…')` (ru
 rule, the line number and the `scriptSandboxAllowlist` entry that allows it. See
 the [script security sandbox](./script-security.md) page for the rule list.
 
+If you trust the mod and only want to play it, you do not have to edit it: the
+[switch in the Mods menu](./script-security.md#per-mod-switch-in-the-mods-menu)
+turns the scan off for that one mod.
+
 A script saved as UTF-16 is also rejected here (rule `security.binary-source`).
 Save it as UTF-8.
 

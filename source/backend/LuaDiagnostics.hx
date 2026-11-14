@@ -839,7 +839,7 @@ class LuaDiagnostics
   /**
    * How to get past a ModSecurity block. `modFolder` is `null` for a loose
    * script (directly under `mods/scripts`, `mods/data/<song>`, ...), which has
-   * no `pack.json` to carry an allowlist.
+   * no `pack.json` to carry an allowlist and no Mod Info switch in the Mods menu.
    */
   public static function securityHint(modFolder:Null<String>, rules:Array<String>):String
   {
@@ -866,6 +866,7 @@ class LuaDiagnostics
     }
     return encoding + 'To run it anyway add "scriptSandboxAllowlist": [$quoted] to mods/$modFolder/pack.json '
       + '(or "scriptSandbox": false to turn the scan off for this mod), or remove the flagged code. '
+      + 'A player who trusts the mod can also turn ModSecurity off for it in the Mods menu (Mod Info). '
       + 'The scan matches text, so it also fires on a string or a trailing comment.';
   }
 

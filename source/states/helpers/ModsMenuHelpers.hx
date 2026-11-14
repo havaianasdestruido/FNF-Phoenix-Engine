@@ -2,6 +2,7 @@ package states.helpers;
 
 #if MODS_ALLOWED
 import backend.ClientPrefs;
+import backend.ModSecurity;
 import backend.Paths;
 import flixel.FlxG;
 import flixel.addons.transition.FlxTransitionableState;
@@ -163,8 +164,20 @@ class ModsMenuHelpers
 		state.modName.y = state.modNameInitialY - (state.modName.height / 2);
 		state.modRestartText.visible = curMod.mustRestart;
 		state.modDesc.text = curMod.desc;
+		ModsMenuHelpers.updateModSecurityText(state);
 
 		for (button in state.buttons) if(button.focusChangeCallback != null) button.focusChangeCallback(button.onFocus);
+	}
+
+	/** Shows whether the script sandbox is on for the selected mod (changed in Mod Info). */
+	public static function updateModSecurityText(state:ModsMenuState)
+	{
+		var curMod:ModItem = state.modsGroup.members[state.curSelectedMod];
+		if(curMod == null || state.modSecurityText == null) return;
+
+		var enabled:Bool = ModSecurity.getStatus(curMod.folder).enabled;
+		state.modSecurityText.text = 'ModSecurity: ' + (enabled ? 'ON' : 'OFF');
+		state.modSecurityText.color = enabled ? FlxColor.WHITE : 0xFFFF6666;
 	}
 
 	public static function updateItemPositions(state:ModsMenuState)

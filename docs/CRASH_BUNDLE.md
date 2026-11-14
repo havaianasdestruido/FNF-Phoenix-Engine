@@ -13,6 +13,7 @@ export" task; it pairs with the §11 FILES work (the SAF picker and the
 | `bundle.json` | Manifest: format marker, engine/JSE/Psych versions, git commit, target, timestamp, the crash-log path, the active mod, the enabled/disabled mod list, the final file list and any skipped/failed pieces. |
 | `crash.txt` | The same text as `crash/FNF-Phoenix-Engine_<date>.log` (message, stack, versions, hardware). |
 | `modsList.txt` | The raw enabled/disabled mod list, read directly so nothing is rewritten mid-crash. |
+| `modSecurity.txt` | Only when the player changed a mod's ModSecurity switch in the Mods menu (Mod Info): `<folder>\|0` means that mod's scripts ran unsandboxed, whatever its `pack.json` says. |
 | `mods/<folder>/pack.json` | One per installed mod (up to 200). |
 | `prefs.json` | Every preference, in the [settings-backup](SETTINGS_BACKUP.md) format. |
 | `screenshot.png` | The frame the game crashed on (JPEG fallback if a huge PNG would exceed the entry cap). Best effort. |

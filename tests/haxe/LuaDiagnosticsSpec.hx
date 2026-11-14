@@ -544,11 +544,13 @@ class LuaDiagnosticsSpec
     check(inMod.indexOf('"scriptSandboxAllowlist": ["lua.os", "network.url"]') != -1, 'allowlist snippet lists each rule once: $inMod');
     check(inMod.indexOf('mods/My Mod/pack.json') != -1, 'names the pack.json to edit');
     check(inMod.indexOf('"scriptSandbox": false') != -1, 'mentions the opt-out');
+    check(inMod.indexOf('Mods menu (Mod Info)') != -1, 'mentions the per-mod switch a player can use');
 
     for (loose in [LuaDiagnostics.securityHint(null, ['lua.io']), LuaDiagnostics.securityHint('', ['lua.io'])])
     {
       check(loose.indexOf('loose script') != -1, 'a loose script is called out');
       check(loose.indexOf('"scriptSandboxAllowlist": ["lua.io"]') != -1, 'loose script still gets the snippet');
+      check(loose.indexOf('Mods menu') == -1, 'a loose script has no Mod Info switch to point at');
     }
 
     // NUL bytes (a script saved as UTF-16) are not something to allow: the fix is the encoding.
