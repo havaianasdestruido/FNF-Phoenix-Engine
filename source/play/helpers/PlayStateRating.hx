@@ -6,6 +6,7 @@ import backend.ClientPrefs;
 import backend.Conductor;
 import backend.CoolUtil;
 import backend.Highscore;
+import backend.PlayerStats;
 #if MODS_ALLOWED
 #end
 import backend.WeekData;
@@ -124,7 +125,12 @@ class PlayStateRating
 				if (!ClientPrefs.complexAccuracy) state.totalNotesHit += state.daRating.ratingMod;
 				if (ClientPrefs.complexAccuracy) state.totalNotesHit += wife;
 				note.ratingMod = state.daRating.ratingMod;
-				if(!note.ratingDisabled) state.daRating.increase();
+				if(!note.ratingDisabled)
+				{
+					state.daRating.increase();
+					if (PlayerStats.canTrackGameplay(state.cpuControlled, state.practiceMode, state.ffmpegMode, PlayState.chartingMode, state.trollingMode))
+						PlayerStats.recordJudgement(state.daRating.name);
+				}
 			}
 			note.rating = state.daRating.name;
 			note.hitTiming = state.hitTiming;
