@@ -101,6 +101,13 @@ Should include exposing almost ALL game screens thought the Modding API. (By scr
 
 - Adjusting for lower Android SDK target (I want to play on my Android 5.0 phone), but only on a new experimental branch.
 
+---
+
+- Add a `stdfire` library for softmods where it contains util functions.
+- - `stdfire.NativeTitleRename` - Renames the engine app title, by "Native", I mean that it should rename on all platforms supported: Desktop, Web, etc.
+- - `stdfire.NativeMSGBox` - System low-level/native message box, for an example, on Windows it should use a `WIN32` `MessageBox("")` box, on Web, it should use `alert()`.
+- - `stdfire.NativeWarn` - Non-MSGbox alert approach, should be used only for small warnings, like a toast, on Android, it should only display a `Toast` on the bottom, on Windows, it should use a `WIN32` `Tooltip/Balloon`.
+
 ## 1. BUILD / TOOLCHAIN (all targets green)
 
 - **[P0] HashLink target blocked.** `lime.hdll` missing locally, HL wasn't verifiable, HL agent dead-ended. Install a compatible HashLink (`lime.hdll` + `lime-hdiowrap`), fix any compile errors, re-enable the `hl` CI job in `.github/workflows/main.yml`. ([#63](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/issues/63))
