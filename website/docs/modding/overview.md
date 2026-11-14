@@ -93,6 +93,15 @@ mods/bf-clicker/
 
 `example_mods/` also contains `modTemplate.zip` and a script template.
 
+## The bundled Lua feature tour
+
+`mods/phoenix-showcase/` is a second shipped example, written entirely in **Lua**.
+It rebuilds Erect Dad Battle as a guided tour of the newer systems: all 34
+modchart modifiers, two playfields, 3D perspective, runtime and built-in
+shaders, a custom camera, HUD/rating hooks, per-mod save data and an optional
+`META_HORROR` fourth-wall section. Its `README.md` maps every feature to a beat
+in the song and lists the manual test checklist.
+
 ## Where to go next
 
 | Page | Contents |

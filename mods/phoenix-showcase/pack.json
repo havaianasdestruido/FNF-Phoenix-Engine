@@ -1,0 +1,10 @@
+{
+  "name": "Phoenix Feature Tour",
+  "description": "Playable feature tour of Phoenix Engine: all 34 modchart modifiers, playfields and 3D perspective, runtime + built-in shaders, custom cameras, a fourth-wall segment and a per-mod save file. Built on Erect Dad Battle.",
+  "restart": false,
+  "color": [255, 22, 210],
+  "runsGlobally": false,
+  "platforms": ["desktop", "mobile"],
+  "scriptSandbox": true,
+  "scriptSandboxAllowlist": []
+}

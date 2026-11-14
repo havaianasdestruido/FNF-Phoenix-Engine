@@ -121,12 +121,22 @@ class LuaUtils {
 		}
 	}
 
-	public static inline function cameraFromString(cam:String):FlxCamera {
+	public static function cameraFromString(cam:String):FlxCamera {
+		final state:PlayState = PlayState.instance;
+		if (cam == null || state == null)
+			return null;
+
+		// Cameras made with createCamera() live in the state's variable map, so
+		// scripts can target them by name (setObjectCamera, addShaderToCamera...).
+		final custom:Dynamic = state.variables.get(cam);
+		if (custom != null && Std.isOfType(custom, FlxCamera))
+			return cast custom;
+
 		return switch(cam.toLowerCase()) {
-			case 'camhud' | 'hud': return PlayState.instance.camHUD;
-			case 'camnotes' | 'notes' | 'camstrum' | 'strum': return PlayState.instance.camNotes != null ? PlayState.instance.camNotes : PlayState.instance.camHUD;
-			case 'camother' | 'other': return PlayState.instance.camOther;
-			case _: PlayState.instance.camGame;
+			case 'camhud' | 'hud': state.camHUD;
+			case 'camnotes' | 'notes' | 'camstrum' | 'strum': state.camNotes != null ? state.camNotes : state.camHUD;
+			case 'camother' | 'other': state.camOther;
+			case _: state.camGame;
 		}
 	}
 	

@@ -1,0 +1,19 @@
+{
+  "songs": [
+    ["Phoenix Feature Tour", "dad", [255, 22, 210]]
+  ],
+  "weekCharacters": [
+    "dad",
+    "bf",
+    "gf"
+  ],
+  "weekBackground": "stage",
+  "weekBefore": "tutorial",
+  "storyName": "Phoenix Feature Tour",
+  "weekName": "Phoenix Feature Tour",
+  "freeplayColor": [255, 22, 210],
+  "startUnlocked": true,
+  "hideStoryMode": true,
+  "hideFreeplay": false,
+  "difficulties": "Erect"
+}
