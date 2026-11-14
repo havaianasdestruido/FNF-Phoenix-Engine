@@ -49,6 +49,31 @@ class GameplayStabilityTest(unittest.TestCase):
         )[0]
         self.assertEqual(follow.count("updateHitbox();"), 1)
 
+    def test_recycled_sustains_are_centred_on_the_lane_arrow(self):
+        note = read("source/objects/Note.hx")
+        # Hold bodies are centred with (arrow width - hold width) / 2. The arrow width
+        # has to come from `laneArrowWidth`: `width` still describes the hold frame at
+        # that point, so the old `offsetX += width / 2 ... -= width / 2` dance centred
+        # a fresh note correctly but left recycled holds ~37px off their lane.
+        self.assertIn("laneArrowWidth = width;", note)
+        self.assertIn(
+            "final laneWidth:Float = (laneArrowWidth > 0 ? laneArrowWidth : width);", note
+        )
+        self.assertIn("offsetX = (laneWidth - width) / 2;", note)
+        # Only the pixel path may still recentre from the pre-play width (its
+        # `reloadNote()` already re-measured the frame, so it is a no-op there).
+        self.assertEqual(note.count("offsetX += width / 2;"), 1)
+        self.assertEqual(note.count("offsetX -= width / 2;"), 1)
+
+    def test_lane_arrow_width_survives_recycling(self):
+        note = read("source/objects/Note.hx")
+        # `laneArrowWidth` describes the noteskin, so it is captured when the skin
+        # loads and must not be reset with the per-chart-note pooled state.
+        skin_load = note.split("if (!changeSize)", 1)[1].split("offsetX = 0;", 1)[0]
+        self.assertIn("laneArrowWidth = width;", skin_load)
+        reset = note.split("private function resetPooledState", 1)[1]
+        self.assertNotIn("laneArrowWidth", reset)
+
     def test_spawn_queue_does_not_require_an_unneeded_lookahead(self):
         notes = read("source/play/helpers/PlayStateNotes.hx")
         spawn = notes.split("public static function spawnNotes", 1)[1].split(

@@ -28,6 +28,7 @@ new Option(name, description, variable, type, defaultValue, options, platforms)
 | `scrollSpeed` | how fast the value changes while a direction is held |
 | `displayFormat` | `%v` current value, `%d` default value |
 | `onChange` | callback fired when the value changes |
+| `live` / `readValue` | the row mirrors a value owned by something else, and is re-read every frame |
 | `showBoyfriend` | show the preview character next to the list |
 
 `'bool'` options render as checkboxes (`objects.CheckboxThingie`); everything else renders
@@ -123,6 +124,20 @@ substate immediately. Disabled instances are both hidden and inactive. The share
 movement, and `ClientPrefs.reducedMotion` leaves the pattern static. See the
 [implementation and Mic'd Up! attribution](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/blob/main/docs/MENU_CHECKERBOARD.md).
 
+### Menu music
+
+**Visuals and UI → Menu Music Volume** (`ClientPrefs.menuMusicVolume`, 0–100 %, default
+100 %) sets the menu theme independently from gameplay audio: the song, vocals and hitsounds
+ignore it, and the volume keys (`FlxG.sound.volume`) still multiply on top. The slider
+previews live, so the track audibly follows the drag.
+
+**Fade Menu Music** (`ClientPrefs.menuMusicFade`, default on) fades the theme out on the
+loading screen before a song replaces it instead of cutting it off; off restores the old hard
+cut. Both rows live in the January-Fools-exempt part of the menu, so the joke prefs never hide
+them. The player-facing setters are `MenuMusic.ramp()` / `targetVolume()`, which keep a live
+ramp from overwriting the preference — see
+[Menu music volume and fade](./audio.md#menu-music-volume-and-fade).
+
 ## Categories
 
 `options.OptionsState` lists:
@@ -137,6 +152,7 @@ movement, and `ClientPrefs.reducedMotion` leaves the pattern static. See the
 | Game Rendering *(native desktop or Android, inserted via `PlatformSupport`)* | `GameRendererSettingsSubState` |
 | Visuals and UI | `VisualsUISubState` |
 | Gameplay | `GameplaySettingsSubState` |
+| Audio | `AudioSettingsSubState` |
 | Misc | `MiscSettingsSubState` |
 | Mobile Options *(android/ios)* | `mobile.options.MobileOptionsSubState` |
 
@@ -145,7 +161,30 @@ Helpers live in `options/helpers/` (`NotesSubStateHelpers` for the colour previe
 `OptionsMenuHelpers` for shared plumbing).
 
 Deep links can jump straight into a category — `phoenix://menu/misc` opens Options with
-the Misc substate already open (see [Deep links](./deep-links.md)).
+the Misc substate already open, and `phoenix://menu/audio` does the same for Audio (see
+[Deep links](./deep-links.md)).
+
+### Live rows
+
+Almost every option stores its value in `ClientPrefs` and only writes it when the player
+changes the row. A row that mirrors state owned by something else sets `option.live` and
+`option.readValue`: `BaseOptionsMenu.refreshLiveOptions()` re-reads it every frame, so the
+label follows the real value instead of the one the menu was built with.
+
+**Audio → Master Volume** is the reason this exists. The real volume is
+`FlxG.sound.volume`, which the volume keys, the `objects.CustomSoundTray` popup and
+scripts all change. `ClientPrefs.masterVolume` only mirrors it (percent, default 100%), is
+kept out of the save file and out of `.json` backups (`saveBlackList` / `loadBlackList`,
+`SettingsBackup.NOT_PREFERENCES`) because Flixel's `volume` is the persisted value, and is
+mapped through `backend.VolumeCurve`. That is the tray's logarithmic curve, so the row and
+the keys agree: half the slider is a volume of about `0.03`, not `0.5`. Both lists build the
+row with `OptionsMenuHelpers.addMasterVolumeRow()`, so the copy in **Misc** cannot drift
+away from the one in Audio. Changing it pops the tray like a volume key would, and saves
+with the next `ClientPrefs.saveSettings()`.
+
+The row exists because a gamepad, a remote or a touchscreen has no way to press `+`/`-`;
+every `FlxSound` multiplies by `FlxG.sound.volume`, so one value covers music, vocals,
+hitsounds and the pause track.
 
 ## Adding a setting
 
@@ -174,7 +213,13 @@ the Misc substate already open (see [Deep links](./deep-links.md)).
 
 4. **Read it** where it matters (`ClientPrefs.myCoolToggle`).
 
-5. **Platform-only?** Add the field to `PlatformSupport.PREFERENCE_PLATFORMS` instead of
+5. **Owned by something else?** If the value lives outside `ClientPrefs` (a Flixel frontend,
+   a window, the filesystem), set `option.live = true` and `option.readValue`, and apply
+   changes in `onChange`; keep the `ClientPrefs` field as a mirror and add it to the save
+   and backup blacklists. `OptionsMenuHelpers.addMasterVolumeRow()` is the reference
+   implementation.
+
+6. **Platform-only?** Add the field to `PlatformSupport.PREFERENCE_PLATFORMS` instead of
    wrapping the option in `#if`: the menu, the save file and the `.json` backup all read
    that one table. Use `option.onlyOn([...])` when the reason is narrower than the field
    itself.

@@ -323,7 +323,7 @@ class DialogueCharacterEditorState extends MusicBeatState
 		if (mobileInputBlocked())
 			return;
 		FlxG.switchState(editors.MasterEditorMenu.new);
-		FlxG.sound.playMusic(Paths.music('freakyMenu-' + ClientPrefs.daMenuMusic), 1);
+		Paths.playMenuMusic(true);
 		transitioning = true;
 		if (music != null && music.music != null)
 			music.destroy();
@@ -883,7 +883,7 @@ class DialogueCharacterEditorState extends MusicBeatState
 
 			if(FlxG.keys.justPressed.ESCAPE) {
 				FlxG.switchState(editors.MasterEditorMenu.new);
-				FlxG.sound.playMusic(Paths.music('freakyMenu-' + ClientPrefs.daMenuMusic), 1);
+				Paths.playMenuMusic(true);
 				transitioning = true;
 				if (music != null && music.music != null) music.destroy();
 			}
