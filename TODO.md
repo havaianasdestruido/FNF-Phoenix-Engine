@@ -370,13 +370,24 @@ Read `docs/research/psych-fork-engine-changes.md`.
 
 ## 21. PLAYER-FACING SCREENS, SUBSTATES & OPTIONS (idea review)
 
-Ideas checked against the current tree: none of the screens, substates or options below exist yet (`PlayerStats`, `ResultsState`, `StatsState`, `ModchartLabState`, `ExtrasState`, `QuickOptionsSubState`, `PracticeLoopSubState`, `ModReportSubState`, `FreeplayFilterSubState`, `PhotoModeSubState`, `laneUnderlayAlpha`, `resumeCountdown`, `hapticFeedback`, `menuFramerate`, `adaptivePerformance` have no matches in `source/`). Overlaps with existing entries are cross-referenced, not repeated.
+Ideas checked against the current tree: none of the screens, substates or options below exist yet (`PlayerStats`, `ResultsState`, `StatsState`, `ExtrasState`, `QuickOptionsSubState`, `PracticeLoopSubState`, `ModReportSubState`, `FreeplayFilterSubState`, `PhotoModeSubState`, `laneUnderlayAlpha`, `resumeCountdown`, `hapticFeedback`, `menuFramerate`, `adaptivePerformance` have no matches in `source/`). Overlaps with existing entries are cross-referenced, not repeated. (`ModchartLabState` has since shipped — see §21.1.)
 
 ### 21.1. New states
 
 - **[P1] Results screen (`states/ResultsState`).** `PlayStatePlayback.endSong()` currently goes straight back to `FreeplayState` / `StoryMenuState`. After a song or week, show score, accuracy, judgement breakdown, max combo, peak NPS, FC tier and a histogram of hit offsets. The totals already exist on `PlayState`; only per-hit offsets need recording (via `play.helpers.HitTiming`). Roadmap link: the Mic'd Up S/A rank (§0) would live on this screen.
 - **[P2] Player stats (`states/StatsState`, `backend/PlayerStats`).** Lifetime totals: playtime, songs finished, notes per judgement, deaths, full combos, most-played songs and mods. A small `PlayerStats` backend is needed because playtime is only stored as progress toward the 50-hour badge and stops counting once that unlocks. Link it from Awards (`MainMenuState`'s `awards` entry); a new main-menu button would need its own sprite atlas.
-- **[P3] Modchart lab (`editors/ModchartLabState`).** Pick any of the 34 built-in modifiers in `source/modchart/modifiers/`, drag their percents over a looping section, watch the arrows react, then copy the matching `modEase(...)` calls as Lua or Python. There is no visual way to tune a modchart today. Related to the modchart work in §12.
+- **[P3] ~~Modchart lab (`editors/ModchartLabState`)~~ DONE** — the renderer-free half lives in `modchart/lab/`
+  (`ModchartLabCatalog` for the knobs of all 34 modifiers, `ModchartLabTrack` for per-percent
+  automation on loop-local beats, `ModchartLabExport` + `ModchartLabExportOptions` for the
+  Lua/Python fragment); `editors.ModchartLabState` is the screen, reachable from Editors →
+  **Modchart Lab**. Dragging a percent records a keyframe snapped to the 16th-note grid, the
+  looping clock replays the tracks through the real `ModchartManager`/`PlayField.transform`
+  chain (no `PlayState`, no song files), and `C` copies `addModifier`/`modSet`/`modEase` calls —
+  optionally wrapped in a `modRepeater` callback — as Lua or Python, with a file fallback when
+  the clipboard is blocked. Known limits (absolute-time modifiers are phase-shifted, one
+  playfield, `skew` stored but not drawn, `vibrate` is random) are documented. Docs:
+  `docs/MODCHART.md` (§ Modchart lab). Specs: `bash tests/haxe/run-modchart-lab.sh`,
+  `bash tests/haxe/run-modchart-lab-typecheck.sh`; both run in `checks.yml`.
 - **[P2] Extras hub (`states/ExtrasState`).** A menu listing custom screens that enabled mods declare in a new `menus` list in `pack.json`. `ModState` screens can only be opened by a script calling `switchCustomState` (`states/ModState.hx`), so each mod currently has to build its own entry point, for example by overlaying `MainMenuState`. Needs `backend.Mods` parsing of `menus` and a platform-support check for each entry.
 - **[P3] Input tester (`states/InputTestState`, `phoenix://input`).** Live view of keys, gamepad buttons and touch points, with a simultaneous-press counter and press timing, so a player can see that a keyboard drops a third key or a phone tracks only two fingers. Give it a `phoenix://` route like `phoenix://diagnostics` (`DiagnosticsReport`). Player-facing tool for the poll-rate and key-rollover audit in §15 (`PlayStateInput`).
 
