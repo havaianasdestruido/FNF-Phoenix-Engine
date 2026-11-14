@@ -54,6 +54,7 @@ import play.helpers.PlayStateCutscenes;
 import play.helpers.PlayStateDistantNotes;
 import play.helpers.PlayStateEvents;
 import play.helpers.PlayStateInput;
+import play.helpers.PlayStateMetronome;
 import play.helpers.PlayStateNoteHelpers;
 import play.helpers.PlayStateNotes;
 import play.helpers.PlayStatePlayback;
@@ -1765,6 +1766,7 @@ class PlayState extends MusicBeatState
 			Paths.music(Paths.formatToSongPath(ClientPrefs.pauseMusic));
 
 		cacheCountdown();
+		PlayStateMetronome.cache(this);
 		cachePopUpScore();
 
 		// [P3] Shader warm-up: compile what this stage/song declares while the
@@ -2067,6 +2069,7 @@ class PlayState extends MusicBeatState
 		stagesFunc(function(stage:BaseStage) stage.openSubState(SubState));
 		if (paused)
 		{
+			backend.Metronome.stop();
 			if (FlxG.sound.music != null)
 			{
 				FlxG.sound.music.pause();
@@ -3066,6 +3069,7 @@ class PlayState extends MusicBeatState
 	}
 
 	override function destroy() {
+		backend.Metronome.stop();
 		PlayStateModchart.reset(this);
 
 		#if android
@@ -3176,10 +3180,14 @@ class PlayState extends MusicBeatState
 	}
 
 	var lastBeatHit:Int = -1;
+	var lastMetronomeBeat:Int = -1;
+	var metronomeResumeTime:Null<Float> = null;
 	var twisted = false;
 
 	override function beatHit()
 	{
+		// Keep the practice tick ahead of stage/script beat callbacks.
+		PlayStateMetronome.beatHit(this);
 		super.beatHit();
 
 		if (lastBeatHit == curBeat) return;

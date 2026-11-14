@@ -75,6 +75,8 @@ jobs:
         run: bash tests/haxe/run-miss-counter.sh
       - name: Test Early/Late timing classification and its dead zone
         run: bash tests/haxe/run-hit-timing.sh
+      - name: Test metronome modes, count-in beats and seek suppression
+        run: bash tests/haxe/run-metronome.sh
       - name: Test moving checkerboard preference and frame-rate-independent motion
         run: bash tests/haxe/run-moving-checkerboard.sh
       - name: Test distant-note camera isolation and unsupported-target fallback

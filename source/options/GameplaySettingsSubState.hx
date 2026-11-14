@@ -143,6 +143,15 @@ class GameplaySettingsSubState extends BaseOptionsMenu
 			addOption(option);
 		}
 
+		var option:Option = new Option('Metronome:',
+			'Play a tick on every beat. Count-in limits it to the five lead-in beats;\n'
+			+ 'Always keeps it through the song. Uses the game volume, so it is silent when muted.',
+			'metronome',
+			'string',
+			'Off',
+			['Off', 'Count-in', 'Always']);
+		addOption(option);
+
 		// Global song stem volume overrides: forced on every song, so charts, stages and
 		// scripts cannot change them (see play.helpers.PlayStatePlayback).
 		var option:Option = new Option('Override Instrumental Volume',

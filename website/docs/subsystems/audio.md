@@ -90,6 +90,21 @@ gives `FlxSound` a store-only `pitch` property so the code compiles there, and
 
 :::
 
+### Metronome
+
+**Options → Gameplay Settings → Metronome** (`ClientPrefs.metronome`) defaults to
+**Off**. **Count-in** ticks on the five lead-in beats, including START; **Always**
+continues on every song beat. `play.helpers.PlayStateMetronome` follows the
+countdown timer and `PlayState.beatHit`, restarts the shared
+`backend.Metronome` voice at the current `playbackRate`, and suppresses ticks
+while a `startOnTime` chart-editor seek settles. Pause, death, cutscenes and the
+song ending stop the tick; Game Renderer mode keeps it silent with the stems.
+
+The chart editor uses the same `Metronome_Tick.ogg` voice through
+`backend.Metronome.play()`, which latency calibration can also reuse. The tick
+uses Flixel's normal sound output: master volume and mute apply, so a muted
+device needs a visual beat indicator rather than this sound.
+
 ## Menu music
 
 `Paths.playMenuMusic(force, volume)` plays the menu theme, and

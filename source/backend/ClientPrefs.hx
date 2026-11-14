@@ -32,6 +32,8 @@ class ClientPrefs { //default settings if it can't find a save file containing y
 	public static var ghostTapAnim:Bool = true;
 	public static var hitsoundVolume:Float = 0;
 	public static var hitsoundType:String = 'osu!mania';
+	/** Optional beat tick: Off, Count-in or Always (Options -> Gameplay). */
+	public static var metronome:String = 'Off';
 	// Global song stem volume overrides (Options -> Gameplay Settings). While a toggle is on, its
 	// value is forced on every song for that stem -- charts, stages and scripts cannot change it.
 	// See play.helpers.PlayStatePlayback for the resolution and the per-frame enforcement.

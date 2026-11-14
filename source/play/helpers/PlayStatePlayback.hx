@@ -124,6 +124,7 @@ class PlayStatePlayback
 			if (state.opponentVocals.volume > 0) state.opponentVocals.volume = vocalVolume;
 		}
 		Conductor.songPosition = time;
+		PlayStateMetronome.seek(state);
 		if (time > 0) PlayStateNoteHelpers.clearNotesBefore(state, time);
 	}
 
@@ -436,6 +437,7 @@ class PlayStatePlayback
 		state.timeBar.visible = false;
 		state.timeTxt.visible = false;
 		state.canPause = false;
+		backend.Metronome.stop();
 		state.endingSong = true;
 		state.inCutscene = false;
 		state.updateTime = false;
