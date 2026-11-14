@@ -3196,8 +3196,8 @@ class PlayState extends MusicBeatState
 		}
 		if (camZooming && !endingSong && !startingSong && camHUD.zoom < 1.35 && usingBopIntervalEvent && ClientPrefs.camZooms && !ClientPrefs.reducedMotion && (curBeat % camBopInterval == 0))
 		{
-			camBopFactor += 0.015 * camBopIntensity;
-			camHUD.zoom += 0.03 * camBopIntensity;
+			camBopFactor += 0.015 * camBopIntensity * backend.CameraEffects.multiplier();
+			camHUD.zoom += 0.03 * camBopIntensity * backend.CameraEffects.multiplier();
 		} /// WOOO YOU CAN NOW MAKE IT AWESOME
 
 		if (camTwist && curBeat % gfSpeed == 0)
@@ -3269,8 +3269,8 @@ class PlayState extends MusicBeatState
 			}
 			if (camZooming && !endingSong && !startingSong && camHUD.zoom < 1.35 && !usingBopIntervalEvent && ClientPrefs.camZooms && !ClientPrefs.reducedMotion)
 			{
-				camBopFactor += 0.015 * camBopIntensity;
-				camHUD.zoom += 0.03 * camBopIntensity;
+				camBopFactor += 0.015 * camBopIntensity * backend.CameraEffects.multiplier();
+				camHUD.zoom += 0.03 * camBopIntensity * backend.CameraEffects.multiplier();
 			}
 		}
 
