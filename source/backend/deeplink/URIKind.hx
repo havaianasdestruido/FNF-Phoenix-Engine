@@ -12,5 +12,6 @@ enum URIKind
 	Song(name:String, difficulty:Null<String>);
 	Mod(modId:String, song:Null<String>);
 	Diagnostics;
+	InputTest;
 	Replay(id:String);
 }

@@ -12,6 +12,8 @@ package backend.deeplink;
  *   - phoenix://diagnostics (also screen/diagnostics) — read-only report page,
  *     no parameters: a fixed destination takes nothing to configure, so a link
  *     that carries a query or a path segment is malformed rather than narrowed
+ *   - phoenix://input (also screen/input) — live input tester page, with the
+ *     same rule: no parameters and no sub-pages
  *   - phoenix://replay/<id>
  *
  * All inputs are bounded (256 chars), validated against an allowlist, and
@@ -90,6 +92,8 @@ class PhoenixURI
 				// The diagnostics page is a destination, not a menu, so its alias
 				// normalises to the same kind the canonical link produces.
 				if (pathParts[0] == "diagnostics") mk(Diagnostics, query);
+				// Same for the input tester: one page, two spellings, one kind.
+				else if (pathParts[0] == "input") mk(InputTest, query);
 				else mk(Screen(pathParts[0]), query);
 			case "song":
 				if (pathParts.length != 1) return null;
@@ -99,6 +103,9 @@ class PhoenixURI
 				if (pathParts.length == 1) mk(Mod(pathParts[0], null), query);
 				else if (pathParts.length == 3 && pathParts[1] == "song") mk(Mod(pathParts[0], pathParts[2]), query);
 				else null;
+			case "input":
+				if (pathParts.length != 0) return null;
+				mk(InputTest, query);
 			case "diagnostics":
 				if (pathParts.length != 0) return null;
 				mk(Diagnostics, query);
@@ -119,6 +126,11 @@ class PhoenixURI
 					return null;
 			case Song(_, diff):
 				if (diff != null && diff.length > 0 && !~/^[a-z0-9_-]+$/i.match(diff))
+					return null;
+			case InputTest:
+				// The tester has no device filter and no sub-page to select, so a
+				// query is as malformed here as it is for the diagnostics page.
+				if (hasParams(query))
 					return null;
 			case Diagnostics:
 				// A read-only page with nothing to configure: a link carrying a
