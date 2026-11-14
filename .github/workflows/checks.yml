@@ -98,6 +98,10 @@ jobs:
         run: bash tests/haxe/run-menu-music.sh
       - name: Typecheck the hold-to-confirm Flixel layer
         run: bash tests/haxe/run-hold-to-confirm-typecheck.sh
+      - name: Test the sound tray / master volume curve
+        run: bash tests/haxe/run-volume-curve.sh
+      - name: Test the master volume row mirrors FlxG.sound.volume
+        run: bash tests/haxe/run-master-volume.sh
       - name: Test PlayerStats, PlaytimeTracker, StatsState and Awards tab wiring
         run: bash tests/haxe/run-player-stats.sh
 

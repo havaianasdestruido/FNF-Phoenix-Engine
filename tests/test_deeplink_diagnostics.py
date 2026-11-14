@@ -35,7 +35,9 @@ REPORT = "source/backend/DiagnosticsReport.hx"
 TESTS = "tests/uri/TestPhoenixURI.hx"
 RUNNER = "tests/uri/run.sh"
 
-MENU_NAMES = ["main", "mods", "options", "misc", "story", "freeplay", "credits"]
+# `audio` joined the v1 menu set with Options -> Audio (the master volume row);
+# it is a menu destination like `misc`, so it belongs to the same allowlist.
+MENU_NAMES = ["main", "mods", "options", "misc", "audio", "story", "freeplay", "credits"]
 
 # Anything that would mean "this page changed the player's game or disk".
 WRITE_PATTERNS = (
@@ -112,7 +114,7 @@ class DiagnosticsParserTests(unittest.TestCase):
     def test_v1_menu_contract_is_untouched(self):
         source = read(PARSER)
         parse = block(source, "public static function parse(")
-        self.assertIn('"main", "mods", "options", "misc", "story", "freeplay", "credits"', parse)
+        self.assertIn('"main", "mods", "options", "misc", "audio", "story", "freeplay", "credits"', parse)
         self.assertNotIn("diagnostics", parse,
                          "the legacy parser stays menu-only; diagnostics is a v2 route")
         allowlist = re.search(r'\[([^\]]*)\]\.indexOf\(route\)', source).group(1)
