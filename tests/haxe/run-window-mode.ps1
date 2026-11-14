@@ -28,7 +28,7 @@ try {
     # each native desktop target without invoking hxcpp or producing binaries.
     foreach ($platform in @("windows", "linux", "mac")) {
         $output = "$testSource/generated/$platform"
-        Invoke-Haxe ($common + @("-D", $platform, "-D", "no-compilation", "-cpp", $output))
+        Invoke-Haxe ($common + @("-D", "desktop", "-D", $platform, "-D", "no-compilation", "-cpp", $output))
         $generated = "$output/src/backend/WindowMode.cpp"
         if (-not (Select-String -LiteralPath $generated -Pattern 'resizeWindow' -SimpleMatch -Quiet)) {
             throw "resizeWindow missing for $platform"
