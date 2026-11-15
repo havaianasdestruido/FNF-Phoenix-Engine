@@ -541,11 +541,11 @@ jobs:
           result=${PIPESTATUS[0]}
           set -e
           if [ "$result" -ne 0 ]; then
-            while IFS= read -r line; do
-              line=${line//%/%25}
-              line=${line//$'\r'/%0D}
-              printf '::error title=Android build diagnostic::%s\n' "$line"
-            done < <(tail -n 45 "$RUNNER_TEMP/phoenix-android-build.log")
+            message=$(tail -n 80 "$RUNNER_TEMP/phoenix-android-build.log")
+            message=${message//%/%25}
+            message=${message//$'\r'/%0D}
+            message=${message//$'\n'/%0A}
+            printf '::error title=Android build diagnostic::%s\n' "$message"
           fi
           exit "$result"
 
