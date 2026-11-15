@@ -540,6 +540,21 @@ jobs:
           fi
           exit "$result"
 
+      # TEMP diagnostics: did the shim reach the generated hxcpp project?
+      - name: Diagnose Android link inputs
+        if: failure() && matrix.target == 'android'
+        shell: bash
+        run: |
+          set -uo pipefail
+          for f in $(find build/release/android/obj -maxdepth 1 -name '*.xml' 2>/dev/null); do
+            echo "=== $f"
+            grep -nE "phoenix_luajit_bionic_stdio|luajit_bionic_stdio_build|__sF|Could not find" "$f" | head -20 || echo "(no shim entries)"
+          done
+          echo "=== generated C++ for the shim"
+          ls build/release/android/obj/src/hxluajit/ 2>/dev/null || echo "(no hxluajit src dir)"
+          echo "=== defines the C++ pass got"
+          grep -nE "android|LUA_ALLOWED" build/release/android/obj/Options.txt 2>/dev/null | head -20 || echo "(no Options.txt)"
+
       # ==========================================
       # Verify the actual merged Android manifest
       # ==========================================
