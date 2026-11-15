@@ -526,21 +526,26 @@ jobs:
           if [ "${{ inputs.fullAssets }}" != "true" ]; then
             args+=("-DNO_BUILTIN_CONTENT")
           fi
-          # TEMP diagnostics: mirror the failure tail into check annotations,
-          # because the Actions job log is not reachable from every environment.
+          # TEMP diagnostics: annotations are capped at 4096 chars, so emit the
+          # errors first and the log tail second, each in its own annotation.
           set +e
           haxelib run lime build android "${args[@]}" 2>&1 | tee "$RUNNER_TEMP/android.log"
           result=${PIPESTATUS[0]}
           set -e
           if [ "$result" -ne 0 ]; then
-            echo "--- last 60 lines ---"
-            tail -n 60 "$RUNNER_TEMP/android.log"
-            message=$(tail -n 60 "$RUNNER_TEMP/android.log")
-            message="$message"$'\n'"=== error-ish ==="$'\n'$(grep -nE "error|undefined symbol|FAILED|lld|Error" "$RUNNER_TEMP/android.log" | tail -n 40 || true)
-            message=${message//%/%25}
-            message=${message//$'\r'/}
-            message=${message//$'\n'/%0A}
-            printf '::error title=AndroidDiagnostic::%s\n' "$message"
+            errors=$(grep -nE "error:|undefined symbol|FAILED|lld:|cannot find|No such file|fatal" "$RUNNER_TEMP/android.log" | tail -n 25 || true)
+            tailtxt=$(tail -n 25 "$RUNNER_TEMP/android.log")
+            announce() {
+              local msg="$1"
+              msg=${msg//%/%25}
+              msg=${msg//$'\r'/}
+              msg=${msg//$'\n'/%0A}
+              printf '::error title=%s::%s\n' "$2" "$msg"
+            }
+            announce "ERRORS:$errors" AndroidErrors
+            announce "TAIL:$tailtxt" AndroidTail
+            printf '%s\n' "$errors" >&2
+            printf '%s\n' "$tailtxt" >&2
           fi
           exit "$result"
 
