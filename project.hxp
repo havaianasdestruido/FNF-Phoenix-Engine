@@ -1046,6 +1046,12 @@ class Project extends HXProject
 
 		addAssetPath("assets/embed", "assets", "default", ["*"], exclude, true);
 
+		// Dark flixel-ui skin (overrides default light-themed UI assets from the flixel-ui haxelib).
+		// Ported from FNF-Troll-Engine: https://github.com/troll-slaiyers/FNF-Troll-Engine
+		// flixel-ui's include.xml embeds its own assets/images renamed to "flixel/flixel-ui/img",
+		// so by embedding our images to the same target path we override the default skin at runtime.
+		addAssetPath("flixel/flixel-ui/img", "flixel/flixel-ui/img", "default", ["*.png"], exclude, true);
+
 		// Shared asset libraries
 		addAssetLibrary("songs", shouldEmbed, shouldPreload);
 		if (!stripped)

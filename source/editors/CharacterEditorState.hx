@@ -1,4 +1,14 @@
 package editors;
+
+import objects.ui.CustomFlxUI.CustomFlxUIInputText;
+import objects.ui.CustomFlxUI.CustomFlxUINumericStepper;
+import objects.ui.CustomFlxUI.CustomFlxUISlider;
+import objects.ui.CustomFlxUI.CustomFlxUITabMenu;
+import objects.ui.CustomFlxUI.CustomFlxUIDropDownMenu;
+import flixel.addons.ui.FlxUIInputText;
+import flixel.addons.ui.FlxUINumericStepper;
+import objects.FlxUIDropDownMenuCustom;
+
 import objects.Character;
 import backend.ClientPrefs;
 import backend.CoolUtil;
@@ -9,17 +19,10 @@ import states.TitleState;
 import play.PlayState;
 import objects.BGSprite;
 import objects.HealthIcon;
-import objects.FlxUIDropDownMenuCustom;
-
 import flixel.FlxState;
-import flixel.addons.ui.FlxInputText;
 import flixel.addons.ui.FlxUI9SliceSprite;
 import flixel.addons.ui.FlxUI;
 import flixel.addons.ui.FlxUICheckBox;
-import flixel.addons.ui.FlxUIInputText;
-import flixel.addons.ui.FlxUINumericStepper;
-import flixel.addons.ui.FlxUISlider;
-import flixel.addons.ui.FlxUITabMenu;
 import flixel.addons.ui.FlxUITooltip.FlxUITooltipStyle;
 import flixel.animation.FlxAnimation;
 import flixel.graphics.FlxGraphic;
@@ -81,8 +84,8 @@ class CharacterEditorState extends MusicBeatState
 	var helpBg:FlxSprite;
 	var helpTexts:FlxSpriteGroup;
 
-	var UI_box:FlxUITabMenu;
-	var UI_characterbox:FlxUITabMenu;
+	var UI_box:CustomFlxUITabMenu;
+	var UI_characterbox:CustomFlxUITabMenu;
 
 	var selectedFormat:FlxTextFormat = new FlxTextFormat(FlxColor.LIME);
 
@@ -176,7 +179,7 @@ class CharacterEditorState extends MusicBeatState
 			{name: 'Settings', label: 'Settings'},
 		];
 
-		UI_box = new FlxUITabMenu(null, tabs, true);
+		UI_box = new CustomFlxUITabMenu(null, tabs, true);
 		UI_box.cameras = [camMenu];
 
 		UI_box.resize(250, 120);
@@ -190,7 +193,7 @@ class CharacterEditorState extends MusicBeatState
 			{name: 'Crossfades', label: 'Crossfades'},
 			{name: 'Misc', label: 'Misc'},
 		];
-		UI_characterbox = new FlxUITabMenu(null, tabs, true);
+		UI_characterbox = new CustomFlxUITabMenu(null, tabs, true);
 		UI_characterbox.cameras = [camMenu];
 
 		UI_characterbox.resize(350, 340);
@@ -560,7 +563,7 @@ class CharacterEditorState extends MusicBeatState
 			#end
 		};
 
-		var ghostAlphaSlider:FlxUISlider = new FlxUISlider(this, 'ghostAlpha', 10, makeGhostButton.y + 25, 0, 1, 210, 15, 5, FlxColor.WHITE, FlxColor.BLACK);
+		var ghostAlphaSlider:CustomFlxUISlider = new CustomFlxUISlider(this, 'ghostAlpha', 10, makeGhostButton.y + 25, 0, 1, 210, 15, 5, FlxColor.WHITE, FlxColor.BLACK);
 		ghostAlphaSlider.nameLabel.text = 'Opacity:';
 		ghostAlphaSlider.decimals = 2;
 		ghostAlphaSlider.callback = function(relativePos:Float) {
@@ -582,7 +585,7 @@ class CharacterEditorState extends MusicBeatState
 		UI_box.addGroup(tab_group);
 	}
 
-	var charDropDown:FlxUIDropDownMenuCustom;
+	var charDropDown:CustomFlxUIDropDownMenu;
 	var check_player:FlxUICheckBox;
 	function addSettingsUI() {
 		var tab_group = new FlxUI(null, UI_box);
@@ -599,7 +602,7 @@ class CharacterEditorState extends MusicBeatState
 			ghostChar.flipX = char.flipX;
 		};
 
-		charDropDown = new FlxUIDropDownMenuCustom(10, 30, FlxUIDropDownMenuCustom.makeStrIdLabelArray([''], true), function(character:String)
+		charDropDown = new CustomFlxUIDropDownMenu(10, 30, FlxUIDropDownMenuCustom.makeStrIdLabelArray([''], true), function(character:String)
 		{
 			_char = characterList[Std.parseInt(character)];
 			check_player.checked = _char.startsWith('bf');
@@ -707,32 +710,32 @@ class CharacterEditorState extends MusicBeatState
 
 	var changeBar:Bool = false;
 
-	var imageInputText:FlxUIInputText;
-	var noteskinText:FlxUIInputText;
-	var healthIconInputText:FlxUIInputText;
-	var vocalsInputText:FlxUIInputText;
+	var imageInputText:CustomFlxUIInputText;
+	var noteskinText:CustomFlxUIInputText;
+	var healthIconInputText:CustomFlxUIInputText;
+	var vocalsInputText:CustomFlxUIInputText;
 
-	var singDurationStepper:FlxUINumericStepper;
-	var scaleStepper:FlxUINumericStepper;
-	var positionXStepper:FlxUINumericStepper;
-	var positionYStepper:FlxUINumericStepper;
-	var positionCameraXStepper:FlxUINumericStepper;
-	var positionCameraYStepper:FlxUINumericStepper;
+	var singDurationStepper:CustomFlxUINumericStepper;
+	var scaleStepper:CustomFlxUINumericStepper;
+	var positionXStepper:CustomFlxUINumericStepper;
+	var positionYStepper:CustomFlxUINumericStepper;
+	var positionCameraXStepper:CustomFlxUINumericStepper;
+	var positionCameraYStepper:CustomFlxUINumericStepper;
 
 	var flipXCheckBox:FlxUICheckBox;
 	var noAntialiasingCheckBox:FlxUICheckBox;
 
-	var healthColorStepperR:FlxUINumericStepper;
-	var healthColorStepperG:FlxUINumericStepper;
-	var healthColorStepperB:FlxUINumericStepper;
+	var healthColorStepperR:CustomFlxUINumericStepper;
+	var healthColorStepperG:CustomFlxUINumericStepper;
+	var healthColorStepperB:CustomFlxUINumericStepper;
 
-	var barShowDropDown:FlxUIDropDownMenuCustom;
+	var barShowDropDown:CustomFlxUIDropDownMenu;
 
 	function addCharacterUI() {
 		var tab_group = new FlxUI(null, UI_box);
 		tab_group.name = "Character";
 
-		imageInputText = new FlxUIInputText(15, 30, 200, 'characters/BOYFRIEND', 8);
+		imageInputText = new CustomFlxUIInputText(15, 30, 200, 'characters/BOYFRIEND', 8);
 		imageInputText.focusGained = () -> FlxG.stage.window.textInputEnabled = true;
 		var reloadImage:FlxButton = new FlxButton(imageInputText.x + 210, imageInputText.y - 3, "Reload Image", function()
 		{
@@ -754,15 +757,15 @@ class CharacterEditorState extends MusicBeatState
 				getEvent(FlxUINumericStepper.CHANGE_EVENT, healthColorStepperB, null);
 			});
 
-		healthIconInputText = new FlxUIInputText(15, imageInputText.y + 35, 75, leHealthIcon.getCharacter(), 8);
+		healthIconInputText = new CustomFlxUIInputText(15, imageInputText.y + 35, 75, leHealthIcon.getCharacter(), 8);
 		healthIconInputText.focusGained = () -> FlxG.stage.window.textInputEnabled = true;
 
-		vocalsInputText = new FlxUIInputText(15, healthIconInputText.y + 35, 75, char.vocalsFile != null ? char.vocalsFile : '', 8);
+		vocalsInputText = new CustomFlxUIInputText(15, healthIconInputText.y + 35, 75, char.vocalsFile != null ? char.vocalsFile : '', 8);
 		vocalsInputText.focusGained = () -> FlxG.stage.window.textInputEnabled = true;
 
-		singDurationStepper = new FlxUINumericStepper(15, vocalsInputText.y + 45, 0.1, 4, 0, 999, 1);
+		singDurationStepper = new CustomFlxUINumericStepper(15, vocalsInputText.y + 45, 0.1, 4, 0, 999, 1);
 
-		scaleStepper = new FlxUINumericStepper(15, singDurationStepper.y + 40, 0.1, 1, 0.05, 10, 1);
+		scaleStepper = new CustomFlxUINumericStepper(15, singDurationStepper.y + 40, 0.1, 1, 0.05, 10, 1);
 
 		flipXCheckBox = new FlxUICheckBox(singDurationStepper.x + 80, singDurationStepper.y, null, null, "Flip X", 50);
 		flipXCheckBox.checked = char.flipX;
@@ -786,22 +789,22 @@ class CharacterEditorState extends MusicBeatState
 			ghostChar.antialiasing = char.antialiasing;
 		};
 
-		positionXStepper = new FlxUINumericStepper(flipXCheckBox.x + 110, flipXCheckBox.y, 10, char.positionArray[0], -9000, 9000, 0);
-		positionYStepper = new FlxUINumericStepper(positionXStepper.x + 60, positionXStepper.y, 10, char.positionArray[1], -9000, 9000, 0);
+		positionXStepper = new CustomFlxUINumericStepper(flipXCheckBox.x + 110, flipXCheckBox.y, 10, char.positionArray[0], -9000, 9000, 0);
+		positionYStepper = new CustomFlxUINumericStepper(positionXStepper.x + 60, positionXStepper.y, 10, char.positionArray[1], -9000, 9000, 0);
 
-		positionCameraXStepper = new FlxUINumericStepper(positionXStepper.x, positionXStepper.y + 40, 10, char.cameraPosition[0], -9000, 9000, 0);
-		positionCameraYStepper = new FlxUINumericStepper(positionYStepper.x, positionYStepper.y + 40, 10, char.cameraPosition[1], -9000, 9000, 0);
+		positionCameraXStepper = new CustomFlxUINumericStepper(positionXStepper.x, positionXStepper.y + 40, 10, char.cameraPosition[0], -9000, 9000, 0);
+		positionCameraYStepper = new CustomFlxUINumericStepper(positionYStepper.x, positionYStepper.y + 40, 10, char.cameraPosition[1], -9000, 9000, 0);
 
 		var saveCharacterButton:FlxButton = new FlxButton(reloadImage.x, noAntialiasingCheckBox.y + 40, "Save Character", function() {
 			saveCharacter();
 		});
 
-		healthColorStepperR = new FlxUINumericStepper(singDurationStepper.x, saveCharacterButton.y, 20, char.healthColorArray[0], 0, 255, 0);
-		healthColorStepperG = new FlxUINumericStepper(singDurationStepper.x + 65, saveCharacterButton.y, 20, char.healthColorArray[1], 0, 255, 0);
-		healthColorStepperB = new FlxUINumericStepper(singDurationStepper.x + 130, saveCharacterButton.y, 20, char.healthColorArray[2], 0, 255, 0);
+		healthColorStepperR = new CustomFlxUINumericStepper(singDurationStepper.x, saveCharacterButton.y, 20, char.healthColorArray[0], 0, 255, 0);
+		healthColorStepperG = new CustomFlxUINumericStepper(singDurationStepper.x + 65, saveCharacterButton.y, 20, char.healthColorArray[1], 0, 255, 0);
+		healthColorStepperB = new CustomFlxUINumericStepper(singDurationStepper.x + 130, saveCharacterButton.y, 20, char.healthColorArray[2], 0, 255, 0);
 
 		tab_group.add(new FlxText(15, healthColorStepperB.y + 20, 0, 'Noteskin:'));
-		noteskinText = new FlxUIInputText(15, healthColorStepperB.y + 40, 200, '', 8);
+		noteskinText = new CustomFlxUIInputText(15, healthColorStepperB.y + 40, 200, '', 8);
 		noteskinText.focusGained = () -> FlxG.stage.window.textInputEnabled = true;
 		tab_group.add(noteskinText);
 
@@ -837,12 +840,12 @@ class CharacterEditorState extends MusicBeatState
 		UI_characterbox.addGroup(tab_group);
 	}
 
-	var minimumHealthStepper:FlxUINumericStepper;
-	var drainAmountStepper:FlxUINumericStepper;
+	var minimumHealthStepper:CustomFlxUINumericStepper;
+	var drainAmountStepper:CustomFlxUINumericStepper;
 	var healthDrainCheckBox:FlxUICheckBox;
 
-	var shakeIntensityStepper:FlxUINumericStepper;
-	var shakeDurationStepper:FlxUINumericStepper;
+	var shakeIntensityStepper:CustomFlxUINumericStepper;
+	var shakeDurationStepper:CustomFlxUINumericStepper;
 	var shakeScreenBox:FlxUICheckBox;
 	function addMiscUI() {
 		var tab_group = new FlxUI(null, UI_box);
@@ -854,10 +857,10 @@ class CharacterEditorState extends MusicBeatState
 			char.healthDrain = healthDrainCheckBox.checked;
 		};
 
-		minimumHealthStepper = new FlxUINumericStepper(healthDrainCheckBox.x + 80, healthDrainCheckBox.y, 0.01, char.drainFloor, -1, 2, 3);
+		minimumHealthStepper = new CustomFlxUINumericStepper(healthDrainCheckBox.x + 80, healthDrainCheckBox.y, 0.01, char.drainFloor, -1, 2, 3);
 		minimumHealthStepper.name = 'minimumHealthStepper';
 
-		drainAmountStepper = new FlxUINumericStepper(minimumHealthStepper.x + 90, healthDrainCheckBox.y, 0.005, char.drainAmount, 0, 2, 3);
+		drainAmountStepper = new CustomFlxUINumericStepper(minimumHealthStepper.x + 90, healthDrainCheckBox.y, 0.005, char.drainAmount, 0, 2, 3);
 		drainAmountStepper.name = 'drainAmountStepper';
 
 		shakeScreenBox = new FlxUICheckBox(healthDrainCheckBox.x, healthDrainCheckBox.y + 40, null, null, "Shake Screen", 50);
@@ -866,10 +869,10 @@ class CharacterEditorState extends MusicBeatState
 			char.shakeScreen = shakeScreenBox.checked;
 		};
 
-		shakeIntensityStepper = new FlxUINumericStepper(shakeScreenBox.x + 80, shakeScreenBox.y, 0.0005, char.shakeIntensity, 0, 1, 4);
+		shakeIntensityStepper = new CustomFlxUINumericStepper(shakeScreenBox.x + 80, shakeScreenBox.y, 0.0005, char.shakeIntensity, 0, 1, 4);
 		shakeIntensityStepper.name = 'shakeIntensityStepper';
 
-		shakeDurationStepper = new FlxUINumericStepper(shakeIntensityStepper.x + 90, shakeScreenBox.y, 0.01, char.shakeDuration, 0, 1, 4);
+		shakeDurationStepper = new CustomFlxUINumericStepper(shakeIntensityStepper.x + 90, shakeScreenBox.y, 0.01, char.shakeDuration, 0, 1, 4);
 		shakeDurationStepper.name = 'shakeDurationStepper';
 
 		tab_group.add(healthDrainCheckBox);
@@ -892,10 +895,10 @@ class CharacterEditorState extends MusicBeatState
 		UI_characterbox.addGroup(tab_group);
 	}
 
-	var trailLengthStepper:FlxUINumericStepper;
-	var trailDelayStepper:FlxUINumericStepper;
-	var trailAlphaStepper:FlxUINumericStepper;
-	var trailDiffStepper:FlxUINumericStepper;
+	var trailLengthStepper:CustomFlxUINumericStepper;
+	var trailDelayStepper:CustomFlxUINumericStepper;
+	var trailAlphaStepper:CustomFlxUINumericStepper;
+	var trailDiffStepper:CustomFlxUINumericStepper;
 
 	var flixelTrailCheckBox:FlxUICheckBox;
 
@@ -917,16 +920,16 @@ class CharacterEditorState extends MusicBeatState
 			ghostChar.flixelTrail = char.flixelTrail;
 		};
 
-		trailLengthStepper = new FlxUINumericStepper(flixelTrailCheckBox.x + 60, flixelTrailCheckBox.y, 1, 4, 1, 24, 1);
+		trailLengthStepper = new CustomFlxUINumericStepper(flixelTrailCheckBox.x + 60, flixelTrailCheckBox.y, 1, 4, 1, 24, 1);
 		if (Reflect.getProperty(trailLengthStepper, 'name') == null)
 			Reflect.setProperty(trailLengthStepper, 'name', 'trailLengthStepper');
-		trailDelayStepper = new FlxUINumericStepper(trailLengthStepper.x + 70, flixelTrailCheckBox.y, 1, 24, 0, 90, 1);
+		trailDelayStepper = new CustomFlxUINumericStepper(trailLengthStepper.x + 70, flixelTrailCheckBox.y, 1, 24, 0, 90, 1);
 		if (Reflect.getProperty(trailDelayStepper, 'name') == null)
 			Reflect.setProperty(trailDelayStepper, 'name', 'trailDelayStepper');
-		trailAlphaStepper = new FlxUINumericStepper(trailDelayStepper.x + 70, flixelTrailCheckBox.y, 0.1, 0.3, 0, 1, 3);
+		trailAlphaStepper = new CustomFlxUINumericStepper(trailDelayStepper.x + 70, flixelTrailCheckBox.y, 0.1, 0.3, 0, 1, 3);
 		if (Reflect.getProperty(trailAlphaStepper, 'name') == null)
 			Reflect.setProperty(trailAlphaStepper, 'name', 'trailAlphaStepper');
-		trailDiffStepper = new FlxUINumericStepper(trailAlphaStepper.x + 70, flixelTrailCheckBox.y, 0.05, 0.069, 0, 1, 4);
+		trailDiffStepper = new CustomFlxUINumericStepper(trailAlphaStepper.x + 70, flixelTrailCheckBox.y, 0.05, 0.069, 0, 1, 4);
 		if (Reflect.getProperty(trailDiffStepper, 'name') == null)
 			Reflect.setProperty(trailDiffStepper, 'name', 'trailDiffStepper');
 
@@ -942,26 +945,26 @@ class CharacterEditorState extends MusicBeatState
 		UI_characterbox.addGroup(tab_group);
 	}
 
-	var animationDropDown:FlxUIDropDownMenuCustom;
-	var animationInputText:FlxUIInputText;
-	var animationNameInputText:FlxUIInputText;
-	var animationIndicesInputText:FlxUIInputText;
-	var animationFramerate:FlxUINumericStepper;
+	var animationDropDown:CustomFlxUIDropDownMenu;
+	var animationInputText:CustomFlxUIInputText;
+	var animationNameInputText:CustomFlxUIInputText;
+	var animationIndicesInputText:CustomFlxUIInputText;
+	var animationFramerate:CustomFlxUINumericStepper;
 	var animationLoopCheckBox:FlxUICheckBox;
 	function addAnimationsUI() {
 		var tab_group = new FlxUI(null, UI_box);
 		tab_group.name = "Animations";
 
-		animationInputText = new FlxUIInputText(15, 85, 80, '', 8);
+		animationInputText = new CustomFlxUIInputText(15, 85, 80, '', 8);
 		animationInputText.focusGained = () -> FlxG.stage.window.textInputEnabled = true;
-		animationNameInputText = new FlxUIInputText(animationInputText.x, animationInputText.y + 35, 150, '', 8);
+		animationNameInputText = new CustomFlxUIInputText(animationInputText.x, animationInputText.y + 35, 150, '', 8);
 		animationNameInputText.focusGained = () -> FlxG.stage.window.textInputEnabled = true;
-		animationIndicesInputText = new FlxUIInputText(animationNameInputText.x, animationNameInputText.y + 40, 250, '', 8);
+		animationIndicesInputText = new CustomFlxUIInputText(animationNameInputText.x, animationNameInputText.y + 40, 250, '', 8);
 		animationIndicesInputText.focusGained = () -> FlxG.stage.window.textInputEnabled = true;
-		animationFramerate = new FlxUINumericStepper(animationInputText.x + 170, animationInputText.y, 1, 24, 0, 240, 0);
+		animationFramerate = new CustomFlxUINumericStepper(animationInputText.x + 170, animationInputText.y, 1, 24, 0, 240, 0);
 		animationLoopCheckBox = new FlxUICheckBox(animationNameInputText.x + 170, animationNameInputText.y - 1, null, null, "Should it Loop?", 100);
 
-		animationDropDown = new FlxUIDropDownMenuCustom(15, animationInputText.y - 55, FlxUIDropDownMenuCustom.makeStrIdLabelArray([''], true), function(pressed:String) {
+		animationDropDown = new CustomFlxUIDropDownMenu(15, animationInputText.y - 55, FlxUIDropDownMenuCustom.makeStrIdLabelArray([''], true), function(pressed:String) {
 			var selectedAnimation:Int = Std.parseInt(pressed);
 			var anim:AnimArray = char.animationsArray[selectedAnimation];
 			animationInputText.text = anim.anim;
@@ -1070,7 +1073,7 @@ if(!char.isAnimateAtlas) char.animation.remove(anim.anim);
 	}
 
 	override function getEvent(id:String, sender:Dynamic, data:Dynamic, ?params:Array<Dynamic>) {
-		if(id == FlxUIInputText.CHANGE_EVENT && (sender is FlxUIInputText)) {
+		if(id == FlxUIInputText.CHANGE_EVENT && (sender is CustomFlxUIInputText)) {
 			if(sender == healthIconInputText) {
 				leHealthIcon.changeIcon(healthIconInputText.text);
 				char.healthIcon = healthIconInputText.text;
@@ -1086,7 +1089,7 @@ if(!char.isAnimateAtlas) char.animation.remove(anim.anim);
 			else if(sender == noteskinText) {
 				char.noteskin = noteskinText.text;
 			}
-		} else if(id == FlxUINumericStepper.CHANGE_EVENT && (sender is FlxUINumericStepper)) {
+		} else if(id == FlxUINumericStepper.CHANGE_EVENT && (sender is CustomFlxUINumericStepper)) {
 			if (sender == scaleStepper)
 			{
 				reloadCharacterImage();
@@ -1276,7 +1279,7 @@ if(!char.isAnimateAtlas) char.animation.remove(anim.anim);
 		if (FlxG.mouse.justPressed) FlxG.sound.play(Paths.sound('click'));
 		MusicBeatState.camBeat = FlxG.camera;
 
-		var inputTexts:Array<FlxUIInputText> = [animationInputText, imageInputText, healthIconInputText, animationNameInputText, animationIndicesInputText, noteskinText];
+		var inputTexts:Array<CustomFlxUIInputText> = [animationInputText, imageInputText, healthIconInputText, animationNameInputText, animationIndicesInputText, noteskinText];
 		for (i in 0...inputTexts.length) {
 			if(inputTexts[i].hasFocus) {
 				FlxG.sound.muteKeys = [];
