@@ -141,8 +141,46 @@ class FlxGame extends Sprite
 
 	/**
 	 * The filters array to be applied to the game.
+	 *
+	 * Patched for Phoenix: this used to be a plain field that only
+	 * `setFilters()` wrote, and the game loop assigned the result to the
+	 * inherited `filters` property every frame. Scripts address the game object
+	 * as a target ("global" filters, the whole window on top of every camera),
+	 * so `filters` is now the property a mod writes and `_filters` is kept as
+	 * the backing store, mirroring `FlxCamera.filters`.
 	 */
 	var _filters:Array<BitmapFilter>;
+
+	// `filters` itself is inherited from openfl.display.DisplayObject, so the
+	// patch overrides its accessors instead of redeclaring the property (Haxe
+	// rejects a redeclared field). Widening them to public is what lets a
+	// script assign `FlxG.game.filters` directly.
+	@:noCompletion
+	override function get_filters():Array<BitmapFilter>
+	{
+		return _filters;
+	}
+
+	@:noCompletion
+	override function set_filters(Value:Array<BitmapFilter>):Array<BitmapFilter>
+	{
+		// A copy, like `FlxCamera.filters`: DisplayObject clones on assignment,
+		// so pushing into the array a getter handed back must keep working.
+		_filters = Value == null ? null : Value.copy();
+		// Write straight through so the change shows on the next frame instead
+		// of after the update tick, and so `filtersEnabled = false` still hides it.
+		applyGameFiltersNow();
+		return Value;
+	}
+
+	/**
+	 * Pushes `_filters` (or `null` when filters are disabled) to the DisplayObject.
+	 */
+	@:noCompletion
+	public function applyGameFiltersNow():Void
+	{
+		@:privateAccess super.filters = filtersEnabled ? _filters : null;
+	}
 
 	#if (desktop && lime_legacy)
 	/**
@@ -263,6 +301,9 @@ class FlxGame extends Sprite
 		_startCounter = System.getPerformanceCounter();
 		_skipSplash = skipSplash;
 
+		// Script-level ("global") filters start empty, like a camera's.
+		_filters = [];
+
 		// Then get ready to create the game object for real
 		_initialState = (initialState == null) ? FlxState.new : initialState.toNextState();
 
@@ -274,7 +315,7 @@ class FlxGame extends Sprite
 	 */
 	public function setFilters(filters:Array<BitmapFilter>):Void
 	{
-		_filters = filters;
+		this.filters = filters;
 	}
 
 	/**
@@ -740,7 +781,7 @@ class FlxGame extends Sprite
 		FlxArrayUtil.clearArray(FlxG.swipes);
 		#end
 
-		filters = filtersEnabled ? _filters : null;
+		applyGameFiltersNow();
 	}
 
 	function updateElapsed():Void

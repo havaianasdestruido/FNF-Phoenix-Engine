@@ -104,6 +104,43 @@ branch, any `PlayState` field or modchart sprite tag — which is how
 [docs/SHADERS.md](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/blob/main/docs/SHADERS.md)
 for the parameter tables.
 
+## Plain bitmap filters and chainable effects
+
+Shaders are not the only post-process the script API reaches. The OpenFL
+`BitmapFilter`s that `FlxG.camera.filters` and `FlxG.game.filters` take are
+exposed too, plus `flixel.addons.effects.chainable` for per-sprite pixel effects:
+
+- `backend.ScreenFilters` owns the six built-in filters (`BlurFilter`,
+  `GlowFilter`, `DropShadowFilter`, `ColorMatrixFilter`, `ConvolutionFilter`,
+  `DisplacementMapFilter`) plus a named registry per target, so
+  `removeFilter(target, name)` / `setFilterProperty(...)` work without a script
+  holding an OpenFL object. Colour-matrix presets (`invert`, `greyscale`,
+  `sepia`, `sepiacold`, `gameboy`, `nightvision`, the three colour-blindness
+  simulations) cover the usual "game filter" looks in one call.
+- Targets are cameras (`game`, `hud`, `notes`, `other`), a `createCamera()`
+  camera, or `global` for `FlxG.game` — the whole window, under every camera. A
+  `FlxSprite` is not a filter target: Flixel only filters cameras and the game
+  object, so per-sprite looks stay on `setSpriteShader` (`sprite.shader`) or the
+  chainable effects.
+- `source/source-haxelib-patches/flixel/FlxGame.hx` patches `FlxGame` so
+  `FlxG.game.filters` behaves like `FlxCamera.filters` (a persistent array,
+  honoured by `filtersEnabled`, applied immediately) instead of a field only
+  `setFilters()` could write.
+- `backend.ChainableEffects` wraps a sprite in a `FlxEffectSprite` in place —
+  same slot in the state, same cameras — and exposes `shake`, `wave`, `glitch`,
+  `rainbow`, `outline` and `trail`, addressable as a chain
+  (`addChainableEffect`, `removeChainableEffect`, `setChainableEffectsEnabled`).
+
+One `FilterCallbacks.api()` registration builds the whole surface for Lua,
+HScript and Python, so the three languages cannot drift; the parameter tables
+live in
+[docs/SHADERS.md](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/blob/main/docs/SHADERS.md#plain-filters-no-glsl)
+and the generated
+[Lua](../modding/lua-api-reference.md#filters) /
+[Python](../modding/python-api-reference.md#filters) references list every
+function. `bash tests/haxe/run-screen-filters.sh` covers target resolution, the
+registry, defaults, presets and detach/restore ordering.
+
 ## Mario Madness ports
 
 Nine of the pairs above come from

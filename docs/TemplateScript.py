@@ -21,6 +21,8 @@ def onCreatePost():
 	# Example: makeLuaSprite / makeLuaText + addLuaSprite / addLuaText here.
 	# Android haptics: vibrate() sends a 50 ms pulse; vibrate(120) sends 120 ms.
 	# This is an explicit script effect, separate from Options -> Mobile Options -> Haptic Feedback.
+	# Screen looks: addBlurFilter('hud', 'soft', 3, 3), addColorFilter('global', 'gameboy'),
+	# addChainableEffect('boyfriend', 'wave', ...) -- see docs/SHADERS.md.
 	pass
 
 def onDestroy():

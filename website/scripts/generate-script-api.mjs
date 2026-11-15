@@ -23,6 +23,9 @@ const WEBSITE_DIR = path.resolve(__dirname, '..');
 const REPO_ROOT = path.resolve(WEBSITE_DIR, '..');
 const PSYCHLUA_DIR = path.join(REPO_ROOT, 'source', 'psychlua');
 const OUT_DIR = path.join(WEBSITE_DIR, 'docs', 'modding');
+/** Modules whose `register(...)` calls serve every scripting language. */
+const SHARED_MODULES = new Set(['FilterCallbacks']);
+
 const GITHUB_BLOB = 'https://github.com/havaianasdestruido/FNF-Phoenix-Engine/blob/main';
 
 /** Friendly names and blurbs for each callback module. */
@@ -31,6 +34,7 @@ const GROUPS = {
   DeprecatedCallbacks: ['Deprecated', 'Kept for Psych/JS Engine mod compatibility. Avoid in new scripts.'],
   EffectCallbacks: ['Screen effects', 'Post-processing effects applied to cameras (glitch, bloom, VCR, grain, …).'],
   FileCallbacks: ['Files', 'Reading, writing and listing files relative to the mod folder.'],
+  FilterCallbacks: ['Filters', 'OpenFL bitmap filters (blur, glow, colour matrix, …) on cameras and the whole window, plus the flixel-addons chainable sprite effects. One registration serves Lua, Python and HScript.'],
   GameCallbacks: ['Game state', 'Score, health, combo, song flow and the values shown on the HUD.'],
   HardwareCallbacks: ['Hardware', 'GPU, GPU driver, CPU and operating system information.'],
   InputCallbacks: ['Input', 'Keyboard, mouse and gamepad polling.'],
@@ -88,11 +92,17 @@ function readAll(dir, out = []) {
   return out;
 }
 
-/** Find `X.registerFunction("name", function(params)` occurrences. */
+/**
+ * Find `X.registerFunction("name", function(params)` occurrences.
+ *
+ * Shared API builders (`FilterCallbacks.api()`, `WindowCallbacks`) are handed a
+ * `register` callback and call it as `register("name", function(...)`, so the
+ * plain form is matched too — that is the only definition site for those names.
+ */
 function extractFunctions(text, relPath) {
   const lines = text.replace(/\r\n/g, '\n').split('\n');
   const found = [];
-  const re = /registerFunction\(\s*["']([A-Za-z_][\w]*)["']\s*,\s*function\s*\(/g;
+  const re = /(?:registerFunction|\bregister)\(\s*["']([A-Za-z_][\w]*)["']\s*,\s*function\s*\(/g;
 
   // Pre-compute a line index for character offsets.
   const offsets = [];
@@ -270,8 +280,12 @@ function main() {
     const rel = path.relative(REPO_ROOT, file).split(path.sep).join('/');
     const text = fs.readFileSync(file, 'utf8');
     const isPython = rel.includes('/pystdlib/') || rel.endsWith('PythonScript.hx');
+    // Builders that bind one API for every language at once (the filter surface
+    // does) belong on both pages, not just the Lua one.
+    const isShared = SHARED_MODULES.has(path.basename(rel, '.hx'));
     const fns = extractFunctions(text, rel);
-    (isPython ? python : lua).push(...fns);
+    if (isPython || isShared) python.push(...fns);
+    if (!isPython || isShared) lua.push(...fns);
   }
 
   const dedupe = (list) => {

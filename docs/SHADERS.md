@@ -1,5 +1,10 @@
 # Runtime shaders for mods
 
+Not everything here is GLSL: **"Plain filters (no GLSL)"** below covers the OpenFL
+`BitmapFilter`s (`FlxG.camera.filters` / `FlxG.game.filters`) and **"Chainable
+sprite effects"** covers `flixel.addons.effects.chainable`. Those two need no
+shader, no `initLuaShader` and no Shaders-toggle check.
+
 Desktop mods can put GLSL shaders in `mods/<mod>/shaders/` (or the active/global
 mod's `shaders/` directory). Use matching names for optional vertex and fragment
 sources:
@@ -173,6 +178,130 @@ reconstruction) — put it on one camera, not on all three, and prefer
 Tests: `bash tests/haxe/run-retro-shaders.sh` (GLSL portability, uniform wiring,
 effect validation and registration). A runnable tour of the calls lives in
 `example_mods/scripts/RetroShadersExample.lua`.
+
+## Plain filters (no GLSL)
+
+Not every look needs a shader. The OpenFL bitmap filters that
+`FlxG.camera.filters` and `FlxG.game.filters` take are exposed to Lua, Python and
+HScript as well, and they stack with the shader effects above.
+
+| Call | Filter | Notes |
+|---|---|---|
+| `addBlurFilter(target, name, blurX, blurY, quality)` | `BlurFilter` | defaults `4, 4, 1` |
+| `addGlowFilter(target, name, color, alpha, blurX, blurY, strength, quality, inner, knockout)` | `GlowFilter` | defaults red, `6, 6, 2, 1` |
+| `addDropShadowFilter(target, name, distance, angle, color, alpha, blurX, blurY, strength, quality, inner, knockout, hideObject)` | `DropShadowFilter` | `angle` in degrees |
+| `addColorMatrixFilter(target, name, matrix)` | `ColorMatrixFilter` | 20 numbers **or** a preset name |
+| `addColorFilter(target, name, preset)` | `ColorMatrixFilter` | preset only, e.g. `'gameboy'` |
+| `addConvolutionFilter(target, name, matrix, matrixX, matrixY, divisor, bias, preserveAlpha, clamp)` | `ConvolutionFilter` | flat NxM kernel: sharpen, emboss, edge |
+| `addDisplacementMapFilter(target, name, mapImage, componentX, componentY, scaleX, scaleY, mode)` | `DisplacementMapFilter` | `mapImage` is a greyscale `images/` image; `mode` is `wrap` (default), `clamp`, `ignore` or `color` |
+| `addFilter(target, type, name, a, b, c, d, e)` | any of the above | `type` is `'blur'`, `'glow'`, `'shadow'`, `'colormatrix'`, `'convolution'` or `'displacement'` |
+
+`target` is a camera (`'game'`, `'hud'`, `'notes'`, `'other'`), a camera made
+with `createCamera()`, or `'global'` for the whole window — the game object,
+under every camera. `name` is what `removeFilter`, `hasFilter`,
+`setFilterProperty` and `getFilterProperty` use; it defaults to the filter type,
+and adding under an existing name replaces that filter instead of stacking.
+
+```lua
+function onCreatePost()
+    -- Old handheld look for the whole screen, then a soft HUD blur.
+    addColorFilter('global', 'handheld', 'gameboy')
+    addBlurFilter('hud', 'soft', 3, 3)
+
+    -- Sharpen the stage: 3x3 kernel, divisor equals the sum so it stays bright.
+    addConvolutionFilter('game', 'sharpen', {0, -1, 0, -1, 5, -1, 0, -1, 0}, 3, 3, 1)
+
+    -- A water warp needs a greyscale image in images/.
+    addDisplacementMapFilter('game', 'water', 'rippleMap', 1, 2, 6, 6, 'wrap')
+end
+
+function onUpdate(elapsed)
+    -- Everything is addressable by name afterwards.
+    if getProperty('health') > 1.5 then
+        setFilterProperty('hud', 'soft', 'blurX', 12)
+        setFilterProperty('hud', 'soft', 'blurY', 12)
+    end
+end
+
+function onBeatHit()
+    -- Drop one, or only the filters scripts added (a stage's own filters stay).
+    if curBeat == 64 then removeFilter('global', 'handheld') end
+    if curBeat == 96 then clearFilters('game') end
+end
+```
+
+Colours take a number (`0xFF0000`), a hex string (`'#FF0000'`) or a name
+(`'red'`), the same parsing the chart events use. Colour-matrix presets are
+`invert`, `greyscale` (also `grayscale`), `sepia`, `sepiacold`, `gameboy`,
+`nightvision`, `protanopia`, `deuteranopia`, `tritanopia` and `identity`; list
+them from a script with `getFilterPresets()`.
+
+`setGameFilters(type, ...)` is the same as prefixing `addFilter` with `'global'`,
+and `setGameFilters()` clears the window filters — the shape old "game filter"
+snippets expect.
+
+Filters and shader effects share one per-camera chain: a `ShaderFilter` from
+`addBloomEffect` and a `BlurFilter` from `addBlurFilter` both live in
+`camera.filters`, and the order in that array is the order they run. Attach them
+like shaders — cheap ones, on one camera — and remember that a `BlurFilter` on
+`'global'` blurs the HUD text too.
+
+## Chainable sprite effects
+
+`flixel.addons.effects.chainable` is a different kind of effect: it rewrites a
+sprite's *pixels* every frame instead of post-processing a camera. The engine
+keeps one `FlxEffectSprite` per scripted sprite and swaps it into the state in
+place of the original, so draw order and camera assignment survive.
+
+| Shorthand | Effect | Arguments |
+|---|---|---|
+| `addSpriteShakeEffect(tag, intensity, duration, axes)` | `FlxShakeEffect` | decaying jitter, `axes` = `'x'`, `'y'` or `'xy'` |
+| `addSpriteWaveEffect(tag, strength, wavelength, speed, center, mode, direction)` | `FlxWaveEffect` | `mode` = `'all'` (default), `'start'`, `'end'`; `direction` = `'horizontal'`, `'vertical'` |
+| `addSpriteGlitchEffect(tag, strength, size, delay, direction)` | `FlxGlitchEffect` | slice displacement, reshuffled every `delay` seconds |
+| `addRainbowEffect(tag, alpha, brightness, speed, startHue)` | `FlxRainbowEffect` | hue cycling behind the sprite's silhouette |
+| `addSpriteOutlineEffect(tag, color, thickness, mode, quality)` | `FlxOutlineEffect` | `mode` = `'fast'` (default), `'normal'`, `'pixel'`; `quality` 1 is one draw pass per pixel of thickness |
+| `addSpriteTrailEffect(tag, length, alpha, framesDelay, cachePixels)` | `FlxTrailEffect` | position trail, `cachePixels` off for animated sprites |
+| `addChainableEffect(tag, type, a, b, c, d)` | any of the above | `type` = `'shake'`, `'wave'`, `'glitch'`, `'rainbow'`, `'outline'`, `'trail'` |
+
+```lua
+function onCreatePost()
+    -- Chain several effects on one sprite, in draw order.
+    addRainbowEffect('boyfriend', 1, 1, 6)
+    addSpriteOutlineEffect('boyfriend', 'white', 2, 'fast')
+    addSpriteShakeEffect('boyfriend', 4, 0.4, 'xy')
+end
+
+function onBeatHit()
+    -- The same thing built from a table, for effect lists read from data.
+    for _, e in ipairs({{'wave', 8, 4, 3}, {'glitch', 3, 1, 0.05}}) do
+        addChainableEffect('dad', e[1], e[2], e[3], e[4])
+    end
+end
+
+function onUpdatePost(elapsed)
+    -- Manage the chain: list, drop one, freeze, or unwrap the sprite entirely.
+    local chained = getChainableEffects('dad')   -- class names, in order
+    if #chained > 4 then removeChainableEffect('dad', 0) end
+    setChainableEffectsEnabled('dad', getProperty('health') > 0)
+end
+
+function onSongEnd()
+    removeChainableEffects('dad')  -- restores the sprite where the wrapper was
+end
+```
+
+`getChainableEffectTypes()` lists the accepted `type` strings. Effects are
+per-sprite and CPU-side: a full-screen sprite with a `'pixel'` outline or a long
+trail is expensive on low-end phones, so prefer shader effects for whole-camera
+looks.
+
+Both families are registered by
+`source/psychlua/callbacks/FilterCallbacks.hx` (one `api()` used by Lua, HScript
+and Python, so the three languages cannot drift), implemented by
+`source/backend/ScreenFilters.hx` and `source/backend/ChainableEffects.hx`, and
+covered by `bash tests/haxe/run-screen-filters.sh`. Script filters and chainable
+entries are dropped when `PlayState` is destroyed, so nothing leaks into the next
+song.
 
 ## Doido Engine ports
 

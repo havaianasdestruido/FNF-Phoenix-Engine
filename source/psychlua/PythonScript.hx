@@ -35,6 +35,7 @@ import states.substates.GameOverSubstate;
 import psychlua.pystdlib.PyCameraLib;
 import psychlua.pystdlib.PyCharacterLib;
 import psychlua.pystdlib.PyHardwareLib;
+import psychlua.pystdlib.PyFilterLib;
 import psychlua.pystdlib.PyKeyLib;
 import psychlua.pystdlib.PyMiscLib;
 import psychlua.pystdlib.PyPropertyLib;
@@ -363,6 +364,10 @@ class PythonScript
 	PyMiscLib.register(this);
 
 	PyWindowLib.register(this);
+
+	// Plain OpenFL filters and flixel-addons chainable effects, mirroring
+	// psychlua.callbacks.FilterCallbacks for Lua.
+	PyFilterLib.register(this);
 
 // 4th-wall-breaking ("META_HORROR") effects — mirrors the Lua bridge
 	PyMetaHorrorLib.register(this);

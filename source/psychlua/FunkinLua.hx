@@ -22,6 +22,7 @@ import psychlua.callbacks.ModchartCallbacks;
 import psychlua.callbacks.DeprecatedCallbacks;
 import psychlua.callbacks.EffectCallbacks;
 import psychlua.callbacks.FileCallbacks;
+import psychlua.callbacks.FilterCallbacks;
 import psychlua.callbacks.GameCallbacks;
 import psychlua.callbacks.HardwareCallbacks;
 import psychlua.callbacks.InputCallbacks;
@@ -369,6 +370,10 @@ class FunkinLua {
 	DeprecatedCallbacks.register(this);
 
 	EffectCallbacks.register(this);
+
+	// Plain OpenFL filters (blur, glow, colour matrix, ...) and the
+	// flixel-addons chainable sprite effects, mirroring PyFilterLib for Python.
+	FilterCallbacks.register(this);
 
 	MiscCallbacks.register(this);
 
