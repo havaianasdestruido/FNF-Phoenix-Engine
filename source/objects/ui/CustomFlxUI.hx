@@ -6,7 +6,6 @@ import flixel.FlxSprite;
 import flixel.addons.ui.FlxInputText;
 import flixel.addons.ui.FlxUI9SliceSprite;
 import flixel.addons.ui.FlxUIButton;
-import flixel.addons.ui.FlxUIDropDownMenu.FlxUIDropDownHeader;
 import flixel.addons.ui.FlxUIInputText;
 import flixel.addons.ui.FlxUINumericStepper;
 import flixel.addons.ui.FlxUISlider;
@@ -22,8 +21,10 @@ import openfl.events.KeyboardEvent;
  * Dark-themed flixel-ui widget classes, ported from FNF-Troll-Engine:
  * https://github.com/troll-slaiyers/FNF-Troll-Engine (commit 741ca3e "flixel-ui dark mode")
  *
- * Together with the overridden "flixel/flixel-ui/img" assets (dark chrome/button/check/radio/tab
- * sprites registered in project.hxp), these classes give the editor UI a consistent dark look:
+ * Together with the dark chrome/button/check/radio/tab sprites in assets/flixel-ui-dark/ -- which
+ * source/source-haxelib-patches/flixel/addons/ui/FlxUIAssets.hx points flixel-ui's IMG_* constants
+ * at, so the haxelib's own widgets are re-skinned too -- these classes give the editor UI a
+ * consistent dark look:
  *   - Input text / numeric stepper / dropdown header backgrounds use a dark slate (0xFF383A46)
  *   - Text and caret colors are white for contrast
  *   - Plus/minus and tab label colors are forced to white
@@ -177,8 +178,9 @@ class CustomFlxUINumericStepper extends FlxUINumericStepper
  */
 class CustomFlxUIDropDownMenu extends objects.FlxUIDropDownMenuCustom
 {
-	public function new(X:Float = 0, Y:Float = 0, DataList:Array<StrNameLabel>, ?Callback:String->Void, ?Header:FlxUIDropDownHeader,
-			?DropPanel:FlxUI9SliceSprite, ?ButtonList:Array<FlxUIButton>, ?UIControlCallback:Bool->objects.FlxUIDropDownMenuCustom->Void)
+	public function new(X:Float = 0, Y:Float = 0, DataList:Array<StrNameLabel>, ?Callback:String->Void,
+			?Header:objects.FlxUIDropDownMenuCustom.FlxUIDropDownHeader, ?DropPanel:FlxUI9SliceSprite,
+			?ButtonList:Array<FlxUIButton>, ?UIControlCallback:Bool->objects.FlxUIDropDownMenuCustom->Void)
 	{
 		super(X, Y, DataList, Callback, Header, DropPanel, ButtonList, UIControlCallback);
 		header.background.color = TEXT_BG_COLOR;
@@ -212,7 +214,10 @@ class CustomFlxUISlider extends FlxUISlider
 
 	override function update(elapsed)
 	{
-		if (_justHovered && !dragging && scrollStep != 0.0 && FlxG.mouse.wheel != 0)
+		// FlxSlider has no `dragging` field: like FlxSlider.update() itself,
+		// treat a held mouse button as "being dragged" and skip the wheel so the
+		// two input paths cannot fight over `value` in the same frame.
+		if (_justHovered && !FlxG.mouse.pressed && scrollStep != 0.0 && FlxG.mouse.wheel != 0)
 		{
 			var relativePos:Float = this.relativePos + FlxG.mouse.wheel * scrollStep;
 
