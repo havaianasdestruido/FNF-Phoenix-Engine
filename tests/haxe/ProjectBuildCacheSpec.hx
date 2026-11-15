@@ -43,6 +43,28 @@ class ProjectBuildCacheSpec
     assertEquals(expected, copy.environment.get("HXCPP_COMPILE_CACHE"), "cache survives Lime serialization");
   }
 
+  static function hasHaxelib(project:Project, name:String):Bool
+  {
+    for (lib in project.haxelibs)
+      if (lib.name == name) return true;
+    return false;
+  }
+
+  static function makeProjectWithDefines(target:Platform, flags:Map<String, String>, userDefines:Map<String, String>):Project
+  {
+    Sys.putEnv("HXCPP_COMPILE_CACHE", null);
+    HXProject._command = "build";
+    HXProject._debug = false;
+    HXProject._target = target;
+    HXProject._targetFlags = flags;
+    HXProject._templatePaths = [];
+    HXProject._environment = Sys.environment();
+    HXProject._userDefines = userDefines;
+    if (!HXProject._userDefines.exists("NO_BUILTIN_CONTENT"))
+      HXProject._userDefines.set("NO_BUILTIN_CONTENT", "1");
+    return new Project();
+  }
+
   static function main():Void
   {
     var host:Platform = cast HxpSystem.hostPlatform;
@@ -132,6 +154,59 @@ class ProjectBuildCacheSpec
     project = makeProject(host, [], "build");
     for (path in laterContent)
       assertEquals(0, [for (asset in project.assets) if (asset.targetPath == path) asset].length, 'compact build excludes $path');
+
+    // Default native C++ builds (host desktop and mobile, without an explicit "cpp"
+    // targetFlag) must include full modding support: Lua + Python + HScript.
+    // Note: Lime treats a non-host desktop target without `targetFlags["cpp"]`
+    // as Neko cross-compilation (`targetType == "neko"`), so test `host` plus
+    // explicit `Platform.WINDOWS` with `["cpp" => ""]` and mobile targets.
+    for (scenario in [
+      {label: 'host desktop ($host)', target: host, flags: new Map<String, String>()},
+      {label: 'windows cpp', target: Platform.WINDOWS, flags: ["cpp" => ""]},
+      {label: 'android', target: Platform.ANDROID, flags: new Map<String, String>()},
+      {label: 'ios', target: Platform.IOS, flags: new Map<String, String>()}
+    ])
+    {
+      var p = makeProjectWithDefines(scenario.target, scenario.flags, []);
+      assertEquals(true, p.haxedefs.exists("LUA_ALLOWED"), 'default LUA_ALLOWED on ${scenario.label}');
+      assertEquals(true, p.haxedefs.exists("PYTHON_ALLOWED"), 'default PYTHON_ALLOWED on ${scenario.label}');
+      assertEquals(true, p.haxedefs.exists("HSCRIPT_ALLOWED"), 'default HSCRIPT_ALLOWED on ${scenario.label}');
+      assertEquals(true, hasHaxelib(p, "hxluajit"), 'default hxluajit on ${scenario.label}');
+      assertEquals(true, hasHaxelib(p, "hython"), 'default hython on ${scenario.label}');
+      assertEquals(true, hasHaxelib(p, "hscript"), 'default hscript on ${scenario.label}');
+    }
+
+    // Explicit MODDING_LEVEL=0 and MODDING_LEVEL=1 work identically on desktop and mobile.
+    for (scenario in [
+      {label: 'host desktop ($host)', target: host, flags: new Map<String, String>()},
+      {label: 'android', target: Platform.ANDROID, flags: new Map<String, String>()}
+    ])
+    {
+      var p0 = makeProjectWithDefines(scenario.target, scenario.flags, ["MODDING_LEVEL" => "0"]);
+      assertEquals(false, p0.haxedefs.exists("LUA_ALLOWED"), 'MODDING_LEVEL=0 disables LUA_ALLOWED on ${scenario.label}');
+      assertEquals(false, p0.haxedefs.exists("PYTHON_ALLOWED"), 'MODDING_LEVEL=0 disables PYTHON_ALLOWED on ${scenario.label}');
+      assertEquals(true, p0.haxedefs.exists("HSCRIPT_ALLOWED"), 'MODDING_LEVEL=0 keeps HSCRIPT_ALLOWED on ${scenario.label}');
+      assertEquals(false, hasHaxelib(p0, "hxluajit"), 'MODDING_LEVEL=0 omits hxluajit on ${scenario.label}');
+
+      var p1 = makeProjectWithDefines(scenario.target, scenario.flags, ["MODDING_LEVEL" => "1"]);
+      assertEquals(true, p1.haxedefs.exists("LUA_ALLOWED"), 'MODDING_LEVEL=1 enables LUA_ALLOWED on ${scenario.label}');
+      assertEquals(false, p1.haxedefs.exists("PYTHON_ALLOWED"), 'MODDING_LEVEL=1 disables PYTHON_ALLOWED on ${scenario.label}');
+      assertEquals(true, p1.haxedefs.exists("HSCRIPT_ALLOWED"), 'MODDING_LEVEL=1 keeps HSCRIPT_ALLOWED on ${scenario.label}');
+      assertEquals(true, hasHaxelib(p1, "hxluajit"), 'MODDING_LEVEL=1 adds hxluajit on ${scenario.label}');
+    }
+
+    // Desktop-only NDLL libraries stay off mobile classpaths, while Non-C++ targets do not get Lua.
+    for (mobileTarget in [Platform.ANDROID, Platform.IOS])
+    {
+      var pm = makeProjectWithDefines(mobileTarget, [], []);
+      assertEquals(false, hasHaxelib(pm, "hxnativefiledialog"), 'mobile omits hxnativefiledialog on $mobileTarget');
+      assertEquals(false, hasHaxelib(pm, "hxdiscord_rpc"), 'mobile omits hxdiscord_rpc on $mobileTarget');
+      assertEquals(false, hasHaxelib(pm, "hxvlc"), 'mobile omits hxvlc on $mobileTarget');
+    }
+    var webProject = makeProjectWithDefines(Platform.HTML5, [], []);
+    assertEquals(false, webProject.haxedefs.exists("LUA_ALLOWED"), "web does not enable LUA_ALLOWED");
+    assertEquals(false, hasHaxelib(webProject, "hxluajit"), "web omits hxluajit");
+
     Sys.putEnv("HXCPP_COMPILE_CACHE", null);
     Sys.println("Project build-cache configuration: OK");
   }

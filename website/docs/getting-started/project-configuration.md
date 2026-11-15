@@ -103,7 +103,7 @@ returns `-1` when unset. When it *is* set it overrides the automatic conditions:
 |---|---|---|
 | `0` | disabled | disabled |
 | `1` | enabled | disabled |
-| `2` (default on desktop) | enabled | enabled |
+| `2` (default on desktop and mobile) | enabled | enabled |
 
 ## Compile defines
 
