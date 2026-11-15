@@ -12,6 +12,8 @@ cd "$(dirname "$0")/../.."
 root="$PWD"
 CC="${CC:-cc}"
 CXX="${CXX:-c++}"
+# Exported so the C++ specs can recompile the translation units they inspect.
+export CC CXX
 work=$(mktemp -d)
 trap 'rm -rf "$work"' EXIT
 
@@ -222,6 +224,161 @@ if command -v "$CXX" >/dev/null; then
   fi
 else
   echo "skip refresh rate ($CXX unavailable)"
+fi
+
+# --- LuaJIT on Android API 21: bionic stdio shim -----------------------------
+# hxluajit's prebuilt Android LuaJIT references stdin/stdout/stderr, which
+# bionic only exports from API 23 on, so the API 21 link needs the shim in
+# source/backend/native/src/phoenix_luajit_bionic_stdio.cpp.
+#
+# The shim is compiled against a *model* of bionic's <stdio.h> rather than the
+# host one. That distinction is the whole point: glibc declares
+# `stdin`/`stdout`/`stderr` as plain `extern FILE*` variables, while bionic
+# makes them macros over `__sF` below API 23 (`#define stdin (&__sF[0])`).
+# Compiling against glibc therefore accepted a shim that could never build on
+# Android, and it is why this test passed while CI kept failing to link. The
+# model reproduces both bionic branches plus the deprecated `__sF` tag.
+#
+# For each configuration the object must define exactly the expected symbols:
+#   android, API 21  -> all three, each out of a distinct __sF slot;
+#   android, API 23  -> none (bionic exports them itself);
+#   android, API 21 + NO_LUAJIT_BIONIC_STDIO -> none (escape hatch);
+#   any non-Android  -> none (the host libc owns the names).
+if command -v "$CXX" >/dev/null && command -v nm >/dev/null; then
+  luajit_stdio_src=source/backend/native/src/phoenix_luajit_bionic_stdio.cpp
+  luajit_stdio_inc=source/backend/native/include
+  bionic_model="$work/bionic-model"
+  mkdir -p "$bionic_model"
+
+  # Model of platform_bionic/libc/include/stdio.h. Kept as a single header so
+  # the shim's `#include <stdio.h>` resolves to it via -I ordering.
+  cat > "$bionic_model/stdio.h" <<'EOF'
+/* Model of platform_bionic/libc/include/stdio.h (API 21 / API 23 branches). */
+#ifndef PHOENIX_TEST_BIONIC_STDIO_H
+#define PHOENIX_TEST_BIONIC_STDIO_H
+#ifdef __cplusplus
+#define PHOENIX_TEST_BEGIN_DECLS extern "C" {
+#define PHOENIX_TEST_END_DECLS }
+#else
+#define PHOENIX_TEST_BEGIN_DECLS
+#define PHOENIX_TEST_END_DECLS
+#endif
+typedef struct __sFILE FILE;
+/* Stride the test uses for its stand-in __sF[]; keep in sync via
+   PHOENIX_TEST_BIONIC_FILE_BYTES below. */
+struct __sFILE { unsigned char _opaque[64]; };
+/* 32-bit Android has a 32-bit off_t and a separate off64_t. */
+#if !defined(__LP64__)
+typedef long long off64_t;
+typedef long off_t;
+#else
+typedef long off64_t;
+typedef long off_t;
+#endif
+/* Bionic tags these declarations with __INTRODUCED_IN / __REMOVED_IN, which
+   expand to clang's availability attribute. GCC has no such attribute for
+   Android, so model it only under clang and keep the deprecation warning that
+   the shim has to silence. */
+#if defined(__clang__)
+#define PHOENIX_TEST_INTRODUCED_IN(api) __attribute__((availability(android, introduced = api)))
+#define PHOENIX_TEST_REMOVED_IN(api) __attribute__((availability(android, obsoleted = api)))
+#else
+#define PHOENIX_TEST_INTRODUCED_IN(api)
+#define PHOENIX_TEST_REMOVED_IN(api) __attribute__((deprecated("Use stdin/stdout/stderr")))
+#endif
+PHOENIX_TEST_BEGIN_DECLS
+#if defined(__ANDROID_API__) && __ANDROID_API__ >= 23
+/* API 23+: real variables... still macros, as bionic does for C/C++. */
+extern FILE* stdin PHOENIX_TEST_INTRODUCED_IN(23);
+extern FILE* stdout PHOENIX_TEST_INTRODUCED_IN(23);
+extern FILE* stderr PHOENIX_TEST_INTRODUCED_IN(23);
+#define stdin stdin
+#define stdout stdout
+#define stderr stderr
+#else
+/* API < 23: only __sF exists, and the streams are macros over it. */
+extern FILE __sF[] PHOENIX_TEST_REMOVED_IN(23);
+#define stdin (&__sF[0])
+#define stdout (&__sF[1])
+#define stderr (&__sF[2])
+#endif
+/* fseeko/ftello exist from API 1; the 64-bit spellings only from API 24. */
+int fseeko(FILE*, off_t, int);
+off_t ftello(FILE*);
+int fseeko64(FILE*, off64_t, int);
+off64_t ftello64(FILE*);
+PHOENIX_TEST_END_DECLS
+#endif
+EOF
+
+  # $1 = extra flags, $2 = output object. Always passes the bionic model first
+  # on the include path so <stdio.h> resolves to it.
+  luajit_stdio_build() {
+    "$CXX" -std=c++11 -Wall -Wextra -Werror $1 \
+      -I "$bionic_model" -I "$luajit_stdio_inc" \
+      -c "$luajit_stdio_src" -o "$2"
+  }
+
+  luajit_stdio_build "-D__ANDROID__ -D__ANDROID_API__=21" "$work/luajit-stdio-android.o"
+  luajit_stdio_build "-D__ANDROID__ -D__ANDROID_API__=23" "$work/luajit-stdio-api23.o"
+  luajit_stdio_build "-D__ANDROID__ -D__ANDROID_API__=21 -DNO_LUAJIT_BIONIC_STDIO" \
+    "$work/luajit-stdio-optout.o"
+  # The non-Android case keeps the *host* <stdio.h>, i.e. a libc that owns the
+  # stream symbols, which is what desktop/iOS/web builds see.
+  "$CXX" -std=c++11 -Wall -Wextra -Werror \
+    -I "$luajit_stdio_inc" -c "$luajit_stdio_src" -o "$work/luajit-stdio-other.o"
+
+  # Each stream must come from its own __sF slot: stdin +0, stdout
+  # +sizeof(FILE), stderr +2*sizeof(FILE). Checking the relocations proves the
+  # shim points at bionic's array instead of a private FILE.
+  if command -v objdump >/dev/null; then
+    luajit_reloc=$(objdump -r "$work/luajit-stdio-android.o" | grep '__sF' || true)
+    slots=$(printf '%s\n' "$luajit_reloc" | sed 's/.*__sF\(+0x[0-9a-f]*\)\{0,1\}.*/\1/' | sort -u | wc -l)
+    [ "$slots" -eq 3 ] || {
+      echo "FAIL: expected 3 distinct __sF slots in the shim, got $slots" >&2
+      printf '%s\n' "$luajit_reloc" >&2
+      exit 1
+    }
+  fi
+
+  # Rename the three streams in the Android object before linking it, so the
+  # test keeps using the host libc's stdin/stdout/stderr for its own output.
+  linked_flags=""
+  if command -v objcopy >/dev/null; then
+    cp "$work/luajit-stdio-android.o" "$work/luajit-stdio-renamed.o"
+    objcopy --redefine-sym stdin=phoenix_test_shim_stdin \
+      --redefine-sym stdout=phoenix_test_shim_stdout \
+      --redefine-sym stderr=phoenix_test_shim_stderr \
+      "$work/luajit-stdio-renamed.o"
+    linked_flags="-DPHOENIX_TEST_SHIM_LINKED"
+  fi
+
+  "$CXX" -std=c++11 -Wall -Wextra -Werror -I "$luajit_stdio_inc" $linked_flags \
+    -DPHOENIX_TEST_SHIM_OBJECT="\"$work/luajit-stdio-android.o\"" \
+    -DPHOENIX_TEST_SHIM_SOURCE="\"$root/$luajit_stdio_src\"" \
+    -DPHOENIX_TEST_INCLUDE_DIR="\"$root/$luajit_stdio_inc\"" \
+    -DPHOENIX_TEST_BIONIC_MODEL="\"$bionic_model\"" \
+    -DPHOENIX_TEST_BIONIC_FILE_BYTES=64 \
+    tests/native/test_luajit_bionic_stdio.cpp "$work/luajit-stdio-renamed.o" \
+    -o "$work/luajit-stdio-test"
+  "$work/luajit-stdio-test"
+
+  # Everything else must define nothing, or the desktop/web links and API 23+
+  # Android would get a second set of streams.
+  for variant in api23 optout other; do
+    "$CXX" -std=c++11 -Wall -Wextra -Werror -I "$luajit_stdio_inc" \
+      -DPHOENIX_TEST_SHIM_OBJECT="\"$work/luajit-stdio-$variant.o\"" \
+      -DPHOENIX_TEST_SHIM_SOURCE="\"$root/$luajit_stdio_src\"" \
+      -DPHOENIX_TEST_INCLUDE_DIR="\"$root/$luajit_stdio_inc\"" \
+      -DPHOENIX_TEST_BIONIC_MODEL="\"$bionic_model\"" \
+      -DPHOENIX_TEST_BIONIC_FILE_BYTES=64 \
+      tests/native/test_luajit_bionic_stdio.cpp "$work/luajit-stdio-$variant.o" \
+      -o "$work/luajit-stdio-$variant-test"
+    "$work/luajit-stdio-$variant-test" --expect-none
+  done
+  echo "bionic stdio shim smoke passed"
+else
+  echo "skip bionic stdio shim ($CXX or nm unavailable)"
 fi
 
 # Optional: compile the real header against the actual Windows SDK.

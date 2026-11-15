@@ -1,4 +1,4 @@
-﻿#if !macro
+#if !macro
 import backend.Paths;
 
 import play.BaseStage;
@@ -11,6 +11,9 @@ import sys.io.*;
 #if LUA_ALLOWED
 import hxluajit.*;
 import hxluajit.Types;
+// Android links the prebuilt LuaJIT at API 21, where bionic does not export
+// stdin/stdout/stderr yet: this pulls in the shim that defines them.
+import hxluajit.BionicStdio;
 import psychlua.*;
 #end
 
