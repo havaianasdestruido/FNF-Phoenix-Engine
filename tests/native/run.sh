@@ -267,6 +267,14 @@ typedef struct __sFILE FILE;
 /* Stride the test uses for its stand-in __sF[]; keep in sync via
    PHOENIX_TEST_BIONIC_FILE_BYTES below. */
 struct __sFILE { unsigned char _opaque[64]; };
+/* 32-bit Android has a 32-bit off_t and a separate off64_t. */
+#if !defined(__LP64__)
+typedef long long off64_t;
+typedef long off_t;
+#else
+typedef long off64_t;
+typedef long off_t;
+#endif
 /* Bionic tags these declarations with __INTRODUCED_IN / __REMOVED_IN, which
    expand to clang's availability attribute. GCC has no such attribute for
    Android, so model it only under clang and keep the deprecation warning that
@@ -294,6 +302,11 @@ extern FILE __sF[] PHOENIX_TEST_REMOVED_IN(23);
 #define stdout (&__sF[1])
 #define stderr (&__sF[2])
 #endif
+/* fseeko/ftello exist from API 1; the 64-bit spellings only from API 24. */
+int fseeko(FILE*, off_t, int);
+off_t ftello(FILE*);
+int fseeko64(FILE*, off64_t, int);
+off64_t ftello64(FILE*);
 PHOENIX_TEST_END_DECLS
 #endif
 EOF

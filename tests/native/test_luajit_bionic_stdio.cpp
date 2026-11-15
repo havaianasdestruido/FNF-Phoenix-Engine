@@ -22,8 +22,8 @@
  * for its own output) and links the object in here. The checks are:
  *
  *   Android, API 21 (--object <o> --source <cpp> --include <dir>): the object
- *       defines all three streams, and the emitted assembly takes each of them
- *       from a distinct `__sF` entry;
+ *       defines all three streams (each taken from a distinct `__sF` entry)
+ *       and LuaJIT's fseeko64/ftello64 wrappers;
  *   everything else (--object <o> --expect-none): API 23+, the
  *       NO_LUAJIT_BIONIC_STDIO escape hatch and non-Android builds define none
  *       of them, so those links keep their platform libc's streams.
@@ -101,13 +101,19 @@ int main(int argc, char** argv)
   // an *undefined* symbol, so only definitions count as a fix.
   const std::string symbols = run("nm --defined-only --extern-only '" +
                                   std::string(PHOENIX_TEST_SHIM_OBJECT) + "' 2>/dev/null");
+  // The shim provides the three streams *and* LuaJIT's fseeko64/ftello64
+  // (bionic only exports those from API 24). All five belong to the same fix.
   const char* streams[] = {"stdin", "stdout", "stderr"};
+  const char* seeks[] = {"fseeko64", "ftello64"};
 
   if (!expectDefinitions)
   {
     for (const char* stream : streams)
       assert(!defines(symbols, stream) &&
              "non-Android / opted-out builds must not define the stdio streams");
+    for (const char* seek : seeks)
+      assert(!defines(symbols, seek) &&
+             "non-Android / opted-out builds must not define the 64-bit seek shims");
     assert(phoenixLuajitBionicStdio() == 0);
     std::printf("bionic stdio shim behaviour: OK (defines no streams)\n");
     return 0;
@@ -116,6 +122,9 @@ int main(int argc, char** argv)
   for (const char* stream : streams)
     assert(defines(symbols, stream) &&
            "the Android shim must define stdin/stdout/stderr");
+  for (const char* seek : seeks)
+    assert(defines(symbols, seek) &&
+           "the Android shim must define fseeko64/ftello64 (LuaJIT's lib_io.c)");
 
   // On bionic the variables must point at the stream array, not at a private
   // FILE: __sF is API 1, the variables are API 23. The shim is recompiled to

@@ -158,14 +158,21 @@ learned the hard way:
    `FILE* (&__sF[0]) = ...` and fail to compile. `__sF` itself is declared by
    `<stdio.h>` with C linkage and must not be re-declared.
 
+The same prebuilt libraries also call `fseeko64()`/`ftello64()` (LuaJIT's
+`lib_io.c` implements `file:seek()` with them), which bionic only exports from
+**API 24** (`fseeko64; # introduced=24`). The shim forwards both to the
+API-1 `fseeko()`/`ftello()`: exact on 64-bit ABIs, and on 32-bit ABIs it caps
+`file:seek()` at 2 GiB — what the API-21 C library itself offered.
+
 `-DNO_LUAJIT_BIONIC_STDIO` (or the environment variable of the same name) opts
 out if a future NDK starts exporting the variables below API 23.
 
 Regression checks: `bash tests/native/run.sh` compiles the shim against a model
 of bionic's `<stdio.h>` — **not** the host libc, whose ordinary
 `extern FILE*` streams hide the macro problem described above — and asserts the
-object defines all three streams out of distinct `__sF` slots at API 21 and
-nothing at API 23+, under the opt-out, or off Android.
+object defines all three streams out of distinct `__sF` slots plus the
+`fseeko64`/`ftello64` wrappers at API 21, and nothing at API 23+, under the
+opt-out, or off Android.
 `bash tests/haxe/run-lua-discovery.sh` fails if the `@:buildXml` wiring, the
 build file or the guard/structure above stops being present.
 

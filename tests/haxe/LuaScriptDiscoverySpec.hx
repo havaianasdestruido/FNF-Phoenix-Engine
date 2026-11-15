@@ -198,6 +198,10 @@ class LuaScriptDiscoverySpec
 			check(cpp.indexOf('#undef stdin') >= 0 && cpp.indexOf('#undef stdout') >= 0
 				&& cpp.indexOf('#undef stderr') >= 0,
 				'the shim #undefs bionic\'s stdin/stdout/stderr macros before defining them');
+			// LuaJIT's lib_io.c also needs fseeko64/ftello64, which bionic only
+			// exports from API 24; the shim forwards them to the API-1 pair.
+			check(cpp.indexOf('fseeko64') >= 0 && cpp.indexOf('ftello64') >= 0,
+				'the shim provides fseeko64/ftello64 for LuaJIT\'s lib_io.c');
 		}
 	}
 

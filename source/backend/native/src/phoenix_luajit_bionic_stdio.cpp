@@ -47,6 +47,14 @@
  * which is what a mod's `print()` goes through) keeps working on API 21 and
  * above, writing through the very same FILE the rest of the app uses.
  *
+ * The same libraries also call `fseeko64()`/`ftello64()` (LuaJIT's
+ * `lib_io.c` implements `file:seek()` with them). Bionic only exports those
+ * from **API 24** (`libc.map.txt`: `fseeko64; # introduced=24`), so the shim
+ * forwards them to `fseeko()`/`ftello()` - the 32-bit-off_t spellings that
+ * have been in libc since API 1. On a 64-bit ABI `off_t` is already 64-bit,
+ * so this is exact; on 32-bit it caps `file:seek()` at 2 GiB, which no mod
+ * script reaches (and which matches what the API 21 C library offered).
+ *
  * Why the guards below look the way they do
  * -----------------------------------------
  * 1. `__ANDROID__` only. Desktop, Emscripten and iOS libcs export the
@@ -78,6 +86,9 @@
  *    so `FILE* stdin = ...` would be rewritten into `FILE* (&__sF[0]) = ...`.
  *    The `#undef`s below are therefore mandatory. `__sF` is also declared by
  *    <stdio.h> with C linkage, so it must not be re-declared here.
+ *
+ * 5. `fseeko64`/`ftello64` are wrapped rather than reimplemented, so the
+ *    buffered offsets stay consistent with the FILE they act on.
  *
  * `NO_LUAJIT_BIONIC_STDIO` (a define, or the environment variable of the same
  * name) keeps the translation unit in the build but defines nothing, in case a
@@ -126,6 +137,29 @@ FILE* stderr = &__sF[2];
 #pragma clang diagnostic pop
 #elif defined(__GNUC__)
 #pragma GCC diagnostic pop
+#endif
+
+/*
+ * LuaJIT's lib_io.c links against fseeko64/ftello64, which bionic only exports
+ * from API 24. Forward them to the API-1 32-bit-off_t spellings. <stdio.h>
+ * declares both shapes, so these definitions must not be declared again.
+ */
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+int fseeko64(FILE* stream, off64_t offset, int whence)
+{
+  return fseeko(stream, (off_t)offset, whence);
+}
+
+off64_t ftello64(FILE* stream)
+{
+  return (off64_t)ftello(stream);
+}
+
+#ifdef __cplusplus
+}
 #endif
 
 int phoenixLuajitBionicStdio(void)
