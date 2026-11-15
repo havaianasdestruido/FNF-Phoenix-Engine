@@ -145,7 +145,7 @@ script in a named mod folder when it needs an explicit policy.
 A player can decide for each mod, without editing any of its files:
 
 1. Open **Mods** and select the mod.
-2. Press the gear button in the button strip. It opens **Mod Info**.
+2. Press the gear button under the mod description. It opens **Mod Info**.
 3. Choose **Turn off** and answer **Yes**, or choose **Turn on**.
 
 Mod Info shows the mod's folder, whether it is enabled, whether ModSecurity is **ON**

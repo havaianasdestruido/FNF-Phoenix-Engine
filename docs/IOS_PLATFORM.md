@@ -67,8 +67,10 @@ The iOS pieces are injected only for the iOS target (`configureIOSRuntime()`):
   scheme and sets `UIRequiresFullScreen` / `UISupportedInterfaceOrientations`
   to landscape.
 
-* Native iOS-only haxelibs (`hxvlc`, `hxdiscord_rpc`, `hxluajit`) are gated
-  to desktop builds (`isDesktop() && isCPP()`), so iOS never links them.
+* Native desktop-only haxelibs (`hxvlc`, `hxdiscord_rpc`, `hxnativefiledialog`)
+  are gated to desktop builds (`isDesktop() && isCPP()`), so iOS never links
+  them; `hxluajit`, `hython` and `hscript` are linked on mobile C++ builds as
+  well as desktop.
   `VIDEOS_ALLOWED` is still true on iOS (`isMobile() && isCPP()`), but the
   `#if (VIDEOS_ALLOWED && hxvlc)` guard in `objects.VideoSprite` falls back
   to the `NullVideoSpriteBackend` — the song keeps playing, the video is

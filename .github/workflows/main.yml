@@ -9,7 +9,7 @@ name: Build
 # publishes ends with the same information (see the "Name artifact" step), as
 # `<commit>_<target>_<HH>_<MM>_<scripts>`, for example
 # `d785935_windows_12_58_LUA_PYTHON_HSCRIPT` or
-# `d785935_android_12_58_HSCRIPT`.
+# `d785935_android_12_58_LUA_PYTHON_HSCRIPT`.
 run-name: >-
   Build (${{ github.event_name }}) - MODDING_LEVEL
   ${{ inputs.moddingLevel == '' && '2' || inputs.moddingLevel }}
@@ -132,9 +132,6 @@ jobs:
             cache_name: windows
             artifact_path: build/release/windows/bin
             setup: windows
-            # Desktop targets can compile the Lua and Python VMs: project.hxp
-            # adds the hxluajit haxelib for them. Mobile cannot, so the
-            # modding level is clamped to 0 there (see below).
             desktop: true
 
           # =========================
@@ -225,13 +222,12 @@ jobs:
           REQUESTED_LEVEL: ${{ inputs.moddingLevel }}
           TARGET: ${{ matrix.target }}
           NAME: ${{ matrix.name }}
-          DESKTOP: ${{ matrix.desktop }}
         run: |
           set -euo pipefail
 
           # push / pull_request events carry no inputs, and an empty reusable
-          # input means "use the default": Lua + Python, the level BUILDING.md
-          # documents for desktop.
+          # input means "use the default": Lua + Python + HScript (MODDING_LEVEL=2)
+          # on every CI build target (Windows and Android).
           level="${REQUESTED_LEVEL:-2}"
 
           case "$level" in
@@ -241,15 +237,6 @@ jobs:
               exit 1
               ;;
           esac
-
-          # project.hxp only adds the hxluajit haxelib for desktop targets, so
-          # a mobile build with LUA_ALLOWED compiles `import hxluajit.*`
-          # without the bindings and dies at source/import.hx. Mobile is
-          # therefore always built at level 0, whatever was requested.
-          if [ "$DESKTOP" != "true" ] && [ "$level" != "0" ]; then
-            echo "::notice::$NAME cannot ship the Lua/Python VMs (hxluajit is desktop-only): building at MODDING_LEVEL=0 instead of $level."
-            level=0
-          fi
 
           tokens=""
           case "$level" in
@@ -498,8 +485,6 @@ jobs:
         env:
           HXCPP_COMPILE_THREADS: 4
           BUILD_FLAGS: ${{ inputs.buildFlags }}
-          # Resolved above: mobile targets are clamped to 0 because the Lua
-          # bindings are not on their classpath.
           MODDING_LEVEL: ${{ steps.modding-level.outputs.level }}
         run: |
           Remove-Item -Force assets/preload/gameRenders/renderlinux.sh
@@ -529,8 +514,6 @@ jobs:
         env:
           HXCPP_COMPILE_THREADS: 4
           BUILD_FLAGS: ${{ inputs.buildFlags }}
-          # Resolved above: mobile targets are clamped to 0 because the Lua
-          # bindings are not on their classpath.
           MODDING_LEVEL: ${{ steps.modding-level.outputs.level }}
         run: |
           args=()
@@ -622,9 +605,9 @@ jobs:
       #
       # The name ends with the script backends the binary really contains, so a
       # download says which mods it can run without opening it:
-      #   <commit>_<target>_<HH>_<MM>_LUA_PYTHON_HSCRIPT   (MODDING_LEVEL=2, desktop)
+      #   <commit>_<target>_<HH>_<MM>_LUA_PYTHON_HSCRIPT   (MODDING_LEVEL=2, default)
       #   <commit>_<target>_<HH>_<MM>_LUA_HSCRIPT          (MODDING_LEVEL=1)
-      #   <commit>_<target>_<HH>_<MM>_HSCRIPT              (MODDING_LEVEL=0 / mobile)
+      #   <commit>_<target>_<HH>_<MM>_HSCRIPT              (MODDING_LEVEL=0)
       #   <commit>_<target>_<HH>_<MM>_NONE                 (no script support at all)
       - name: Name artifact
         id: artifact-name

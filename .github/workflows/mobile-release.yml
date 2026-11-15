@@ -1,8 +1,10 @@
 name: Mobile Release
 
-# Mobile builds always compile at MODDING_LEVEL=0 (the Lua bindings are
-# desktop-only), and the run title says so instead of repeating the input.
-run-name: Release ${{ github.event.inputs.tag_name }} (android) - MODDING_LEVEL 0
+# The run title names the script modding level the APK is built with (default:
+# full modding support, MODDING_LEVEL=2 = Lua + Python + HScript).
+run-name: >-
+  Release ${{ github.event.inputs.tag_name }} (android) - MODDING_LEVEL
+  ${{ inputs.moddingLevel == '' && '2' || inputs.moddingLevel }}
 
 on:
   workflow_dispatch:
@@ -10,6 +12,15 @@ on:
       tag_name:
         description: "Existing Phoenix release tag to attach the APK to (e.g. v0.0.1-pre1)"
         required: true
+      moddingLevel:
+        description: "Script modding level: 0 = none, 1 = Lua, 2 = Lua + Python"
+        required: false
+        type: choice
+        default: "2"
+        options:
+          - "0"
+          - "1"
+          - "2"
 
 permissions:
   contents: write
@@ -50,9 +61,7 @@ jobs:
       fullAssets: true
       buildWindows: false
       buildAndroid: true
-      # main.yml clamps mobile targets to 0 anyway; passing it keeps the run
-      # title honest (the Lua bindings are desktop-only).
-      moddingLevel: "0"
+      moddingLevel: ${{ github.event.inputs.moddingLevel }}
 
   release-android:
     name: Release androidBuild
