@@ -16,5 +16,11 @@ typedef SwagSong = {
 
 class Song
 {
-  public static function loadFromJson(jsonInput:String, ?folder:String):SwagSong return null;
+  public static var fixture:SwagSong;
+  public static var lastLoaded:String;
+  public static function loadFromJson(jsonInput:String, ?folder:String):SwagSong
+  {
+    lastLoaded = '$folder/$jsonInput';
+    return fixture;
+  }
 }

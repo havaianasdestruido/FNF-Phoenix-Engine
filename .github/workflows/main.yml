@@ -480,6 +480,14 @@ jobs:
           restore-keys: |
             ${{ env.CACHE_SCHEMA }}-hxcpp-${{ matrix.cache_name }}-${{ runner.os }}-${{ runner.arch }}-haxe-${{ env.HAXE_VERSION }}-${{ hashFiles('hmm.json', 'setup/unix.sh', 'setup/windows.bat', 'setup/windows-msvc-fix.ps1') }}-${{ inputs.buildFlags != '' && format('explicit-{0}', inputs.buildFlags) || 'unset' }}-level-${{ steps.modding-level.outputs.level }}
 
+      # Clang's PCH validates NDK system-header mtimes, which can differ across
+      # hosted runners even when the restored object-cache key is unchanged.
+      # Rebuild only those headers; retain hxcpp's content-addressed objects.
+      - name: Refresh Android precompiled headers
+        if: steps.target-selection.outputs.enabled == 'true' && matrix.target == 'android'
+        shell: bash
+        run: bash tools/clear_hxcpp_pch.sh
+
       # ==========================================
       # Compile Windows
       # ==========================================

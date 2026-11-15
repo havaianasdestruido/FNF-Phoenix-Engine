@@ -1,5 +1,6 @@
 class Assets
 {
-  public static function getText(path:String):String return null;
-  public static function exists(path:String):Bool return false;
+  public static var texts:Map<String, String> = [];
+  public static function getText(path:String):String return texts.get(path);
+  public static function exists(path:String):Bool return texts.exists(path);
 }

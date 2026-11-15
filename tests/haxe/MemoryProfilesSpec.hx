@@ -22,7 +22,9 @@ class MemoryProfilesSpec
     testOff();
     testLow();
     testExtreme();
+    testExperimental();
     testExtremeIsASupersetOfLow();
+    testExperimentalIsASupersetOfExtreme();
     testManagedKeys();
     testOverridesAreCopies();
     testBaselineRoundTrip();
@@ -49,7 +51,14 @@ class MemoryProfilesSpec
     equal(MemoryProfiles.normalize('light'), MemoryProfiles.LOW, 'light is a Low alias');
     equal(MemoryProfiles.normalize('extreme'), MemoryProfiles.EXTREME, 'extreme resolves');
     equal(MemoryProfiles.normalize('aggressive'), MemoryProfiles.EXTREME, 'aggressive is an Extreme alias');
+    equal(MemoryProfiles.normalize('max'), MemoryProfiles.EXTREME, 'the existing max alias stays Extreme');
+    equal(MemoryProfiles.normalize(' Experimental EXTREME '), MemoryProfiles.EXPERIMENTAL, 'the new name resolves');
+    equal(MemoryProfiles.normalize('experimental'), MemoryProfiles.EXPERIMENTAL, 'experimental is an alias');
+    equal(MemoryProfiles.normalize('experimentalextreme'), MemoryProfiles.EXPERIMENTAL, 'compact spelling resolves');
+    equal(MemoryProfiles.normalize('insane'), MemoryProfiles.EXPERIMENTAL, 'insane is an alias');
+    equal(MemoryProfiles.normalize('minimum'), MemoryProfiles.EXPERIMENTAL, 'minimum is an alias');
     equal(MemoryProfiles.normalize('banana'), MemoryProfiles.OFF, 'unknown text falls back to Off');
+    equal(MemoryProfiles.NAMES.join('|'), 'Off|Low|Extreme|Experimental Extreme', 'the menu offers all tiers in order');
 
     check(MemoryProfiles.isOff('nonsense'), 'an unknown profile counts as Off');
     check(!MemoryProfiles.isOff(MemoryProfiles.LOW), 'Low is not Off');
@@ -116,6 +125,40 @@ class MemoryProfilesSpec
     check(forced(profile, 'noteSpeed') == null, 'Extreme does not touch scroll speed');
   }
 
+  static function testExperimental():Void
+  {
+    final profile:MemoryProfile = MemoryProfiles.get(MemoryProfiles.EXPERIMENTAL);
+    equal(profile.id, MemoryProfiles.EXPERIMENTAL, 'Experimental Extreme keeps its id');
+    equal(profile.title, 'Experimental Extreme', 'experimental menu title');
+    check(profile.description.indexOf('EXPERIMENTAL') != -1, 'description warns this is experimental');
+    check(profile.description.indexOf('Mods may break') != -1, 'description warns about mod compatibility');
+
+    equal(forced(profile, 'charsAndBG'), false, 'experimental skips stages and characters');
+    equal(forced(profile, 'cacheOnGPU'), true, 'experimental moves eligible texture pixels to the GPU');
+    equal(forced(profile, 'enableGC'), true, 'experimental does not disable the collector during gameplay');
+    equal(forced(profile, 'preloadNextSong'), false, 'experimental disables next-song preloading');
+    equal(forced(profile, 'enableColorShader'), false, 'experimental disables note color shaders');
+    equal(forced(profile, 'ratingPopups'), false, 'experimental skips rating popups');
+    equal(forced(profile, 'comboPopups'), false, 'experimental skips combo popups');
+    equal(forced(profile, 'showNPS'), false, 'experimental does not maintain NPS hit history');
+    equal(forced(profile, 'showRamGraph'), false, 'experimental disables the RAM graph');
+    equal(forced(profile, 'discordRPC'), false, 'experimental disables RPC');
+
+    check(profile.policy.trimOnSongEnd, 'experimental trims after songs');
+    check(profile.policy.releaseOnPlayStateExit, 'experimental performs a deep release on exit');
+    check(profile.policy.trimOnFocusLost, 'experimental trims on focus loss');
+    close(profile.policy.idleTrimSeconds, 5, 'experimental trims every five seconds outside songs');
+    check(profile.policy.skipSongPreload, 'experimental skips speculative song preloads');
+    check(profile.policy.streamSongAudio, 'experimental tries streaming song audio');
+    check(profile.policy.compactOnTrim, 'experimental compacts even when no assets were evicted');
+
+    // Do not alter timing, controls, hit windows, note visibility or script dispatch.
+    for (field in ['downScroll', 'middleScroll', 'noteSpeed', 'noteSpawnTime', 'dynamicSpawnTime',
+      'safeFrames', 'sickWindow', 'goodWindow', 'badWindow', 'noteOffset', 'showNotes',
+      'maxNotes', 'noSpawnFunc', 'noHitFuncs', 'noSkipFuncs'])
+      check(!profile.overrides.exists(field), 'experimental leaves gameplay preference "$field" alone');
+  }
+
   static function testExtremeIsASupersetOfLow():Void
   {
     final low:Map<String, Dynamic> = MemoryProfiles.overrides(MemoryProfiles.LOW);
@@ -132,6 +175,27 @@ class MemoryProfilesSpec
 
     check(MemoryProfiles.policy(MemoryProfiles.EXTREME).idleTrimSeconds
       < MemoryProfiles.policy(MemoryProfiles.LOW).idleTrimSeconds, 'Extreme cleans up more often');
+  }
+
+  static function testExperimentalIsASupersetOfExtreme():Void
+  {
+    final extreme:Map<String, Dynamic> = MemoryProfiles.overrides(MemoryProfiles.EXTREME);
+    final experimental:Map<String, Dynamic> = MemoryProfiles.overrides(MemoryProfiles.EXPERIMENTAL);
+    check(count(experimental) > count(extreme), 'experimental forces additional preferences');
+    for (field => value in extreme)
+    {
+      check(experimental.exists(field), 'experimental keeps Extreme\'s "$field"');
+      if (value is Bool) check(experimental.get(field) == value, 'experimental agrees on boolean "$field"');
+      if (value is Int) check(experimental.get(field) <= value, 'experimental is at least as strict on "$field"');
+    }
+    check(MemoryProfiles.policy(MemoryProfiles.EXPERIMENTAL).idleTrimSeconds
+      < MemoryProfiles.policy(MemoryProfiles.EXTREME).idleTrimSeconds, 'experimental trims more often');
+    for (name in [MemoryProfiles.OFF, MemoryProfiles.LOW, MemoryProfiles.EXTREME])
+    {
+      final policy = MemoryProfiles.policy(name);
+      check(!policy.skipSongPreload && !policy.streamSongAudio && !policy.compactOnTrim,
+        '$name keeps the existing preload, audio and cleanup behavior');
+    }
   }
 
   static function testManagedKeys():Void
@@ -222,6 +286,12 @@ class MemoryProfilesSpec
       'Extreme reports the deep release');
     check(MemoryProfiles.summary(MemoryProfiles.EXTREME).indexOf('idle trim 20s') != -1,
       'Extreme reports its idle interval');
+    final experimental:String = MemoryProfiles.summary('experimental');
+    check(experimental.indexOf('Experimental Extreme (') == 0, 'experimental summary starts with its name');
+    check(experimental.indexOf('idle trim 5s') != -1, 'experimental reports its faster interval');
+    check(experimental.indexOf('no song preloads') != -1, 'experimental reports skipped preloads');
+    check(experimental.indexOf('streams supported song audio') != -1, 'experimental reports streaming');
+    check(experimental.indexOf('compacts on trim') != -1, 'experimental reports heap compaction');
     check(MemoryProfiles.describe('nonsense') == MemoryProfiles.describe(MemoryProfiles.OFF),
       'an unknown profile describes Off');
   }

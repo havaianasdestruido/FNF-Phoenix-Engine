@@ -33,8 +33,3 @@ class FlxTween
   public static function tween(obj:Dynamic, values:Dynamic, duration:Float, ?options:Dynamic):Dynamic return null;
 }
 class FlxEase { public static var circOut:Dynamic; }
-class Paths
-{
-  public static function fileExists(path:String, kind:AssetType):Bool return false;
-}
-enum AssetType { IMAGE; }

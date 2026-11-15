@@ -57,7 +57,7 @@ class PlayStateNotes
 
 			final char:Character = !daNote.gfNote ? !PlayState.opponentChart ? state.boyfriend : state.dad : state.gf;
 
-			if(char != null && !daNote.noMissAnimation && char.hasMissAnimations && ClientPrefs.charsAndBG)
+			if(char != null && !daNote.noMissAnimation && char.hasMissAnimations && state.songCharacterVisuals)
 			{
 				var animToPlay:String = state.singAnimations[Std.int(Math.abs(daNote.noteData))] + 'miss' + daNote.animSuffix;
 				char.playAnim(animToPlay, true);
@@ -115,7 +115,7 @@ class PlayStateNotes
 
 			final char:Character = !daNoteAlt.gfNote ? !PlayState.opponentChart ? state.boyfriend : state.dad : state.gf;
 
-			if(char != null && !daNoteAlt.noMissAnimation && char.hasMissAnimations && ClientPrefs.charsAndBG)
+			if(char != null && !daNoteAlt.noMissAnimation && char.hasMissAnimations && state.songCharacterVisuals)
 			{
 				var animToPlay:String = state.singAnimations[Std.int(Math.abs(daNoteAlt.noteData))] + 'miss' + daNoteAlt.animSuffix;
 				char.playAnim(animToPlay, true);
@@ -142,7 +142,7 @@ class PlayStateNotes
 				state.doDeathCheck(true);
 			}
 
-			if (state.combo > 5 && state.gf != null && state.gf.animOffsets.exists('sad'))
+			if (state.songCharacterVisuals && state.combo > 5 && state.gf != null && state.gf.animOffsets.exists('sad'))
 			{
 				state.gf.playAnim('sad');
 			}
@@ -162,7 +162,7 @@ class PlayStateNotes
 
 			var char:Character = state.boyfriend;
 			if (PlayState.opponentChart) char = state.dad;
-			if(char.hasMissAnimations) {
+			if(state.songCharacterVisuals && char.hasMissAnimations) {
 				char.playAnim(state.singAnimations[Std.int(Math.abs(direction))] + 'miss', true);
 			}
 			(PlayState.opponentChart ? state.opponentVocals : state.vocals).volume = 0;
@@ -322,12 +322,12 @@ class PlayStateNotes
 				if (!state.oppTrigger && !note.isSustainNote) PlayStateHaptics.hit(state);
 				state.doGf = note.gfNote;
 
-				if(!note.noAnimation && ClientPrefs.charsAndBG) {
+				if(!note.noAnimation && state.songCharacterVisuals) {
 					state.animToPlay = state.singAnimations[Std.int(Math.abs(note.noteData))];
 
 					state.playerChar = (state.doGf ? state.gf : (!state.oppTrigger ? state.boyfriend : state.dad));
 					state.animCheck = (state.playerChar != state.gf ? 'hey' : 'cheer');
-					if (note.animSuffix.length > 0 && state.playerChar.hasAnimation(state.animToPlay + note.animSuffix))
+					if (state.playerChar != null && note.animSuffix.length > 0 && state.playerChar.hasAnimation(state.animToPlay + note.animSuffix))
 						state.animToPlay = state.singAnimations[Std.int(Math.abs(note.noteData))] + note.animSuffix;
 
 					if (state.playerChar != null)
@@ -403,7 +403,7 @@ class PlayStateNotes
 			}
 			else
 			{
-				if(!note.noMissAnimation)
+				if(!note.noMissAnimation && state.songCharacterVisuals)
 				{
 					state.playerChar = state.boyfriend;
 					switch(note.noteType)
@@ -465,16 +465,16 @@ class PlayStateNotes
 		if (noteAlt != null)
 		{
 			state.oppTrigger = PlayState.opponentChart || PlayState.bothSides && noteAlt.oppNote;
-			if(noteAlt.noteType == 'Hey!')
+			if(state.songCharacterVisuals && noteAlt.noteType == 'Hey!')
 			{
 				state.playerChar = !noteAlt.gfNote ? state.oppTrigger ? state.dad : state.boyfriend : state.gf;
-				if (state.playerChar.hasAnimation('hey')) {
+				if (state.playerChar != null && state.playerChar.hasAnimation('hey')) {
 					state.playerChar.playAnim('hey', true);
 					state.playerChar.specialAnim = true;
 					state.playerChar.heyTimer = 0.6;
 				}
 			}
-			if(!noteAlt.noAnimation && ClientPrefs.charsAndBG) {
+			if(!noteAlt.noAnimation && state.songCharacterVisuals) {
 				state.playerChar = !noteAlt.gfNote ? state.oppTrigger ? state.dad : state.boyfriend : state.gf;
 				if (state.playerChar != null)
 				{
@@ -521,15 +521,15 @@ class PlayStateNotes
 			if (!PlayState.opponentChart && state.songName != 'tutorial' && !state.camZooming)
 				state.camZooming = true;
 
-			if(daNote.noteType == 'Hey!')
+			if(state.songCharacterVisuals && daNote.noteType == 'Hey!')
 			{
 				state.oppChar = !daNote.gfNote ? !PlayState.opponentChart ? state.dad : state.boyfriend : state.gf;
-				if (state.oppChar.hasAnimation('hey')) {
+				if (state.oppChar != null && state.oppChar.hasAnimation('hey')) {
 					state.oppChar.playAnim('hey', true);
 					state.oppChar.specialAnim = true;
 					state.oppChar.heyTimer = 0.6;
 				}
-			} else if(!daNote.noAnimation && ClientPrefs.charsAndBG) {
+			} else if(!daNote.noAnimation && state.songCharacterVisuals) {
 				if (PlayState.SONG.notes[state.curSection] != null)
 				{
 					if (PlayState.SONG.notes[state.curSection].crossFade)
@@ -559,7 +559,7 @@ class PlayStateNotes
 				state.oppChar = !daNote.gfNote ? !PlayState.opponentChart ? state.dad : state.boyfriend : state.gf;
 				state.animToPlay = state.singAnimations[Std.int(Math.abs(daNote.noteData))];
 
-				if (daNote.animSuffix.length > 0 && state.oppChar.hasAnimation(state.animToPlay + daNote.animSuffix))
+				if (state.oppChar != null && daNote.animSuffix.length > 0 && state.oppChar.hasAnimation(state.animToPlay + daNote.animSuffix))
 					state.animToPlay = state.singAnimations[Std.int(Math.abs(daNote.noteData))] + daNote.animSuffix;
 
 				if (state.oppChar != null)
@@ -642,16 +642,16 @@ class PlayStateNotes
 		}
 		if (noteAlt != null)
 		{
-			if(noteAlt.noteType == 'Hey!')
+			if(state.songCharacterVisuals && noteAlt.noteType == 'Hey!')
 			{
 				state.oppChar = !noteAlt.gfNote ? !PlayState.opponentChart ? state.dad : state.boyfriend : state.gf;
-				if (state.oppChar.animOffsets.exists('hey')) {
+				if (state.oppChar != null && state.oppChar.animOffsets.exists('hey')) {
 					state.oppChar.playAnim('hey', true);
 					state.oppChar.specialAnim = true;
 					state.oppChar.heyTimer = 0.6;
 				}
 			}
-			if(!noteAlt.noAnimation && ClientPrefs.charsAndBG) {
+			if(!noteAlt.noAnimation && state.songCharacterVisuals) {
 				state.oppChar = !noteAlt.gfNote ? !PlayState.opponentChart ? state.dad : state.boyfriend : state.gf;
 				state.animToPlay = state.singAnimations[Std.int(Math.abs(noteAlt.noteData))] + noteAlt.animSuffix;
 				if (state.oppChar != null)

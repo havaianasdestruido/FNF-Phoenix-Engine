@@ -46,6 +46,9 @@ class LowMemory
   /** `haxe.Timer.stamp()` of the last trim, for cooldowns and the vlog. */
   static var lastTrimAt:Float = -1000;
 
+  /** Coalesced Android pressure event while LoadingState owns a worker. */
+  static var pendingSystemPressure:Bool = false;
+
   /** Profile that is currently forced into `ClientPrefs`. */
   static var appliedProfile:String = MemoryProfiles.OFF;
 
@@ -64,6 +67,10 @@ class LowMemory
   /** True while any profile other than `Off` is applied. */
   public static function active():Bool
     return current() != MemoryProfiles.OFF;
+
+  /** Experimental gameplay keeps only character metadata, not their art. */
+  public static function experimentalHudOnly():Bool
+    return !ClientPrefs.charsAndBG && current() == MemoryProfiles.EXPERIMENTAL;
 
   /**
    * Cleanup policy of the active profile.
@@ -93,7 +100,8 @@ class LowMemory
   public static function isManaged(field:String):Bool
   {
     if (field == null || !active()) return false;
-    return MemoryProfiles.overrides(current()).exists(field);
+    // Read the immutable cached map; options may ask this while a key is held.
+    return MemoryProfiles.get(current()).overrides.exists(field);
   }
 
   // -- Applying --------------------------------------------------------------
@@ -272,6 +280,17 @@ class LowMemory
    */
   public static function update(elapsed:Float):Void
   {
+    // Android pressure callbacks arrive on the main thread, but the loading
+    // worker can be mutating the same caches. Drain after leaving that state;
+    // use a shallow trim so newly created state assets remain locally tracked.
+    if (pendingSystemPressure && FlxG.state != null && !isLoadingState())
+    {
+      pendingSystemPressure = false;
+      idleSeconds = 0;
+      trim(false);
+      return;
+    }
+
     final activePolicy:MemoryPolicy = policy();
     if (activePolicy.idleTrimSeconds <= 0)
     {
@@ -280,8 +299,9 @@ class LowMemory
     }
 
     // `FlxG.state` is the state currently being updated; substates still count
-    // as gameplay, so the pause menu will not trim either.
-    if (FlxG.state != null && Std.isOfType(FlxG.state, play.PlayState)) return;
+    // as gameplay, so the pause menu will not trim either. The loading screen
+    // can populate caches on a worker thread; don't trim while it is doing so.
+    if (FlxG.state != null && (Std.isOfType(FlxG.state, play.PlayState) || isLoadingState())) return;
 
     idleSeconds += elapsed;
     if (idleSeconds < activePolicy.idleTrimSeconds) return;
@@ -307,21 +327,33 @@ class LowMemory
   public static function onFocusLost():Void
   {
     if (!policy().trimOnFocusLost) return;
+    // LoadingState can populate the same asset maps on a worker thread. Do not
+    // race its preload work (the next scheduled menu trim can reclaim later).
+    if (isLoadingState()) return;
     if (haxe.Timer.stamp() - lastTrimAt < SIGNAL_TRIM_COOLDOWN) return;
     trim(false);
   }
 
   /**
-   * The OS reported memory pressure (Android `onTrimMemory`/`onLowMemory`).
-   *
-   * Android's own handler already releases the caches unconditionally, so
-   * this only records the event against the active profile in the vlog —
-   * which is what a support report needs to know.
+   * Android reported memory pressure on the main thread. Never race the
+   * loading worker; coalesce those events and trim after the next state starts.
+   * The experimental profile uses a shallow pass against a live state, rather
+   * than resetting the request tracking of assets it may still need.
    */
-  public static function reportSystemPressure():Void
+  public static function onSystemPressure():Void
   {
     VLog.memoryEvent('system memory pressure | ' + statusLine());
+    if (isLoadingState())
+    {
+      pendingSystemPressure = true;
+      return;
+    }
+    pendingSystemPressure = false;
+    trim(!policy().skipSongPreload);
   }
+
+  static inline function isLoadingState():Bool
+    return FlxG.state != null && Std.isOfType(FlxG.state, states.LoadingState);
 
   /**
    * Releases cached assets now.
@@ -331,6 +363,8 @@ class LowMemory
    */
   public static function trim(deep:Bool = false):Void
   {
+    // Also guard explicit script/menu requests, not just scheduled trims.
+    if (isLoadingState()) return;
     final before:Float = VLog.heapUsedBytes();
     try
     {
@@ -343,6 +377,10 @@ class LowMemory
       {
         Paths.clearUnusedMemory();
       }
+      // Normal cache cleanup only compacts if it actually evicted assets. The
+      // experimental tier also returns unreachable heap on otherwise empty
+      // passes. This can pause the game; it never disposes live graphics.
+      if (policy().compactOnTrim) Paths.compress();
       lastTrimAt = haxe.Timer.stamp();
       if (deep) VLog.memoryEvent('profile trim (deep) | ' + statusLine() + ' | heap '
         + VLog.formatBytes(before) + ' -> ' + VLog.formatBytes(VLog.heapUsedBytes()));
@@ -429,5 +467,21 @@ class LowMemory
     {
       // Synthetic states and tests without a stage have no checkerboards.
     }
+    try
+    {
+      // The FPS counter is an OpenFL sibling, not a Flixel sprite, and must
+      // follow the forced value immediately (and again when it is restored).
+      if (Main.fpsVar != null) Main.fpsVar.visible = ClientPrefs.showFPS;
+    }
+    catch (_:Dynamic) {}
+    #if DISCORD_ALLOWED
+    try
+    {
+      // The experimental tier disables RPC; restore the previous choice when
+      // it is left. Avoid re-initializing an already-running client.
+      if (DiscordClient.isInitialized != ClientPrefs.discordRPC) DiscordClient.check();
+    }
+    catch (_:Dynamic) {}
+    #end
   }
 }

@@ -69,6 +69,12 @@ class Song
 
 	private static function onLoadJson(songJson:Dynamic) // Convert old charts to newest format
 	{
+		// Older charts (including built-in songs) omit these later-added string
+		// fields. Gameplay and menu loaders use them as optional overrides.
+		for (field in ['specialAudioName', 'specialEventsName', 'windowName', 'arrowSkin', 'splashSkin',
+			'songCredit', 'songCreditBarPath', 'songCreditIcon', 'event7', 'event7Value'])
+			if (Reflect.field(songJson, field) == null) Reflect.setField(songJson, field, '');
+
 		if(songJson.events == null)
 		{
 			// Legacy charts store events as notes with a negative lane. Compact each
@@ -130,9 +136,14 @@ class Song
 						note[2] = Math.max(note[2], 0);
 					}
 
-					if(!Std.isOfType(note[3], String)) note[3] = editors.ChartingState.noteTypeList[note[3]]; //Backward compatibility + compatibility with Week 7 charts
-
-					if(Std.isOfType(note[3], Bool)) note[3] = (note[3] || section.altAnim ? 'Alt Animation' : ''); //Compatibility with charts made by SNIFF
+					final rawType:Dynamic = note.length > 3 ? note[3] : null;
+					if (Std.isOfType(rawType, Bool))
+						note[3] = (rawType || section.altAnim ? 'Alt Animation' : '');
+					else if (!Std.isOfType(rawType, String))
+					{
+						final index:Int = Std.isOfType(rawType, Int) || Std.isOfType(rawType, Float) ? Std.int(rawType) : -1;
+						note[3] = index >= 0 && index < editors.ChartingState.noteTypeList.length ? editors.ChartingState.noteTypeList[index] : '';
+					}
 				}
 			}
 		}
@@ -164,6 +175,9 @@ class Song
 
 		var formattedFolder:String = Paths.formatToSongPath(folder);
 		var formattedSong:String = Paths.formatToSongPath(jsonInput);
+		// Both the generic and difficulty-specific event charts are auxiliary;
+		// loading one must not replace the current song's stage directory.
+		final isEventChart:Bool = formattedSong == 'events' || formattedSong.startsWith('events-');
 		#if MODS_ALLOWED
 		var moddyFile:String = Paths.modsJson('$formattedFolder/$formattedSong');
 		if(FileSystem.exists(moddyFile)) {
@@ -195,14 +209,14 @@ class Song
 		// Use the song directory (not the difficulty-suffixed chart name) so
 		// Inst/Voices lookups still resolve to the song's audio files.
 		var dummy:SwagSong = dummySong(folder);
-			if (jsonInput != 'events')
+			if (!isEventChart)
 				StageData.loadDirectory(dummy);
 			onLoadJson(dummy);
 			return dummy;
 		}
 
 		var songJson:Dynamic = parseJSON(rawJson);
-		if(jsonInput != 'events') StageData.loadDirectory(songJson);
+		if(!isEventChart) StageData.loadDirectory(songJson);
 		onLoadJson(songJson);
 		return songJson;
 	}

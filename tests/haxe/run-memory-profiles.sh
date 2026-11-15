@@ -1,15 +1,12 @@
 #!/usr/bin/env bash
 # Options -> Optimization -> Memory Profile.
 #
-# Two halves, neither of which needs the game's haxelibs:
-#
-#   1. backend/MemoryProfiles.hx is Flixel-free, so its contract (profile
-#      lookup/aliases, override contents, cleanup policy, baseline codec) is
-#      executed in the Haxe interpreter with no stubs at all.
-#   2. A static guard greps source/backend/ClientPrefs.hx for every preference a
-#      profile forces, and checks the literal has the field's declared type.
-#      Without it, renaming a preference would leave a profile quietly forcing
-#      nothing — the exact failure mode this feature is easiest to rot into.
+# No game haxelibs needed:
+#   1. Exercise the pure profile data and the actual apply/save/cleanup layer
+#      (with tiny Flixel stubs), including profile transitions and restoration.
+#   2. Check every forced literal against the real ClientPrefs declarations.
+#   3. Exercise the streaming helper and production Paths routing/fallbacks
+#      with and without native Vorbis/OpenAL support.
 set -euo pipefail
 root="$(cd "$(dirname "$0")/../.." && pwd)"
 work="$(mktemp -d)"
@@ -19,6 +16,13 @@ mkdir -p "$work/backend"
 cp "$root/source/backend/MemoryProfiles.hx" "$work/backend/MemoryProfiles.hx"
 
 "${HAXE:-haxe}" -cp "$work" -cp "$root/tests/haxe" -main MemoryProfilesSpec --interp
+
+# Run the actual apply/save/restore and cleanup layer with small Flixel stubs.
+cp -R "$root/tests/haxe/stubs/low-memory/." "$work/"
+cp "$root/source/backend/LowMemory.hx" "$work/backend/LowMemory.hx"
+mkdir -p "$work/options"
+cp "$root/source/options/Option.hx" "$work/options/Option.hx"
+"${HAXE:-haxe}" -cp "$work" -cp "$root/tests/haxe" -D DISCORD_ALLOWED -main LowMemorySpec --interp
 
 # --- Static guard: every override is a real, correctly typed preference ------
 # Overrides are written as `forced.set('field', literal)` in the profile
@@ -70,3 +74,4 @@ while read -r key value; do
 done < <(printf '%s\n' "$pairs" | sed -E "s/set\('([A-Za-z0-9_]+)',[[:space:]]*/\1 /; s/\)$//")
 
 echo "MemoryProfilesSpec passed: $checked forced preferences verified against ClientPrefs.hx"
+bash "$root/tests/haxe/run-song-audio-streaming.sh"

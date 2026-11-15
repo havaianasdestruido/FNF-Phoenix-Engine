@@ -8,36 +8,39 @@ import play.PlayState;
 class PlayStateCharacters
 {
 	public static function addCharacterToList(state:PlayState, newCharacter:String, type:Int) {
+		// A song constructed with stand-ins keeps that representation until a
+		// restart, even if a script changes the profile during playback.
+		final metadataOnly:Bool = state.metadataOnlyCharacters;
 		switch(type) {
 			case 0:
 				if(!state.boyfriendMap.exists(newCharacter)) {
-					var newBoyfriend:Boyfriend = new Boyfriend(0, 0, newCharacter);
+					var newBoyfriend:Boyfriend = new Boyfriend(0, 0, newCharacter, metadataOnly);
 					state.boyfriendMap.set(newCharacter, newBoyfriend);
 					state.boyfriendGroup.add(newBoyfriend);
-					startCharacterPos(state, newBoyfriend);
+					if (!metadataOnly) startCharacterPos(state, newBoyfriend);
 					newBoyfriend.alpha = 0.00001;
-					startCharacterLua(state, newBoyfriend.curCharacter);
+					if (!metadataOnly) startCharacterLua(state, newBoyfriend.curCharacter);
 				}
 
 			case 1:
 				if(!state.dadMap.exists(newCharacter)) {
-					var newDad:Character = new Character(0, 0, newCharacter);
+					var newDad:Character = new Character(0, 0, newCharacter, false, false, metadataOnly);
 					state.dadMap.set(newCharacter, newDad);
 					state.dadGroup.add(newDad);
-					startCharacterPos(state, newDad, true);
+					if (!metadataOnly) startCharacterPos(state, newDad, true);
 					newDad.alpha = 0.00001;
-					startCharacterLua(state, newDad.curCharacter);
+					if (!metadataOnly) startCharacterLua(state, newDad.curCharacter);
 				}
 
 			case 2:
 				if(state.gf != null && !state.gfMap.exists(newCharacter)) {
-					var newGf:Character = new Character(0, 0, newCharacter);
+					var newGf:Character = new Character(0, 0, newCharacter, false, false, metadataOnly);
 					newGf.scrollFactor.set(0.95, 0.95);
 					state.gfMap.set(newCharacter, newGf);
 					state.gfGroup.add(newGf);
-					startCharacterPos(state, newGf);
+					if (!metadataOnly) startCharacterPos(state, newGf);
 					newGf.alpha = 0.00001;
-					startCharacterLua(state, newGf.curCharacter);
+					if (!metadataOnly) startCharacterLua(state, newGf.curCharacter);
 				}
 		}
 	}
