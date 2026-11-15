@@ -422,6 +422,13 @@ class VisualsUISubState extends BaseOptionsMenu
 		addOption(option);
 		option.onChange = onChangeFPSCounter;
 		#end
+		var option:Option = new Option('Commit Watermark',
+			"Shows this build's commit id and how many commits behind the latest main branch it is, in the bottom-right corner.\nThe counter is checked once per session.",
+			'showCommitWatermark',
+			'bool',
+			true);
+		addOption(option);
+		option.onChange = onChangeCommitWatermark;
 		
 		var option:Option = new Option('Legacy FPS UI',
 			'Restore the old FPS overlay, including peak RAM and optional debug information.',
@@ -713,6 +720,12 @@ class VisualsUISubState extends BaseOptionsMenu
 	{
 		if(Main.fpsVar != null)
 			Main.fpsVar.visible = ClientPrefs.showFPS;
+	}
+
+	function onChangeCommitWatermark()
+	{
+		if(Main.commitWatermark != null)
+			Main.commitWatermark.visible = ClientPrefs.showCommitWatermark;
 	}
 	
 	function updateFPSText()

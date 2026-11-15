@@ -120,6 +120,8 @@ class ClientPrefs { //default settings if it can't find a save file containing y
 	public static var scoreZoom:Bool = true;
 	public static var healthBarAlpha:Float = 1;
 	public static var showFPS:Bool = true;
+	/** Bottom-right commit id + freshness-versus-main watermark (see debug.CommitWatermark). */
+	public static var showCommitWatermark:Bool = true;
 	public static var show1PercentLows:Bool = false;
 	public static var uncappedFps:Bool = false;
 	public static var mouseSupport:Bool = true;
@@ -543,6 +545,9 @@ class ClientPrefs { //default settings if it can't find a save file containing y
 
 					if (field == "showFPS" && Main.fpsVar != null)
 						Main.fpsVar.visible = showFPS;
+
+					if (field == "showCommitWatermark" && Main.commitWatermark != null)
+						Main.commitWatermark.visible = showCommitWatermark;
 
 					if (field == "framerate")
 					{

@@ -19,6 +19,13 @@ class PhoenixVersion
   public static inline var REPOSITORY_URL:String = "https://github.com/" + REPOSITORY;
   public static inline var RELEASES_URL:String = REPOSITORY_URL + "/releases";
   public static inline var RELEASES_API_URL:String = "https://api.github.com/repos/" + REPOSITORY + "/releases?per_page=100";
+  /**
+   * GitHub compare endpoint prefix for the bottom-right build-freshness
+   * watermark: how many commits this build is behind upstream `main`. The
+   * build's full commit SHA is appended at runtime; abbreviated SHAs 404.
+   * Overridable through flags.ini (`urls.compareApi`).
+   */
+  public static inline var COMPARE_API_URL:String = "https://api.github.com/repos/" + REPOSITORY + "/compare/main...";
 
   /**
    * Fallback for contexts without Lime application metadata. Keep equal to
