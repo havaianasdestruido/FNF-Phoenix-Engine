@@ -98,9 +98,83 @@ The Android pieces are injected **only for the Android target**
   `PHOENIX_KEYSTORE_ALIAS`, `PHOENIX_KEYSTORE_ALIAS_PASSWORD` env vars,
   falling back to a local `key.keystore` for development. No credentials
   are stored in source.
-- Native desktop-only haxelibs (`hxdiscord_rpc`, `hxvlc`, `hxluajit`,
+- Native desktop-only haxelibs (`hxdiscord_rpc`, `hxvlc`,
   `hxnativefiledialog`) are gated to desktop builds so Android never
-  links them.
+  links them; `hxluajit`, `hython` and `hscript` are included on Android so
+  mobile builds have full Lua + Python + HScript modding support by default.
+
+### LuaJIT and the API-21 stdio link
+
+`hxluajit` ships **prebuilt** Android LuaJIT libraries
+(`project/luajit/lib/Android/libluajit-*.a`) that reference the `stdin`,
+`stdout` and `stderr` stdio *variables*. Bionic only exports those from
+**API 23** on (`libc.map.txt` marks them `# var introduced=23`, and below that
+level `<stdio.h>` defines them as macros over the `__sF` stream array), while
+this engine supports API 21, so an APK built at the API-21 floor fails at the
+link step:
+
+```text
+ld.lld: error: undefined symbol: stdout
+ld.lld: error: undefined symbol: stdin
+ld.lld: error: undefined symbol: stderr
+clang++: error: linker command failed with exit code 1
+```
+
+The build defines the three variables itself when it links LuaJIT:
+`source/backend/native/src/phoenix_luajit_bionic_stdio.cpp` exports them on top
+of bionic's `FILE __sF[3]` array (available since API 1), which is exactly what
+an API 23+ `<stdio.h>` does:
+
+```c
+FILE* stdin  = &__sF[0];
+FILE* stdout = &__sF[1];
+FILE* stderr = &__sF[2];
+```
+
+LuaJIT's stdio use (`lua_writestring()`/`lua_writeline()` in its
+`lauxlib.h`, behind a mod's `print()`) therefore keeps working on API 21 and
+above. The shim is wired the same way as this project's other native helpers: a
+`@:buildXml` include on `source/hxluajit/BionicStdio.hx`, imported from
+`source/import.hx`, with an `android`-only section in
+`source/backend/native/luajit_bionic_stdio_build.xml`.
+
+Three details of the translation unit are load-bearing, and each one was
+learned the hard way:
+
+1. **Never guard on `LUA_ALLOWED`.** It is a *Haxe* define. hxcpp consumes it
+   for its own XML `if=`/`unless=` conditionals (read from the generated
+   `Options.txt`) and never turns Haxe defines into `-D` compiler flags, so
+   `#if defined(LUA_ALLOWED)` in C++ is always false and silently compiles the
+   shim away — leaving the link error exactly as it was. Whether Lua is
+   compiled in is decided by the build file's `if=` conditionals instead.
+2. **Guard on `__ANDROID_API__ < 23`.** Clang sets that macro from the target
+   triple (`--target aarch64-linux-android21`, from
+   `android.minimum-sdk-version`), and bionic's own `<stdio.h>` picks its
+   `stdin`/`stdout`/`stderr` shape from it: real (deprecated-tagged) variables
+   at 23+, macros over `__sF` below. At 23+ bionic exports the symbols itself,
+   so defining them here would be a duplicate.
+3. **`#undef stdin/stdout/stderr` first.** Bionic makes all three names macros
+   in *both* branches, so `FILE* stdin = &__sF[0];` would expand to
+   `FILE* (&__sF[0]) = ...` and fail to compile. `__sF` itself is declared by
+   `<stdio.h>` with C linkage and must not be re-declared.
+
+The same prebuilt libraries also call `fseeko64()`/`ftello64()` (LuaJIT's
+`lib_io.c` implements `file:seek()` with them), which bionic only exports from
+**API 24** (`fseeko64; # introduced=24`). The shim forwards both to the
+API-1 `fseeko()`/`ftello()`: exact on 64-bit ABIs, and on 32-bit ABIs it caps
+`file:seek()` at 2 GiB — what the API-21 C library itself offered.
+
+`-DNO_LUAJIT_BIONIC_STDIO` (or the environment variable of the same name) opts
+out if a future NDK starts exporting the variables below API 23.
+
+Regression checks: `bash tests/native/run.sh` compiles the shim against a model
+of bionic's `<stdio.h>` — **not** the host libc, whose ordinary
+`extern FILE*` streams hide the macro problem described above — and asserts the
+object defines all three streams out of distinct `__sF` slots plus the
+`fseeko64`/`ftello64` wrappers at API 21, and nothing at API 23+, under the
+opt-out, or off Android.
+`bash tests/haxe/run-lua-discovery.sh` fails if the `@:buildXml` wiring, the
+build file or the guard/structure above stops being present.
 
 ### Android SDK and Java compatibility
 

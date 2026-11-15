@@ -10,14 +10,16 @@ mkdir "%TEST_SOURCE%\backend" || exit /b 1
 copy /y "source\backend\LuaDiagnostics.hx" "%TEST_SOURCE%\backend\" >nul || goto fail
 set "LUA_DIAGNOSTICS_TMP=%TEST_SOURCE%"
 
-rem No define: a target that cannot include Lua (mobile, web).
+rem No define: a target that cannot include Lua (e.g. web).
 %HAXE% -cp "%TEST_SOURCE%" -cp tests/haxe -main LuaDiagnosticsSpec --interp || goto fail
 
-rem A desktop build without the Lua VM: .lua files are found but cannot run.
+rem Desktop or mobile builds without the Lua VM (-DMODDING_LEVEL=0): .lua files are found and rebuild advice is shown.
 %HAXE% -cp "%TEST_SOURCE%" -cp tests/haxe -main LuaDiagnosticsSpec -D desktop --interp || goto fail
+%HAXE% -cp "%TEST_SOURCE%" -cp tests/haxe -main LuaDiagnosticsSpec -D mobile -D android --interp || goto fail
 
-rem A desktop build with the Lua VM.
+rem Desktop and mobile builds with the Lua VM (default).
 %HAXE% -cp "%TEST_SOURCE%" -cp tests/haxe -main LuaDiagnosticsSpec -D desktop -D LUA_ALLOWED --interp || goto fail
+%HAXE% -cp "%TEST_SOURCE%" -cp tests/haxe -main LuaDiagnosticsSpec -D mobile -D android -D LUA_ALLOWED --interp || goto fail
 
 rd /s /q "%TEST_SOURCE%" 2>nul
 exit /b 0

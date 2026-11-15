@@ -73,7 +73,7 @@ The most relevant ones:
 | Define | Effect |
 |---|---|
 | `-Dofficial` / `-DofficialBuild` | marks the build as an official release build |
-| `-DMODDING_LEVEL=0\|1\|2` | script support: none / Lua / Lua + Python (desktop default `2`) |
+| `-DMODDING_LEVEL=0\|1\|2` | script support: none / Lua / Lua + Python (desktop and mobile default `2`) |
 | `-DNO_BUILTIN_CONTENT` | strips all base-game songs, weeks, characters and art — see below |
 | `-DULTRA_OPTIMIZED` | maximum-speed build (work in progress) |
 | `-DULTRA_HTML5` | HTML5-specific optimization pass (work in progress) |
@@ -100,10 +100,10 @@ The level is read by `project.hxp` and translated into the `LUA_ALLOWED` and
 `PYTHON_ALLOWED` feature flags, which guard the corresponding code with `#if`. Code behind
 a disabled flag is not merely skipped at runtime — it is not compiled at all.
 
-CI passes the flag explicitly: Windows builds at level `2` and Android at `0` (the Lua
-bindings are desktop-only). The level shows up in the run title and as a suffix on every
-artifact — `…_LUA_PYTHON_HSCRIPT`, `…_LUA_HSCRIPT`, `…_HSCRIPT` or `…_NONE` — so a download
-says which scripts it can run. See
+CI passes the flag explicitly: both Windows and Android build at level `2` (`LUA_PYTHON_HSCRIPT`)
+by default across all CI and release workflows. The level shows up in the run title and as
+a suffix on every artifact — `…_LUA_PYTHON_HSCRIPT`, `…_LUA_HSCRIPT`, `…_HSCRIPT` or `…_NONE`
+— so a download says which scripts it can run. See
 [CI & releases](../contributing/ci-and-releases.md#script-modding-level-and-artifact-names).
 
 ### Content-stripped builds
