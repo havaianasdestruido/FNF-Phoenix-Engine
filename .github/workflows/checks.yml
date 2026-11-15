@@ -53,12 +53,6 @@ jobs:
       - name: Verify compact CI and full release asset policy
         run: bash tests/haxe/run-content-policy.sh
 
-      # Every artifact name must end with the script backends the binary
-      # contains (LUA / PYTHON / HSCRIPT), and the compile flags, cache keys
-      # and run titles must use the same modding level.
-      - name: Verify artifact names carry the script modding level
-        run: python3 tests/test_ci_artifact_names.py
-
       - name: Verify artifact comment workflow permissions
         run: bash tests/workflows/run-nightly-permissions.sh
   diagnostic-report-specs:
@@ -69,6 +63,11 @@ jobs:
       - uses: krdlab/setup-haxe@master
         with:
           haxe-version: "4.3.7"
+      # Every artifact name must end with the script backends the binary
+      # contains (LUA / PYTHON / HSCRIPT), and all CI/release workflows must
+      # default to full modding support (MODDING_LEVEL=2).
+      - name: Verify CI artifact names and default modding levels
+        run: bash tests/haxe/run-ci-artifact-names.sh
       - name: Test diagnostic log redaction and retention
         run: bash tests/haxe/run-log-utils.sh
       - name: Test crash bundle archive safety

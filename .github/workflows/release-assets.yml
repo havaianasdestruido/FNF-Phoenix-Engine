@@ -11,8 +11,8 @@ name: Release Assets
 # explicit tag backfills or re-attaches artifacts on any existing release.
 
 # The run title names the script modding level the attached binaries were built
-# with (Android is always clamped to 0 by main.yml: the Lua bindings are
-# desktop-only).
+# with (default MODDING_LEVEL=2 = Lua + Python + HScript on both Windows and
+# Android).
 run-name: >-
   Release assets
   ${{ github.event.release.tag_name || github.event.inputs.tag_name }} - MODDING_LEVEL
