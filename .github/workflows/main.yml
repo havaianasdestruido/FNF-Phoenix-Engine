@@ -480,6 +480,14 @@ jobs:
           restore-keys: |
             ${{ env.CACHE_SCHEMA }}-hxcpp-${{ matrix.cache_name }}-${{ runner.os }}-${{ runner.arch }}-haxe-${{ env.HAXE_VERSION }}-${{ hashFiles('hmm.json', 'setup/unix.sh', 'setup/windows.bat', 'setup/windows-msvc-fix.ps1') }}-${{ inputs.buildFlags != '' && format('explicit-{0}', inputs.buildFlags) || 'unset' }}-level-${{ steps.modding-level.outputs.level }}
 
+      # Clang's PCH validates NDK system-header mtimes, which can differ across
+      # hosted runners even when the restored object-cache key is unchanged.
+      # Rebuild only those headers; retain hxcpp's content-addressed objects.
+      - name: Refresh Android precompiled headers
+        if: steps.target-selection.outputs.enabled == 'true' && matrix.target == 'android'
+        shell: bash
+        run: bash tools/clear_hxcpp_pch.sh
+
       # ==========================================
       # Compile Windows
       # ==========================================
@@ -535,19 +543,7 @@ jobs:
           if [ "${{ inputs.fullAssets }}" != "true" ]; then
             args+=("-DNO_BUILTIN_CONTENT")
           fi
-          # Temporary diagnostics: report the build tail as check annotations.
-          set +e
-          haxelib run lime build android "${args[@]}" 2>&1 | tee "$RUNNER_TEMP/phoenix-android-build.log"
-          result=${PIPESTATUS[0]}
-          set -e
-          if [ "$result" -ne 0 ]; then
-            message=$(tail -n 80 "$RUNNER_TEMP/phoenix-android-build.log")
-            message=${message//%/%25}
-            message=${message//$'\r'/%0D}
-            message=${message//$'\n'/%0A}
-            printf '::error title=Android build diagnostic::%s\n' "$message"
-          fi
-          exit "$result"
+          haxelib run lime build android "${args[@]}"
 
       # ==========================================
       # Verify the actual merged Android manifest

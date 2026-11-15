@@ -93,6 +93,32 @@ for name in "Compile (Windows)" "Compile (Android)"; do
   fi
 done
 
+# Clang embeds system-header mtimes in PCH files. A fresh Android runner can
+# reject a restored PCH even when NDK contents match, so refresh only the PCHs.
+have_step "Refresh Android precompiled headers"
+pch_refresh=$(step "Refresh Android precompiled headers")
+case "$(step_if "$pch_refresh")" in
+  *"matrix.target == 'android'"*) ;;
+  *) fail "PCH refresh must be limited to Android" ;;
+esac
+grep -qF 'bash tools/clear_hxcpp_pch.sh' <<<"$pch_refresh" || fail "Android PCH refresh helper is missing"
+
+temp=$(mktemp -d)
+trap 'rm -rf "$temp"' EXIT
+cache="$temp/cache with spaces"
+mkdir -p "$cache/haxe/pch123" "$cache/other/pch456" "$cache/haxe/ab" "$cache/not-pch"
+touch "$cache/haxe/pch123/hxcpp.h.pch" "$cache/other/pch456/header.h.gch" \
+  "$cache/haxe/pch123/keep.o" "$cache/haxe/ab/object.o" "$cache/not-pch/unrelated.pch"
+HXCPP_COMPILE_CACHE="$cache" bash "$root/tools/clear_hxcpp_pch.sh"
+[ ! -e "$cache/haxe/pch123/hxcpp.h.pch" ] || fail "Clang PCH was not cleared"
+[ ! -e "$cache/other/pch456/header.h.gch" ] || fail "GCC PCH was not cleared"
+[ -e "$cache/haxe/pch123/keep.o" ] && [ -e "$cache/haxe/ab/object.o" ] \
+  && [ -e "$cache/not-pch/unrelated.pch" ] || fail "PCH refresh deleted unrelated cache files"
+HXCPP_COMPILE_CACHE="$temp/missing" bash "$root/tools/clear_hxcpp_pch.sh"
+if env -u HXCPP_COMPILE_CACHE bash "$root/tools/clear_hxcpp_pch.sh" >/dev/null 2>&1; then
+  fail "PCH refresh must reject an unspecified cache path"
+fi
+
 # ---------------------------------------------------------------------------
 # 2. The save writes the exact key that was looked up.
 #    `cache-hit` is only true on an exact match, and a cache found through a
