@@ -526,20 +526,7 @@ jobs:
           if [ "${{ inputs.fullAssets }}" != "true" ]; then
             args+=("-DNO_BUILTIN_CONTENT")
           fi
-          # TEMPORARY diagnostics: the job log is not reachable from some
-          # environments, so mirror the failing tail into check annotations.
-          set +e
-          haxelib run lime build android "${args[@]}" 2>&1 | tee "$RUNNER_TEMP/phoenix-android-build.log"
-          result=${PIPESTATUS[0]}
-          set -e
-          if [ "$result" -ne 0 ]; then
-            message=$(grep -nE "Error|error:|error |warning: |undefined|Type not found|not found" "$RUNNER_TEMP/phoenix-android-build.log" | tail -n 60 || true)
-            message=${message//%/%25}
-            message=${message//$'\r'/%0D}
-            message=${message//$'\n'/%0A}
-            printf '::error title=Android build diagnostic::%s\n' "$message"
-          fi
-          exit "$result"
+          haxelib run lime build android "${args[@]}"
 
       # ==========================================
       # Verify the actual merged Android manifest

@@ -224,6 +224,64 @@ else
   echo "skip refresh rate ($CXX unavailable)"
 fi
 
+# --- LuaJIT on Android API 21: bionic stdio shim -----------------------------
+# hxluajit's prebuilt Android LuaJIT references stdin/stdout/stderr, which
+# bionic only exports from API 23 on, so the API 21 link needs the shim in
+# source/backend/native/src/phoenix_luajit_bionic_stdio.cpp. The translation
+# unit is compiled here with the Android defines, its stream symbols are
+# renamed (objcopy) so they cannot take over the host libc's, and the object is
+# inspected: the Android build must define all three streams out of bionic's
+# __sF array, every other build must define none of them.
+if command -v "$CXX" >/dev/null && command -v nm >/dev/null; then
+  luajit_stdio_src=source/backend/native/src/phoenix_luajit_bionic_stdio.cpp
+  luajit_stdio_inc=source/backend/native/include
+
+  "$CXX" -std=c++11 -Wall -Wextra -Werror -D__ANDROID__ -DLUA_ALLOWED \
+    -I "$luajit_stdio_inc" -c "$luajit_stdio_src" -o "$work/luajit-stdio-android.o"
+  # A future NDK may export the variables itself; the escape hatch must then
+  # produce an object that defines nothing.
+  "$CXX" -std=c++11 -Wall -Wextra -Werror -D__ANDROID__ -DLUA_ALLOWED \
+    -DNO_LUAJIT_BIONIC_STDIO -I "$luajit_stdio_inc" \
+    -c "$luajit_stdio_src" -o "$work/luajit-stdio-optout.o"
+  "$CXX" -std=c++11 -Wall -Wextra -Werror \
+    -I "$luajit_stdio_inc" -c "$luajit_stdio_src" -o "$work/luajit-stdio-other.o"
+
+  # Rename the three streams in the Android object before linking it, so the
+  # test keeps using the host libc's stdin/stdout/stderr for its own output.
+  linked_flags=""
+  if command -v objcopy >/dev/null; then
+    cp "$work/luajit-stdio-android.o" "$work/luajit-stdio-renamed.o"
+    objcopy --redefine-sym stdin=phoenix_test_shim_stdin \
+      --redefine-sym stdout=phoenix_test_shim_stdout \
+      --redefine-sym stderr=phoenix_test_shim_stderr \
+      "$work/luajit-stdio-renamed.o"
+    linked_flags="-DPHOENIX_TEST_SHIM_LINKED"
+  fi
+
+  "$CXX" -std=c++11 -Wall -Wextra -Werror -I "$luajit_stdio_inc" $linked_flags \
+    -DPHOENIX_TEST_SHIM_OBJECT="\"$work/luajit-stdio-android.o\"" \
+    -DPHOENIX_TEST_SHIM_SOURCE="\"$root/$luajit_stdio_src\"" \
+    -DPHOENIX_TEST_INCLUDE_DIR="\"$root/$luajit_stdio_inc\"" \
+    tests/native/test_luajit_bionic_stdio.cpp "$work/luajit-stdio-renamed.o" \
+    -o "$work/luajit-stdio-test"
+  "$work/luajit-stdio-test"
+
+  # Nothing may be defined outside Android+LUA_ALLOWED, or the desktop and
+  # Emscripten links would get a second set of streams.
+  for variant in other optout; do
+    "$CXX" -std=c++11 -Wall -Wextra -Werror -I "$luajit_stdio_inc" \
+      -DPHOENIX_TEST_SHIM_OBJECT="\"$work/luajit-stdio-$variant.o\"" \
+      -DPHOENIX_TEST_SHIM_SOURCE="\"$root/$luajit_stdio_src\"" \
+      -DPHOENIX_TEST_INCLUDE_DIR="\"$root/$luajit_stdio_inc\"" \
+      tests/native/test_luajit_bionic_stdio.cpp "$work/luajit-stdio-$variant.o" \
+      -o "$work/luajit-stdio-$variant-test"
+    "$work/luajit-stdio-$variant-test" --expect-none
+  done
+  echo "bionic stdio shim smoke passed"
+else
+  echo "skip bionic stdio shim ($CXX or nm unavailable)"
+fi
+
 # Optional: compile the real header against the actual Windows SDK.
 if [ -n "${PHOENIX_WINDOWS_CXX:-}" ]; then
   for i in 0 1; do
