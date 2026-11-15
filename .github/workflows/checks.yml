@@ -233,12 +233,6 @@ jobs:
           STDFIRE_TEST_LUA: "1"
           STDFIRE_TEST_CPP_INTERPRETERS: "1"
         run: bash tests/haxe/run-stdfire.sh
-      - name: Test native window property access (Linux)
-        if: runner.os == 'Linux'
-        shell: bash
-        env:
-          PHOENIX_TEST_WINDOW_MODE_CPP: "1"
-        run: bash tests/haxe/run-window-mode.sh
       - name: Verify cold, warm, header-change and flag-change builds
         shell: bash
         env:

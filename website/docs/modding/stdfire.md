@@ -12,7 +12,7 @@ also available to sandboxed mods; it does not require `META_HORROR`.
 
 | Function | Purpose |
 |---|---|
-| `stdfire.NativeTitleRename(title)` | Set the running window, browser tab or mobile activity/scene title. Pass `nil` / `None` / `null` to restore the engine title. |
+| `stdfire.NativeTitleRename(title)` | Set the running window, browser tab or mobile activity/scene title. Pass `nil` / `None` / `null` to conditionally restore the previous title. |
 | `stdfire.NativeMSGBox(message, title?)` | Show a **modal** native message box. The optional title defaults to `Phoenix Engine`; browsers ignore it. |
 | `stdfire.NativeWarn(message, title?)` | Show a short **non-modal** warning. The optional title defaults to `Phoenix Engine` where supported. |
 
@@ -21,18 +21,25 @@ the OS or browser actually displayed it; `false` means invalid input, no suitabl
 window/platform, or a rejected request. In particular, Lime's native dialog API
 discards SDL's display status, so even a returned `true` cannot confirm the dialog
 appeared. Android's dialog reports `false` for a rejected activity or UI-thread
-call, or a non-OK dialog result. A title reset with no active override is a
+call, or a non-OK dialog result. A title reset with no prior stdfire title is a
 successful no-op. A null message is invalid; warnings must also contain non-whitespace
 text. Unicode text is supported; embedded NUL characters are rejected rather than
 silently truncating text on native platforms.
 
-The title override is **global to the running game**, not private to a script. Normal
-song/menu title updates do not overwrite it. Reset it when you are finished; resetting
-restores the **latest** engine title, even if the song or menu changed meanwhile.
-Other mods can change or reset the same override, so coordinate if several scripts use it.
-Direct window-title effects, such as `META_HORROR`, can temporarily replace the displayed
-title; the next normal engine update reapplies the override. Neither mobile implementation
-changes the installed app's launcher name.
+`stdfire` **complements** the engine's existing `Application` calls; it does not
+intercept or replace them. A title change applies immediately (or is queued on mobile),
+but a later engine, `META_HORROR`, or other mod title update can overwrite it. A mod
+can set the title again when appropriate.
+
+Title changes are global to the running game, not private to a script. Passing
+`nil` / `None` / `null` restores the title observed before the current sequence of
+stdfire changes **only if** the same window/tab still shows the last stdfire title.
+If another update changed the title, or the window was replaced, reset leaves that
+new title alone. While a stdfire title is active, reset returns `false` if the current
+title cannot be observed, or if it still matches but the previous title is unknown.
+Two updates to the exact same text cannot be distinguished without intercepting engine
+writes. Coordinate if several scripts change or reset the title.
+Neither mobile implementation changes the installed app's launcher name.
 
 ```lua
 -- mods/MyMod/scripts/notice.lua
@@ -42,7 +49,7 @@ function onCreatePost()
 end
 
 function onDestroy()
-    stdfire.NativeTitleRename(nil) -- restore the engine's current title
+    stdfire.NativeTitleRename(nil) -- restore the previous title if it is still ours
 end
 
 -- For a deliberately modal dialog, for example from a one-time event:

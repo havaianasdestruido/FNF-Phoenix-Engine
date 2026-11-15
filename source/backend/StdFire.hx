@@ -9,40 +9,53 @@ import js.html.DivElement;
 class StdFire
 {
   static inline final DEFAULT_TITLE:String = "Phoenix Engine";
-  @:unreflective static var titleOverride:Null<String> = null;
-  @:unreflective static var engineTitle:Null<String> = null;
+  @:unreflective static var savedTitle:Null<String> = null;
+  @:unreflective static var lastSoftmodTitle:Null<String> = null;
+  @:unreflective static var lastTitleTarget:Dynamic = null;
 
   /**
-   * Rename the running window/tab/activity. Pass null to restore the latest
-   * engine-generated title. The override survives normal state/title changes.
-   * A true result means the platform accepted or queued the request.
+   * Rename the running window/tab/activity without intercepting engine writes.
+   * Passing null restores the previously observed title only if the same target
+   * still shows the last stdfire title. A true result means accepted or queued.
    */
   public static function nativeTitleRename(title:Null<String>):Bool
   {
     // Native title APIs use NUL-terminated strings; never silently truncate.
     if (title != null && title.indexOf("\x00") >= 0) return false;
+    if (title == null && lastSoftmodTitle == null) return true;
+
+    var current = currentTitle();
+    var target = currentTitleTarget();
     if (title == null)
     {
-      if (titleOverride == null) return true;
-      if (engineTitle == null || !setPlatformTitle(engineTitle)) return false;
-      titleOverride = null;
+      if (current == null || target == null) return false;
+      if (target != lastTitleTarget || current != lastSoftmodTitle)
+      {
+        // A normal engine/other-mod update or a new window took precedence.
+        clearSavedTitle();
+        return true;
+      }
+      if (savedTitle == null || !setPlatformTitle(savedTitle)) return false;
+      clearSavedTitle();
       return true;
     }
 
-    // Remember the original title even if the library is called before the
-    // first MusicBeatState has published its title.
-    var previous:String = titleOverride == null && engineTitle == null ? currentTitle() : null;
+    // Repeated stdfire writes retain the previous title, but an intervening
+    // engine write or window replacement starts a fresh restore point.
+    var previous = lastSoftmodTitle != null && target != null && target == lastTitleTarget && current == lastSoftmodTitle
+      ? savedTitle : current;
     if (!setPlatformTitle(title)) return false;
-    if (previous != null) engineTitle = previous;
-    titleOverride = title;
+    savedTitle = previous;
+    lastSoftmodTitle = title;
+    lastTitleTarget = target;
     return true;
   }
 
-  /** Publish the latest engine title, preserving an override even after a window is recreated. */
-  public static function engineTitleChanged(title:String):Void
+  static function clearSavedTitle():Void
   {
-    engineTitle = title;
-    setPlatformTitle(titleOverride != null ? titleOverride : title);
+    savedTitle = null;
+    lastSoftmodTitle = null;
+    lastTitleTarget = null;
   }
 
   /** Show a native, modal message box. Browsers do not support custom titles. */
@@ -121,6 +134,18 @@ class StdFire
     #elseif !flash
     var app = lime.app.Application.current;
     return app != null && app.window != null ? app.window.title : null;
+    #else
+    return null;
+    #end
+  }
+
+  static function currentTitleTarget():Dynamic
+  {
+    #if html5
+    return Browser.document;
+    #elseif !flash
+    var app = lime.app.Application.current;
+    return app != null ? app.window : null;
     #else
     return null;
     #end

@@ -52,7 +52,7 @@ class StdFireLuaSpec
   {
     Application.current = new Application();
     PlayState.instance = new PlayState();
-    StdFire.engineTitleChanged('Engine');
+    Application.current.window.title = 'Engine';
     var lua = newState();
     var code = 'assert(type(stdfire) == "table")\n'
       + 'assert(type(stdfire.NativeTitleRename) == "function")\n'

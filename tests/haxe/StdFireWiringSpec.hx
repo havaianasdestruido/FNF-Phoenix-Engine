@@ -31,8 +31,9 @@ class StdFireWiringSpec
         throw 'both HScript hosts must guard the class resolved by the compatibility fallback';
 
     var titles = File.getContent('source/backend/MusicBeatState.hx');
-    if (titles.split('StdFire.engineTitleChanged(').length != 4 || titles.indexOf('Application.current.window.title =') >= 0)
-      throw 'all three normal title updates must respect the stdfire override';
+    if (titles.split('Application.current.window.title = windowNamePrefix + windowNameSuffix + windowNameSuffix2;').length != 4
+        || titles.indexOf('StdFire') >= 0)
+      throw 'normal engine title updates must keep their direct Application calls';
 
     var facade = File.getContent('source/backend/StdFire.hx');
     before(facade, '#elseif android', 'AndroidStdFire.showMessageBox(message, title)',

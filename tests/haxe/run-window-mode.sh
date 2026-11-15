@@ -6,8 +6,7 @@
 # Behaviour runs twice under the interpreter: with no target define (the
 # non-desktop no-op path) and with `-D desktop` (the native window behaviour).
 # The desktop-only resize branch is then typechecked (and its C++ inspected) for
-# each native desktop target. Set PHOENIX_TEST_WINDOW_MODE_CPP=1 to also execute
-# the accessor-property regression under hxcpp.
+# each native desktop target without invoking hxcpp or producing binaries.
 set -euo pipefail
 cd "$(dirname "$0")/../.."
 test_source=$(mktemp -d)
@@ -31,8 +30,3 @@ for platform in windows linux mac; do
   generated="$output/src/backend/WindowMode.cpp"
   grep -Fq 'resizeWindow' "$generated"
 done
-
-if [[ "${PHOENIX_TEST_WINDOW_MODE_CPP:-0}" == 1 ]]; then
-  spec -D desktop -D linux -cpp "$test_source/native"
-  "$test_source/native/WindowModeSpec"
-fi

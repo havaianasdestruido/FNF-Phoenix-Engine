@@ -27,19 +27,23 @@ class StdFireBrowserSpec
     })()");
 
     Application.current = new Application();
-    StdFire.engineTitleChanged('Engine');
+    Application.current.window.title = 'Engine';
     var api:Dynamic = StdFireLibrary.createNamespace();
     check(api.NativeTitleRename('Nova aba 🔥'), 'browser title accepted');
     check(js.Browser.document.title == 'Nova aba 🔥', 'document title changed');
     check(Application.current.window.title == 'Nova aba 🔥', 'Lime title cache stays in sync');
-    StdFire.engineTitleChanged('Next song');
-    check(js.Browser.document.title == 'Nova aba 🔥', 'engine title update respects override');
-    check(api.NativeTitleRename(null), 'reset title');
-    check(js.Browser.document.title == 'Next song', 'latest engine title restored');
+    check(api.NativeTitleRename(null), 'reset still-current title');
+    check(js.Browser.document.title == 'Engine', 'previous title restored');
+    check(api.NativeTitleRename('Temporary'), 'temporary browser title accepted');
+    Application.current.window.title = 'Next song';
+    check(js.Browser.document.title == 'Next song', 'direct engine title update takes precedence');
+    check(api.NativeTitleRename(null), 'reset after engine update accepted');
+    check(js.Browser.document.title == 'Next song', 'reset preserves later engine title');
     Application.current = null;
     check(api.NativeTitleRename('No Lime window'), 'document-only title fallback');
     check(js.Browser.document.title == 'No Lime window', 'fallback changes tab title');
     check(api.NativeTitleRename(null), 'reset through document-only fallback');
+    check(js.Browser.document.title == 'Next song', 'document-only fallback restores previous title');
 
     check(api.NativeMSGBox('Browser alert', 'Browser ignores title'), 'alert accepted');
     check(Syntax.code('window.lastAlert') == 'Browser alert', 'window.alert receives only message');

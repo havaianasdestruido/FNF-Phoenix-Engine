@@ -27,7 +27,7 @@ class FlxG
     if (stage != null)
     {
       final window = stage.window;
-      if (window != null) Reflect.setProperty(window, 'fullscreen', value);
+      if (window != null) window.fullscreen = value;
     }
     return value;
   }

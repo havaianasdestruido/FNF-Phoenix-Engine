@@ -90,7 +90,7 @@ class WindowMode
   {
     #if !flash
     final window = getWindow();
-    if (window != null) return Reflect.getProperty(window, 'fullscreen') == true;
+    if (window != null) return window.fullscreen == true;
     #end
     return FlxG.fullscreen;
   }
@@ -203,9 +203,7 @@ class WindowMode
     // frame does not fight the fullscreen state, then pick the frame.
     FlxG.fullscreen = false;
     final window = getWindow();
-    // Lime's accessor-only properties need property reflection when the window
-    // is Dynamic; a plain field write fails on hxcpp and can abort startup.
-    if (window != null) Reflect.setProperty(window, 'borderless', target == BORDERLESS);
+    if (window != null) window.borderless = (target == BORDERLESS);
     return true;
     #else
     return false;

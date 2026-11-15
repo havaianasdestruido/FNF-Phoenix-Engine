@@ -14,7 +14,7 @@ class StdFireScriptingSpec
   static function main():Void
   {
     Application.current = new Application();
-    StdFire.engineTitleChanged('Engine');
+    Application.current.window.title = 'Engine';
 
     var py = new paopao.hython.Interp();
     py.allowClassResolve = false; // Same setting as a sandboxed Python mod.
