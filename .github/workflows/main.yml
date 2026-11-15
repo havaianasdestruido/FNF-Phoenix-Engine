@@ -526,28 +526,7 @@ jobs:
           if [ "${{ inputs.fullAssets }}" != "true" ]; then
             args+=("-DNO_BUILTIN_CONTENT")
           fi
-          # TEMP diagnostics: annotations are capped at 4096 chars, so emit the
-          # errors first and the log tail second, each in its own annotation.
-          set +e
-          haxelib run lime build android "${args[@]}" 2>&1 | tee "$RUNNER_TEMP/android.log"
-          result=${PIPESTATUS[0]}
-          set -e
-          if [ "$result" -ne 0 ]; then
-            errors=$(grep -nE "error:|undefined symbol|FAILED|lld:|cannot find|No such file|fatal" "$RUNNER_TEMP/android.log" | tail -n 25 || true)
-            tailtxt=$(tail -n 25 "$RUNNER_TEMP/android.log")
-            announce() {
-              local msg="$1"
-              msg=${msg//%/%25}
-              msg=${msg//$'\r'/}
-              msg=${msg//$'\n'/%0A}
-              printf '::error title=%s::%s\n' "$2" "$msg"
-            }
-            announce "ERRORS:$errors" AndroidErrors
-            announce "TAIL:$tailtxt" AndroidTail
-            printf '%s\n' "$errors" >&2
-            printf '%s\n' "$tailtxt" >&2
-          fi
-          exit "$result"
+          haxelib run lime build android "${args[@]}"
 
       # ==========================================
       # Verify the actual merged Android manifest
