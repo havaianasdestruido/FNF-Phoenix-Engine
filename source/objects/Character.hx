@@ -156,7 +156,7 @@ class Character extends FlxSprite
 		return FlxColor.fromHSB(h, 0.65, 0.9);
 	}
 
-	public function new(x:Float, y:Float, ?character:String = 'bf', ?isPlayer:Bool = false, ?isDeathCharacter:Bool = false)
+	public function new(x:Float, y:Float, ?character:String = 'bf', ?isPlayer:Bool = false, ?isDeathCharacter:Bool = false, ?metadataOnly:Bool = false)
 	{
 		super(x, y);
 
@@ -165,56 +165,35 @@ class Character extends FlxSprite
 		this.isPlayer = isPlayer;
 		antialiasing = ClientPrefs.globalAntialiasing;
 		var library:String = null;
-		switch (curCharacter)
+		if (metadataOnly)
 		{
-			//case 'your character name in case you want to hardcode them instead':
-
-			default:
-				var characterPath:String = 'characters/' + curCharacter + '.json';
-
-				#if MODS_ALLOWED
-				var path:String = Paths.modFolders(characterPath);
-				if (!FileSystem.exists(path)) {
-					path = Paths.getPreloadPath(characterPath);
-				}
-
-				if (!FileSystem.exists(path))
-				#else
-				var path:String = Paths.getPreloadPath(characterPath);
-				if (!Assets.exists(path))
-				#end
-				{
-					path = Paths.getPreloadPath('characters/' + DEFAULT_CHARACTER + '.json'); //If a character couldn't be found, change him to BF just to prevent a crash
-				}
-
-				// If even the fallback character file is missing (e.g. content-stripped
-				// NO_BUILTIN_CONTENT builds ship no characters at all), spawn a
-				// code-generated placeholder so the game keeps running instead of crashing.
-				#if MODS_ALLOWED
-				var charFileFound:Bool = FileSystem.exists(path);
-				#else
-				var charFileFound:Bool = Assets.exists(path);
-				#end
-				if (!charFileFound)
-				{
-					loadPlaceholderCharacter(curCharacter);
-				}
-				else
-				{
-					try
-					{
-						#if MODS_ALLOWED
-						loadCharacterFile(cast Json.parse(File.getContent(path)));
-						#else
-						loadCharacterFile(cast Json.parse(Assets.getText(path)));
-						#end
-					}
-					catch(e:Dynamic)
-					{
-						trace('Error loading character file of "$character": $e');
-						loadPlaceholderCharacter(curCharacter);
-					}
-				}
+			// Experimental HUD-only gameplay must not load BF's full atlas as
+			// the empty-name fallback. Keep vocal and health gameplay metadata.
+			loadPlaceholderCharacter(curCharacter, true);
+			final info = play.helpers.SongCharacterInfo.load(curCharacter, DEFAULT_CHARACTER);
+			vocalsFile = info.vocalsFile;
+			noteskin = info.noteskin;
+			healthDrain = info.healthDrain;
+			drainAmount = info.drainAmount;
+			drainFloor = info.drainFloor;
+			healthIcon = info.healthIcon;
+			healthColorArray = info.healthColors;
+		}
+		else
+		{
+			try
+			{
+				// Full sprites and the HUD-only stand-ins use the same lookup and
+				// built-in fallback, so a missing mod character selects the same data.
+				final text:String = Paths.characterFileText(curCharacter, DEFAULT_CHARACTER);
+				if (text == null) loadPlaceholderCharacter(curCharacter);
+				else loadCharacterFile(cast Json.parse(text));
+			}
+			catch(e:Dynamic)
+			{
+				trace('Error loading character file of "$character": $e');
+				loadPlaceholderCharacter(curCharacter);
+			}
 		}
 		originalFlipX = flipX;
 
@@ -225,7 +204,7 @@ class Character extends FlxSprite
 		if (isPlayer)
 			flipX = !flipX;
 
-		switch(curCharacter)
+		if (!metadataOnly) switch(curCharacter)
 		{
 			case 'pico-speaker':
 				skipDance = true;
@@ -358,9 +337,9 @@ class Character extends FlxSprite
 	 * not be loaded, which is always the case for built-in characters in
 	 * content-stripped (NO_BUILTIN_CONTENT) builds.
 	 */
-	public function loadPlaceholderCharacter(charName:String)
+	public function loadPlaceholderCharacter(charName:String, tiny:Bool = false)
 	{
-		trace('Character "$charName": no character file found, using a generated placeholder.');
+		if (!tiny) trace('Character "$charName": no character file found, using a generated placeholder.');
 		isPlaceholder = true;
 		isAnimateAtlas = false;
 		imageFile = '';
@@ -377,7 +356,7 @@ class Character extends FlxSprite
 		healthColorArray = [color.red, color.green, color.blue];
 
 		scale.set(1, 1);
-		makeGraphic(150, 150, color, true);
+		makeGraphic(tiny ? 1 : 150, tiny ? 1 : 150, color, true);
 		updateHitbox();
 
 		for (anim in [
@@ -722,9 +701,9 @@ class Boyfriend extends Character
 {
 	public var startedDeath:Bool = false;
 
-	public function new(x:Float, y:Float, ?char:String = 'bf')
+	public function new(x:Float, y:Float, ?char:String = 'bf', ?metadataOnly:Bool = false)
 	{
-		super(x, y, char, true);
+		super(x, y, char, true, false, metadataOnly);
 	}
 
 	override function update(elapsed:Float)

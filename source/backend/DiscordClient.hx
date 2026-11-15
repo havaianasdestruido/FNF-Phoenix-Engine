@@ -4,7 +4,7 @@ package backend;
 import psychlua.PythonScript;
 #end
 
-#if (DISCORD_ALLOWED && !android)
+#if (DISCORD_ALLOWED && hxdiscord_rpc && !android)
 #if cpp
 import cpp.ConstCharStar;
 import cpp.Function;
@@ -40,7 +40,7 @@ class DiscordClient
 	private inline static final _defaultID:String = "1192736165472784445";
 	public static var clientID(default, set):String = _defaultID;
 
-	#if (DISCORD_ALLOWED && !android)
+	#if (DISCORD_ALLOWED && hxdiscord_rpc && !android)
 	private static var presence:DiscordRichPresence = new DiscordRichPresence(); // I think for now we don't need DiscordPresence.create();
 	// hides this field from scripts and reflection in general
 	@:unreflective private static var __thread:Thread;
@@ -299,11 +299,12 @@ class DiscordClient
 	}
 	#end
 	#else
-	// No-op stub for builds compiled without Discord RPC (e.g. Neko).
+	// No-op stub for builds compiled without Discord RPC (e.g. Neko, iOS).
 	public static function check():Void {}
 	public static function prepare():Void {}
 	public dynamic static function shutdown():Void { isInitialized = false; }
 	public static function initialize():Void { isInitialized = false; }
+	public static function retryConnection():Void {}
 	public static function changePresence(details:String = 'In the Menus', ?state:String, ?smallImageKey:String, ?hasStartTimestamp:Bool, ?endTimestamp:Float, largeImageKey:String = 'icon'):Void {}
 	public static function updatePresence():Void {}
 	#if PYTHON_ALLOWED
@@ -317,7 +318,14 @@ class DiscordClient
 	}
 	#end
 	#if LUA_ALLOWED
-	public static function addLuaCallbacks(lua:Dynamic) {}
+	public static function addLuaCallbacks(lua:Dynamic)
+	{
+		Convert.addCallback(lua, "changeDiscordPresence", changePresence);
+		Convert.addCallback(lua, "changeDiscordClientID", function(?newID:String) {
+			if(newID == null) newID = _defaultID;
+			clientID = newID;
+		});
+	}
 	#end
 	#end
 
@@ -331,7 +339,7 @@ class DiscordClient
 		var change:Bool = (clientID != newID);
 		clientID = newID;
 
-		#if (DISCORD_ALLOWED && !android)
+		#if (DISCORD_ALLOWED && hxdiscord_rpc && !android)
 		if(change && isInitialized)
 		{
 			shutdown();

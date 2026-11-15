@@ -62,7 +62,8 @@ class StrumNote extends FlxSprite
 		else skin = Note.defaultNoteSkin;
 
 		var customSkin:String = skin + NoteHelpers.getNoteSkinPostfix();
-		if(Paths.fileExists('images/$customSkin.png', IMAGE)) skin = customSkin;
+		final skinDirectory:String = PlayState.isPixelStage ? 'pixelUI/' : '';
+		if(Paths.fileExists('images/$skinDirectory$customSkin.png', IMAGE)) skin = customSkin;
 
 		texture = skin; //Load texture and anims
 		ogNoteskin = skin;
@@ -183,9 +184,11 @@ class StrumNote extends FlxSprite
 		} else if (!useRGBShader && rgbShader != null) rgbShader.enabled = false;
 	}
 	public function updateNoteSkin(noteskin:String) {
-			if (texture == "noteskins/" + noteskin || noteskin == ogNoteskin || texture == noteskin) return; //if the noteskin to change to is the same as before then don't update it
-			if (noteskin != null && noteskin.length > 0) texture = "noteskins/" + noteskin;
-			else texture = "noteskins/NOTE_assets" + NoteHelpers.getNoteSkinPostfix();
+		// An empty character skin means the chart's original skin, not always
+		// NOTE_assets (the chart may have supplied a custom or pixel skin).
+		final target:String = noteskin == null || noteskin.length == 0 || noteskin == ogNoteskin
+			? ogNoteskin : "noteskins/" + noteskin;
+		if (target != null && texture != target) texture = target;
 	}
 
 	public function updateRGBColors(?r:FlxColor, ?g:FlxColor, ?b:FlxColor) {

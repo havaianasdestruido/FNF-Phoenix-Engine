@@ -48,6 +48,7 @@ class LoadingState extends MusicBeatState
 {
 	// Persisted from caller so `getNextState` can set the library before `create()`
 	private var targetState:NextState;
+	private var targetPreview:FlxState;
 	private var stopMusicOnLoad:Bool;
 	private var directory:String = 'shared';
 
@@ -92,9 +93,15 @@ class LoadingState extends MusicBeatState
 	{
 		super.create();
 
-		// Mirror original: stop music early if requested. A menu theme is already
-		// fading out over this screen (see getNextState() / backend.MenuMusic) and
-		// PlayState stops what is left of it, so it is left alone here.
+		// The previous state has now been destroyed. A direct LoadingState
+		// factory can be inspected safely, without constructing the target twice
+		// or losing its constructor arguments on FlxG.resetState().
+		final prepared = LoadingStateRouter.prepare(targetState);
+		targetPreview = prepared.preview;
+		targetState = prepared.target;
+
+		// A menu theme can fade over this screen; PlayState stops whatever
+		// remains. Other music still stops early when requested.
 		if (stopMusicOnLoad && FlxG.sound.music != null && !MenuMusic.isMenuTrack())
 			FlxG.sound.music.stop();
 
@@ -187,25 +194,25 @@ class LoadingState extends MusicBeatState
 	{
 		var SONG = PlayState.SONG;
 
-		// No song queued: this is the boot -> title screen load. Preload the
-		// title screen assets, then hand off to TitleState.
-		if (SONG == null)
+		// Title preloads are independent of a stale SONG left by gameplay.
+		if (Std.isOfType(targetPreview, TitleState))
 		{
-			if (Std.isOfType(targetState, TitleState))
-				preloadTitleStuff();
-			else
-			{
-				// short fake queue so the bar still animates ~0.4s
-				for (i in 0...6)
-				{
-					preloadQueue.push(function()
-					{
-						// no-op, just progress
-					});
-				}
-			}
+			preloadTitleStuff();
 			return;
 		}
+		if (SONG == null)
+		{
+			// Short fake queue so the bar still animates ~0.4s.
+			for (i in 0...6) preloadQueue.push(function() {});
+			return;
+		}
+
+		// Experimental Extreme deliberately trades load-time smoothness for a
+		// smaller peak: don't cache speculative character/death atlases, alternate
+		// HUD art, audio and dialogue that this song may never use. PlayState still
+		// loads everything it actually needs on demand. Leave title preloads alone.
+		if (Std.isOfType(targetPreview, PlayState) && backend.LowMemory.policy().skipSongPreload)
+			return;
 
 		// Helper to push tasks
 		inline function push(fn:Void->Void) preloadQueue.push(fn);
@@ -723,75 +730,8 @@ class LoadingState extends MusicBeatState
 		Paths.setCurrentLevel(directory);
 		trace('Setting asset folder to ' + directory);
 
-		// The loading screen only shows on the way into the title screen at
-		// boot (executable open -> TitleState) and when entering a song
-		// (story mode / freeplay -> PlayState, plus other PlayState entries
-		// like test play and next-song). Every other transition (menus,
-		// options, editors, mods, ...) switches straight to the target state.
-		// Function targets are resolved to instances up front so the target
-		// can be checked; states are cheap to construct, `create()` still
-		// runs on the switch like before.
-		var resolved:FlxState = target.createInstance();
-
-		if (isLoadingTarget(resolved))
-		{
-			// Entering a song: the loading screen is the only window where the
-			// menu theme can still be heard, so fade it out here instead of
-			// cutting it as soon as PlayState takes the music channel over
-			// (Options -> Fade Menu Music). The title screen and any other music
-			// are left alone.
-			if (Std.isOfType(resolved, PlayState)) MenuMusic.fadeOutForSong();
-
-			#if NO_PRELOAD_ALL
-			var loaded:Bool = false;
-			if (PlayState.SONG != null)
-			{
-				try
-				{
-					loaded = isSoundLoaded(Paths.inst(PlayState.SONG.song))
-						&& (!PlayState.SONG.needsVoices || isSoundLoaded(Paths.voices(PlayState.SONG.song)))
-						&& isLibraryLoaded("shared")
-						&& isLibraryLoaded(directory);
-				}
-				catch (e:Dynamic) loaded = false;
-			}
-			if (!loaded)
-				return new LoadingState(resolved, stopMusic, directory);
-			#else
-			return new LoadingState(resolved, stopMusic, directory);
-			#end
-		}
-
-		if (stopMusic && FlxG.sound.music != null)
-			FlxG.sound.music.stop();
-		return resolved;
+		// Title and PlayState use the loading screen; other states switch
+		// directly. Factories are resolved only after the old state is gone.
+		return LoadingStateRouter.route(target, stopMusic, directory);
 	}
-
-	/**
-	 * Whether `loadAndSwitchState` should present the loading screen for this
-	 * target: only the title screen (boot) and songs (`PlayState`).
-	 */
-	static function isLoadingTarget(state:Dynamic):Bool
-	{
-		return Std.isOfType(state, PlayState) || Std.isOfType(state, TitleState);
-	}
-
-	#if NO_PRELOAD_ALL
-	static function isSoundLoaded(path:Dynamic):Bool
-	{
-		// Compatibility shim for -DNO_PRELOAD_ALL builds (#55)
-		// OpenFL's cache has hasSound(); lime.utils.AssetCache does not.
-		try
-		{
-			var p:String = Std.string(path);
-			return OpenFlAssets.cache.hasSound(p);
-		}
-		catch (e:Dynamic) return false;
-	}
-
-	static function isLibraryLoaded(library:String):Bool
-	{
-		try return OpenFlAssets.getLibrary(library) != null catch (e:Dynamic) return false;
-	}
-	#end
 }

@@ -42,8 +42,17 @@ typedef MemoryPolicy =
   /** Release unused cached assets when the window/app loses focus. */
   var trimOnFocusLost:Bool;
 
-  /** Seconds of inactivity in a non-gameplay state before an idle trim, 0 = never. */
+  /** Seconds between trims in a non-gameplay state, 0 = never. */
   var idleTrimSeconds:Float;
+
+  /** Avoid speculative song assets on the loading screen; load on demand instead. */
+  var skipSongPreload:Bool;
+
+  /** Try streaming native Vorbis song stems instead of decoding them into RAM. */
+  var streamSongAudio:Bool;
+
+  /** Compact the heap on every trim, even if the asset cache freed nothing. */
+  var compactOnTrim:Bool;
 };
 
 /** One profile: what the option shows, what it forces and what it cleans up. */
@@ -87,8 +96,11 @@ class MemoryProfiles
   /** For devices that are already struggling: also drops detail and shaders. */
   public static inline var EXTREME:String = 'Extreme';
 
+  /** Opt-in, compatibility-sacrificing mode for the smallest practical RAM footprint. */
+  public static inline var EXPERIMENTAL:String = 'Experimental Extreme';
+
   /** Values offered by the Options menu, in display order. */
-  public static final NAMES:Array<String> = [OFF, LOW, EXTREME];
+  public static final NAMES:Array<String> = [OFF, LOW, EXTREME, EXPERIMENTAL];
 
   /**
    * Spellings accepted from old saves, settings backups and scripts, so
@@ -104,7 +116,11 @@ class MemoryProfiles
     'on' => LOW,
     'aggressive' => EXTREME,
     'high' => EXTREME,
-    'max' => EXTREME
+    'max' => EXTREME,
+    'experimental' => EXPERIMENTAL,
+    'experimentalextreme' => EXPERIMENTAL,
+    'insane' => EXPERIMENTAL,
+    'minimum' => EXPERIMENTAL
   ];
 
   /** Profiles are immutable, so one instance per id is cached on first use. */
@@ -196,6 +212,9 @@ class MemoryProfiles
     else if (profile.policy.trimOnSongEnd) parts.push('trims after songs');
     if (profile.policy.trimOnFocusLost) parts.push('trims on focus loss');
     if (profile.policy.idleTrimSeconds > 0) parts.push('idle trim ' + profile.policy.idleTrimSeconds + 's');
+    if (profile.policy.skipSongPreload) parts.push('no song preloads');
+    if (profile.policy.streamSongAudio) parts.push('streams supported song audio');
+    if (profile.policy.compactOnTrim) parts.push('compacts on trim');
 
     return profile.title + ' (' + parts.join(', ') + ')';
   }
@@ -353,7 +372,10 @@ class MemoryProfiles
           trimOnSongEnd: true,
           releaseOnPlayStateExit: false,
           trimOnFocusLost: true,
-          idleTrimSeconds: 45
+          idleTrimSeconds: 45,
+          skipSongPreload: false,
+          streamSongAudio: false,
+          compactOnTrim: false
         }
       };
     }
@@ -373,7 +395,33 @@ class MemoryProfiles
           trimOnSongEnd: true,
           releaseOnPlayStateExit: true,
           trimOnFocusLost: true,
-          idleTrimSeconds: 20
+          idleTrimSeconds: 20,
+          skipSongPreload: false,
+          streamSongAudio: false,
+          compactOnTrim: false
+        }
+      };
+    }
+
+    if (id == EXPERIMENTAL)
+    {
+      return {
+        id: EXPERIMENTAL,
+        title: EXPERIMENTAL,
+        description: 'EXPERIMENTAL / UNSAFE: removes stages, characters and HUD effects.\n'
+          + 'Mods may break; graphics can glitch or disappear. Streaming and\n'
+          + 'skipping preloads can cause slow loads, stutters or audio hiccups.\n'
+          + 'GPU caching needs a compatible context and may increase VRAM use.\n'
+          + 'Choosing a lower profile or Off restores your managed preferences.',
+        overrides: experimentalOverrides(),
+        policy: {
+          trimOnSongEnd: true,
+          releaseOnPlayStateExit: true,
+          trimOnFocusLost: true,
+          idleTrimSeconds: 5,
+          skipSongPreload: true,
+          streamSongAudio: true,
+          compactOnTrim: true
         }
       };
     }
@@ -389,7 +437,10 @@ class MemoryProfiles
         trimOnSongEnd: false,
         releaseOnPlayStateExit: false,
         trimOnFocusLost: false,
-        idleTrimSeconds: 0
+        idleTrimSeconds: 0,
+        skipSongPreload: false,
+        streamSongAudio: false,
+        compactOnTrim: false
       }
     };
   }
@@ -423,6 +474,45 @@ class MemoryProfiles
     forced.set('globalAntialiasing', false);
     forced.set('camZooms', false);
     forced.set('movingMenuCheckerboard', false);
+    return forced;
+  }
+
+  /**
+   * Deliberately sacrifices presentation and compatibility for RAM. Reuse
+   * Extreme's map so new Extreme overrides cannot accidentally be dropped.
+   * No input, scroll, note-speed or timing preferences are changed.
+   */
+  static function experimentalOverrides():Map<String, Dynamic>
+  {
+    final forced:Map<String, Dynamic> = extremeOverrides();
+    forced.set('charsAndBG', false);
+    forced.set('enableGC', true);
+    forced.set('cacheOnGPU', true);
+    forced.set('preloadNextSong', false);
+    forced.set('enableColorShader', false);
+    forced.set('distantNotes', false);
+    forced.set('alphabetAntialiasing', false);
+    forced.set('simplePopups', true);
+    forced.set('ratingPopups', false);
+    forced.set('comboPopups', false);
+    forced.set('showMS', false);
+    forced.set('earlyLateRatings', false);
+    forced.set('scoreZoom', false);
+    forced.set('showNPS', false);
+    forced.set('showComboInfo', false);
+    forced.set('showRendered', false);
+    forced.set('opponentLightStrum', false);
+    forced.set('botLightStrum', false);
+    forced.set('playerLightStrum', false);
+    forced.set('showFPS', false);
+    forced.set('showRamUsage', false);
+    forced.set('showMaxRamUsage', false);
+    forced.set('showRamGraph', false);
+    forced.set('debugInfo', false);
+    forced.set('frameProfiler', false);
+    forced.set('tipTexts', false);
+    forced.set('platformWatermark', false);
+    forced.set('discordRPC', false);
     return forced;
   }
 

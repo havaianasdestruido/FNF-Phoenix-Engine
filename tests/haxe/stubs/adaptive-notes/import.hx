@@ -4,5 +4,5 @@ import TestFlixel.FlxPoint;
 import TestFlixel.FlxTypedGroup;
 import TestFlixel.FlxTween;
 import TestFlixel.FlxEase;
-import TestFlixel.Paths;
+import backend.Paths;
 using StringTools;

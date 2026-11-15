@@ -69,26 +69,29 @@ class PlayStateRating
 
 		state.pixelRatingPrefix += normalRating;
 
-		Paths.image(state.pixelRatingPrefix + "perfect" + state.pixelRatingSuffix);
-		Paths.image(state.pixelRatingPrefix + "sick" + state.pixelRatingSuffix);
-		Paths.image(state.pixelRatingPrefix + "good" + state.pixelRatingSuffix);
-		Paths.image(state.pixelRatingPrefix + "bad" + state.pixelRatingSuffix);
-		Paths.image(state.pixelRatingPrefix + "shit" + state.pixelRatingSuffix);
-		Paths.image(state.pixelRatingPrefix + "miss" + state.pixelRatingSuffix);
-
-		// Early/Late labels (Mic'd Up! port). Optional art: a folder without
-		// `early`/`late` shows the rating alone, and the lookup is cached here so
-		// judging a note never hits the filesystem.
 		state.timingAssets.clear();
-		for (timing in [HitTiming.EARLY, HitTiming.LATE])
+		if (!backend.LowMemory.policy().skipSongPreload)
 		{
-			final asset:Null<String> = timingAsset(state, timing);
-			if (asset == null) continue;
-			Paths.image(asset);
-		}
+			Paths.image(state.pixelRatingPrefix + "perfect" + state.pixelRatingSuffix);
+			Paths.image(state.pixelRatingPrefix + "sick" + state.pixelRatingSuffix);
+			Paths.image(state.pixelRatingPrefix + "good" + state.pixelRatingSuffix);
+			Paths.image(state.pixelRatingPrefix + "bad" + state.pixelRatingSuffix);
+			Paths.image(state.pixelRatingPrefix + "shit" + state.pixelRatingSuffix);
+			Paths.image(state.pixelRatingPrefix + "miss" + state.pixelRatingSuffix);
 
-		for (i in 0...10) Paths.image(state.pixelRatingPrefix + 'num' + i + state.pixelRatingSuffix);
-		Paths.image(state.pixelRatingPrefix + 'numneg' + state.pixelRatingSuffix);
+			// Early/Late art is optional. Experimental Extreme skips this entire
+			// warm-up; timingAsset and Popup resolve images on demand if a mod
+			// subsequently enables a popup.
+			for (timing in [HitTiming.EARLY, HitTiming.LATE])
+			{
+				final asset:Null<String> = timingAsset(state, timing);
+				if (asset == null) continue;
+				Paths.image(asset);
+			}
+
+			for (i in 0...10) Paths.image(state.pixelRatingPrefix + 'num' + i + state.pixelRatingSuffix);
+			Paths.image(state.pixelRatingPrefix + 'numneg' + state.pixelRatingSuffix);
+		}
 		if (Paths.fileExists('images/${normalRating}' + 'hitStrings.txt', TEXT))
 			state.hitStrings = Mods.mergeAllTextsNamed('images/${normalRating}' + 'hitStrings.txt', null, false);
 

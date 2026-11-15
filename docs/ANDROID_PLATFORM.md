@@ -98,9 +98,10 @@ The Android pieces are injected **only for the Android target**
   `PHOENIX_KEYSTORE_ALIAS`, `PHOENIX_KEYSTORE_ALIAS_PASSWORD` env vars,
   falling back to a local `key.keystore` for development. No credentials
   are stored in source.
-- Native desktop-only haxelibs (`hxdiscord_rpc`, `hxvlc`, `hxluajit`,
+- Native desktop-only haxelibs (`hxdiscord_rpc`, `hxvlc`,
   `hxnativefiledialog`) are gated to desktop builds so Android never
-  links them.
+  links them; `hxluajit`, `hython` and `hscript` are included on Android so
+  mobile builds have full Lua + Python + HScript modding support by default.
 
 ### Android SDK and Java compatibility
 

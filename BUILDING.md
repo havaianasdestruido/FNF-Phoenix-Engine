@@ -197,31 +197,28 @@ NDK TLS link failures. Artifact locations and packaging checks are unchanged.
 
 ### Script modding levels
 
-By default the game ships with both **Lua** and **Python** script modding enabled on desktop.
-You can force a specific level with `-DMODDING_LEVEL`:
+By default the game ships with full script modding support (**Lua**, **Python**, and **HScript**) enabled across all native C++ desktop and mobile builds (`windows`, `linux`, `mac`, `android`, `ios`).
+You can force a specific Lua/Python level with `-DMODDING_LEVEL`:
 
 | Value | Script support                              |
 |-------|---------------------------------------------|
-| `0`   | No Lua or Python scripts                    |
-| `1`   | Lua only                                    |
-| `2`   | Lua + Python (default on desktop)           |
+| `0`   | No Lua or Python scripts (HScript remains ON) |
+| `1`   | Lua + HScript                               |
+| `2`   | Lua + Python + HScript (default on desktop and mobile) |
 
-For example, a Lua-only build:
+For example, a Lua-only build without Python:
 
 `lime test windows -DMODDING_LEVEL=1`
 
-> **Check the build output.** Today that default only switches on when Lime's
-> `cpp` target flag is set (`lime test cpp`, or `-cpp`). A plain
-> `lime test windows`, `linux` or `mac` produces a build **without** Lua and
-> Python unless you pass `-DMODDING_LEVEL=1` or `-DMODDING_LEVEL=2`. CI passes
-> the flag for you: `main.yml` builds Windows at `MODDING_LEVEL=2` by default
-> (selectable per run with the `moddingLevel` input) and Android at `0`,
-> because the Lua bindings are desktop-only. The run title and the artifact
-> name both say which one it was, e.g.
-> `d785935_windows_12_58_LUA_PYTHON_HSCRIPT.zip` versus
-> `d785935_android_12_58_HSCRIPT.zip`. The build prints what it made:
-> `[INFO] Script support: Lua ON|OFF, Python ON|OFF, HScript ON|OFF (…)`,
-> followed by `[WARN]` lines when Lua is off. See
+> **Check the build output.** Every CI and release workflow (`main.yml`,
+> `release.yml`, `release-assets.yml`, `mobile-release.yml`) builds both Windows
+> and Android at `MODDING_LEVEL=2` (`LUA_PYTHON_HSCRIPT`) by default, selectable
+> per manual run with the `moddingLevel` input. The run title and the artifact
+> name both record the active script backends, e.g.
+> `d785935_windows_12_58_LUA_PYTHON_HSCRIPT.zip` and
+> `d785935_android_12_58_LUA_PYTHON_HSCRIPT.zip`. During compilation,
+> `project.hxp` prints what it made:
+> `[INFO] Script support: Lua ON|OFF, Python ON|OFF, HScript ON|OFF (…)`. See
 > [`docs/LUA_SCRIPT_DEBUGGING.md`](docs/LUA_SCRIPT_DEBUGGING.md), step 0.
 
 Python scripts work exactly like Lua scripts: drop a `.py` file with `def onCreate():`,

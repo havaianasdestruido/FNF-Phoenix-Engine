@@ -9,6 +9,7 @@ class PlayState
   public static var middleScroll:Bool = false;
   public static var opponentChart:Bool = false;
   public static var isStoryMode:Bool = false;
+  public static var isPixelStage:Bool = false;
   public static var STRUM_X:Float = 48;
   public static var STRUM_X_MIDDLESCROLL:Float = -278;
   public var adaptiveSplashesDisabled:Bool = false;

@@ -20,6 +20,6 @@ else
 fi
 
 cp -r tests/haxe/stubs/adaptive-notes/. "$work/notes/"
-cp source/play/helpers/PlayStateNoteHelpers.hx "$work/notes/play/helpers/"
+cp source/play/helpers/{PlayStateNoteHelpers,CharacterNoteSkin}.hx "$work/notes/play/helpers/"
 "${HAXE:-haxe}" -cp "$work/notes" -cp tests/haxe -main AdaptivePerformanceNotesSpec --interp
 "${HAXE:-haxe}" -cp tests/haxe -main AdaptivePerformanceWiringSpec --interp

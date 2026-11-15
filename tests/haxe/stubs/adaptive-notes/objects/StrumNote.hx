@@ -8,5 +8,6 @@ class StrumNote
   public var texture:String;
   public var useRGBShader:Bool = true;
   public function new(x:Float = 0, y:Float = 0, index:Int = 0, player:Int = 0) { this.x = x; this.y = y; }
+  public function updateNoteSkin(skin:String):Void texture = skin;
   public function postAddedToGroup():Void {}
 }

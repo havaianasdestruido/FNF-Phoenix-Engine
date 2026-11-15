@@ -123,10 +123,9 @@ class AndroidPlatform
 		try
 		{
 			flushSave();
-			// Records the pressure event against the active memory profile.
-			backend.LowMemory.reportSystemPressure();
-			backend.Paths.clearStoredMemory();
-			backend.Paths.clearUnusedMemory();
+			// Coalesces pressure events while LoadingState's worker is touching
+			// asset maps; otherwise cleanup could race a threaded preload.
+			backend.LowMemory.onSystemPressure();
 		}
 		catch (e:Dynamic) {}
 		#end

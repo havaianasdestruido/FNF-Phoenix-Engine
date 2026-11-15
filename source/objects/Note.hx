@@ -306,7 +306,7 @@ class Note extends FlxSprite
 	var _lastNoteOffX:Float = 0;
 	static var _lastValidChecked:String; //optimization
 	public var originalHeight:Float = 6;
-	private function reloadNote(?texture:String = '', ?postfix:String = '') {
+	private function reloadNote(?texture:String = '', ?postfix:String = '', ?characterSkin:Bool = false) {
 		if(texture == null) texture = '';
 		if(postfix == null) postfix = '';
 
@@ -324,7 +324,10 @@ class Note extends FlxSprite
 
 		var skinPixel:String = skin;
 		var lastScaleY:Float = scale.y;
-		var skinPostfix:String = NoteHelpers.getNoteSkinPostfix();
+		// Character skins already name an exact sheet, as they do on receptors
+		// and non-pixel notes. Do not append a global style suffix which may
+		// select a different head or a missing sustain sheet.
+		var skinPostfix:String = characterSkin ? '' : NoteHelpers.getNoteSkinPostfix();
 		var customSkin:String = skin + skinPostfix;
 		var path:String = pixelNote ? 'pixelUI/' : '';
 		if(customSkin == _lastValidChecked || Paths.fileExists('images/' + path + customSkin + '.png', IMAGE))
@@ -669,7 +672,7 @@ class Note extends FlxSprite
 				final noteTypeOffsetX:Float = offsetX;
 				offsetX = noteTypeOffsetX + (firstOffX ? 30 : 0) - _lastNoteOffX;
 			}
-			@:privateAccess reloadNote(texture);
+			@:privateAccess reloadNote(texture, '', ns.length > 0 && texture == 'noteskins/' + ns);
 			if (isSustainNote && !firstOffX)
 			{
 				firstOffX = true;

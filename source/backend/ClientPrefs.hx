@@ -195,7 +195,8 @@ class ClientPrefs { //default settings if it can't find a save file containing y
 	public static var widescreen:Bool = false;
 	public static var lowQuality:Bool = false;
 	/**
-	 * Memory profile from Options -> Optimization (`Off` / `Low` / `Extreme`).
+	 * Memory profile from Options -> Optimization (`Off` / `Low` / `Extreme` /
+	 * `Experimental Extreme`).
 	 *
 	 * A profile is a temporary bundle of appearance/performance preferences plus
 	 * a cleanup policy; see `backend.MemoryProfiles` for the definitions and

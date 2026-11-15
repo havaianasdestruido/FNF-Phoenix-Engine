@@ -10,18 +10,22 @@ class PlayStateEvents
     switch (event.event)
     {
       case 'Change Character':
+        // Mirrors PlayStateCharacterEvents.record; that production helper is
+        // exercised separately with real Flixel in the character-change smoke.
         var charType:Int = 0;
-        switch (event.value1.toLowerCase())
+        switch (event.value1.toLowerCase().trim())
         {
-          case 'gf' | 'girlfriend' | '1': charType = 2;
-          case 'dad' | 'opponent' | '0': charType = 1;
+          case 'gf' | 'girlfriend': charType = 2;
+          case 'dad' | 'opponent': charType = 1;
           default:
             var parsed:Null<Int> = Std.parseInt(event.value1);
             charType = parsed == null ? 0 : parsed;
         }
-        state.charChangeTimes.push(event.strumTime);
-        state.charChangeNames.push(event.value2);
-        state.charChangeTypes.push(charType);
+        var index = state.charChangeTimes.length;
+        while (index > 0 && state.charChangeTimes[index - 1] > event.strumTime) index--;
+        state.charChangeTimes.insert(index, event.strumTime);
+        state.charChangeNames.insert(index, event.value2);
+        state.charChangeTypes.insert(index, charType);
       case 'Change Note Multiplier':
         var multiplier:Float = Std.parseFloat(event.value1);
         if (Math.isNaN(multiplier)) multiplier = 1;

@@ -3,6 +3,7 @@ import play.objects.SustainSplash;
 class Note
 {
   public var alive:Bool = true;
+  public var exists:Bool = true;
   public var active:Bool = true;
   public var visible:Bool = true;
   public var ignoreNote:Bool = false;
@@ -16,5 +17,6 @@ class Note
   public var noteData:Int = 0;
   public var noteHoldSplash:SustainSplash;
   public function new() {}
-  public function kill():Void alive = false;
+  public function kill():Void { alive = false; exists = false; }
+  public function destroy():Void { alive = false; exists = false; }
 }

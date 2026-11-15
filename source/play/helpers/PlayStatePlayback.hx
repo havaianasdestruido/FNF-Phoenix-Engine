@@ -135,7 +135,8 @@ class PlayStatePlayback
 	{
 		state.startingSong = false;
 
-		var diff:String = (PlayState.SONG.specialAudioName.length > 1 ? PlayState.SONG.specialAudioName : CoolUtil.difficultyString()).toLowerCase();
+		var diff:String = (PlayState.SONG.specialAudioName != null && PlayState.SONG.specialAudioName.length > 1 ? PlayState.SONG.specialAudioName : CoolUtil.difficultyString()).toLowerCase();
+		state.songMusicSound = @:privateAccess state.inst._sound;
 		@:privateAccess
 		if (!state.ffmpegMode) {
 			FlxG.sound.playMusic(state.inst._sound, instrumentalVolume(state), false);
@@ -555,7 +556,7 @@ class PlayStatePlayback
 
 					state.canResync = false;
 					FlxG.sound.music.stop();
-					LoadingState.loadAndSwitchState(new PlayState());
+					LoadingState.loadAndSwitchState(PlayState.new);
 				}
 			}
 			else

@@ -24,6 +24,8 @@ class ChartLoadingSpec
     testParseWrappedChart();
     testParsePsychV1Chart();
     testParseBom();
+    testMissingOptionalFields();
+    testEventChartPreservesStageDirectory();
     testLegacyEventExtraction();
     testLegacyEventExtractionLarge();
     testPsychV1Conversion();
@@ -49,6 +51,31 @@ class ChartLoadingSpec
   {
     var parsed:Dynamic = Song.parseJSON('\uFEFF{"song":{"song":"bom","notes":[],"events":[]}}');
     equal(parsed.song, 'bom', 'UTF-8 BOM is stripped before parsing');
+  }
+
+  static function testMissingOptionalFields():Void
+  {
+    Song.psychV1Chart = false;
+    final legacy:Dynamic = {notes: [], events: [], specialAudioName: 'custom'};
+    Song.onLoadJson(legacy);
+    equal(legacy.specialAudioName, 'custom', 'existing audio override is preserved');
+    for (field in ['specialEventsName', 'windowName', 'arrowSkin', 'splashSkin', 'songCredit',
+      'songCreditBarPath', 'songCreditIcon', 'event7', 'event7Value'])
+      equal(Reflect.field(legacy, field), '', 'missing legacy field ' + field + ' defaults to empty');
+  }
+
+  static function testEventChartPreservesStageDirectory():Void
+  {
+    data.StageData.directoryLoads = 0;
+    final chart = '{"song":{"song":"example","stage":"stage","notes":[],"events":[]}}';
+    Assets.texts.set('assets/data/example/events-hard.json', chart);
+    Assets.texts.set('assets/data/example/hard.json', chart);
+    Song.loadFromJson('events-hard', 'example');
+    Song.loadFromJson('events', 'example'); // missing event chart follows the same rule
+    equal(data.StageData.directoryLoads, 0, 'auxiliary events do not change the stage directory');
+    Song.loadFromJson('hard', 'example');
+    equal(data.StageData.directoryLoads, 1, 'main chart still selects its stage directory');
+    Assets.texts.clear();
   }
 
   static function testLegacyEventExtraction():Void
@@ -148,7 +175,10 @@ class ChartLoadingSpec
           altAnim: false,
           sectionNotes: [
             ([0, 1, 250, 1] : Array<Dynamic>),
-            ([100, 5, 0, 'Hurt Note'] : Array<Dynamic>)
+            ([100, 5, 0, 'Hurt Note'] : Array<Dynamic>),
+            ([200, 1, 0] : Array<Dynamic>),
+            ([300, 1, 0, true] : Array<Dynamic>),
+            ([400, 1, 0, 999] : Array<Dynamic>)
           ]
         }
       ],
@@ -164,6 +194,9 @@ class ChartLoadingSpec
     equal(section.sectionNotes[0][2], 187.5, 'psych v1 sustain conversion');
     equal(section.sectionNotes[0][3], 'Alt Animation', 'psych v1 numeric note type');
     equal(section.sectionNotes[1][1], 5, 'psych v1 opponent lane remap');
+    equal(section.sectionNotes[2][3], '', 'missing psych v1 note type defaults to normal');
+    equal(section.sectionNotes[3][3], 'Alt Animation', 'legacy boolean note type keeps alt animation');
+    equal(section.sectionNotes[4][3], '', 'invalid numeric note type defaults to normal');
     Song.psychV1Chart = false;
   }
 }

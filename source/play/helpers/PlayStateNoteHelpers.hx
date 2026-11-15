@@ -68,6 +68,7 @@ class PlayStateNoteHelpers
 		// #88: no `[state.notes, state.sustainNotes]` array per call — these run on every seek.
 		clearGroupNotesBefore(state.notes, time);
 		clearGroupNotesBefore(state.sustainNotes, time);
+		pruneRetiredQueueEntries(state);
 	}
 
 	static function clearGroupNotesBefore(group:FlxTypedGroup<Note>, time:Float)
@@ -76,14 +77,17 @@ class PlayStateNoteHelpers
 		var i:Int = group.length - 1;
 		while (i >= 0) {
 			var daNote:Note = group.members[i];
-			if(daNote.strumTime - 350 < time)
+			if(daNote != null && daNote.strumTime - 350 < time)
 			{
 				daNote.active = false;
 				daNote.visible = false;
 				daNote.ignoreNote = true;
 				daNote.pendingKill = false;
-				PoolStats.release(daNote.isSustainNote ? PoolStats.SUSTAIN : PoolStats.NOTE);
+				if (daNote.exists) PoolStats.release(daNote.isSustainNote ? PoolStats.SUSTAIN : PoolStats.NOTE);
 				group.remove(daNote, true);
+				// Removed notes are not part of the pool anymore. Flixel only
+				// decrements their graphic use count when they are destroyed.
+				daNote.destroy();
 			}
 			--i;
 		}
@@ -92,6 +96,7 @@ class PlayStateNoteHelpers
 	public static function KillNotes(state:PlayState) {
 		killNoteGroup(state.notes);
 		killNoteGroup(state.sustainNotes);
+		pruneRetiredQueueEntries(state);
 		//unspawnNotes = [];
 		//eventNotes = [];
 	}
@@ -105,10 +110,25 @@ class PlayStateNoteHelpers
 			if (daNote != null)
 			{
 				daNote.pendingKill = false;
-				PoolStats.release(daNote.isSustainNote ? PoolStats.SUSTAIN : PoolStats.NOTE);
+				if (daNote.exists) PoolStats.release(daNote.isSustainNote ? PoolStats.SUSTAIN : PoolStats.NOTE);
 			}
 			group.remove(daNote, true);
+			if (daNote != null) daNote.destroy();
 		}
+	}
+
+	/** Remove destroyed notes from the queue without disturbing still-live entries. */
+	static function pruneRetiredQueueEntries(state:PlayState):Void
+	{
+		final queue:Array<Note> = state.killNotes;
+		var write:Int = 0;
+		for (read in 0...queue.length)
+		{
+			final note:Note = queue[read];
+			if (note != null && note.exists && note.pendingKill) queue[write++] = note;
+			else if (note != null) note.pendingKill = false;
+		}
+		while (queue.length > write) queue.pop();
 	}
 
 	/**
@@ -119,7 +139,9 @@ class PlayStateNoteHelpers
 	 * the note itself. (#88)
 	 */
 	public static function invalidateNote(state:PlayState, note:Note):Void {
-		if (note == null || note.pendingKill) return;
+		// A script can call KillNotes() from a hit callback while that callback
+		// still holds its note. Do not enqueue a destroyed or already pooled note.
+		if (note == null || !note.exists || note.pendingKill) return;
 		note.pendingKill = true;
 		state.killNotes.push(note);
 	}
@@ -140,7 +162,13 @@ class PlayStateNoteHelpers
 		while (killList.length > 0)
 		{
 			final noteKill:Note = killList.pop();
+			// A seek or script can retire/recycle a queued note before this pass.
 			if (noteKill == null) continue;
+			if (!noteKill.exists || !noteKill.pendingKill)
+			{
+				noteKill.pendingKill = false;
+				continue;
+			}
 
 			noteKill.kill();
 			noteKill.pendingKill = false; // cleared after kill() so nothing can re-queue mid-kill
@@ -235,13 +263,13 @@ class PlayStateNoteHelpers
 				else if(PlayState.middleScroll) targetAlpha = ClientPrefs.oppNoteAlpha;
 			}
 
-			final noteSkinExists:Bool = Paths.fileExists("images/noteskins/" + (player == 0 ? state.dadNoteskin : state.bfNoteskin) + '.png', IMAGE);
+			final characterSkin:String = CharacterNoteSkin.resolve(player == 0 ? state.dadNoteskin : state.bfNoteskin, PlayState.isPixelStage);
 
 			var babyArrow:StrumNote = new StrumNote(strumLine.x, strumLine.y, i, player);
 			babyArrow.downScroll = ClientPrefs.downScroll;
-			if (noteSkinExists)
+			if (characterSkin.length > 0)
 			{
-				babyArrow.texture = "noteskins/" + (player == 0 ? state.dad.noteskin : state.boyfriend.noteskin);
+				babyArrow.updateNoteSkin(characterSkin);
 				babyArrow.useRGBShader = false;
 			}
 			if (!PlayState.isStoryMode && !state.skipArrowStartTween)

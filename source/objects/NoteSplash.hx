@@ -1,4 +1,4 @@
-﻿package objects;
+package objects;
 
 import backend.FlxFixedShader;
 import backend.Paths;
@@ -29,7 +29,7 @@ class NoteSplash extends FlxSprite
 	public function new(x:Float = 0, y:Float = 0, ?note:Int = 0) {
 		super(x, y);
 
-		if(PlayState.SONG.splashSkin.length > 0 && Paths.fileExists('images/' + PlayState.SONG.splashSkin + '.png', IMAGE)) texture = PlayState.SONG.splashSkin;
+		if(PlayState.SONG != null && PlayState.SONG.splashSkin != null && PlayState.SONG.splashSkin.length > 0 && Paths.fileExists('images/' + PlayState.SONG.splashSkin + '.png', IMAGE)) texture = PlayState.SONG.splashSkin;
 		else texture = defaultNoteSplash + getSplashSkinPostfix();
 
 		rgbShader = new PixelSplashShaderRef();

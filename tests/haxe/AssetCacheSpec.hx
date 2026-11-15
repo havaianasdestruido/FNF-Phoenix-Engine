@@ -42,6 +42,13 @@ class AssetCacheSpec
   {
     Paths.setCurrentLevel('shared');
 
+    // A registered difficulty-specific chart may have no loose desktop file
+    // (e.g. it is embedded in a mobile asset library).
+    OpenFlAssets.registerStubText('assets/data/packaged/events-hard.json', '{}');
+    check(Paths.songEvents('Packaged', 'Hard') == 'packaged/events-hard', 'packaged difficulty events selected');
+    check(Paths.songEvents('Packaged', 'Hard', true) == 'events-hard', 'packaged event chart basename selected');
+    check(Paths.songEvents('Packaged', 'Easy') == 'packaged/events', 'missing difficulty events fall back');
+
     // 1. O(1) deduplication on repeated image hits + zero duplicate OpenFL cache retention.
     OpenFlAssets.registerStubImage('assets/images/alphabet.png', 256, 128);
     OpenFlAssets.registerStubText('assets/images/alphabet.xml', '<TextureAtlas/>');
@@ -69,10 +76,10 @@ class AssetCacheSpec
 
     Paths.clearStoredMemory();
     // Simulate a mod/HScript pushing directly onto the public array without calling Paths.image:
-    Paths.localTrackedAssets.push('images/keepExternal.png');
+    Paths.localTrackedAssets.push(gKeep.key);
     Paths.clearUnusedMemory();
-    check(Paths.currentTrackedAssets.exists('images/keepExternal.png'), 'externally pushed localTrackedAssets entry survives clearUnusedMemory');
-    check(!Paths.currentTrackedAssets.exists('images/evictMe.png'), 'unreferenced entry is evicted by clearUnusedMemory');
+    check(Paths.currentTrackedAssets.exists(gKeep.key), 'externally pushed localTrackedAssets entry survives clearUnusedMemory');
+    check(!Paths.currentTrackedAssets.exists(gEvict.key), 'unreferenced entry is evicted by clearUnusedMemory');
     check(gEvict.isDestroyed, 'evicted FlxGraphic is destroyed');
 
     // 3. Atlas loaders short-circuit via FlxAtlasFrames.findFrame without re-reading XML from disk.
@@ -190,13 +197,80 @@ class AssetCacheSpec
     check(Paths.noteSkinFramesMap.exists(Paths.defaultSkin), 'initNote(null) stores under defaultSkin');
     check(Paths.splashSkinFramesMap.exists('noteSplashes/noteSplashes'), 'initSplash(null) stores under resolved splash skin key');
 
-    // Evicting the underlying graphics also prunes stale skin frame references:
+    final noteGraphic = Paths.noteSkinFramesMap.get(Paths.defaultSkin).parent;
+    final splashGraphic = Paths.splashSkinFramesMap.get('noteSplashes/noteSplashes').parent;
+    check(noteGraphic.useCount == 1 && splashGraphic.useCount == 1, 'template sprites own their graphics');
+    final liveNote = new flixel.FlxSprite();
+    liveNote.frames = Paths.noteSkinFramesMap.get(Paths.defaultSkin);
+
+    // A trim disposes the template owners even when a live sprite still uses
+    // the atlas. The live sprite protects it until its own destruction.
     Paths.clearStoredMemory();
     Paths.clearUnusedMemory();
-    check(!Paths.noteSkinFramesMap.exists(Paths.defaultSkin), 'evicting noteskin graphic prunes noteSkinFramesMap');
-    check(!Paths.splashSkinFramesMap.exists('noteSplashes/noteSplashes'), 'evicting splash graphic prunes splashSkinFramesMap');
+    check(noteGraphic.useCount == 1 && !noteGraphic.isDestroyed, 'live note protects its atlas after template release');
+    check(splashGraphic.isDestroyed, 'unused splash template no longer pins its atlas');
+    check(!Paths.noteSkinFramesMap.exists(Paths.defaultSkin), 'trim prunes the noteskin templates');
+    check(!Paths.splashSkinFramesMap.exists('noteSplashes/noteSplashes'), 'trim prunes the splash templates');
+    liveNote.destroy();
+    Paths.clearUnusedMemory();
+    check(noteGraphic.isDestroyed, 'released note atlas is reclaimed by the next trim');
 
-    // 8. Ledger returns to zero engine/mod assets once everything non-excluded is cleared.
+    // Explicit teardown releases templates even if public maps were cleared.
+    Paths.initNote(null);
+    final teardownGraphic = Paths.noteSkinFramesMap.get(Paths.defaultSkin).parent;
+    Paths.noteSkinFramesMap.clear();
+    Paths.noteSkinAnimsMap.clear();
+    Paths.clearSkinCaches();
+    check(teardownGraphic.useCount == 0, 'teardown destroys orphaned template sprites');
+    Paths.clearStoredMemory();
+    Paths.clearUnusedMemory();
+    check(teardownGraphic.isDestroyed, 'teardown leaves the atlas evictable');
+
+    // 8. Request-based tracking is not a live-reference count. A deep trim
+    // must not destroy graphics still held by sprites or paused FlxSounds.
+    OpenFlAssets.registerStubImage('assets/images/live.png', 64, 64);
+    final live = Paths.image('live');
+    live.useCount = 1;
+    final generated = FlxGraphic.fromBitmapData(new openfl.display.BitmapData(8, 8), false, 'generated-live');
+    generated.useCount = 1;
+    final paused = new Sound();
+    final pausedFlx = new flixel.sound.FlxSound();
+    pausedFlx._sound = paused;
+    pausedFlx.playing = false;
+    FlxG.sound.list.members.push(pausedFlx);
+    Paths.currentTrackedSounds.set('paused-sound', paused);
+
+    final songStream = new Sound();
+    final music = new flixel.sound.FlxSound();
+    music._sound = songStream;
+    music.playing = false; // persistent music can be resumed after a transition
+    FlxG.sound.music = music;
+    Paths.currentTrackedSounds.set('stream-music', songStream);
+    @:privateAccess Paths.streamSoundKeys.set('stream-music', true);
+
+    final externalStream = new Sound();
+    Paths.currentTrackedSounds.set('stream-external', externalStream);
+    @:privateAccess Paths.streamSoundKeys.set('stream-external', true);
+    Paths.clearStoredMemory();
+    Paths.clearUnusedMemory();
+    check(!live.isDestroyed && Paths.currentTrackedAssets.exists(live.key), 'live tracked graphic survives a deep trim');
+    check(!generated.isDestroyed, 'live generated graphic survives a deep trim');
+    check(!paused.closed && Paths.currentTrackedSounds.exists('paused-sound'), 'paused list sound stays resumable');
+    check(!songStream.closed && Paths.currentTrackedSounds.exists('stream-music'), 'stopped persistent music stays resumable');
+    check(!externalStream.closed && !Paths.currentTrackedSounds.exists('stream-external'),
+      'an unlisted stream is untracked without closing a mod-retained Sound');
+
+    live.useCount = generated.useCount = 0;
+    FlxG.sound.list.members = [];
+    FlxG.sound.music = null;
+    Paths.clearStoredMemory();
+    Paths.clearUnusedMemory();
+    check(live.isDestroyed && generated.isDestroyed, 'released graphics are reclaimed on a later trim');
+    check(paused.closed, 'decoded sound is closed after its FlxSound releases it');
+    check(!songStream.closed && !Paths.currentTrackedSounds.exists('stream-music'),
+      'released stream is untracked without invalidating retained Sound references');
+
+    // 9. Ledger returns to zero engine/mod assets once everything non-excluded is cleared.
     Paths.dumpExclusions.resize(0);
     ClientPrefs.daMenuMusic = 'None';
     Paths.clearStoredMemory();

@@ -1,0 +1,42 @@
+package backend;
+
+import openfl.media.Sound;
+import openfl.utils.Assets as OpenFlAssets;
+import sys.FileSystem;
+using StringTools;
+
+// Test shell for the *production* Paths.voices, inst and returnSound methods.
+// The runner appends those exact methods from source/backend/Paths.hx.
+class Paths
+{
+  static inline var SOUND_EXT:String = 'ogg';
+  static inline var MISSING_SENTINEL:String = '\x00';
+  static var resolvedSoundCache:Map<String, String> = [];
+  static var soundAssetIds:Map<String, String> = [];
+  public static var modFiles:Map<String, String> = [];
+  public static var libraryFiles:Map<String, String> = [];
+  public static var local:Map<String, Bool> = [];
+
+  static function syncLookupContext():Void {}
+  static function trackLocalAsset(key:String):Void local.set(key, true);
+  static function modsSounds(path:String, key:String):String return modFiles.get('$path/$key');
+  static function resolveSoundAsset(path:String, key:String, ?library:String):String return libraryFiles.get('$path/$key');
+  static function isOggFile(path:String):Bool return path != null && path.toLowerCase().endsWith('.ogg');
+  static function hasOggMagic(path:String):Bool return path.indexOf('bad-magic') == -1;
+  static function formatToSongPath(path:String):String return path == null ? '' : path.toLowerCase();
+  static function songKeyExists(key:String):Bool return modFiles.exists('songs/' + key) || libraryFiles.exists('songs/' + key);
+  static function songAudioAsset(song:String, file:String):String return 'songs:assets/songs/$song/$file.ogg';
+  public static function reset():Void
+  {
+    resolvedSoundCache.clear();
+    soundAssetIds.clear();
+    currentTrackedSounds.clear();
+    streamSoundKeys.clear();
+    modFiles.clear();
+    libraryFiles.clear();
+    local.clear();
+    MemoryLedger.tracked.clear();
+    OpenFlAssets.paths.clear();
+    OpenFlAssets.soundLoads = 0;
+    Sound.fileLoads = 0;
+  }

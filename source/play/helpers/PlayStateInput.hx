@@ -77,12 +77,12 @@ class PlayStateInput
 		}
 		else {
 			if (state.hasActiveScripts()) state.callOnLuas('onGhostTap', [key]);
-			if (!PlayState.opponentChart && ClientPrefs.ghostTapAnim && ClientPrefs.charsAndBG)
+			if (!PlayState.opponentChart && ClientPrefs.ghostTapAnim && state.songCharacterVisuals)
 			{
 				state.boyfriend.playAnim(state.singAnimations[Std.int(Math.abs(key))], true);
 				state.boyfriend.holdTimer = 0;
 			}
-			if (PlayState.opponentChart && ClientPrefs.ghostTapAnim && ClientPrefs.charsAndBG)
+			if (PlayState.opponentChart && ClientPrefs.ghostTapAnim && state.songCharacterVisuals)
 			{
 				state.dad.playAnim(state.singAnimations[Std.int(Math.abs(key))], true);
 				state.dad.holdTimer = 0;
@@ -210,7 +210,7 @@ class PlayStateInput
 				}
 			}
 
-			if(ClientPrefs.charsAndBG && ((ClientPrefs.mobileCEx && ClientPrefs.mobileCExTaunt && mobileC != null && mobileC.justPressed) || FlxG.keys.anyJustPressed(state.tauntKey)) && !char.animation.curAnim.name.endsWith('miss') && char.specialAnim == false && ClientPrefs.spaceVPose){
+			if(state.songCharacterVisuals && ((ClientPrefs.mobileCEx && ClientPrefs.mobileCExTaunt && mobileC != null && mobileC.justPressed) || FlxG.keys.anyJustPressed(state.tauntKey)) && !char.animation.curAnim.name.endsWith('miss') && char.specialAnim == false && ClientPrefs.spaceVPose){
 				if (char.animOffsets.exists('hey'))
 				{
 					char.playAnim('hey', true);
@@ -224,7 +224,7 @@ class PlayStateInput
 			}
 
 			if (!state.holdArray.contains(true) || state.endingSong) {
-				if (ClientPrefs.charsAndBG) PlayStateCamera.playerDance(state);
+				if (state.songCharacterVisuals) PlayStateCamera.playerDance(state);
 			}
 
 			#if ACHIEVEMENTS_ALLOWED
