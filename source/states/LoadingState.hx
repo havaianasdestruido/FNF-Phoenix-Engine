@@ -1,11 +1,13 @@
 package states;
 
+import backend.ClientPrefs;
 import backend.MusicBeatState;
 import backend.MenuMusic;
 import backend.Paths;
 import data.StageData;
 import flixel.util.typeLimit.NextState;
 import haxe.io.Path;
+import objects.LoadingPieDial;
 import play.PlayState;
 
 import flixel.FlxG;
@@ -61,6 +63,7 @@ class LoadingState extends MusicBeatState
 	private var behind:FlxGroup;
 	private var bg:FlxSprite;
 	private var loadBar:FlxSprite;
+	private var pieDial:LoadingPieDial;
 	private var loadPercent:Float = 0;
 
 	// Doido-style tuning
@@ -145,6 +148,13 @@ class LoadingState extends MusicBeatState
 		loadBar.y = FlxG.height - loadBar.height - 8;
 		changeBarSize(0);
 		add(loadBar);
+
+		if (ClientPrefs.loadingPieDial)
+		{
+			loadBar.visible = false;
+			pieDial = new LoadingPieDial();
+			add(pieDial);
+		}
 
 		oldAnti = FlxSprite.defaultAntialiasing;
 		FlxSprite.defaultAntialiasing = false;
@@ -617,6 +627,8 @@ class LoadingState extends MusicBeatState
 			loadBar.y = height - loadBar.height - 8;
 			changeBarSize(loadBar.scale.x);
 		}
+		if (pieDial != null)
+			pieDial.layout(width, height);
 	}
 
 	// Doido's behind helper — add then immediately remove to cache graphic without staying on screen
@@ -710,6 +722,8 @@ class LoadingState extends MusicBeatState
 		loadBar.scale.x = newSize;
 		loadBar.updateHitbox();
 		loadBar.screenCenter(X);
+		if (pieDial != null)
+			pieDial.setProgress(newSize);
 	}
 
 	// --- Static helpers (preserve original API) ---

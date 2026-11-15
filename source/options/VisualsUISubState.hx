@@ -15,6 +15,7 @@ import flixel.graphics.FlxGraphic;
 import flixel.input.keyboard.FlxKey;
 
 import backend.ClientPrefs;
+import backend.LoadingDialLogic;
 import backend.MenuMusic;
 import data.Song;
 import play.helpers.StageDimMath;
@@ -532,6 +533,21 @@ class VisualsUISubState extends BaseOptionsMenu
 			true);
 		addOption(option);
 		option.onChange = MovingCheckerboard.refreshAll;
+
+		var option:Option = new Option('Loading Pie Dial',
+			"Checked: loading screens show a FlxPieDial in the bottom-left corner.\nUnchecked: uses the classic bottom progress bar.",
+			'loadingPieDial',
+			'bool',
+			true);
+		addOption(option);
+
+		var option:Option = new Option('Loading Dial Color:',
+			"Color of the bottom-left FlxPieDial shown on loading screens.",
+			'loadingPieDialColor',
+			'string',
+			LoadingDialLogic.DEFAULT_COLOR,
+			LoadingDialLogic.colorNames());
+		addOption(option);
 
 		var option:Option = new Option('Hold to Confirm',
 			"Destructive actions (deleting a mod/save/chart, leaving a song,\n"

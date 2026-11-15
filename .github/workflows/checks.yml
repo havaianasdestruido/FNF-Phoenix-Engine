@@ -81,6 +81,7 @@ jobs:
           bash tests/haxe/run-asset-cache.sh
           bash tests/haxe/run-song-character-info.sh
           bash tests/haxe/run-loading-state-router.sh
+          bash tests/haxe/run-loading-dial.sh
       - name: Test legacy chart parsing and gameplay chart conversion
         run: |
           bash tests/haxe/run-chart-loading.sh
