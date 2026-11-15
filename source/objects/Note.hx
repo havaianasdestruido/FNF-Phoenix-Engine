@@ -214,6 +214,15 @@ class Note extends FlxSprite
 			{
 				Paths.trackLocalAsset(cachedFrames.parent.key);
 			}
+			// The skin atlas is missing (initNote logs it once). Setting `frames = null`
+			// would wipe the sprite's graphic, and flixel's checkEmptyFrame() then swaps in
+			// its placeholder image on the next draw. Keep the current skin instead, so a
+			// mod that ships no atlas for a custom note type still shows the default notes.
+			if (cachedFrames == null)
+			{
+				offsetX = 0;
+				return value;
+			}
 			if (frames != cachedFrames) frames = cachedFrames;
 			final cachedAnims = Paths.noteSkinAnimsMap.get(value);
 			if (cachedAnims != null && animation != cachedAnims) animation.copyFrom(cachedAnims);
@@ -738,7 +747,7 @@ class Note extends FlxSprite
 		else
 		{
 			if (!visible) visible = true;
-			if (alpha != 1) alpha = 1; //if (multAlpha != 1) multAlpha = 1;
+			if (alpha != 1) alpha = 1;
 		}
 		if (flipY) flipY = false;
 	}
