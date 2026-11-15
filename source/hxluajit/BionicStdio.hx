@@ -50,6 +50,12 @@ package hxluajit;
  * `<section if="android">` guard keeps the C++ translation unit out of
  * desktop, iOS and web builds.
  *
+ * Note that `LUA_ALLOWED` is a *Haxe* define and does not reach the C++
+ * preprocessor: hxcpp uses it for its XML `if=`/`unless=` conditionals (from
+ * the generated Options.txt) and never turns it into a `-D` compiler flag.
+ * Anything the shim needs to know about Lua therefore has to be decided by
+ * the build file, not by `#if defined(LUA_ALLOWED)` in the C++.
+ *
  * `NO_LUAJIT_BIONIC_STDIO` opts out, in case a future NDK starts exporting
  * the variables itself.
  */
@@ -57,7 +63,14 @@ package hxluajit;
 @:buildXml('<include name="../../../../source/backend/native/luajit_bionic_stdio_build.xml" />')
 class BionicStdio
 {
-	/** Whether this build exports stdin/stdout/stderr for the Android LuaJIT. */
+	/**
+	 * Whether this build is expected to export stdin/stdout/stderr for the
+	 * Android LuaJIT.
+	 *
+	 * This mirrors the build file's `<section if="android">` plus the
+	 * `__ANDROID_API__ < 23` guard in the translation unit. It is a Haxe-side
+	 * prediction only; the C++ smoke test asserts what actually compiles.
+	 */
 	public static function isLinked():Bool
 	{
 		return #if (android && LUA_ALLOWED) true #else false #end;

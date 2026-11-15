@@ -33,44 +33,86 @@
  *     ld.lld: error: undefined symbol: stderr
  *     clang++: error: linker command failed with exit code 1
  *
- * The prebuilt libraries were built against API 23+, so they cannot be
- * linked into an API 21 app unchanged. Export the three variables here
- * instead, backed by bionic's `__sF` stream array, which has existed since
- * API 1 as `FILE[3]` = { stdin, stdout, stderr }. That is exactly what the
- * API 23+ <stdio.h> does:
+ * Export the three variables here instead, backed by bionic's `__sF` stream
+ * array, which has been exported since API 1 as `FILE[3]` = { stdin, stdout,
+ * stderr }. That is exactly what the API 23+ libc does
+ * (libc/stdio/stdio.cpp):
  *
- *     extern FILE* const stdin;   // = &__sF[0]
- *     extern FILE* const stdout;  // = &__sF[1]
- *     extern FILE* const stderr;  // = &__sF[2]
+ *     FILE __sF[3] = { ... };
+ *     FILE* stdin  = &__sF[0];
+ *     FILE* stdout = &__sF[1];
+ *     FILE* stderr = &__sF[2];
  *
  * so LuaJIT's stdio use (lua_writestring()/lua_writeline() in lauxlib.h,
- * which is what a mod's `print()` goes through) keeps working on API 21
- * and above. The definitions are compiled into the app instead of being
- * imported from libc, which is the only difference from a plain API 23+
- * build.
+ * which is what a mod's `print()` goes through) keeps working on API 21 and
+ * above, writing through the very same FILE the rest of the app uses.
  *
- * Guards:
- *  - `__ANDROID__` only: desktop/Emscripten builds define these variables
- *    in their own libc, and this must never clash with them.
- *  - `LUA_ALLOWED` only: nothing references the variables unless LuaJIT is
- *    linked in (project.hxp adds hxluajit for `LUA_ALLOWED`, and Lime turns
- *    every haxedef into a `-D` for hxcpp), so Android builds without the
- *    Lua VM stay byte-for-byte unchanged.
- *  - `!NO_LUAJIT_BIONIC_STDIO`: an escape hatch in case a future NDK starts
- *    exporting the variables itself.
+ * Why the guards below look the way they do
+ * -----------------------------------------
+ * 1. `__ANDROID__` only. Desktop, Emscripten and iOS libcs export the
+ *    variables themselves; defining them again would be a duplicate symbol.
+ *
+ * 2. `__ANDROID_API__ < 23` only. That macro is the NDK's *build* API level,
+ *    derived from `android.minimum-sdk-version` (21, see project.hxp). At 23+
+ *    bionic exports the three symbols itself, so defining them here would
+ *    again be a duplicate.
+ *
+ * 3. No `LUA_ALLOWED` guard. It used to be here, but hxcpp never forwards
+ *    Haxe defines to the C++ preprocessor: `LUA_ALLOWED` only ever reaches
+ *    hxcpp's own XML `if=`/`unless=` conditionals (via the generated
+ *    Options.txt) and is never a `-D` compiler flag. So `defined(LUA_ALLOWED)`
+ *    was always false and the translation unit compiled to nothing, which is
+ *    exactly why the link kept failing. Whether Lua is compiled in is decided
+ *    in luajit_bionic_stdio_build.xml instead, where `if=` does work.
+ *
+ * 4. Bionic makes all three names *macros* in both of its branches:
+ *
+ *        #if __ANDROID_API__ >= 23     // real variables...
+ *        extern FILE* stdin __INTRODUCED_IN(23);
+ *        #define stdin stdin           // ...but still macros for C/C++
+ *        #else                         // API < 23: macros over __sF
+ *        extern FILE __sF[] __REMOVED_IN(23, "Use stdin/stdout/stderr");
+ *        #define stdin (&__sF[0])
+ *        #endif
+ *
+ *    so `FILE* stdin = ...` would be rewritten into `FILE* (&__sF[0]) = ...`.
+ *    The `#undef`s below are therefore mandatory. `__sF` is also declared by
+ *    <stdio.h> with C linkage, so it must not be re-declared here.
+ *
+ * `NO_LUAJIT_BIONIC_STDIO` (a define, or the environment variable of the same
+ * name) keeps the translation unit in the build but defines nothing, in case a
+ * future NDK starts exporting the variables itself below API 23.
  */
 #include "phoenix_luajit_bionic_stdio.h"
 
-#if defined(__ANDROID__) && defined(LUA_ALLOWED) && !defined(NO_LUAJIT_BIONIC_STDIO)
+#if defined(__ANDROID__) && !defined(NO_LUAJIT_BIONIC_STDIO) && (!defined(__ANDROID_API__) || __ANDROID_API__ < 23)
 
+/* <stdio.h> must come first: it declares `__sF` and macro-izes the streams. */
 #include <stdio.h>
 
+#undef stdin
+#undef stdout
+#undef stderr
+
+/*
+ * Bionic tags `__sF` with __REMOVED_IN(23, ...), i.e. a deprecated
+ * declaration, so each reference warns -Wdeprecated-declarations. The
+ * reference is deliberate (it is the only way to reach the streams at API
+ * 21), so silence that single diagnostic around the definitions rather than
+ * disabling the check for the whole file.
+ */
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+#elif defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
+
+/* `__sF` is already declared (C linkage) by <stdio.h> for API < 23. */
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-/* bionic's stream array: __sF[0] = stdin, __sF[1] = stdout, __sF[2] = stderr. */
-extern FILE __sF[];
 
 FILE* stdin = &__sF[0];
 FILE* stdout = &__sF[1];
@@ -80,6 +122,12 @@ FILE* stderr = &__sF[2];
 }
 #endif
 
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#elif defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif
+
 int phoenixLuajitBionicStdio(void)
 {
   return 1;
@@ -87,9 +135,14 @@ int phoenixLuajitBionicStdio(void)
 
 #else
 
+/*
+ * Every other build must define none of the three symbols: desktop/web keep
+ * their libc's, API 23+ Android imports bionic's, and
+ * NO_LUAJIT_BIONIC_STDIO keeps the build unchanged.
+ */
 int phoenixLuajitBionicStdio(void)
 {
   return 0;
 }
 
-#endif /* __ANDROID__ && LUA_ALLOWED && !NO_LUAJIT_BIONIC_STDIO */
+#endif /* __ANDROID__ && !NO_LUAJIT_BIONIC_STDIO && __ANDROID_API__ < 23 */

@@ -136,15 +136,38 @@ LuaJIT's stdio use (`lua_writestring()`/`lua_writeline()` in its
 above. The shim is wired the same way as this project's other native helpers: a
 `@:buildXml` include on `source/hxluajit/BionicStdio.hx`, imported from
 `source/import.hx`, with an `android`-only section in
-`source/backend/native/luajit_bionic_stdio_build.xml`. Its C++ guards are
-`__ANDROID__ && LUA_ALLOWED`, so desktop, iOS and web builds compile the same
-sources as before; `-DNO_LUAJIT_BIONIC_STDIO` opts out if a future NDK starts
-exporting the variables.
+`source/backend/native/luajit_bionic_stdio_build.xml`.
 
-Regression checks: `bash tests/native/run.sh` inspects the shim object (it must
-define the three streams out of distinct `__sF` entries on Android, and define
-nothing anywhere else), and `bash tests/haxe/run-lua-discovery.sh` fails if the
-`@:buildXml` wiring, the build file or the guards stop being present.
+Three details of the translation unit are load-bearing, and each one was
+learned the hard way:
+
+1. **Never guard on `LUA_ALLOWED`.** It is a *Haxe* define. hxcpp consumes it
+   for its own XML `if=`/`unless=` conditionals (read from the generated
+   `Options.txt`) and never turns Haxe defines into `-D` compiler flags, so
+   `#if defined(LUA_ALLOWED)` in C++ is always false and silently compiles the
+   shim away — leaving the link error exactly as it was. Whether Lua is
+   compiled in is decided by the build file's `if=` conditionals instead.
+2. **Guard on `__ANDROID_API__ < 23`.** Clang sets that macro from the target
+   triple (`--target aarch64-linux-android21`, from
+   `android.minimum-sdk-version`), and bionic's own `<stdio.h>` picks its
+   `stdin`/`stdout`/`stderr` shape from it: real (deprecated-tagged) variables
+   at 23+, macros over `__sF` below. At 23+ bionic exports the symbols itself,
+   so defining them here would be a duplicate.
+3. **`#undef stdin/stdout/stderr` first.** Bionic makes all three names macros
+   in *both* branches, so `FILE* stdin = &__sF[0];` would expand to
+   `FILE* (&__sF[0]) = ...` and fail to compile. `__sF` itself is declared by
+   `<stdio.h>` with C linkage and must not be re-declared.
+
+`-DNO_LUAJIT_BIONIC_STDIO` (or the environment variable of the same name) opts
+out if a future NDK starts exporting the variables below API 23.
+
+Regression checks: `bash tests/native/run.sh` compiles the shim against a model
+of bionic's `<stdio.h>` — **not** the host libc, whose ordinary
+`extern FILE*` streams hide the macro problem described above — and asserts the
+object defines all three streams out of distinct `__sF` slots at API 21 and
+nothing at API 23+, under the opt-out, or off Android.
+`bash tests/haxe/run-lua-discovery.sh` fails if the `@:buildXml` wiring, the
+build file or the guard/structure above stops being present.
 
 ### Android SDK and Java compatibility
 

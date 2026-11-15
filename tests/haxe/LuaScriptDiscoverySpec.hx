@@ -134,7 +134,11 @@ class LuaScriptDiscoverySpec
 	 *  - source/import.hx (the `LUA_ALLOWED` block) imports the class that
 	 *    carries `@:buildXml`;
 	 *  - that class points hxcpp at the build file;
-	 *  - the build file adds the translation unit for `android` only.
+	 *  - the build file adds the translation unit for `android` only;
+	 *  - the translation unit itself guards on `__ANDROID__` and the NDK build
+	 *    API level, never on the Haxe `LUA_ALLOWED` define (hxcpp does not
+	 *    forward Haxe defines to the C++ preprocessor), and strips bionic's
+	 *    `stdin`/`stdout`/`stderr` macros before defining the variables.
 	 */
 	static function androidLuaJitLink():Void
 	{
@@ -167,8 +171,23 @@ class LuaScriptDiscoverySpec
 			var cpp:String = sys.io.File.getContent(sources[0]);
 			check(cpp.indexOf('__sF') >= 0, 'the shim backs the streams with bionic\'s __sF array');
 			check(cpp.indexOf('defined(__ANDROID__)') >= 0, 'the shim only defines them on Android');
-			check(cpp.indexOf('defined(LUA_ALLOWED)') >= 0, 'the shim only defines them when LuaJIT is linked in');
 			check(cpp.indexOf('NO_LUAJIT_BIONIC_STDIO') >= 0, 'the shim can be opted out of');
+
+			// hxcpp never turns Haxe defines into -D compiler flags: LUA_ALLOWED
+			// only reaches its own XML `if=` conditionals via Options.txt. A
+			// `#if defined(LUA_ALLOWED)` guard in the C++ is therefore always
+			// false and silently compiles the shim away -- which is exactly how
+			// the Android link kept failing. Guard on the NDK build API level
+			// instead, where bionic itself draws the line.
+			check(cpp.indexOf('defined(LUA_ALLOWED)') < 0,
+				'the shim must not gate on LUA_ALLOWED: hxcpp never forwards Haxe defines to C++');
+			check(cpp.indexOf('__ANDROID_API__') >= 0,
+				'the shim defines the streams only below API 23, where bionic lacks them');
+			// Bionic makes the streams macros in both of its branches, so the
+			// definitions only compile once the macros are stripped.
+			check(cpp.indexOf('#undef stdin') >= 0 && cpp.indexOf('#undef stdout') >= 0
+				&& cpp.indexOf('#undef stderr') >= 0,
+				'the shim #undefs bionic\'s stdin/stdout/stderr macros before defining them');
 		}
 	}
 

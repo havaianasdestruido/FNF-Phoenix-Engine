@@ -14,15 +14,19 @@
  * The shim in source/backend/native/src/phoenix_luajit_bionic_stdio.cpp
  * defines the three variables on top of bionic's `FILE __sF[3]` stream array,
  * which has existed since API 1. tests/native/run.sh compiles that translation
- * unit with the Android defines, renames the three stream symbols with
- * objcopy (so they cannot shadow the host libc's, which this test needs for
- * its own output) and links it in here. The checks are:
+ * unit against a model of bionic's `<stdio.h>` (NOT the host libc: glibc
+ * declares the streams as ordinary variables, while bionic makes them macros
+ * over `__sF` below API 23, and compiling against glibc hides exactly the
+ * failure this test exists to catch). It then renames the three stream symbols
+ * with objcopy (so they cannot shadow the host libc's, which this test needs
+ * for its own output) and links the object in here. The checks are:
  *
- *   Android build  (--object <o> --source <cpp> --include <dir>): the object
+ *   Android, API 21 (--object <o> --source <cpp> --include <dir>): the object
  *       defines all three streams, and the emitted assembly takes each of them
  *       from a distinct `__sF` entry;
- *   other builds   (--object <o> --expect-none): the object defines none of
- *       them, so desktop iOS/web links keep the platform libc's streams.
+ *   everything else (--object <o> --expect-none): API 23+, the
+ *       NO_LUAJIT_BIONIC_STDIO escape hatch and non-Android builds define none
+ *       of them, so those links keep their platform libc's streams.
  *
  * Run by tests/native/run.sh.
  */
@@ -42,6 +46,9 @@
 #ifndef PHOENIX_TEST_INCLUDE_DIR
 #error "PHOENIX_TEST_INCLUDE_DIR must point at the shim include folder"
 #endif
+#ifndef PHOENIX_TEST_BIONIC_MODEL
+#error "PHOENIX_TEST_BIONIC_MODEL must point at the model bionic include folder"
+#endif
 
 /*
  * When the shim object is linked in (after objcopy renamed its streams), its
@@ -49,12 +56,17 @@
  * array; here a local stand-in with the same three-slot shape lets the test
  * check that each stream really lands on a different slot.
  */
+/*
+ * The shim is compiled against the model of bionic's <stdio.h>, whose
+ * `struct __sFILE` is `PHOENIX_TEST_BIONIC_FILE_BYTES` bytes; this test is
+ * compiled against the host libc, whose FILE has a different size. The
+ * stand-in therefore uses the model's stride, passed in from run.sh, so the
+ * linked pointers land on the slots the shim emitted.
+ */
 #include <cstdio>
 extern "C"
 {
-// Same stride as the shim's FILE (the shim is compiled for Android with the
-// host <stdio.h> here, so both translations units agree on the element size).
-char __sF[3 * sizeof(FILE)] = {};
+char __sF[3 * PHOENIX_TEST_BIONIC_FILE_BYTES] = {};
 #if defined(PHOENIX_TEST_SHIM_LINKED)
 extern void* phoenix_test_shim_stdin;
 extern void* phoenix_test_shim_stdout;
@@ -106,16 +118,19 @@ int main(int argc, char** argv)
            "the Android shim must define stdin/stdout/stderr");
 
   // On bionic the variables must point at the stream array, not at a private
-  // FILE: __sF is API 1, the variables are API 23. The host libc has a
-  // different layout, so check what the shim emitted for Android instead:
+  // FILE: __sF is API 1, the variables are API 23. The shim is recompiled to
+  // assembly against the *model* of bionic's <stdio.h> (never the host libc,
+  // which declares the streams as ordinary variables) and the emitted slots
+  // are inspected:
   //   stdin  -> __sF + 0
   //   stdout -> __sF + sizeof(FILE)
   //   stderr -> __sF + 2 * sizeof(FILE)
   const std::string assembly =
-      run("cc -std=c++11 -D__ANDROID__ -DLUA_ALLOWED -I" +
+      run("${CXX:-cc} -std=c++11 -D__ANDROID__ -D__ANDROID_API__=21 -I" +
+          std::string(PHOENIX_TEST_BIONIC_MODEL) + " -I" +
           std::string(PHOENIX_TEST_INCLUDE_DIR) + " -S -o - '" +
           std::string(PHOENIX_TEST_SHIM_SOURCE) + "' 2>/dev/null");
-  assert(!assembly.empty() && "the shim must compile for Android");
+  assert(!assembly.empty() && "the shim must compile against bionic's stdio.h");
 
   size_t references = 0;
   for (size_t pos = assembly.find("__sF"); pos != std::string::npos;
@@ -130,9 +145,10 @@ int main(int argc, char** argv)
 #if defined(PHOENIX_TEST_SHIM_LINKED)
   // The linked pointers must be the bionic slots: stdin, stdout, stderr.
   const char* slots = reinterpret_cast<const char*>(__sF);
+  const size_t stride = PHOENIX_TEST_BIONIC_FILE_BYTES;
   assert(reinterpret_cast<const char*>(phoenix_test_shim_stdin) == slots);
-  assert(reinterpret_cast<const char*>(phoenix_test_shim_stdout) == slots + sizeof(FILE));
-  assert(reinterpret_cast<const char*>(phoenix_test_shim_stderr) == slots + 2 * sizeof(FILE));
+  assert(reinterpret_cast<const char*>(phoenix_test_shim_stdout) == slots + stride);
+  assert(reinterpret_cast<const char*>(phoenix_test_shim_stderr) == slots + 2 * stride);
 #endif
 
   std::printf("bionic stdio shim behaviour: OK (defines stdin/stdout/stderr)\n");

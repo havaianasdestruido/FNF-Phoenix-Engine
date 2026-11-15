@@ -5,15 +5,23 @@
 
     hxluajit ships prebuilt Android LuaJIT libraries that reference the
     `stdin`/`stdout`/`stderr` stdio variables. Bionic only exports those from
-    API 23 on, while this engine supports API 21, so the final link fails with
-    `ld.lld: error: undefined symbol: stdout` (and stdin/stderr). The shim in
-    src/phoenix_luajit_bionic_stdio.cpp defines the three variables on top of
-    bionic's `__sF` stream array, which has existed since API 1.
+    API 23 on, while this engine targets API 21 (project.hxp), so the final
+    link fails with `ld.lld: error: undefined symbol: stdout` (and stdin,
+    stderr). The shim in src/phoenix_luajit_bionic_stdio.cpp defines the three
+    variables on top of bionic's `__sF` stream array, which has existed since
+    API 1.
 
-    Only Android builds that link LuaJIT (LUA_ALLOWED, i.e. hxluajit is on the
-    classpath) compile the translation unit; every other target keeps the
-    sources it compiled before this shim existed. The translation unit repeats
-    both guards, so a stray hxcpp build cannot pick up Android-only symbols.
+    Only Android builds are compiled. At API 23+ bionic exports the variables
+    itself and the shim would be a duplicate symbol, but that is not a case we
+    need to handle here: the hxluajit libraries are built against API 23+, so
+    they only fail to link when the app targets below it, and project.hxp pins
+    the minimum to 21. The translation unit repeats the `__ANDROID__` and
+    `__ANDROID_API__ < 23` guards, so a stray hxcpp build cannot pick up
+    Android-only symbols.
+
+    The translation unit is deliberately NOT gated on LUA_ALLOWED: hxcpp never
+    forwards Haxe defines to the C++ preprocessor, so `if="LUA_ALLOWED"` /
+    `defined(LUA_ALLOWED)` are always false. See the comment block in the .cpp.
   -->
   <pragma once="true" />
   <set name="PHOENIX_LUAJIT_STDIO_DIR" value="${this_dir}" />
