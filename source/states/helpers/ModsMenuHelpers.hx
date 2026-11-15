@@ -6,6 +6,7 @@ import backend.ModSecurity;
 import backend.Paths;
 import flixel.FlxG;
 import flixel.addons.transition.FlxTransitionableState;
+import flixel.math.FlxRect;
 import flixel.tweens.FlxTween;
 import flixel.util.FlxColor;
 import states.LoadingState;
@@ -50,7 +51,7 @@ class ModsMenuHelpers
 		if(curMod != null) curMod.selectBg.visible = false;
 		if(state.bgButtons != null)
 		{
-			if(state.curSelectedButton < 0)
+			if(state.curSelectedButton < 0 || button == state.modInfoButton)
 			{
 				state.bgButtons.color = FlxColor.BLACK;
 				state.bgButtons.alpha = 0.2;
@@ -175,7 +176,14 @@ class ModsMenuHelpers
 		state.modName.setScale(newScale, Math.min(newScale * 1.35, 0.8));
 		state.modName.y = state.modNameInitialY - (state.modName.height / 2);
 		state.modRestartText.visible = curMod.mustRestart;
+		state.modDesc.clipRect = null;
 		state.modDesc.text = curMod.desc;
+		if(state.modInfoButton != null)
+		{
+			var maxDescHeight:Float = state.modInfoButton.y - state.modDesc.y - 10;
+			if(state.modDesc.height > maxDescHeight)
+				state.modDesc.clipRect = new FlxRect(0, 0, state.modDesc.width, maxDescHeight);
+		}
 		ModsMenuHelpers.updateModSecurityText(state);
 
 		for (button in state.buttons) if(button.focusChangeCallback != null) button.focusChangeCallback(button.onFocus);
