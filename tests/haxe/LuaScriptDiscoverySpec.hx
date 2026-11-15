@@ -179,8 +179,18 @@ class LuaScriptDiscoverySpec
 			// false and silently compiles the shim away -- which is exactly how
 			// the Android link kept failing. Guard on the NDK build API level
 			// instead, where bionic itself draws the line.
-			check(cpp.indexOf('defined(LUA_ALLOWED)') < 0,
-				'the shim must not gate on LUA_ALLOWED: hxcpp never forwards Haxe defines to C++');
+			// Only real preprocessor lines count: the file's comments explain
+			// the LUA_ALLOWED pitfall by name, and that must stay allowed.
+			var luaGuardLines:Array<String> = [];
+			for(line in cpp.split('\n'))
+			{
+				var trimmed:String = line.trim();
+				if(trimmed.startsWith('//') || trimmed.startsWith('*') || trimmed.startsWith('/*')) continue;
+				if(trimmed.indexOf('defined(LUA_ALLOWED)') >= 0) luaGuardLines.push(trimmed);
+			}
+			check(luaGuardLines.length == 0,
+				'the shim must not gate on LUA_ALLOWED: hxcpp never forwards Haxe defines to C++ '
+				+ (luaGuardLines.length > 0 ? '(found: ${luaGuardLines.join(' | ')})' : ''));
 			check(cpp.indexOf('__ANDROID_API__') >= 0,
 				'the shim defines the streams only below API 23, where bionic lacks them');
 			// Bionic makes the streams macros in both of its branches, so the
