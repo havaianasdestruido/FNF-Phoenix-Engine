@@ -1,3 +1,11 @@
+import shaders.AngelEffect;
+import shaders.AngelShader;
+import shaders.CamDupeEffect;
+import shaders.CamDupeShader;
+import shaders.TwoDinThreeD;
+import shaders.TwoDinThreeDEffect;
+import shaders.YCBUEndingEffect;
+import shaders.YCBUEndingShader;
 import shaders.BrightnessContrastEffect;
 import shaders.BrightnessContrastShader;
 import shaders.CRTEffect;
@@ -26,7 +34,8 @@ using StringTools;
 /**
  * Contract tests for the Mario Madness shader ports (TODO.md §23.2 "Shaders"):
  * `CRT`, `OldTV`, `TVStatic`, `Ripple`, `Silhouette`, `Mosaic`,
- * `BrightnessContrast`, `VCRBorder` and `VCRFuzz`, plus `shaders.EffectTicker`.
+ * `BrightnessContrast`, `VCRBorder`, `VCRFuzz`, `Angel`, `CamDupe`,
+ * `YCBUEnding` and `TwoDinThreeD`, plus `shaders.EffectTicker`.
  *
  * Three things are checked, in this order:
  *
@@ -58,11 +67,15 @@ class RetroShadersSpec
   /** Shader source file -> the effect class that wraps it, as text names. */
   static final SHADERS:Array<String> = [
     'CRTShader', 'OldTVShader', 'TVStaticShader', 'RippleShader', 'SilhouetteShader', 'MosaicShader', 'BrightnessContrastShader', 'VCRBorderShader',
-    'VCRFuzzShader'
+    'VCRFuzzShader', 'AngelShader', 'CamDupeShader', 'YCBUEndingShader', 'TwoDinThreeD'
   ];
 
   /** Built-in name a stage can declare in its JSON -> shader class. */
   static final REGISTRY_NAMES:Array<Array<String>> = [
+    ['angel', 'AngelShader'],
+    ['camdupe', 'CamDupeShader'],
+    ['ycbuending', 'YCBUEndingShader'],
+    ['twodinthreed', 'TwoDinThreeD'],
     ['crt', 'CRTShader'],
     ['oldtv', 'OldTVShader'],
     ['tvstatic', 'TVStaticShader'],
@@ -79,6 +92,10 @@ class RetroShadersSpec
 
   /** Script-facing callback -> the effect it must construct. */
   static final CALLBACKS:Array<Array<String>> = [
+    ['addAngelEffect', 'AngelEffect'],
+    ['addCamDupeEffect', 'CamDupeEffect'],
+    ['addYCBUEndingEffect', 'YCBUEndingEffect'],
+    ['addTwoDinThreeDEffect', 'TwoDinThreeDEffect'],
     ['addCRTEffect', 'CRTEffect'],
     ['addOldTVEffect', 'OldTVEffect'],
     ['addTVStaticEffect', 'TVStaticEffect'],
@@ -97,6 +114,7 @@ class RetroShadersSpec
     uniformsAreInitialized();
     tickerRouting();
     effectWiring();
+    songEffectWiring();
     callbackShapes();
     registrationIsComplete();
     trace('retro shaders: GLSL portability, uniform wiring, effect validation and registration OK');
@@ -191,6 +209,10 @@ class RetroShadersSpec
   {
     return switch (name)
     {
+      case 'AngelShader': new AngelShader();
+      case 'CamDupeShader': new CamDupeShader();
+      case 'YCBUEndingShader': new YCBUEndingShader();
+      case 'TwoDinThreeD': new TwoDinThreeD();
       case 'CRTShader': new CRTShader();
       case 'OldTVShader': new OldTVShader();
       case 'TVStaticShader': new TVStaticShader();
@@ -458,6 +480,44 @@ class RetroShadersSpec
    * 5. Registration
    * ------------------------------------------------------------------ */
 
+  static function songEffectWiring():Void
+  {
+    PlayState.instance = null;
+    FlxG.state = null;
+    final grid = new CamDupeEffect(3.0, true);
+    check(grid.shader.multi.value[0] == 3.0 && grid.shader.mirrorS.value[0], 'camera grid uniforms');
+    grid.mult = Math.NaN;
+    check(grid.mult == 1.0, 'invalid camera grid scale');
+    final angel = new AngelEffect(0.2, 4.0);
+    check(angel.shader.stronk.value.length == 1 && angel.pixelSize == 4.0, 'angel uniform sizes and defaults');
+    angel.pixelSize = 0.0;
+    angel.strength = Math.NaN;
+    check(angel.pixelSize == 1.0 && angel.strength == 0.0, 'angel validation');
+    final ending = new YCBUEndingEffect(2.0, 4.0);
+    check(ending.intensity == 1.0 && ending.seed == 4.0, 'ending clamps intensity');
+    ending.shader.update(-0.25, 0.5);
+    check(ending.intensity == 0.75 && ending.seed == 4.5, 'upstream ending update');
+    final scene = new TwoDinThreeDEffect(2.0, 42.0);
+    check(scene.blur == 1.0 && scene.yOffset == 42.0, 'scene uniforms');
+    scene.shader.setXandY(10.0, 20.0);
+    check(scene.shader.xOff.value[0] == 10.0 && scene.yOffset == 20.0, 'upstream scene offsets');
+    FlxG.elapsed = 0.25;
+    FlxG.signals.postUpdate.dispatch();
+    check(angel.shader.iTime.value[0] == 0.25 && ending.seed == 4.75, 'animated song effects tick');
+    FlxG.signals.preStateSwitch.dispatch();
+    check(EffectTicker.count() == 0, 'song effects stop on state switch');
+    final game = new PlayState();
+    PlayState.instance = game;
+    FlxG.state = game;
+    final songAngel = new AngelEffect();
+    final songEnding = new YCBUEndingEffect();
+    check(game.shaderUpdates.length == 2, 'song ticker registration');
+    for (tick in game.shaderUpdates) tick(0.5);
+    check(songAngel.shader.iTime.value[0] == 0.5 && songEnding.seed == 0.5, 'song clock advances effects');
+    PlayState.instance = null;
+    FlxG.state = null;
+  }
+
   static function callbackShapes()
   {
     // The documented Lua signature has to match what EffectCallbacks actually
@@ -465,6 +525,10 @@ class RetroShadersSpec
     // read against that file.
     var source:String = read('source/psychlua/callbacks/EffectCallbacks.hx');
     var expected = [
+      'addAngelEffect' => ['camera:String', 'strength:Float', 'pixelSize:Float'],
+      'addCamDupeEffect' => ['camera:String', 'mult:Float', 'mirror:Bool'],
+      'addYCBUEndingEffect' => ['camera:String', 'intensity:Float', 'seed:Float'],
+      'addTwoDinThreeDEffect' => ['camera:String', 'blur:Float', 'yOffset:Float'],
       'addCRTEffect' => ['camera:String', 'curve:Float', 'scanlineHardness:Float', 'pixelHardness:Float', 'mask:Float', 'vignette:Float',
         'resolutionScale:Float'],
       'addOldTVEffect' => ['camera:String', 'staticAmount:Float', 'damage:Float', 'blur:Float', 'bar:Bool', 'barOffset:Float'],

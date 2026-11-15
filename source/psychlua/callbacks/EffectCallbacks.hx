@@ -24,6 +24,10 @@ import shaders.DistantNoteEffect;
 // (TODO.md §23.2 "Shaders"): the generic Mario Madness shaders, Apache-2.0 and
 // ported with credits. Each shader class names its upstream source and every
 // local change; each effect here is reachable from Lua, Python and HScript.
+import shaders.AngelEffect;
+import shaders.CamDupeEffect;
+import shaders.TwoDinThreeDEffect;
+import shaders.YCBUEndingEffect;
 import shaders.BrightnessContrastEffect;
 import shaders.CRTEffect;
 import shaders.MosaicEffect;
@@ -204,6 +208,22 @@ class EffectCallbacks
 			// rows it has. Cheaper and calmer than `addVCREffect`.
 			FunkinLua.registerFunction("addVCRFuzzEffect", function(camera:String, fuzz:Float = 1.0, split:Float = 0.003, scanline:Float = 0.04, scanlineFrequency:Float = 800.0) {
 				PlayState.instance.addShaderToCamera(camera, new VCRFuzzEffect(fuzz, split, scanline, scanlineFrequency));
+			});
+			// Repeat the camera image in a grid, optionally mirrored horizontally.
+			FunkinLua.registerFunction("addCamDupeEffect", function(camera:String, mult:Float = 1.0, mirror:Bool = false) {
+				PlayState.instance.addShaderToCamera(camera, new CamDupeEffect(mult, mirror));
+			});
+			// Animated channel displacement and pixelation from Mario Madness.
+			FunkinLua.registerFunction("addAngelEffect", function(camera:String, strength:Float = 0.0, pixelSize:Float = 1.0) {
+				PlayState.instance.addShaderToCamera(camera, new AngelEffect(strength, pixelSize));
+			});
+			// Animated ending glitch; intensity runs from 0 to 1.
+			FunkinLua.registerFunction("addYCBUEndingEffect", function(camera:String, intensity:Float = 0.0, seed:Float = 0.0) {
+				PlayState.instance.addShaderToCamera(camera, new YCBUEndingEffect(intensity, seed));
+			});
+			// Nine-tap blur and vertical gradient; yOffset is in pixels.
+			FunkinLua.registerFunction("addTwoDinThreeDEffect", function(camera:String, blur:Float = 0.0, yOffset:Float = 0.0) {
+				PlayState.instance.addShaderToCamera(camera, new TwoDinThreeDEffect(blur, yOffset));
 			});
 			FunkinLua.registerFunction("clearEffects", function(camera:String) {
 				PlayState.instance.clearShaderFromCamera(camera);
