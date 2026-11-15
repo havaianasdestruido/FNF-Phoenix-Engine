@@ -19,14 +19,16 @@ try {
     Copy-Item "source/backend/LuaDiagnostics.hx" "$testSource/backend/LuaDiagnostics.hx"
     $env:LUA_DIAGNOSTICS_TMP = $testSource
 
-    # No define: a target that cannot include Lua (mobile, web).
+    # No define: a target that cannot include Lua (e.g. web).
     Invoke-Spec @("--interp")
 
-    # A desktop build without the Lua VM: .lua files are found but cannot run.
+    # Desktop or mobile builds without the Lua VM (-DMODDING_LEVEL=0): .lua files are found and rebuild advice is shown.
     Invoke-Spec @("-D", "desktop", "--interp")
+    Invoke-Spec @("-D", "mobile", "-D", "android", "--interp")
 
-    # A desktop build with the Lua VM.
+    # Desktop and mobile builds with the Lua VM (default).
     Invoke-Spec @("-D", "desktop", "-D", "LUA_ALLOWED", "--interp")
+    Invoke-Spec @("-D", "mobile", "-D", "android", "-D", "LUA_ALLOWED", "--interp")
 } finally {
     $env:LUA_DIAGNOSTICS_TMP = $previousTmp
     Remove-Item -LiteralPath $testSource -Recurse -Force -ErrorAction SilentlyContinue

@@ -21,12 +21,12 @@ LUAJIT=/path/to/luajit bash tests/haxe/run-lua-discovery.sh
 ```
 
 `run-lua-diagnostics.sh` compiles `source/backend/LuaDiagnostics.hx` on its own
-(the class has no engine dependency) and runs it for the three kinds of build
-that report differently: a target that cannot include Lua, a desktop build
-without the Lua VM, and a desktop build with it. `run-lua-discovery.sh` pulls
-only `source/backend/ModSecurity.hx` and `ScriptSecurityScanner.hx` into its
-classpath. Everything else is read from the tree as data, so neither suite can
-drift from the engine.
+(the class has no engine dependency) and runs it for builds that cannot include
+Lua (non-C++ targets), desktop/mobile builds compiled without the Lua VM
+(`-DMODDING_LEVEL=0`), and desktop/mobile builds compiled with it (the default).
+`run-lua-discovery.sh` pulls only `source/backend/ModSecurity.hx` and
+`ScriptSecurityScanner.hx` into its classpath. Everything else is read from the
+tree as data, so neither suite can drift from the engine.
 
 ---
 
@@ -217,62 +217,42 @@ kind:
 (`source/import.hx`). When the define is absent the executable contains no Lua
 VM and cannot run a `.lua` file.
 
-**A plain desktop build does not include Lua today.** `project.hxp` turns the
-`LUA_ALLOWED` and `PYTHON_ALLOWED` defaults on only when `isCPP()` is true, and
-`isCPP()` asks Lime for the target flag `cpp`. Lime sets that flag for
-`lime build cpp` and for an explicit `-cpp`; it does not set it for
-`lime build windows`, `linux`, `mac` or `android`, although those targets
-compile through C++ as well.
+**All native C++ desktop and mobile builds include Lua, Python and HScript by default.**
+`project.hxp` enables `LUA_ALLOWED`, `PYTHON_ALLOWED` and `HSCRIPT_ALLOWED`
+whenever `isCPP()` is true (including `lime build windows`, `linux`, `mac`,
+`android`, and `ios`, where Lime sets `defines["targetType"] = "cpp"`), and
+links `hxluajit` across desktop and mobile C++ targets.
 
-| Command | Lua |
+| Command | Script VMs |
 |---|---|
-| `lime test windows`, `lime test linux`, `lime test mac` | **off** |
-| the same with `-DMODDING_LEVEL=1` | on |
-| the same with `-DMODDING_LEVEL=2` | on, plus Python |
-| the same with `-cpp`, or `lime test cpp` | on, plus Python (and the other features with the same condition: videos, Discord) |
-| `-DMODDING_LEVEL=0` or `-DNO_LUA_ALLOWED` | off |
-| `lime test android` | off |
-| `lime test android -DMODDING_LEVEL=1` | does not compile, see below |
+| `lime test windows`, `linux`, `mac`, `android`, `ios` | **Lua + Python + HScript** (default) |
+| the same with `-DMODDING_LEVEL=2` | Lua + Python + HScript |
+| the same with `-DMODDING_LEVEL=1` | Lua + HScript |
+| the same with `-DMODDING_LEVEL=0` or `-DNO_LUA_ALLOWED` | HScript only (Lua off) |
+| `lime build html5` | HScript only (no native LuaJIT VM) |
 
-The CI workflow runs `lime build windows -Dcommit` and `lime build android`
-(`-DofficialBuild` for releases). Neither flag changes script support, so the
-builds it produces, releases included, are builds without Lua.
+All GitHub Actions CI and release workflows (`main.yml`, `release.yml`,
+`release-assets.yml`, `mobile-release.yml`) build Windows and Android at
+`MODDING_LEVEL=2` (`LUA_PYTHON_HSCRIPT`) by default. Lua is only absent if a
+build explicitly opted out with `-DMODDING_LEVEL=0` or `-DNO_LUA_ALLOWED` (or
+targeted HTML5/Neko/Flash/AIR).
 
 The build says which one it made. Look for this line in the build output:
 
 ```text
-[INFO] Script support: Lua OFF, Python OFF, HScript ON (Lua: default for this target)
-[WARN] Lua scripts (.lua) will NOT run in this build: LUA_ALLOWED is off.
-[WARN] The Lua/Python default only turns on when the "cpp" target flag is set (lime build cpp, or -cpp); lime build linux does not set it.
-[WARN] Add -DMODDING_LEVEL=1 (Lua) or -DMODDING_LEVEL=2 (Lua + Python) to include them.
+[INFO] Script support: Lua ON, Python ON, HScript ON (Lua: default for this target)
 ```
 
-With `-DMODDING_LEVEL=1` the line reads
-`[INFO] Script support: Lua ON, Python OFF, HScript ON (Lua: -DMODDING_LEVEL=1)`
-and there is no warning.
+With `-DMODDING_LEVEL=0` the line reads
+`[INFO] Script support: Lua OFF, Python OFF, HScript ON (Lua: -DMODDING_LEVEL=0)`.
 
-At run time, a C++ build without Lua prints
+At run time, a build without Lua prints
 `[LuaDiag] This build does NOT include the Lua VM (LUA_ALLOWED is off): .lua scripts cannot run.`
 when it starts. When a song has `.lua` files it lists them as `not run:` and
 puts a notice on screen (first example above). The diagnostics page
 (`phoenix://diagnostics`, see `URI.MD`) lists `LUA` in its Features row only
 when the build includes it. HScript is not affected: `.hx` scripts run in
-every build.
-
-**Mobile.** `LUA_ALLOWED` and the Lua bindings are added by two separate
-conditions in `project.hxp`:
-
-| What | Where | Condition |
-|---|---|---|
-| `LUA_ALLOWED` define | `configureFeatureFlags()` | `(isDesktop() \|\| isMobile()) && … && isCPP()`, or `-DMODDING_LEVEL=1`/`2` |
-| `hxluajit` haxelib | `configureHaxelibs()` | `isDesktop() && LUA_ALLOWED.isEnabled(this)` |
-
-`source/import.hx` does `#if LUA_ALLOWED import hxluajit.*;`, so the bindings
-have to be on the classpath exactly when the define is set. On Android and iOS
-they never are. A default mobile build therefore has no Lua, and forcing it
-with `-DMODDING_LEVEL=1` stops the compiler at `source/import.hx` with
-`Type not found : hxluajit.Types`. The build log warns about this combination.
-Lua can only be built for desktop targets for now.
+every desktop, mobile and web build.
 
 ## 1. Is the script in a folder the engine walks?
 

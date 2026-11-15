@@ -51,23 +51,22 @@ In verbose mode the warnings and errors are also shown on screen.
 Every `psychlua/*.hx` file is behind `#if LUA_ALLOWED`. A build without that
 define contains no Lua VM.
 
-:::caution[A plain desktop build has no Lua]
+:::note[Default C++ builds include Lua, Python and HScript]
 
-`lime test windows`, `lime test linux` and `lime test mac` build **without** Lua
-and Python today: the default only applies when Lime's `cpp` target flag is set.
-Add `-DMODDING_LEVEL=1` (Lua) or `-DMODDING_LEVEL=2` (Lua and Python) to include
-them — that is exactly what CI does, so the Windows and release artifacts do run
-Lua scripts. Mobile builds cannot include Lua yet, so CI builds Android at level
-`0`. The artifact name tells them apart (`…_LUA_PYTHON_HSCRIPT` versus
-`…_HSCRIPT`), and so does the run title.
+`lime test windows`, `linux`, `mac`, `android` and `ios` all build **with** Lua,
+Python and HScript enabled by default (`MODDING_LEVEL=2`), and every CI and release
+workflow builds both Windows and Android at `MODDING_LEVEL=2` (`…_LUA_PYTHON_HSCRIPT`)
+by default. Lua is only absent if the build explicitly passed `-DMODDING_LEVEL=0` or
+`-DNO_LUA_ALLOWED`, or targeted a non-C++ platform such as HTML5. The artifact name
+(`…_LUA_PYTHON_HSCRIPT` versus `…_HSCRIPT`) and run title both indicate which VMs are
+included.
 
 :::
 
 The build output says which one was made:
 
 ```text
-[INFO] Script support: Lua OFF, Python OFF, HScript ON (Lua: default for this target)
-[WARN] Lua scripts (.lua) will NOT run in this build: LUA_ALLOWED is off.
+[INFO] Script support: Lua ON, Python ON, HScript ON (Lua: default for this target)
 ```
 
 So does the game. A build without Lua prints

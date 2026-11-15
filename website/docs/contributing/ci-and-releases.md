@@ -41,19 +41,18 @@ opened to know what it can run:
 
   | Suffix | Level | What it can run |
   |---|---|---|
-  | `_LUA_PYTHON_HSCRIPT` | 2 | Lua, Python and HScript mods (default on Windows) |
+  | `_LUA_PYTHON_HSCRIPT` | 2 | Lua, Python and HScript mods (default on Windows and Android) |
   | `_LUA_HSCRIPT` | 1 | Lua and HScript mods |
-  | `_HSCRIPT` | 0 | HScript mods only — also every Android build |
+  | `_HSCRIPT` | 0 | HScript mods only |
   | `_NONE` | — | no script support at all |
 
   HScript is compiled for every desktop and mobile target independently of the level, so it
   is always listed. The suffix also shows up in the download links of the pull-request
   comment posted by `nightly.yml`.
 
-Android is always built at level `0`: `project.hxp` only adds the `hxluajit` haxelib for
-desktop targets, so asking for Lua there would compile `import hxluajit.*` without the
-bindings and fail at `source/import.hx`. The workflow clamps the level and prints a
-`::notice::` instead.
+Both Windows and Android default to `MODDING_LEVEL=2` (`_LUA_PYTHON_HSCRIPT`) across all
+CI and release workflows: `project.hxp` adds `hxluajit`, `hython` and `hscript` on both
+desktop and mobile C++ targets.
 
 The level is part of the hxcpp object cache key, since objects compiled for one level are
 useless for another. The haxelib and Gradle caches are shared between levels: the
@@ -117,11 +116,11 @@ mobile releases now use `main.yml`, including its manifest and native-library ch
 
 ## `mobile-release.yml` — Mobile Release
 
-Manual. Select an existing Phoenix release tag explicitly; the workflow validates the
-tag and build commit before calling `main.yml` with `buildWindows: false`,
-`buildAndroid: true` and `moddingLevel: "0"` (mobile cannot ship the Lua/Python VMs). It
-attaches the resulting APK to the existing release. It does not use GitHub's `latest`
-redirect, which excludes prereleases.
+Manual, with `tag_name` and `moddingLevel` inputs (default `"2"`). Select an existing
+Phoenix release tag explicitly; the workflow validates the tag and build commit before
+calling `main.yml` with `buildWindows: false`, `buildAndroid: true` and the selected
+`moddingLevel` (default `2`: Lua + Python + HScript). It attaches the resulting APK to the
+existing release. It does not use GitHub's `latest` redirect, which excludes prereleases.
 
 ## `release.yml` — Manual Release
 
@@ -137,9 +136,9 @@ Automatic. When a release is published on the Releases page — a brand-new rele
 draft promoted to published — this workflow builds the tagged commit through `main.yml`
 with `buildFlags: officialBuild` and attaches `FNF-Phoenix-Engine-windows.zip` and
 `FNF-Phoenix-Engine-android.apk` to the release page. It builds at the default
-`moddingLevel` (`2`, so the Windows release runs Lua and Python mods); a manual dispatch
-can pick another level with the `moddingLevel` input. The published asset names stay
-stable — the level is in the run title and in the uploaded artifact names instead.
+`moddingLevel` (`2`, so both Windows and Android releases run Lua, Python and HScript mods);
+a manual dispatch can pick another level with the `moddingLevel` input. The published asset
+names stay stable — the level is in the run title and in the uploaded artifact names instead.
 Assets already attached to the release are skipped, so publishing a draft prepared by
 `release.yml` only builds what is missing (typically the APK). The `tools/release_version.py` check is advisory here
 because the release is already public; the manual workflows above still gate tag creation

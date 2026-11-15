@@ -335,17 +335,17 @@ class LuaDiagnostics
 
   /**
    * Whether a rebuild can put the Lua VM into this target: `project.hxp`
-   * adds the Lua bindings (hxluajit) for desktop targets only.
+   * adds the Lua bindings (hxluajit) for desktop and mobile C++ targets.
    */
   public static inline function luaBuildable():Bool
   {
-    return #if (desktop || LUA_ALLOWED) true #else false #end;
+    return #if ((desktop || mobile) || LUA_ALLOWED) true #else false #end;
   }
 
   /** The Lime target name of this build, for an example command line. */
   static inline function limeTarget():String
   {
-    return #if windows 'windows' #elseif mac 'mac' #elseif linux 'linux' #else '<target>' #end;
+    return #if windows 'windows' #elseif mac 'mac' #elseif linux 'linux' #elseif android 'android' #elseif ios 'ios' #else '<target>' #end;
   }
 
   /**
@@ -367,12 +367,12 @@ class LuaDiagnostics
     if (buildable)
     {
       lines.push('Rebuild with -DMODDING_LEVEL=1 (Lua) or -DMODDING_LEVEL=2 (Lua + Python).');
-      lines.push('Example: lime test ' + limeTarget() + ' -DMODDING_LEVEL=1. The build log explains the choice on its '
+      lines.push('Example: lime test ' + limeTarget() + ' -DMODDING_LEVEL=2. The build log explains the choice on its '
         + '"Script support" line; see docs/LUA_SCRIPT_DEBUGGING.md, step 0.');
     }
     else
     {
-      lines.push('The engine can only include Lua in desktop builds (Windows, Linux, macOS) for now.');
+      lines.push('The engine can only include Lua in native C++ builds (desktop and mobile) for now.');
       lines.push('See docs/LUA_SCRIPT_DEBUGGING.md, step 0.');
     }
     if (scripts != null)
