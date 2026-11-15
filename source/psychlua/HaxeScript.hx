@@ -164,6 +164,8 @@ class HaxeScript
 		interp.variables.set('ShaderFilter', openfl.filters.ShaderFilter);
 		interp.variables.set('FunkinShader', shaders.FunkinShader);
 		interp.variables.set('StringTools', StringTools);
+		// Menu/state scripts use a separate HScript host from gameplay scripts.
+		interp.variables.set('stdfire', StdFireLibrary.createNamespace());
 		interp.variables.set('Math', Math);
 		interp.variables.set('Std', Std);
 		interp.variables.set('Type', Type);
@@ -219,6 +221,9 @@ class HaxeScript
 
 				var resolved:Class<Dynamic> = Type.resolveClass(str + libName);
 				if (resolved == null) resolved = LuaUtils.resolveClassCompat(libName);
+				// The compatibility fallback can resolve a different package from
+				// the one requested, so check the actual class before exposing it.
+				if (resolved != null && !allowClassAccess(Type.getClassName(resolved))) return;
 				interp.variables.set(libName, resolved);
 			}
 			catch (e:Dynamic)

@@ -10,9 +10,6 @@ import mobile.flixel.FlxVirtualPad;
 import flixel.input.actions.FlxActionInput;
 import flixel.util.FlxDestroyUtil;
 import flixel.addons.ui.FlxUIState;
-#if !flash
-import lime.app.Application;
-#end
 
 import data.Section;
 import psychlua.StateScripts;
@@ -191,14 +188,14 @@ class MusicBeatState extends FlxUIState
 	static function set_windowNameSuffix(value:String){
 		windowNameSuffix = value;
 		#if !flash
-		Application.current.window.title = windowNamePrefix + windowNameSuffix + windowNameSuffix2;
+		StdFire.engineTitleChanged(windowNamePrefix + windowNameSuffix + windowNameSuffix2);
 		#end
 		return value;
 	}
 	static function set_windowNameSuffix2(value:String){
 		windowNameSuffix2 = value;
 		#if !flash
-		Application.current.window.title = windowNamePrefix + windowNameSuffix + windowNameSuffix2;
+		StdFire.engineTitleChanged(windowNamePrefix + windowNameSuffix + windowNameSuffix2);
 		#end
 		return value;
 	}
@@ -269,7 +266,7 @@ class MusicBeatState extends FlxUIState
 			windowNameSuffix2 = RuntimeFlags.getBool("warnings.beta", true) && RuntimeFlags.isPrerelease() ? " (BETA)" : "";
 
 		#if !flash
-		Application.current.window.title = windowNamePrefix + windowNameSuffix + windowNameSuffix2;
+		StdFire.engineTitleChanged(windowNamePrefix + windowNameSuffix + windowNameSuffix2);
 		#end
 
 		callStateScript('onCreate', []);

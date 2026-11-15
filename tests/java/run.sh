@@ -87,5 +87,7 @@ done < <(find tests/java/stubs tests/java/tv_stubs -name '*.java' -print0)
   "$android_src/PhoenixCore.java" \
   "$android_src/PhoenixInput.java" \
   "$work/src/quack/fnf/phoenix/MainActivity.java" \
-  "$test_src/PhoenixTVNavigationTest.java"
+  "$test_src/PhoenixTVNavigationTest.java" \
+  "$test_src/PhoenixStdFireTest.java"
 "$JAVA" -cp "$classes_tv" quack.fnf.phoenix.android.PhoenixTVNavigationTest
+"$JAVA" -cp "$classes_tv" quack.fnf.phoenix.android.PhoenixStdFireTest

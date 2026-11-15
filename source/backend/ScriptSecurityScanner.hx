@@ -123,7 +123,7 @@ class ScriptSecurityScanner
 		{
 			id: 'engine.native-class',
 			description: 'engine reflection access to a privileged class',
-			pattern: ~/\b(?:getPropertyFromClass|setPropertyFromClass)\s*\(\s*["'](?:Sys|Type|Reflect|sys\.|cpp\.|neko\.|hl\.|java\.|objc\.|haxe\.Http|backend\.ModSecurity|backend\.Mods|psychlua\.|openfl\.(?:Lib|net|filesystem)|lime\.(?:system|app|net)|utils\.PlatformUtil|system\.|slushithings\.|android\.|ios\.|mac\.)/i
+			pattern: ~/\b(?:getPropertyFromClass|setPropertyFromClass)\s*\(\s*["'](?:Sys|Type|Reflect|StdFire|LimeNativeText|sys\.|cpp\.|neko\.|hl\.|java\.|objc\.|haxe\.Http|backend\.(?:ModSecurity|Mods|StdFire|LimeNativeText)|psychlua\.|openfl\.(?:Lib|net|filesystem)|lime\.(?:system|app|net)|utils\.PlatformUtil|system\.|slushithings\.|android\.|ios\.|mac\.)/i
 		},
 		{
 			id: 'process.shell',
