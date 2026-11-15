@@ -110,19 +110,99 @@ class LuaScriptDiscoverySpec
 		check(desktopLua == (libCond.indexOf('isDesktop()') >= 0),
 			'LUA_ALLOWED and hxluajit agree about desktop');
 
-		if(androidLua && !androidLib)
-		{
-			Sys.println('  NOTE  LUA_ALLOWED is enabled on mobile but hxluajit is only added');
-			Sys.println('        for desktop builds (project.hxp). An Android build defines');
-			Sys.println('        LUA_ALLOWED, so source/import.hx imports hxluajit.* and every');
-			Sys.println('        psychlua file compiles in, while the bindings haxelib is not on');
-			Sys.println('        the classpath. Either mobile gets no Lua, or this asymmetry is');
-			Sys.println('        the first thing to check when Lua "does nothing" on Android.');
-		}
+		check(!androidLua || androidLib,
+			'LUA_ALLOWED and hxluajit agree about mobile (both are enabled for Android/iOS)');
+
+		// The Android link: hxluajit's prebuilt LuaJIT references
+		// stdin/stdout/stderr, which bionic only exports from API 23 while
+		// project.hxp pins API 21, so the APK only links because of the shim in
+		// source/backend/native/src/phoenix_luajit_bionic_stdio.cpp. If the
+		// wiring disappears the Android build fails at the link step again.
+		if(androidLua && androidLib) androidLuaJitLink();
 
 		// MODDING_LEVEL=0 removes Lua entirely; -DNO_LUA_ALLOWED does the same.
 		var levelZero:Bool = ~/MODDING_LEVEL[^\n]*0/.match(project);
 		info('MODDING_LEVEL support present: ${levelZero}');
+	}
+
+	/**
+	 * Android links LuaJIT at API 21, where bionic does not export
+	 * stdin/stdout/stderr yet (they are `introduced=23` in libc.map.txt). The
+	 * shim under source/backend/native/ defines them on top of `__sF`, and
+	 * three things have to stay true for it to be part of the build:
+	 *
+	 *  - source/import.hx (the `LUA_ALLOWED` block) imports the class that
+	 *    carries `@:buildXml`;
+	 *  - that class points hxcpp at the build file;
+	 *  - the build file adds the translation unit for `android` only;
+	 *  - the translation unit itself guards on `__ANDROID__` and the NDK build
+	 *    API level, never on the Haxe `LUA_ALLOWED` define (hxcpp does not
+	 *    forward Haxe defines to the C++ preprocessor), and strips bionic's
+	 *    `stdin`/`stdout`/`stderr` macros before defining the variables.
+	 */
+	static function androidLuaJitLink():Void
+	{
+		var imports:String = sys.FileSystem.exists('source/import.hx')
+			? sys.io.File.getContent('source/import.hx') : '';
+		check(imports.indexOf('import hxluajit.BionicStdio;') >= 0,
+			'source/import.hx imports hxluajit.BionicStdio under LUA_ALLOWED');
+
+		var gluePath:String = 'source/hxluajit/BionicStdio.hx';
+		check(sys.FileSystem.exists(gluePath), '$gluePath exists');
+		var glue:String = sys.FileSystem.exists(gluePath) ? sys.io.File.getContent(gluePath) : '';
+		check(glue.indexOf('@:buildXml(') >= 0, '$gluePath declares the hxcpp build file');
+		check(glue.indexOf('@:keep') >= 0, '$gluePath survives DCE so the xml fragment reaches hxcpp');
+		check(glue.indexOf('luajit_bionic_stdio_build.xml') >= 0, '$gluePath points at the shim build file');
+
+		var buildXmlPath:String = 'source/backend/native/luajit_bionic_stdio_build.xml';
+		check(sys.FileSystem.exists(buildXmlPath), '$buildXmlPath exists');
+		var buildXml:String = sys.FileSystem.exists(buildXmlPath) ? sys.io.File.getContent(buildXmlPath) : '';
+		check(buildXml.indexOf('<section if="android">') >= 0, 'the shim is compiled for Android only');
+		check(buildXml.indexOf('phoenix_luajit_bionic_stdio.cpp') >= 0, 'the build file compiles the shim');
+
+		var sources:Array<String> = [
+			'source/backend/native/src/phoenix_luajit_bionic_stdio.cpp',
+			'source/backend/native/include/phoenix_luajit_bionic_stdio.h'
+		];
+		for(path in sources)
+			check(sys.FileSystem.exists(path), '$path exists');
+		if(sys.FileSystem.exists(sources[0]))
+		{
+			var cpp:String = sys.io.File.getContent(sources[0]);
+			check(cpp.indexOf('__sF') >= 0, 'the shim backs the streams with bionic\'s __sF array');
+			check(cpp.indexOf('defined(__ANDROID__)') >= 0, 'the shim only defines them on Android');
+			check(cpp.indexOf('NO_LUAJIT_BIONIC_STDIO') >= 0, 'the shim can be opted out of');
+
+			// hxcpp never turns Haxe defines into -D compiler flags: LUA_ALLOWED
+			// only reaches its own XML `if=` conditionals via Options.txt. A
+			// `#if defined(LUA_ALLOWED)` guard in the C++ is therefore always
+			// false and silently compiles the shim away -- which is exactly how
+			// the Android link kept failing. Guard on the NDK build API level
+			// instead, where bionic itself draws the line.
+			// Only real preprocessor lines count: the file's comments explain
+			// the LUA_ALLOWED pitfall by name, and that must stay allowed.
+			var luaGuardLines:Array<String> = [];
+			for(line in cpp.split('\n'))
+			{
+				var trimmed:String = line.trim();
+				if(trimmed.startsWith('//') || trimmed.startsWith('*') || trimmed.startsWith('/*')) continue;
+				if(trimmed.indexOf('defined(LUA_ALLOWED)') >= 0) luaGuardLines.push(trimmed);
+			}
+			check(luaGuardLines.length == 0,
+				'the shim must not gate on LUA_ALLOWED: hxcpp never forwards Haxe defines to C++ '
+				+ (luaGuardLines.length > 0 ? '(found: ${luaGuardLines.join(' | ')})' : ''));
+			check(cpp.indexOf('__ANDROID_API__') >= 0,
+				'the shim defines the streams only below API 23, where bionic lacks them');
+			// Bionic makes the streams macros in both of its branches, so the
+			// definitions only compile once the macros are stripped.
+			check(cpp.indexOf('#undef stdin') >= 0 && cpp.indexOf('#undef stdout') >= 0
+				&& cpp.indexOf('#undef stderr') >= 0,
+				'the shim #undefs bionic\'s stdin/stdout/stderr macros before defining them');
+			// LuaJIT's lib_io.c also needs fseeko64/ftello64, which bionic only
+			// exports from API 24; the shim forwards them to the API-1 pair.
+			check(cpp.indexOf('fseeko64') >= 0 && cpp.indexOf('ftello64') >= 0,
+				'the shim provides fseeko64/ftello64 for LuaJIT\'s lib_io.c');
+		}
 	}
 
 	// ------------------------------------------------------------------
