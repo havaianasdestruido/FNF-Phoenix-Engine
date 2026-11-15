@@ -535,7 +535,19 @@ jobs:
           if [ "${{ inputs.fullAssets }}" != "true" ]; then
             args+=("-DNO_BUILTIN_CONTENT")
           fi
-          haxelib run lime build android "${args[@]}"
+          # Temporary diagnostics: report the build tail as check annotations.
+          set +e
+          haxelib run lime build android "${args[@]}" 2>&1 | tee "$RUNNER_TEMP/phoenix-android-build.log"
+          result=${PIPESTATUS[0]}
+          set -e
+          if [ "$result" -ne 0 ]; then
+            while IFS= read -r line; do
+              line=${line//%/%25}
+              line=${line//$'\r'/%0D}
+              printf '::error title=Android build diagnostic::%s\n' "$line"
+            done < <(tail -n 45 "$RUNNER_TEMP/phoenix-android-build.log")
+          fi
+          exit "$result"
 
       # ==========================================
       # Verify the actual merged Android manifest
