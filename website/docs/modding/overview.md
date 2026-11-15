@@ -17,8 +17,8 @@ Phoenix Engine is built around two ways of modding, and tries to make both pleas
 | Can change engine behaviour | through the scripting API | anything |
 | Distribution | zip the folder | ship a build |
 
-Most mods only need softmodding. The scripting API exposes **298 Lua functions** and
-**213 Python functions**, and standalone HScript gets the engine classes directly, plus reflective `getProperty`/`setProperty` access to almost any
+Most mods only need softmodding. The scripting API exposes **324 Lua functions** and
+**228 Python functions**, and standalone HScript gets the engine classes directly, plus reflective `getProperty`/`setProperty` access to almost any
 field in the engine.
 
 ## Compatibility
@@ -93,15 +93,24 @@ mods/bf-clicker/
 
 `example_mods/` also contains `modTemplate.zip` and a script template.
 
+## The bundled Lua feature tour
+
+`mods/phoenix-showcase/` is a second shipped example, written entirely in **Lua**.
+It rebuilds Erect Dad Battle as a guided tour of the newer systems: all 34
+modchart modifiers, two playfields, 3D perspective, runtime and built-in
+shaders, a custom camera, HUD/rating hooks, per-mod save data and an optional
+`META_HORROR` fourth-wall section. Its `README.md` maps every feature to a beat
+in the song and lists the manual test checklist.
+
 ## Where to go next
 
 | Page | Contents |
 |---|---|
 | [Mod folder structure](./mod-folder-structure.md) | every folder the engine looks for, `pack.json`, load order |
 | [Lua scripting](./lua-scripting.md) | how scripts are loaded, globals, patterns |
-| [Lua API reference](./lua-api-reference.md) | all 298 functions, generated from the engine |
+| [Lua API reference](./lua-api-reference.md) | all 324 functions, generated from the engine |
 | [Python scripting](./python-scripting.md) | the Hython runtime and its differences |
-| [Python API reference](./python-api-reference.md) | all 213 functions |
+| [Python API reference](./python-api-reference.md) | all 228 functions |
 | [HScript](./hscript.md) | standalone `.hx`/`.hscript` mods, plus running Haxe from a Lua script |
 | [Script hooks](./script-hooks.md) | every callback the engine fires |
 | [Custom events & notetypes](./custom-events-and-notetypes.md) | chart-driven scripting |

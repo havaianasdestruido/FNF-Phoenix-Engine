@@ -8,7 +8,7 @@ description: How play.PlayState is structured, what each helper owns, and the li
 
 `PlayState` is the state that plays a song. It is the largest and most-modified class in
 any FNF engine, so Phoenix splits it: the **state owns the fields and the Flixel
-lifecycle**, and fourteen **static helper modules** in `play/helpers/` own the logic. The
+lifecycle**, and fifteen **static helper modules** in `play/helpers/` own the logic. The
 original 6448-line file is now ~3313 lines.
 
 ## The helpers
@@ -32,6 +32,7 @@ instance (or that read `PlayState.instance`). They are re-exported together by
 | `PlayStateEvents` | the built-in chart event handlers |
 | `PlayStateScripts` | loading Lua/Python/HScript files and broadcasting hooks |
 | `PlayStateRender` | HUD assembly and per-frame HUD updates |
+| `PlayStateStageDim` | the screen-fixed dim quad for the Stage Dim option (`StageDimMath` holds its camera/zoom math, no Flixel needed) |
 | `PlayStateAndroidMedia` | pushes song metadata to the Android media session |
 
 :::tip[Where should my change go?]

@@ -1,6 +1,7 @@
 package states;
 
 import backend.MusicBeatState;
+import backend.MenuMusic;
 import backend.Paths;
 import data.StageData;
 import flixel.util.typeLimit.NextState;
@@ -99,8 +100,9 @@ class LoadingState extends MusicBeatState
 		targetPreview = prepared.preview;
 		targetState = prepared.target;
 
-		// Mirror original: stop music early if requested
-		if (stopMusicOnLoad && FlxG.sound.music != null)
+		// A menu theme can fade over this screen; PlayState stops whatever
+		// remains. Other music still stops early when requested.
+		if (stopMusicOnLoad && FlxG.sound.music != null && !MenuMusic.isMenuTrack())
 			FlxG.sound.music.stop();
 
 		behind = new FlxGroup();

@@ -35,6 +35,7 @@ mkdir -p \
 cp source/backend/Paths.hx "$test_source/src/backend/"
 cp source/backend/SongAudioStreaming.hx "$test_source/src/backend/"
 cp source/backend/MemoryLedger.hx "$test_source/src/backend/"
+cp source/backend/MenuMusicLogic.hx "$test_source/src/backend/"
 cp source/utils/MemoryUtil.hx "$test_source/src/utils/"
 cp tests/haxe/AssetCacheSpec.hx "$test_source/src/"
 cp tests/haxe/ModIconPathSpec.hx "$test_source/src/"
@@ -87,6 +88,15 @@ class ClientPrefs
 {
   public static var cacheOnGPU:Bool = false;
   public static var daMenuMusic:String = 'Default';
+}
+HAXE
+
+cat > "$test_source/src/backend/MenuMusic.hx" <<'HAXE'
+package backend;
+class MenuMusic
+{
+  public static function targetVolume():Float return 1;
+  public static function claim(sound:flixel.sound.FlxSound, volume:Float):Void {}
 }
 HAXE
 

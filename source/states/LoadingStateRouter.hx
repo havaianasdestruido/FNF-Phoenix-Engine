@@ -1,5 +1,6 @@
 package states;
 
+import backend.MenuMusic;
 import backend.Paths;
 import flixel.FlxG;
 import flixel.FlxState;
@@ -51,6 +52,10 @@ class LoadingStateRouter
     final isSong:Bool = Std.isOfType(prepared.preview, PlayState);
     if (isSong || Std.isOfType(prepared.preview, TitleState))
     {
+      // Start the optional menu-theme fade only after resolving a song target.
+      // For factories this is still before LoadingState.create(), but after the
+      // old state is destroyed; the loading screen lets the tween continue.
+      if (isSong) MenuMusic.fadeOutForSong();
       #if NO_PRELOAD_ALL
       var loaded:Bool = false;
       // This old cache probe obtains decoded sounds. Do not do it before the

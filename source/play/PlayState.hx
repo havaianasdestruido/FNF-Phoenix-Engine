@@ -12,10 +12,12 @@ import backend.CoolUtil;
 import backend.DiscordClient;
 import backend.Highscore;
 import backend.LuaDiagnostics;
+import backend.MenuMusic;
 import backend.LuaDiagnostics.LuaDiagLevel;
 #if MODS_ALLOWED
 #end
 import backend.MusicBeatState;
+import backend.PlayerStats;
 import backend.WeekData;
 
 import data.Section.SwagSection;
@@ -53,7 +55,9 @@ import play.helpers.PlayStateCountdown;
 import play.helpers.PlayStateCutscenes;
 import play.helpers.PlayStateDistantNotes;
 import play.helpers.PlayStateEvents;
+import play.helpers.PlayStateHaptics;
 import play.helpers.PlayStateInput;
+import play.helpers.PlayStateMetronome;
 import play.helpers.PlayStateNoteHelpers;
 import play.helpers.PlayStateNotes;
 import play.helpers.PlayStatePlayback;
@@ -61,8 +65,10 @@ import play.helpers.PlayStateRating;
 import play.helpers.PlayStateRender;
 import play.helpers.PlayStateScripts;
 import play.helpers.PlayStateShaders;
+import play.helpers.PlayStateStageDim;
 import play.helpers.PlayStateAndroidMedia;
 import play.helpers.SongStagePolicy;
+import play.helpers.PlayStateAdaptivePerformance;
 #if HSCRIPT_ALLOWED
 import psychlua.HScript;
 import psychlua.DebugLuaText;
@@ -239,6 +245,19 @@ class PlayState extends MusicBeatState
 	public var grpHoldSplashes:FlxTypedGroup<SustainSplash>;
 	public var grpNoteSplashes:FlxTypedGroup<NoteSplash>;
 
+	/** These overrides belong to this PlayState only; ClientPrefs is never changed. */
+	public var adaptivePerformance(default, null):PlayStateAdaptivePerformance = null;
+	public var adaptiveSplashesDisabled(get, never):Bool;
+	public var adaptiveRatingsDisabled(get, never):Bool;
+	public var adaptiveCameraZoomsDisabled(get, never):Bool;
+
+	inline function get_adaptiveSplashesDisabled():Bool
+		return adaptivePerformance != null && adaptivePerformance.policy.splashesDisabled;
+	inline function get_adaptiveRatingsDisabled():Bool
+		return adaptivePerformance != null && adaptivePerformance.policy.ratingsDisabled;
+	inline function get_adaptiveCameraZoomsDisabled():Bool
+		return adaptivePerformance != null && adaptivePerformance.policy.cameraZoomsDisabled;
+
 	public var camZooming:Bool = false;
 	public var camZoomingMult:Float = 1;
 	public var camZoomingDecay:Float = 2.5;
@@ -314,6 +333,8 @@ class PlayState extends MusicBeatState
 	public static var changedDifficulty:Bool = false;
 	public static var chartingMode:Bool = false;
 	public static var playerIsCheating:Bool = false; //Whether the player is cheating. Enables if you change BOTPLAY or Practice Mode in the Pause menu
+	private var statsSongMod:String = '';
+	private var statsRecorded:Bool = false;
 
 	public static var disableBotWatermark:Bool = false;
 
@@ -371,6 +392,13 @@ class PlayState extends MusicBeatState
 	public var distantNoteShader:shaders.DistantNoteShader;
 	public var camGame:FlxCamera;
 	public var camOther:FlxCamera;
+	/**
+	 * Screen-fixed black quad implementing `ClientPrefs.stageDim`
+	 * (Options -> Visuals and UI). Drawn on `camGame` only, above the stage and
+	 * the characters and below the note camera/HUD; see
+	 * `play.helpers.PlayStateStageDim`.
+	 */
+	public var stageDimOverlay:FlxSprite;
 	private var layoutWidth:Int = 0;
 	public var cameraSpeed:Float = 1;
 	var hitsoundImage:FlxSprite;
@@ -424,6 +452,11 @@ class PlayState extends MusicBeatState
 
 	public static var campaignScore:Float = 0;
 	public static var campaignMisses:Int = 0;
+	/** Accumulated judged results for the currently playing story week. */
+	public static var campaignResults:Null<states.ResultsData> = null;
+
+	/** Signed hit offsets in milliseconds; positive values are early, negative late. */
+	public var hitOffsets:Array<Float> = [];
 	public static var seenCutscene:Bool = false;
 	public static var deathCounter:Int = 0;
 
@@ -528,6 +561,7 @@ class PlayState extends MusicBeatState
 		if (layoutWidth != 0) PlayStateLayout.resize(this, layoutWidth);
 		layoutWidth = FlxG.width;
 		if (ramGraph != null) ramGraph.x = ScreenLayout.contentLeft(FlxG.width) + 8;
+		if (adaptivePerformance != null) adaptivePerformance.repositionNotice();
 	}
 
 	override public function draw()
@@ -647,8 +681,12 @@ class PlayState extends MusicBeatState
 		screenshader.waveSpeed = 1;
 		screenshader.shader.time = new flixel.math.FlxRandom().float(-100000, 100000);
 
+		// The loading screen already faded the menu theme out while the chart was
+		// loading (Options -> Fade Menu Music); drop whatever is left of it before
+		// the instrumental takes the music channel over.
 		if (FlxG.sound.music != null)
 			FlxG.sound.music.stop();
+		MenuMusic.forget();
 
 		// Gameplay settings
 		healthGain = ClientPrefs.getGameplaySetting('healthgain', 1);
@@ -716,6 +754,9 @@ class PlayState extends MusicBeatState
 		#end
 
 		GameOverSubstate.resetVariables();
+		playerIsCheating = false;
+		statsRecorded = false;
+		statsSongMod = (Mods.currentModDirectory != null) ? Mods.currentModDirectory : '';
 		songName = Paths.formatToSongPath(SONG.song);
 		// Keep the chart's stage even while HUD-only mode skips its visuals, so
 		// a later restart after leaving the profile can restore it. Experimental
@@ -1827,6 +1868,7 @@ class PlayState extends MusicBeatState
 			Paths.music(Paths.formatToSongPath(ClientPrefs.pauseMusic));
 
 		cacheCountdown();
+		PlayStateMetronome.cache(this);
 		cachePopUpScore();
 
 		// [P3] Shader warm-up: compile what this stage/song declares while the
@@ -1844,7 +1886,16 @@ class PlayState extends MusicBeatState
 		super.create();
 		Paths.clearUnusedMemory();
 
+		// Stage dim (Options -> Visuals and UI). Created last on purpose: `createPost()`
+		// and the `onCreatePost` scripts above add stage props, and the overlay has to
+		// sit above everything camGame draws. See PlayStateStageDim.
+		PlayStateStageDim.setup(this);
+
 		startingTime = haxe.Timer.stamp();
+
+		// Offline video rendering intentionally runs at a non-real-time pace.
+		if (ClientPrefs.adaptivePerformance && !ffmpegMode)
+			adaptivePerformance = new PlayStateAdaptivePerformance(this);
 
 		#if android
 		// Android media session / audio focus / wake lock integration.
@@ -2126,9 +2177,11 @@ class PlayState extends MusicBeatState
 
 	override function openSubState(SubState:flixel.FlxSubState)
 	{
+		if (adaptivePerformance != null) adaptivePerformance.resetSamples();
 		stagesFunc(function(stage:BaseStage) stage.openSubState(SubState));
 		if (paused)
 		{
+			backend.Metronome.stop();
 			if (FlxG.sound.music != null)
 			{
 				FlxG.sound.music.pause();
@@ -2143,12 +2196,14 @@ class PlayState extends MusicBeatState
 		PlayStateHardwareInput.syncVolumeKeys(this, true);
 		#end
 
+		PlayStateHaptics.cancel();
 		super.openSubState(SubState);
 	}
 
 	public var canResync:Bool = true;
 	override function closeSubState()
 	{
+		if (adaptivePerformance != null) adaptivePerformance.resetSamples();
 		stagesFunc(function(stage:BaseStage) stage.closeSubState());
 		if (paused)
 		{
@@ -2169,6 +2224,7 @@ class PlayState extends MusicBeatState
 
 	override public function onFocus():Void
 	{
+		if (adaptivePerformance != null) adaptivePerformance.setFocused(true);
 		try {if (health > 0 && !paused) resetRPC(Conductor.songPosition > 0.0);}
 		catch(e) {};
 		super.onFocus();
@@ -2176,6 +2232,8 @@ class PlayState extends MusicBeatState
 
 	override public function onFocusLost():Void
 	{
+		if (adaptivePerformance != null) adaptivePerformance.setFocused(false);
+		PlayStateHaptics.cancel();
 		#if DISCORD_ALLOWED
 		try {if (health > 0 && !paused && autoUpdateRPC && FlxG.autoPause) DiscordClient.changePresence(detailsPausedText, SONG.song + " (" + storyDifficultyText + ")", iconP2.getCharacter());}
 		catch(e) {};
@@ -2337,6 +2395,10 @@ class PlayState extends MusicBeatState
 		final stateUpdateHotspot = debug.profiler.HotspotProfiler.begin("PlayState: Flixel state/group update");
 		super.update(elapsed);
 		debug.profiler.HotspotProfiler.end(stateUpdateHotspot);
+
+		// Stage dim reads the camera after `super.update()`, so this frame's zoom,
+		// angle and scroll are final. No-op (one comparison) while the option is off.
+		PlayStateStageDim.sync(this);
 
 		if (tankmanAscend && curStep > 895 && curStep < 1151) camGame.zoom = 0.8;
 
@@ -2800,6 +2862,8 @@ class PlayState extends MusicBeatState
 			if(ret != FunkinLua.Function_Stop) {
 				boyfriend.stunned = true;
 				deathCounter++;
+				if (PlayerStats.canTrackGameplay(cpuControlled, practiceMode, ffmpegMode, chartingMode, trollingMode))
+					PlayerStats.recordDeath();
 
 				canResync = false;
 				paused = true;
@@ -2847,6 +2911,8 @@ class PlayState extends MusicBeatState
 			#else
 			boyfriend.stunned = true;
 			deathCounter++;
+			if (PlayerStats.canTrackGameplay(cpuControlled, practiceMode, ffmpegMode, chartingMode, trollingMode))
+				PlayerStats.recordDeath();
 
 			canResync = false;
 			paused = true;
@@ -2956,6 +3022,7 @@ class PlayState extends MusicBeatState
 		// first safe point to hand unused assets back before results/menus.
 		backend.LowMemory.onSongEnd();
 		PlayStatePlayback.endSong(this);
+		PlayStateHaptics.cancel();
 	}
 
 	public function KillNotes() {
@@ -3128,6 +3195,13 @@ class PlayState extends MusicBeatState
 	}
 
 	override function destroy() {
+		PlayerStats.flushIfDirty();
+		if (adaptivePerformance != null)
+		{
+			adaptivePerformance.destroy();
+			adaptivePerformance = null;
+		}
+		backend.Metronome.stop();
 		PlayStateModchart.reset(this);
 
 		#if android
@@ -3169,6 +3243,9 @@ class PlayState extends MusicBeatState
 
 		if (camFollow != null) camFollow.put();
 
+		// Drop the stage-dim quad before the state's own members are destroyed.
+		PlayStateStageDim.clear(this);
+
 		stagesFunc(function(stage:BaseStage) stage.destroy());
 
 		if(!ClientPrefs.controllerMode)
@@ -3209,6 +3286,7 @@ class PlayState extends MusicBeatState
 		Note.globalRgbShaders = [];
 		backend.NoteTypesConfig.clearNoteTypesData();
 
+		PlayStateHaptics.cancel();
 		super.destroy();
 
 		final exitPolicy = backend.LowMemory.policy();
@@ -3252,10 +3330,14 @@ class PlayState extends MusicBeatState
 	}
 
 	var lastBeatHit:Int = -1;
+	var lastMetronomeBeat:Int = -1;
+	var metronomeResumeTime:Null<Float> = null;
 	var twisted = false;
 
 	override function beatHit()
 	{
+		// Keep the practice tick ahead of stage/script beat callbacks.
+		PlayStateMetronome.beatHit(this);
 		super.beatHit();
 
 		if (lastBeatHit == curBeat) return;
@@ -3265,10 +3347,11 @@ class PlayState extends MusicBeatState
 			var randomSpeed = FlxMath.roundDecimal(FlxG.random.float(minSpeed, maxSpeed), 2);
 			lerpSongSpeed(randomSpeed, 1);
 		}
-		if (camZooming && !endingSong && !startingSong && camHUD.zoom < 1.35 && usingBopIntervalEvent && ClientPrefs.camZooms && !ClientPrefs.reducedMotion && (curBeat % camBopInterval == 0))
+		if (camZooming && !endingSong && !startingSong && camHUD.zoom < 1.35 && usingBopIntervalEvent
+			&& ClientPrefs.camZooms && !adaptiveCameraZoomsDisabled && !ClientPrefs.reducedMotion && (curBeat % camBopInterval == 0))
 		{
-			camBopFactor += 0.015 * camBopIntensity;
-			camHUD.zoom += 0.03 * camBopIntensity;
+			camBopFactor += 0.015 * camBopIntensity * backend.CameraEffects.multiplier();
+			camHUD.zoom += 0.03 * camBopIntensity * backend.CameraEffects.multiplier();
 		} /// WOOO YOU CAN NOW MAKE IT AWESOME
 
 		if (camTwist && curBeat % gfSpeed == 0)
@@ -3338,10 +3421,11 @@ class PlayState extends MusicBeatState
 				setOnLuas('altAnim', SONG.notes[curSection].altAnim);
 				setOnLuas('gfSection', SONG.notes[curSection].gfSection);
 			}
-			if (camZooming && !endingSong && !startingSong && camHUD.zoom < 1.35 && !usingBopIntervalEvent && ClientPrefs.camZooms && !ClientPrefs.reducedMotion)
+			if (camZooming && !endingSong && !startingSong && camHUD.zoom < 1.35 && !usingBopIntervalEvent
+				&& ClientPrefs.camZooms && !adaptiveCameraZoomsDisabled && !ClientPrefs.reducedMotion)
 			{
-				camBopFactor += 0.015 * camBopIntensity;
-				camHUD.zoom += 0.03 * camBopIntensity;
+				camBopFactor += 0.015 * camBopIntensity * backend.CameraEffects.multiplier();
+				camHUD.zoom += 0.03 * camBopIntensity * backend.CameraEffects.multiplier();
 			}
 		}
 

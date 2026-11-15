@@ -97,7 +97,8 @@ class Project extends HXProject
 	 * folders that still reach a target (loose files, user imports).
 	 */
 	static final BUNDLED_MOD_PLATFORMS:Map<String, Array<String>> = [
-		"transparency-test" => ["desktop"]
+		"transparency-test" => ["desktop"],
+		"phoenix-showcase" => ["desktop", "mobile"]
 	];
 
 	/** Common spellings, matching backend.PlatformSupport's aliases. */
@@ -1102,8 +1103,8 @@ class Project extends HXProject
 			addAssetLibrary(weekFolder, shouldEmbed, shouldPreload);
 			if (!stripped)
 			{
-				if (sys.FileSystem.exists("assets/${weekFolder}"))
-					addAssetPath("assets/${weekFolder}", "assets/${weekFolder}", weekFolder, ["*"], exclude, shouldEmbed);
+				if (sys.FileSystem.exists('assets/${weekFolder}'))
+					addAssetPath('assets/${weekFolder}', 'assets/${weekFolder}', weekFolder, ["*"], exclude, shouldEmbed);
 				else
 					info('Skipping missing level asset folder "assets/${weekFolder}".');
 			}

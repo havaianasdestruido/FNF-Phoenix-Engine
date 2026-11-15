@@ -89,8 +89,8 @@ class DeepLinks
         #else
         FlxG.switchState(MainMenuState.new);
         #end
-      case "options", "misc":
-        LoadingState.loadAndSwitchState(() -> new OptionsState(route == "misc"));
+      case "options", "misc", "audio":
+        LoadingState.loadAndSwitchState(() -> new OptionsState(route));
       case "story": FlxG.switchState(states.StoryMenuState.new);
       case "freeplay": FlxG.switchState(states.FreeplayState.new);
       case "credits": FlxG.switchState(states.CreditsState.new);
@@ -122,8 +122,8 @@ class DeepLinks
             #else
             FlxG.switchState(MainMenuState.new);
             #end
-          case "options", "misc":
-            LoadingState.loadAndSwitchState(() -> new OptionsState(route == "misc"));
+          case "options", "misc", "audio":
+            LoadingState.loadAndSwitchState(() -> new OptionsState(route));
           case "story": FlxG.switchState(states.StoryMenuState.new);
           case "freeplay": FlxG.switchState(states.FreeplayState.new);
           case "credits": FlxG.switchState(states.CreditsState.new);
@@ -197,6 +197,12 @@ class DeepLinks
         {
           FlxG.switchState(() -> new states.ModsMenuState());
         }
+        true;
+      case InputTest:
+        // The tester only watches: it shows what the keyboard, the gamepads and
+        // the touch screen report, binds nothing, saves nothing, and takes the
+        // player back to the Main Menu this link was opened from.
+        FlxG.switchState(() -> new states.InputTestState());
         true;
       case Diagnostics:
         // The report page only reads: it writes no file, changes no preference,

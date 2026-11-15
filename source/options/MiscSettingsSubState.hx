@@ -1,4 +1,4 @@
-﻿package options;
+package options;
 
 import backend.ClientPrefs;
 import backend.Controls;
@@ -9,6 +9,7 @@ import openfl.Lib;
 
 import data.Song;
 import objects.Note;
+import headers.Options;
 
 class MiscSettingsSubState extends BaseOptionsMenu
 {
@@ -114,6 +115,9 @@ class MiscSettingsSubState extends BaseOptionsMenu
 		option.onChange = backend.deeplink.DeepLinks.applyRegistration;
 		addOption(option);
 		#end
+
+		// Master Volume, also in Options -> Audio (same live row).
+		OptionsMenuHelpers.addMasterVolumeRow(this);
 
 		cameras = [FlxG.cameras.list[FlxG.cameras.list.length-1]];
 

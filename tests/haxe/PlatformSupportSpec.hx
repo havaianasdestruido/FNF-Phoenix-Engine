@@ -158,12 +158,21 @@ class PlatformSupportSpec
 
     equal(PlatformSupport.supportsPreference('androidNotifications'), PlatformIcons.detect() == PlatformKind.ANDROID, 'notifications support');
     equal(PlatformSupport.supportsPreference('androidTVNavigation'), PlatformIcons.detect() == PlatformKind.ANDROID, 'android TV navigation support');
+    final haptics:Array<String> = PlatformSupport.requirementsForPreference('hapticFeedback');
+    equal(haptics.length, 1, 'haptics has one requirement');
+    equal(haptics[0], PlatformSupport.ANDROID, 'haptics is Android-only');
+    equal(PlatformSupport.supportsPreference('hapticFeedback'), PlatformIcons.detect() == PlatformKind.ANDROID, 'haptics support');
     equal(PlatformSupport.supportsPreference('mobileCAlpha'), PlatformSupport.supports([PlatformSupport.MOBILE]), 'mobile controls');
     equal(PlatformSupport.supportsPreference('hitboxType'), PlatformSupport.supports([PlatformSupport.MOBILE]), 'hitbox');
     equal(PlatformSupport.supportsPreference('ffmpegMode'), PlatformSupport.supports([PlatformSupport.VIDEO_RENDER]), 'renderer options');
     equal(PlatformSupport.supportsPreference('autosaveCharts'), PlatformSupport.supports([PlatformSupport.FILESYSTEM]), 'chart autosave');
     equal(PlatformSupport.supportsPreference('deeplinkEnabled'), PlatformSupport.supports([PlatformSupport.DEEPLINK]), 'deeplink toggle');
     equal(PlatformSupport.supportsPreference('distantNotes'), PlatformSupport.supports([PlatformSupport.SHADERS]), 'distant-note shaders');
+    final windowMode:Array<String> = PlatformSupport.requirementsForPreference('windowMode');
+    check(windowMode != null, 'window mode has requirements');
+    equal(windowMode.length, 1, 'window mode has one requirement');
+    equal(windowMode[0], PlatformSupport.DESKTOP, 'window mode is desktop-only');
+    equal(PlatformSupport.supportsPreference('windowMode'), PlatformSupport.supports([PlatformSupport.DESKTOP]), 'window mode support');
 
     // Normal settings apply everywhere.
     equal(PlatformSupport.requirementsForPreference('downScroll'), null, 'normal pref has no platform requirement');

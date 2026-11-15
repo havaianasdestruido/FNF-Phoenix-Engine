@@ -21,7 +21,21 @@ _i accept suggestions too_
 
 ## 0. PRIORITY-ish / UNCATEGORIZED
 
-- FIX `BF-CLICKER`!!! _(i wont release v0.0.1 UNTIL i fix this)_
+- On the bottom right of the screen, show the commit's git commit short id, and on top of it, show how many commits it is behind, where it change colors depending if the build is too old.
+- - Green: 1-10 commits
+  - Yellow: 11-25 commits
+  - Orange: 26-50 commits
+  - Red: 51-100 commits
+  - It should fade colors depending on the git commit, dont just use the same color for the range, make it be a "rainbow-ish" pattern.
+
+- Add those:
+- - flixel.addons.effect.transition ofr states transistions, [just like in this demo](https://haxeflixel.com/demos/Transitions/).
+  - Loading screens with a FlxPieDial in the bottom left corner.
+  - Port the "pointing mouse sprite at button" thingy from [this demo](https://haxeflixel.com/demos/Cursor/).
+  - Add pretty much all filters from FlxG.camera.filters & FlxG.game.filters to modding API.
+  - - add all these too in modding api: flixel.addons.effects.chainable
+  - Add flixel.addons.effects.FlxClothSprite as a easter egg, [just like in this demo.](https://haxeflixel.com/demos/FlxClothSprite/)
+  - Add tooltips to all parts of the engine that uses `flixel-ui`, [just like on this.. uhh. demo right over here.](https://haxeflixel.com/demos/Tooltips/)
 
 - Windows 7 support by patching some libs _(prob impossible but whatever)_
 
@@ -86,6 +100,13 @@ Should include exposing almost ALL game screens thought the Modding API. (By scr
 - Resizing ALL backgrounds to half it's size and just zoom them 2x (gama baja optimization)
 
 - Adjusting for lower Android SDK target (I want to play on my Android 5.0 phone), but only on a new experimental branch.
+
+---
+
+- Add a `stdfire` library for softmods where it contains util functions.
+- - `stdfire.NativeTitleRename` - Renames the engine app title, by "Native", I mean that it should rename on all platforms supported: Desktop, Web, etc.
+- - `stdfire.NativeMSGBox` - System low-level/native message box, for an example, on Windows it should use a `WIN32` `MessageBox("")` box, on Web, it should use `alert()`.
+- - `stdfire.NativeWarn` - Non-MSGbox alert approach, should be used only for small warnings, like a toast, on Android, it should only display a `Toast` on the bottom, on Windows, it should use a `WIN32` `Tooltip/Balloon`.
 
 ## 1. BUILD / TOOLCHAIN (all targets green)
 
@@ -276,7 +297,7 @@ There is no replay, ghost or determinism layer anywhere in the tree (the only "r
 - **[P2] Hotplug and slot assignment.** Verify a pad unplugged mid-song (or a controller that sleeps) keeps its bindings on reconnect, show "Controller 2 connected/disconnected", and let the player choose which physical pad is P1 instead of relying on `FlxG.gamepads` enumeration order.
 - **[P2] Stick deadzone + trigger threshold calibration.** A live axis readout plus per-control deadzone, remembered per controller id/vendor. Analog drift is currently unfixable without different hardware, and trigger axes vary wildly between controllers.
 - **[P2] Audio-visual latency calibration.** `NoteOffsetState` is a manual slider with no feedback loop. Add an interactive test (metronome + pulse, tap N times, median offset written to prefs) and separate offsets for wired vs Bluetooth output — Android BT adds 100–300 ms that one global offset cannot cover.
-- **[P3] Poll-rate and key-rollover audit.** `PlayStateInput` reads `FlxG.keys`/`firstJustPressed` once per frame; on high-polling keyboards and multiple keys per frame, presses can merge or drop. Test with a 1000 Hz device, document the behaviour, and avoid per-frame allocations in the hot path (§8).
+- **[P3] Poll-rate and key-rollover audit.** `PlayStateInput` reads `FlxG.keys`/`firstJustPressed` once per frame; on high-polling keyboards and multiple keys per frame, presses can merge or drop. Test with a 1000 Hz device, document the behaviour, and avoid per-frame allocations in the hot path (§8). The measuring tool exists: the input tester (`states/InputTestState`, `phoenix://input`, also Options → Gameplay → Input Tester) shows, as the game receives them, how many presses land inside one frame, how many taps go down and come back up inside one, and how many inputs each device reports at once. Checked while building it: outside controller mode, keyboard presses are already judged from stage `KEY_DOWN`/`KEY_UP` events (`PlayState.hx:1757-1758`, `PlayStateInput.onKeyPress`), the same events the tester times; what is read once per frame is held notes, controller mode, gamepads and the touch lanes (`PlayStateInput.handleKeyInput`). Still open: the run on a 1000 Hz device, writing down what it shows, and the hot-path allocations.
 - **[P3] Android TV / remote navigation.** D-pad-only navigation and Back handling across Main Menu, Freeplay, Mods and Pause, a leanback launcher entry, and a UI that is usable without a touchscreen. TV boxes are a real low-end target for this engine.
 
 ## 16. ACCESSIBILITY & COMFORT
@@ -296,6 +317,10 @@ There is no replay, ghost or determinism layer anywhere in the tree (the only "r
   load-events buttons, `ResetScoreSubState`, the pause `Exit to ...` submenu, a guarded
   **Reset All Settings** row in every options list, and SHIFT+RESET in Gameplay Changers.
   `requireHold` also overrides "Ignore Progress Warnings". CANCEL/Back/No stay single taps.
+  Guards must read the PRESSED-bound twins (`controls.ACCEPT_P` / `controls.RESET_P`), never
+  `controls.ACCEPT` / `controls.RESET`: those are bound as JUST_PRESSED, so a guard fed one of
+  them drew a single frame of bar and cancelled on the next frame ("held Exit to game and
+  nothing happened"). `HoldToConfirmCallSitesSpec` scans every guard for this.
   Docs: `website/docs/subsystems/options-menu.md`, `website/docs/subsystems/mobile.md`.
   Specs: `bash tests/haxe/run-hold-to-confirm.sh`, `bash tests/haxe/run-hold-to-confirm-typecheck.sh`.
 - **[P3] Re-openable photosensitivity warning.** `FlashingState` only shows while `FlxG.save.data.flashing == null`, so it is once-per-install and unreachable afterwards. Add "Show warning again" in Options and a quick "Reduce flashing" toggle in the pause menu.
@@ -370,15 +395,36 @@ Read `docs/research/psych-fork-engine-changes.md`.
 
 ## 21. PLAYER-FACING SCREENS, SUBSTATES & OPTIONS (idea review)
 
-Ideas checked against the current tree: none of the screens, substates or options below exist yet (`PlayerStats`, `ResultsState`, `StatsState`, `ModchartLabState`, `ExtrasState`, `QuickOptionsSubState`, `PracticeLoopSubState`, `ModReportSubState`, `FreeplayFilterSubState`, `PhotoModeSubState`, `laneUnderlayAlpha`, `resumeCountdown`, `hapticFeedback`, `menuFramerate`, `adaptivePerformance` have no matches in `source/`). Overlaps with existing entries are cross-referenced, not repeated.
+The remaining ideas below are tracked alongside completed items. Overlaps with existing entries are cross-referenced, not repeated.
 
 ### 21.1. New states
 
 - **[P1] Results screen (`states/ResultsState`).** `PlayStatePlayback.endSong()` currently goes straight back to `FreeplayState` / `StoryMenuState`. After a song or week, show score, accuracy, judgement breakdown, max combo, peak NPS, FC tier and a histogram of hit offsets. The totals already exist on `PlayState`; only per-hit offsets need recording (via `play.helpers.HitTiming`). Roadmap link: the Mic'd Up S/A rank (§0) would live on this screen.
 - **[P2] Player stats (`states/StatsState`, `backend/PlayerStats`).** Lifetime totals: playtime, songs finished, notes per judgement, deaths, full combos, most-played songs and mods. A small `PlayerStats` backend is needed because playtime is only stored as progress toward the 50-hour badge and stops counting once that unlocks. Link it from Awards (`MainMenuState`'s `awards` entry); a new main-menu button would need its own sprite atlas.
-- **[P3] Modchart lab (`editors/ModchartLabState`).** Pick any of the 34 built-in modifiers in `source/modchart/modifiers/`, drag their percents over a looping section, watch the arrows react, then copy the matching `modEase(...)` calls as Lua or Python. There is no visual way to tune a modchart today. Related to the modchart work in §12.
+- **[P3] ~~Modchart lab (`editors/ModchartLabState`)~~ DONE** — the renderer-free half lives in `modchart/lab/`
+  (`ModchartLabCatalog` for the knobs of all 34 modifiers, `ModchartLabTrack` for per-percent
+  automation on loop-local beats, `ModchartLabExport` + `ModchartLabExportOptions` for the
+  Lua/Python fragment); `editors.ModchartLabState` is the screen, reachable from Editors →
+  **Modchart Lab**. Dragging a percent records a keyframe snapped to the 16th-note grid, the
+  looping clock replays the tracks through the real `ModchartManager`/`PlayField.transform`
+  chain (no `PlayState`, no song files), and `C` copies `addModifier`/`modSet`/`modEase` calls —
+  optionally wrapped in a `modRepeater` callback — as Lua or Python, with a file fallback when
+  the clipboard is blocked. Known limits (absolute-time modifiers are phase-shifted, one
+  playfield, `skew` stored but not drawn, `vibrate` is random) are documented. Docs:
+  `docs/MODCHART.md` (§ Modchart lab). Specs: `bash tests/haxe/run-modchart-lab.sh`,
+  `bash tests/haxe/run-modchart-lab-typecheck.sh`; both run in `checks.yml`.
+- **[P3] ~~Input tester (`states/InputTestState`, `phoenix://input`)~~ DONE** — `backend.InputTestLogic`
+  is the renderer-free half (what each device holds now and held at most, press gaps, chords,
+  presses per frame, taps that went down and up inside one frame, the hold-to-leave gesture);
+  `states.InputTestState` is the page, opened by `phoenix://input` (alias `phoenix://screen/input`)
+  and by Options → Gameplay → **Input Tester**. Keys are timed from the stage key events gameplay
+  judges presses from; gamepads and touches are polled once per update. No tap navigates: leaving
+  is a one second hold on Back with nothing else held on that device, and the page binds, saves
+  and writes nothing. It has not been run in a built game yet. Docs: `URI.MD` (§ `phoenix://input`),
+  `website/docs/subsystems/deep-links.md`. Specs: `bash tests/haxe/run-input-test.sh` (runs in
+  `checks.yml`) and `bash tests/haxe/run-input-test-typecheck.sh` (needs the game haxelibs). It is
+  the measuring tool for the poll-rate and key-rollover audit in §15.
 - **[P2] Extras hub (`states/ExtrasState`).** A menu listing custom screens that enabled mods declare in a new `menus` list in `pack.json`. `ModState` screens can only be opened by a script calling `switchCustomState` (`states/ModState.hx`), so each mod currently has to build its own entry point, for example by overlaying `MainMenuState`. Needs `backend.Mods` parsing of `menus` and a platform-support check for each entry.
-- **[P3] Input tester (`states/InputTestState`, `phoenix://input`).** Live view of keys, gamepad buttons and touch points, with a simultaneous-press counter and press timing, so a player can see that a keyboard drops a third key or a phone tracks only two fingers. Give it a `phoenix://` route like `phoenix://diagnostics` (`DiagnosticsReport`). Player-facing tool for the poll-rate and key-rollover audit in §15 (`PlayStateInput`).
 
 ### 21.2. New substates
 
@@ -392,9 +438,8 @@ Ideas checked against the current tree: none of the screens, substates or option
 
 - **[P3] Lane underlay (`laneUnderlayAlpha`, percent, default 0, Visuals and UI).** A dark strip behind the player's strums so notes stay readable over busy stages. It is one stretched sprite, so it is cheap on low-end devices.
 - **[P2] Resume countdown (`resumeCountdown`, bool, default on, Gameplay).** Count 3-2-1 after unpausing instead of resuming instantly. Matters most on phones, where thumbs leave the hitbox to press Resume. Should be exposed to Lua/Python/HScript like the other pause events.
-- **[P2] Haptic feedback (`hapticFeedback`, string: Off / Misses / Hits and Misses, default Off, Mobile Options with `onlyOn([PlatformSupport.ANDROID])`).** `AndroidHaptics` and the `VIBRATE` permission already ship, and `modchart/modifiers/Vibrate.hx` exists, but nothing triggers haptics from gameplay. Add matching Lua and Python `vibrate()` callbacks.
 - **[P2] Menu FPS cap (`menuFramerate`, int, default 60, Graphics).** Menus currently render at the gameplay framerate, which can be set up to 1000, so they drain battery for nothing. A companion row can expose the focus-lost rate, which is hard-coded to `60` in `states/InitState.hx` (`FlxG.game.focusLostFramerate`). Roadmap link: next to the frame-pacing work in §18.
-- **[P3] Adaptive performance (`adaptivePerformance`, bool, default off, Optimization).** When the frame rate stays below target for a few seconds, switch off cosmetics in order (note splashes, rating popups, camera zooms) for the rest of the song and tell the player. Roadmap link: the first-run profile in §18 picks settings once; this one reacts during play.
+- **[Done] Adaptive performance (`adaptivePerformance`, bool, default off, Optimization).** Reacts during a song to sustained low FPS by disabling note splashes, rating popups, then camera bops, notifying the player and requesting rate-limited garbage collection where supported. The changes are song-local; the first-run profile in §18 remains a separate, one-time preset.
 
 ### 21.4. Quick win before any new option
 
@@ -406,14 +451,40 @@ Thirty option ideas from three separate lists. Five options appeared in two list
 
 ### 22.1. Audio
 
+- **[P2] ~~Master volume (`masterVolume`, percent, default 100%, a new Audio category or Misc).~~ DONE** — `backend.VolumeCurve` (the tray's log curve, shared), `ClientPrefs.masterVolume` as a mirror of `FlxG.sound.volume` (kept out of the save and the backup through `saveBlackList` / `loadBlackList` / `SettingsBackup.NOT_PREFERENCES`), a live row in the new **Options -> Audio** (`options/AudioSettingsSubState.hx`, also in Misc, openable with `phoenix://menu/audio`) that follows the volume keys and the tray every frame. Specs: `bash tests/haxe/run-volume-curve.sh`, `bash tests/haxe/run-master-volume.sh`. Original entry kept below.
+
 - **[P2] Master volume (`masterVolume`, percent, default 100%, a new Audio category or Misc).** No options menu has a volume row. `FlxG.sound.volume` only changes through the volume keys (`volume_up` / `volume_down` / `volume_mute`, with the `objects/CustomSoundTray` popup) and through a settings import (`backend/SettingsBackup.hx:146`), so a player on a gamepad or a touchscreen cannot set it in-game. Every `FlxSound` multiplies by it, so one row covers music, vocals, hitsounds and the pause track. Checked: the value is already saved and restored, which one list missed. `ClientPrefs.saveSettings()` and `loadPrefs()` round-trip it through the `flixelSound` list (`ClientPrefs.hx:367`, `:405`, `:464`), the tray stores it too (`CustomSoundTray.hx:121`) and `SettingsBackup` exports it (`:205`). So do not store it twice: `Option` binds to a `ClientPrefs` field by name, so give it one that mirrors `FlxG.sound.volume` and is kept out of the save and the backup (`saveBlackList` / `loadBlackList` in `ClientPrefs.hx:366-368`, `SettingsBackup.NOT_PREFERENCES`). The row has to use the tray's curve (`CustomSoundFrontEnd.changeVolume()` stores a log-scaled value, so half the tray is a `FlxG.sound.volume` of about 0.03) and has to follow the volume keys, or it goes stale. Two lists rank this first; with persistence already in place it is a convenience row, hence P2. Effort: S.
-- **[P3] Menu music volume.** Control menu music separately from gameplay audio, with an optional fade when entering a song. `Paths.playMenuMusic(force, volume)` (`backend/Paths.hx:853`) already takes a volume, but 18 call sites in 12 files (the editors, `GameOverSubstate`, `NoteOffsetState`, `VisualsUISubState`, `RenderingDoneSubState`, one Lua callback) still start the menu track with `FlxG.sound.playMusic(Paths.music('freakyMenu…'))` directly, so route those through the helper first.
+- **[P3] ~~Menu music volume~~ DONE** — `ClientPrefs.menuMusicVolume` (percent, default 100 %,
+  Options → Visuals and UI) scales only the menu theme, so gameplay stems, vocals and
+  hitsounds keep their own level while the volume keys still apply on top; `menuMusicFade`
+  (default on) fades the theme out during the loading screen instead of cutting it when a
+  song starts. `backend.MenuMusic` owns the track and `backend.MenuMusicLogic` holds the
+  renderer-free rules: `Paths.playMenuMusic(force, volume)` claims the started sound, the 18
+  direct `FlxG.sound.playMusic(Paths.music('freakyMenu…'))` call sites (7 editors,
+  `GameOverSubstate`, `NoteOffsetState`, `VisualsUISubState`, `RenderingDoneSubState`, the Lua
+  `endSong` callback) go through the helper, and the hardcoded ramps/volume targets in
+  `MainMenuState`, `FreeplayState`, `CreditsState`, `OptionsState` and `TitleState` ask
+  `MenuMusic` first. `PlayState.create()` calls `MenuMusic.forget()` when it takes the music
+  channel over. Spec: `bash tests/haxe/run-menu-music.sh`. Docs:
+  `website/docs/subsystems/audio.md`.
 - **[P3] Metronome (`metronome`, string: Off / Count-in / Always, default Off, Gameplay or the Audio category).** `assets/shared/sounds/Metronome_Tick.ogg` ships, but only the chart editor plays it (`editors/ChartingState.hx:1964`). Add a `beatHit` path in `PlayState` with three modes: off, during the count-in only, or through the whole song. Scale the tick with `playbackRate` and skip it during `startOnTime` seeks. The list pitches it for practising muted, on a silent phone or with latency; the tick shares the game's audio output, so on a muted device that job belongs to the visual beat indicator in §16, whose pref exists but is not wired (§22.7). The interactive latency test in §15 needs the same tick. Effort: S–M.
 
 ### 22.2. Window, stage and effects
 
 - **[P2] Window mode / fullscreen on start (`windowMode`, string: Windowed / Borderless / Fullscreen, Graphics, `onlyOn([PlatformSupport.DESKTOP])`).** F11 is the only fullscreen toggle in `source/` (`backend/FunkinGame.hx:24`, native desktop only), the game always starts windowed (`startFullscreen: false`, `Main.hx:51`) and nothing remembers the choice. The small version is a `startFullscreen` bool, default off. The full version is the three-way row, which gives players borderless without exclusive-fullscreen artifacts. Apply it through `lime.ui.Window` / `FlxG.fullscreen` after prefs load, and persist the mode, including when F11 changes it. Watch two interactions: `backend/TransparentWindow.hx` leaves fullscreen when it is enabled and suspends itself while fullscreen, and `CoolUtil.checkForOBS()` drops out of fullscreen to read `tasklist` and then goes back. Effort: S for the bool, M for the three-way row.
-- **[P2] Stage dim / stage brightness (`stageDim`, percent, default 0%, Visuals and UI).** One black overlay with `scrollFactor` 0, above the stage and characters and below the strums and HUD, with its alpha driven by the pref. It dims a distracting background without touching the notes, works on pixel stages and costs one sprite. Unlike the lane underlay in §21.3 it covers the whole gameplay background, and unlike the Mic'd Up brightness/gamma idea in §0 it leaves notes and HUD bright. `Opponent Note Alpha` (`oppNoteAlpha`) already shows the demand for readability controls. The default of 0 changes nothing for existing players. Layering: the stage and characters draw on `camGame`, and notes draw on `camNotes` when Distant Notes is on and on `camHUD` otherwise (`PlayState.hx:1601`), so the overlay has to render above everything on `camGame` and below the note camera. Effort: S–M.
+- **[P2] ~~Stage dim / stage brightness~~ DONE** — `play.helpers.PlayStateStageDim` +
+  `play.helpers.StageDimMath`: one screen-fixed black quad (`scrollFactor` 0, `makeGraphic(1,1)`,
+  so pixel stages work and nothing is loaded from disk) routed to `camGame` only, so the stage
+  and the characters dim while the notes, strums and HUD stay bright — notes live on `camNotes`
+  when Distant Notes is on and on `camHUD` otherwise. Layering is enforced at runtime, not just at
+  creation: the quad is created after `createPost()`/`onCreatePost` and `syncLayer()` re-appends it
+  whenever a stage prop or event sprite lands above it, with `insert(members.length, …)` so it
+  cannot drift into a `null` hole left by a character swap. `StageDimMath` recomputes the size
+  when `camGame` zooms or `doTwist` rotates it (rotated views need the tilted bounding box).
+  `ClientPrefs.stageDim` (0–0.9, 90% cap so the stage never goes fully black) is exposed in
+  Options → Visuals and UI. The 0% default hides the quad and costs one comparison per frame.
+  Docs: `website/docs/subsystems/playstate.md`, `website/docs/architecture/preferences-and-save-data.md`.
+  Specs: `bash tests/haxe/run-stage-dim.sh`, `bash tests/haxe/run-stage-dim-typecheck.sh`.
 - **[P2] Camera effects intensity (`cameraFxIntensity`, percent, default 100%, Visuals and UI until the Accessibility category in §16 exists).** `reducedMotion` already gates beat bops (`PlayState.hx:3183`, `:3256`), event zooms and shakes (`PlayStateEvents.hx:323`, `:415`) and character shakes (`PlayStateNotes.hx:416`, `:623`, `:673`), but only as on or off. `camZooms` is a bool, and `camBopIntensity` is a `PlayState` field that only the bop event sets (`PlayStateEvents.hx:222`). One 0–100% multiplier lets players keep a little motion instead of none. Apply it at those sites and in a `shake()` override on `backend/PsychCamera`, which does not have one today. Keep `reducedMotion` as the master off switch; the slider refines it. Related: the zoom multipliers in §12.4. Effort: M.
 - **[P1] Flash intensity (`flashIntensity`, percent, default 100%, Visuals and UI until the Accessibility category in §16 exists).** `flashing` is only on or off. A 0–100% dial that scales flash alpha and duration lets photosensitive players keep the cue without the punch, which is more useful than another toggle. Precedence: `flashing = false` forces 0, otherwise the percentage applies. There are few camera flash sites: `stages/Philly.hx:181` and `:227`, `states/TitleState.hx:520` and `:672`, `play/helpers/PlayStateCamera.hx:322`, and the script callbacks (`psychlua/callbacks/GameCallbacks.hx:240`, `psychlua/pystdlib/PyCameraLib.hx:33`). Checked: two of them ignore `flashing` completely today, the 4 s white flash that ends the title intro (`TitleState.hx:672`) and the 1 s white flash in `tankmanStep()` (`PlayStateCamera.hx:322`), and script flashes are passed through as they are. Route every site through one helper; that gap is why this is P1. Pairs with `reducedMotion`. Effort: S–M.
 
@@ -426,7 +497,7 @@ Thirty option ideas from three separate lists. Five options appeared in two list
 
 ### 22.4. Timing and song flow
 
-- **[P2] Accuracy presets (`accuracyPreset`, string: Vanilla / Psych / Kade / ITG / Custom, Gameplay).** The hit windows are five separate rows: `perfectWindow` 15, `sickWindow` 45, `goodWindow` 90, `badWindow` 135 and `safeFrames` 10 (`ClientPrefs.hx:318-322`, rows in `options/GameplaySettingsSubState.hx:197-252`). A preset row writes all five at once and switches itself to Custom when any of them is moved, which is what players want when they go from Psych charts to Kade charts. Each row computes its min and max from its neighbours once, when the menu is built (`:204-238`), and `badWindow` is capped at 135 ms, so the preset row has to refresh those bounds and its values have to fit the cap or raise it. Call `Conductor.recalculateTimings()` after writing `safeFrames`, as that row's `onChange` does. Effort: S.
+- **[P2] Accuracy presets (`accuracyPreset`, string: Vanilla / Psych / Kade / ITG / Custom, Gameplay).** The hit windows are five separate rows: `perfectWindow` 15, `sickWindow` 45, `goodWindow` 90, `badWindow` 135 and `safeFrames` 10 (`ClientPrefs.hx:318-322`, rows in `options/GameplaySettingsSubState.hx:208-263`). A preset row writes all five at once and switches itself to Custom when any of them is moved, which is what players want when they go from Psych charts to Kade charts. Each row computes its min and max from its neighbours once, when the menu is built (`:215-249`), and `badWindow` is capped at 135 ms, so the preset row has to refresh those bounds and its values have to fit the cap or raise it. Call `Conductor.recalculateTimings()` after writing `safeFrames`, as that row's `onChange` does. Effort: S.
 - **[P2] Countdown style (`countdownStyle`, string: Normal / Short / Off, default Normal, Gameplay).** `PlayState.skipCountdown` (`play/PlayState.hx:433`) already skips the intro (`PlayStateCountdown.hx:93`), but nothing in `source/` sets it: only a script can, and `startOnTime` takes its own path. So every attempt, retries included, waits five beats of "3, 2, 1, Go" (3 s at 100 BPM). This is the persisted, player-facing version, and the sibling of the resume countdown in §21.3. Effort: S.
 - **[P2] Restart on death (`deathRestart`, string: Hold ACCEPT / Tap / Off, default Hold, Gameplay).** `GameOverSubstate.update()` only retries on `controls.ACCEPT` (`states/substates/GameOverSubstate.hx:297`; `controls.BACK` leaves), and `endGameOver()` then waits 0.7 s plus a 2 s fade before `FlxG.resetState()` (`:387-391`). When a player grinds a hard section this is the most repeated input in the game. Add a "hold to skip, tap to restart" mapping and a `deathDelay` override that shorten it. The list does not define the three values further; whichever is the default has to keep today's single press working. Effort: S.
 - **[P3] Auto-retry (`autoRetry`, bool, default off, Gameplay).** `doDeathCheck()` (`play/PlayState.hx:2723`) always opens `GameOverSubstate`, directly or after the `GameOverSubstate.deathDelay` timer. With the option on, skip or shorten that and call `restartSong()` after a delay, while still running the `onGameOver` script callback and `stage.onGameOver()`. For practice, speedruns and chart testing. A companion `autoRetryDelay` is optional. The entry above shortens the death screen; this one removes it. Effort: M.
@@ -454,7 +525,7 @@ Thirty option ideas from three separate lists. Five options appeared in two list
 - **Five accessibility prefs are declared and never read:** `noteColorblindPreset`, `laneGlyphs` and `forceLuminanceContrast` (`ClientPrefs.hx:69-71`), `highContrast` (`:94`) and `visualBeatIndicator` (`:100`). A row for any of them would be misleading until the §16 work behind it exists.
 - **§21.4 re-checked: still open.** One list called it partly stale, but all eight prefs it names are still read by the game and still have no `Option` row.
 - **[P3] Mute is not restored on launch.** The second `flixelSound` entry is `"sound"` (`ClientPrefs.hx:367`), which is not a `SoundFrontEnd` field, so `saveSettings()` and `loadPrefs()` only round-trip `volume`. The tray writes `data.mute` into the `funkin` save (`objects/CustomSoundTray.hx:122`), but its only reader is Flixel's `SoundFrontEnd` constructor, which runs in `Main` (`Main.hx:193`) before `InitState` binds that save (`states/InitState.hx:36`). So volume survives a restart and mute does not. This comes from reading the code, not from a run, so confirm it while fixing. Fix it with the master volume row in §22.1.
-- **[P3] `perfectWindow` has two defaults.** `ClientPrefs.perfectWindow` starts at `15.0` (`ClientPrefs.hx:318`), but its row resets to `22.0` (`options/GameplaySettingsSubState.hx:201`). Settle it when defining the default accuracy preset in §22.4.
+- **[P3] `perfectWindow` has two defaults.** `ClientPrefs.perfectWindow` starts at `15.0` (`ClientPrefs.hx:318`), but its row resets to `22.0` (`options/GameplaySettingsSubState.hx:212`). Settle it when defining the default accuracy preset in §22.4.
 
 ### 22.8. Suggested order
 
@@ -483,16 +554,19 @@ Their modifiers are by Nebula_Zorua (Schmovin/Andromeda style). Checked against 
 
 ### 23.2. Shaders
 
-None of these names exist in `source/shaders/` (it has Bloom, VCRDistortion, Scanline, Greyscale and others, but no CRT, old TV, ripple, silhouette or mosaic). Each should come as a `Shader` + `Effect` pair like the existing ones, be reachable from Lua/HScript/Python, and respect the shaders toggle.
+~~None of these names exist in `source/shaders/`~~ **DONE** — all nine ship as a `Shader` + `Effect` pair next to the existing ones. Each is registered in `psychlua/callbacks/EffectCallbacks.hx` inside its `ClientPrefs.shaders` guard, which is the shaders toggle: with it off nothing is registered at all. Lua, Python and HScript reach the same functions because both other hosts inherit `FunkinLua.registeredFunctions` (`PythonScript.hx:379`, `HScript.hx:246`), so one registration covers all three. Each name is also in `shaders.ShaderWarmupRegistry`, so a stage JSON can precompile one on the loading screen (`"shaders": ["crt", "oldtv"]`). Every shader extends `backend.FlxFixedShader` (the OpenGL ES rewrite, like `DistantNoteShader`); credits and the full list of local changes are in each shader class's doc comment, as the porting rule at the top of this file asks.
 
-- **[P2] `CRTShader`** (curved screen, scanlines, vignette). The most generally useful one for retro mods.
-- **[P2] `OldTVShader`** and the title screen's `TVStatic` (noise and static).
-- **[P3] `RippleShader`** (water ripple distortion).
-- **[P3] `SilhouetteShader`** (flat single-colour character).
-- **[P3] `MosaicShader`** (pixelate by block size) and `SMWPixelBlurShader`.
-- **[P3] `BrightnessContrastShader`.** Small, and also useful for the stage dim idea in §22.
-- **[P3] `VCRBorder` / `VCRMario85`.** Compare with `VCRDistortionShader` first; port only what it does not already do.
+- **[P2] ~~`CRTShader`~~ DONE** — `shaders.CRTShader` + `CRTEffect`, Timothy Lottes' public-domain CRT via Mario Madness: curved screen (`curve`), scanline reconstruction (`scanlineHardness`, `pixelHardness`, `resolutionScale`), RGB shadow mask (`mask`) and vignette (`vignette`, which the port source did not have). `addCRTEffect`. Emulated resolution now follows the render target instead of a fixed 512×448, and alpha is preserved so it can sit on `camHUD`. Eleven fetches per pixel: documented as the expensive one.
+- **[P2] ~~`OldTVShader` and the title screen's `TVStatic`~~ DONE** — `shaders.OldTVShader` + `OldTVEffect` (rolling picture-offset bar, black/white sploches, static; the 48-tap smear is now 16 taps behind `blur`, off by default) and `shaders.TVStaticShader` + `TVStaticEffect`, from `TitleScreenShaders.TVStatic` by @Ne_Eo_Twitch. `addOldTVEffect`, `addTVStaticEffect`. The upstream `uvec3`/`U`-suffix hash would not compile on WebGL1, so it is float-based here.
+- **[P3] ~~`RippleShader`~~ DONE** — `shaders.RippleShader` + `RippleEffect` (shadertoy XtsSzN). Four turbulence octaves instead of eight: the port source ran twelve 3D simplex evaluations per pixel, which is not survivable on a low-end phone. `addRippleEffect`.
+- **[P3] ~~`SilhouetteShader`~~ DONE** — `shaders.SilhouetteShader` + `SilhouetteEffect`. Takes a `FlxColor`, a hex string or a colour name through `CoolUtil.colorFromString`, and works per sprite: `addSilhouetteEffect('boyfriend', 'red')`. `amount` is clamped, so the upstream wrap-around `update()` is gone.
+- **[P3] ~~`MosaicShader` and `SMWPixelBlurShader`~~ DONE** — `shaders.MosaicShader` + `MosaicEffect`. Upstream's `SMWPixelBlurShader` is only a strength-setting wrapper around the same shader, so it is `MosaicEffect.setStrength()` plus an `addSMWPixelBlurEffect` alias: one pair, both names. Block size is clamped to ≥1 px in the shader and in the effect, which removes the documented "0 turns the screen black" divide-by-zero. `addMosaicEffect`.
+- **[P3] ~~`BrightnessContrastShader`~~ DONE** — `shaders.BrightnessContrastShader` + `BrightnessContrastEffect`. `addBrightnessContrastEffect('game', 0.65, 1.1)` is the shader-side version of the stage dim in §22.2: on `camGame` only, so notes and HUD stay bright, one fetch per pixel, and no overlay sprite to layer. Fully transparent pixels keep their RGB, or a HUD filter would come back as a grey box.
+- **[P3] ~~`VCRBorder` / `VCRMario85`~~ DONE** — compared with `VCRDistortionShader` first, as asked. It already curves (`perspectiveOn`) and vignettes (`vignetteOn`), but only as part of its seven-fetch glitch chain, so the frame alone was genuinely missing: `shaders.VCRBorderShader` + `VCRBorderEffect`, two fetches, no glitch (`addVCRBorderEffect`). `VCRMario85` is not covered either — its steady simplex-noise tape wobble is a constant offset where VCRDistortion's is a burst plus a vertical roll — so it ships as `shaders.VCRFuzzShader` + `VCRFuzzEffect`, named for what it does rather than for the song, with `vcrmario85` kept as a registry key (`addVCRFuzzEffect`). Its duplicate alpha fetch is gone and each pass is skipped when its uniform is 0.
 - Skipped on purpose: `BloomShader` (already here), `CamDupeShader`, `AngelShader`, `YCBUEndingShader` and `TwoDinThreeD` (song-specific).
+- Added while doing it: **`shaders.EffectTicker`**, the frame clock the animated effects register on. Inside a song it reuses `PlayState.shaderUpdates`; anywhere else it uses `FlxG.signals.postUpdate` and clears on `preStateSwitch`. The older effects push onto `PlayState.instance.shaderUpdates` unconditionally, so they cannot be built outside a song — and the title screen is exactly where `TVStatic` belongs. `PlayState.destroy()` never nulls `instance`, so the ticker also checks `FlxG.state`.
+- Docs: `docs/SHADERS.md` ("Retro screen effects", with the parameter table), `website/docs/subsystems/shaders.md` ("Mario Madness ports"), `example_mods/scripts/RetroShadersExample.lua` (runnable tour, in the style of `ModchartExample.lua`). The generated Lua/Python API reference picks the new functions up from the `//` comments above each registration.
+- Specs: `bash tests/haxe/run-retro-shaders.sh` (in `checks.yml`). It generates its `FlxFixedShader` stub from the `uniform` declarations in the sources, so a Haxe field the GLSL never declares fails to compile, and the spec checks the other direction (a uniform no constructor initialises), the GLSL ES 1.00 traps (`uvec`, `U` literals, `texture()`, `1.` literals, non-constant loop bounds), every clamp, the ticker routing and the registration.
 
 ### 23.3. Generic chart events
 

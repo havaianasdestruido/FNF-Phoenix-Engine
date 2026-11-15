@@ -1,6 +1,7 @@
 import backend.ClientPrefs;
 import backend.LowMemory;
 import backend.MemoryProfiles;
+import backend.MenuMusic;
 import backend.Paths;
 import backend.PlayerSettings;
 import data.Song;
@@ -207,6 +208,13 @@ class PlayStateMemoryFlixelSmoke
     #end
     PlayState.SONG = Song.loadFromJson(song, song);
     PlayState.SONG.events.push([1000, [['Change Character', '1', 'gf']]]);
+    final menuFade = Sys.args().indexOf('menu-fade') >= 0;
+    if (menuFade)
+    {
+      ClientPrefs.menuMusicFade = true;
+      Paths.playMenuMusic(true);
+      check(MenuMusic.isMenuTrack() && FlxG.sound.music.playing, 'menu theme starts before the transition');
+    }
     var constructed:Int = 0;
     FlxTransitionableState.skipNextTransIn = true;
     LoadingState.loadAndSwitchState(() -> {
@@ -214,10 +222,15 @@ class PlayStateMemoryFlixelSmoke
       final instance = new PlayState();
       instance.ratingPercent = 0; // Neko does not zero-initialize this unassigned Float like C++.
       return instance;
-    });
+    }, menuFade);
     check(constructed == 0, 'song factory is deferred until the old state is destroyed');
     @:privateAccess game.switchState();
     check(Std.isOfType(FlxG.state, LoadingState) && constructed == 1, 'real loading state previews the song once');
+    if (menuFade)
+    {
+      check(MenuMusic.isMenuTrack() && FlxG.sound.music.playing, 'requested stop leaves the fading menu theme playing during loading');
+      check(@:privateAccess MenuMusic.fade != null, 'deferred song routing starts the menu fade');
+    }
     final loader:LoadingState = cast FlxG.state;
     check(@:privateAccess loader.preloadQueue.length == 0, 'experimental song queue contains no speculative work');
     @:privateAccess loader.changeBarSize(1);
@@ -226,6 +239,8 @@ class PlayStateMemoryFlixelSmoke
     @:privateAccess loader.update(1 / 60);
     @:privateAccess game.switchState();
     check(Std.isOfType(FlxG.state, PlayState) && constructed == 1, 'real PlayState created from the preview');
+    if (menuFade) check(!MenuMusic.isMenuTrack() && @:privateAccess MenuMusic.fade == null,
+      'gameplay releases the menu-theme fade');
     var state:PlayState = cast FlxG.state;
     check(state.dad.width == 1 && state.boyfriend.width == 1 && state.gf.width == 1, 'tiny metadata characters');
     check(!state.songCharacterVisuals && state.metadataOnlyCharacters, 'song latches metadata-only mode');
@@ -263,6 +278,26 @@ class PlayStateMemoryFlixelSmoke
         if (candidate.mustPress && !candidate.isSustainNote) { chartNote = candidate; break; }
     if (pixelSong) check(chartNote.noteskin == (completePixelSkin ? 'smoke-pixel' : ''),
       'pixel chart note uses the resolved character or fallback skin');
+    else
+    {
+      // Main's pooled-sustain alignment fix must coexist with the memory
+      // profile's atlas ownership and note-lifetime changes.
+      var holdData:objects.Note.PreloadedChartNote = null;
+      for (candidate in state.unspawnNotes)
+        if (candidate.isSustainNote && !candidate.isSustainEnd) { holdData = candidate; break; }
+      check(holdData != null, 'normal chart contains a sustain body');
+      final hold = new Note(0, holdData.noteData);
+      hold.setupNoteData(holdData);
+      final initialOffset = hold.offsetX;
+      final laneWidth = @:privateAccess hold.laneArrowWidth;
+      check(laneWidth > 0 && Math.abs(initialOffset - (laneWidth - hold.width) / 2) < 0.001,
+        'fresh sustain is centered under its lane arrow');
+      hold.kill();
+      hold.revive();
+      hold.setupNoteData(holdData);
+      check(Math.abs(hold.offsetX - initialOffset) < 0.001, 'recycled sustain stays centered');
+      hold.destroy();
+    }
 
     // Stages can hide GF. Skipped GF "Hey!" notes must not dereference a
     // missing character in either player or opponent handling.
@@ -418,6 +453,6 @@ class PlayStateMemoryFlixelSmoke
     for (sound in Paths.currentTrackedSounds) check(sound != originalSongSound, 'song sound evicted from cache');
     trace('PlayStateMemoryFlixelSmoke passed (' + song + (replaceMusic ? ', replacement music' : '')
       + (profileOff ? ', profile off' : '') + (restart ? ', restart' : '')
-      + (completePixelSkin ? ', complete pixel skin' : '') + ')');
+      + (completePixelSkin ? ', complete pixel skin' : '') + (menuFade ? ', menu fade' : '') + ')');
   }
 }

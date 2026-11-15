@@ -826,7 +826,7 @@ class ChartingState extends MusicBeatState
       CoolUtil.currentDifficulty = difficulty;
       PlayState.chartingMode = false;
       FlxG.switchState(editors.MasterEditorMenu.new);
-      FlxG.sound.playMusic(Paths.music('freakyMenu-' + ClientPrefs.daMenuMusic));
+      Paths.playMenuMusic(true);
       FlxG.mouse.visible = false;
       if (idleMusic != null && idleMusic.music != null)
         idleMusic.destroy();
@@ -1490,7 +1490,7 @@ class ChartingState extends MusicBeatState
           CoolUtil.currentDifficulty = difficulty;
           PlayState.chartingMode = false;
           FlxG.switchState(editors.MasterEditorMenu.new);
-          FlxG.sound.playMusic(Paths.music('freakyMenu-' + ClientPrefs.daMenuMusic));
+          Paths.playMenuMusic(true);
           FlxG.mouse.visible = false;
           if (idleMusic != null && idleMusic.music != null) idleMusic.destroy();
           return;
@@ -1961,7 +1961,7 @@ class ChartingState extends MusicBeatState
       var lastMetroStep:Int = Math.floor(((lastConductorPos + metronomeOffsetStepper.value) / metroInterval) / 1000);
       if (metroStep != lastMetroStep)
       {
-        FlxG.sound.play(Paths.sound('Metronome_Tick'));
+        backend.Metronome.play();
         // trace('Ticked');
       }
     }

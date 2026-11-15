@@ -23,6 +23,17 @@ class GameplaySettingsSubState extends BaseOptionsMenu
 			false);
 		addOption(option);
 
+		// A `link` row: ACCEPT opens the page behind `phoenix://input`.
+		var option:Option = new Option('Input Tester',
+			'Shows every key, gamepad button and finger the game receives,\n'
+			+ 'how many it sees held at once and how far apart presses arrive.\n'
+			+ 'Handy to find out if a keyboard or touchscreen drops inputs.',
+			'inputTester',
+			'link',
+			false);
+		option.onChange = openInputTester;
+		addOption(option);
+
 		//I'd suggest using "Downscroll" as an example for making your own option since it is the simplest here
 		var option:Option = new Option('Downscroll', //Name
 			'If checked, notes go Down instead of Up, simple enough.', //Description
@@ -142,6 +153,15 @@ class GameplaySettingsSubState extends BaseOptionsMenu
 				hitsoundList);
 			addOption(option);
 		}
+
+		var option:Option = new Option('Metronome:',
+			'Play a tick on every beat. Count-in limits it to the five lead-in beats;\n'
+			+ 'Always keeps it through the song. Uses the game volume, so it is silent when muted.',
+			'metronome',
+			'string',
+			'Off',
+			['Off', 'Count-in', 'Always']);
+		addOption(option);
 
 		// Global song stem volume overrides: forced on every song, so charts, stages and
 		// scripts cannot change them (see play.helpers.PlayStatePlayback).
@@ -289,6 +309,14 @@ class GameplaySettingsSubState extends BaseOptionsMenu
 		addBackupOptions();
 
 		super();
+	}
+
+	function openInputTester():Void
+	{
+		// A state switch skips OptionsState.closeSubState(), which is where the
+		// changes made in this list are normally written to disk.
+		ClientPrefs.saveSettings();
+		FlxG.switchState(() -> new states.InputTestState(true));
 	}
 
 	function onChangeHitsoundVolume()

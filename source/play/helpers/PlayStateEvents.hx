@@ -292,14 +292,14 @@ class PlayStateEvents
 				state.songLength = fakelength;
 
 			case 'Add Camera Zoom':
-				if(ClientPrefs.camZooms && !ClientPrefs.reducedMotion && state.camHUD.zoom < 1.35) {
+				if(ClientPrefs.camZooms && !state.adaptiveCameraZoomsDisabled && !ClientPrefs.reducedMotion && state.camHUD.zoom < 1.35) {
 					var camZoom:Float = Std.parseFloat(value1);
 					var hudZoom:Float = Std.parseFloat(value2);
 					if(Math.isNaN(camZoom)) camZoom = 0.015;
 					if(Math.isNaN(hudZoom)) hudZoom = 0.03;
 
-					state.camBopFactor += camZoom;
-					state.camHUD.zoom += hudZoom;
+					state.camBopFactor += camZoom * backend.CameraEffects.multiplier();
+					state.camHUD.zoom += hudZoom * backend.CameraEffects.multiplier();
 				}
 
 			case 'Play Animation':
@@ -384,7 +384,7 @@ class PlayStateEvents
 					if(Math.isNaN(intensity)) intensity = 0;
 
 					if(duration > 0 && intensity != 0) {
-						if (!ClientPrefs.reducedMotion) targetsArray[i].shake(intensity, duration);
+						if (!ClientPrefs.reducedMotion) backend.CameraEffects.shake(targetsArray[i], intensity, duration);
 					}
 				}
 

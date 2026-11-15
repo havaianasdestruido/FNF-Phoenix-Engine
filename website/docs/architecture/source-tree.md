@@ -13,7 +13,7 @@ description: Every folder in the repository and the package layout of source/.
 | `source/` | all engine Haxe code — 284 modules in 36 packages |
 | `source/source-haxelib-patches/` | whole-file overrides of `flixel`, `openfl`, `funkin.vis` ([details](./haxelib-patches.md)) |
 | `assets/` | asset libraries: `preload/`, `shared/`, `songs/`, `week*/`, `videos/`, `fonts/`, `embed/` |
-| `mods/` | user mods; ships with the `bf-clicker` example |
+| `mods/` | user mods; ships with the `bf-clicker` Python example and the `phoenix-showcase` Lua feature tour |
 | `example_mods/` | `modTemplate.zip` and script templates |
 | `android/src/quack/fnf/phoenix/android/` | Java injected into Android builds (`PhoenixCore`, `PhoenixDisplay`, `PhoenixInput`, `PhoenixMedia`, `PhoenixMediaService`, `PhoenixStorage`) |
 | `art/` | icons and developer build scripts |
@@ -43,7 +43,7 @@ Documentation files at the root: `README.md` (features and the patch system),
 | `backend.deeplink` | 2 | `phoenix://` URI parsing and routing |
 | `data` | 3 | `Song`, `Section`, `StageData` — the chart/stage data model |
 | `debug` | 2 (+1) | FPS counter, memory sampling (`debug.mem` has a C++ include) |
-| `editors` | 10 | chart, character, dialogue, week, menu-character, note-splash editors |
+| `editors` | 11 | chart, character, dialogue, week, menu-character, note-splash editors and the Modchart Lab |
 | `editors.charting` | 7 | grid, sections, waveform, selection, save/load, events |
 | `editors.helpers` | 4 | per-editor helper modules |
 | `states` | 14 | title, main menu, story, freeplay, mods, credits, achievements, loading, error |

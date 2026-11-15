@@ -118,7 +118,7 @@ class MenuCharacterEditorState extends MusicBeatState
 	{
 		// Mirrors ESCAPE.
 		FlxG.switchState(editors.MasterEditorMenu.new);
-		FlxG.sound.playMusic(Paths.music('freakyMenu-' + ClientPrefs.daMenuMusic));
+		Paths.playMenuMusic(true);
 		if (music != null && music.music != null)
 			music.destroy();
 	}
@@ -341,7 +341,7 @@ class MenuCharacterEditorState extends MusicBeatState
 			FlxG.sound.volumeUpKeys = TitleState.volumeUpKeys;
 			if(FlxG.keys.justPressed.ESCAPE) {
 				FlxG.switchState(editors.MasterEditorMenu.new);
-				FlxG.sound.playMusic(Paths.music('freakyMenu-' + ClientPrefs.daMenuMusic));
+				Paths.playMenuMusic(true);
 				if (music != null && music.music != null) music.destroy();
 			}
 

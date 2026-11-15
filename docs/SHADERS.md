@@ -89,6 +89,91 @@ converges at the center of the camera, so off-center note lanes look wrong.
 From HScript, construct `shaders.DistantNoteEffect` directly and pass it to
 `game.addShaderToCamera(cam, effect)`.
 
+## Retro screen effects
+
+Nine built-in effects cover the looks retro mods usually hand-roll: a curved CRT,
+a broken old television, untuned-channel static, water ripple, a flat silhouette,
+mosaic/pixelate, brightness and contrast, and two VHS passes. Each is a
+`Shader` + `Effect` pair in `source/shaders/`, ported from
+[Dewott2501/Mario-Madness](https://github.com/Dewott2501/Mario-Madness)
+(Apache-2.0, the same license as this repository) with credits and a list of
+every local change in the shader class's doc comment.
+
+| Effect | Lua/Python/HScript call | What it does | Cost |
+|---|---|---|---|
+| `CRTEffect` | `addCRTEffect(camera, curve, scanlineHardness, pixelHardness, mask, vignette, resolutionScale)` | curved screen, scanline reconstruction, RGB shadow mask, corner vignette | 11 fetches/px |
+| `OldTVEffect` | `addOldTVEffect(camera, staticAmount, damage, blur, bar, barOffset)` | rolling picture-offset bar, black/white sploches, static, optional smear | 1 fetch, +16 with `blur` |
+| `TVStaticEffect` | `addTVStaticEffect(camera, strength, minStrength, maxStrength, speed)` | pulsing untuned-channel static over the picture | 1 fetch/px |
+| `RippleEffect` | `addRippleEffect(camera, strength, speed, scale)` | water ripple displacement from a scrolling noise field | 1 fetch, ~5 noise octaves |
+| `SilhouetteEffect` | `addSilhouetteEffect(sprite, color, amount)` | flat single-colour character that keeps its shape | 1 fetch/px |
+| `MosaicEffect` | `addMosaicEffect(camera, blockSize, blockSizeY)` | pixelate into blocks | 1 fetch/px |
+| `BrightnessContrastEffect` | `addBrightnessContrastEffect(camera, brightness, contrast)` | dim or punch up a camera; the stage-dim knob | 1 fetch/px |
+| `VCRBorderEffect` | `addVCRBorderEffect(camera, curve, vignette, border)` | the curved VCR frame and bezel, no glitch | 1–2 fetches/px |
+| `VCRFuzzEffect` | `addVCRFuzzEffect(camera, fuzz, split, scanline, scanlineFrequency)` | steady tape wobble, channel split, hard scanlines | 3 fetches/px |
+
+`addSMWPixelBlurEffect(camera, strengthX, strengthY)` is an alias of
+`addMosaicEffect`, kept under the name Mario Madness' wrapper
+(`SMWPixelBlurShader`) used. Mario Madness' `VCRMario85` is `VCRFuzzEffect` here,
+and its `VCRBorder` is `VCRBorderEffect`; compare them with `addVCREffect`
+(`shaders.VCRDistortionShader`) before stacking — VCR distortion already curves
+the screen and vignettes it, but always with its glitch bursts and seven fetches.
+
+Every one of them accepts a camera name (`'game'`, `'hud'`, `'other'`,
+`'notes'`) **or** a sprite name (`'boyfriend'`, `'dad'`, `'gf'`, a modchart
+sprite tag), which is how `addSilhouetteEffect` shades one character.
+
+```lua
+function onCreatePost()
+    addCRTEffect('game')                       -- retro monitor over the stage
+    addSilhouetteEffect('boyfriend', 'red', 1) -- flat red BF, shape intact
+end
+
+function onBeatHit()
+    if curBeat == 32 then addMosaicEffect('hud', 12) end
+    if curBeat == 40 then clearEffects('hud') end
+end
+```
+
+Python spells the same calls the same way (`def onCreatePost():` and
+`addCRTEffect('game')`); HScript can call them or build the effect directly:
+
+```haxe
+var crt = new shaders.CRTEffect();
+game.addShaderToCamera('game', crt);
+crt.vignette = 0.6;   // every parameter is a property on the effect
+crt.curve = 0.0;      // flat screen, scanlines only
+```
+
+A stage can also ask for one by name in its JSON, which precompiles it on the
+loading screen instead of on the first frame that needs it
+(`shaders.ShaderWarmupRegistry`): `"shaders": ["crt", "oldtv", "mosaic"]`. The
+accepted names are `crt`, `oldtv`, `tvstatic`, `ripple`, `silhouette`, `mosaic`
+(`pixelblur`, `smwpixelblur`), `brightnesscontrast` (`brightness`), `vcrborder`
+and `vcrfuzz` (`vcrmario85`).
+
+Two things to know before shipping one:
+
+- **They respect the shaders toggle.** With **Options → Graphics → Shaders** off,
+  none of these functions is registered at all, so a call from a script is a
+  missing-function warning rather than a crash — but check `shadersEnabled` if
+  your script branches on the effect being visible.
+- **Animated effects need a frame clock.** `OldTV`, `TVStatic`, `Ripple` and
+  `VCRFuzz` advance a `uTime` uniform. Inside a song they run on
+  `PlayState.shaderUpdates` like every other engine effect; anywhere else (title
+  screen, menus) `shaders.EffectTicker` drives them from `FlxG.signals.postUpdate`
+  and drops them on the next state switch, so a menu effect does not outlive its
+  screen. Hold on to the effect object if you want to change it later.
+
+Cost matters more than usual here: this engine targets low-end phones, and a
+full-screen post-process pass can cost more than the whole note highway. The
+`CRT` shader is the expensive one (eleven fetches per pixel for the scanline
+reconstruction) — put it on one camera, not on all three, and prefer
+`brightness`/`mosaic`/`silhouette` when they do the job.
+
+Tests: `bash tests/haxe/run-retro-shaders.sh` (GLSL portability, uniform wiring,
+effect validation and registration). A runnable tour of the calls lives in
+`example_mods/scripts/RetroShadersExample.lua`.
+
 ## Doido Engine ports
 
 ### Distant Notes

@@ -8,6 +8,7 @@ import backend.CoolUtil;
 import backend.Conductor;
 import backend.DiscordClient;
 import backend.HaxeCommit;
+import backend.MenuMusic;
 import backend.MusicBeatState;
 import backend.Paths;
 import backend.ScreenDensity;
@@ -55,7 +56,7 @@ class MainMenuState extends MusicBeatState
     'story_mode',
     'freeplay',
     #if MODS_ALLOWED 'mods', #end
-    #if ACHIEVEMENTS_ALLOWED 'awards', #end
+    'awards',
     'credits',
     'donate',
     'options'
@@ -357,11 +358,11 @@ class MainMenuState extends MusicBeatState
         changeTipText();
       }
     }
-    if (FlxG.sound != null && FlxG.sound?.music?.volume < 0.8)
-    {
-      FlxG.sound.music.volume += 0.5 * FlxG.elapsed;
-      if (FreeplayState.vocals != null) FreeplayState.vocals.volume += 0.5 * elapsed;
-    }
+    // Ramps the menu theme toward the preferred menu volume (0.8 was the old
+    // fixed ceiling) instead of overriding it. See backend.MenuMusic.
+    MenuMusic.ramp(elapsed, 0.8);
+    if (FreeplayState.vocals != null && FreeplayState.vocals.volume < 0.8)
+      FreeplayState.vocals.volume += MenuMusic.RAMP_SPEED * elapsed;
 
     if (!selectedSomethin)
     {
@@ -422,10 +423,12 @@ class MainMenuState extends MusicBeatState
                   case 'mods':
                     FlxG.switchState(() -> new ModsMenuState());
                   #end
-                  #if ACHIEVEMENTS_ALLOWED
                   case 'awards':
+                    #if ACHIEVEMENTS_ALLOWED
                     LoadingState.loadAndSwitchState(AchievementsMenuState.new);
-                  #end
+                    #else
+                    FlxG.switchState(() -> new StatsState());
+                    #end
                   case 'credits':
                     FlxG.switchState(CreditsState.new);
                   case 'options':

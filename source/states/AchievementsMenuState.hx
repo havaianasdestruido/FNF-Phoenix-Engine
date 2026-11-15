@@ -13,6 +13,7 @@ import flixel.util.FlxSort;
 import objects.Alphabet;
 import objects.AttachedSprite;
 import objects.MovingCheckerboard;
+import objects.TouchTarget;
 
 import backend.Controls;
 
@@ -33,7 +34,19 @@ class AchievementsMenuState extends MusicBeatState
 	private var menuBackground:FlxSprite;
 	private var achievementsBox:FlxSprite;
 	private var detailsBox:FlxSprite;
+	private var headerBg:FlxSprite;
+	private var achTabBg:FlxSprite;
+	private var achTabAccent:FlxSprite;
+	private var achTabText:FlxText;
+	private var statsTabBg:FlxSprite;
+	private var statsTabText:FlxText;
+	private var statsHintText:FlxText;
 	private var layoutWidth:Int = 0;
+
+	static inline final HEADER_HEIGHT:Int = 56;
+	static inline final TAB_WIDTH:Int = 250;
+	static inline final TAB_HEIGHT:Int = 38;
+	static inline final TAB_GAP:Int = 16;
 
 	override public function onResize(width:Int, height:Int):Void
 	{
@@ -50,6 +63,7 @@ class AchievementsMenuState extends MusicBeatState
 		for (text in [nameText, descText, progressTxt])
 			if (text != null) text.fieldWidth = FlxG.width - 100;
 		if (progressBar != null) progressBar.screenCenter(X);
+		layoutHeader();
 		layoutWidth = FlxG.width;
 	}
 
@@ -166,6 +180,9 @@ class AchievementsMenuState extends MusicBeatState
 		for (i in [progressBarBG, progressBar, progressTxt, descText, nameText])
 			add(i);
 
+		buildHeader();
+		layoutHeader();
+
 		_changeSelection();
 
 		addVirtualPad(LEFT_FULL, A_B_C);
@@ -175,6 +192,97 @@ class AchievementsMenuState extends MusicBeatState
 
 		FlxG.camera.follow(camFollow, null, 9);
 		FlxG.camera.scroll.y = -FlxG.height;
+	}
+
+	function buildHeader():Void
+	{
+		headerBg = new FlxSprite(0, 0).makeGraphic(1, 1, 0xAA000000);
+		headerBg.scrollFactor.set(0, 0);
+		add(headerBg);
+
+		achTabBg = new FlxSprite(0, 9).makeGraphic(1, 1, 0xFF1F4E79);
+		achTabBg.scrollFactor.set(0, 0);
+		add(achTabBg);
+
+		achTabAccent = new FlxSprite(0, 9 + TAB_HEIGHT - 3).makeGraphic(1, 1, 0xFF5CE1E6);
+		achTabAccent.scrollFactor.set(0, 0);
+		add(achTabAccent);
+
+		achTabText = new FlxText(0, 15, TAB_WIDTH, 'ACHIEVEMENTS', 22);
+		achTabText.setFormat(Paths.font('vcr.ttf'), 22, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+		achTabText.borderSize = 1.5;
+		achTabText.scrollFactor.set(0, 0);
+		add(achTabText);
+
+		statsTabBg = new FlxSprite(0, 9).makeGraphic(1, 1, 0x77192838);
+		statsTabBg.scrollFactor.set(0, 0);
+		add(statsTabBg);
+
+		statsTabText = new FlxText(0, 15, TAB_WIDTH, 'PLAYER STATS', 22);
+		statsTabText.setFormat(Paths.font('vcr.ttf'), 22, 0xFFB8C7D6, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+		statsTabText.borderSize = 1.5;
+		statsTabText.scrollFactor.set(0, 0);
+		add(statsTabText);
+
+		final hint:String = mobile.MobileControls.enabled ? 'A / TAP: Stats' : 'TAB / ENTER: Stats';
+		statsHintText = new FlxText(0, 19, 240, hint, 16);
+		statsHintText.setFormat(Paths.font('vcr.ttf'), 16, 0xFFB8C7D6, RIGHT, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+		statsHintText.borderSize = 1;
+		statsHintText.scrollFactor.set(0, 0);
+		add(statsHintText);
+	}
+
+	function layoutHeader():Void
+	{
+		if (headerBg != null)
+		{
+			headerBg.setPosition(0, 0);
+			headerBg.setGraphicSize(FlxG.width, HEADER_HEIGHT);
+			headerBg.updateHitbox();
+		}
+
+		final totalTabsWidth:Float = TAB_WIDTH * 2 + TAB_GAP;
+		final startX:Float = Math.round((FlxG.width - totalTabsWidth) * 0.5);
+		if (achTabBg != null)
+		{
+			achTabBg.setPosition(startX, 9);
+			achTabBg.setGraphicSize(TAB_WIDTH, TAB_HEIGHT);
+			achTabBg.updateHitbox();
+		}
+		if (achTabAccent != null)
+		{
+			achTabAccent.setPosition(startX, 9 + TAB_HEIGHT - 3);
+			achTabAccent.setGraphicSize(TAB_WIDTH, 3);
+			achTabAccent.updateHitbox();
+		}
+		if (achTabText != null)
+		{
+			achTabText.setPosition(startX, 15);
+			achTabText.fieldWidth = TAB_WIDTH;
+		}
+
+		final statsX:Float = startX + TAB_WIDTH + TAB_GAP;
+		if (statsTabBg != null)
+		{
+			statsTabBg.setPosition(statsX, 9);
+			statsTabBg.setGraphicSize(TAB_WIDTH, TAB_HEIGHT);
+			statsTabBg.updateHitbox();
+		}
+		if (statsTabText != null)
+		{
+			statsTabText.setPosition(statsX, 15);
+			statsTabText.fieldWidth = TAB_WIDTH;
+		}
+		if (statsHintText != null)
+		{
+			final rightSpace:Float = FlxG.width - (statsX + TAB_WIDTH) - 24;
+			statsHintText.visible = rightSpace >= 160;
+			if (statsHintText.visible)
+			{
+				statsHintText.fieldWidth = Math.min(240, rightSpace);
+				statsHintText.setPosition(FlxG.width - statsHintText.fieldWidth - 16, 19);
+			}
+		}
 	}
 
 	override function closeSubState()
@@ -204,6 +312,22 @@ class AchievementsMenuState extends MusicBeatState
 
 	var goingBack:Bool = false;
 	override function update(elapsed:Float) {
+		#if !FLX_NO_MOUSE
+		if (!FlxG.mouse.visible && !backend.TouchlessUI.isActive()
+			&& (Math.abs(FlxG.mouse.deltaX) > 10 || Math.abs(FlxG.mouse.deltaY) > 10))
+			FlxG.mouse.visible = true;
+		#end
+
+		if (!goingBack && (FlxG.keys.justPressed.TAB || controls.ACCEPT
+			|| (statsTabBg != null && TouchTarget.justPressedOver(statsTabBg))))
+		{
+			FlxG.sound.play(Paths.sound('scrollMenu'));
+			FlxG.switchState(() -> new StatsState(true));
+			goingBack = true;
+			super.update(elapsed);
+			return;
+		}
+
 		if(!goingBack && options.length > 1)
 		{
 			var add:Int = 0;

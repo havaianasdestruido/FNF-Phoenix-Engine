@@ -1,4 +1,5 @@
 import backend.LowMemory;
+import backend.MenuMusic;
 import backend.Paths;
 import flixel.FlxG;
 import flixel.FlxState;
@@ -44,6 +45,7 @@ class LoadingStateRouterSpec
     PlayState.SONG = null;
     LowMemory.experimental = false;
     Paths.probes = 0;
+    MenuMusic.fadeCalls = 0;
     Assets.cache.loaded = Assets.libraries = false;
     FlxG.sound.music.stops = 0;
   }
@@ -100,6 +102,7 @@ class LoadingStateRouterSpec
     final loader:LoadingState = cast routed.createInstance();
     check(Std.isOfType(loader, LoadingState), 'title uses the loading screen');
     equal(TitleState.count, 1, 'title constructed once');
+    equal(MenuMusic.fadeCalls, 0, 'title does not trigger the song fade');
     final prepared = LoadingStateRouter.prepare(loader.target);
     check(Std.isOfType(prepared.preview, TitleState), 'loading queue can recognize title');
     check(prepared.target.createInstance() == prepared.preview, 'title preview is the state switched to');
@@ -120,8 +123,10 @@ class LoadingStateRouterSpec
     };
     final routed:NextState = LoadingStateRouter.route(target, true, 'week1');
     equal(PlayState.count, 0, 'song factory is deferred');
+    equal(MenuMusic.fadeCalls, 0, 'song fade waits for deferred target resolution');
     oldDestroyed = true;
     final loader:LoadingState = cast routed.createInstance();
+    equal(MenuMusic.fadeCalls, 1, 'menu theme fades once when the song target is resolved');
     check(Std.isOfType(loader, LoadingState), 'song uses a loading screen');
     check(loader.stopMusic && loader.directory == 'week1', 'loader receives transition options');
     equal(PlayState.count, 1, 'router constructs the song once');
@@ -154,6 +159,7 @@ class LoadingStateRouterSpec
     Assets.cache.loaded = Assets.libraries = true;
     var routed:NextState = LoadingStateRouter.route(() -> new PlayState(), false, 'shared');
     check(Std.isOfType(routed.createInstance(), PlayState), 'loaded normal song skips the screen');
+    equal(MenuMusic.fadeCalls, 1, 'loaded song still triggers the menu-theme fade');
     equal(Paths.probes, 2, 'normal tier retains its instrumental and vocal probe');
 
     Paths.probes = 0;

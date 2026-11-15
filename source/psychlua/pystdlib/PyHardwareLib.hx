@@ -1,11 +1,17 @@
 package psychlua.pystdlib;
 
+import backend.HapticFeedback;
 import backend.Native;
 import psychlua.PythonScript;
 
 class PyHardwareLib
 {
   public static function register(py:PythonScript):Void {
+    // One vibration burst in milliseconds (default 50, maximum 5000).
+    // Android only; an explicit script effect, independent of Haptic Feedback.
+    PythonScript.registerFunction("vibrate", function(?durationMs:Dynamic):Bool {
+      return HapticFeedback.pulse(durationMs);
+    });
     // Returns a human readable report of the hardware the game runs on.
     PythonScript.registerFunction("getSystemInfo", function() {
       return query(py, "getSystemInfo", () -> Native.buildSystemInfo());

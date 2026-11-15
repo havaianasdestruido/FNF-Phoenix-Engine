@@ -92,3 +92,4 @@ export LD_LIBRARY_PATH="$neko_dir${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
 "$neko_bin" "$work/smoke.n" restart
 "$neko_bin" "$work/smoke.n" pixel profile-off restart
 "$neko_bin" "$work/smoke.n" pixel complete-pixel-skin
+"$neko_bin" "$work/smoke.n" menu-fade
