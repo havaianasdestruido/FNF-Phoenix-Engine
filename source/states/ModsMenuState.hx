@@ -57,6 +57,7 @@ class ModsMenuState extends MusicBeatState
 	/** Auto-hides a failure message shown through {@link installText}. */
 	var installStatusTimer:FlxTimer;
 	var buttons:Array<MenuButton> = [];
+	var modInfoButton:MenuButton;
 	var settingsButton:MenuButton;
 
 	var bgTitle:FlxSprite;
@@ -248,11 +249,24 @@ class ModsMenuState extends MusicBeatState
 		add(modDesc);
 
 		var myHeight = 100;
-		modRestartText = new FlxText(bgDescription.x + 15, bgDescription.y + bgDescription.height - myHeight - 25, bgDescription.width - 30, "* Moving or Toggling On/Off this Mod will restart the game.", 16);
+		var modInfoX = bgDescription.x + 15;
+		var modInfoY = bgDescription.y + bgDescription.height - myHeight - 90;
+
+		// Mod Info: details of the selected mod and its ModSecurity (script sandbox) switch.
+		// Placed under the mod description instead of the bottom-right button strip so the
+		// mobile virtual pad's B button does not overlap it.
+		modInfoButton = new MenuButton(modInfoX, modInfoY, 80, 80, null, Paths.image('modsMenuButtons', 'shared'), openModInfo, 54, 54);
+		modInfoButton.icon.animation.add('icon', [3]);
+		modInfoButton.icon.animation.play('icon', true);
+		add(modInfoButton);
+		buttons.push(modInfoButton);
+
+		var footerTextX = modInfoX + modInfoButton.bg.width + 15;
+		modRestartText = new FlxText(footerTextX, bgDescription.y + bgDescription.height - myHeight - 25, bgDescription.x + bgDescription.width - 15 - footerTextX, "* Moving or Toggling On/Off this Mod will restart the game.", 16);
 		modRestartText.setFormat(Paths.font("vcr.ttf"), 16, FlxColor.WHITE, RIGHT);
 		add(modRestartText);
 
-		modSecurityText = new FlxText(modRestartText.x, modRestartText.y, 220, "", 16);
+		modSecurityText = new FlxText(footerTextX, modInfoY + 32, 220, "", 16);
 		modSecurityText.setFormat(Paths.font("vcr.ttf"), 16, FlxColor.WHITE, LEFT);
 		add(modSecurityText);
 
@@ -267,36 +281,26 @@ class ModsMenuState extends MusicBeatState
 
 		var buttonsX = bgButtons.x + 320;
 		var buttonsY = bgButtons.y + 10;
+		var canReorder:Bool = modsList.all.length >= 2;
 
 		var button = new MenuButton(buttonsX, buttonsY, 80, 80, null, Paths.image('modsMenuButtons', 'shared'), function() moveModToPosition(0), 54, 54); //Move to the top
 		button.icon.animation.add('icon', [0]);
 		button.icon.animation.play('icon', true);
+		button.enabled = canReorder;
 		add(button);
 		buttons.push(button);
 
 		var button = new MenuButton(buttonsX + 100, buttonsY, 80, 80, null, Paths.image('modsMenuButtons', 'shared'), function() moveModToPosition(curSelectedMod - 1), 54, 54); //Move up
 		button.icon.animation.add('icon', [1]);
 		button.icon.animation.play('icon', true);
+		button.enabled = canReorder;
 		add(button);
 		buttons.push(button);
 
 		var button = new MenuButton(buttonsX + 200, buttonsY, 80, 80, null, Paths.image('modsMenuButtons', 'shared'), function() moveModToPosition(curSelectedMod + 1), 54, 54); //Move down
 		button.icon.animation.add('icon', [2]);
 		button.icon.animation.play('icon', true);
-		add(button);
-		buttons.push(button);
-		
-		if(modsList.all.length < 2)
-		{
-			for (button in buttons)
-				button.enabled = false;
-		}
-
-		// Mod Info: details of the selected mod and its ModSecurity (script sandbox) switch.
-		// It takes the gear slot; the per-mod settings editor below is still not ported.
-		var button = new MenuButton(buttonsX + 300, buttonsY, 80, 80, null, Paths.image('modsMenuButtons', 'shared'), openModInfo, 54, 54);
-		button.icon.animation.add('icon', [3]);
-		button.icon.animation.play('icon', true);
+		button.enabled = canReorder;
 		add(button);
 		buttons.push(button);
 
@@ -601,6 +605,20 @@ class ModsMenuState extends MusicBeatState
 							curSelectedButton = firstEnabledButtonIndex();
 							changeSelectedButton();
 						}
+					}
+					else if(curSelectedButton == 0 && controls.UI_DOWN_P)
+					{
+						var button = getButton();
+						button.ignoreCheck = button.onFocus = false;
+						curSelectedButton = -3;
+						changeSelectedButton();
+					}
+					else if(curSelectedButton > 0 && controls.UI_UP_P && modInfoButton != null && modInfoButton.enabled)
+					{
+						var button = getButton();
+						button.ignoreCheck = button.onFocus = false;
+						curSelectedButton = 0;
+						changeSelectedButton();
 					}
 					else if(controls.UI_LEFT_P)
 						changeSelectedButton(-1);
