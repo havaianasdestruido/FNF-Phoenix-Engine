@@ -118,6 +118,23 @@ class MiscSettingsSubState extends BaseOptionsMenu
 
 		// Master Volume, also in Options -> Audio (same live row).
 		OptionsMenuHelpers.addMasterVolumeRow(this);
+		OptionsMenuHelpers.addMuteRow(this);
+
+		// Gated by PlatformSupport's `filesystem` capability via Option.isSupported(),
+		// so web/Flash builds without a mods directory hide it automatically.
+		var option:Option = new Option('Safe Mode',
+			'If checked, skips loading global and startup mods when the game launches,\nso you can reach Options or the Mods menu safely.',
+			'safeMode',
+			'bool',
+			false);
+		addOption(option);
+
+		var option:Option = new Option('Disable April Fools',
+			'If checked, disables seasonal April Fools pranks and surprises.',
+			'disableAprilFools',
+			'bool',
+			false);
+		addOption(option);
 
 		cameras = [FlxG.cameras.list[FlxG.cameras.list.length-1]];
 

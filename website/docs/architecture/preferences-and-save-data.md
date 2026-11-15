@@ -16,11 +16,12 @@ A sample of what lives there (see the
 
 | Group | Fields |
 |---|---|
-| Gameplay | `downScroll`, `middleScroll`, `opponentStrums`, `ghostTapping`, `noReset`, `complexAccuracy`, `noMarvJudge`, `ezSpam`, `antiCheatEnable`, `safeFrames` |
+| Gameplay | `downScroll`, `middleScroll`, `opponentStrums`, `ghostTapping`, `gamepadDeadzone`, `noReset`, `complexAccuracy`, `noMarvJudge`, `ezSpam`, `antiCheatEnable`, `accuracyPreset`, `perfectWindow`, `sickWindow`, `goodWindow`, `badWindow`, `safeFrames` |
 | Visuals | `noteSkin`, `splashType`, `noteSplashes`, `oppNoteSplashes`, `maxSplashLimit`, `oppNoteAlpha`, `stageDim`, `hideHud`, `timeBarType`, `scoreStyle`, `healthBarStyle`, `iconBounceType`, `simplePopups` |
+| Accessibility | `flashing`, `flashIntensity`, `showPhotosensitivityWarning`, `reducedMotion`, `cameraFxIntensity`, `highContrast`, `noteColorblindPreset`, `forceLuminanceContrast`, `laneGlyphs`, `visualBeatIndicator`, `dialogueSpeedMult`, `instantDialogueAdvance`, `dimDialogueBackground`, `hideDialogueBox` |
 | Feedback | `hitsoundVolume`, `hitsoundType`, `metronome`, `missSoundEnabled`, `showNPS`, `showComboInfo`, `botWatermark` |
 | Performance | `camZooms`, `showNotes`, `smoothHealth`, `comboStacking`, `enableColorShader`, `charsAndBG` |
-| System | `showFPS`, `showRamUsage`, `showMaxRamUsage`, `debugInfo`, `autoPause`, `checkForUpdates`, `discordRPC`, `peOGCrash` |
+| System | `showFPS`, `showRamUsage`, `showMaxRamUsage`, `debugInfo`, `autoPause`, `checkForUpdates`, `safeMode`, `disableAprilFools`, `discordRPC`, `peOGCrash` |
 | Crossfades | `crossFadeMode`, `crossFadeLimit`, `boyfriendCrossFadeLimit` |
 | Mobile | `mobileCAlpha`, `mobileCEx` |
 
@@ -36,15 +37,18 @@ Both directions use `Reflect` over the class fields, with **blacklists** so deri
 structural data is not round-tripped:
 
 ```haxe
-"saveBlackList" => ["keyBinds", "defaultKeys", "defaultArrowRGB", "defaultPixelRGB", "defaultQuantRGB", "masterVolume"],
-"loadBlackList" => ["keyBinds", "defaultKeys", "defaultArrowRGB", "defaultPixelRGB", "defaultQuantRGB", "masterVolume"]
+"saveBlackList" => ["keyBinds", "defaultKeys", "defaultArrowRGB", "defaultPixelRGB", "defaultQuantRGB", "masterVolume", "masterMuted"],
+"flixelSound" => ["volume", "muted"],
+"loadBlackList" => ["keyBinds", "defaultKeys", "defaultArrowRGB", "defaultPixelRGB", "defaultQuantRGB", "masterVolume", "masterMuted"]
 ```
 
-`masterVolume` is the one mirrored entry: it is the Options → Audio row's view of
-`FlxG.sound.volume`, and Flixel's `volume` is what the `flixelSound` list saves and
-restores. Writing the mirror too would store the same setting twice and let the two copies
-drift apart, so both blacklists skip it (and `SettingsBackup.NOT_PREFERENCES` leaves it out
-of `.json` backups as well). See [Audio](../subsystems/audio.md#master-volume-and-the-shared-curve).
+`masterVolume` and `masterMuted` are mirrored entries: they are the Options → Audio /
+Misc rows' live views of `FlxG.sound.volume` and `FlxG.sound.muted`, while Flixel's
+`volume` and `muted` (plus legacy `mute` migration) are what the `flixelSound` list saves
+and restores. Writing the mirrors too would store the same settings twice and let the two
+copies drift apart, so both blacklists skip them (and `SettingsBackup.NOT_PREFERENCES`
+leaves them out of `.json` backups as well). See
+[Audio](../subsystems/audio.md#master-volume-and-the-shared-curve).
 
 Keybinds are saved separately as `save.data.customControls`. Volume/mute keys are pushed
 back into `TitleState.muteKeys` / `volumeDownKeys` / `volumeUpKeys` after loading so Flixel

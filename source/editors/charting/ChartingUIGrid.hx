@@ -286,7 +286,7 @@ class ChartingUIGrid
     if (height < minHeight) height = minHeight;
     if (height < 1) height = 1; // Prevents error of invalid height
 
-    var color:FlxColor = (!PlayState.isPixelStage) ? ClientPrefs.arrowRGB[note.noteData][0] : ClientPrefs.arrowRGBPixel[note.noteData][0];
+    var color:FlxColor = objects.NoteColors.laneRGB(note.noteData, PlayState.isPixelStage)[0];
 
     if (note.noteType == "Hurt Note") color = CoolUtil.dominantColor(note); // Make black if hurt note
 

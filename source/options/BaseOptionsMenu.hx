@@ -46,6 +46,7 @@ class BaseOptionsMenu extends MusicBeatSubstate
 	private var resetGuard:HoldToConfirm;
 	public static inline var RESET_ALL_LABEL:String = 'Reset All Settings';
 	private var titleText:Alphabet;
+	private var checkerboard:MovingCheckerboard;
 	private var layoutWidth:Int = 0;
 
 	override public function onResize(width:Int, height:Int):Void
@@ -86,7 +87,8 @@ class BaseOptionsMenu extends MusicBeatSubstate
 		ViewportVisuals.cover(background);
 		background.antialiasing = ClientPrefs.globalAntialiasing;
 		add(background);
-		add(new MovingCheckerboard(0xFF7EE15A, -12.6, -30.6));
+		checkerboard = new MovingCheckerboard(0xFF7EE15A, -12.6, -30.6);
+		add(checkerboard);
 
 		// avoids lagspikes while scrolling through menus!
 		grpOptions = new FlxTypedGroup<Alphabet>();
@@ -156,6 +158,46 @@ class BaseOptionsMenu extends MusicBeatSubstate
 		add(resetGuard);
 
 		applyUIScale();
+		applyHighContrast();
+	}
+
+	/**
+	 * Applies `ClientPrefs.highContrast` styling to this menu's backdrop,
+	 * checkerboard, description box, and unselected option rows.
+	 */
+	public function applyHighContrast():Void
+	{
+		final hc:Bool = ClientPrefs.highContrast;
+		if (background != null)
+			background.color = hc ? backend.Accessibility.MENU_BG_HIGH_CONTRAST : backend.Accessibility.MENU_BG_NORMAL;
+		if (checkerboard != null)
+			checkerboard.alpha = hc ? 0.08 : 1.0;
+		if (descBox != null)
+			descBox.alpha = hc ? backend.Accessibility.MENU_DESC_ALPHA_HIGH_CONTRAST : backend.Accessibility.MENU_DESC_ALPHA_NORMAL;
+		if (titleText != null)
+			titleText.alpha = hc ? 0.78 : 0.4;
+		if (descText != null)
+			descText.borderSize = hc ? backend.Accessibility.HUD_BORDER_HIGH_CONTRAST : 2.4;
+
+		final unselectedAlpha:Float = hc
+			? backend.Accessibility.MENU_UNSELECTED_ALPHA_HIGH_CONTRAST
+			: backend.Accessibility.MENU_UNSELECTED_ALPHA_NORMAL;
+		if (grpOptions != null)
+		{
+			for (item in grpOptions.members)
+			{
+				if (item == null) continue;
+				item.alpha = (item.targetY == 0) ? 1.0 : unselectedAlpha;
+			}
+		}
+		if (grpTexts != null)
+		{
+			for (text in grpTexts)
+			{
+				if (text == null) continue;
+				text.alpha = (text.ID == curSelected) ? 1.0 : unselectedAlpha;
+			}
+		}
 	}
 
 	/**
@@ -608,6 +650,18 @@ class BaseOptionsMenu extends MusicBeatSubstate
 			if (option == null || !option.live || option.text == null) continue;
 			updateTextFrom(option);
 		}
+		if (checkboxGroup != null)
+		{
+			for (checkbox in checkboxGroup.members)
+			{
+				if (checkbox == null) continue;
+				final idx:Int = checkbox.ID;
+				if (idx < 0 || idx >= optionsArray.length) continue;
+				final option:Option = optionsArray[idx];
+				if (option == null || !option.live) continue;
+				checkbox.daValue = (option.getValue() == true);
+			}
+		}
 	}
 
 	function updateTextFrom(option:Option) {
@@ -680,17 +734,21 @@ class BaseOptionsMenu extends MusicBeatSubstate
 
 		var selectionIndex:Int = 0;
 
+		final unselectedAlpha:Float = ClientPrefs.highContrast
+			? backend.Accessibility.MENU_UNSELECTED_ALPHA_HIGH_CONTRAST
+			: backend.Accessibility.MENU_UNSELECTED_ALPHA_NORMAL;
+
 		for (item in grpOptions.members) {
 			item.targetY = selectionIndex - curSelected;
 			selectionIndex++;
 
-			item.alpha = 0.6;
+			item.alpha = unselectedAlpha;
 			if (item.targetY == 0) {
 				item.alpha = 1;
 			}
 		}
 		for (text in grpTexts) {
-			text.alpha = 0.6;
+			text.alpha = unselectedAlpha;
 			if(text.ID == curSelected) {
 				text.alpha = 1;
 			}

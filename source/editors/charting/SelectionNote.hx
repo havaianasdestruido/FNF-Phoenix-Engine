@@ -33,9 +33,8 @@ class SelectionNote extends FlxSprite
 		rgbShader = new RGBShaderReference(this, NoteHelpers.initializeGlobalRGBShader(leData));
 		rgbShader.enabled = false;
 		if (PlayState.SONG != null && PlayState.SONG.disableNoteRGB || !ClientPrefs.enableColorShader) useRGBShader = false;
-		var arr:Array<FlxColor> = ClientPrefs.arrowRGB[leData];
-		if (PlayState.isPixelStage) arr = ClientPrefs.arrowRGBPixel[leData];
-		if (leData <= arr.length && useRGBShader)
+		var arr:Array<FlxColor> = objects.NoteColors.laneRGB(leData, PlayState.isPixelStage);
+		if (arr != null && arr.length >= 3 && useRGBShader)
 		{
 			@:bypassAccessor
 			{
@@ -144,9 +143,8 @@ class SelectionNote extends FlxSprite
 	{
 		if (rgbShader == null || rgbShader != null && !rgbShader.enabled) return;
 
-		var arr:Array<FlxColor> = ClientPrefs.arrowRGB[noteData];
-		if (PlayState.isPixelStage) arr = ClientPrefs.arrowRGBPixel[noteData];
-		if (noteData <= arr.length)
+		var arr:Array<FlxColor> = objects.NoteColors.laneRGB(noteData, PlayState.isPixelStage);
+		if (arr != null && arr.length >= 3)
 		{
 			@:bypassAccessor
 			{

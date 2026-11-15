@@ -55,9 +55,46 @@ class OptionsMenuHelpers
 		// only ever be silent or full. Two decimals keep the 2% steps intact and
 		// print whole percents ("57%", not "56.99999999999999%").
 		option.decimals = 2;
-		state.addOption(option);
-		return option;
-	}
+    state.addOption(option);
+    return option;
+  }
+
+  /**
+   * Adds the live "Mute Audio" checkbox row to `state`.
+   *
+   * Mirrors `FlxG.sound.muted` via `ClientPrefs.readMasterMuted` /
+   * `ClientPrefs.assignMasterMuted` so pressing `0`, clicking the sound tray,
+   * or toggling this checkbox stay synchronized without touching Master Volume.
+   */
+  public static function addMuteRow(state:BaseOptionsMenu):Option
+  {
+    var option:Option = new Option('Mute Audio',
+      'Mute all game audio without changing your Master Volume level. Same as the Mute key.',
+      'masterMuted',
+      'bool',
+      false);
+    option.live = true;
+    option.readValue = ClientPrefs.readMasterMuted;
+    option.onChange = () -> ClientPrefs.assignMasterMuted(ClientPrefs.masterMuted);
+    state.addOption(option);
+    return option;
+  }
+
+  /** Re-arms or suppresses the startup photosensitivity warning screen. */
+  public static function syncPhotosensitivityWarningState():Void
+  {
+    if (FlxG.save != null && FlxG.save.data != null)
+      FlxG.save.data.photosensitivityWarningPending = ClientPrefs.showPhotosensitivityWarning;
+    if (ClientPrefs.showPhotosensitivityWarning)
+      states.FlashingState.leftState = false;
+  }
+
+  /** Refreshes cached note RGB palettes when colorblind or luminance options change. */
+  public static function refreshNoteAccessibilityColors():Void
+  {
+    objects.NoteColors.invalidateCache();
+    objects.Note.globalRgbShaders = [];
+  }
 
 	public static function createOptionRow(state:BaseOptionsMenu, optionsArray:Array<Option>)
 	{

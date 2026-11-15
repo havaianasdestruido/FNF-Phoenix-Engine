@@ -195,6 +195,7 @@ class PlayStateCountdown
 					}
 				});
 				PlayStateMetronome.countdownTick(state, swagCounter);
+				PlayStateAccessibility.countdownTick(state, swagCounter);
 				state.stagesFunc(function(stage:BaseStage) stage.countdownTick(tick, swagCounter));
 				if (state.hasActiveScripts()) state.callOnLuas('onCountdownTick', [swagCounter]);
 

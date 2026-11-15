@@ -154,6 +154,7 @@ class PlatformSupport
     'hitboxType' => [MOBILE],
     'hitboxPos' => [MOBILE],
     'deeplinkEnabled' => [DEEPLINK],
+    'safeMode' => [FILESYSTEM],
     'autosaveCharts' => [FILESYSTEM],
     'autosaveTime' => [FILESYSTEM],
     'ffmpegMode' => [VIDEO_RENDER],

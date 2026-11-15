@@ -68,6 +68,7 @@ import play.helpers.PlayStateShaders;
 import play.helpers.PlayStateStageDim;
 import play.helpers.PlayStateAndroidMedia;
 import play.helpers.SongStagePolicy;
+import play.helpers.PlayStateAccessibility;
 import play.helpers.PlayStateAdaptivePerformance;
 #if HSCRIPT_ALLOWED
 import psychlua.HScript;
@@ -1889,6 +1890,7 @@ class PlayState extends MusicBeatState
 		// Stage dim (Options -> Visuals and UI). Created last on purpose: `createPost()`
 		// and the `onCreatePost` scripts above add stage props, and the overlay has to
 		// sit above everything camGame draws. See PlayStateStageDim.
+		PlayStateAccessibility.setup(this);
 		PlayStateStageDim.setup(this);
 
 		startingTime = haxe.Timer.stamp();
@@ -2398,6 +2400,7 @@ class PlayState extends MusicBeatState
 
 		// Stage dim reads the camera after `super.update()`, so this frame's zoom,
 		// angle and scroll are final. No-op (one comparison) while the option is off.
+		PlayStateAccessibility.sync(this, elapsed);
 		PlayStateStageDim.sync(this);
 
 		if (tankmanAscend && curStep > 895 && curStep < 1151) camGame.zoom = 0.8;
@@ -3244,6 +3247,7 @@ class PlayState extends MusicBeatState
 		if (camFollow != null) camFollow.put();
 
 		// Drop the stage-dim quad before the state's own members are destroyed.
+		PlayStateAccessibility.clear(this);
 		PlayStateStageDim.clear(this);
 
 		stagesFunc(function(stage:BaseStage) stage.destroy());
@@ -3338,6 +3342,7 @@ class PlayState extends MusicBeatState
 	{
 		// Keep the practice tick ahead of stage/script beat callbacks.
 		PlayStateMetronome.beatHit(this);
+		PlayStateAccessibility.beatHit(this);
 		super.beatHit();
 
 		if (lastBeatHit == curBeat) return;

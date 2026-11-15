@@ -102,8 +102,10 @@ song ending stop the tick; Game Renderer mode keeps it silent with the stems.
 
 The chart editor uses the same `Metronome_Tick.ogg` voice through
 `backend.Metronome.play()`, which latency calibration can also reuse. The tick
-uses Flixel's normal sound output: master volume and mute apply, so a muted
-device needs a visual beat indicator rather than this sound.
+uses Flixel's normal sound output: master volume and mute apply, while muted
+devices can enable **Options → Accessibility → Visual Beat Indicator**
+(`ClientPrefs.visualBeatIndicator` + `play.helpers.PlayStateAccessibility`) for a
+screen-edge beat pulse instead.
 
 ## Menu music
 
@@ -165,8 +167,11 @@ Android Auto.
 `objects.CustomSoundTray` replaces Flixel's volume overlay with the engine's styled
 version (`CustomSoundFrontEnd` extends Flixel's `SoundFrontEnd`). Volume and mute keys
 come from `ClientPrefs.keyBinds` and are pushed into `TitleState.muteKeys`,
-`volumeUpKeys` and `volumeDownKeys` on load. The tray is disabled on Flash/AIR via
-`FLX_NO_SOUND_TRAY`.
+`volumeUpKeys` and `volumeDownKeys` on load. `CustomSoundTray` writes `volume`, `muted`
+and legacy `mute` into `FlxG.save.data` and flushes `FlxG.save` so tray-only mute or
+volume changes survive closing the game without opening Options, and `ClientPrefs.loadPrefs()`
+restores both `volume` and `muted` (notifying `FlxG.sound.volumeHandler`). The tray is
+disabled on Flash/AIR via `FLX_NO_SOUND_TRAY`.
 
 ### Master volume and the shared curve
 
