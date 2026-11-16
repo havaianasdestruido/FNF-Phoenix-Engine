@@ -44,6 +44,9 @@ Thanks to the [Phoenix Engine contributors](https://github.com/havaianasdestruid
 JS Engine, and Psych Engine. Early & Late ratings are a port of the feature from
 [Mic'd Up!](https://github.com/Verwex/Funkin-Mic-d-Up-SC) by Verwex; thanks for the idea and the
 reference implementation. Their original README and credits are preserved below.
+The custom note type scripts in `example_mods/custom_notetypes/` are ports of the note types
+hardcoded in [Mario's Madness](https://github.com/Dewott2501/Mario-Madness) by Dewott2501
+(Apache-2.0), shipped as `custom_notetypes` scripts instead of engine code; thanks for the originals.
 
 ---
 
