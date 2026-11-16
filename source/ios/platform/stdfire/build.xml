@@ -1,0 +1,18 @@
+<xml>
+  <set name="PHOENIX_STDFIRE_IOS_DIR" value="${this_dir}" />
+  <files id="haxe">
+    <compilerflag value="-I${PHOENIX_STDFIRE_IOS_DIR}/include" />
+    <depend name="${PHOENIX_STDFIRE_IOS_DIR}/include/phoenix_stdfire_ios.h" />
+  </files>
+  <files id="phoenix-stdfire-ios">
+    <compilerflag value="-fobjc-arc" />
+    <compilerflag value="-I${PHOENIX_STDFIRE_IOS_DIR}/include" />
+    <file name="${PHOENIX_STDFIRE_IOS_DIR}/phoenix_stdfire_ios.mm" />
+    <depend name="${PHOENIX_STDFIRE_IOS_DIR}/include/phoenix_stdfire_ios.h" />
+  </files>
+  <target id="haxe">
+    <files id="phoenix-stdfire-ios" />
+    <section if="iphoneos"><lib name="-framework UIKit" /><lib name="-framework QuartzCore" /></section>
+    <section if="iphonesim"><lib name="-framework UIKit" /><lib name="-framework QuartzCore" /></section>
+  </target>
+</xml>

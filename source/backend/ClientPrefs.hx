@@ -120,6 +120,8 @@ class ClientPrefs { //default settings if it can't find a save file containing y
 	public static var scoreZoom:Bool = true;
 	public static var healthBarAlpha:Float = 1;
 	public static var showFPS:Bool = true;
+	/** Bottom-right commit id + freshness-versus-main watermark (see debug.CommitWatermark). */
+	public static var showCommitWatermark:Bool = true;
 	public static var show1PercentLows:Bool = false;
 	public static var uncappedFps:Bool = false;
 	public static var mouseSupport:Bool = true;
@@ -159,6 +161,10 @@ class ClientPrefs { //default settings if it can't find a save file containing y
 	public static var alphabetStyle:String = AlphabetFont.DEFAULT_STYLE;
 	public static var alphabetFont:String = AlphabetFont.DEFAULT_FONT;
 	public static var alphabetAntialiasing:Bool = true;
+	/** Show a circular FlxPieDial in the bottom-left corner on loading screens. */
+	public static var loadingPieDial:Bool = true;
+	/** Color preset for the bottom-left loading FlxPieDial (Options -> Visuals and UI). */
+	public static var loadingPieDialColor:String = LoadingDialLogic.DEFAULT_COLOR;
 
 	//Mobile Settings
   public static var respectCutout:Bool = true;
@@ -544,6 +550,9 @@ class ClientPrefs { //default settings if it can't find a save file containing y
 					if (field == "showFPS" && Main.fpsVar != null)
 						Main.fpsVar.visible = showFPS;
 
+					if (field == "showCommitWatermark" && Main.commitWatermark != null)
+						Main.commitWatermark.visible = showCommitWatermark;
+
 					if (field == "framerate")
 					{
 						if (framerate > FlxG.drawFramerate)
@@ -568,6 +577,9 @@ class ClientPrefs { //default settings if it can't find a save file containing y
 
     // Same for the menu music volume: a corrupted save must not mute the menus.
     menuMusicVolume = MenuMusicLogic.volume(menuMusicVolume);
+
+    // Keep the loading dial color on a known preset if the save was edited.
+    loadingPieDialColor = LoadingDialLogic.normalizeColor(loadingPieDialColor);
 
     // Android owns the display cut-out policy; other builds do not even
     // compile that code path in (see applyCutoutPreference()).

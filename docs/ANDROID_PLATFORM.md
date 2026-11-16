@@ -556,6 +556,14 @@ buttons mirroring their keyboard shortcuts:
   D-pad selection into `objects.HoldToConfirm`, so OK arms only while it holds
   the focus (BACK always cancels), and the guarded "reset all" gestures accept
   `Y` + `LEFT_SHOULDER` as the gamepad equivalent of `SHIFT` + `RESET`.
+  Because the mode hides the touch overlay and the mouse cursor, it only stays
+  on when the device proves it has a controller: `backend.TouchlessUI` probes
+  for remote/D-pad/gamepad input during the first five seconds after the option
+  turns on (`backend.AndroidTVPolicy.CONTROLLER_PROBE_SECONDS`) and turns the
+  option back off, saving it, when nothing arrives. Stalled frames are clamped
+  (`CONTROLLER_PROBE_MAX_FRAME_SECONDS`) so a loading hitch cannot eat the whole
+  window, and the Options row mirrors the real value (`Option.live`), so the
+  checkbox unticks itself instead of going stale.
 - Hardware triggers (volume keys) can be bound to the four note lanes from
   Options -> Controls -> HARDWARE (Android only, unbound by default). They
   are stored in the regular keybind map as `hw_note_<lane>` entries, encoded

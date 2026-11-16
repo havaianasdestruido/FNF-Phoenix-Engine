@@ -1046,6 +1046,24 @@ class Project extends HXProject
 
 		addAssetPath("assets/embed", "assets", "default", ["*"], exclude, true);
 
+		// Dark flixel-ui skin, ported from FNF-Troll-Engine:
+		// https://github.com/troll-slaiyers/FNF-Troll-Engine
+		//
+		// These live under their *own* asset ids on purpose. flixel-ui's
+		// include.xml already registers assets/images renamed to
+		// "flixel/flixel-ui/img" (embedded), and Lime merges haxelib assets
+		// *after* this script runs (HXProject.fromFile -> processHaxelibs ->
+		// merge), so a second registration under the same id cannot replace the
+		// first one: an embedded build then generates two
+		// `__ASSET__flixel_flixel_ui_img_*` classes and Haxe stops with
+		// "Name ... is already defined in this module".
+		//
+		// The skin is selected by source/source-haxelib-patches/flixel/addons/
+		// ui/FlxUIAssets.hx instead, which repoints the constants every widget
+		// (ours and flixel-ui's) loads its graphic through. Images with no dark
+		// replacement keep flixel-ui's id and therefore its original art.
+		addAssetPath("assets/flixel-ui-dark", null, "default", ["*"], exclude, true);
+
 		// Shared asset libraries
 		addAssetLibrary("songs", shouldEmbed, shouldPreload);
 		if (!stripped)

@@ -23,7 +23,9 @@
 package mobile;
 
 #if mobile
+import backend.ClientPrefs;
 import backend.CoolUtil;
+import backend.LoadingDialLogic;
 import backend.ViewportVisuals;
 import backend.MusicBeatState;
 import lime.utils.Assets as LimeAssets;
@@ -33,6 +35,7 @@ import flixel.text.FlxText;
 import flixel.FlxSprite;
 import flixel.util.FlxColor;
 import flixel.util.FlxTimer;
+import objects.LoadingPieDial;
 import openfl.utils.ByteArray;
 import haxe.io.Path;
 import flixel.ui.FlxBar;
@@ -59,6 +62,7 @@ class CopyState extends MusicBeatState
 	public var loadingImage:FlxSprite;
 	private var background:FlxSprite;
 	public var loadingBar:FlxBar;
+	public var pieDial:LoadingPieDial;
 	public var loadedText:FlxText;
 	public var thread:ThreadPool;
 
@@ -77,13 +81,17 @@ class CopyState extends MusicBeatState
 		{
 			final index:Int = members.indexOf(loadingBar);
 			final progress:Float = loadingBar.percent;
+			final barVisible:Bool = loadingBar.visible;
 			remove(loadingBar, true);
 			loadingBar.destroy();
 			loadingBar = new FlxBar(0, FlxG.height - 26, FlxBarFillDirection.LEFT_TO_RIGHT, FlxG.width, 26);
 			loadingBar.setRange(0, maxLoopTimes);
 			loadingBar.percent = progress;
+			loadingBar.visible = barVisible;
 			insert(index, loadingBar);
 		}
+		if (pieDial != null)
+			pieDial.layout(width, height);
 		if (loadedText != null)
 		{
 			loadedText.fieldWidth = FlxG.width;
@@ -116,13 +124,29 @@ class CopyState extends MusicBeatState
 		loadingImage.screenCenter();
 		add(loadingImage);
 
+		final usePieDial:Bool = ClientPrefs.readSavedBool('loadingPieDial', ClientPrefs.loadingPieDial);
+		final dialColor:String = ClientPrefs.readSavedString('loadingPieDialColor', ClientPrefs.loadingPieDialColor);
+
 		loadingBar = new FlxBar(0, FlxG.height - 26, FlxBarFillDirection.LEFT_TO_RIGHT, FlxG.width, 26);
 		loadingBar.setRange(0, maxLoopTimes);
+		loadingBar.visible = !usePieDial;
 		add(loadingBar);
 
 		loadedText = new FlxText(loadingBar.x, loadingBar.y + 4, FlxG.width, '', 16);
-		loadedText.setFormat(Paths.font("vcr.ttf"), 16, FlxColor.WHITE, CENTER);
+		if (usePieDial)
+		{
+			loadedText.setFormat(Paths.font("vcr.ttf"), 16, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+			loadedText.borderSize = 1.5;
+		}
+		else
+			loadedText.setFormat(Paths.font("vcr.ttf"), 16, FlxColor.WHITE, CENTER);
 		add(loadedText);
+
+		if (usePieDial)
+		{
+			pieDial = new LoadingPieDial(dialColor);
+			add(pieDial);
+		}
 
 		thread = new ThreadPool(0, 4);
 		thread.doWork.add(function(poop)
@@ -167,7 +191,10 @@ class CopyState extends MusicBeatState
 			else
 				loadedText.text = '$loopTimes/$maxLoopTimes';
 
-			loadingBar.percent = Math.min((loopTimes / maxLoopTimes) * 100, 100);
+			final ratio:Float = LoadingDialLogic.progressFromCounts(loopTimes, maxLoopTimes);
+			loadingBar.percent = ratio * 100;
+			if (pieDial != null)
+				pieDial.setProgress(ratio);
 		}
 		super.update(elapsed);
 	}

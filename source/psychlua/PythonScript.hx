@@ -401,6 +401,9 @@ class PythonScript
 		#if DISCORD_ALLOWED DiscordClient.addPythonCallbacks(this); #end
 		#if flxanimate FlxAnimateFunctions.implementPython(this); #end
 
+		// A real object namespace, available even to sandboxed Hython scripts.
+		set('stdfire', StdFireLibrary.createNamespace());
+
 		lastCalledScript = this;
 		try
 		{

@@ -1,21 +1,24 @@
 package editors;
+
+import objects.ui.CustomFlxUI.CustomFlxUIInputText;
+import objects.ui.CustomFlxUI.CustomFlxUINumericStepper;
+import objects.ui.CustomFlxUI.CustomFlxUITabMenu;
+import objects.ui.CustomFlxUI.CustomFlxUIDropDownMenu;
+import flixel.addons.ui.FlxUIInputText;
+import flixel.addons.ui.FlxUINumericStepper;
+import objects.FlxUIDropDownMenuCustom;
+
 import backend.ClientPrefs;
 import backend.DiscordClient;
 import backend.MusicBeatState;
 import backend.Paths;
 import states.TitleState;
 import objects.TypedAlphabet;
-import objects.FlxUIDropDownMenuCustom;
-
 import objects.Alphabet;
 import objects.DialogueBoxPsych;
-import flixel.addons.ui.FlxInputText;
 import flixel.addons.ui.FlxUI9SliceSprite;
 import flixel.addons.ui.FlxUI;
 import flixel.addons.ui.FlxUICheckBox;
-import flixel.addons.ui.FlxUIInputText;
-import flixel.addons.ui.FlxUINumericStepper;
-import flixel.addons.ui.FlxUITabMenu;
 import flixel.ui.FlxButton;
 import lime.system.Clipboard;
 import openfl.net.FileReference;
@@ -330,13 +333,13 @@ class DialogueCharacterEditorState extends MusicBeatState
 	}
 	#end
 
-	var UI_typebox:FlxUITabMenu;
-	var UI_mainbox:FlxUITabMenu;
+	var UI_typebox:CustomFlxUITabMenu;
+	var UI_mainbox:CustomFlxUITabMenu;
 	function addEditorBox() {
 		var tabs = [
 			{name: 'Character Type', label: 'Character Type'},
 		];
-		UI_typebox = new FlxUITabMenu(null, tabs, true);
+		UI_typebox = new CustomFlxUITabMenu(null, tabs, true);
 		UI_typebox.resize(120, 180);
 		UI_typebox.x = 900;
 		UI_typebox.y = FlxG.height - UI_typebox.height - 50;
@@ -349,7 +352,7 @@ class DialogueCharacterEditorState extends MusicBeatState
 			{name: 'Animations', label: 'Animations'},
 			{name: 'Character', label: 'Character'},
 		];
-		UI_mainbox = new FlxUITabMenu(null, tabs, true);
+		UI_mainbox = new CustomFlxUITabMenu(null, tabs, true);
 		UI_mainbox.resize(200, 250);
 		UI_mainbox.x = UI_typebox.x + UI_typebox.width;
 		UI_mainbox.y = FlxG.height - UI_mainbox.height - 50;
@@ -398,15 +401,15 @@ class DialogueCharacterEditorState extends MusicBeatState
 
 	var curSelectedAnim:String;
 	var animationArray:Array<String> = [];
-	var animationDropDown:FlxUIDropDownMenuCustom;
-	var animationInputText:FlxUIInputText;
-	var loopInputText:FlxUIInputText;
-	var idleInputText:FlxUIInputText;
+	var animationDropDown:CustomFlxUIDropDownMenu;
+	var animationInputText:CustomFlxUIInputText;
+	var loopInputText:CustomFlxUIInputText;
+	var idleInputText:CustomFlxUIInputText;
 	function addAnimationsUI() {
 		var tab_group = new FlxUI(null, UI_mainbox);
 		tab_group.name = "Animations";
 
-		animationDropDown = new FlxUIDropDownMenuCustom(10, 30, FlxUIDropDownMenuCustom.makeStrIdLabelArray([''], true), function(animation:String) {
+		animationDropDown = new CustomFlxUIDropDownMenu(10, 30, FlxUIDropDownMenuCustom.makeStrIdLabelArray([''], true), function(animation:String) {
 			var anim:String = animationArray[Std.parseInt(animation)];
 			if(character.dialogueAnimations.exists(anim)) {
 				ghostLoop.playAnim(anim);
@@ -423,13 +426,13 @@ class DialogueCharacterEditorState extends MusicBeatState
 			}
 		});
 
-		animationInputText = new FlxUIInputText(15, 85, 80, '', 8);
+		animationInputText = new CustomFlxUIInputText(15, 85, 80, '', 8);
 		blockPressWhileTypingOn.push(animationInputText);
 		animationInputText.focusGained = () -> FlxG.stage.window.textInputEnabled = true;
-		loopInputText = new FlxUIInputText(animationInputText.x, animationInputText.y + 35, 150, '', 8);
+		loopInputText = new CustomFlxUIInputText(animationInputText.x, animationInputText.y + 35, 150, '', 8);
 		blockPressWhileTypingOn.push(loopInputText);
 		loopInputText.focusGained = () -> FlxG.stage.window.textInputEnabled = true;
-		idleInputText = new FlxUIInputText(loopInputText.x, loopInputText.y + 40, 150, '', 8);
+		idleInputText = new CustomFlxUIInputText(loopInputText.x, loopInputText.y + 40, 150, '', 8);
 		blockPressWhileTypingOn.push(idleInputText);
 		idleInputText.focusGained = () -> FlxG.stage.window.textInputEnabled = true;
 
@@ -522,21 +525,21 @@ class DialogueCharacterEditorState extends MusicBeatState
 		animationDropDown.setData(FlxUIDropDownMenuCustom.makeStrIdLabelArray(animationArray, true));
 	}
 
-	var imageInputText:FlxUIInputText;
-	var scaleStepper:FlxUINumericStepper;
-	var xStepper:FlxUINumericStepper;
-	var yStepper:FlxUINumericStepper;
-	var blockPressWhileTypingOn:Array<FlxUIInputText> = [];
+	var imageInputText:CustomFlxUIInputText;
+	var scaleStepper:CustomFlxUINumericStepper;
+	var xStepper:CustomFlxUINumericStepper;
+	var yStepper:CustomFlxUINumericStepper;
+	var blockPressWhileTypingOn:Array<CustomFlxUIInputText> = [];
 	function addCharacterUI() {
 		var tab_group = new FlxUI(null, UI_mainbox);
 		tab_group.name = "Character";
 
-		imageInputText = new FlxUIInputText(10, 30, 80, character.jsonFile.image, 8);
+		imageInputText = new CustomFlxUIInputText(10, 30, 80, character.jsonFile.image, 8);
 		blockPressWhileTypingOn.push(imageInputText);
 		imageInputText.focusGained = () -> FlxG.stage.window.textInputEnabled = true;
-		xStepper = new FlxUINumericStepper(imageInputText.x, imageInputText.y + 50, 10, character.jsonFile.position[0], -2000, 2000, 0);
-		yStepper = new FlxUINumericStepper(imageInputText.x + 80, xStepper.y, 10, character.jsonFile.position[1], -2000, 2000, 0);
-		scaleStepper = new FlxUINumericStepper(imageInputText.x, xStepper.y + 50, 0.05, character.jsonFile.scale, 0.1, 10, 2);
+		xStepper = new CustomFlxUINumericStepper(imageInputText.x, imageInputText.y + 50, 10, character.jsonFile.position[0], -2000, 2000, 0);
+		yStepper = new CustomFlxUINumericStepper(imageInputText.x + 80, xStepper.y, 10, character.jsonFile.position[1], -2000, 2000, 0);
+		scaleStepper = new CustomFlxUINumericStepper(imageInputText.x, xStepper.y + 50, 0.05, character.jsonFile.scale, 0.1, 10, 2);
 
 		var noAntialiasingCheckbox:FlxUICheckBox = new FlxUICheckBox(scaleStepper.x + 80, scaleStepper.y, null, null, "No Antialiasing", 100);
 		noAntialiasingCheckbox.checked = (character.jsonFile.no_antialiasing == true);
@@ -665,7 +668,7 @@ class DialogueCharacterEditorState extends MusicBeatState
 	override function getEvent(id:String, sender:Dynamic, data:Dynamic, ?params:Array<Dynamic>) {
 		if(id == FlxUIInputText.CHANGE_EVENT && sender == imageInputText) {
 			character.jsonFile.image = imageInputText.text;
-		} else if(id == FlxUINumericStepper.CHANGE_EVENT && (sender is FlxUINumericStepper)) {
+		} else if(id == FlxUINumericStepper.CHANGE_EVENT && (sender is CustomFlxUINumericStepper)) {
 			if(sender == scaleStepper) {
 				character.jsonFile.scale = scaleStepper.value;
 				reloadCharacter();

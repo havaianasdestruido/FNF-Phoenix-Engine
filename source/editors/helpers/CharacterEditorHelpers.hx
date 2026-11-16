@@ -1,5 +1,8 @@
 package editors.helpers;
 
+import objects.FlxUIDropDownMenuCustom;
+
+
 import backend.CoolUtil;
 #if MODS_ALLOWED
 #end
@@ -10,7 +13,6 @@ import flixel.graphics.frames.FlxAtlasFrames;
 import flixel.util.FlxColor;
 import flixel.util.FlxDestroyUtil;
 import objects.Character.AnimArray;
-import objects.FlxUIDropDownMenuCustom;
 import openfl.utils.AssetType;
 
 @:access(editors.CharacterEditorState)

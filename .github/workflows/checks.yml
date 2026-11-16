@@ -33,7 +33,7 @@ jobs:
         run: python3 tools/check_android_bridge.py --check
 
       - name: Setup Java 17 for host-JVM regression tests
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: "17"
@@ -81,6 +81,7 @@ jobs:
           bash tests/haxe/run-asset-cache.sh
           bash tests/haxe/run-song-character-info.sh
           bash tests/haxe/run-loading-state-router.sh
+          bash tests/haxe/run-loading-dial.sh
       - name: Test legacy chart parsing and gameplay chart conversion
         run: |
           bash tests/haxe/run-chart-loading.sh
@@ -119,10 +120,14 @@ jobs:
         run: bash tests/haxe/run-monitor-refresh-rate.sh
       - name: Test the window display mode and its desktop resize branch
         run: bash tests/haxe/run-window-mode.sh
+      - name: Test stdfire titles, message boxes, toasts and platform branches
+        run: bash tests/haxe/run-stdfire.sh
       - name: Test hold-to-confirm gestures and enlarged touch targets
         run: bash tests/haxe/run-hold-to-confirm.sh
       - name: Test the menu music volume and fade rules
         run: bash tests/haxe/run-menu-music.sh
+      - name: Test the build-freshness ramp (compare parsing, labels, rainbow fade)
+        run: bash tests/haxe/run-commit-freshness.sh
       - name: Typecheck the hold-to-confirm Flixel layer
         run: bash tests/haxe/run-hold-to-confirm-typecheck.sh
       - name: Test the input tester model and the phoenix://input page
@@ -210,6 +215,28 @@ jobs:
           hxcpp_dir="$libroot/hxcpp/git"
           (cd "$hxcpp_dir/tools/run" && haxe compile.hxml)
           (cd "$hxcpp_dir/tools/hxcpp" && haxe compile.hxml)
+      - name: Install stdfire scripting test dependencies (Linux)
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          set -euo pipefail
+          for lib in hxluajit hscript-improved; do
+            url=$(python -c "import json; print(next(d['url'] for d in json.load(open('hmm.json'))['dependencies'] if d['name']=='$lib'))")
+            ref=$(python -c "import json; print(next(d['ref'] for d in json.load(open('hmm.json'))['dependencies'] if d['name']=='$lib'))")
+            name="$lib"
+            if [ "$lib" = hscript-improved ]; then name=hscript; fi
+            haxelib git "$name" "$url" "$ref" --quiet --skip-dependencies
+          done
+          haxelib install hython 0.0.352-beta --quiet
+          echo "HSCRIPT_PATH=$(haxelib path hscript | grep -m 1 '^[^-]')" >> "$GITHUB_ENV"
+          echo "HYTHON_PATH=$(haxelib path hython | grep -m 1 '^[^-]')" >> "$GITHUB_ENV"
+      - name: Exercise stdfire through real Lua, Python and HScript (Linux)
+        if: runner.os == 'Linux'
+        shell: bash
+        env:
+          STDFIRE_TEST_LUA: "1"
+          STDFIRE_TEST_CPP_INTERPRETERS: "1"
+        run: bash tests/haxe/run-stdfire.sh
       - name: Verify cold, warm, header-change and flag-change builds
         shell: bash
         env:
@@ -234,6 +261,10 @@ jobs:
           ref=$(python -c "import json; print(next(d['ref'] for d in json.load(open('hmm.json'))['dependencies'] if d['name']=='lime'))")
           haxelib git lime "$url" "$ref" --quiet
           haxelib install hxp --quiet
+      - name: Verify native Lime UTF-8 title and message-box arguments
+        if: runner.os == 'Linux'
+        shell: bash
+        run: bash tests/haxe/run-stdfire-lime.sh
       - name: Verify project cache defaults and overrides
         shell: bash
         run: bash tests/haxe/run-project-build-cache.sh

@@ -179,6 +179,38 @@ Tests: `bash tests/haxe/run-retro-shaders.sh` (GLSL portability, uniform wiring,
 effect validation and registration). A runnable tour of the calls lives in
 `example_mods/scripts/RetroShadersExample.lua`.
 
+## Mario Madness song-specific effects
+
+The four formerly skipped shaders are also available. They are separate from
+Phoenix's existing bloom shader, which is not duplicated. All four accept the
+same camera or sprite names as the retro effects, respect the shaders toggle,
+and can be precompiled with the warm-up keys shown below.
+
+| Call (defaults shown) | Warm-up key | Description |
+|---|---|---|
+| `addCamDupeEffect(camera, 1.0, false)` | `camdupe` | Repeat the image `mult` times on both axes, optionally mirroring horizontally. |
+| `addAngelEffect(camera, 0.0, 1.0)` | `angel` | Animated channel displacement (`strength`) and pixelation (`pixelSize`, at least one pixel). Seven fetches per pixel. |
+| `addYCBUEndingEffect(camera, 0.0, 0.0)` | `ycbuending` | Animated ending glitch (`intensity` from 0 to 1, `seed` as initial clock). |
+| `addTwoDinThreeDEffect(camera, 0.0, 0.0)` | `twodinthreed` | Vertical darkening and optional nine-tap blur (0–1); second argument is the vertical offset in pixels. Even with blur zero, the original gradient still darkens the image. |
+
+```lua
+function onCreatePost()
+    addCamDupeEffect('game', 2, true)
+    addAngelEffect('hud', 0.08, 3)
+end
+```
+
+Haxe/HScript can construct `CamDupeEffect`, `AngelEffect`,
+`YCBUEndingEffect` and `TwoDinThreeDEffect` and change their properties after
+attachment. `AngelEffect` and `YCBUEndingEffect` use `EffectTicker` to advance
+their clocks; the direct shader classes also retain upstream `update` methods
+for callers managing time themselves. `TwoDinThreeD` retains the upstream
+`gradMax`, `tiltDeg`, and `xOff` uniforms and `setXandY` method for source
+compatibility, but those three uniforms had no visual effect upstream and still
+do not. The ending shader substitutes a portable float hash, so its noise
+pattern differs from the original; it preserves sampled alpha instead of
+forcing opacity. See each shader class for provenance and changes.
+
 ## Plain filters (no GLSL)
 
 Not every look needs a shader. The OpenFL bitmap filters that

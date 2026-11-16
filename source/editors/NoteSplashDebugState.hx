@@ -1,4 +1,9 @@
 package editors;
+
+import objects.ui.CustomFlxUI.CustomFlxInputText;
+import objects.ui.CustomFlxUI.CustomFlxUINumericStepper;
+import flixel.addons.ui.FlxUINumericStepper;
+
 import backend.ClientPrefs;
 import backend.MusicBeatState;
 import backend.Paths;
@@ -6,9 +11,6 @@ import backend.Paths;
 import objects.Note;
 import objects.NoteSplash;
 import objects.StrumNote;
-import flixel.addons.ui.FlxInputText;
-import flixel.addons.ui.FlxUINumericStepper;
-
 import backend.Controls;
 
 class NoteSplashDebugState extends MusicBeatState
@@ -22,10 +24,10 @@ class NoteSplashDebugState extends MusicBeatState
 	var notes:FlxTypedGroup<StrumNote>;
 	var splashes:FlxTypedGroup<FlxSprite>;
 
-	var imageInputText:FlxInputText;
-	var nameInputText:FlxInputText;
-	var stepperMinFps:FlxUINumericStepper;
-	var stepperMaxFps:FlxUINumericStepper;
+	var imageInputText:CustomFlxInputText;
+	var nameInputText:CustomFlxInputText;
+	var stepperMinFps:CustomFlxUINumericStepper;
+	var stepperMaxFps:CustomFlxUINumericStepper;
 
 	var offsetsText:FlxText;
 	var curFrameText:FlxText;
@@ -74,7 +76,7 @@ class NoteSplashDebugState extends MusicBeatState
 		var imageName:FlxText = new FlxText(txtx, txty - 120, 0, 'Image Name:', 16);
 		add(imageName);
 
-		imageInputText = new FlxInputText(txtx, txty - 100, 360, defaultTexture, 16);
+		imageInputText = new CustomFlxInputText(txtx, txty - 100, 360, defaultTexture, 16);
 		imageInputText.callback = function(text:String, action:String)
 		{
 			switch(action)
@@ -112,7 +114,7 @@ class NoteSplashDebugState extends MusicBeatState
 		var animName:FlxText = new FlxText(txtx, txty, 0, 'Animation Name:', 16);
 		add(animName);
 
-		nameInputText = new FlxInputText(txtx, txty + 20, 360, '', 16);
+		nameInputText = new CustomFlxInputText(txtx, txty + 20, 360, '', 16);
 		nameInputText.callback = function(text:String, action:String)
 		{
 			switch(action)
@@ -131,11 +133,11 @@ class NoteSplashDebugState extends MusicBeatState
 		add(nameInputText);
 
 		add(new FlxText(txtx, txty - 50, 0, 'Min/Max Framerate:', 16));
-		stepperMinFps = new FlxUINumericStepper(txtx, txty - 30, 1, 22, 1, 60, 0);
+		stepperMinFps = new CustomFlxUINumericStepper(txtx, txty - 30, 1, 22, 1, 60, 0);
 		stepperMinFps.name = 'min_fps';
 		add(stepperMinFps);
 
-		stepperMaxFps = new FlxUINumericStepper(txtx + 60, txty - 30, 1, 26, 1, 60, 0);
+		stepperMaxFps = new CustomFlxUINumericStepper(txtx + 60, txty - 30, 1, 26, 1, 60, 0);
 		stepperMaxFps.name = 'max_fps';
 		add(stepperMaxFps);
 
@@ -319,7 +321,7 @@ class NoteSplashDebugState extends MusicBeatState
 	override function update(elapsed:Float)
 	{
 		@:privateAccess
-		cast(stepperMinFps.text_field, FlxInputText).hasFocus = cast(stepperMaxFps.text_field, FlxInputText).hasFocus = false;
+		cast(stepperMinFps.text_field, CustomFlxInputText).hasFocus = cast(stepperMaxFps.text_field, CustomFlxInputText).hasFocus = false;
 
 		var notTyping:Bool = !nameInputText.hasFocus && !imageInputText.hasFocus;
 		if(controls.BACK && notTyping)
@@ -493,9 +495,9 @@ class NoteSplashDebugState extends MusicBeatState
 
 	override function getEvent(id:String, sender:Dynamic, data:Dynamic, ?params:Array<Dynamic>)
 	{
-		if (id == FlxUINumericStepper.CHANGE_EVENT && (sender is FlxUINumericStepper))
+		if (id == FlxUINumericStepper.CHANGE_EVENT && (sender is CustomFlxUINumericStepper))
 		{
-			var nums:FlxUINumericStepper = cast sender;
+			var nums:CustomFlxUINumericStepper = cast sender;
 			var wname = nums.name;
 			switch(wname)
 			{

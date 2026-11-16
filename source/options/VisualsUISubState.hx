@@ -15,6 +15,7 @@ import flixel.graphics.FlxGraphic;
 import flixel.input.keyboard.FlxKey;
 
 import backend.ClientPrefs;
+import backend.LoadingDialLogic;
 import backend.MenuMusic;
 import data.Song;
 import play.helpers.StageDimMath;
@@ -422,6 +423,13 @@ class VisualsUISubState extends BaseOptionsMenu
 		addOption(option);
 		option.onChange = onChangeFPSCounter;
 		#end
+		var option:Option = new Option('Commit Watermark',
+			"Shows this build's commit id and how many commits behind the latest main branch it is, in the bottom-right corner.\nThe counter is checked once per session.",
+			'showCommitWatermark',
+			'bool',
+			true);
+		addOption(option);
+		option.onChange = onChangeCommitWatermark;
 		
 		var option:Option = new Option('Legacy FPS UI',
 			'Restore the old FPS overlay, including peak RAM and optional debug information.',
@@ -532,6 +540,21 @@ class VisualsUISubState extends BaseOptionsMenu
 			true);
 		addOption(option);
 		option.onChange = MovingCheckerboard.refreshAll;
+
+		var option:Option = new Option('Loading Pie Dial',
+			"Checked: loading screens show a FlxPieDial in the bottom-left corner.\nUnchecked: uses the classic bottom progress bar.",
+			'loadingPieDial',
+			'bool',
+			true);
+		addOption(option);
+
+		var option:Option = new Option('Loading Dial Color:',
+			"Color of the bottom-left FlxPieDial shown on loading screens.",
+			'loadingPieDialColor',
+			'string',
+			LoadingDialLogic.DEFAULT_COLOR,
+			LoadingDialLogic.colorNames());
+		addOption(option);
 
 		var option:Option = new Option('Hold to Confirm',
 			"Destructive actions (deleting a mod/save/chart, leaving a song,\n"
@@ -713,6 +736,12 @@ class VisualsUISubState extends BaseOptionsMenu
 	{
 		if(Main.fpsVar != null)
 			Main.fpsVar.visible = ClientPrefs.showFPS;
+	}
+
+	function onChangeCommitWatermark()
+	{
+		if(Main.commitWatermark != null)
+			Main.commitWatermark.visible = ClientPrefs.showCommitWatermark;
 	}
 	
 	function updateFPSText()

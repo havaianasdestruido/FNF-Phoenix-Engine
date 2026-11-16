@@ -171,9 +171,12 @@ names are still accepted as `ShaderWarmupRegistry` keys (`vcrmario85`,
 `smwpixelblur`), and the registry knows every port by name so a stage JSON can
 precompile one on the loading screen: `"shaders": ["crt", "oldtv", "mosaic"]`.
 
-Skipped from that repository on purpose: `BloomShader` (already here),
-`CamDupeShader`, `AngelShader`, `YCBUEndingShader` and `TwoDinThreeD`
-(song-specific). `tests/haxe/run-retro-shaders.sh` guards the ports — GLSL
+The previously skipped song-specific `CamDupeShader`, `AngelShader`,
+`YCBUEndingShader` and `TwoDinThreeD` are also available, through
+`addCamDupeEffect`, `addAngelEffect`, `addYCBUEndingEffect` and
+`addTwoDinThreeDEffect`. Existing `BloomShader` was not duplicated. See
+[docs/SHADERS.md](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/blob/main/docs/SHADERS.md)
+for parameters and upstream differences. `tests/haxe/run-retro-shaders.sh` guards the ports — GLSL
 portability, uniform wiring, effect validation and registration — and it
 generates its `FlxFixedShader` stub from the `uniform` declarations, so a Haxe
 field the GLSL never declares does not compile.

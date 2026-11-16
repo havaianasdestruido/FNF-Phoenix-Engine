@@ -2,6 +2,7 @@ package;
 
 import backend.SSPlugin as ScreenShotPlugin;
 import debug.FPSCounter;
+import debug.CommitWatermark;
 import debug.FrameProfiler;
 import backend.FunkinGame;
 import flixel.system.scaleModes.PhoenixScaleMode;
@@ -53,6 +54,7 @@ class Main extends Sprite
     };
 
   public static var fpsVar:FPSCounter;
+  public static var commitWatermark:CommitWatermark;
   public static var instance:Main;
 
   public static final superDangerMode:Bool = #if sys Sys.args().contains("-troll") #else false #end;
@@ -229,6 +231,17 @@ class Main extends Sprite
     if (fpsVar != null)
     {
       fpsVar.visible = ClientPrefs.showFPS;
+    }
+
+    // Bottom-right watermark: the build's short commit id, with how many
+    // commits behind upstream main it is shown on top of it. See
+    // debug.CommitWatermark.
+    commitWatermark = new CommitWatermark();
+    addChild(commitWatermark);
+
+    if (commitWatermark != null)
+    {
+      commitWatermark.visible = ClientPrefs.showCommitWatermark;
     }
 
     #if (!web && !flash)

@@ -276,7 +276,7 @@ jobs:
       # project being re-created.
       - name: Setup Java 17
         if: steps.target-selection.outputs.enabled == 'true' && matrix.target == 'android'
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: "17"
@@ -305,7 +305,7 @@ jobs:
       - name: Restore Gradle cache
         id: gradle-cache
         if: steps.target-selection.outputs.enabled == 'true' && matrix.target == 'android'
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v6
         with:
           path: ${{ steps.gradle-home.outputs.dir }}/caches
           key: ${{ env.CACHE_SCHEMA }}-gradle-${{ matrix.cache_name }}-${{ runner.os }}-${{ hashFiles('hmm.json', 'setup/unix.sh', 'source/android/media3/build.gradle') }}-${{ inputs.buildFlags != '' && format('explicit-{0}', inputs.buildFlags) || 'unset' }}
@@ -323,7 +323,7 @@ jobs:
       - name: Restore haxelib and hxcpp tools
         id: haxelib-cache
         if: steps.target-selection.outputs.enabled == 'true'
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v6
         with:
           path: ${{ env.HAXELIB_PATH }}
           key: ${{ env.CACHE_SCHEMA }}-haxelib-${{ matrix.setup }}-haxe-${{ env.HAXE_VERSION }}-${{ hashFiles('hmm.json', 'setup/unix.sh', 'setup/windows.bat', 'setup/windows-msvc-fix.ps1') }}
@@ -423,7 +423,7 @@ jobs:
       - name: Save haxelib and hxcpp tools
         id: haxelib-save
         if: success() && github.event_name != 'pull_request' && steps.target-selection.outputs.enabled == 'true' && steps.haxelib-cache.outputs.cache-hit != 'true'
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v6
         with:
           path: ${{ env.HAXELIB_PATH }}
           key: ${{ env.CACHE_SCHEMA }}-haxelib-${{ matrix.setup }}-haxe-${{ env.HAXE_VERSION }}-${{ hashFiles('hmm.json', 'setup/unix.sh', 'setup/windows.bat', 'setup/windows-msvc-fix.ps1') }}
@@ -433,7 +433,7 @@ jobs:
       # ==========================================
       - name: Save Gradle cache
         if: success() && github.event_name != 'pull_request' && steps.target-selection.outputs.enabled == 'true' && matrix.target == 'android' && steps.gradle-cache.outputs.cache-hit != 'true'
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v6
         with:
           path: ${{ steps.gradle-home.outputs.dir }}/caches
           key: ${{ env.CACHE_SCHEMA }}-gradle-${{ matrix.cache_name }}-${{ runner.os }}-${{ hashFiles('hmm.json', 'setup/unix.sh', 'source/android/media3/build.gradle') }}-${{ inputs.buildFlags != '' && format('explicit-{0}', inputs.buildFlags) || 'unset' }}
@@ -458,7 +458,7 @@ jobs:
       - name: Restore hxcpp object cache
         id: build-cache
         if: steps.target-selection.outputs.enabled == 'true'
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v6
         with:
           # Regenerate Lime/Haxe outputs from the current source and assets;
           # only reuse objects through hxcpp's own dependency/flag hashes.
@@ -593,7 +593,7 @@ jobs:
       - name: Save hxcpp object cache
         id: build-cache-save
         if: success() && github.event_name != 'pull_request' && steps.target-selection.outputs.enabled == 'true' && steps.build-cache.outputs.cache-hit != 'true'
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v6
         with:
           path: ${{ env.HXCPP_COMPILE_CACHE }}
           key: ${{ env.CACHE_SCHEMA }}-hxcpp-${{ matrix.cache_name }}-${{ runner.os }}-${{ runner.arch }}-haxe-${{ env.HAXE_VERSION }}-${{ hashFiles('hmm.json', 'setup/unix.sh', 'setup/windows.bat', 'setup/windows-msvc-fix.ps1') }}-${{ inputs.buildFlags != '' && format('explicit-{0}', inputs.buildFlags) || 'unset' }}-level-${{ steps.modding-level.outputs.level }}
