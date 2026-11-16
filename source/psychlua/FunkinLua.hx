@@ -395,6 +395,9 @@ class FunkinLua {
 			}
 		}
 
+		// Install the namespace before top-level code, for every Lua state.
+		StdFireLibrary.installLua(lua);
+
 		// Execute the script's top-level code only now, with every engine
 		// global and callback already registered — exactly like upstream
 		// Psych Engine (dofile at the end of the constructor) and this

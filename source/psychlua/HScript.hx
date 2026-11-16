@@ -615,6 +615,8 @@ class HScript
 		interp.variables.set('ShaderFilter', openfl.filters.ShaderFilter);
 		interp.variables.set('FunkinShader', shaders.FunkinShader);
 		interp.variables.set('StringTools', StringTools);
+		// Standalone and embedded HScript both seed this scope, including on web.
+		interp.variables.set('stdfire', StdFireLibrary.createNamespace());
 		interp.variables.set('Math', Math);
 		interp.variables.set('Std', Std);
 		// FlxColor is an abstract, so it has no runtime class to hand out:
@@ -800,6 +802,9 @@ class HScript
 
 		var resolved:Class<Dynamic> = Type.resolveClass(str + libName);
 		if (resolved == null) resolved = LuaUtils.resolveClassCompat(libName);
+		// The compatibility fallback may resolve a different package than the
+		// one requested; guard the actual class before handing it to the mod.
+		if(resolved != null && !allowClassAccess(Type.getClassName(resolved))) return false;
 		interp.variables.set(libName, resolved);
 		_missingCalls.remove(libName);
 		return resolved != null;

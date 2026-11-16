@@ -112,6 +112,7 @@ in the song and lists the manual test checklist.
 | [Python scripting](./python-scripting.md) | the Hython runtime and its differences |
 | [Python API reference](./python-api-reference.md) | all 228 functions |
 | [HScript](./hscript.md) | standalone `.hx`/`.hscript` mods, plus running Haxe from a Lua script |
+| [stdfire utilities](./stdfire.md) | window titles, native message boxes and small non-modal warnings |
 | [Script hooks](./script-hooks.md) | every callback the engine fires |
 | [Custom events & notetypes](./custom-events-and-notetypes.md) | chart-driven scripting |
 | [Transparent window](./transparent-window.md) | see-through window, alpha and click-through |

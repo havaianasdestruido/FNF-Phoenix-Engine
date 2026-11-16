@@ -1,6 +1,7 @@
 package quack.fnf.phoenix.android;
 
 import android.app.Activity;
+import android.app.ActivityManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -11,12 +12,18 @@ import android.net.Uri;
 import android.os.BatteryManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Looper;
 import android.provider.Settings;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.WindowManager;
+import android.widget.Toast;
 
 import org.haxe.extension.Extension;
 import org.haxe.lime.HaxeObject;
+import org.libsdl.app.SDLActivity;
+
+import java.nio.charset.StandardCharsets;
 
 /**
  * Core bridge between the Android runtime and the Haxe side of Phoenix
@@ -90,6 +97,131 @@ public class PhoenixCore extends Extension
 		catch (Exception e)
 		{
 			Log.e(LOG_TAG, "dispatch(" + event + ") failed: " + e);
+		}
+	}
+
+	// ------------------------------------------------------------------
+	// Small, native UI utilities exposed by stdfire
+	// ------------------------------------------------------------------
+
+	/** Decode standard UTF-8 bytes rather than JNI's incompatible modified UTF-8 strings. */
+	public static boolean setAppTitleUtf8(byte[] title)
+	{
+		return title != null && setAppTitle(new String(title, StandardCharsets.UTF_8));
+	}
+
+	/** Decode standard UTF-8 bytes rather than JNI's incompatible modified UTF-8 strings. */
+	public static boolean showToastUtf8(byte[] message)
+	{
+		return message != null && showToast(new String(message, StandardCharsets.UTF_8));
+	}
+
+	/** Decode dialog text before passing it to SDL's Java-side native dialog. */
+	public static boolean showMessageBoxUtf8(byte[] message, byte[] title)
+	{
+		return message != null && title != null && showMessageBox(
+			new String(message, StandardCharsets.UTF_8), new String(title, StandardCharsets.UTF_8));
+	}
+
+	/** Show the same modal Android dialog as SDL, without SDL's NewStringUTF conversion. */
+	public static boolean showMessageBox(String message, String title)
+	{
+		final Activity activity = mainActivity;
+		if (!(activity instanceof SDLActivity) || message == null || title == null
+			|| activity.isFinishing() || activity.isDestroyed() || Looper.myLooper() == Looper.getMainLooper())
+			return false; // SDL's dialog waits for the UI thread; never call it from that thread.
+
+		try
+		{
+			// SDL_MESSAGEBOX_INFORMATION, one OK button, default for Enter/Escape.
+			return ((SDLActivity)activity).messageboxShowMessageBox(0x40, title, message,
+				new int[] {3}, new int[] {0}, new String[] {"OK"}, null) == 0;
+		}
+		catch (Exception e)
+		{
+			Log.e(LOG_TAG, "showMessageBox failed: " + e);
+			return false;
+		}
+	}
+
+	/** Rename the current Activity and task, not the installed launcher label. */
+	@SuppressWarnings("deprecation")
+	public static boolean setAppTitle(final String title)
+	{
+		final Activity activity = mainActivity;
+		if (activity == null || title == null || activity.isFinishing())
+			return false;
+
+		try
+		{
+			activity.runOnUiThread(new Runnable()
+			{
+				@Override public void run()
+				{
+					if (mainActivity != activity || activity.isFinishing() || activity.isDestroyed())
+						return;
+					try
+					{
+						activity.setTitle(title);
+						// API 21+; a null icon uses the app's normal icon.
+						activity.setTaskDescription(new ActivityManager.TaskDescription(title));
+					}
+					catch (Exception e)
+					{
+						Log.e(LOG_TAG, "setAppTitle UI update failed: " + e);
+					}
+				}
+			});
+			return true;
+		}
+		catch (Exception e)
+		{
+			Log.e(LOG_TAG, "setAppTitle failed: " + e);
+			return false;
+		}
+	}
+
+	/** The last text Toast, accessed only on Android's UI thread. */
+	private static Toast activeToast = null;
+
+	/** Queue a short, bottom text Toast; this never creates a dialog or notification. */
+	@SuppressWarnings("deprecation")
+	public static boolean showToast(final String message)
+	{
+		final Activity activity = mainActivity;
+		if (activity == null || message == null || message.trim().isEmpty() || activity.isFinishing())
+			return false;
+
+		try
+		{
+			activity.runOnUiThread(new Runnable()
+			{
+				@Override public void run()
+				{
+					if (mainActivity != activity || activity.isFinishing() || activity.isDestroyed())
+						return;
+					try
+					{
+						if (activeToast != null)
+							activeToast.cancel();
+						activeToast = Toast.makeText(activity.getApplicationContext(), message, Toast.LENGTH_SHORT);
+						// Android 11+ positions text toasts itself (normally at the bottom).
+						if (Build.VERSION.SDK_INT < 30)
+							activeToast.setGravity(Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL, 0, activeToast.getYOffset());
+						activeToast.show();
+					}
+					catch (Exception e)
+					{
+						Log.e(LOG_TAG, "showToast UI update failed: " + e);
+					}
+				}
+			});
+			return true;
+		}
+		catch (Exception e)
+		{
+			Log.e(LOG_TAG, "showToast failed: " + e);
+			return false;
 		}
 	}
 

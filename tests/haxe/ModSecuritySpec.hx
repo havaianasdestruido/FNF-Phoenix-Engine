@@ -76,6 +76,15 @@ class ModSecuritySpec
 		check(safeReflection.length == 0, 'normal game-state reflection stays available');
 		var unsafeReflection = ScriptSecurityScanner.scan("getPropertyFromClass('sys.io.File', 'getContent')", 'python');
 		check(has(unsafeReflection, 'engine.native-class', 1), 'privileged reflection is blocked');
+		for(name in ['backend.StdFire', 'StdFire', 'backend.LimeNativeText', 'LimeNativeText'])
+		{
+			check(ModSecurity.isPrivilegedClass(name), 'stdfire implementation class is guarded: $name');
+			var source = "setPropertyFromClass('" + name + "', 'titleOverride', 'bad')";
+			check(has(ScriptSecurityScanner.scan(source, 'lua'), 'engine.native-class', 1),
+				'stdfire implementation reflection is scanned: $name');
+		}
+		check(ScriptSecurityScanner.scan("stdfire.NativeWarn('hello')", 'lua').length == 0,
+			'the public stdfire namespace stays available in sandboxed mods');
 
 		// Integration policy is also dependency-free when MODS_ALLOWED is off,
 		// which catches context/path/report/bootstrap typing regressions in CI.
