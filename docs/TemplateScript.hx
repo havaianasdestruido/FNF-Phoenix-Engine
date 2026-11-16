@@ -38,6 +38,8 @@ function onCreatePost() {
 	//   spr.makeGraphic(200, 50, FlxColor.RED);
 	//   game.add(spr);
 	// Android haptics: vibrate(50); — shared Lua/Python callback, explicit script effect.
+	// Screen looks: addBlurFilter('hud', 'soft', 3, 3), addColorFilter('global', 'gameboy'),
+	// addChainableEffect('boyfriend', 'wave', ...) — see docs/SHADERS.md.
 }
 
 function onDestroy() {

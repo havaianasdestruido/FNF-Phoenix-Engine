@@ -3204,6 +3204,12 @@ class PlayState extends MusicBeatState
 		backend.Metronome.stop();
 		PlayStateModchart.reset(this);
 
+		// Filters and chainable effects are owned by the script API, not by the
+		// sprites they wrap: drop the bookkeeping so a new song cannot resurrect
+		// a stale filter name or hand a freed FlxEffectSprite back to a script.
+		backend.ScreenFilters.reset();
+		backend.ChainableEffects.reset();
+
 		#if android
 		PlayStateAndroidMedia.stop(this);
 		#end
