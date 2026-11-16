@@ -30,7 +30,7 @@ _i accept suggestions too_
 
 - Add those:
 - - flixel.addons.effect.transition ofr states transistions, [just like in this demo](https://haxeflixel.com/demos/Transitions/).
-  - Loading screens with a FlxPieDial in the bottom left corner.
+  - ~~Loading screens with a FlxPieDial in the bottom left corner.~~ **DONE** — `backend.LoadingDialLogic` + `objects.LoadingPieDial` wired into `states.LoadingState` and `mobile.CopyState`, enabled by default (`ClientPrefs.loadingPieDial`, `ClientPrefs.loadingPieDialColor`) with toggles in Options -> Visuals and UI. Spec: `bash tests/haxe/run-loading-dial.sh`.
   - Port the "pointing mouse sprite at button" thingy from [this demo](https://haxeflixel.com/demos/Cursor/).
   - Add pretty much all filters from FlxG.camera.filters & FlxG.game.filters to modding API.
   - - add all these too in modding api: flixel.addons.effects.chainable
