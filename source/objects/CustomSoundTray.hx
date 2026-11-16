@@ -14,6 +14,7 @@ class CustomSoundTray extends FlxSoundTray
 	var graphicScale:Float = 0.3;
 	var lerpYPos:Float = 0;
 	var alphaTarget:Float = 0;
+	var _dirtySave:Bool = false;
   var volumeMaxSound:String;
 
 	public function new()
@@ -70,10 +71,23 @@ class CustomSoundTray extends FlxSoundTray
 		return base + (ratio * (FlxG.elapsed / (1 / 60))) * (target - base);
 	}
 
+	var _saveFlushTimer:Float = 0;
+	var _lastFlushedMuted:Null<Bool> = null;
+
 	override function update(MS:Float):Void
 	{
 		y = coolLerp(y, lerpYPos, 0.1);
 		alpha = coolLerp(alpha, alphaTarget, 0.1);
+
+		if (_saveFlushTimer > 0)
+		{
+			_saveFlushTimer -= (MS / 1000);
+			if (_saveFlushTimer <= 0)
+			{
+				_saveFlushTimer = 0;
+				flushAudioPrefs();
+			}
+		}
 
 		var shouldHide = (FlxG.sound.muted == false && FlxG.sound.volume > 0);
 
@@ -91,8 +105,22 @@ class CustomSoundTray extends FlxSoundTray
 
 		if (y <= -height)
 		{
+			if (_saveFlushTimer > 0)
+			{
+				_saveFlushTimer = 0;
+				flushAudioPrefs();
+			}
 			visible = false;
 			active = false;
+		}
+	}
+
+	function flushAudioPrefs():Void
+	{
+		if (!backend.RecoveryBoot.freshPrefs && FlxG.save.isBound)
+		{
+			_lastFlushedMuted = FlxG.sound.muted;
+			FlxG.save.flush();
 		}
 	}
 
@@ -119,8 +147,21 @@ class CustomSoundTray extends FlxSoundTray
       if (sound != null) FlxG.sound.load(sound).play();
 		}
 
-		FlxG.save.data.volume = FlxG.sound.volume;
-		FlxG.save.data.mute = FlxG.sound.muted;
+		if (!backend.RecoveryBoot.freshPrefs && FlxG.save.isBound)
+		{
+			FlxG.save.data.volume = FlxG.sound.volume;
+			FlxG.save.data.muted = FlxG.sound.muted;
+			FlxG.save.data.mute = FlxG.sound.muted;
+			if (_lastFlushedMuted != FlxG.sound.muted)
+			{
+				_saveFlushTimer = 0;
+				flushAudioPrefs();
+			}
+			else
+			{
+				_saveFlushTimer = 0.4;
+			}
+		}
 
 		for (i in 0..._bars.length)
 		{

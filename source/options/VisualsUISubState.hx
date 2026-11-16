@@ -221,6 +221,45 @@ class VisualsUISubState extends BaseOptionsMenu
 			true);
 		addOption(option);
 
+		var option:Option = new Option('Colorblind Note Palette:',
+			'Remaps note, receptor, splash, and sustain colors to a colorblind-safe palette\nwithout overwriting your custom Note Colors.',
+			'noteColorblindPreset',
+			'string',
+			backend.Accessibility.PRESET_NONE,
+			backend.Accessibility.COLORBLIND_PRESETS);
+		option.onChange = onChangeNoteAccessibility;
+		addOption(option);
+
+		var option:Option = new Option('Force Note Luminance Contrast',
+			'Guarantees distinct brightness steps and crisp dark borders across all four lanes,\nso lanes stay distinguishable even in greyscale.',
+			'forceLuminanceContrast',
+			'bool',
+			false);
+		option.onChange = onChangeNoteAccessibility;
+		addOption(option);
+
+		var option:Option = new Option('Lane Glyphs',
+			'Draws direction symbols (<, v, ^, >) over each note receptor during gameplay.',
+			'laneGlyphs',
+			'bool',
+			false);
+		addOption(option);
+
+		var option:Option = new Option('High Contrast',
+			'Darkens menu and HUD backdrops, boosts text outlines, and enforces a minimum\nstage dim floor during songs for clearer readability.',
+			'highContrast',
+			'bool',
+			false);
+		option.onChange = () -> applyHighContrast();
+		addOption(option);
+
+		var option:Option = new Option('Visual Beat Indicator',
+			'Pulses a subtle frame along the screen edges on countdown ticks and song beats.\nRespects Reduced Motion.',
+			'visualBeatIndicator',
+			'bool',
+			false);
+		addOption(option);
+
 		var ratingQuoteList:Array<String> = Mods.mergeAllTextsNamed('data/ratingQuotes/list.txt', '', true);
 		if (ratingQuoteList.length > 0)
 		{
@@ -362,6 +401,22 @@ class VisualsUISubState extends BaseOptionsMenu
 			'flashIntensity',
 			'percent',
 			1);
+		addOption(option);
+
+		var option:Option = new Option('Show Photosensitivity Warning',
+			'Shows the flashing-lights warning screen on startup.\nRe-checking this displays the warning again the next time Title loads.',
+			'showPhotosensitivityWarning',
+			'bool',
+			true);
+		option.onChange = options.helpers.OptionsMenuHelpers.syncPhotosensitivityWarningState;
+		addOption(option);
+
+		var option:Option = new Option('Reduced Motion',
+			'Disables camera beat bops, event zooms, screen shakes, menu checkerboard motion,\nand dialogue shake effects.',
+			'reducedMotion',
+			'bool',
+			false);
+		option.onChange = () -> MovingCheckerboard.refreshAll();
 		addOption(option);
 
 		var option:Option = new Option('Camera Zooms',
@@ -627,6 +682,40 @@ class VisualsUISubState extends BaseOptionsMenu
 			true);
 		addOption(option);
 
+		var option:Option = new Option('Dialogue Speed',
+			'Scales how fast dialogue boxes type out characters (1x = normal speed).',
+			'dialogueSpeedMult',
+			'float',
+			1.0);
+		option.minValue = 0.25;
+		option.maxValue = 5.0;
+		option.changeValue = 0.25;
+		option.scrollSpeed = 1.5;
+		option.decimals = 2;
+		option.displayFormat = '%vx';
+		addOption(option);
+
+		var option:Option = new Option('Instant Dialogue Text',
+			'If checked, reveals each line of dialogue immediately instead of typing letter by letter.',
+			'instantDialogueAdvance',
+			'bool',
+			false);
+		addOption(option);
+
+		var option:Option = new Option('Dim Dialogue Background',
+			'Darkens the gameplay background behind Psych dialogue boxes so text is easier to read.',
+			'dimDialogueBackground',
+			'bool',
+			false);
+		addOption(option);
+
+		var option:Option = new Option('Hide Dialogue Box',
+			'Hides the decorative dialogue bubble sprite while keeping portraits and text visible.',
+			'hideDialogueBox',
+			'bool',
+			false);
+		addOption(option);
+
 		#if DISCORD_ALLOWED
 		var option:Option = new Option('Discord Rich Presence',
 			"Uncheck this to prevent accidental leaks, it will hide the Application from your \"Playing\" box on Discord",
@@ -676,6 +765,23 @@ class VisualsUISubState extends BaseOptionsMenu
 			changeNoteSkin(note);
 			note.centerOffsets();
 			note.centerOrigin();
+		});
+	}
+
+	function onChangeNoteAccessibility()
+	{
+		options.helpers.OptionsMenuHelpers.refreshNoteAccessibilityColors();
+		notes.forEachAlive(function(note:StrumNote) {
+			final colors = objects.NoteColors.laneRGB(note.noteData, false);
+			if (note.rgbShader != null && colors != null && colors.length >= 3)
+			{
+				@:bypassAccessor
+				{
+					note.rgbShader.r = colors[0];
+					note.rgbShader.g = colors[1];
+					note.rgbShader.b = colors[2];
+				}
+			}
 		});
 	}
 

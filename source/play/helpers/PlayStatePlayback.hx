@@ -128,6 +128,7 @@ class PlayStatePlayback
 		}
 		Conductor.songPosition = time;
 		PlayStateMetronome.seek(state);
+		PlayStateAccessibility.seek(state);
 		if (time > 0) PlayStateNoteHelpers.clearNotesBefore(state, time);
 	}
 

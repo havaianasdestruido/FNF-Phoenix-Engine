@@ -41,9 +41,8 @@ class StrumNote extends FlxSprite
 		rgbShader.enabled = false;
 		if(PlayState.SONG != null && PlayState.SONG.disableNoteRGB || !ClientPrefs.enableColorShader) useRGBShader = false;
 
-		var arr:Array<FlxColor> = ClientPrefs.arrowRGB[leData];
-		if(PlayState.isPixelStage) arr = ClientPrefs.arrowRGBPixel[leData];
-		if(arr != null && leData <= arr.length && useRGBShader)
+		var arr:Array<FlxColor> = NoteColors.laneRGB(leData, PlayState.isPixelStage);
+		if(arr != null && arr.length >= 3 && useRGBShader)
 		{
 			@:bypassAccessor
 			{

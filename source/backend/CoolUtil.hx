@@ -370,9 +370,10 @@ class CoolUtil
 
 			if (rgbShader != null)
 			{
-				rgbShader.r = ClientPrefs.quantRGB[foundQuant][0];
-				rgbShader.g = ClientPrefs.quantRGB[foundQuant][1];
-				rgbShader.b = ClientPrefs.quantRGB[foundQuant][2];
+				final quantColors:Array<FlxColor> = objects.NoteColors.quantRGB(foundQuant);
+				rgbShader.r = quantColors[0];
+				rgbShader.g = quantColors[1];
+				rgbShader.b = quantColors[2];
 			}
 		}
 	}

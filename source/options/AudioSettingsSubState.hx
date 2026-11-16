@@ -32,7 +32,8 @@ class AudioSettingsSubState extends BaseOptionsMenu
 		title = 'Audio';
 		rpcTitle = 'Audio Settings Menu'; //for Discord Rich Presence
 
-		OptionsMenuHelpers.addMasterVolumeRow(this);
+    OptionsMenuHelpers.addMasterVolumeRow(this);
+    OptionsMenuHelpers.addMuteRow(this);
 
 		cameras = [FlxG.cameras.list[FlxG.cameras.list.length-1]];
 

@@ -27,34 +27,46 @@ class MasterVolumeSpec
   static inline var MENU:String = 'source/options/BaseOptionsMenu.hx';
   static inline var OPTION:String = 'source/options/Option.hx';
   static inline var CURVE:String = 'source/backend/VolumeCurve.hx';
+  static inline var TRAY:String = 'source/objects/CustomSoundTray.hx';
 
   static function main():Void
   {
     final prefs:String = read(PREFS);
     final backup:String = read(BACKUP);
+    final helpers:String = read(HELPERS);
+    final audio:String = read(AUDIO);
+    final misc:String = read(MISC);
+    final menu:String = read(MENU);
 
     storedOnce(prefs, backup);
-    rowsAreLive(read(HELPERS), read(AUDIO), read(MISC));
+    rowsAreLive(helpers, audio, misc);
     oneCodePath(prefs);
-    menuWiring(read(MENU), read(OPTION));
+    mutePersistence(prefs, backup, read(TRAY), helpers, audio, misc, menu);
+    menuWiring(menu, read(OPTION));
     curveIsShared(read(CURVE));
 
     trace('MasterVolumeSpec passed');
   }
 
-  /** 1. Flixel's `volume` is the stored value; the mirror is kept out of both. */
+  /** 1. Flixel's `volume` and `muted` are the stored values; mirrors are kept out of both. */
   static function storedOnce(prefs:String, backup:String):Void
   {
     contains(prefs, 'public static var masterVolume:Float = 1;', 'ClientPrefs.masterVolume (Float, default 100%) is missing');
+    contains(prefs, 'public static var masterMuted:Bool = false;', 'ClientPrefs.masterMuted (Bool, default false) is missing');
 
     final saveList:String = lineContaining(prefs, '"saveBlackList" =>');
     final loadList:String = lineContaining(prefs, '"loadBlackList" =>');
     contains(saveList, '"masterVolume"', 'masterVolume is not in the saveBlackList, so it would be saved twice');
     contains(loadList, '"masterVolume"', 'masterVolume is not in the loadBlackList, so it would be loaded twice');
-    contains(prefs, '"flixelSound" => ["volume", "sound"]', 'FlxG.sound.volume must stay the persisted value (flixelSound)');
+    contains(saveList, '"masterMuted"', 'masterMuted is not in the saveBlackList, so it would be saved twice');
+    contains(loadList, '"masterMuted"', 'masterMuted is not in the loadBlackList, so it would be loaded twice');
+    contains(prefs, '"flixelSound" => ["volume", "muted"]', 'FlxG.sound.volume and muted must stay the persisted values (flixelSound)');
+    notContains(prefs, '"flixelSound" => ["volume", "sound"]', 'flixelSound must not reference the nonexistent "sound" field');
     notContains(saveList, '"volume"', 'the mirror must not replace the flixelSound round trip');
+    notContains(saveList, '"muted"', 'the mute mirror must not replace the flixelSound round trip');
 
     contains(backup, "'masterVolume',", 'masterVolume is not in SettingsBackup.NOT_PREFERENCES and would be exported twice');
+    contains(backup, "'masterMuted',", 'masterMuted is not in SettingsBackup.NOT_PREFERENCES and would be exported twice');
     contains(backup, 'volume: FlxG.sound.volume,', 'the backup must keep carrying the real volume');
     contains(backup, 'ClientPrefs.syncMasterVolume();',
       'an imported volume must refresh the mirror right away');
@@ -103,6 +115,40 @@ class MasterVolumeSpec
       check(StringTools.startsWith(trimmed, 'masterVolume = VolumeCurve.toPercent('),
         'masterVolume is only ever mirrored through the curve: ' + trimmed);
     }
+  }
+
+  /** 4. Mute survives restarts from both Options and the sound tray. */
+  static function mutePersistence(
+    prefs:String,
+    backup:String,
+    tray:String,
+    helpers:String,
+    audio:String,
+    misc:String,
+    menu:String
+  ):Void
+  {
+    contains(prefs, 'FlxG.save.data.mute = FlxG.sound.muted;', 'saveSettings() must keep legacy save.data.mute in sync');
+    contains(prefs, 'Reflect.field(FlxG.save.data, "mute")', 'loadPrefs() must migrate legacy save.data.mute');
+    contains(prefs, 'FlxG.sound.volumeHandler(FlxG.sound.muted ? 0 : FlxG.sound.volume);',
+      'loadPrefs()/assignMasterMuted() must notify volumeHandler when muted changes');
+    contains(prefs, 'public static function readMasterMuted():Dynamic {', 'ClientPrefs.readMasterMuted() is missing');
+    contains(prefs, 'public static function assignMasterMuted(muted:Bool):Void {', 'ClientPrefs.assignMasterMuted() is missing');
+
+    contains(tray, 'FlxG.save.data.muted = FlxG.sound.muted;', 'CustomSoundTray must persist save.data.muted');
+    contains(tray, 'FlxG.save.data.mute = FlxG.sound.muted;', 'CustomSoundTray must keep save.data.mute in sync');
+    contains(tray, 'FlxG.save.flush();', 'CustomSoundTray must flush audio changes so tray-only mutes survive quit');
+
+    contains(helpers, "'masterMuted',", 'OptionsMenuHelpers.addMuteRow() must bind masterMuted');
+    contains(helpers, 'option.readValue = ClientPrefs.readMasterMuted;', 'Mute row must read live mute state');
+    contains(helpers, 'option.onChange = () -> ClientPrefs.assignMasterMuted(ClientPrefs.masterMuted);',
+      'Mute row must route through assignMasterMuted()');
+    contains(audio, 'OptionsMenuHelpers.addMuteRow(this);', 'Options -> Audio must include Mute Audio');
+    contains(misc, 'OptionsMenuHelpers.addMuteRow(this);', 'Options -> Misc must include Mute Audio');
+
+    contains(menu, 'checkbox.daValue = (option.getValue() == true);',
+      'refreshLiveOptions() must refresh live checkbox rows');
+    contains(backup, 'ClientPrefs.syncMasterMuted();', 'SettingsBackup import must sync masterMuted');
   }
 
   static function menuWiring(menu:String, option:String):Void

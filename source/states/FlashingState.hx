@@ -68,18 +68,27 @@ class FlashingState extends MusicBeatState
 			var back:Bool = controls.BACK;
 			if (controls.ACCEPT || back) {
 				leftState = true;
+				FlxG.save.data.photosensitivityWarningPending = false;
 				FlxTransitionableState.skipNextTransIn = true;
 				FlxTransitionableState.skipNextTransOut = true;
 				if(!back) {
 					ClientPrefs.flashing = false;
 					ClientPrefs.saveSettings();
 					FlxG.sound.play(Paths.sound('confirmMenu'));
-					FlxFlicker.flicker(warnText, 1, 0.1, false, true, function(flk:FlxFlicker) {
+					if (ClientPrefs.reducedMotion || ClientPrefs.flashIntensity <= 0) {
 						new FlxTimer().start(0.5, function (tmr:FlxTimer) {
 							FlxG.switchState(TitleState.new);
 						});
-					});
+					} else {
+						FlxFlicker.flicker(warnText, 1, 0.1, false, true, function(flk:FlxFlicker) {
+							new FlxTimer().start(0.5, function (tmr:FlxTimer) {
+								FlxG.switchState(TitleState.new);
+							});
+						});
+					}
 				} else {
+					if (!backend.RecoveryBoot.freshPrefs && FlxG.save.isBound)
+						FlxG.save.flush();
 					FlxG.sound.play(Paths.sound('cancelMenu'));
 					FlxTween.tween(warnText, {alpha: 0}, 1, {
 						onComplete: function (twn:FlxTween) {

@@ -56,13 +56,14 @@ class OptionsState extends MusicBeatState
 	var isEnteringKonamiCode:Bool = false;
 	var options:Array<String> = [
 		'Note Colors', 'Controls', 'Adjust Delay and Combo', 'Graphics', 'Optimization',
-		'Visuals and UI', 'Gameplay', 'Audio', 'Misc'
+		'Visuals and UI', 'Accessibility', 'Gameplay', 'Audio', 'Misc'
 		#if (android || ios), 'Mobile Options' #end
 	];
 	private var grpOptions:FlxTypedGroup<Alphabet>;
 	private static var curSelected:Int = 0;
 	public static var menuBG:FlxSprite; // retained for source/mod compatibility
 	private var optionsBackground:FlxSprite;
+	private var optionsCheckerboard:MovingCheckerboard;
 	public static var onPlayState:Bool = false;
 	public var enteringDebugMenu:Bool = false;
 	private var mainCamera:FlxCamera;
@@ -88,6 +89,8 @@ class OptionsState extends MusicBeatState
 				openSubState(new options.GraphicsSettingsSubState());
 			case 'Visuals and UI':
 				openSubState(new options.VisualsUISubState());
+			case 'Accessibility':
+				openSubState(new options.AccessibilitySubState());
 			case 'Gameplay':
 				openSubState(new options.GameplaySettingsSubState());
 			case 'Optimization':
@@ -158,13 +161,15 @@ class OptionsState extends MusicBeatState
 
 		var yScroll:Float = Math.max(0.25 - (0.05 * (options.length - options.length)), 0.1);
 		optionsBackground = new FlxSprite().loadGraphic(Paths.image('menuDesat'));
-		optionsBackground.color = 0xFFea71fd;
+		optionsBackground.color = ClientPrefs.highContrast ? backend.Accessibility.MENU_BG_HIGH_CONTRAST : backend.Accessibility.MENU_BG_NORMAL;
 		optionsBackground.scrollFactor.set(0, 0);
 		ViewportVisuals.cover(optionsBackground);
 		optionsBackground.y -= 5;
 		optionsBackground.antialiasing = ClientPrefs.globalAntialiasing;
 		add(optionsBackground);
-		add(new MovingCheckerboard(0xFF7EE15A, -12.6, -30.6));
+		optionsCheckerboard = new MovingCheckerboard(0xFF7EE15A, -12.6, -30.6);
+		optionsCheckerboard.alpha = ClientPrefs.highContrast ? 0.08 : 1.0;
+		add(optionsCheckerboard);
 
 		grpOptions = new FlxTypedGroup<Alphabet>();
 		add(grpOptions);
@@ -213,6 +218,10 @@ class OptionsState extends MusicBeatState
 
 	override function closeSubState() {
 		super.closeSubState();
+		if (optionsBackground != null)
+			optionsBackground.color = ClientPrefs.highContrast ? backend.Accessibility.MENU_BG_HIGH_CONTRAST : backend.Accessibility.MENU_BG_NORMAL;
+		if (optionsCheckerboard != null)
+			optionsCheckerboard.alpha = ClientPrefs.highContrast ? 0.08 : 1.0;
 		if (FlxG.sound.music != null && FlxG.sound.music.volume == 0)
 			FlxTween.tween(FlxG.sound.music, {pitch: 1, volume: MenuMusic.targetVolume()}, 2.5, {ease: FlxEase.cubeOut});
 		ClientPrefs.saveSettings();

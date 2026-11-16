@@ -50,6 +50,7 @@ class InitState extends FlxState {
 		if (!backend.RecoveryBoot.freshPrefs) ClientPrefs.loadPrefs();
 		else
 		{
+			ClientPrefs.applyGamepadDeadzone();
 			#if android
 			if (backend.TouchlessUI.isHardwareTouchless())
 				ClientPrefs.androidTVNavigation = true;

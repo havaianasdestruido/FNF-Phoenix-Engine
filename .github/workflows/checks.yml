@@ -150,6 +150,10 @@ jobs:
         run: bash tests/haxe/run-modchart-lab-typecheck.sh
       - name: Test stage dim alpha rules, overlay layering and camera coverage
         run: bash tests/haxe/run-stage-dim.sh
+      - name: Test accuracy presets, perfectWindow default and gamepad deadzone clamping
+        run: bash tests/haxe/run-accuracy-presets.sh
+      - name: Test accessibility palettes, luminance contrast, beat indicator and option rows
+        run: bash tests/haxe/run-accessibility.sh
 
   lua-script-pipeline:
     name: Lua script pipeline (Haxe)

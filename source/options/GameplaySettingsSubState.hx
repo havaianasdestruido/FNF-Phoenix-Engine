@@ -1,16 +1,25 @@
-﻿package options;
+package options;
 
 import backend.Controls;
 import flixel.graphics.FlxGraphic;
 import flixel.input.keyboard.FlxKey;
 
+import backend.AccuracyPresets;
 import backend.ClientPrefs;
 import backend.Conductor; // #43
+import backend.GamepadDeadzone;
 import objects.Note;
 import shaders.CrossFade;
 
 class GameplaySettingsSubState extends BaseOptionsMenu
 {
+	var accuracyPresetOption:Option;
+	var perfectWindowOption:Option;
+	var sickWindowOption:Option;
+	var goodWindowOption:Option;
+	var badWindowOption:Option;
+	var safeFramesOption:Option;
+
 	public function new()
 	{
 		title = 'Gameplay Settings';
@@ -21,6 +30,19 @@ class GameplaySettingsSubState extends BaseOptionsMenu
 			'controllerMode',
 			'bool',
 			false);
+		addOption(option);
+
+		var option:Option = new Option('Gamepad Deadzone',
+			'Minimum analog stick deflection required before controller movement registers.\nLower values feel more responsive; higher values prevent stick drift.',
+			'gamepadDeadzone',
+			'percent',
+			GamepadDeadzone.DEFAULT);
+		option.minValue = GamepadDeadzone.MIN;
+		option.maxValue = GamepadDeadzone.MAX;
+		option.changeValue = GamepadDeadzone.STEP;
+		option.scrollSpeed = 0.4;
+		option.decimals = 2;
+		option.onChange = ClientPrefs.applyGamepadDeadzone;
 		addOption(option);
 
 		// A `link` row: ACCEPT opens the page behind `phoenix://input`.
@@ -214,62 +236,97 @@ class GameplaySettingsSubState extends BaseOptionsMenu
 		option.maxValue = 30;
 		addOption(option);
 
-		var option:Option = new Option('Perfect! Hit Window',
+		ClientPrefs.accuracyPreset = AccuracyPresets.detect(
+			ClientPrefs.perfectWindow,
+			ClientPrefs.sickWindow,
+			ClientPrefs.goodWindow,
+			ClientPrefs.badWindow,
+			ClientPrefs.safeFrames
+		);
+		accuracyPresetOption = new Option('Accuracy Preset:',
+			'Applies a full set of hit windows and Safe Frames at once\n(Vanilla / Psych / Kade / ITG), or switches to Custom when edited.',
+			'accuracyPreset',
+			'string',
+			AccuracyPresets.PSYCH,
+			AccuracyPresets.NAMES);
+		accuracyPresetOption.onChange = onChangeAccuracyPreset;
+		addOption(accuracyPresetOption);
+
+		final initialBounds = AccuracyPresets.bounds(
+			ClientPrefs.perfectWindow,
+			ClientPrefs.sickWindow,
+			ClientPrefs.goodWindow,
+			ClientPrefs.badWindow
+		);
+
+		perfectWindowOption = new Option('Perfect! Hit Window',
 			'Changes the amount of time you have\nfor hitting a "Perfect!" in milliseconds.',
 			'perfectWindow',
 			'float',
-			22.0);
-		option.displayFormat = '%vms';
-		option.scrollSpeed = 15;
-		option.minValue = 1.0;
-		option.maxValue = ClientPrefs.sickWindow - 1.0;
-		addOption(option);
+			AccuracyPresets.DEFAULT_PERFECT);
+		perfectWindowOption.displayFormat = '%vms';
+		perfectWindowOption.scrollSpeed = 15;
+		perfectWindowOption.changeValue = 0.5;
+		perfectWindowOption.decimals = 1;
+		perfectWindowOption.minValue = initialBounds.perfectMin;
+		perfectWindowOption.maxValue = initialBounds.perfectMax;
+		perfectWindowOption.onChange = () -> onTimingWindowEdited(perfectWindowOption, false);
+		addOption(perfectWindowOption);
 
-		var option:Option = new Option('Sick! Hit Window',
+		sickWindowOption = new Option('Sick! Hit Window',
 			'Changes the amount of time you have\nfor hitting a "Sick!" in milliseconds.',
 			'sickWindow',
 			'float',
-			45.0);
-		option.displayFormat = '%vms';
-		option.scrollSpeed = 15;
-		option.minValue = ClientPrefs.perfectWindow + 1.0;
-		option.maxValue = ClientPrefs.goodWindow - 1.0;
-		addOption(option);
+			AccuracyPresets.DEFAULT_SICK);
+		sickWindowOption.displayFormat = '%vms';
+		sickWindowOption.scrollSpeed = 15;
+		sickWindowOption.changeValue = 0.5;
+		sickWindowOption.decimals = 1;
+		sickWindowOption.minValue = initialBounds.sickMin;
+		sickWindowOption.maxValue = initialBounds.sickMax;
+		sickWindowOption.onChange = () -> onTimingWindowEdited(sickWindowOption, false);
+		addOption(sickWindowOption);
 
-		var option:Option = new Option('Good Hit Window',
+		goodWindowOption = new Option('Good Hit Window',
 			'Changes the amount of time you have\nfor hitting a "Good" in milliseconds.',
 			'goodWindow',
 			'float',
-			90.0);
-		option.displayFormat = '%vms';
-		option.scrollSpeed = 30;
-		option.minValue = ClientPrefs.sickWindow + 1.0;
-		option.maxValue = ClientPrefs.badWindow - 1.0;
-		addOption(option);
+			AccuracyPresets.DEFAULT_GOOD);
+		goodWindowOption.displayFormat = '%vms';
+		goodWindowOption.scrollSpeed = 30;
+		goodWindowOption.changeValue = 0.5;
+		goodWindowOption.decimals = 1;
+		goodWindowOption.minValue = initialBounds.goodMin;
+		goodWindowOption.maxValue = initialBounds.goodMax;
+		goodWindowOption.onChange = () -> onTimingWindowEdited(goodWindowOption, false);
+		addOption(goodWindowOption);
 
-		var option:Option = new Option('Bad Hit Window',
+		badWindowOption = new Option('Bad Hit Window',
 			'Changes the amount of time you have\nfor hitting a "Bad" in milliseconds.',
 			'badWindow',
 			'float',
-			135.0);
-		option.displayFormat = '%vms';
-		option.scrollSpeed = 60;
-		option.minValue = ClientPrefs.goodWindow + 1.0;
-		option.maxValue = 135.0;
-		addOption(option);
+			AccuracyPresets.DEFAULT_BAD);
+		badWindowOption.displayFormat = '%vms';
+		badWindowOption.scrollSpeed = 60;
+		badWindowOption.changeValue = 0.5;
+		badWindowOption.decimals = 1;
+		badWindowOption.minValue = initialBounds.badMin;
+		badWindowOption.maxValue = initialBounds.badMax;
+		badWindowOption.onChange = () -> onTimingWindowEdited(badWindowOption, false);
+		addOption(badWindowOption);
 
-		var option:Option = new Option('Safe Frames',
+		safeFramesOption = new Option('Safe Frames',
 			'Changes how many frames you have for\nhitting a note earlier or late.',
 			'safeFrames',
 			'float',
-			10);
-		option.scrollSpeed = 5;
-		option.minValue = 2;
-		option.maxValue = 20;
-		if (ClientPrefs.safeFrames > 10) option.displayFormat = '%v (Will not save)';
-		option.changeValue = 0.1;
-		option.onChange = () -> Conductor.recalculateTimings(); // #43: safeFrames drives safeZoneOffset/timeScale
-		addOption(option);
+			AccuracyPresets.DEFAULT_SAFE_FRAMES);
+		safeFramesOption.scrollSpeed = 5;
+		safeFramesOption.minValue = 2;
+		safeFramesOption.maxValue = 20;
+		safeFramesOption.displayFormat = AccuracyPresets.safeFramesDisplayFormat(ClientPrefs.safeFrames);
+		safeFramesOption.changeValue = 0.1;
+		safeFramesOption.onChange = () -> onTimingWindowEdited(safeFramesOption, true); // #43: safeFrames drives safeZoneOffset/timeScale
+		addOption(safeFramesOption);
 
 		var option:Option = new Option('Voiid-Styled Troll Mode',
 			"If checked, Troll Mode's speed change will behave like in Voiid Chronicles 1.5/2.0",
@@ -324,6 +381,92 @@ class GameplaySettingsSubState extends BaseOptionsMenu
 		if (ClientPrefs.hitsoundType != 'none'){
 			final hitSoundString:String = ClientPrefs.hitsoundType;
 			FlxG.sound.play(Paths.sound("hitsounds/" + Std.string(hitSoundString).toLowerCase()), ClientPrefs.hitsoundVolume);
+		}
+	}
+
+	function onChangeAccuracyPreset():Void
+	{
+		final set = AccuracyPresets.windowsFor(ClientPrefs.accuracyPreset);
+		if (set == null)
+			return; // Custom keeps the player's current window values untouched.
+
+		ClientPrefs.perfectWindow = set.perfect;
+		ClientPrefs.sickWindow = set.sick;
+		ClientPrefs.goodWindow = set.good;
+		ClientPrefs.badWindow = set.bad;
+		ClientPrefs.safeFrames = set.safeFrames;
+		refreshTimingBoundsAndLabels();
+		Conductor.recalculateTimings();
+	}
+
+	function onTimingWindowEdited(editedOption:Option, recalculateSafeZone:Bool):Void
+	{
+		if (editedOption != null && editedOption != safeFramesOption)
+		{
+			final raw:Float = editedOption.getValue();
+			final minVal:Float = editedOption.minValue != null ? editedOption.minValue : 1.0;
+			final maxVal:Float = editedOption.maxValue != null ? editedOption.maxValue : AccuracyPresets.MAX_BAD_WINDOW;
+			if (raw < minVal) editedOption.setValue(minVal);
+			else if (raw > maxVal) editedOption.setValue(maxVal);
+		}
+
+		refreshTimingBoundsAndLabels();
+
+		final detected:String = AccuracyPresets.detect(
+			ClientPrefs.perfectWindow,
+			ClientPrefs.sickWindow,
+			ClientPrefs.goodWindow,
+			ClientPrefs.badWindow,
+			ClientPrefs.safeFrames
+		);
+		ClientPrefs.accuracyPreset = detected;
+		if (accuracyPresetOption != null && accuracyPresetOption.options != null)
+		{
+			final idx:Int = accuracyPresetOption.options.indexOf(detected);
+			if (idx >= 0) accuracyPresetOption.curOption = idx;
+			updateTextFrom(accuracyPresetOption);
+		}
+
+		if (recalculateSafeZone)
+			Conductor.recalculateTimings();
+	}
+
+	function refreshTimingBoundsAndLabels():Void
+	{
+		final b = AccuracyPresets.bounds(
+			ClientPrefs.perfectWindow,
+			ClientPrefs.sickWindow,
+			ClientPrefs.goodWindow,
+			ClientPrefs.badWindow
+		);
+		if (perfectWindowOption != null)
+		{
+			perfectWindowOption.minValue = b.perfectMin;
+			perfectWindowOption.maxValue = b.perfectMax;
+			updateTextFrom(perfectWindowOption);
+		}
+		if (sickWindowOption != null)
+		{
+			sickWindowOption.minValue = b.sickMin;
+			sickWindowOption.maxValue = b.sickMax;
+			updateTextFrom(sickWindowOption);
+		}
+		if (goodWindowOption != null)
+		{
+			goodWindowOption.minValue = b.goodMin;
+			goodWindowOption.maxValue = b.goodMax;
+			updateTextFrom(goodWindowOption);
+		}
+		if (badWindowOption != null)
+		{
+			badWindowOption.minValue = b.badMin;
+			badWindowOption.maxValue = b.badMax;
+			updateTextFrom(badWindowOption);
+		}
+		if (safeFramesOption != null)
+		{
+			safeFramesOption.displayFormat = AccuracyPresets.safeFramesDisplayFormat(ClientPrefs.safeFrames);
+			updateTextFrom(safeFramesOption);
 		}
 	}
 }

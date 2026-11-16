@@ -47,6 +47,7 @@ class SettingsBackup
     // already carried in the `audio` section, and exporting both would let the
     // two disagree after a hand edit.
     'masterVolume',
+    'masterMuted',
     // Internal state managed by backend.LowMemory. A backup carries the
     // selected profile, but never its private snapshot or derived mirror.
     'memoryProfileBaseline',
@@ -153,11 +154,14 @@ class SettingsBackup
     if (decoded.muted != null)
     {
       FlxG.sound.muted = decoded.muted;
+      if (FlxG.sound.volumeHandler != null)
+        FlxG.sound.volumeHandler(FlxG.sound.muted ? 0 : FlxG.sound.volume);
       applied++;
     }
     // Options -> Audio shows the imported volume right away instead of waiting
     // for the next frame it is open.
     ClientPrefs.syncMasterVolume();
+    ClientPrefs.syncMasterMuted();
 
     if (applied == 0)
     {
@@ -337,6 +341,18 @@ class SettingsBackup
     FlxSprite.defaultAntialiasing = ClientPrefs.globalAntialiasing;
     if (Main.fpsVar != null) Main.fpsVar.visible = ClientPrefs.showFPS;
 
+    ClientPrefs.noteColorblindPreset = Accessibility.normalizePreset(ClientPrefs.noteColorblindPreset);
+    ClientPrefs.accuracyPreset = AccuracyPresets.detect(
+      ClientPrefs.perfectWindow,
+      ClientPrefs.sickWindow,
+      ClientPrefs.goodWindow,
+      ClientPrefs.badWindow,
+      ClientPrefs.safeFrames
+    );
+    Conductor.recalculateTimings();
+    ClientPrefs.applyGamepadDeadzone();
+    objects.NoteColors.invalidateCache();
+    objects.MovingCheckerboard.refreshAll();
     ClientPrefs.applyWidescreenPreference();
     ClientPrefs.applyWindowModePreference();
     #if android

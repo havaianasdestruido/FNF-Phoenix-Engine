@@ -172,6 +172,7 @@ second, or Android's system Back) returns to the Options list, the way
 | Optimization | `OptimizationSubState` |
 | Game Rendering *(native desktop or Android, inserted via `PlatformSupport`)* | `GameRendererSettingsSubState` |
 | Visuals and UI | `VisualsUISubState` |
+| Accessibility | `AccessibilitySubState` |
 | Gameplay | `GameplaySettingsSubState` |
 | Audio | `AudioSettingsSubState` |
 | Misc | `MiscSettingsSubState` |
@@ -189,19 +190,22 @@ the Misc substate already open, and `phoenix://menu/audio` does the same for Aud
 
 Almost every option stores its value in `ClientPrefs` and only writes it when the player
 changes the row. A row that mirrors state owned by something else sets `option.live` and
-`option.readValue`: `BaseOptionsMenu.refreshLiveOptions()` re-reads it every frame, so the
-label follows the real value instead of the one the menu was built with.
+`option.readValue`: `BaseOptionsMenu.refreshLiveOptions()` re-reads both text labels and
+live checkboxes every frame, so the row follows the real value instead of the one the menu
+was built with.
 
-**Audio → Master Volume** is the reason this exists. The real volume is
-`FlxG.sound.volume`, which the volume keys, the `objects.CustomSoundTray` popup and
-scripts all change. `ClientPrefs.masterVolume` only mirrors it (percent, default 100%), is
-kept out of the save file and out of `.json` backups (`saveBlackList` / `loadBlackList`,
-`SettingsBackup.NOT_PREFERENCES`) because Flixel's `volume` is the persisted value, and is
-mapped through `backend.VolumeCurve`. That is the tray's logarithmic curve, so the row and
-the keys agree: half the slider is a volume of about `0.03`, not `0.5`. Both lists build the
-row with `OptionsMenuHelpers.addMasterVolumeRow()`, so the copy in **Misc** cannot drift
-away from the one in Audio. Changing it pops the tray like a volume key would, and saves
-with the next `ClientPrefs.saveSettings()`.
+**Audio → Master Volume** and **Mute Audio** are the reason this exists. The real audio
+state is `FlxG.sound.volume` and `FlxG.sound.muted`, which the volume/mute keys, the
+`objects.CustomSoundTray` popup and scripts all change. `ClientPrefs.masterVolume`
+(percent, default 100%) and `ClientPrefs.masterMuted` (bool, default false) only mirror
+them, are kept out of the save file and out of `.json` backups (`saveBlackList` /
+`loadBlackList`, `SettingsBackup.NOT_PREFERENCES`) because Flixel's `volume` and `muted`
+are the persisted values, and map volume through `backend.VolumeCurve`. That is the tray's
+logarithmic curve, so the row and the keys agree: half the slider is a volume of about
+`0.03`, not `0.5`. Both lists build the rows with
+`OptionsMenuHelpers.addMasterVolumeRow()` and `OptionsMenuHelpers.addMuteRow()`, so the
+copies in **Misc** cannot drift away from the ones in Audio. Changing either pops the tray
+like a volume/mute key would, and persists across restarts.
 
 The row exists because a gamepad, a remote or a touchscreen has no way to press `+`/`-`;
 every `FlxSound` multiplies by `FlxG.sound.volume`, so one value covers music, vocals,

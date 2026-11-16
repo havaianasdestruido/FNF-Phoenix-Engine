@@ -17,8 +17,8 @@ class NoteHelpers
 				var newRGB:RGBPalette = new RGBPalette();
 				Note.globalRgbShaders[noteData] = newRGB;
 
-				var arr:Array<FlxColor> = ClientPrefs.noteColorStyle != 'Quant-Based' ? (!PlayState.isPixelStage) ? ClientPrefs.arrowRGB[noteData] : ClientPrefs.arrowRGBPixel[noteData] : ClientPrefs.quantRGB[noteData];
-				if (arr != null && noteData > -1 && noteData <= arr.length)
+				var arr:Array<FlxColor> = ClientPrefs.noteColorStyle != 'Quant-Based' ? NoteColors.laneRGB(noteData, PlayState.isPixelStage) : NoteColors.quantRGB(noteData);
+				if (arr != null && noteData > -1 && arr.length >= 3)
 				{
 					newRGB.r = arr[0];
 					newRGB.g = arr[1];
@@ -35,8 +35,8 @@ class NoteHelpers
 				var newRGB:RGBPalette = new RGBPalette();
 				Note.globalRgbShaders[0] = newRGB;
 
-				var arr:Array<FlxColor> = (!note.pixelNote) ? ClientPrefs.arrowRGB[3] : ClientPrefs.arrowRGBPixel[3];
-				if (noteData > -1)
+				var arr:Array<FlxColor> = NoteColors.laneRGB(3, note.pixelNote);
+				if (noteData > -1 && arr != null && arr.length >= 3)
 				{
 					newRGB.r = arr[0];
 					newRGB.g = arr[1];
@@ -64,8 +64,8 @@ class NoteHelpers
 				var newRGB:RGBPalette = new RGBPalette();
 				Note.globalRgbShaders[noteData] = newRGB;
 
-				var arr:Array<FlxColor> = (!note.pixelNote) ? ClientPrefs.arrowRGB[noteData] : ClientPrefs.arrowRGBPixel[noteData];
-				if (noteData > -1 && noteData <= arr.length)
+				var arr:Array<FlxColor> = NoteColors.laneRGB(noteData, note.pixelNote);
+				if (noteData > -1 && arr != null && arr.length >= 3)
 				{
 					newRGB.r = arr[0];
 					newRGB.g = arr[1];

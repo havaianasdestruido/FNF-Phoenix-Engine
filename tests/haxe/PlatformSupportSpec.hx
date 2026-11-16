@@ -166,6 +166,7 @@ class PlatformSupportSpec
     equal(PlatformSupport.supportsPreference('hitboxType'), PlatformSupport.supports([PlatformSupport.MOBILE]), 'hitbox');
     equal(PlatformSupport.supportsPreference('ffmpegMode'), PlatformSupport.supports([PlatformSupport.VIDEO_RENDER]), 'renderer options');
     equal(PlatformSupport.supportsPreference('autosaveCharts'), PlatformSupport.supports([PlatformSupport.FILESYSTEM]), 'chart autosave');
+    equal(PlatformSupport.supportsPreference('safeMode'), PlatformSupport.supports([PlatformSupport.FILESYSTEM]), 'safeMode requires filesystem');
     equal(PlatformSupport.supportsPreference('deeplinkEnabled'), PlatformSupport.supports([PlatformSupport.DEEPLINK]), 'deeplink toggle');
     equal(PlatformSupport.supportsPreference('distantNotes'), PlatformSupport.supports([PlatformSupport.SHADERS]), 'distant-note shaders');
     final windowMode:Array<String> = PlatformSupport.requirementsForPreference('windowMode');

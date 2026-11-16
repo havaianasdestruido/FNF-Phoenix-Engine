@@ -195,6 +195,14 @@ class ClientPrefs { //default settings if it can't find a save file containing y
 	 * `assignMasterVolume()` so the sound system and the field never disagree.
 	 */
 	public static var masterVolume:Float = 1;
+	/**
+	 * Options -> Audio -> Mute Audio, mirroring `FlxG.sound.muted` in the same way
+	 * `masterVolume` mirrors `FlxG.sound.volume`. Excluded from preference loops via
+	 * `saveBlackList` / `loadBlackList` and `SettingsBackup.NOT_PREFERENCES` because
+	 * `FlxG.sound.muted` is persisted through `flixelSound` (`muted` + legacy `mute`)
+	 * and exported in the `audio` block of settings backups.
+	 */
+	public static var masterMuted:Bool = false;
 
 	//Graphics
 	// Opt in to expanding the viewport; existing 16:9 presentation is the default.
@@ -380,6 +388,7 @@ class ClientPrefs { //default settings if it can't find a save file containing y
 
 	//Gameplay Offset and Window stuff
 	public static var ratingOffset:Int = 0;
+	public static var accuracyPreset:String = AccuracyPresets.PSYCH;
 	public static var perfectWindow:Float = 15.0;
 	public static var sickWindow:Float = 45.0;
 	public static var goodWindow:Float = 90.0;
@@ -428,9 +437,9 @@ class ClientPrefs { //default settings if it can't find a save file containing y
 
 	// i suck at naming things sorry
 	private static var importantMap:Map<String, Array<String>> = [
-		"saveBlackList" => ["keyBinds", "defaultKeys", "defaultArrowRGB", "defaultPixelRGB", "defaultQuantRGB", "masterVolume"],
-		"flixelSound" => ["volume", "sound"],
-		"loadBlackList" => ["keyBinds", "defaultKeys", "defaultArrowRGB", "defaultPixelRGB", "defaultQuantRGB", "masterVolume"],
+		"saveBlackList" => ["keyBinds", "defaultKeys", "defaultArrowRGB", "defaultPixelRGB", "defaultQuantRGB", "masterVolume", "masterMuted"],
+		"flixelSound" => ["volume", "muted"],
+		"loadBlackList" => ["keyBinds", "defaultKeys", "defaultArrowRGB", "defaultPixelRGB", "defaultQuantRGB", "masterVolume", "masterMuted"],
 	];
 
 	public static var defaultArrowRGB:Array<Array<FlxColor>>;
@@ -467,8 +476,13 @@ class ClientPrefs { //default settings if it can't find a save file containing y
 		}
 		LowMemory.endSave();
 
-		if (!RecoveryBoot.freshPrefs) for (flixelS in importantMap.get("flixelSound"))
-			Reflect.setField(FlxG.save.data, flixelS, Reflect.field(FlxG.sound, flixelS));
+		if (!RecoveryBoot.freshPrefs)
+		{
+			for (flixelS in importantMap.get("flixelSound"))
+				Reflect.setField(FlxG.save.data, flixelS, Reflect.field(FlxG.sound, flixelS));
+			// Keep Flixel's legacy `mute` key synchronized with `muted`.
+			FlxG.save.data.mute = FlxG.sound.muted;
+		}
 
 		#if ACHIEVEMENTS_ALLOWED Achievements.save(); #end
 		PlayerStats.save(false);
@@ -493,6 +507,43 @@ class ClientPrefs { //default settings if it can't find a save file containing y
 	 */
 	public static function syncMasterVolume():Void {
 		masterVolume = VolumeCurve.toPercent(FlxG.sound.volume);
+		masterMuted = FlxG.sound.muted;
+	}
+
+	/** Mirrors `FlxG.sound.muted` into `masterMuted` for Options -> Audio / Misc. */
+	public static function syncMasterMuted():Void {
+		masterMuted = FlxG.sound.muted;
+	}
+
+	/** `Option.readValue` for the live Mute Audio checkbox rows. */
+	public static function readMasterMuted():Dynamic {
+		syncMasterMuted();
+		return masterMuted;
+	}
+
+	/**
+	 * Applies a mute toggle from Options -> Audio / Misc to `FlxG.sound.muted`,
+	 * notifies `volumeHandler`, and pops the sound tray (`silent = true` on mute).
+	 */
+	public static function assignMasterMuted(muted:Bool):Void {
+		final target:Bool = (muted == true);
+		if (FlxG.sound.muted == target)
+		{
+			syncMasterMuted();
+			return;
+		}
+		FlxG.sound.muted = target;
+		syncMasterMuted();
+		if (FlxG.sound.volumeHandler != null)
+			FlxG.sound.volumeHandler(FlxG.sound.muted ? 0 : FlxG.sound.volume);
+		FlxG.sound.showSoundTray(!FlxG.sound.muted);
+	}
+
+	/** Clamps `gamepadDeadzone` and applies it to `FlxG.gamepads.globalDeadZone`. */
+	public static function applyGamepadDeadzone():Void {
+		gamepadDeadzone = GamepadDeadzone.clamp(gamepadDeadzone);
+		if (FlxG.gamepads != null)
+			FlxG.gamepads.globalDeadZone = gamepadDeadzone;
 	}
 
 	/**
@@ -581,6 +632,11 @@ class ClientPrefs { //default settings if it can't find a save file containing y
     // Keep the loading dial color on a known preset if the save was edited.
     loadingPieDialColor = LoadingDialLogic.normalizeColor(loadingPieDialColor);
 
+    noteColorblindPreset = Accessibility.normalizePreset(noteColorblindPreset);
+    accuracyPreset = AccuracyPresets.detect(perfectWindow, sickWindow, goodWindow, badWindow, safeFrames);
+    applyGamepadDeadzone();
+    objects.NoteColors.invalidateCache();
+
     // Android owns the display cut-out policy; other builds do not even
     // compile that code path in (see applyCutoutPreference()).
     #if android
@@ -601,7 +657,12 @@ class ClientPrefs { //default settings if it can't find a save file containing y
 			if (flxProp != null)
 				Reflect.setField(FlxG.sound, flixelS, flxProp);
 		}
+		if (Reflect.field(FlxG.save.data, "muted") == null && Reflect.field(FlxG.save.data, "mute") != null)
+			FlxG.sound.muted = (Reflect.field(FlxG.save.data, "mute") == true);
+		if (FlxG.sound.volumeHandler != null)
+			FlxG.sound.volumeHandler(FlxG.sound.muted ? 0 : FlxG.sound.volume);
 		syncMasterVolume();
+		syncMasterMuted();
 
 		#if DISCORD_ALLOWED DiscordClient.check(); #end
 
