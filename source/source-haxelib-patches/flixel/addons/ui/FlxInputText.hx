@@ -157,8 +157,11 @@ class FlxInputText extends FlxText
 
 	/**
 	 * The color of the background of the textbox.
+	 * Defaults to a dark slate (0xFF383A46) to match the dark flixel-ui skin
+	 * (overridden chrome/button/check/radio/tab PNGs registered in project.hxp).
+	 * Callers that want the classic white field must still explicitly pass BackgroundColor = WHITE.
 	 */
-	public var backgroundColor(default, set):Int = FlxColor.WHITE;
+	public var backgroundColor(default, set):Int = 0xFF383A46;
 
 	/**
 	 * A FlxSprite representing the background sprite
@@ -203,8 +206,8 @@ class FlxInputText extends FlxText
 	 * @param	BackgroundColor	The color of the background (FlxColor.TRANSPARENT for no background color)
 	 * @param	EmbeddedFont	Whether this text field uses embedded fonts or not
 	 */
-	public function new(X:Float = 0, Y:Float = 0, Width:Int = 150, ?Text:String, size:Int = 8, TextColor:Int = FlxColor.BLACK,
-			BackgroundColor:Int = FlxColor.WHITE, EmbeddedFont:Bool = true)
+	public function new(X:Float = 0, Y:Float = 0, Width:Int = 150, ?Text:String, size:Int = 8, TextColor:Int = FlxColor.WHITE,
+			BackgroundColor:Int = 0xFF383A46, EmbeddedFont:Bool = true)
 	{
 		super(X, Y, Width, Text, size, EmbeddedFont);
 		backgroundColor = BackgroundColor;

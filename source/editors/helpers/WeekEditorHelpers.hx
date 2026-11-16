@@ -1,5 +1,7 @@
 package editors.helpers;
 
+import objects.ui.CustomFlxUI.CustomFlxUIInputText;
+
 import backend.Paths;
 
 import backend.DiscordClient;
@@ -7,7 +9,6 @@ import backend.WeekData;
 import editors.WeekEditorState;
 import flixel.addons.ui.FlxUI;
 import flixel.addons.ui.FlxUICheckBox;
-import flixel.addons.ui.FlxUIInputText;
 import flixel.FlxG;
 import flixel.text.FlxText;
 import flixel.util.FlxAxes.X;
@@ -29,33 +30,33 @@ class WeekEditorHelpers
 		var tab_group = new FlxUI(null, state.UI_box);
 		tab_group.name = "Week";
 
-		state.songsInputText = new FlxUIInputText(10, 30, 200, '', 8);
+		state.songsInputText = new CustomFlxUIInputText(10, 30, 200, '', 8);
 		state.blockPressWhileTypingOn.push(state.songsInputText);
 		state.songsInputText.focusGained = () -> FlxG.stage.window.textInputEnabled = true;
 
-		state.opponentInputText = new FlxUIInputText(10, state.songsInputText.y + 40, 70, '', 8);
+		state.opponentInputText = new CustomFlxUIInputText(10, state.songsInputText.y + 40, 70, '', 8);
 		state.blockPressWhileTypingOn.push(state.opponentInputText);
 		state.opponentInputText.focusGained = () -> FlxG.stage.window.textInputEnabled = true;
-		state.boyfriendInputText = new FlxUIInputText(state.opponentInputText.x + 75, state.opponentInputText.y, 70, '', 8);
+		state.boyfriendInputText = new CustomFlxUIInputText(state.opponentInputText.x + 75, state.opponentInputText.y, 70, '', 8);
 		state.blockPressWhileTypingOn.push(state.boyfriendInputText);
 		state.boyfriendInputText.focusGained = () -> FlxG.stage.window.textInputEnabled = true;
-		state.girlfriendInputText = new FlxUIInputText(state.boyfriendInputText.x + 75, state.opponentInputText.y, 70, '', 8);
+		state.girlfriendInputText = new CustomFlxUIInputText(state.boyfriendInputText.x + 75, state.opponentInputText.y, 70, '', 8);
 		state.blockPressWhileTypingOn.push(state.girlfriendInputText);
 		state.girlfriendInputText.focusGained = () -> FlxG.stage.window.textInputEnabled = true;
 
-		state.backgroundInputText = new FlxUIInputText(10, state.opponentInputText.y + 40, 120, '', 8);
+		state.backgroundInputText = new CustomFlxUIInputText(10, state.opponentInputText.y + 40, 120, '', 8);
 		state.blockPressWhileTypingOn.push(state.backgroundInputText);
 		state.backgroundInputText.focusGained = () -> FlxG.stage.window.textInputEnabled = true;
 
-		state.displayNameInputText = new FlxUIInputText(10, state.backgroundInputText.y + 60, 200, '', 8);
+		state.displayNameInputText = new CustomFlxUIInputText(10, state.backgroundInputText.y + 60, 200, '', 8);
 		state.blockPressWhileTypingOn.push(state.backgroundInputText);
 		state.displayNameInputText.focusGained = () -> FlxG.stage.window.textInputEnabled = true;
 
-		state.weekNameInputText = new FlxUIInputText(10, state.displayNameInputText.y + 60, 150, '', 8);
+		state.weekNameInputText = new CustomFlxUIInputText(10, state.displayNameInputText.y + 60, 150, '', 8);
 		state.blockPressWhileTypingOn.push(state.weekNameInputText);
 		state.weekNameInputText.focusGained = () -> FlxG.stage.window.textInputEnabled = true;
 
-		state.weekFileInputText = new FlxUIInputText(10, state.weekNameInputText.y + 40, 100, '', 8);
+		state.weekFileInputText = new CustomFlxUIInputText(10, state.weekNameInputText.y + 40, 100, '', 8);
 		state.blockPressWhileTypingOn.push(state.weekFileInputText);
 		state.weekFileInputText.focusGained = () -> FlxG.stage.window.textInputEnabled = true;
 		reloadWeekThing(state);
@@ -106,11 +107,11 @@ class WeekEditorHelpers
 		};
 		state.hiddenUntilUnlockCheckbox.alpha = 0.4;
 
-		state.weekBeforeInputText = new FlxUIInputText(10, state.hiddenUntilUnlockCheckbox.y + 55, 100, '', 8);
+		state.weekBeforeInputText = new CustomFlxUIInputText(10, state.hiddenUntilUnlockCheckbox.y + 55, 100, '', 8);
 		state.blockPressWhileTypingOn.push(state.weekBeforeInputText);
 		state.weekBeforeInputText.focusGained = () -> FlxG.stage.window.textInputEnabled = true;
 
-		state.difficultiesInputText = new FlxUIInputText(10, state.weekBeforeInputText.y + 60, 200, '', 8);
+		state.difficultiesInputText = new CustomFlxUIInputText(10, state.weekBeforeInputText.y + 60, 200, '', 8);
 		state.blockPressWhileTypingOn.push(state.difficultiesInputText);
 		state.difficultiesInputText.focusGained = () -> FlxG.stage.window.textInputEnabled = true;
 
