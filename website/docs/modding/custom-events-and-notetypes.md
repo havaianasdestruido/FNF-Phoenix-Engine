@@ -63,15 +63,18 @@ Select a note in the chart editor and set its type to a name of your choosing, f
 mods/MyMod/custom_notetypes/Hurt Note Plus.lua
 ```
 
-Loaded automatically when the chart contains at least one note of that type.
+Loaded automatically when the chart contains at least one note of that type. `onSpawnNote`'s
+`id` indexes the `notes` group (`sustainNotes` for hold notes), so target that group —
+not `unspawnNotes`:
 
 ```lua
 function onSpawnNote(id, noteData, noteType, isSustainNote, strumTime)
+    local group = isSustainNote and 'sustainNotes' or 'notes'
     if noteType == 'Hurt Note Plus' then
-        setPropertyFromGroup('unspawnNotes', id, 'texture', 'HURTNOTE_assets')
-        setPropertyFromGroup('unspawnNotes', id, 'hitHealth', 0)
-        setPropertyFromGroup('unspawnNotes', id, 'missHealth', 0.5)
-        setPropertyFromGroup('unspawnNotes', id, 'hitCausesMiss', true)
+        setPropertyFromGroup(group, id, 'texture', 'HURTNOTE_assets')
+        setPropertyFromGroup(group, id, 'hitHealth', 0)
+        setPropertyFromGroup(group, id, 'missHealth', 0.5)
+        setPropertyFromGroup(group, id, 'hitCausesMiss', true)
     end
 end
 
@@ -101,6 +104,21 @@ end
 The complete list is on the [`objects.Note`](../reference/objects/Note.md) reference page.
 
 Engine-side configuration for shipped notetypes lives in `backend.NoteTypesConfig`.
+
+If a script swaps in a note atlas the mod does not ship, Phoenix keeps the note's
+current skin instead of blanking it (the missing atlas is logged once). Missing
+sound files are a silent no-op. `onSpawnNote` fires for every spawned note,
+including objects recycled out of the note pool, after the chart's per-note flags
+have been re-applied.
+
+### Ready-made notetypes
+
+`example_mods/custom_notetypes/` ships ready-to-use ports of the Mario Madness custom note
+types as Lua scripts — poison, bad poison, bomb, coin, ring, water, boo, bullet, bullet bill,
+jumpscare and invisible notes — with credits in each header and a readme that explains the
+skins you need to supply. The scripts call no file-read callbacks, so they run under the
+default mod sandbox. Copy what you need into your mod's `custom_notetypes/` folder and chart
+with the matching name.
 
 ## Patterns
 

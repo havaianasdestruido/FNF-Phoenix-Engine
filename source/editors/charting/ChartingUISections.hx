@@ -1,5 +1,11 @@
 package editors.charting;
 
+import objects.ui.CustomFlxUI.CustomFlxUIInputText;
+import objects.ui.CustomFlxUI.CustomFlxUINumericStepper;
+import objects.ui.CustomFlxUI.CustomFlxUISlider;
+import objects.ui.CustomFlxUI.CustomFlxUIDropDownMenu;
+import objects.FlxUIDropDownMenuCustom;
+
 import backend.ClientPrefs;
 import backend.Conductor;
 import backend.CoolUtil;
@@ -9,11 +15,7 @@ import data.Song.SwagSong;
 import editors.ChartingState;
 import flixel.addons.ui.FlxUI;
 import flixel.addons.ui.FlxUICheckBox;
-import flixel.addons.ui.FlxUIInputText;
-import flixel.addons.ui.FlxUINumericStepper;
-import flixel.addons.ui.FlxUISlider;
 import flixel.ui.FlxButton;
-import objects.FlxUIDropDownMenuCustom;
 import objects.Prompt;
 import play.PlayState;
 
@@ -46,7 +48,7 @@ class ChartingUISections
 
   public static function addSongUI(state:ChartingState):Void
   {
-    state.UI_songTitle = new FlxUIInputText(10, 10, 70, state._song.song, 8);
+    state.UI_songTitle = new CustomFlxUIInputText(10, 10, 70, state._song.song, 8);
     state.UI_songTitle.focusGained = () -> FlxG.stage.window.textInputEnabled = true;
     state.blockPressWhileTypingOn.push(state.UI_songTitle);
 
@@ -127,12 +129,12 @@ class ChartingUISections
     clear_notes.color = FlxColor.RED;
     clear_notes.label.color = FlxColor.WHITE;
 
-    var stepperBPM:FlxUINumericStepper = new FlxUINumericStepper(10, 70, 1, 1, 1, 999999, 3);
+    var stepperBPM:CustomFlxUINumericStepper = new CustomFlxUINumericStepper(10, 70, 1, 1, 1, 999999, 3);
     stepperBPM.value = Conductor.bpm;
     stepperBPM.name = 'song_bpm';
     state.blockPressWhileTypingOnStepper.push(stepperBPM);
 
-    var stepperSpeed:FlxUINumericStepper = new FlxUINumericStepper(10, stepperBPM.y + 35, 0.1, 1, 0.1, 100, 1);
+    var stepperSpeed:CustomFlxUINumericStepper = new CustomFlxUINumericStepper(10, stepperBPM.y + 35, 0.1, 1, 0.1, 100, 1);
     stepperSpeed.value = state._song.speed;
     stepperSpeed.name = 'song_speed';
     state.blockPressWhileTypingOnStepper.push(stepperSpeed);
@@ -178,7 +180,7 @@ class ChartingUISections
     }
     #end
 
-    var player1DropDown = new FlxUIDropDownMenuCustom(10, stepperSpeed.y + 45, FlxUIDropDownMenuCustom.makeStrIdLabelArray(characters, true),
+    var player1DropDown = new CustomFlxUIDropDownMenu(10, stepperSpeed.y + 45, FlxUIDropDownMenuCustom.makeStrIdLabelArray(characters, true),
       function(character:String) {
         state._song.player1 = characters[Std.parseInt(character)];
         state.updateJsonData();
@@ -187,7 +189,7 @@ class ChartingUISections
     player1DropDown.selectedLabel = state._song.player1;
     state.blockPressWhileScrolling.push(player1DropDown);
 
-    var gfVersionDropDown = new FlxUIDropDownMenuCustom(player1DropDown.x, player1DropDown.y + 40,
+    var gfVersionDropDown = new CustomFlxUIDropDownMenu(player1DropDown.x, player1DropDown.y + 40,
       FlxUIDropDownMenuCustom.makeStrIdLabelArray(characters, true), function(character:String) {
         state._song.gfVersion = characters[Std.parseInt(character)];
         state.updateJsonData();
@@ -196,7 +198,7 @@ class ChartingUISections
     gfVersionDropDown.selectedLabel = state._song.gfVersion;
     state.blockPressWhileScrolling.push(gfVersionDropDown);
 
-    var player2DropDown = new FlxUIDropDownMenuCustom(player1DropDown.x, gfVersionDropDown.y + 40,
+    var player2DropDown = new CustomFlxUIDropDownMenu(player1DropDown.x, gfVersionDropDown.y + 40,
       FlxUIDropDownMenuCustom.makeStrIdLabelArray(characters, true), function(character:String) {
         state._song.player2 = characters[Std.parseInt(character)];
         state.updateJsonData();
@@ -254,29 +256,29 @@ class ChartingUISections
 
     if (stages.length < 1) stages.push('stage');
 
-    state.stageDropDown = new FlxUIDropDownMenuCustom(player1DropDown.x + 140, player1DropDown.y, FlxUIDropDownMenuCustom.makeStrIdLabelArray(stages, true),
+    state.stageDropDown = new CustomFlxUIDropDownMenu(player1DropDown.x + 140, player1DropDown.y, FlxUIDropDownMenuCustom.makeStrIdLabelArray(stages, true),
       function(character:String) {
         state._song.stage = stages[Std.parseInt(character)];
       });
     state.stageDropDown.selectedLabel = state._song.stage;
     state.blockPressWhileScrolling.push(state.stageDropDown);
 
-    state.UI_songDiff = new FlxUIInputText(state.stageDropDown.x, state.stageDropDown.y + 40, 70, CoolUtil.currentDifficulty, 8);
+    state.UI_songDiff = new CustomFlxUIInputText(state.stageDropDown.x, state.stageDropDown.y + 40, 70, CoolUtil.currentDifficulty, 8);
     state.blockPressWhileTypingOn.push(state.UI_songDiff);
 
-    state.UI_specAudio = new FlxUIInputText(state.stageDropDown.x, state.stageDropDown.y + 70, 70, state.specialAudioName, 8);
+    state.UI_specAudio = new CustomFlxUIInputText(state.stageDropDown.x, state.stageDropDown.y + 70, 70, state.specialAudioName, 8);
     state.blockPressWhileTypingOn.push(state.UI_specAudio);
 
-    state.UI_specEvents = new FlxUIInputText(state.stageDropDown.x, state.stageDropDown.y + 100, 70, state.specialEventsName, 8);
+    state.UI_specEvents = new CustomFlxUIInputText(state.stageDropDown.x, state.stageDropDown.y + 100, 70, state.specialEventsName, 8);
     state.blockPressWhileTypingOn.push(state.UI_specEvents);
 
     var skin = PlayState.SONG.arrowSkin;
     if (skin == null) skin = '';
-    state.noteSkinInputText = new FlxUIInputText(player2DropDown.x, player2DropDown.y + 50, 150, skin, 8);
+    state.noteSkinInputText = new CustomFlxUIInputText(player2DropDown.x, player2DropDown.y + 50, 150, skin, 8);
     state.blockPressWhileTypingOn.push(state.noteSkinInputText);
     state.noteSkinInputText.focusGained = () -> FlxG.stage.window.textInputEnabled = true;
 
-    state.noteSplashesInputText = new FlxUIInputText(state.noteSkinInputText.x, state.noteSkinInputText.y + 35, 150, state._song.splashSkin, 8);
+    state.noteSplashesInputText = new CustomFlxUIInputText(state.noteSkinInputText.x, state.noteSkinInputText.y + 35, 150, state._song.splashSkin, 8);
     state.blockPressWhileTypingOn.push(state.noteSplashesInputText);
     state.noteSplashesInputText.focusGained = () -> FlxG.stage.window.textInputEnabled = true;
 
@@ -338,33 +340,33 @@ class ChartingUISections
     var tab_group_songdata = new FlxUI(null, state.UI_box);
     tab_group_songdata.name = "Data";
 
-    state.creditInputText = new FlxUIInputText(10, 30, 100, state._song.songCredit, 8);
+    state.creditInputText = new CustomFlxUIInputText(10, 30, 100, state._song.songCredit, 8);
     state.blockPressWhileTypingOn.push(state.creditInputText);
     state.creditInputText.focusGained = () -> FlxG.stage.window.textInputEnabled = true;
 
-    state.creditPathInputText = new FlxUIInputText(10, 60, 100, state._song.songCreditBarPath, 8);
+    state.creditPathInputText = new CustomFlxUIInputText(10, 60, 100, state._song.songCreditBarPath, 8);
     state.blockPressWhileTypingOn.push(state.creditPathInputText);
     state.creditPathInputText.focusGained = () -> FlxG.stage.window.textInputEnabled = true;
 
-    state.creditIconInputText = new FlxUIInputText(10, 90, 100, state._song.songCreditIcon, 8);
+    state.creditIconInputText = new CustomFlxUIInputText(10, 90, 100, state._song.songCreditIcon, 8);
     state.blockPressWhileTypingOn.push(state.creditIconInputText);
     state.creditIconInputText.focusGained = () -> FlxG.stage.window.textInputEnabled = true;
 
-    state.winNameInputText = new FlxUIInputText(10, 120, 100, state._song.windowName, 8);
+    state.winNameInputText = new CustomFlxUIInputText(10, 120, 100, state._song.windowName, 8);
     state.blockPressWhileTypingOn.push(state.winNameInputText);
     state.winNameInputText.focusGained = () -> FlxG.stage.window.textInputEnabled = true;
 
     //
-    state.gameOverCharacterInputText = new FlxUIInputText(10, state.winNameInputText.y + 30, 150, state._song.gameOverChar != null ? state._song.gameOverChar : '', 8);
+    state.gameOverCharacterInputText = new CustomFlxUIInputText(10, state.winNameInputText.y + 30, 150, state._song.gameOverChar != null ? state._song.gameOverChar : '', 8);
     state.blockPressWhileTypingOn.push(state.gameOverCharacterInputText);
 
-    state.gameOverSoundInputText = new FlxUIInputText(10, state.gameOverCharacterInputText.y + 35, 150, state._song.gameOverSound != null ? state._song.gameOverSound : '', 8);
+    state.gameOverSoundInputText = new CustomFlxUIInputText(10, state.gameOverCharacterInputText.y + 35, 150, state._song.gameOverSound != null ? state._song.gameOverSound : '', 8);
     state.blockPressWhileTypingOn.push(state.gameOverSoundInputText);
 
-    state.gameOverLoopInputText = new FlxUIInputText(10, state.gameOverSoundInputText.y + 35, 150, state._song.gameOverLoop != null ? state._song.gameOverLoop : '', 8);
+    state.gameOverLoopInputText = new CustomFlxUIInputText(10, state.gameOverSoundInputText.y + 35, 150, state._song.gameOverLoop != null ? state._song.gameOverLoop : '', 8);
     state.blockPressWhileTypingOn.push(state.gameOverLoopInputText);
 
-    state.gameOverEndInputText = new FlxUIInputText(10, state.gameOverLoopInputText.y + 35, 150, state._song.gameOverEnd != null ? state._song.gameOverEnd : '', 8);
+    state.gameOverEndInputText = new CustomFlxUIInputText(10, state.gameOverLoopInputText.y + 35, 150, state._song.gameOverEnd != null ? state._song.gameOverEnd : '', 8);
     state.blockPressWhileTypingOn.push(state.gameOverEndInputText);
     //
 
@@ -417,7 +419,7 @@ class ChartingUISections
     state.check_altAnim = new FlxUICheckBox(state.check_gfSection.x + 120, state.check_gfSection.y, null, null, "Alt Animation", 100);
     state.check_altAnim.checked = (state._song.notes[ChartingState.curSec] != null ? state._song.notes[ChartingState.curSec].altAnim : false);
 
-    state.stepperBeats = new FlxUINumericStepper(10, 100, 1, 4, 1, 8192, 2); // idk why youd need 8k beats in a single section but ok i guess??
+    state.stepperBeats = new CustomFlxUINumericStepper(10, 100, 1, 4, 1, 8192, 2); // idk why youd need 8k beats in a single section but ok i guess??
     state.stepperBeats.value = state.getSectionBeats();
     state.stepperBeats.name = 'section_beats';
     state.blockPressWhileTypingOnStepper.push(state.stepperBeats);
@@ -431,7 +433,7 @@ class ChartingUISections
     state.check_changeBPM.checked = (state._song.notes[ChartingState.curSec] != null ? state._song.notes[ChartingState.curSec].changeBPM : false);
     state.check_changeBPM.name = 'check_changeBPM';
 
-    state.stepperSectionBPM = new FlxUINumericStepper(10, state.check_changeBPM.y + 20, 1, Conductor.bpm, 0, 999999, 1);
+    state.stepperSectionBPM = new CustomFlxUINumericStepper(10, state.check_changeBPM.y + 20, 1, Conductor.bpm, 0, 999999, 1);
     if (state.check_changeBPM.checked)
     {
       state.stepperSectionBPM.value = state._song.notes[ChartingState.curSec].bpm;
@@ -556,7 +558,7 @@ class ChartingUISections
       state.updateGrid(false);
     });
 
-    var stepperCopy:FlxUINumericStepper = null;
+    var stepperCopy:CustomFlxUINumericStepper = null;
     var copyLastButton:FlxButton = new FlxButton(10, swapSection.y + 30, "Copy last section", function() {
       state.saveUndo(state._song); // in case you copy from the wrong section and want to easily undo it
       var value:Int = Std.int(stepperCopy.value);
@@ -602,7 +604,7 @@ class ChartingUISections
     copyLastButton.setGraphicSize(80, 30);
     copyLastButton.updateHitbox();
 
-    stepperCopy = new FlxUINumericStepper(copyLastButton.x + 100, copyLastButton.y, 1, 1, -999, 999, 0);
+    stepperCopy = new CustomFlxUINumericStepper(copyLastButton.x + 100, copyLastButton.y, 1, 1, -999, 999, 0);
     state.blockPressWhileTypingOnStepper.push(stepperCopy);
 
     var duetButton:FlxButton = new FlxButton(10, copyLastButton.y + 45, "Duet Notes", function() {
@@ -702,7 +704,7 @@ class ChartingUISections
     clearRightSectionButton.color = FlxColor.RED;
     clearRightSectionButton.label.color = FlxColor.WHITE;
 
-    var stepperSectionJump:FlxUINumericStepper = new FlxUINumericStepper(clearSectionButton.x, clearSectionButton.y + 30, 1, 0, 0, 999999, 0);
+    var stepperSectionJump:CustomFlxUINumericStepper = new CustomFlxUINumericStepper(clearSectionButton.x, clearSectionButton.y + 30, 1, 0, 0, 999999, 0);
     state.blockPressWhileTypingOnStepper.push(stepperSectionJump);
 
     var jumpSection:FlxButton = new FlxButton(clearSectionButton.x, stepperSectionJump.y + 20, "Jump Section", function() {
@@ -710,16 +712,16 @@ class ChartingUISections
       state.changeSection(value);
     });
 
-    var CopyNextSectionCount:FlxUINumericStepper = new FlxUINumericStepper(jumpSection.x, jumpSection.y + 60, 1, 1, -16384, 16384, 0);
+    var CopyNextSectionCount:CustomFlxUINumericStepper = new CustomFlxUINumericStepper(jumpSection.x, jumpSection.y + 60, 1, 1, -16384, 16384, 0);
     state.blockPressWhileTypingOnStepper.push(CopyNextSectionCount);
 
-    state.CopyLastSectionCount = new FlxUINumericStepper(CopyNextSectionCount.x + 100, CopyNextSectionCount.y, 1, 1, -16384, 16384, 0);
+    state.CopyLastSectionCount = new CustomFlxUINumericStepper(CopyNextSectionCount.x + 100, CopyNextSectionCount.y, 1, 1, -16384, 16384, 0);
     state.blockPressWhileTypingOnStepper.push(state.CopyLastSectionCount);
 
-    state.CopyFutureSectionCount = new FlxUINumericStepper(state.CopyLastSectionCount.x + 70, state.CopyLastSectionCount.y, 1, 1, -16384, 16384, 0);
+    state.CopyFutureSectionCount = new CustomFlxUINumericStepper(state.CopyLastSectionCount.x + 70, state.CopyLastSectionCount.y, 1, 1, -16384, 16384, 0);
     state.blockPressWhileTypingOnStepper.push(state.CopyFutureSectionCount);
 
-    state.CopyLoopCount = new FlxUINumericStepper(state.CopyFutureSectionCount.x - 60, state.CopyLastSectionCount.y + 40, 1, 1, -16384, 16384, 0);
+    state.CopyLoopCount = new CustomFlxUINumericStepper(state.CopyFutureSectionCount.x - 60, state.CopyLastSectionCount.y + 40, 1, 1, -16384, 16384, 0);
     state.blockPressWhileTypingOnStepper.push(state.CopyLoopCount);
 
     state.copyMultiSectButton = new FlxButton(state.CopyFutureSectionCount.x, state.CopyLastSectionCount.y
@@ -834,10 +836,10 @@ class ChartingUISections
     copyNextButton.color = FlxColor.CYAN;
     copyNextButton.label.color = FlxColor.WHITE;
 
-    state.deleteSecStart = new FlxUINumericStepper(state.copyMultiSectButton.x + 80, state.CopyLastSectionCount.y, 1, 1, -16384, 16384, 0);
+    state.deleteSecStart = new CustomFlxUINumericStepper(state.copyMultiSectButton.x + 80, state.CopyLastSectionCount.y, 1, 1, -16384, 16384, 0);
     state.blockPressWhileTypingOnStepper.push(state.deleteSecStart);
 
-    state.deleteSecEnd = new FlxUINumericStepper(state.deleteSecStart.x + 60, state.CopyLastSectionCount.y, 1, 1, -16384, 16384, 0);
+    state.deleteSecEnd = new CustomFlxUINumericStepper(state.deleteSecStart.x + 60, state.CopyLastSectionCount.y, 1, 1, -16384, 16384, 0);
     state.blockPressWhileTypingOnStepper.push(state.deleteSecEnd);
 
     state.deleteSections = new FlxButton(state.deleteSecStart.x
@@ -934,12 +936,12 @@ class ChartingUISections
     var tab_group_note = new FlxUI(null, state.UI_box);
     tab_group_note.name = 'Note';
 
-    state.stepperSusLength = new FlxUINumericStepper(10, 25, Conductor.stepCrochet / 2, 0, 0, Conductor.stepCrochet * 64);
+    state.stepperSusLength = new CustomFlxUINumericStepper(10, 25, Conductor.stepCrochet / 2, 0, 0, Conductor.stepCrochet * 64);
     state.stepperSusLength.value = 0;
     state.stepperSusLength.name = 'note_susLength';
     state.blockPressWhileTypingOnStepper.push(state.stepperSusLength);
 
-    state.strumTimeInputText = new FlxUIInputText(10, 65, 180, "0");
+    state.strumTimeInputText = new CustomFlxUIInputText(10, 65, 180, "0");
     tab_group_note.add(state.strumTimeInputText);
     state.blockPressWhileTypingOn.push(state.strumTimeInputText);
 
@@ -1007,7 +1009,7 @@ class ChartingUISections
       displayNameList[i] = i + '. ' + displayNameList[i];
     }
 
-    state.noteTypeDropDown = new FlxUIDropDownMenuCustom(10, 105, FlxUIDropDownMenuCustom.makeStrIdLabelArray(displayNameList, true), function(character:String) {
+    state.noteTypeDropDown = new CustomFlxUIDropDownMenu(10, 105, FlxUIDropDownMenuCustom.makeStrIdLabelArray(displayNameList, true), function(character:String) {
       state.currentType = Std.parseInt(character);
       if (state.curSelectedNote != null && state.curSelectedNote[1] > -1)
       {
@@ -1062,7 +1064,7 @@ class ChartingUISections
     state.check_stackActive = new FlxUICheckBox(10, 10, null, null, "Enable EZ Spam Mode", 100);
     state.check_stackActive.name = 'check_stackActive';
 
-    state.stepperStackNum = new FlxUINumericStepper(10, 30, 1, 1, 0, 999999, 4);
+    state.stepperStackNum = new CustomFlxUINumericStepper(10, 30, 1, 1, 0, 999999, 4);
     state.stepperStackNum.name = 'stack_count';
     state.blockPressWhileTypingOnStepper.push(state.stepperStackNum);
 
@@ -1080,7 +1082,7 @@ class ChartingUISections
     halfSpamNum.color = FlxColor.RED;
     halfSpamNum.label.color = FlxColor.WHITE;
 
-    state.stepperStackOffset = new FlxUINumericStepper(10, 80, 1, 1, 0, 999999, 4);
+    state.stepperStackOffset = new CustomFlxUINumericStepper(10, 80, 1, 1, 0, 999999, 4);
     state.stepperStackOffset.name = 'stack_offset';
     state.blockPressWhileTypingOnStepper.push(state.stepperStackOffset);
 
@@ -1097,11 +1099,11 @@ class ChartingUISections
     halfSpamMult.color = FlxColor.RED;
     halfSpamMult.label.color = FlxColor.WHITE;
 
-    state.stepperStackSideOffset = new FlxUINumericStepper(10, 140, 1, 0, -9999, 9999);
+    state.stepperStackSideOffset = new CustomFlxUINumericStepper(10, 140, 1, 0, -9999, 9999);
     state.stepperStackSideOffset.name = 'stack_sideways';
     state.blockPressWhileTypingOnStepper.push(state.stepperStackSideOffset);
 
-    state.stepperShrinkAmount = new FlxUINumericStepper(10, state.stepperStackSideOffset.y + 30, 1, 1, 0, 8192, 4);
+    state.stepperShrinkAmount = new CustomFlxUINumericStepper(10, state.stepperStackSideOffset.y + 30, 1, 1, 0, 8192, 4);
     state.stepperShrinkAmount.name = 'shrinker_amount';
     state.blockPressWhileTypingOnStepper.push(state.stepperShrinkAmount);
 
@@ -1139,7 +1141,7 @@ class ChartingUISections
       state.updateGrid(false);
     });
 
-    var stepperShiftSteps:FlxUINumericStepper = new FlxUINumericStepper(10, shrinkNotesButton.y + 30, 1, 1, -8192, 8192, 4);
+    var stepperShiftSteps:CustomFlxUINumericStepper = new CustomFlxUINumericStepper(10, shrinkNotesButton.y + 30, 1, 1, -8192, 8192, 4);
     stepperShiftSteps.name = 'shifter_amount';
     state.blockPressWhileTypingOnStepper.push(stepperShiftSteps);
 
@@ -1154,7 +1156,7 @@ class ChartingUISections
 
     // ok im adding way too many spamcharting features LOL
 
-    var stepperDuplicateAmount:FlxUINumericStepper = new FlxUINumericStepper(10, shiftNotesButton.y + 30, 1, 1, 0, 32, 4);
+    var stepperDuplicateAmount:CustomFlxUINumericStepper = new CustomFlxUINumericStepper(10, shiftNotesButton.y + 30, 1, 1, 0, 32, 4);
     stepperDuplicateAmount.name = 'duplicater_amount';
     state.blockPressWhileTypingOnStepper.push(stepperDuplicateAmount);
 
@@ -1257,7 +1259,7 @@ class ChartingUISections
 
     var text:FlxText = new FlxText(20, 30, 0, "Event:");
     tab_group_event.add(text);
-    state.eventDropDown = new FlxUIDropDownMenuCustom(20, 50, FlxUIDropDownMenuCustom.makeStrIdLabelArray(leEvents, true), function(pressed:String) {
+    state.eventDropDown = new CustomFlxUIDropDownMenu(20, 50, FlxUIDropDownMenuCustom.makeStrIdLabelArray(leEvents, true), function(pressed:String) {
       var selectedEvent:Int = Std.parseInt(pressed);
       state.descText.text = state.eventStuff[selectedEvent][1];
       if (state.curSelectedNote != null && state.eventStuff != null)
@@ -1273,19 +1275,19 @@ class ChartingUISections
 
     var text:FlxText = new FlxText(20, 90, 0, "Value 1:");
     tab_group_event.add(text);
-    state.value1InputText = new FlxUIInputText(20, 110, 100, "");
+    state.value1InputText = new CustomFlxUIInputText(20, 110, 100, "");
     state.blockPressWhileTypingOn.push(state.value1InputText);
     state.value1InputText.focusGained = () -> FlxG.stage.window.textInputEnabled = true;
 
     var text:FlxText = new FlxText(20, 130, 0, "Value 2:");
     tab_group_event.add(text);
-    state.value2InputText = new FlxUIInputText(20, 150, 100, "");
+    state.value2InputText = new CustomFlxUIInputText(20, 150, 100, "");
     state.blockPressWhileTypingOn.push(state.value2InputText);
     state.value2InputText.focusGained = () -> FlxG.stage.window.textInputEnabled = true;
 
     var pressing7Events:Array<String> = ['---', 'None', 'Game Over', 'Go to Song', 'Close Game', 'Play Video'];
 
-    state.event7DropDown = new FlxUIDropDownMenuCustom(160, 300, FlxUIDropDownMenuCustom.makeStrIdLabelArray(pressing7Events, true), function(pressed:String) {
+    state.event7DropDown = new CustomFlxUIDropDownMenu(160, 300, FlxUIDropDownMenuCustom.makeStrIdLabelArray(pressing7Events, true), function(pressed:String) {
       trace('event pressed 1');
       var whatIsIt:Int = Std.parseInt(pressed);
       var selectedEvent:String = pressing7Events[whatIsIt];
@@ -1366,7 +1368,7 @@ class ChartingUISections
     state.selectedEventText.alignment = CENTER;
     tab_group_event.add(state.selectedEventText);
 
-    state.event7InputText = new FlxUIInputText(160, state.event7DropDown.y + 40, 100, state._song.event7Value);
+    state.event7InputText = new CustomFlxUIInputText(160, state.event7DropDown.y + 40, 100, state._song.event7Value);
     state.blockPressWhileTypingOn.push(state.event7InputText);
     state.event7InputText.focusGained = () -> FlxG.stage.window.textInputEnabled = true;
     state.blockPressWhileScrolling.push(state.event7DropDown);
@@ -1529,8 +1531,8 @@ class ChartingUISections
     if (FlxG.save.data.chart_metronome == null) FlxG.save.data.chart_metronome = false;
     state.metronome.checked = FlxG.save.data.chart_metronome;
 
-    state.metronomeStepper = new FlxUINumericStepper(15, 55, 5, state._song.bpm, 1, 1500, 1);
-    state.metronomeOffsetStepper = new FlxUINumericStepper(state.metronomeStepper.x + 100, state.metronomeStepper.y, 25, 0, 0, 1000, 1);
+    state.metronomeStepper = new CustomFlxUINumericStepper(15, 55, 5, state._song.bpm, 1, 1500, 1);
+    state.metronomeOffsetStepper = new CustomFlxUINumericStepper(state.metronomeStepper.x + 100, state.metronomeStepper.y, 25, 0, 0, 1000, 1);
     state.blockPressWhileTypingOnStepper.push(state.metronomeStepper);
     state.blockPressWhileTypingOnStepper.push(state.metronomeOffsetStepper);
 
@@ -1540,17 +1542,17 @@ class ChartingUISections
     if (FlxG.save.data.chart_noAutoScroll == null) FlxG.save.data.chart_noAutoScroll = false;
     state.disableAutoScrolling.checked = FlxG.save.data.chart_noAutoScroll;
 
-    state.instVolume = new FlxUINumericStepper(state.metronomeStepper.x, 250, 0.1, 1, 0, 1, 1);
+    state.instVolume = new CustomFlxUINumericStepper(state.metronomeStepper.x, 250, 0.1, 1, 0, 1, 1);
     state.instVolume.value = FlxG.sound.music.volume;
     state.instVolume.name = 'inst_volume';
     state.blockPressWhileTypingOnStepper.push(state.instVolume);
 
-    state.voicesVolume = new FlxUINumericStepper(state.instVolume.x + 100, state.instVolume.y, 0.1, 1, 0, 1, 1);
+    state.voicesVolume = new CustomFlxUINumericStepper(state.instVolume.x + 100, state.instVolume.y, 0.1, 1, 0, 1, 1);
     state.voicesVolume.value = state.vocals.volume;
     state.voicesVolume.name = 'voices_volume';
     state.blockPressWhileTypingOnStepper.push(state.voicesVolume);
 
-    state.voicesOppVolume = new FlxUINumericStepper(state.instVolume.x + 200, state.instVolume.y, 0.1, 1, 0, 1, 1);
+    state.voicesOppVolume = new CustomFlxUINumericStepper(state.instVolume.x + 200, state.instVolume.y, 0.1, 1, 0, 1, 1);
     state.voicesOppVolume.value = state.vocals.volume;
     state.voicesOppVolume.name = 'voices_opp_volume';
     state.blockPressWhileTypingOnStepper.push(state.voicesOppVolume);
@@ -1559,12 +1561,12 @@ class ChartingUISections
 
     state.hitsoundVol = FlxG.save.data.chart_hitsoundVolume;
 
-    state.hitsoundVolume = new FlxUINumericStepper(state.voicesVolume.x + 100, state.voicesVolume.y + 30, 0.1, state.hitsoundVol, 0, 1, 1);
+    state.hitsoundVolume = new CustomFlxUINumericStepper(state.voicesVolume.x + 100, state.voicesVolume.y + 30, 0.1, state.hitsoundVol, 0, 1, 1);
     state.hitsoundVolume.name = 'hitsound_volume';
     state.blockPressWhileTypingOnStepper.push(state.hitsoundVolume);
 
     #if !html5
-    state.sliderRate = new FlxUISlider(state, 'playbackSpeed', 120, 120, 0.25, 4, 150, 15, 5, FlxColor.WHITE, FlxColor.BLACK);
+    state.sliderRate = new CustomFlxUISlider(state, 'playbackSpeed', 120, 120, 0.25, 4, 150, 15, 5, FlxColor.WHITE, FlxColor.BLACK);
     state.sliderRate.nameLabel.text = 'Playback Rate';
     tab_group_chart.add(state.sliderRate);
     #end

@@ -2,6 +2,10 @@ package shaders;
 
 import openfl.display.Shader;
 
+import shaders.AngelShader;
+import shaders.CamDupeShader;
+import shaders.TwoDinThreeD;
+import shaders.YCBUEndingShader;
 import shaders.BlockedGlitchShader;
 import shaders.BloomShader;
 import shaders.BrightnessContrastShader;
@@ -102,6 +106,13 @@ class ShaderWarmupRegistry
     if (factories != null) return factories;
 
     factories = [
+      'angel' => function():Shader return new AngelShader(),
+      'angelshader' => function():Shader return new AngelShader(),
+      'camdupe' => function():Shader return new CamDupeShader(),
+      'camdupeshader' => function():Shader return new CamDupeShader(),
+      'twodinthreed' => function():Shader return new TwoDinThreeD(),
+      'ycbuending' => function():Shader return new YCBUEndingShader(),
+      'ycbuendingshader' => function():Shader return new YCBUEndingShader(),
       '3d' => function():Shader return new ThreeDShader(),
       '3dshader' => function():Shader return new ThreeDShader(),
       'blockedglitch' => function():Shader return new BlockedGlitchShader(),

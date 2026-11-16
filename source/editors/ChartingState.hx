@@ -1,5 +1,14 @@
 package editors;
 
+import objects.ui.CustomFlxUI.CustomFlxUIInputText;
+import objects.ui.CustomFlxUI.CustomFlxUINumericStepper;
+import objects.ui.CustomFlxUI.CustomFlxUISlider;
+import objects.ui.CustomFlxUI.CustomFlxUITabMenu;
+import objects.ui.CustomFlxUI.CustomFlxUIDropDownMenu;
+import flixel.addons.ui.FlxUIInputText;
+import flixel.addons.ui.FlxUINumericStepper;
+import flixel.addons.ui.FlxUISlider;
+
 import editors.charting.ChartingUISections;
 import editors.charting.ChartingTiming;
 import shaders.RGBPalette.RGBShaderReference;
@@ -21,7 +30,6 @@ import objects.HealthIcon;
 import objects.StrumNote;
 import objects.Note;
 import headers.Objects;
-import objects.FlxUIDropDownMenuCustom;
 import objects.Prompt;
 import data.Song;
 import data.Section;
@@ -32,14 +40,9 @@ import editors.charting.ChartingUIGrid;
 import editors.charting.ChartingUIWaveform;
 import editors.charting.ChartingEvents;
 import editors.charting.SelectionNote;
-import flixel.addons.ui.FlxInputText;
 import flixel.addons.ui.FlxUI9SliceSprite;
 import flixel.addons.ui.FlxUI;
 import flixel.addons.ui.FlxUICheckBox;
-import flixel.addons.ui.FlxUIInputText;
-import flixel.addons.ui.FlxUINumericStepper;
-import flixel.addons.ui.FlxUISlider;
-import flixel.addons.ui.FlxUITabMenu;
 import flixel.group.FlxGroup;
 import flixel.input.keyboard.FlxKey;
 import flixel.ui.FlxButton;
@@ -206,7 +209,7 @@ class ChartingState extends MusicBeatState
 
   var _file:FileReference;
 
-  var UI_box:FlxUITabMenu;
+  var UI_box:CustomFlxUITabMenu;
 
   public static var goToPlayState:Bool = false;
 
@@ -224,7 +227,7 @@ class ChartingState extends MusicBeatState
   var specialEventsName:String = '';
 
   var bpmTxt:FlxText;
-  var songSlider:FlxUISlider;
+  var songSlider:CustomFlxUISlider;
 
   var camPos:FlxObject;
   var strumLine:FlxSprite;
@@ -278,8 +281,8 @@ class ChartingState extends MusicBeatState
   var lilBf:FlxSprite;
   var lilOpp:FlxSprite;
 
-  var value1InputText:FlxUIInputText;
-  var value2InputText:FlxUIInputText;
+  var value1InputText:CustomFlxUIInputText;
+  var value2InputText:CustomFlxUIInputText;
   var currentSongName:String;
   var autosaveIndicator:FlxSprite;
   var hitsound:FlxSound = null;
@@ -289,9 +292,9 @@ class ChartingState extends MusicBeatState
   var zoomList:Array<Float> = [0.0625, 0.125, 0.25, 0.5, 1, 2, 3, 4, 6, 8, 12, 16, 24, 32, 48, 64, 96, 128, 192];
   var curZoom:Int = 4;
 
-  private var blockPressWhileTypingOn:Array<FlxUIInputText> = [];
-  private var blockPressWhileTypingOnStepper:Array<FlxUINumericStepper> = [];
-  private var blockPressWhileScrolling:Array<FlxUIDropDownMenuCustom> = [];
+  private var blockPressWhileTypingOn:Array<CustomFlxUIInputText> = [];
+  private var blockPressWhileTypingOnStepper:Array<CustomFlxUINumericStepper> = [];
+  private var blockPressWhileScrolling:Array<CustomFlxUIDropDownMenu> = [];
 
   var waveformSprite:FlxSprite;
   var gridLayer:FlxTypedGroup<FlxSprite>;
@@ -518,7 +521,7 @@ class ChartingState extends MusicBeatState
       {name: "Note Spamming", label: 'Note Spamming'},
     ];
 
-    UI_box = new FlxUITabMenu(null, tabs, true);
+    UI_box = new CustomFlxUITabMenu(null, tabs, true);
 
     UI_box.resize(300, 400);
     UI_box.x = 640 + GRID_SIZE / 2;
@@ -605,7 +608,7 @@ class ChartingState extends MusicBeatState
     add(nextRenderedSustains);
     add(nextRenderedNotes);
 
-    songSlider = new FlxUISlider(FlxG.sound.music, 'time', 1000, 15, 0, FlxG.sound.music.length, 250, 15, 5);
+    songSlider = new CustomFlxUISlider(FlxG.sound.music, 'time', 1000, 15, 0, FlxG.sound.music.length, 250, 15, 5);
     songSlider.valueLabel.visible = false;
     songSlider.maxLabel.visible = false;
     songSlider.minLabel.visible = false;
@@ -845,14 +848,14 @@ class ChartingState extends MusicBeatState
   var check_warnings:FlxUICheckBox = null;
   var playSoundBf:FlxUICheckBox = null;
   var playSoundDad:FlxUICheckBox = null;
-  var UI_songTitle:FlxUIInputText;
-  var UI_songDiff:FlxUIInputText;
-  var UI_specAudio:FlxUIInputText;
-  var UI_specEvents:FlxUIInputText;
-  var noteSkinInputText:FlxUIInputText;
-  var noteSplashesInputText:FlxUIInputText;
-  var stageDropDown:FlxUIDropDownMenuCustom;
-  var sliderRate:FlxUISlider;
+  var UI_songTitle:CustomFlxUIInputText;
+  var UI_songDiff:CustomFlxUIInputText;
+  var UI_specAudio:CustomFlxUIInputText;
+  var UI_specEvents:CustomFlxUIInputText;
+  var noteSkinInputText:CustomFlxUIInputText;
+  var noteSplashesInputText:CustomFlxUIInputText;
+  var stageDropDown:CustomFlxUIDropDownMenu;
+  var sliderRate:CustomFlxUISlider;
 
   function addSongUI():Void
   {
@@ -869,37 +872,37 @@ class ChartingState extends MusicBeatState
     ChartingSaveLoad.promptBackup(this);
   }
 
-  var gameOverCharacterInputText:FlxUIInputText;
-  var gameOverSoundInputText:FlxUIInputText;
-  var gameOverLoopInputText:FlxUIInputText;
-  var gameOverEndInputText:FlxUIInputText;
-  var creditInputText:FlxUIInputText;
-  var creditPathInputText:FlxUIInputText;
-  var creditIconInputText:FlxUIInputText;
-  var winNameInputText:FlxUIInputText;
+  var gameOverCharacterInputText:CustomFlxUIInputText;
+  var gameOverSoundInputText:CustomFlxUIInputText;
+  var gameOverLoopInputText:CustomFlxUIInputText;
+  var gameOverEndInputText:CustomFlxUIInputText;
+  var creditInputText:CustomFlxUIInputText;
+  var creditPathInputText:CustomFlxUIInputText;
+  var creditIconInputText:CustomFlxUIInputText;
+  var winNameInputText:CustomFlxUIInputText;
 
   function addSongDataUI():Void // therell be more added here later
   {
     ChartingUISections.addSongDataUI(this);
   }
 
-  var stepperBeats:FlxUINumericStepper;
+  var stepperBeats:CustomFlxUINumericStepper;
   var check_mustHitSection:FlxUICheckBox;
   var check_gfSection:FlxUICheckBox;
   var check_changeBPM:FlxUICheckBox;
-  var stepperSectionBPM:FlxUINumericStepper;
+  var stepperSectionBPM:CustomFlxUINumericStepper;
   var check_altAnim:FlxUICheckBox;
   var check_crossFade:FlxUICheckBox;
 
   var sectionToCopy:Int = 0;
   var notesCopied:Array<Dynamic>;
-  var CopyLastSectionCount:FlxUINumericStepper;
-  var CopyFutureSectionCount:FlxUINumericStepper;
-  var CopyLoopCount:FlxUINumericStepper;
+  var CopyLastSectionCount:CustomFlxUINumericStepper;
+  var CopyFutureSectionCount:CustomFlxUINumericStepper;
+  var CopyLoopCount:CustomFlxUINumericStepper;
   var copyMultiSectButton:FlxButton;
 
-  var deleteSecStart:FlxUINumericStepper;
-  var deleteSecEnd:FlxUINumericStepper;
+  var deleteSecStart:CustomFlxUINumericStepper;
+  var deleteSecEnd:CustomFlxUINumericStepper;
   var deleteSections:FlxButton;
 
   function addSectionUI():Void
@@ -907,9 +910,9 @@ class ChartingState extends MusicBeatState
     ChartingUISections.addSectionUI(this);
   }
 
-  var stepperSusLength:FlxUINumericStepper;
-  var strumTimeInputText:FlxUIInputText; // I wanted to use a stepper but we can't scale these as far as i know :(
-  var noteTypeDropDown:FlxUIDropDownMenuCustom;
+  var stepperSusLength:CustomFlxUINumericStepper;
+  var strumTimeInputText:CustomFlxUIInputText; // I wanted to use a stepper but we can't scale these as far as i know :(
+  var noteTypeDropDown:CustomFlxUIDropDownMenu;
   var currentType:Int = 0;
 
   function addNoteUI():Void
@@ -918,21 +921,21 @@ class ChartingState extends MusicBeatState
   }
 
   var check_stackActive:FlxUICheckBox;
-  var stepperStackNum:FlxUINumericStepper;
-  var stepperStackOffset:FlxUINumericStepper;
-  var stepperStackSideOffset:FlxUINumericStepper;
-  var stepperShrinkAmount:FlxUINumericStepper;
+  var stepperStackNum:CustomFlxUINumericStepper;
+  var stepperStackOffset:CustomFlxUINumericStepper;
+  var stepperStackSideOffset:CustomFlxUINumericStepper;
+  var stepperShrinkAmount:CustomFlxUINumericStepper;
 
   function addNoteStackingUI():Void
   {
     ChartingUISections.addNoteStackingUI(this);
   }
 
-  var eventDropDown:FlxUIDropDownMenuCustom;
+  var eventDropDown:CustomFlxUIDropDownMenu;
   var descText:FlxText;
   var selectedEventText:FlxText;
-  var event7DropDown:FlxUIDropDownMenuCustom;
-  var event7InputText:FlxUIInputText;
+  var event7DropDown:CustomFlxUIDropDownMenu;
+  var event7InputText:CustomFlxUIInputText;
 
   function addEventsUI():Void
   {
@@ -951,17 +954,17 @@ class ChartingState extends MusicBeatState
 
   var metronome:FlxUICheckBox;
   var mouseScrollingQuant:FlxUICheckBox;
-  var metronomeStepper:FlxUINumericStepper;
-  var metronomeOffsetStepper:FlxUINumericStepper;
+  var metronomeStepper:CustomFlxUINumericStepper;
+  var metronomeOffsetStepper:CustomFlxUINumericStepper;
   var disableAutoScrolling:FlxUICheckBox;
   var lilBuddiesBox:FlxUICheckBox;
   var saveUndoCheck:FlxUICheckBox;
   var soundEffectsCheck:FlxUICheckBox;
   var idleMusicCheck:FlxUICheckBox;
-  var instVolume:FlxUINumericStepper;
-  var voicesVolume:FlxUINumericStepper;
-  var voicesOppVolume:FlxUINumericStepper;
-  var hitsoundVolume:FlxUINumericStepper;
+  var instVolume:CustomFlxUINumericStepper;
+  var voicesVolume:CustomFlxUINumericStepper;
+  var voicesOppVolume:CustomFlxUINumericStepper;
+  var hitsoundVolume:CustomFlxUINumericStepper;
 
   function addChartingUI()
   {
@@ -1108,9 +1111,9 @@ class ChartingState extends MusicBeatState
         case "Cross Fade":
 					_song.notes[curSec].crossFade = check.checked;
       }
-    } else if (id == FlxUINumericStepper.CHANGE_EVENT && (sender is FlxUINumericStepper))
+    } else if (id == FlxUINumericStepper.CHANGE_EVENT && (sender is CustomFlxUINumericStepper))
     {
-      var nums:FlxUINumericStepper = cast sender;
+      var nums:CustomFlxUINumericStepper = cast sender;
       var wname = nums.name;
       switch (wname)
       {
@@ -1154,7 +1157,7 @@ class ChartingState extends MusicBeatState
         case 'hitsound_volume':
           FlxG.save.data.chart_hitsoundVolume = nums.value;
       }
-    } else if (id == FlxUIInputText.CHANGE_EVENT && (sender is FlxUIInputText))
+    } else if (id == FlxUIInputText.CHANGE_EVENT && (sender is CustomFlxUIInputText))
     {
       if (sender == noteSplashesInputText)
       {
@@ -1189,7 +1192,7 @@ class ChartingState extends MusicBeatState
           }
         }
       }
-    } else if (id == FlxUISlider.CHANGE_EVENT && (sender is FlxUISlider))
+    } else if (id == FlxUISlider.CHANGE_EVENT && (sender is CustomFlxUISlider))
     {
       switch (sender)
       {
@@ -1412,7 +1415,7 @@ class ChartingState extends MusicBeatState
       {
         @:privateAccess
         var leText:Dynamic = stepper.text_field;
-        var leText:FlxUIInputText = leText;
+        var leText:CustomFlxUIInputText = leText;
         if (leText.hasFocus)
         {
           FlxG.sound.muteKeys = [];

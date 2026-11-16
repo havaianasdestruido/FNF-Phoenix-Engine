@@ -1,4 +1,11 @@
 package editors;
+
+import objects.ui.CustomFlxUI.CustomFlxUIInputText;
+import objects.ui.CustomFlxUI.CustomFlxUINumericStepper;
+import objects.ui.CustomFlxUI.CustomFlxUITabMenu;
+import flixel.addons.ui.FlxUIInputText;
+import flixel.addons.ui.FlxUINumericStepper;
+
 import backend.ClientPrefs;
 import backend.DiscordClient;
 import backend.MusicBeatState;
@@ -10,13 +17,9 @@ import objects.MenuCharacter;
 import objects.MenuItem;
 
 import backend.WeekData;
-import flixel.addons.ui.FlxInputText;
 import flixel.addons.ui.FlxUI9SliceSprite;
 import flixel.addons.ui.FlxUI;
 import flixel.addons.ui.FlxUICheckBox;
-import flixel.addons.ui.FlxUIInputText;
-import flixel.addons.ui.FlxUINumericStepper;
-import flixel.addons.ui.FlxUITabMenu;
 import flixel.ui.FlxButton;
 import lime.system.Clipboard;
 import openfl.events.Event;
@@ -114,14 +117,14 @@ class WeekEditorState extends MusicBeatState
 		super.create();
 	}
 
-	var UI_box:FlxUITabMenu;
-	var blockPressWhileTypingOn:Array<FlxUIInputText> = [];
+	var UI_box:CustomFlxUITabMenu;
+	var blockPressWhileTypingOn:Array<CustomFlxUIInputText> = [];
 	function addEditorBox() {
 		var tabs = [
 			{name: 'Week', label: 'Week'},
 			{name: 'Other', label: 'Other'},
 		];
-		UI_box = new FlxUITabMenu(null, tabs, true);
+		UI_box = new CustomFlxUITabMenu(null, tabs, true);
 		UI_box.resize(250, 375);
 		UI_box.x = FlxG.width - UI_box.width;
 		UI_box.y = FlxG.height - UI_box.height;
@@ -155,15 +158,15 @@ class WeekEditorState extends MusicBeatState
 		add(saveWeekButton);
 	}
 
-	var songsInputText:FlxUIInputText;
-	var backgroundInputText:FlxUIInputText;
-	var displayNameInputText:FlxUIInputText;
-	var weekNameInputText:FlxUIInputText;
-	var weekFileInputText:FlxUIInputText;
+	var songsInputText:CustomFlxUIInputText;
+	var backgroundInputText:CustomFlxUIInputText;
+	var displayNameInputText:CustomFlxUIInputText;
+	var weekNameInputText:CustomFlxUIInputText;
+	var weekFileInputText:CustomFlxUIInputText;
 
-	var opponentInputText:FlxUIInputText;
-	var boyfriendInputText:FlxUIInputText;
-	var girlfriendInputText:FlxUIInputText;
+	var opponentInputText:CustomFlxUIInputText;
+	var boyfriendInputText:CustomFlxUIInputText;
+	var girlfriendInputText:CustomFlxUIInputText;
 
 	var hideCheckbox:FlxUICheckBox;
 
@@ -173,8 +176,8 @@ class WeekEditorState extends MusicBeatState
 		WeekEditorHelpers.addWeekUI(this);
 	}
 
-	var weekBeforeInputText:FlxUIInputText;
-	var difficultiesInputText:FlxUIInputText;
+	var weekBeforeInputText:CustomFlxUIInputText;
+	var difficultiesInputText:CustomFlxUIInputText;
 	var lockedCheckbox:FlxUICheckBox;
 	var hiddenUntilUnlockCheckbox:FlxUICheckBox;
 
@@ -201,7 +204,7 @@ class WeekEditorState extends MusicBeatState
 	}
 
 	override function getEvent(id:String, sender:Dynamic, data:Dynamic, ?params:Array<Dynamic>) {
-		if(id == FlxUIInputText.CHANGE_EVENT && (sender is FlxUIInputText)) {
+		if(id == FlxUIInputText.CHANGE_EVENT && (sender is CustomFlxUIInputText)) {
 			if(sender == weekFileInputText) {
 				weekFileName = weekFileInputText.text.trim();
 				reloadWeekThing();
@@ -413,13 +416,13 @@ class WeekEditorFreeplayState extends MusicBeatState
 		super.create();
 	}
 
-	var UI_box:FlxUITabMenu;
-	var blockPressWhileTypingOn:Array<FlxUIInputText> = [];
+	var UI_box:CustomFlxUITabMenu;
+	var blockPressWhileTypingOn:Array<CustomFlxUIInputText> = [];
 	function addEditorBox() {
 		var tabs = [
 			{name: 'Freeplay', label: 'Freeplay'},
 		];
-		UI_box = new FlxUITabMenu(null, tabs, true);
+		UI_box = new CustomFlxUITabMenu(null, tabs, true);
 		UI_box.resize(250, 200);
 		UI_box.x = FlxG.width - UI_box.width - 100;
 		UI_box.y = FlxG.height - UI_box.height - 60;
@@ -456,27 +459,27 @@ class WeekEditorFreeplayState extends MusicBeatState
 	}
 
 	override function getEvent(id:String, sender:Dynamic, data:Dynamic, ?params:Array<Dynamic>) {
-		if(id == FlxUIInputText.CHANGE_EVENT && (sender is FlxUIInputText)) {
+		if(id == FlxUIInputText.CHANGE_EVENT && (sender is CustomFlxUIInputText)) {
 			weekFile.songs[curSelected][1] = iconInputText.text;
 			iconArray[curSelected].changeIcon(iconInputText.text);
-		} else if(id == FlxUINumericStepper.CHANGE_EVENT && (sender is FlxUINumericStepper)) {
+		} else if(id == FlxUINumericStepper.CHANGE_EVENT && (sender is CustomFlxUINumericStepper)) {
 			if(sender == bgColorStepperR || sender == bgColorStepperG || sender == bgColorStepperB) {
 				updateBG();
 			}
 		}
 	}
 
-	var bgColorStepperR:FlxUINumericStepper;
-	var bgColorStepperG:FlxUINumericStepper;
-	var bgColorStepperB:FlxUINumericStepper;
-	var iconInputText:FlxUIInputText;
+	var bgColorStepperR:CustomFlxUINumericStepper;
+	var bgColorStepperG:CustomFlxUINumericStepper;
+	var bgColorStepperB:CustomFlxUINumericStepper;
+	var iconInputText:CustomFlxUIInputText;
 	function addFreeplayUI() {
 		var tab_group = new FlxUI(null, UI_box);
 		tab_group.name = "Freeplay";
 
-		bgColorStepperR = new FlxUINumericStepper(10, 40, 20, 255, 0, 255, 0);
-		bgColorStepperG = new FlxUINumericStepper(80, 40, 20, 255, 0, 255, 0);
-		bgColorStepperB = new FlxUINumericStepper(150, 40, 20, 255, 0, 255, 0);
+		bgColorStepperR = new CustomFlxUINumericStepper(10, 40, 20, 255, 0, 255, 0);
+		bgColorStepperG = new CustomFlxUINumericStepper(80, 40, 20, 255, 0, 255, 0);
+		bgColorStepperB = new CustomFlxUINumericStepper(150, 40, 20, 255, 0, 255, 0);
 
 		var copyColor:FlxButton = new FlxButton(10, bgColorStepperR.y + 25, "Copy Color", function() {
 			Clipboard.text = bg.color.red + ',' + bg.color.green + ',' + bg.color.blue;
@@ -503,7 +506,7 @@ class WeekEditorFreeplayState extends MusicBeatState
 			}
 		});
 
-		iconInputText = new FlxUIInputText(10, bgColorStepperR.y + 70, 100, '', 8);
+		iconInputText = new CustomFlxUIInputText(10, bgColorStepperR.y + 70, 100, '', 8);
 		iconInputText.focusGained = () -> FlxG.stage.window.textInputEnabled = true;
 
 		var hideFreeplayCheckbox:FlxUICheckBox = new FlxUICheckBox(10, iconInputText.y + 30, null, null, "Hide Week from Freeplay?", 100);

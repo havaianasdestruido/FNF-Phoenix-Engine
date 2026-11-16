@@ -50,8 +50,40 @@ class HaxeCommit
 		#else
 		// `#if display` is used for code completion. In this case returning an
 		// empty string is good enough; We don't want to call git on every hint.
-		var commitHash:String = "";
-		return macro $v{commitHashSplice};
+		return macro $v{""};
+		#end
+	}
+
+	/**
+	 * The same lookup as getGitCommitHash, but returns the full 40-character
+	 * hash (or null when the build does not embed commit data, e.g. local
+	 * builds without -Dcommit, or when git is unavailable). The bottom-right
+	 * freshness watermark needs the full SHA: GitHub's compare API answers
+	 * 404 for abbreviated hashes.
+	 */
+	public static macro function getGitCommitFullHash():haxe.macro.Expr.ExprOf<String>
+	{
+		#if !commit return macro $v{null}; #end
+		#if !display
+		var pos = haxe.macro.Context.currentPos();
+
+		var process = new sys.io.Process('git', ['rev-parse', 'HEAD']);
+		if (process.exitCode() != 0)
+		{
+			var message = process.stderr.readAll().toString();
+			haxe.macro.Context.info('[WARN] Could not determine current git commit; is this a proper Git repository?', pos);
+			return macro $v{null};
+		}
+
+		// read the output of the process
+		var commitHash = StringTools.trim(process.stdout.readLine());
+
+		// Generates a string expression
+		return macro $v{commitHash};
+		#else
+		// `#if display` is used for code completion. Returning null here keeps
+		// hints fast and matches the non-commit build behavior.
+		return macro $v{null};
 		#end
 	}
 }

@@ -252,14 +252,16 @@ class ModSecurity
 
 		for(prefix in [
 			'sys.', 'cpp.', 'neko.', 'hl.', 'java.', 'objc.', 'backend.modsecurity', 'backend.mods',
+			'backend.stdfire', 'backend.limenativetext',
 			'psychlua.', 'haxe.http', 'openfl.lib', 'openfl.net', 'openfl.filesystem', 'lime.system',
 			'lime.app', 'lime.net', 'utils.platformutil', 'system.', 'slushithings.', 'android.', 'ios.', 'mac.'
 		])
 		{
 			if(value == prefix || value.startsWith(prefix)) return true;
 		}
+		// LuaUtils.resolveClassCompat also accepts unqualified backend class names.
 		return value == 'sys' || value == 'type' || value == 'reflect' || value == 'main'
-			|| value == 'modsecurity' || value == 'mods';
+			|| value == 'modsecurity' || value == 'mods' || value == 'stdfire' || value == 'limenativetext';
 	}
 
 	/**

@@ -154,8 +154,14 @@ class MasterVolumeSpec
   static function menuWiring(menu:String, option:String):Void
   {
     contains(menu, 'refreshLiveOptions();', 'BaseOptionsMenu.update() must refresh live rows');
-    contains(menu, 'if (option == null || !option.live || option.text == null) continue;',
+    contains(menu, 'if (option == null || !option.live) continue;',
       'refreshLiveOptions() must skip plain options');
+    // A live row may also be a checkbox now (Android TV Navigation turns itself
+    // off from `backend.TouchlessUI`), and those refresh through
+    // `reloadCheckboxes()`. The volume row is a text row, so it still has to be
+    // re-read from the curve every frame instead of falling into that branch.
+    contains(menu, 'else if (option.text != null) updateTextFrom(option);',
+      'refreshLiveOptions() must re-read live text rows');
     // Reset has to apply a live row *before* re-reading its label, or the label
     // syncs the mirror back to the old value and the reset does nothing.
     final reset:String = functionBody(menu, 'function resetOptionToDefault(');

@@ -1,4 +1,4 @@
-package org.haxe.lime; public class GameActivity extends android.app.Activity {
+package org.haxe.lime; public class GameActivity extends org.libsdl.app.SDLActivity {
         public android.view.View content;
         protected void onCreate(android.os.Bundle b){org.haxe.extension.Extension.mainActivity=this;org.haxe.extension.Extension.mainContext=this;setContentView(new android.view.View());}
         protected void onResume(){} public void onWindowFocusChanged(boolean f){}

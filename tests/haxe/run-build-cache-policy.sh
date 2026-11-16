@@ -73,8 +73,41 @@ have_step "Save hxcpp object cache"
 restore=$(step "Restore hxcpp object cache")
 save=$(step "Save hxcpp object cache")
 
-grep -q "uses: actions/cache/restore@v4" <<<"$restore" || fail "restore step must use actions/cache/restore"
-grep -q "uses: actions/cache/save@v4" <<<"$save" || fail "save step must use actions/cache/save"
+# actions/cache's split restore/save entry points, at the same pinned major.
+# The version is deliberately not hardcoded: dependabot bumps it, and what the
+# policy actually needs is that the pair stays in step (a save from a different
+# major than its restore can write an entry the restore cannot read).
+cache_use() {
+  awk 'match($0, /^[[:space:]]*uses: actions\/cache\/(restore|save)@v[0-9]+$/) {
+    sub(/^[[:space:]]*uses: /, "")
+    print
+    exit
+  }' <<<"$1"
+}
+restore_use=$(cache_use "$restore")
+save_use=$(cache_use "$save")
+case "$restore_use" in
+  actions/cache/restore@v*) ;;
+  *) fail "restore step must use actions/cache/restore@vN, got: ${restore_use:-<none>}" ;;
+esac
+case "$save_use" in
+  actions/cache/save@v*) ;;
+  *) fail "save step must use actions/cache/save@vN, got: ${save_use:-<none>}" ;;
+esac
+[ "${restore_use##*@}" = "${save_use##*@}" ] \
+  || fail "cache restore and save must use the same major: $restore_use vs $save_use"
+# Every other cache step in the workflow must agree, or one entry gets written
+# by a major the readers do not use.
+for other in "Restore haxelib and hxcpp tools" "Save haxelib and hxcpp tools" \
+             "Restore Gradle cache" "Save Gradle cache"; do
+  other_use=$(cache_use "$(step "$other")")
+  case "$other_use" in
+    actions/cache/*@v*) ;;
+    *) fail "$other must use actions/cache/restore|save@vN, got: ${other_use:-<none>}" ;;
+  esac
+  [ "${other_use##*@}" = "${restore_use##*@}" ] \
+    || fail "$other pins ${other_use##*@} but the hxcpp cache pins ${restore_use##*@}"
+done
 
 restore_path=$(field path "$restore")
 save_path=$(field path "$save")

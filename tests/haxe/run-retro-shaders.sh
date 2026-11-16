@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Mario Madness shader ports (TODO.md §23.2 "Shaders"): compile the nine new
+# Mario Madness shader ports (TODO.md §23.2 "Shaders"): compile the
 # Shader/Effect pairs plus shaders/EffectTicker.hx unchanged, then run their
 # contract spec in the Haxe interpreter. No game haxelibs needed.
 #
@@ -23,18 +23,19 @@ mkdir -p "$work/shaders" "$work/backend"
 # Production files under test, copied verbatim.
 cp source/shaders/Effect.hx "$work/shaders/"
 cp source/shaders/EffectTicker.hx "$work/shaders/"
-for shader in CRT OldTV TVStatic Ripple Silhouette Mosaic BrightnessContrast VCRBorder VCRFuzz; do
+for shader in CRT OldTV TVStatic Ripple Silhouette Mosaic BrightnessContrast VCRBorder VCRFuzz Angel CamDupe YCBUEnding; do
   cp "source/shaders/${shader}Shader.hx" "$work/shaders/"
   cp "source/shaders/${shader}Effect.hx" "$work/shaders/"
 done
+cp source/shaders/TwoDinThreeD.hx source/shaders/TwoDinThreeDEffect.hx "$work/shaders/"
 
 # Renderer-free stubs for the surfaces those files touch.
 cp -R tests/haxe/stubs/retro-shaders/. "$work/"
 
-# Collect "type name" for every uniform the nine shaders declare, comments
+# Collect "type name" for every uniform the shaders declare, comments
 # stripped so prose cannot invent a uniform.
 declarations=$(
-  sed 's://.*::' "$work"/shaders/*Shader.hx |
+  sed 's://.*::' "$work"/shaders/*Shader.hx "$work"/shaders/TwoDinThreeD.hx |
     grep -oE 'uniform[[:space:]]+(float|bool|int|vec2|vec3|vec4)[[:space:]]+[A-Za-z_][A-Za-z0-9_]*[[:space:]]*;' |
     sed -E 's/^uniform[[:space:]]+//; s/[[:space:]]*;$//' |
     sort -u

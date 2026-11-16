@@ -42,6 +42,9 @@ class MobileOptionsSubState extends BaseOptionsMenu
 {
 	final hintOptions:Array<String> = ["No Gradient", "No Gradient (Old)", "Gradient", "Hidden"];
 
+	/** Last seen state of the TV navigation mode, so an external change is noticed. */
+	private var tvNavWasOn:Bool = ClientPrefs.androidTVNavigation;
+
 	public function new()
 	{
 		title = 'Mobile Options';
@@ -76,11 +79,17 @@ class MobileOptionsSubState extends BaseOptionsMenu
 
 		#if android
 		var option:Option = new Option('Android TV Navigation',
-		'Optimizes menus and gameplay for TV remotes and controllers\n(hides on-screen touch buttons and mouse cursor, enables full Back routing).\nAuto-enabled on Android TV and touchless devices.',
+		'Optimizes menus and gameplay for TV remotes and controllers\n(hides on-screen touch buttons and mouse cursor, enables full Back routing).'
+		+ '\nAuto-enabled on Android TV and touchless devices.'
+		+ '\nTurns itself off when no remote/controller input arrives in its first 5 seconds.',
 		'androidTVNavigation',
 		'bool',
 		false);
 		option.onChange = () -> syncTouchControls();
+		// The controller probe can turn this off on its own, so the row mirrors
+		// the real value instead of keeping a stale checkbox.
+		option.live = true;
+		option.readValue = () -> ClientPrefs.androidTVNavigation;
 		addOption(option);
 		#end
 
@@ -149,6 +158,22 @@ class MobileOptionsSubState extends BaseOptionsMenu
 		addBackupOptions();
 
 		super();
+	}
+
+	/**
+	 * The controller probe (`backend.TouchlessUI`) turns Android TV navigation off
+	 * while this menu is open when no remote/controller input arrives, so rebuild
+	 * the touch controls here instead of leaving them missing until it reopens.
+	 */
+	override function update(elapsed:Float)
+	{
+		super.update(elapsed);
+
+		if (tvNavWasOn != ClientPrefs.androidTVNavigation)
+		{
+			tvNavWasOn = ClientPrefs.androidTVNavigation;
+			syncTouchControls();
+		}
 	}
 
 	function syncTouchControls():Void

@@ -26,6 +26,7 @@
 - **Python scripting:** Hython integration alongside Lua/Luau and HScript, for folder-based mods as well as Haxe source mods. In other wordsm _you can natively make Python only mods, Lua + Python mods and even HScript + Lua + Python mods!_
 - **Gameplay and editor improvements:** V-Slice-style camera zoom, zoom tweening, crossfades, decimal hit windows, and chart editor optimizations.
 - **Platform support:** Android integrations, native platform utilities, Linux GameMode support, (_W.I.P.) Web support and build fixes.
+- **Softmod utilities:** [`stdfire`](website/docs/modding/stdfire.md) provides cross-platform title changes, native message boxes and non-modal warnings to scripts.
 - **Early & Late ratings:** the rating popup also tells you which side of the hit window you landed on, with art for every bundled ratings style and a configurable dead zone. Ported from [Mic'd Up!](https://github.com/Verwex/Funkin-Mic-d-Up-SC). See [Early & Late](docs/EARLY_LATE.md).
 - **Window effects:** transparent windows, window opacity, and click-through controls for overlay mods. See [Transparent Window](docs/TRANSPARENT_WINDOW.md).
 - **Memory profiles (CNE-style Low Memory Mode):** `Off` / `Low` / `Extreme` / `Experimental Extreme` bundles of settings and asset cleanup, with your own values restored when a profile is turned off and a "Free Memory Now" action. The experimental tier sacrifices visuals and compatibility for lower RAM. See [Low Memory Mode](docs/LOW_MEMORY_MODE.md).
@@ -44,6 +45,9 @@ Thanks to the [Phoenix Engine contributors](https://github.com/havaianasdestruid
 JS Engine, and Psych Engine. Early & Late ratings are a port of the feature from
 [Mic'd Up!](https://github.com/Verwex/Funkin-Mic-d-Up-SC) by Verwex; thanks for the idea and the
 reference implementation. Their original README and credits are preserved below.
+The custom note type scripts in `example_mods/custom_notetypes/` are ports of the note types
+hardcoded in [Mario's Madness](https://github.com/Dewott2501/Mario-Madness) by Dewott2501
+(Apache-2.0), shipped as `custom_notetypes` scripts instead of engine code; thanks for the originals.
 
 ---
 

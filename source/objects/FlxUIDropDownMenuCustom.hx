@@ -494,6 +494,13 @@ class FlxUIDropDownMenuCustom extends FlxUIGroup implements IFlxUIWidget impleme
 		(dropPanel.visible) ? showList(false) : showList(true);
 	}
 
+	/** Select a dropdown option by its index, invoking the same callbacks as a click. */
+	public function selectItemByIndex(i:Int):Void
+	{
+		if (i < 0 || i >= list.length) return;
+		onClickItem(i);
+	}
+
 	private function onClickItem(i:Int):Void
 	{
 		var item:FlxUIButton = list[i];

@@ -87,6 +87,18 @@ class CoolUtil
 		return (m / snap);
 	}
 
+	/**
+	 * Wrap an index into `[0, length)` using modulo arithmetic. Callers can add or subtract
+	 * a scroll delta before passing it here to wrap past either end of a list.
+	 */
+	public static function clampIndex(index:Int, length:Int):Int
+	{
+		if (length <= 0) return 0;
+		var i = index % length;
+		if (i < 0) i += length;
+		return i;
+	}
+
 	/** Compatibility wrapper; Phoenix release ordering lives in PhoenixVersion. */
 	public static function isVersionNewer(versionA:String, versionB:String):Bool {
 		return PhoenixVersion.isNewer(versionA, versionB);
