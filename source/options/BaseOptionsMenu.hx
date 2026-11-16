@@ -603,11 +603,19 @@ class BaseOptionsMenu extends MusicBeatSubstate
 	function refreshLiveOptions():Void
 	{
 		if (optionsArray == null) return;
+		var liveCheckbox:Bool = false;
 		for (option in optionsArray)
 		{
-			if (option == null || !option.live || option.text == null) continue;
-			updateTextFrom(option);
+			if (option == null || !option.live) continue;
+			// A live row is a mirror: text rows follow `displayFormat`, bool rows
+			// only need their checkbox re-read below.
+			if (option.type == 'bool') liveCheckbox = true;
+			else if (option.text != null) updateTextFrom(option);
 		}
+		// Android TV Navigation is flipped off by `backend.TouchlessUI` when no
+		// remote/controller input arrives during its probe, so the checkbox has
+		// to follow the real value instead of a stale one.
+		if (liveCheckbox) reloadCheckboxes();
 	}
 
 	function updateTextFrom(option:Option) {
