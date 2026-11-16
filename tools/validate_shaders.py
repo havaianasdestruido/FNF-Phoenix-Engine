@@ -36,6 +36,10 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 
 SHADER_FILES = [
     "source/objects/ColorSwap.hx",
+    "source/shaders/AngelShader.hx",
+    "source/shaders/CamDupeShader.hx",
+    "source/shaders/TwoDinThreeD.hx",
+    "source/shaders/YCBUEndingShader.hx",
     "source/shaders/BlockedGlitchShader.hx",
     "source/shaders/BloomShader.hx",
     "source/shaders/BuildingShader.hx",
@@ -61,6 +65,10 @@ SHADER_FILES = [
 
 # Classes extending backend.FlxFixedShader get the ES 3.00 rewrite on GLES.
 FIXED_SHADER_FILES = {
+    "source/shaders/AngelShader.hx",
+    "source/shaders/CamDupeShader.hx",
+    "source/shaders/TwoDinThreeD.hx",
+    "source/shaders/YCBUEndingShader.hx",
     "source/objects/ColorSwap.hx",
     "source/shaders/DistantNoteShader.hx",
     "source/shaders/RGBPalette.hx",
