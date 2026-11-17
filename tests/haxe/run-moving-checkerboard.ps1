@@ -6,7 +6,9 @@ $haxe = if ($env:HAXE) { $env:HAXE } else { "haxe" }
 
 try {
     New-Item -ItemType Directory -Force (Join-Path $work "objects") | Out-Null
+    New-Item -ItemType Directory -Force (Join-Path $work "backend") | Out-Null
     Copy-Item (Join-Path $root "source/objects/MovingCheckerboard.hx") (Join-Path $work "objects/MovingCheckerboard.hx")
+    Copy-Item (Join-Path $root "source/backend/MenuCheckerTextures.hx") (Join-Path $work "backend/MenuCheckerTextures.hx")
     Copy-Item (Join-Path $root "tests/haxe/stubs/moving-checkerboard/*") $work -Recurse -Force
 
     & $haxe -cp $work -cp (Join-Path $root "tests/haxe") -main MovingCheckerboardSpec --interp

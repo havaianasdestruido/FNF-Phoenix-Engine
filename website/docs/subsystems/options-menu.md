@@ -133,6 +133,15 @@ substate immediately. Disabled instances are both hidden and inactive. The share
 movement, and `ClientPrefs.reducedMotion` leaves the pattern static. See the
 [implementation and Mic'd Up! attribution](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/blob/main/docs/MENU_CHECKERBOARD.md).
 
+The tile itself is a preference too. **Secret Debug Menu → Menu Checker Texture**
+(`ClientPrefs.menuCheckerTexture`, default `checker`) picks which `images/checker*.png`
+every checkerboard repeats — the engine ships `checker`, `checker_fatty`, `checker_folk`,
+`checker_logo` and `checker_lol`, and the row lists those plus any other `checker*` image in
+`assets/preload/images/`. `backend.MenuCheckerTextures` validates the key, so a save naming a
+tile this build does not have falls back to the default instead of blanking the menus, and
+`MovingCheckerboard.refreshAll()` swaps every live instance at once
+(`bash tests/haxe/run-menu-checker-textures.sh`, `bash tests/haxe/run-moving-checkerboard.sh`).
+
 ### Menu music
 
 **Visuals and UI → Menu Music Volume** (`ClientPrefs.menuMusicVolume`, 0–100 %, default

@@ -89,6 +89,13 @@ class ClientPrefs { //default settings if it can't find a save file containing y
 	public static var showRendered:Bool = false;
 	/** Mic'd Up!-inspired animated checker layer used by Phoenix's menu backgrounds. */
 	public static var movingMenuCheckerboard:Bool = true;
+	/**
+	 * Tile the menu checkerboards repeat (Super Secret Debug Menu -> Menu Checker
+	 * Texture): an `images/checker*.png` key, so `checker`, `checker_fatty`, ...
+	 * See `backend.MenuCheckerTextures` for the rules and `objects.MovingCheckerboard`
+	 * for the tiles this build can actually load.
+	 */
+	public static var menuCheckerTexture:String = MenuCheckerTextures.DEFAULT_KEY;
 	/** Menu/UI scale in percent (Options -> Visuals and UI). 100 = original size. */
 	public static var uiScalePercent:Int = 100;
 	public static var botWatermark:Bool = true;
@@ -671,6 +678,10 @@ class ClientPrefs { //default settings if it can't find a save file containing y
 
     // Same for the menu music volume: a corrupted save must not mute the menus.
     menuMusicVolume = MenuMusicLogic.volume(menuMusicVolume);
+
+    // A save can name a checker tile that is not `checker`/`checker_*` (or that
+    // another build removed); the menus must still have a tile to repeat.
+    menuCheckerTexture = MenuCheckerTextures.normalize(menuCheckerTexture);
 
     // Keep the loading dial color on a known preset if the save was edited.
     loadingPieDialColor = LoadingDialLogic.normalizeColor(loadingPieDialColor);
