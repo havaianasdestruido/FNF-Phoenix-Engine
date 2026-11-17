@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 """Galaxy -> Phoenix noteskin port (NOTE_assets).
 
-Galaxy's NOTE_assets carries eight extra frame sets that Phoenix's default
+Galaxy's NOTE_assets carries twelve extra frame sets that Phoenix's default
 skin lacks and that the Galaxy week's M_ charts / Note rendering need:
 
     sblue / sgreen / spurple / sred        (synced static arrows)
     sblue release / sgreen release / spurple release / sred release
+                                            (synced end-of-sustain releases)
+    blue / green / purple / red release    (non-synced end-of-sustain releases)
 
 Galaxy's Note.hx builds the anims 'bluesync'/'redsync'/... from the
 '<color>sync' prefixes ('sblue0') and the '<color>syncrelease' anims from
@@ -29,6 +31,8 @@ from PIL import Image  # noqa: E402
 WANT = [
     'sblue0000', 'sgreen0000', 'spurple0000', 'sred0000',
     'sblue release0000', 'sgreen release0000', 'spurple release0000', 'sred release0000',
+    # non-synced end-of-sustain release frames (Galaxy isEnd non-sync notes)
+    'blue release0000', 'green release0000', 'purple release0000', 'red release0000',
 ]
 CELL = 160
 
@@ -55,6 +59,13 @@ def main():
     proot = ET.parse(p_xml).getroot()
     pim = Image.open(p_png).convert('RGBA')
     W, H = pim.size
+
+    # strip any previously ported copies of these frames from the base
+    # (the committed atlas may already carry some of them)
+    for s in list(proot):
+        if s.attrib.get('name') in WANT:
+            proot.remove(s)
+
     new_w = W + CELL * len(WANT)
     canvas = Image.new('RGBA', (new_w, H), (0, 0, 0, 0))
     canvas.paste(pim, (0, 0))

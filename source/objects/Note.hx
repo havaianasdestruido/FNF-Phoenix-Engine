@@ -139,6 +139,42 @@ class Note extends FlxSprite
 	};
 	public var noteHoldSplash:SustainSplash;
 
+	// ---- Galaxy port (modcharts): per-instance 3D / synced-note state ----
+	public var synced:Bool = false;
+	public var isEnd:Bool = false;
+	public var sustainOrder:Float = 0;
+	public var prevNote:Note;
+	public var spec:Int = 0;
+	public var clones:Array<Note> = [];
+	public var isClone:Bool = false;
+	public var modchartGoodFired:Bool = false;
+	public var offsetWhenDraw:Bool = true;
+	public var rendermode:Int = 0;
+	public var z:Float = 200 / 0.7;
+	public var wx:Float = 0;
+	public var wy:Float = 0;
+	public var pars:Array<Dynamic> = [];
+	public var verticles:Vector<Float>;
+	public var uvtData:Vector<Float>;
+	public var renderer:RenderPath;
+	public var gpix:FlxGraphic = null;
+	public var oalp:Float = 1;
+	public var oanim:String = "";
+	var galRan:Bool = false;
+	private static var galAlphas:Map<String, Map<String, Map<Int, Array<Float>>>> = new Map();
+	private static var galIndexes:Map<String, Map<String, Map<Int, Array<Int>>>> = new Map();
+	private static var galGlist:Array<FlxGraphic> = [];
+
+	/** Galaxy: discard cached triangle-render frames (called by PlayMoving.reset). */
+	public static function refresh()
+	{
+		for (i in galGlist)
+			i.destroy();
+		galAlphas = new Map();
+		galIndexes = new Map();
+		galGlist = [];
+	}
+
 	// Lua callbacks
 	public var noteSplashDisabled:Bool = false;
 
