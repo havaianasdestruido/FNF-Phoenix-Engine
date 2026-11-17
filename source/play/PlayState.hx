@@ -221,6 +221,65 @@ class PlayState extends MusicBeatState
 	public var dad:Character = null;
 	public var gf:Character = null;
 	public var boyfriend:Boyfriend = null;
+
+	// ---- Galaxy port (modcharts) ----
+	/** Instance reference used by the ported modcharts M_* scripts. */
+	public static var playstate:PlayState = null;
+	/** Galaxy's strum marker sprite (only its .y is consumed by PlayMoving). */
+	public var strumLine:FlxSprite;
+	/** Last spawned galaxy note — used to chain Note.prevNote. */
+	public var galaxyPrevNote:Note = null;
+	/** Group for modchart objects (clones) added at runtime by M_* scripts. */
+	public var galaxyObjects:FlxTypedGroup<FlxObject>;
+
+	/** True when the loaded song runs the ported Galaxy modchart layer. */
+	public static function galaxyActive():Bool
+	{
+		if (storyDifficulty == 0) return false;
+		if (SONG == null) return false;
+		switch (SONG.song.toLowerCase())
+		{
+			case 'galaxy', 'game', 'kastimagina', 'familanna', 'cona',
+				'underworld', 'cyber', 'newton', 'destiny', 'peace':
+				return true;
+			default:
+				return false;
+		}
+	}
+
+	/** Galaxy: spawn an extra static strum arrow (modcharts M_* specials). */
+	public function generateStaticArrow(player:Int, strumID:Int, ?type:String = "null", ?spec:Int = 0):StrumNote
+	{
+		var babyArrow:StrumNote = new StrumNote(0, strumLine.y, strumID, player);
+		babyArrow.spec = spec;
+		if (player == 1)
+			playerStrums.add(babyArrow);
+		babyArrow.playAnim('static');
+		strumLineNotes.add(babyArrow);
+		return babyArrow;
+	}
+
+	/** Galaxy: register a modchart object (clones) for update/sort. */
+	public function addObject(obj:FlxObject):Void
+	{
+		galaxyObjects.add(obj);
+	}
+
+	/** Galaxy: remove and destroy a modchart object. */
+	public function destroyObject(obj:FlxObject):Void
+	{
+		obj.kill();
+		galaxyObjects.remove(obj, true);
+		obj.destroy();
+	}
+
+	/** Galaxy: adjust health from modchart specials. */
+	public function changeHealth(amount:Float):Void
+	{
+		if (health > 0 && !usingBotEnergy)
+			health += amount * healthLoss;
+		doDeathCheck();
+	}
 	public var bfNoteskin:String = null;
 	public var dadNoteskin:String = null;
 
@@ -1409,6 +1468,15 @@ class PlayState extends MusicBeatState
 		}
 		generateSong(startOnTime);
 
+		// Galaxy port (modcharts): 3D layer state for this song
+		playstate = this;
+		galaxyPrevNote = null;
+		strumLine = new FlxSprite(0, ClientPrefs.downScroll ? 550 : 50).makeGraphic(FlxG.width, 10);
+		galaxyObjects = new FlxTypedGroup<FlxObject>();
+		add(galaxyObjects);
+		PlayWindow.nreset();
+		PlayMoving.reset();
+
 		// Modchart runtime exists before scripts run so onCreate/onCreatePost
 		// can add modifiers and schedule beat events.
 		PlayStateModchart.setup(this);
@@ -1708,6 +1776,7 @@ class PlayState extends MusicBeatState
 		grpHoldSplashes.cameras = [noteCamera];
 		sustainNotes.cameras = [noteCamera];
 		notes.cameras = [noteCamera];
+		if (galaxyObjects != null) galaxyObjects.cameras = [noteCamera];
 		healthBar.cameras = [camHUD];
 		healthBarBG.cameras = [camHUD];
 		iconP1.cameras = [camHUD];
@@ -2688,8 +2757,35 @@ class PlayState extends MusicBeatState
 				PlayStateNoteHelpers.sortNoteGroup(sustainNotes);
 				// Notes are positioned by followStrum above; the modchart
 				// offsets them from there (multiplicative angle/alpha/scale).
-				PlayStateModchart.updateNotes(this);
-				debug.profiler.HotspotProfiler.end(notesHotspot);
+			PlayStateModchart.updateNotes(this);
+			debug.profiler.HotspotProfiler.end(notesHotspot);
+			}
+
+			// ---- Galaxy port (modcharts): 3D strum positioning + per-frame specials ----
+			if (PlayState.galaxyActive())
+			{
+				var galaxyMustKill:Array<StrumNote> = [];
+				strumLineNotes.forEachAlive(function(dastrum:StrumNote)
+				{
+					PlayMoving.spos(dastrum, strumLine);
+					if (dastrum.mustBeKilled)
+						galaxyMustKill.push(dastrum);
+				});
+				playerStrums.forEachAlive(function(dastrum:StrumNote)
+				{
+					PlayMoving.pspos(dastrum, strumLine);
+				});
+				for (dastrum in galaxyMustKill)
+				{
+					if (dastrum.player == 1)
+						playerStrums.remove(dastrum);
+					strumLineNotes.remove(dastrum);
+					galaxyObjects.remove(dastrum);
+					dastrum.kill();
+					dastrum.destroy();
+				}
+				PlayWindow.move(camHUD);
+				PlayMoving.special(this);
 			}
 
 			final destroyHotspot = debug.profiler.HotspotProfiler.begin("PlayState: destroy notes");
@@ -3350,6 +3446,10 @@ class PlayState extends MusicBeatState
 		PlayStateMetronome.beatHit(this);
 		PlayStateAccessibility.beatHit(this);
 		super.beatHit();
+
+		// Galaxy port (modcharts): per-beat M_* effects
+		if (PlayState.galaxyActive())
+			PlayMoving.beatHit(this, curBeat);
 
 		if (lastBeatHit == curBeat) return;
 

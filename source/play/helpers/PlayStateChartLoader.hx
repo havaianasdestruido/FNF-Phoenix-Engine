@@ -125,6 +125,13 @@ class PlayStateChartLoader
 		var stepCrochet:Float = 15000 / currentBPMLol;
 		var currentMultiplier:Float = 1;
 		var gottaHitNote:Bool = false;
+
+		// ---- Galaxy port (modcharts): special-note resolution state ----
+		final galaxySong:Bool = PlayState.galaxyActive();
+		var galaxyRandoms:Array<Int> = [];
+		var galaxyRandtime:Int = 0;
+		var galaxyPsyList:Array<Float> = [];
+		var galaxySynList:Array<Float> = [];
 		var swagNote:PreloadedChartNote;
 		var ghostNotesCleared:Int = 0;
 		var charChangeIndex:Int = 0;
@@ -190,6 +197,54 @@ class PlayStateChartLoader
 
 					gottaHitNote = (!PlayState.opponentChart ? songNotes[1] < 4 : songNotes[1] > 3) ? mustHitSection : !mustHitSection;
 
+					// ---- Galaxy port: resolve special lanes (10+ = kind, frac = spec) ----
+					var galaxySpec:Int = 0;
+					var galaxySynced:Bool = false;
+					var galaxyHasEnd:Bool = false;
+					if (galaxySong) {
+						final laneFloor:Int = Std.int(Math.floor(songNotes[1]));
+						final galaxyKind:Int = Std.int(laneFloor / 10);
+						galaxySpec = Std.int(Math.round((songNotes[1] * 100) % 100));
+						// side: lane % 10 < 4 = player, > 3 = opponent (raw, per Galaxy)
+						final sideOpponent:Bool = (laneFloor > 3 && laneFloor < 10) || (laneFloor >= 10 && laneFloor % 10 > 3);
+						gottaHitNote = sideOpponent ? !mustHitSection : mustHitSection;
+						switch (galaxyKind) {
+							case 1:
+								daNoteData = FlxG.random.int(0, 3);
+								galaxyRandoms.push(daNoteData);
+							case 2:
+								daNoteData = galaxyRandtime < galaxyRandoms.length ? galaxyRandoms[galaxyRandtime] : 0;
+								galaxyRandtime += 1;
+							case 3:
+								daNoteData = FlxG.random.int(0, 3);
+							case 4:
+								daNoteData = Std.int((laneFloor - 40) % 4);
+								galaxyHasEnd = true;
+						}
+						// synced: same-time same-side sibling in this section, or a
+						// previously recorded end-sustain time within 5ms
+						for (i2 in 0...sectionLength) {
+							final otherTime:Float = sectionNotes[i2][0];
+							if (i2 != i && daStrumTime == otherTime) {
+								final thisSide:Bool = (laneFloor % 10) < 4;
+								final otherSide:Bool = (Std.int(Math.floor(sectionNotes[i2][1])) % 10) < 4;
+								if (thisSide == otherSide) {
+									galaxySynced = true;
+									break;
+								}
+							}
+						}
+						final masync:Array<Float> = gottaHitNote ? galaxyPsyList : galaxySynList;
+						for (syncTime in masync)
+						{
+							if (Math.abs(syncTime - daStrumTime) < 5)
+							{
+								galaxySynced = true;
+								break;
+							}
+						}
+					}
+
 					if ((PlayState.bothSides || gottaHitNote) && songNotes[3] != 'Hurt Note') {
 						state.totalNotes += 1;
 					}
@@ -246,7 +301,9 @@ class PlayStateChartLoader
 						multSpeed: 1,
 						multAlpha: 1,
 						noteDensity: currentMultiplier,
-						ignoreNote: isHurt && gottaHitNote
+						ignoreNote: isHurt && gottaHitNote,
+						galaxySpec: galaxySpec,
+						galaxySynced: galaxySynced
 					};
 					if (!PlayState.isPixelStage && swagNote.noteskin.length > 0)
 					{
@@ -289,15 +346,19 @@ class PlayStateChartLoader
 						}
 					}
 
-					if (swagNote.sustainLength < 1) continue;
+				if (swagNote.sustainLength < 1) continue;
 
-					final roundSus:Int = Math.round(swagNote.sustainLength / stepCrochet);
-					if (roundSus > 0) {
-						final sustainMissHealth:Float = !isHurt ? 0.0475 : 0.1;
-						final sustainIgnore:Bool = isHurt && swagNote.mustPress;
-						for (susNote in 0...roundSus + 1) {
+				final roundSus:Int = Math.round(swagNote.sustainLength / stepCrochet);
+				if (roundSus > 0) {
+					final sustainMissHealth:Float = !isHurt ? 0.0475 : 0.1;
+					final sustainIgnore:Bool = isHurt && swagNote.mustPress;
+					if (galaxySong) {
+						// Galaxy: segments sit one step ahead of the parent (no
+						// overlap), and End-Sustain notes get a release note at the
+						// exact end time.
+						for (susNote in 0...roundSus) {
 							final sustainNote:PreloadedChartNote = {
-								strumTime: daStrumTime + (stepCrochet * susNote),
+								strumTime: daStrumTime + (stepCrochet * (susNote + 1)),
 								noteData: daNoteData,
 								mustPress: PlayState.bothSides || gottaHitNote,
 								oppNote: (PlayState.opponentChart ? gottaHitNote : !gottaHitNote),
@@ -308,7 +369,7 @@ class PlayStateChartLoader
 								noAnimation: noAnimation,
 								noMissAnimation: noAnimation,
 								isSustainNote: true,
-								isSustainEnd: susNote == roundSus,
+								isSustainEnd: false,
 								parentST: swagNote.strumTime,
 								parentSL: swagNote.sustainLength,
 								hitHealth: 0.023,
@@ -318,11 +379,99 @@ class PlayStateChartLoader
 								multAlpha: 1,
 								noteDensity: currentMultiplier,
 								hitCausesMiss: isHurt,
-								ignoreNote: sustainIgnore
+								ignoreNote: sustainIgnore,
+								galaxySpec: galaxySpec,
+								galaxySustainOrder: susNote,
+								galaxySustainTotal: roundSus,
+								galaxyHasEnd: galaxyHasEnd
 							};
 							state.unspawnNotes.push(sustainNote);
 						}
+						if (galaxyHasEnd) {
+							// End-note sync scan (Galaxy generateSong hasEnd block)
+							var endSynced:Bool = false;
+							final endTime:Float = daStrumTime + swagNote.sustainLength;
+							for (ssection in noteData) {
+								for (ssongNotes in ssection.sectionNotes) {
+									final sLaneF:Float = ssongNotes[1];
+									final sLane:Int = Std.int(Math.floor(sLaneF));
+									final ssTime:Float = ssongNotes[0];
+									final ssSus:Float = ssongNotes[2];
+									final hittt:Bool = ssection.mustHitSection == gottaHitNote;
+									if ((sLane % 10 < 4 && hittt) || (sLane % 10 > 3 && !hittt)) {
+										if (Math.abs(endTime - ssTime) < 5) {
+											endSynced = true;
+											(gottaHitNote ? galaxyPsyList : galaxySynList).push(endTime);
+										}
+										if (sLane > 39
+											&& sLane < 50
+											&& Math.abs(endTime - ssTime - ssSus) < 5
+											&& ssongNotes != songNotes)
+										{
+											endSynced = true;
+										}
+									}
+								}
+							}
+							final endNote:PreloadedChartNote = {
+								strumTime: endTime,
+								noteData: daNoteData,
+								mustPress: PlayState.bothSides || gottaHitNote,
+								oppNote: (PlayState.opponentChart ? gottaHitNote : !gottaHitNote),
+								noteType: rawNoteType,
+								animSuffix: rawAnimSuffix,
+								noteskin: noteskin,
+								gfNote: gfNote,
+								noAnimation: noAnimation,
+								noMissAnimation: noAnimation,
+								isSustainNote: false,
+								isSustainEnd: false,
+								parentST: swagNote.strumTime,
+								parentSL: swagNote.sustainLength,
+								hitHealth: 0.023,
+								missHealth: sustainMissHealth,
+								wasHit: false,
+								multSpeed: 1,
+								multAlpha: 1,
+								noteDensity: currentMultiplier,
+								hitCausesMiss: isHurt,
+								ignoreNote: sustainIgnore,
+								galaxySpec: galaxySpec,
+								galaxySynced: endSynced,
+								galaxyIsEnd: true
+							};
+							state.unspawnNotes.push(endNote);
+						}
+					} else {
+					for (susNote in 0...roundSus + 1) {
+						final sustainNote:PreloadedChartNote = {
+							strumTime: daStrumTime + (stepCrochet * susNote),
+							noteData: daNoteData,
+							mustPress: PlayState.bothSides || gottaHitNote,
+							oppNote: (PlayState.opponentChart ? gottaHitNote : !gottaHitNote),
+							noteType: rawNoteType,
+							animSuffix: rawAnimSuffix,
+							noteskin: noteskin,
+							gfNote: gfNote,
+							noAnimation: noAnimation,
+							noMissAnimation: noAnimation,
+							isSustainNote: true,
+							isSustainEnd: susNote == roundSus,
+							parentST: swagNote.strumTime,
+							parentSL: swagNote.sustainLength,
+							hitHealth: 0.023,
+							missHealth: sustainMissHealth,
+							wasHit: false,
+							multSpeed: 1,
+							multAlpha: 1,
+							noteDensity: currentMultiplier,
+							hitCausesMiss: isHurt,
+							ignoreNote: sustainIgnore
+						};
+						state.unspawnNotes.push(sustainNote);
 					}
+					}
+				}
 				} else {
 					final gottaHitNote:Bool = ((songNotes[1] < 4 && !PlayState.opponentChart)
 						|| (songNotes[1] > 3 && PlayState.opponentChart) ? mustHitSection : !mustHitSection);

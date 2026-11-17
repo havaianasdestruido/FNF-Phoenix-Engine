@@ -76,8 +76,13 @@ class ChartingState extends MusicBeatState
       'Hurt Note',
       'GF Sing',
       'No Animation',
-	  'Cross Fade',
-	  'GF Cross Fade'
+	'Cross Fade',
+	  'GF Cross Fade',
+	  // Galaxy port (modcharts): special note types carried by the ported charts
+	  'Galaxy Random',
+	  'Galaxy Sync',
+	  'Galaxy Random Solo',
+	  'Galaxy End Sustain'
     ];
 
   private var noteTypeIntMap:Map<Int, String> = new Map<Int, String>();

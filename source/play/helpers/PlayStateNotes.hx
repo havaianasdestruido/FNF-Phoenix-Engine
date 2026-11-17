@@ -208,6 +208,15 @@ class PlayStateNotes
 					PoolStats.spawn(state.targetNote.isSustainNote ? PoolStats.SUSTAIN : PoolStats.NOTE, poolGroup.length == poolSize);
 					state.spawnedNote.setupNoteData(state.targetNote);
 
+					if (PlayState.galaxyActive())
+					{
+						// Galaxy: sustain chains link through prevNote, and M_peace
+						// watches every spawn for its clone window.
+						state.spawnedNote.prevNote = state.galaxyPrevNote;
+						state.galaxyPrevNote = state.spawnedNote;
+						PlayMoving.clone(state.spawnedNote);
+					}
+
 					if (!ClientPrefs.noSpawnFunc && state.hasActiveScripts()) {
 						var noteIndex = (!state.spawnedNote.isSustainNote ? state.notes.members.indexOf(state.spawnedNote) : state.sustainNotes.members.indexOf(state.spawnedNote));
 						state.callOnLuas('onSpawnNote', [noteIndex, state.targetNote.noteData, state.targetNote.noteType, state.targetNote.isSustainNote, state.targetNote.strumTime]); // #44: documented 5th arg
@@ -224,6 +233,69 @@ class PlayStateNotes
 	{
 		if (daNote != null && daNote.exists)
 		{
+			// ---- Galaxy port (modcharts): 3D positioning / show / kill / ongood ----
+			if (PlayState.galaxyActive())
+			{
+				// Opponent notes: consume them at their hit moment (Galaxy plays
+				// dad's anim + ongood there); skip the stock early consumption.
+				if (!daNote.mustPress && !daNote.hitByOpponent && !daNote.ignoreNote && daNote.strumTime <= Conductor.songPosition)
+				{
+					daNote.wasGoodHit = true;
+					opponentNoteHit(state, daNote);
+				}
+				if (daNote.mustPress) {
+					if((state.cpuControlled || state.usingBotEnergy && state.strumsHeld[daNote.noteData]) && !daNote.wasGoodHit && daNote.strumTime <= Conductor.songPosition && !daNote.ignoreNote)
+						goodNoteHit(state, daNote);
+				}
+
+				if (PlayMoving.show(daNote))
+				{
+					daNote.visible = true;
+					daNote.active = true;
+				}
+				else
+				{
+					daNote.visible = false;
+					daNote.active = false;
+				}
+
+				PlayMoving.pos(daNote, state.strumLine);
+				PlayMoving.shape(daNote, state.strumLine, state.camHUD);
+
+				if (daNote.wasGoodHit && !daNote.modchartGoodFired)
+				{
+					daNote.modchartGoodFired = true;
+					PlayMoving.ongood(daNote);
+				}
+
+				if (daNote.tooLate && !daNote.played && daNote.mustPress && !daNote.isLastSustain)
+				{
+					daNote.played = true;
+					noteMiss(state, daNote);
+				}
+
+				// Galaxy: hit notes (and released sustain tips) are destroyed;
+				// unmissed notes past their kill point as well.
+				if ((!daNote.mustPress || daNote.isLastSustain) && daNote.wasGoodHit)
+				{
+					daNote.active = false;
+					daNote.visible = false;
+					PlayStateNoteHelpers.invalidateNote(state, daNote);
+				}
+				else if (PlayMoving.kill(daNote))
+				{
+					if (!daNote.played && daNote.mustPress && !daNote.isLastSustain)
+					{
+						daNote.played = true;
+						noteMiss(state, daNote);
+					}
+					daNote.active = false;
+					daNote.visible = false;
+					PlayStateNoteHelpers.invalidateNote(state, daNote);
+				}
+				return;
+			}
+
 			//first, process whether or not the note should be hit. this prevents pointless strum following
 			if (!daNote.mustPress && !daNote.hitByOpponent && !daNote.ignoreNote && daNote.strumTime <= Conductor.songPosition)
 				opponentNoteHit(state, daNote);

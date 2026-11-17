@@ -68,6 +68,19 @@ fi
 # signals.hx for hython
 g signals.hx  https://github.com/PaoPaoGH/signals.hx               main
 
+# hython: haxelib git's clone is SSL-EOF flaky here; fall back to manual clone
+if ! haxelib path hython >/dev/null 2>&1 || [ ! -f "$HOME/haxelib/hython/git/.git/HEAD" ]; then
+  say "haxelib: hython (manual clone fallback)"
+  rm -rf "$HOME/haxelib/hython"
+  git clone --quiet https://github.com/PaoPaoGH/Hython "$HOME/haxelib/hython/git" && echo git > "$HOME/haxelib/hython/.current"
+fi
+
+say "galaxy mod reference clone (/tmp/galaxy)"
+if [ ! -d /tmp/galaxy/.git ]; then
+  rm -rf /tmp/galaxy
+  git clone --quiet --depth 1 https://github.com/Allen98637/GalaxyMod.git /tmp/galaxy || echo "FAIL /tmp/galaxy"
+fi
+
 say "sanity: haxelib path checks"
 for l in flixel flixel-addons flixel-ui grig.audio hython; do
   echo -n "$l -> "

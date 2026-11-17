@@ -11,6 +11,12 @@ import play.PlayState;
 import play.objects.SustainSplash;
 import shaders.RGBPalette;
 
+// Galaxy port (modcharts)
+import flixel.graphics.FlxGraphic;
+import flixel.graphics.tile.FlxDrawTrianglesItem.DrawData;
+import modcharts.RenderPath;
+import openfl.Vector;
+
 typedef EventNote = {
 	strumTime:Float,
 	event:String,
@@ -45,6 +51,14 @@ typedef EventNote = {
 	public var ignoreNote:Bool = false;
 	public var blockHit:Bool = false;
 	public var lowPriority:Bool = false;
+
+	// Galaxy port (modcharts): resolved special-note metadata
+	public var galaxySpec:Int = 0;
+	public var galaxySynced:Bool = false;
+	public var galaxyIsEnd:Bool = false;
+	public var galaxySustainOrder:Float = 0;
+	public var galaxySustainTotal:Float = 0;
+	public var galaxyHasEnd:Bool = false;
 
 	public function dispose() {
 		// will be cleared by the GC later
@@ -123,6 +137,10 @@ class Note extends FlxSprite
 	public static final SUSTAIN_SIZE:Int = 44;
 	public static final swagWidth:Float = 160 * 0.7;
 
+	// Galaxy port: per-lane note size (set on first construction per lane)
+	public static var noteWidth:Array<Float> = [0, 0, 0, 0];
+	public static var noteHeight:Array<Float> = [0, 0, 0, 0];
+
 	public static final colArray:Array<String> = ['purple', 'blue', 'green', 'red'];
 	public static var defaultNoteSkin(default, never):String = 'noteskins/NOTE_assets';
 
@@ -142,6 +160,8 @@ class Note extends FlxSprite
 	// ---- Galaxy port (modcharts): per-instance 3D / synced-note state ----
 	public var synced:Bool = false;
 	public var isEnd:Bool = false;
+	public var isLastSustain:Bool = false;
+	public var played:Bool = false;
 	public var sustainOrder:Float = 0;
 	public var prevNote:Note;
 	public var spec:Int = 0;
@@ -323,14 +343,21 @@ class Note extends FlxSprite
 		});
 	}
 
-	public function new(?newStrumTime:Float, ?newNoteData:Int)
+	public function new(?newStrumTime:Float, ?newNoteData:Int, ?prevNote:Note = null, ?sync:Bool = false, ?sustainNote:Bool = false, ?endNote:Bool = false)
 	{
 		super();
 
 		pixelNote = PlayState.isPixelStage;
 
-		if (!Math.isNaN(newNoteData) && pixelNote) noteData = newNoteData;
+		if (!Math.isNaN(newNoteData)) noteData = newNoteData;
 		if (!Math.isNaN(newStrumTime)) strumTime = newStrumTime;
+
+		// Galaxy port (modcharts): clones are constructed fully spec'd (M_peace)
+		if (prevNote != null) this.prevNote = prevNote;
+		else this.prevNote = this;
+		if (sync) synced = true;
+		if (endNote) isEnd = true;
+		if (sustainNote) isSustainNote = true;
 
 		y -= 2000;
 		antialiasing = ClientPrefs.globalAntialiasing && !pixelNote;
@@ -345,6 +372,28 @@ class Note extends FlxSprite
 				if(PlayState.SONG != null && PlayState.SONG.disableNoteRGB) useRGBShader = false;
 			}
 			else useRGBShader = false;
+		}
+
+		// Galaxy port: record per-lane arrow size for 3D projection offsets.
+		if (noteData >= 0 && noteData < 4 && !isSustainNote && !isEnd)
+		{
+			noteWidth[noteData] = width;
+			noteHeight[noteData] = height;
+		}
+
+		// Galaxy port (modcharts): directly-constructed notes (M_peace clones)
+		// play their initial anim here; pooled notes are driven by setupNoteData.
+		if (!Math.isNaN(newNoteData) && !pixelNote && animation != null)
+		{
+			if (isSustainNote)
+				animation.play(colArray[noteData] + 'holdend');
+			else if (isEnd)
+				animation.play(synced ? colArray[noteData] + 'syncrelease' : colArray[noteData] + 'release');
+			else if (synced)
+				animation.play(colArray[noteData] + 'sync');
+			else
+				animation.play(colArray[noteData] + 'Scroll');
+			updateHitbox();
 		}
 	}
 
@@ -413,6 +462,10 @@ class Note extends FlxSprite
 				animation.addByPrefix(colArray[noteData] + 'holdend', colArray[noteData] + ' hold end');
 				animation.addByPrefix(colArray[noteData] + 'hold', colArray[noteData] + ' hold piece');
 			}
+			// Galaxy port: synced arrows, end-of-sustain releases
+			animation.addByPrefix(colArray[noteData] + 'sync', 's' + colArray[noteData] + '0');
+			animation.addByPrefix(colArray[noteData] + 'syncrelease', 's' + colArray[noteData] + ' release');
+			animation.addByPrefix(colArray[noteData] + 'release', colArray[noteData] + ' release');
 			setGraphicSize(Std.int(width * 0.7));
 			if(!isSustainNote)
 			{
@@ -786,6 +839,66 @@ class Note extends FlxSprite
 			if (alpha != 1) alpha = 1;
 		}
 		if (flipY) flipY = false;
+
+		// ---- Galaxy port (modcharts): per-note state + synced/end resolution ----
+		spec = chartNoteData.galaxySpec;
+		synced = chartNoteData.galaxySynced;
+		isEnd = chartNoteData.galaxyIsEnd;
+		sustainOrder = chartNoteData.galaxySustainOrder;
+		played = false;
+		isLastSustain = false;
+		modchartGoodFired = false;
+		offsetWhenDraw = true;
+		rendermode = 0;
+		verticles = null;
+		uvtData = null;
+		renderer = null;
+		gpix = null;
+		oalp = 1;
+		oanim = '';
+		z = 200 / 0.7;
+		wx = 0;
+		wy = 0;
+		prevNote = null; // chain is wired in PlayStateNotes.spawnNotes
+
+		if (PlayState.galaxyActive())
+		{
+			if (isSustainNote)
+			{
+				// Galaxy: hold pieces stretch once the next segment exists; the
+				// final cap stays unscaled unless an End-Sustain note follows.
+				var isFinalCap:Bool = Std.int(sustainOrder) == Std.int(chartNoteData.galaxySustainTotal) - 1 && !chartNoteData.galaxyHasEnd;
+				if (isFinalCap)
+				{
+					animation.play(colArray[noteData] + 'holdend');
+				}
+				else
+				{
+					scale.set(scale.x, Conductor.stepCrochet / 100 * 1.5 * PlayState.SONG.speed);
+					updateHitbox();
+					animation.play(colArray[noteData] + 'hold');
+				}
+			}
+			else if (isEnd)
+			{
+				if (synced) animation.play(colArray[noteData] + 'syncrelease');
+				else animation.play(colArray[noteData] + 'release');
+			}
+			else if (synced)
+			{
+				animation.play(colArray[noteData] + 'sync');
+			}
+			// align with the actual strum x (Phoenix strums sit 48px right of
+			// Galaxy's 50px origin); M_ songs that drive x override per-frame.
+			final galStrums:FlxTypedGroup<StrumNote> = mustPress ? PlayState.playstate.playerStrums : PlayState.playstate.opponentStrums;
+			if (galStrums != null && galStrums.members[noteData] != null)
+				x = galStrums.members[noteData].x;
+			else
+				x = 50 + Note.swagWidth * noteData + (mustPress ? FlxG.width / 2 : 0);
+			if (isSustainNote) x += width / 2;
+			y = -2000;
+			clipRect = null;
+		}
 	}
 
 	private function resetPooledState():Void
@@ -831,5 +944,156 @@ class Note extends FlxSprite
 		sustainScale = 1;
 		useRGBShader = ClientPrefs.enableColorShader && (PlayState.SONG == null || !PlayState.SONG.disableNoteRGB);
 		shouldCenterOffsets = true;
+	}
+
+	// ---- Galaxy port (modcharts): 3D triangle rendering ----
+
+	/** Galaxy: project the note's world rect to screen and resize in place. */
+	public function scaleW()
+	{
+		scale.set(1, 1);
+		updateHitbox();
+		var lt:Array<Float> = NoteObject.toScreen(wx - width / 2, wy - height / 2, z);
+		var rb:Array<Float> = NoteObject.toScreen(wx + width / 2, wy + height / 2, z);
+		setGraphicSize(Std.int(rb[0] - lt[0]), Std.int(rb[1] - lt[1]));
+		if (Std.int(rb[0] - lt[0]) < 1 || Std.int(rb[1] - lt[1]) < 1 || z < 0)
+		{
+			scale.set(0, 0);
+		}
+		updateHitbox();
+		x = lt[0];
+		y = lt[1];
+	}
+
+	/** Galaxy: static triangle render (mode 1) with explicit screen vertices. */
+	public function render(over:Array<Float>, ouvt:Array<Float> = null)
+	{
+		offset.set();
+		rendermode = 1;
+		x = 0;
+		y = 0;
+		var auvt:Array<Float> = [0, 0, 1, 0, 0, 1, 1, 1];
+		if (ouvt != null)
+			auvt = ouvt.copy();
+		verticles = new Vector(8, true, over);
+		uvtData = new Vector(auvt.length, false, auvt);
+	}
+
+	/** Galaxy: path (renderer) render (mode 2). */
+	public function pathrender()
+	{
+		offset.set();
+		rendermode = 2;
+		x = 0;
+		y = 0;
+	}
+
+	override function draw()
+	{
+		switch (rendermode)
+		{
+			case 2:
+				if (renderer == null || alpha <= 0 || !visible || !active)
+					return;
+				scale.set(1, 1);
+				updateHitbox();
+				var inc:Vector<Int> = new Vector(6, true, [0, 1, 2, 1, 3, 2]);
+				var gdata:FlxGraphic = mapData();
+				var rem:Float = 1 - renderer.bili;
+				while (rem + 0.1 < 1)
+				{
+					for (camera in cameras)
+					{
+						if (!camera.visible || !camera.exists)
+						{
+							continue;
+						}
+						var start:Float = rem;
+						var end:Float = rem + 0.1;
+						var lists:Array<Array<Float>> = renderer.start(start, end);
+						var v:Vector<Float> = new Vector(8, true, lists[0]);
+						var u:Vector<Float> = new Vector(lists[1].length, true, lists[1]);
+						if (end > 1)
+							end = 1;
+						getScreenPosition(_point, camera).subtractPoint(offset);
+						camera.drawTriangles(gdata, v, inc, u, null, _point, blend, false, antialiasing);
+						rem = end;
+					}
+				}
+			case 1:
+				if (verticles == null || uvtData == null || alpha <= 0 || !visible || !active)
+					return;
+				scale.set(1, 1);
+				updateHitbox();
+				var inc1:Vector<Int> = new Vector(6, true, [0, 1, 2, 1, 3, 2]);
+				var gdata1:FlxGraphic = mapData();
+				for (camera in cameras)
+				{
+					if (!camera.visible || !camera.exists)
+					{
+						continue;
+					}
+					getScreenPosition(_point, camera).subtractPoint(offset);
+					camera.drawTriangles(gdata1, verticles, inc1, uvtData, null, _point, blend, false, antialiasing);
+				}
+			default:
+				if (isEnd && offsetWhenDraw)
+				{
+					if (ClientPrefs.downScroll)
+						offset.set(18 * scale.x, 36 * scale.y);
+					else
+						offset.set(18 * scale.x, 18 * scale.y);
+				}
+				super.draw();
+		}
+	}
+
+	/** Galaxy: cached per-frame alpha graphics for triangle draws. */
+	function mapData():FlxGraphic
+	{
+		if (gpix == null || alpha != oalp || !animation.curAnim.finished || oanim != animation.curAnim.name)
+		{
+			var tkey:String = 'null';
+			if (!galAlphas.exists(tkey))
+			{
+				galAlphas.set(tkey, new Map());
+				galIndexes.set(tkey, new Map());
+			}
+			if (!galAlphas.get(tkey).exists(animation.curAnim.name))
+			{
+				galAlphas.get(tkey).set(animation.curAnim.name, new Map());
+				galIndexes.get(tkey).set(animation.curAnim.name, new Map());
+			}
+			if (!galAlphas.get(tkey).get(animation.curAnim.name).exists(animation.curAnim.curFrame))
+			{
+				galAlphas.get(tkey).get(animation.curAnim.name).set(animation.curAnim.curFrame, []);
+				galIndexes.get(tkey).get(animation.curAnim.name).set(animation.curAnim.curFrame, []);
+			}
+			if (!galAlphas.get(tkey)
+				.get(animation.curAnim.name)
+				.get(animation.curAnim.curFrame)
+				.contains(alpha))
+			{
+				var pix:FlxGraphic = FlxGraphic.fromFrame(frame, true);
+				var nalp:Array<Float> = galAlphas.get(tkey).get(animation.curAnim.name).get(animation.curAnim.curFrame);
+				var nindex:Array<Int> = galIndexes.get(tkey).get(animation.curAnim.name).get(animation.curAnim.curFrame);
+				pix.bitmap.colorTransform(pix.bitmap.rect, colorTransform);
+				galGlist.push(pix);
+				nalp.push(alpha);
+				nindex.push(galGlist.length - 1);
+				galAlphas.get(tkey).get(animation.curAnim.name).set(animation.curAnim.curFrame, nalp);
+				galIndexes.get(tkey).get(animation.curAnim.name).set(animation.curAnim.curFrame, nindex);
+			}
+			var dex = galAlphas.get(tkey)
+				.get(animation.curAnim.name)
+				.get(animation.curAnim.curFrame)
+				.indexOf(alpha);
+			gpix = galGlist[
+				galIndexes.get(tkey).get(animation.curAnim.name).get(animation.curAnim.curFrame)[dex]
+			];
+			oalp = alpha;
+			oanim = animation.curAnim.name;
+		}
+		return gpix;
 	}
 }

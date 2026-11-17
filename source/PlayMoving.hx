@@ -1,5 +1,5 @@
-import backend.ClientPrefs;
 package;
+import backend.ClientPrefs;
 
 import Std;
 import flixel.FlxCamera;

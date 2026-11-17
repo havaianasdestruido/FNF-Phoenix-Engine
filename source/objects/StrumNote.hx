@@ -9,8 +9,40 @@ import backend.ClientPrefs;
 import play.PlayState;
 import shaders.RGBPalette;
 
+// Galaxy port (modcharts)
+import flixel.graphics.FlxGraphic;
+import modcharts.RenderPath;
+import openfl.Vector;
+
 class StrumNote extends FlxSprite
 {
+	// ---- Galaxy port (modcharts): 3D render state ----
+	public var spec:Int = 0;
+	public var mustBeKilled:Bool = false;
+	public var rendermode:Int = 0;
+	public var z:Float = 200 / 0.7;
+	public var wx:Float = 0;
+	public var wy:Float = 0;
+	public var verticles:Vector<Float>;
+	public var uvtData:Vector<Float>;
+	public var renderer:RenderPath;
+	public var gpix:FlxGraphic = null;
+	public var oalp:Float = 1;
+	public var oanim:String = "";
+	var galInited:Bool = false;
+	private static var galAlphas:Map<Int, Map<String, Map<Int, Array<Float>>>> = new Map();
+	private static var galIndexes:Map<Int, Map<String, Map<Int, Array<Int>>>> = new Map();
+	private static var galGlist:Array<FlxGraphic> = [];
+
+	/** Galaxy: discard cached triangle-render frames (called by PlayMoving.reset). */
+	public static function refresh()
+	{
+		for (i in galGlist)
+			i.destroy();
+		galAlphas = new Map();
+		galIndexes = new Map();
+		galGlist = [];
+	}
 	public var rgbShader:RGBShaderReference;
 	public var notes_angle:Null<Float> = null;
 	public var resetAnim:Float = 0;
@@ -205,17 +237,186 @@ class StrumNote extends FlxSprite
 			switch (ClientPrefs.noteColorStyle)
 			{
 				case 'Quant-Based', 'Rainbow', 'Char-Based':
-				rgbShader.r = 0xFFF9393F;
-				rgbShader.g = 0xFFFFFFFF;
-				rgbShader.b = 0xFF651038;
+					rgbShader.r = 0xFFF9393F;
+					rgbShader.g = 0xFFFFFFFF;
+					rgbShader.b = 0xFF651038;
 				case 'Grayscale':
-				rgbShader.r = 0xFFA0A0A0;
-				rgbShader.g = FlxColor.WHITE;
-				rgbShader.b = 0xFF424242;
+					rgbShader.r = 0xFFA0A0A0;
+					rgbShader.g = FlxColor.WHITE;
+					rgbShader.b = 0xFF424242;
 				default:
 
 			}
 			rgbShader.enabled = false;
 		}
+	}
+
+	// ---- Galaxy port (modcharts): 3D triangle rendering ----
+
+	public function scaleW()
+	{
+		scale.set(1, 1);
+		updateHitbox();
+		var lt:Array<Float> = NoteObject.toScreen(wx - width / 2, wy - height / 2, z);
+		var rb:Array<Float> = NoteObject.toScreen(wx + width / 2, wy + height / 2, z);
+		setGraphicSize(Std.int(rb[0] - lt[0]), Std.int(rb[1] - lt[1]));
+		if (Std.int(rb[0] - lt[0]) < 1 || Std.int(rb[1] - lt[1]) < 1 || z < 0)
+		{
+			scale.set(0, 0);
+		}
+		updateHitbox();
+		x = lt[0];
+		y = lt[1];
+	}
+
+	public function render(over:Array<Float>, ?ouvt:Array<Float> = null)
+	{
+		if (!galInited)
+		{
+			scale.set(1, 1);
+			if (animation.curAnim != null && animation.curAnim.name == 'static')
+			{
+				updateHitbox();
+				galInited = true;
+			}
+		}
+		rendermode = 1;
+		offset.set();
+		x = 0;
+		y = 0;
+		var auvt:Array<Float> = [0, 0, 1, 0, 0, 1, 1, 1];
+		if (ouvt != null)
+			auvt = ouvt.copy();
+		verticles = new Vector(8, true, over);
+		uvtData = new Vector(auvt.length, true, auvt);
+	}
+
+	public function pathrender()
+	{
+		if (!galInited)
+		{
+			scale.set(1, 1);
+			if (animation.curAnim != null && animation.curAnim.name == 'static')
+			{
+				updateHitbox();
+				galInited = true;
+			}
+		}
+		offset.set();
+		rendermode = 2;
+		x = 0;
+		y = 0;
+	}
+
+	override function draw()
+	{
+		switch (rendermode)
+		{
+			case 2:
+				if (renderer == null || alpha <= 0 || !visible || !active)
+					return;
+				scale.set(1, 1);
+				updateHitbox();
+				var inc:Vector<Int> = new Vector(6, true, [0, 1, 2, 1, 3, 2]);
+				var gdata:FlxGraphic = mapData();
+				var rem:Float = 1 - renderer.bili;
+				while (rem + 0.1 < 1)
+				{
+					for (camera in cameras)
+					{
+						if (!camera.visible || !camera.exists)
+						{
+							continue;
+						}
+						var start:Float = rem;
+						var end:Float = rem + 0.1;
+						var lists:Array<Array<Float>> = renderer.start(start, end);
+						var v:Vector<Float> = new Vector(8, true, lists[0]);
+						var u:Vector<Float> = new Vector(lists[1].length, true, lists[1]);
+						if (end > 1)
+							end = 1;
+						getScreenPosition(_point, camera).subtractPoint(offset);
+						camera.drawTriangles(gdata, v, inc, u, null, _point, blend, false, antialiasing);
+						rem = end;
+					}
+				}
+			case 1:
+				if (verticles == null || uvtData == null || alpha <= 0 || !visible || !active)
+					return;
+				scale.set(1, 1);
+				updateHitbox();
+				var inc1:Vector<Int> = new Vector(6, true, [0, 1, 2, 1, 3, 2]);
+				var gdata1:FlxGraphic = mapData();
+				for (camera in cameras)
+				{
+					if (!camera.visible || !camera.exists)
+					{
+						continue;
+					}
+					getScreenPosition(_point, camera).subtractPoint(offset);
+					camera.drawTriangles(gdata1, verticles, inc1, uvtData, null, _point, blend, false, antialiasing);
+				}
+			default:
+				galInited = false;
+				super.draw();
+		}
+	}
+
+	function mapData():FlxGraphic
+	{
+		if (gpix == null || alpha != oalp || !animation.curAnim.finished || oanim != animation.curAnim.name)
+		{
+			if (!galAlphas.exists(ID))
+			{
+				galAlphas.set(ID, new Map());
+				galIndexes.set(ID, new Map());
+			}
+			if (!galAlphas.get(ID).exists(animation.curAnim.name))
+			{
+				galAlphas.get(ID).set(animation.curAnim.name, new Map());
+				galIndexes.get(ID).set(animation.curAnim.name, new Map());
+			}
+			if (!galAlphas.get(ID)
+				.get(animation.curAnim.name)
+				.exists(animation.curAnim.curFrame))
+			{
+				galAlphas.get(ID)
+					.get(animation.curAnim.name)
+					.set(animation.curAnim.curFrame, []);
+				galIndexes.get(ID)
+					.get(animation.curAnim.name)
+					.set(animation.curAnim.curFrame, []);
+			}
+			if (!galAlphas.get(ID)
+				.get(animation.curAnim.name)
+				.get(animation.curAnim.curFrame)
+				.contains(alpha))
+			{
+				var pix:FlxGraphic = FlxGraphic.fromFrame(frame, true);
+				var nalp:Array<Float> = galAlphas.get(ID).get(animation.curAnim.name).get(animation.curAnim.curFrame);
+				var nindex:Array<Int> = galIndexes.get(ID).get(animation.curAnim.name).get(animation.curAnim.curFrame);
+				pix.bitmap.colorTransform(pix.bitmap.rect, colorTransform);
+				galGlist.push(pix);
+				nalp.push(alpha);
+				nindex.push(galGlist.length - 1);
+				galAlphas.get(ID)
+					.get(animation.curAnim.name)
+					.set(animation.curAnim.curFrame, nalp);
+				galIndexes.get(ID)
+					.get(animation.curAnim.name)
+					.set(animation.curAnim.curFrame, nindex);
+			}
+			var dex = galAlphas.get(ID)
+				.get(animation.curAnim.name)
+				.get(animation.curAnim.curFrame)
+				.indexOf(alpha);
+			gpix = galGlist[
+				galIndexes.get(ID)
+					.get(animation.curAnim.name)
+					.get(animation.curAnim.curFrame)[dex]];
+			oalp = alpha;
+			oanim = animation.curAnim.name;
+		}
+		return gpix;
 	}
 }

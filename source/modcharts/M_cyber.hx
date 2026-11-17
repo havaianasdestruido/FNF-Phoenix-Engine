@@ -1,5 +1,5 @@
-import backend.ClientPrefs;
 package modcharts;
+import backend.ClientPrefs;
 
 import Std;
 import flixel.FlxCamera;
@@ -783,7 +783,7 @@ class M_cyber
 					Lib.application.window.y = Std.int(PlayWindow.stage[1] / 2 - 180);
 					camHUD.x = 0;
 					PlayWindow.camz = 0.45;
-					PlayState.defaultCamZoom = 0.425;
+					PlayState.playstate.defaultCamZoom = 0.425;
 				}
 				else if (Conductor.songPosition < 156067.4157303373)
 				{
@@ -793,7 +793,7 @@ class M_cyber
 					Lib.application.window.y = Std.int(PlayWindow.stage[1] / 2 - 180);
 					camHUD.x = 0;
 					PlayWindow.camz = 0.5;
-					PlayState.defaultCamZoom = 0.425;
+					PlayState.playstate.defaultCamZoom = 0.425;
 				}
 				else
 				{
@@ -808,13 +808,13 @@ class M_cyber
 						- 180;
 					camHUD.x = 0;
 					PlayWindow.camz = 0.5;
-					PlayState.defaultCamZoom = 0.425;
+					PlayState.playstate.defaultCamZoom = 0.425;
 				}
 			}
 			else if (Conductor.songPosition >= 156404.49438202268 && Conductor.songPosition < 167106.74157303385)
 			{
 				PlayWindow.camz = 1;
-				PlayState.defaultCamZoom = 0.85;
+				PlayState.playstate.defaultCamZoom = 0.85;
 				FlxG.scaleMode = new RatioScaleMode();
 				if (Lib.application.window.width != 640 || Lib.application.window.height != 360)
 				{

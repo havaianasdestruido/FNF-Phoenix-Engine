@@ -1,5 +1,5 @@
-import backend.ClientPrefs;
 package modcharts;
+import backend.ClientPrefs;
 
 import Std;
 import flixel.FlxCamera;
@@ -22,7 +22,7 @@ class M_destiny
 {
 	public static var generated:Int = 0;
 	public static var remains:Array<Int> = [4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4];
-	public static var objs:Array<NoteObject> = [];
+	public static var objs:Array<Note> = [];
 
 	public static function reset()
 	{
@@ -942,7 +942,7 @@ class M_destiny
 			{
 				for (i in 1...21)
 				{
-					var nobj:NoteObject = new NoteObject(0, 0);
+					var nobj:Note = new Note();
 					nobj.spec = i;
 					objs.push(nobj);
 					state.addObject(nobj);
@@ -958,7 +958,7 @@ class M_destiny
 					79470.19867549674, 80264.9006622517, 84238.41059602654, 85033.11258278151, 85827.81456953648, 86622.51655629145
 				];
 				var datas:Array<Float> = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 3, 0, 1, 2, 3, 0, 1];
-				daNote.loadGraphic(Paths.image('num' + remains[daNote.spec]));
+				daNote.loadGraphic(Paths.imagePath('num' + remains[daNote.spec]));
 				daNote.strumTime = 0;
 				var time:Float = times[daNote.spec];
 				var mst:Float = (time - 65165.56291390731) / 397.350993377;

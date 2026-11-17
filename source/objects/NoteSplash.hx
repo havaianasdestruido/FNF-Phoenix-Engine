@@ -26,6 +26,9 @@ class NoteSplash extends FlxSprite
 
 	public static var defaultNoteSplash(default, never):String = 'noteSplashes/noteSplashes';
 
+	/** Galaxy port (modcharts): PlayMoving.reset() flushes splash caches; Phoenix splashes keep none. */
+	public static function refresh():Void {}
+
 	public function new(x:Float = 0, y:Float = 0, ?note:Int = 0) {
 		super(x, y);
 
