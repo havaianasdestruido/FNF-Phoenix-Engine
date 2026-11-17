@@ -170,6 +170,7 @@ class ClientPrefs { //default settings if it can't find a save file containing y
   public static var respectCutout:Bool = true;
 	public static var mobileCAlpha:Float = #if mobile 0.6 #else 0 #end;
 	public static var mobileCEx:Bool = false;
+  public static var mobileControlScale:Float = 1.0;
 	public static var mobileCPlayStateVpad:Bool = false;
 	public static var mobileCExTaunt:Bool = true;
 	public static var screensaver:Bool = false;

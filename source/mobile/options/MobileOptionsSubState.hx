@@ -77,6 +77,20 @@ class MobileOptionsSubState extends BaseOptionsMenu
 		option.onChange = () -> syncTouchControls();
 		addOption(option);
 
+    option = new Option('Touch Control Scale',
+      'Scales virtual-pad buttons and their edge spacing. Also scales the hitbox extra-control strip.',
+      'mobileControlScale', 'percent', 1.0);
+    option.minValue = 0.5;
+    option.maxValue = 2.0;
+    option.changeValue = 0.05;
+    option.scrollSpeed = 1;
+    option.decimals = 2;
+    option.onChange = () ->
+    {
+      if (virtualPad != null) virtualPad.applyControlScale(ClientPrefs.mobileControlScale);
+    };
+    addOption(option);
+
 		#if android
 		var option:Option = new Option('Android TV Navigation',
 		'Optimizes menus and gameplay for TV remotes and controllers\n(hides on-screen touch buttons and mouse cursor, enables full Back routing).'
