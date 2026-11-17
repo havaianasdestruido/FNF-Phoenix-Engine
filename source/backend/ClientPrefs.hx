@@ -165,6 +165,15 @@ class ClientPrefs { //default settings if it can't find a save file containing y
 	public static var loadingPieDial:Bool = true;
 	/** Color preset for the bottom-left loading FlxPieDial (Options -> Visuals and UI). */
 	public static var loadingPieDialColor:String = LoadingDialLogic.DEFAULT_COLOR;
+	/**
+	 * Show a pointing-finger sprite next to the hovered or selected menu button,
+	 * ported from the HaxeFlixel Cursor demo (`FlxUICursor`).
+	 */
+	public static var pointingCursor:Bool = true;
+	/** Shape of the pointing cursor (Options -> Visuals and UI). */
+	public static var pointingCursorStyle:String = PointingCursorLogic.DEFAULT_STYLE;
+	/** Tint of the pointing cursor (Options -> Visuals and UI). */
+	public static var pointingCursorColor:String = PointingCursorLogic.DEFAULT_COLOR;
 
 	//Mobile Settings
   public static var respectCutout:Bool = true;
@@ -631,6 +640,10 @@ class ClientPrefs { //default settings if it can't find a save file containing y
 
     // Keep the loading dial color on a known preset if the save was edited.
     loadingPieDialColor = LoadingDialLogic.normalizeColor(loadingPieDialColor);
+
+    // Same for the pointing-finger cursor ported from the HaxeFlixel Cursor demo.
+    pointingCursorStyle = PointingCursorLogic.normalizeStyle(pointingCursorStyle);
+    pointingCursorColor = PointingCursorLogic.normalizeColor(pointingCursorColor);
 
     noteColorblindPreset = Accessibility.normalizePreset(noteColorblindPreset);
     accuracyPreset = AccuracyPresets.detect(perfectWindow, sickWindow, goodWindow, badWindow, safeFrames);

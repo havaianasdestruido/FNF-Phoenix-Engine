@@ -4,6 +4,7 @@ import flixel.FlxBasic;
 import mobile.flixel.FlxVirtualPad;
 import flixel.input.actions.FlxActionInput;
 import flixel.util.FlxDestroyUtil;
+import objects.PointingCursor;
 import psychlua.StateScripts;
 
 class MusicBeatSubstate extends FlxSubState
@@ -33,6 +34,20 @@ class MusicBeatSubstate extends FlxSubState
 	{
 		if (stateScripts == null || !stateScripts.hasScripts()) return StateScripts.Function_Continue;
 		return stateScripts.call(name, args);
+	}
+
+	/**
+	 * Parks the pointing-finger sprite on `members[selected]`. When the mouse
+	 * moves over a member, returns that index so the caller can update selection.
+	 *
+	 * @param members menu sprites (`FlxTypedGroup.members`); null holes are skipped
+	 * @param selected current selection index
+	 * @return index the cursor is pointing at (`selected` unless the mouse jumped)
+	 */
+	public function syncPointingCursor(members:Dynamic, selected:Int):Int
+	{
+		pointingCursor = PointingCursor.attachAndFollow(this, pointingCursor, members, selected);
+		return pointingCursor == null ? selected : pointingCursor.selectionIndex;
 	}
 
 	override function create()
@@ -65,6 +80,11 @@ class MusicBeatSubstate extends FlxSubState
 		return PlayerSettings.player1.controls;
 
 	public var virtualPad:FlxVirtualPad;
+	/**
+	 * Pointing-finger overlay from the HaxeFlixel Cursor demo. Created lazily
+	 * the first time a menu calls `syncPointingCursor()`.
+	 */
+	public var pointingCursor:PointingCursor;
 	var virtualPadCamera:FlxCamera;
 	var trackedInputsVirtualPad:Array<FlxActionInput> = [];
 

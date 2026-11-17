@@ -234,6 +234,12 @@ class PauseSubState extends MusicBeatSubstate
 		}
 
 		super.update(elapsed);
+		if (menuItemGroup != null)
+		{
+			final pointed:Int = syncPointingCursor(menuItemGroup.members, curSelected);
+			if (pointed != curSelected)
+				changeSelection(pointed - curSelected);
+		}
 		if (menuItems != menuItemsExit && menuItems.contains('Skip Time')) updateSkipTextStuff();
 
 		if (controls.UI_UP_P)

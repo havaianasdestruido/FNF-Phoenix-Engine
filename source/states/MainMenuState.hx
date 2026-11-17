@@ -475,6 +475,18 @@ class MainMenuState extends MusicBeatState
     menuItems.forEach(function(spr:FlxSprite) {
       spr.screenCenter(X);
     });
+
+    if (!selectedSomethin && menuItems != null)
+    {
+      final pointed:Int = syncPointingCursor(menuItems.members, curSelected);
+      if (pointed != curSelected)
+      {
+        FlxG.sound.play(Paths.sound('scrollMenu'));
+        changeItem(pointed - curSelected);
+      }
+    }
+    else if (pointingCursor != null)
+      pointingCursor.visible = false;
   }
 
   function changeItem(huh:Int = 0)

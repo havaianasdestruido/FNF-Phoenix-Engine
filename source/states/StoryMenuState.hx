@@ -320,6 +320,19 @@ class StoryMenuState extends MusicBeatState
 
 		super.update(elapsed);
 
+		if (!movedBack && !selectedWeek && grpWeekText != null)
+		{
+			final pointed:Int = syncPointingCursor(grpWeekText.members, curWeek);
+			if (pointed != curWeek)
+			{
+				FlxG.sound.play(Paths.sound('scrollMenu'));
+				changeWeek(pointed - curWeek);
+				changeDifficulty();
+			}
+		}
+		else if (pointingCursor != null)
+			pointingCursor.visible = false;
+
 		grpLocks.forEach(function(lock:FlxSprite)
 		{
 			lock.y = grpWeekText.members[lock.ID].y;
