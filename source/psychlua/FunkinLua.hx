@@ -26,6 +26,7 @@ import psychlua.callbacks.FilterCallbacks;
 import psychlua.callbacks.GameCallbacks;
 import psychlua.callbacks.HardwareCallbacks;
 import psychlua.callbacks.InputCallbacks;
+import psychlua.callbacks.GdiCallbacks;
 import psychlua.callbacks.MetaHorrorCallbacks;
 import psychlua.callbacks.MiscCallbacks;
 import psychlua.callbacks.PropertyCallbacks;
@@ -381,6 +382,8 @@ class FunkinLua {
 	WindowCallbacks.register(this);
 // 4th-wall-breaking ("META_HORROR") system effects (issue #94)
 	MetaHorrorCallbacks.register(this);
+// Windows GDI desktop effects (ported from Slushi Engine)
+	GdiCallbacks.register(this);
 
 	#if ACHIEVEMENTS_ALLOWED Achievements.addLuaCallbacks(lua); #end
 	#if HSCRIPT_ALLOWED HScript.implement(this); #end

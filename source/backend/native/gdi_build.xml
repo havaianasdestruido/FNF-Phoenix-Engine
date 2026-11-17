@@ -1,0 +1,18 @@
+<xml>
+  <!-- GDI effects native module -->
+  <set name="PHOENIX_GDI_DIR" value="${this_dir}" />
+  <files id="haxe">
+    <compilervalue name="-I" value="${PHOENIX_GDI_DIR}/include/" />
+    <compilervalue name="-I" value="${PHOENIX_GDI_DIR}/" />
+    <depend name="${PHOENIX_GDI_DIR}/include/phoenix_gdi.h" />
+    <compilerflag value="/std:c++17" if="windows" />
+    <compilerflag value="-std=c++17" unless="windows" />
+  </files>
+  <files id="cpp">
+    <compilervalue name="-I" value="${PHOENIX_GDI_DIR}/include/" />
+    <compilervalue name="-I" value="${PHOENIX_GDI_DIR}/" />
+    <depend name="${PHOENIX_GDI_DIR}/include/phoenix_gdi.h" />
+    <compilerflag value="/std:c++17" if="windows" />
+    <compilerflag value="-std=c++17" unless="windows" />
+  </files>
+</xml>
