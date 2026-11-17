@@ -491,7 +491,8 @@ class Project extends HXProject
 		VIDEOS_ALLOWED.apply(this, (isDesktop() || isMobile()) && (!isWeb() || !is32Bit()) && !isFlash() && !isAir() && isCPP());
 		// Feral GameMode integration (Linux only). Degrades gracefully when
 		// gamemode isn't installed, so it is safe to enable on all Linux builds.
-		GAMEMODE_ALLOWED.apply(this, isDesktop() && isLinux());
+		// C++ only: the hxgamemode library hard-errors on non-cpp targets.
+		GAMEMODE_ALLOWED.apply(this, isDesktop() && isLinux() && isCPP());
 		CRASH_HANDLER.apply(this, true);
 		ACHIEVEMENTS_ALLOWED.apply(this, true);
 		CHECK_FOR_UPDATES.apply(this, true);

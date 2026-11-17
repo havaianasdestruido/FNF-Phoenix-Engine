@@ -48,7 +48,11 @@ class ShaderCallbacks
 
 			if(leObj != null) {
 				var arr:Array<String> = game.runtimeShaders.get(shader);
-				leObj.shader = new ErrorHandledRuntimeShader(shader, arr[0], arr[1]);
+				// neko: ErrorHandledRuntimeShader is a no-op stub there (no runtime
+				// GL shaders), so it is not a FlxShader; assign through Dynamic.
+				// Only reachable from a Lua mod calling setSpriteShader.
+				final leShader:Dynamic = new ErrorHandledRuntimeShader(shader, arr[0], arr[1]);
+				leObj.shader = leShader;
 				#if !neko
 				// [P3] Shader warm-up: scripts run during the loading screen, so
 				// compile this instead of paying for it on its first draw.
@@ -93,7 +97,9 @@ class ShaderCallbacks
             @:privateAccess {
             if (camera.filters == null)
                 camera.filters = [];
-				final filter = new ShaderFilter(new ErrorHandledRuntimeShader(shader, arr[0], arr[1]));
+				// neko: same stub caveat as setSpriteShader above.
+			final leShader:Dynamic = new ErrorHandledRuntimeShader(shader, arr[0], arr[1]);
+			final filter = new ShaderFilter(leShader);
 				#if !neko
 				// [P3] Shader warm-up: see setSpriteShader above.
 				ShaderWarmup.track(filter.shader);

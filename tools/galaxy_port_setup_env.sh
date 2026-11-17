@@ -53,8 +53,20 @@ clone_commit grig,audio https://github.com/JS-Engine-things/grig.audio.git eb5ca
 say "haxelib: registry-version libs from git mirrors"
 # flixel-addons: repo owner fork (branch main, not master)
 g flixel-addons https://github.com/JS-Engine-things/flixel-addons  main
+# flixel-ui: hmm.json pins registry 2.6.0 (flixel-5 compatible). Upstream
+# 2.6.1+ is flixel-6-only (FlxInput.handleInput) and breaks the build.
+# Fetch the tag tarball from codeload (registry is unreachable here).
+if [ ! -d "$HOME/haxelib/flixel-ui/git/flixel" ] || grep -q handleInput "$HOME/haxelib/flixel-ui/git/flixel/addons/ui/FlxUIWidget.hx" 2>/dev/null; then
+  say "haxelib: flixel-ui 2.6.0 (codeload tag)"
+  rm -rf "$HOME/haxelib/flixel-ui"
+  mkdir -p "$HOME/haxelib/flixel-ui"
+  curl -fsSL https://codeload.github.com/HaxeFlixel/flixel-ui/tar.gz/refs/tags/2.6.0 -o /tmp/flixel-ui-2.6.0.tgz \
+    && tar xzf /tmp/flixel-ui-2.6.0.tgz -C "$HOME/haxelib/flixel-ui" \
+    && mv "$HOME/haxelib/flixel-ui/flixel-ui-2.6.0" "$HOME/haxelib/flixel-ui/git" \
+    && echo git > "$HOME/haxelib/flixel-ui/.current" \
+    || echo "FAIL flixel-ui"
+fi
 # version-pinned mirrors (NovaFlare-Engine-haxelib) for registry-only libs
-g flixel-ui     https://github.com/NovaFlare-Engine-haxelib/flixel-ui            main
 g flixel-tools  https://github.com/NovaFlare-Engine-haxelib/flixel-tools-1.5.1   main
 g hxp           https://github.com/NovaFlare-Engine-haxelib/hxp-1.3.1            main
 g hxcpp-debug-server https://github.com/NovaFlare-Engine-haxelib/hxcpp-debug-server-1.2.4 main
