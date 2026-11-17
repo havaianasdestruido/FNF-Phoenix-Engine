@@ -25,65 +25,85 @@ package backend;
 // yes it's on the haxe cookbook, but I'm lazy :P
 class HaxeCommit
 {
+	/**
+	 * First seven characters of the commit this build was made from, or null
+	 * when the build has no `-Dcommit` stamp (or is running for IDE
+	 * completion), see project.hxp's `configureCompileDefines`.
+	 */
 	public static macro function getGitCommitHash():haxe.macro.Expr.ExprOf<String>
 	{
-		#if !commit return macro $v{null}; #end 
-		#if !display
-		// Get the current line number.
-		var pos = haxe.macro.Context.currentPos();
-
-		var process = new sys.io.Process('git', ['rev-parse', 'HEAD']);
-		if (process.exitCode() != 0)
-		{
-			var message = process.stderr.readAll().toString();
-			haxe.macro.Context.info('[WARN] Could not determine current git commit; is this a proper Git repository?', pos);
-		}
-
-		// read the output of the process
-		var commitHash = process.stdout.readLine();
-		var commitHashSplice:String = commitHash.substr(0, 7);
-
-		// haxe.macro.Context.info('[INFO] We are building in git commit ${commitHashSplice}', pos);
-
-		// Generates a string expression
-		return macro $v{commitHashSplice};
+		#if (!commit || display)
+		return macro $v{null};
 		#else
-		// `#if display` is used for code completion. In this case returning an
-		// empty string is good enough; We don't want to call git on every hint.
-		return macro $v{""};
+		final pos = haxe.macro.Context.currentPos();
+
+		try
+		{
+			final process = new sys.io.Process('git', ['rev-parse', 'HEAD']);
+			if (process.exitCode() != 0)
+			{
+				process.close();
+				haxe.macro.Context.info('[WARN] Could not determine current git commit; is this a proper Git repository?', pos);
+				return macro $v{null};
+			}
+
+			final commitHash:String = StringTools.trim(process.stdout.readLine());
+			process.close();
+
+			if (commitHash.length == 0) return macro $v{null};
+
+			return macro $v{commitHash.substr(0, 7)};
+		}
+		catch (e:Dynamic)
+		{
+			haxe.macro.Context.info('[WARN] Could not determine current git commit: ' + Std.string(e), pos);
+			return macro $v{null};
+		}
 		#end
 	}
 
 	/**
 	 * The same lookup as getGitCommitHash, but returns the full 40-character
 	 * hash (or null when the build does not embed commit data, e.g. local
-	 * builds without -Dcommit, or when git is unavailable). The bottom-right
+	 * builds without `-Dcommit`, or when git is unavailable). The bottom-right
 	 * freshness watermark needs the full SHA: GitHub's compare API answers
 	 * 404 for abbreviated hashes.
+	 *
+	 * Both macros repeat the small git probe instead of sharing a helper: a
+	 * `$v{...}` splice (and `haxe.macro.Context` itself) is only reachable
+	 * inside a macro body, so a shared plain function cannot build these
+	 * expressions - `macro` inside one fails with "Uncaught exception
+	 * macro-in-macro".
 	 */
 	public static macro function getGitCommitFullHash():haxe.macro.Expr.ExprOf<String>
 	{
-		#if !commit return macro $v{null}; #end
-		#if !display
-		var pos = haxe.macro.Context.currentPos();
+		#if (!commit || display)
+		return macro $v{null};
+		#else
+		final pos = haxe.macro.Context.currentPos();
 
-		var process = new sys.io.Process('git', ['rev-parse', 'HEAD']);
-		if (process.exitCode() != 0)
+		try
 		{
-			var message = process.stderr.readAll().toString();
-			haxe.macro.Context.info('[WARN] Could not determine current git commit; is this a proper Git repository?', pos);
+			final process = new sys.io.Process('git', ['rev-parse', 'HEAD']);
+			if (process.exitCode() != 0)
+			{
+				process.close();
+				haxe.macro.Context.info('[WARN] Could not determine current git commit; is this a proper Git repository?', pos);
+				return macro $v{null};
+			}
+
+			final commitHash:String = StringTools.trim(process.stdout.readLine());
+			process.close();
+
+			if (commitHash.length == 0) return macro $v{null};
+
+			return macro $v{commitHash};
+		}
+		catch (e:Dynamic)
+		{
+			haxe.macro.Context.info('[WARN] Could not determine current git commit: ' + Std.string(e), pos);
 			return macro $v{null};
 		}
-
-		// read the output of the process
-		var commitHash = StringTools.trim(process.stdout.readLine());
-
-		// Generates a string expression
-		return macro $v{commitHash};
-		#else
-		// `#if display` is used for code completion. Returning null here keeps
-		// hints fast and matches the non-commit build behavior.
-		return macro $v{null};
 		#end
 	}
 }
