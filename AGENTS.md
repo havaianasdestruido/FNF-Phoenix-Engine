@@ -51,6 +51,11 @@ Defines úteis: `-DofficialBuild`, `-Dofficial`, `-DULTRA_OPTIMIZED` (build velo
 título; são mutuamente exclusivos e `project.hxp` aborta o build se ambos vierem — ver
 `backend.LaunchState` e a seção "Launch and debug flags" do BUILDING.md).
 
+Todo build feito dentro de um checkout git recebe `-Dcommit` automaticamente (o `project.hxp`
+sonda `git rev-parse --verify HEAD`), o que estampa o SHA usado pelo watermark do canto inferior
+direito (`debug.CommitWatermark`) e pela linha de commit do FPS counter. **`-Dno-commit`** desativa
+a estampa para builds reproduzíveis; fora de um repositório git ela simplesmente não acontece.
+
 ---
 
 ## 3. Estrutura do repositório (top-level)
