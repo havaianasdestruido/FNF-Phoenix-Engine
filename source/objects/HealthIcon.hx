@@ -4,6 +4,7 @@ import flixel.graphics.FlxGraphic;
 import backend.Paths;
 import backend.ClientPrefs;
 import backend.CoolUtil;
+import backend.IconStyle;
 import play.PlayState;
 
 class HealthIcon extends FlxSprite
@@ -39,14 +40,33 @@ class HealthIcon extends FlxSprite
 	}
 
 	public var iconOffsets:Array<Float> = [0, 0];
+
+	/**
+	 * Loads the health icon for a character, honouring the active icon style.
+	 *
+	 * The style folder (`images/icons/<style>/`, Mic'd Up! port) wins when it
+	 * has the character, then the flat `images/icons/` set, then the `face`
+	 * fallback. See `backend.IconStyle` for the candidate order.
+	 *
+	 * @param char character icon name (e.g. `"bf"`).
+	 */
 	public function changeIcon(char:String) {
 		if(this.char != char) {
 			if (char.length < 1)
 				char = 'face';
 
-			var name:String = 'icons/' + char;
-			if(!Paths.fileExists('images/' + name + '.png', IMAGE)) name = 'icons/icon-' + char; //Older versions of psych engine's support
-			if(!Paths.fileExists('images/' + name + '.png', IMAGE)) name = 'icons/icon-face'; //Prevents crash from missing icon
+			// First candidate that exists wins; `face` prevents a crash from a
+			// missing icon (and a missing `face` falls through to the
+			// generated placeholder below).
+			var name:String = 'icons/icon-face';
+			for (candidate in IconStyle.candidates(char, ClientPrefs.iconStyle))
+			{
+				if (Paths.fileExists('images/' + candidate + '.png', IMAGE))
+				{
+					name = candidate;
+					break;
+				}
+			}
 			var iconAsset:FlxGraphic = Paths.image(name);
 
 			if (iconAsset == null)
