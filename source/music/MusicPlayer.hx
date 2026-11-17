@@ -248,7 +248,9 @@ class MusicPlayer extends FlxGroup
 		FlxG.autoPause = (!playingMusic && ClientPrefs.autoPause);
 		active = visible = playingMusic;
 
-		instance.scoreBG.visible = instance.diffText.visible = instance.scoreText.visible = instance.searchText.visible = instance.songSearchText.visible = instance.buttonTop.visible = !playingMusic; //Hide Freeplay texts and boxes if playingMusic is true
+		instance.scoreBG.visible = instance.diffText.visible = instance.scoreText.visible = instance.searchText.visible = instance.songSearchText.visible = instance.buttonTop.visible = instance.filterButton.visible = !playingMusic; //Hide Freeplay texts and boxes if playingMusic is true
+		// The favourite marker belongs to the personal-best block, not to the player.
+		instance.favouriteText.visible = !playingMusic && instance.favouriteText.text.length > 0;
 		songTxt.visible = timeTxt.visible = songBG.visible = playbackTxt.visible = playbackBG.visible = progressBar.visible = playingMusic; //Show Music Player texts and boxes if playingMusic is true
 
 		for (i in playbackSymbols)

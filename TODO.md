@@ -426,7 +426,18 @@ The remaining ideas below are tracked alongside completed items. Overlaps with e
 - **[P1] Quick options (`QuickOptionsSubState`, from pause).** Change settings that can apply live (offsets, hitsound, track volumes, flashing, camera zooms) without leaving the song. Today choosing Options from `PauseSubState` switches to `OptionsState` and reloads `PlayState` from the start on return, which loses the run and is slow on weak devices.
 - **[P2] Practice loop (`PracticeLoopSubState`, from pause).** Mark a start and end point, pick a playback rate and loop that part with score saving off. The seek code already exists behind `Skip Time` in `PauseSubState`, which is only added inside the `PlayState.chartingMode` branch (and not while the song is still starting).
 - **[P2] Mod report (`ModReportSubState`, from Mods menu and after a `.zip` import).** One page per mod: whether it opted out of the script sandbox, which rules it allowlists, blocked scripts by file and line, and Lua functions it calls that Phoenix does not implement. Today security findings only reach the debug console and the log when a script loads. Player-facing counterpart to the mod linter CLI in §17 and the per-mod report in §19.
-- **[P2] Freeplay filter (`FreeplayFilterSubState`).** Sort by name, mod, best accuracy or unplayed; show a single mod; star favourites; pick a random song. Freeplay currently has only text search.
+- **[P2] ~~Freeplay filter (`FreeplayFilterSubState`)~~ DONE** — F (or the FILTER button, or the right shoulder
+  button) opens a page over Freeplay: order by name, mod, best accuracy or unplayed (never played first, then
+  the played ones by best accuracy), show one mod (all mods / base game / a single folder), a favourites-only
+  switch, star or unstar the highlighted song, and highlight a random song out of whatever the filter keeps.
+  Stars are keyed by mod + song name and stored in their own `freeplay_filter` save
+  (`backend.FreeplayFilterStore`), so a truncated `funkin` flush cannot cost them; the filter itself is
+  renderer-free (`backend.FreeplayFilter`) and is what the existing search box now uses too (every word has to
+  match the song or its mod name). The highlighted song keeps its place when it survives a re-filter, an empty
+  result says so instead of indexing nothing, and the personal-best block shows `* FAVOURITE`. Spec:
+  `bash tests/haxe/run-freeplay-filter.sh` (orders, mod filter, stars, random pick, `Highscore` →
+  best-accuracy fold; runs in `checks.yml`). Known limit: `Highscore` keys carry no mod id (§13), so two mods
+  with the same song name still share one accuracy record.
 - **[P3] Photo mode (`PhotoModeSubState`, from pause).** Hide the HUD, pan and zoom the game camera freely, and save a shot through the existing `backend/Screenshot` / `backend/SSPlugin` path. Fits the creator tooling the engine already ships.
 
 ### 21.3. New options
