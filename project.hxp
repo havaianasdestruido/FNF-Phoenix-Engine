@@ -614,6 +614,16 @@ class Project extends HXProject
 		// Enable OpenFL's error handler. Required for the crash logger.
 		setHaxedef("openfl-enable-handle-error");
 
+		// Stamp the build with its git commit. backend.HaxeCommit's macros
+		// compile to null unless `commit` is defined, and nothing used to set
+		// it for local / linux / mac / html5 / flash builds, so those builds
+		// printed "Development build" in the bottom-right watermark
+		// (debug.CommitWatermark) and lost the commit in the FPS counter.
+		// `-Dno-commit` opts out (reproducible builds); outside a git checkout
+		// the probe fails and the define simply stays off.
+		if (!hasBuildDefine("commit") && !hasBuildDefine("no-commit") && hasGitHead())
+			setHaxedef("commit");
+
 		// Enable stack trace tracking. Good for debugging but has a (minor) performance impact. (and also the crash handler)
 		setHaxedef("HXCPP_CHECK_POINTER");
 		setHaxedef("HXCPP_STACK_LINE");
@@ -1576,6 +1586,36 @@ class Project extends HXProject
 	public function buildHaxeCLICommand(path:String):CLICommand
 	{
 		return CommandHelper.interpretHaxe(path);
+	}
+
+	/**
+	 * Whether `-Dname` reached the build, either as a Lime define or as a
+	 * haxedef already set by this project file.
+	 */
+	public function hasBuildDefine(name:String):Bool
+	{
+		return hasDefine(name) || this.haxedefs.exists(name);
+	}
+
+	/**
+	 * Whether `git rev-parse --verify HEAD` succeeds, i.e. this checkout has a
+	 * commit that can be stamped into the build with `-Dcommit`.
+	 * Returns false instead of throwing when git is missing or this is not a
+	 * repository, so builds from source archives keep working.
+	 */
+	public function hasGitHead():Bool
+	{
+		try
+		{
+			var process = new sys.io.Process('git', ['rev-parse', '--verify', 'HEAD']);
+			var available = process.exitCode() == 0;
+			process.close();
+			return available;
+		}
+		catch (e:Dynamic)
+		{
+			return false;
+		}
 	}
 
 	public function getGitCommit():String
