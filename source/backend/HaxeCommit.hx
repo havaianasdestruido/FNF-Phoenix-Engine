@@ -32,7 +32,34 @@ class HaxeCommit
 	 */
 	public static macro function getGitCommitHash():haxe.macro.Expr.ExprOf<String>
 	{
-		return readGitHash(true);
+		#if (!commit || display)
+		return macro $v{null};
+		#else
+		final pos = haxe.macro.Context.currentPos();
+
+		try
+		{
+			final process = new sys.io.Process('git', ['rev-parse', 'HEAD']);
+			if (process.exitCode() != 0)
+			{
+				process.close();
+				haxe.macro.Context.info('[WARN] Could not determine current git commit; is this a proper Git repository?', pos);
+				return macro $v{null};
+			}
+
+			final commitHash:String = StringTools.trim(process.stdout.readLine());
+			process.close();
+
+			if (commitHash.length == 0) return macro $v{null};
+
+			return macro $v{commitHash.substr(0, 7)};
+		}
+		catch (e:Dynamic)
+		{
+			haxe.macro.Context.info('[WARN] Could not determine current git commit: ' + Std.string(e), pos);
+			return macro $v{null};
+		}
+		#end
 	}
 
 	/**
@@ -41,51 +68,36 @@ class HaxeCommit
 	 * builds without `-Dcommit`, or when git is unavailable). The bottom-right
 	 * freshness watermark needs the full SHA: GitHub's compare API answers
 	 * 404 for abbreviated hashes.
+	 *
+	 * Both macros repeat the small git probe instead of sharing a helper: a
+	 * `$v{...}` splice (and `haxe.macro.Context` itself) is only reachable
+	 * inside a macro body, so a shared plain function cannot build these
+	 * expressions - `macro` inside one fails with "Uncaught exception
+	 * macro-in-macro".
 	 */
 	public static macro function getGitCommitFullHash():haxe.macro.Expr.ExprOf<String>
-	{
-		return readGitHash(false);
-	}
-
-	/**
-	 * Shared body of both macros: runs `git rev-parse HEAD` at compile time
-	 * and returns it as a string literal.
-	 *
-	 * Yields a null literal instead of a hash when: the build has no
-	 * `-Dcommit` define (the default for builds made before the define was
-	 * wired in project.hxp), the IDE is only completing code (`#if display`,
-	 * where we must not spawn git on every hint), this is not a git checkout,
-	 * git is not installed or the command fails. A build therefore never
-	 * breaks because of the commit stamp; it just reports "Development build".
-	 *
-	 * @param short Return the abbreviated (7 character) hash instead of the full SHA.
-	 */
-	static function readGitHash(short:Bool):haxe.macro.Expr
 	{
 		#if (!commit || display)
 		return macro $v{null};
 		#else
-		var pos:haxe.macro.Expr.Position = haxe.macro.Context.currentPos();
+		final pos = haxe.macro.Context.currentPos();
 
 		try
 		{
-			var process = new sys.io.Process('git', ['rev-parse', 'HEAD']);
+			final process = new sys.io.Process('git', ['rev-parse', 'HEAD']);
 			if (process.exitCode() != 0)
 			{
+				process.close();
 				haxe.macro.Context.info('[WARN] Could not determine current git commit; is this a proper Git repository?', pos);
 				return macro $v{null};
 			}
 
-			// read the output of the process
-			var commitHash:String = StringTools.trim(process.stdout.readLine());
+			final commitHash:String = StringTools.trim(process.stdout.readLine());
 			process.close();
 
 			if (commitHash.length == 0) return macro $v{null};
 
-			// haxe.macro.Context.info('[INFO] We are building in git commit ${commitHash}', pos);
-
-			// Generates a string expression
-			return macro $v{short ? commitHash.substr(0, 7) : commitHash};
+			return macro $v{commitHash};
 		}
 		catch (e:Dynamic)
 		{
