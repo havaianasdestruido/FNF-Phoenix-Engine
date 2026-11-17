@@ -4,7 +4,9 @@ set "ROOT=%~dp0..\.."
 set "WORK=%TEMP%\phoenix-moving-checkerboard-%RANDOM%-%RANDOM%"
 
 mkdir "%WORK%\objects" >nul 2>nul || goto fail
+mkdir "%WORK%\backend" >nul 2>nul || goto fail
 copy /y "%ROOT%\source\objects\MovingCheckerboard.hx" "%WORK%\objects\" >nul || goto fail
+copy /y "%ROOT%\source\backend\MenuCheckerTextures.hx" "%WORK%\backend\" >nul || goto fail
 xcopy /e /i /y "%ROOT%\tests\haxe\stubs\moving-checkerboard" "%WORK%" >nul || goto fail
 
 if defined HAXE (

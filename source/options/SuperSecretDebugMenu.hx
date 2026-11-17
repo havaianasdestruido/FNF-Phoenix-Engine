@@ -6,7 +6,9 @@ import flixel.input.keyboard.FlxKey;
 import haxe.Exception;
 
 import backend.ClientPrefs;
+import backend.MenuCheckerTextures;
 import backend.UpdateChecker;
+import objects.MovingCheckerboard;
 import objects.Prompt;
 import states.OutdatedState;
 
@@ -55,6 +57,24 @@ class SuperSecretDebugMenu extends BaseOptionsMenu
 			'rainbowFPS',
 			'bool',
 			false);
+		addOption(option);
+
+		// Every `images/checker*.png` tile this build can load; a save from another
+		// build may name a variant that is not here, so fall back to the default.
+		var checkerTextures:Array<String> = MovingCheckerboard.availableTextures();
+		if (checkerTextures.indexOf(ClientPrefs.menuCheckerTexture) < 0)
+			ClientPrefs.menuCheckerTexture = MenuCheckerTextures.DEFAULT_KEY;
+
+		var option:Option = new Option('Menu Checker Texture',
+			"Which images/checker*.png tile the menu checkerboards repeat.\nApplies to every open menu at once.",
+			'menuCheckerTexture',
+			'string',
+			MenuCheckerTextures.DEFAULT_KEY,
+			checkerTextures);
+
+		option.onChange = function() {
+			MovingCheckerboard.refreshAll();
+		};
 		addOption(option);
 
 		var option:Option = new Option('Force Off GC while Rendering',
