@@ -117,6 +117,8 @@ class ClientPrefs { //default settings if it can't find a save file containing y
 	public static var botTxtStyle:String = 'Vanilla';
 	public static var strumLitStyle:String = 'Full Anim';
 	public static var bfIconStyle:String = 'Default';
+	/** Whole health-icon set to draw (Mic'd Up! port); `Default` is the flat `images/icons/` set. */
+	public static var iconStyle:String = 'Default';
 	public static var ratingType:String = 'Default';
 	public static var simplePopups:Bool = false;
 	public static var iconBounceType:String = 'New Psych';

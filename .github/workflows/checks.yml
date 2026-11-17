@@ -98,6 +98,8 @@ jobs:
         run: bash tests/haxe/run-miss-counter.sh
       - name: Test Early/Late timing classification and its dead zone
         run: bash tests/haxe/run-hit-timing.sh
+      - name: Test Mic'd Up health-icon style resolution and fallbacks
+        run: bash tests/haxe/run-icon-style.sh
       - name: Test metronome modes, count-in beats and seek suppression
         run: bash tests/haxe/run-metronome.sh
       - name: Test moving checkerboard preference, tile and frame-rate-independent motion
