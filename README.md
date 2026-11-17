@@ -28,6 +28,7 @@
 - **Platform support:** Android integrations, native platform utilities, Linux GameMode support, (_W.I.P.) Web support and build fixes.
 - **Softmod utilities:** [`stdfire`](website/docs/modding/stdfire.md) provides cross-platform title changes, native message boxes and non-modal warnings to scripts.
 - **Early & Late ratings:** the rating popup also tells you which side of the hit window you landed on, with art for every bundled ratings style and a configurable dead zone. Ported from [Mic'd Up!](https://github.com/Verwex/Funkin-Mic-d-Up-SC). See [Early & Late](docs/EARLY_LATE.md).
+- **Mic'd Up icons:** the Mic'd Up and Vanilla health-icon sets as selectable styles (Options → Visuals and UI → Health Icon Style), plus Mic'd Up's redrawn difficulty labels in Story Mode. Ported from [Mic'd Up!](https://github.com/Verwex/Funkin-Mic-d-Up-SC). See [Mic'd Up icons](docs/MICD_UP_ICONS.md).
 - **Window effects:** transparent windows, window opacity, and click-through controls for overlay mods. See [Transparent Window](docs/TRANSPARENT_WINDOW.md).
 - **Memory profiles (CNE-style Low Memory Mode):** `Off` / `Low` / `Extreme` / `Experimental Extreme` bundles of settings and asset cleanup, with your own values restored when a profile is turned off and a "Free Memory Now" action. The experimental tier sacrifices visuals and compatibility for lower RAM. See [Low Memory Mode](docs/LOW_MEMORY_MODE.md).
 - **Maintenance and fixes:** reorganized source code, haxelib overrides, smaller assets, and gameplay/crash fixes.

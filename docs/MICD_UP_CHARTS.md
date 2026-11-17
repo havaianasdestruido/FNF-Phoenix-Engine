@@ -8,7 +8,8 @@ The upstream license says: “if u make mods, open source them, lol!”
 Chart filenames use Phoenix's song paths, Dad Battle's song name matches its
 audio path, and empty `specialAudioName` / `specialEventsName` fields were
 added for Phoenix compatibility. Note data, BPM and scroll speed are unchanged.
-The difficulty labels are new assets, not from Mic'd Up.
+The difficulty labels shown for these charts are Mic'd Up's redrawn ones;
+see [Mic'd Up icons](MICD_UP_ICONS.md).
 
 Freeplay offers these difficulties when a chart exists for the selected song;
 Story Mode offers them when every song in the week has the corresponding chart.

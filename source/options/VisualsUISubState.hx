@@ -345,6 +345,21 @@ class VisualsUISubState extends BaseOptionsMenu
 			['Default', 'VS Nonsense V2', 'Leather Engine', 'Doki Doki+', "Mic'd Up", 'FPS Plus', "OS 'Engine'"]);
 		addOption(option);
 
+		var iconStyleList:Array<String> = Mods.mergeAllTextsNamed('images/icons/list.txt', 'preload', true);
+		if (iconStyleList.length > 0)
+		{
+			iconStyleList.insert(0, 'Default'); //Default set always comes first
+			if (!iconStyleList.contains(ClientPrefs.iconStyle))
+				ClientPrefs.iconStyle = iconStyleList[0];
+			var option:Option = new Option('Health Icon Style:',
+				"Which health-icon set would you like? Characters a set does not cover fall back to the Default icons.",
+				'iconStyle',
+				'string',
+				'Default',
+				iconStyleList);
+			addOption(option);
+		}
+
 		var ratingSpriteList:Array<String> = Mods.mergeAllTextsNamed('images/ratings/list.txt', null, true);
 		if (ratingSpriteList.length > 0)
 		{
