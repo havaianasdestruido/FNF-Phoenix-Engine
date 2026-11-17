@@ -15,6 +15,10 @@ class PlayState
   public static var bothSides:Bool = false;
   public static var sectionsLoaded:Int = 0;
 
+  /** Galaxy 3D port: true only for charts flagged as galaxy (see PlayState). */
+  public static function galaxyActive():Bool
+    return false;
+
   public var songSpeedType:String = '';
   public var songSpeed:Float = 1;
   public var ogSongSpeed:Float = 1;

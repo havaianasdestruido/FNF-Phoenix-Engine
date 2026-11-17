@@ -29,6 +29,14 @@ typedef EventNote = {
   public var missHealth:Float = 0;
   public var hitCausesMiss:Bool = false;
   public var wasHit:Bool = false;
+  // Galaxy 3D/modchart port: lane spec, sync/end flags and sustain ordering
+  // carried from the chart into the spawned note.
+  public var galaxySpec:Int = 0;
+  public var galaxySynced:Bool = false;
+  public var galaxyIsEnd:Bool = false;
+  public var galaxySustainOrder:Float = 0;
+  public var galaxySustainTotal:Float = 0;
+  public var galaxyHasEnd:Bool = false;
   public var multSpeed:Float = 1;
   public var multAlpha:Float = 1;
   public var noteDensity:Float = 1;
