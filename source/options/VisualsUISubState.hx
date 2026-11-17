@@ -17,6 +17,7 @@ import flixel.input.keyboard.FlxKey;
 import backend.ClientPrefs;
 import backend.LoadingDialLogic;
 import backend.MenuMusic;
+import backend.PointingCursorLogic;
 import data.Song;
 import play.helpers.StageDimMath;
 import play.helpers.LaneUnderlayMath;
@@ -626,6 +627,29 @@ class VisualsUISubState extends BaseOptionsMenu
 			'string',
 			LoadingDialLogic.DEFAULT_COLOR,
 			LoadingDialLogic.colorNames());
+		addOption(option);
+
+		var option:Option = new Option('Pointing Cursor',
+			"Checked: a finger sprite points at the hovered or selected menu button.\nUnchecked: no pointing overlay. Ported from the HaxeFlixel Cursor demo.",
+			'pointingCursor',
+			'bool',
+			true);
+		addOption(option);
+
+		var option:Option = new Option('Pointing Cursor Style:',
+			"Shape of the sprite that points at the selected menu button.",
+			'pointingCursorStyle',
+			'string',
+			PointingCursorLogic.DEFAULT_STYLE,
+			PointingCursorLogic.styleNames());
+		addOption(option);
+
+		var option:Option = new Option('Pointing Cursor Color:',
+			"Tint of the pointing-finger menu cursor.",
+			'pointingCursorColor',
+			'string',
+			PointingCursorLogic.DEFAULT_COLOR,
+			PointingCursorLogic.colorNames());
 		addOption(option);
 
 		var option:Option = new Option('Hold to Confirm',

@@ -867,6 +867,15 @@ class FreeplayState extends MusicBeatState
 		}
 		catch(e){}
 		super.update(elapsed);
+
+		if (grpSongs != null && (songSearchText == null || !songSearchText.hasFocus))
+		{
+			final pointed:Int = syncPointingCursor(grpSongs.members, curSelected);
+			if (pointed != curSelected)
+				changeSelection(pointed - curSelected);
+		}
+		else if (pointingCursor != null)
+			pointingCursor.visible = false;
 	}
 
 	function getVocalFromCharacter(char:String)

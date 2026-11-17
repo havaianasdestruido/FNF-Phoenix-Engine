@@ -102,6 +102,8 @@ jobs:
         run: bash tests/haxe/run-metronome.sh
       - name: Test moving checkerboard preference and frame-rate-independent motion
         run: bash tests/haxe/run-moving-checkerboard.sh
+      - name: Test the pointing-finger menu cursor (HaxeFlixel Cursor demo)
+        run: bash tests/haxe/run-pointing-cursor.sh
       - name: Test the FlxClothSprite easter egg code, layout and mesh numbers
         run: bash tests/haxe/run-cloth-easter-egg.sh
       - name: Test distant-note camera isolation and unsupported-target fallback

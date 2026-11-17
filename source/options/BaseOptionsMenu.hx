@@ -633,6 +633,15 @@ class BaseOptionsMenu extends MusicBeatSubstate
 			nextAccept -= 1;
 		}
 		super.update(elapsed);
+
+		if (grpOptions != null && (optionSearchText == null || !optionSearchText.hasFocus))
+		{
+			final pointed:Int = syncPointingCursor(grpOptions.members, curSelected);
+			if (pointed != curSelected)
+				changeSelection(pointed - curSelected);
+		}
+		else if (pointingCursor != null)
+			pointingCursor.visible = false;
 	}
 
 	/**
