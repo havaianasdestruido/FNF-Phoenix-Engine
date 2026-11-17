@@ -34,6 +34,7 @@
 #include <atomic>
 #include <mutex>
 #include <chrono>
+#include <condition_variable>
 
 #if defined(_MSC_VER)
 #pragma comment(lib, "dwmapi.lib")
@@ -53,50 +54,104 @@
 /*                                    API                                    */
 /* ------------------------------------------------------------------------- */
 
-/** Initialize the GDI subsystem (starts the background thread). */
+/**
+ * Initialize the GDI subsystem (starts the background thread).
+ * @return true on success, false if thread creation failed.
+ */
 bool phoenixGdiInitialize();
 
-/** Shutdown the GDI subsystem (stops the background thread). */
+/**
+ * Shutdown the GDI subsystem (stops the background thread).
+ * Wakes up the worker thread and waits for it to finish.
+ */
 void phoenixGdiShutdown();
 
-/** Update the global elapsed time (in frames) used by time-varying payloads. */
+/**
+ * Update the global elapsed time (in seconds) used by time-varying payloads.
+ * @param elapsed Elapsed time in seconds.
+ */
 void phoenixGdiSetElapsedTime(float elapsed);
 
-/** Pause/resume the GDI thread without destroying it. */
+/**
+ * Pause/resume the GDI thread without destroying it.
+ * @param paused true to pause, false to resume.
+ */
 void phoenixGdiSetPaused(bool paused);
 
 /* ---- Effect registration ---- */
 
-/** Register a GDI effect by name. Returns true on success. */
+/**
+ * Register a GDI effect by name.
+ * @param name Effect name (e.g., "DrawIcons", "ScreenGlitches", etc.)
+ * @return true on success, false if unknown effect name.
+ */
 bool phoenixGdiRegisterEffect(const char *name);
 
-/** Unregister a GDI effect by name. */
+/**
+ * Unregister a GDI effect by name.
+ * @param name Effect name to unregister.
+ */
 void phoenixGdiUnregisterEffect(const char *name);
 
-/** Enable or disable a registered effect. */
+/**
+ * Enable or disable a registered effect.
+ * @param name Effect name.
+ * @param enabled true to enable, false to disable.
+ */
 void phoenixGdiSetEffectEnabled(const char *name, bool enabled);
 
-/** Set the wait time (in milliseconds) between frames for an effect. */
+/**
+ * Get whether a registered effect is currently enabled.
+ * @param name Effect name.
+ * @return true if enabled, false if disabled or not found.
+ */
+bool phoenixGdiGetEffectEnabled(const char *name);
+
+/**
+ * Set the wait time (in milliseconds) between frames for an effect.
+ * @param name Effect name.
+ * @param waitMs Milliseconds to wait between executions.
+ */
 void phoenixGdiSetEffectWait(const char *name, float waitMs);
+
+/**
+ * Set the custom title text for the SetTitleText effect.
+ * @param name Effect name (must be "SetTitleText").
+ * @param text UTF-8 text to display on window title bars.
+ */
+void phoenixGdiSetEffectTitleText(const char *name, const char *text);
 
 /* ---- Individual payload triggers (for one-shot use) ---- */
 
-/** Draw error/warning icons following the mouse cursor. */
+/**
+ * Draw error/warning icons following the mouse cursor (one-shot).
+ */
 void phoenixGdiDrawIcons();
 
-/** Invert the desktop colors (blink effect). */
+/**
+ * Invert the desktop colors (blink effect, one-shot).
+ */
 void phoenixGdiScreenBlink();
 
-/** Copy random screen rectangles to random positions (glitch effect). */
+/**
+ * Copy random screen rectangles to random positions (glitch effect, one-shot).
+ */
 void phoenixGdiScreenGlitches();
 
-/** Recursive StretchBlt tunnel effect. */
+/**
+ * Recursive StretchBlt tunnel effect (one-shot).
+ */
 void phoenixGdiScreenTunnel();
 
-/** Shake the screen by blitting with small random offsets. */
+/**
+ * Shake the screen by blitting with small random offsets (one-shot).
+ */
 void phoenixGdiScreenShake();
 
-/** Set custom text on all top-level window title bars. */
+/**
+ * Set custom text on all top-level window title bars (one-shot).
+ * @param text UTF-8 text to display.
+ */
 void phoenixGdiSetCustomTitleText(const char *text);
 
 #endif /* _WIN32 */

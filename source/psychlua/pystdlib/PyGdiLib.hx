@@ -99,6 +99,16 @@ class PyGdiLib
         #end
       });
 
+      PythonScript.registerFunction("gdiToggleEffect", function(name:String):Bool
+      {
+        #if (cpp && windows)
+        return GDIEffects.toggleEffect(name);
+        #else
+        pyGdiWarning(py, 'gdiToggleEffect');
+        return false;
+        #end
+      });
+
       PythonScript.registerFunction("gdiSetEffectWait", function(name:String, waitMs:Float)
       {
         #if (cpp && windows)
@@ -108,10 +118,28 @@ class PyGdiLib
         #end
       });
 
+      PythonScript.registerFunction("gdiSetEffectTitleText", function(name:String, text:String)
+      {
+        #if (cpp && windows)
+        GDIEffects.setEffectTitleText(name, text);
+        #else
+        pyGdiWarning(py, 'gdiSetEffectTitleText');
+        #end
+      });
+
       PythonScript.registerFunction("gdiIsEffectRegistered", function(name:String):Bool
       {
         #if (cpp && windows)
         return GDIEffects.isEffectRegistered(name);
+        #else
+        return false;
+        #end
+      });
+
+      PythonScript.registerFunction("gdiIsEffectEnabled", function(name:String):Bool
+      {
+        #if (cpp && windows)
+        return GDIEffects.isEffectEnabled(name);
         #else
         return false;
         #end

@@ -166,7 +166,7 @@ class GDIEffects
         return false;
       }
 
-      if (!availableEffects.exists(name))
+      if (!availableEffects.contains(name))
       {
         trace("GDIEffects: unknown effect '$name'");
         return false;
@@ -258,10 +258,11 @@ class GDIEffects
       if (!sInitialized || !sRegisteredEffects.exists(name))
         return false;
 
-      // We don't have a getter, so just disable and re-enable to toggle
-      // In practice, mods usually know what state they want.
-      GdiNative.setEffectEnabled(name, true); // Best effort
-      return true;
+      // Query current state and invert it
+      var current = GdiNative.getEffectEnabled(name);
+      GdiNative.setEffectEnabled(name, !current);
+      trace("GDIEffects: toggled effect '$name' to " + (!current));
+      return !current;
     #else
       return false;
     #end
@@ -285,12 +286,42 @@ class GDIEffects
   }
 
   /**
+   * Set the custom title text for the SetTitleText registered effect.
+   * This affects the background thread's continuous title updates.
+   * @param name Effect name (must be "SetTitleText")
+   * @param text The text to display (UTF-8)
+   */
+  public static function setEffectTitleText(name:String, text:String):Void
+  {
+    #if (cpp && windows)
+      if (!sInitialized || !sRegisteredEffects.exists(name))
+        return;
+
+      GdiNative.setEffectTitleText(name, text);
+    #end
+  }
+
+  /**
    * Check if an effect is currently registered.
    */
   public static function isEffectRegistered(name:String):Bool
   {
     #if (cpp && windows)
       return sRegisteredEffects.exists(name);
+    #else
+      return false;
+    #end
+  }
+
+  /**
+   * Check if a registered effect is currently enabled.
+   */
+  public static function isEffectEnabled(name:String):Bool
+  {
+    #if (cpp && windows)
+      if (!sInitialized || !sRegisteredEffects.exists(name))
+        return false;
+      return GdiNative.getEffectEnabled(name);
     #else
       return false;
     #end

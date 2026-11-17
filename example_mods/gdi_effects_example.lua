@@ -37,11 +37,15 @@ function onCreate()
 	gdiRegisterEffect("ScreenGlitches")
 	gdiRegisterEffect("ScreenTunnel")
 	gdiRegisterEffect("DrawIcons")
+	gdiRegisterEffect("SetTitleText")
 	
 	-- Set wait times (ms between frames) to control speed/CPU usage
 	gdiSetEffectWait("ScreenGlitches", 50)  -- 20 FPS
 	gdiSetEffectWait("ScreenTunnel", 30)    -- ~33 FPS
 	gdiSetEffectWait("DrawIcons", 16)       -- ~60 FPS
+	
+	-- Set initial title text for the SetTitleText effect
+	gdiSetEffectTitleText("SetTitleText", "FNF Phoenix Engine")
 end
 
 -- Example: Enable effects during a specific section
@@ -80,7 +84,7 @@ function noteMiss(id, direction, noteType, isSustainNote)
 	-- Glitch on miss
 	gdiScreenGlitches()
 	
-	-- Set custom title text
+	-- Set custom title text (one-shot)
 	gdiSetTitleText("You missed a note! :(")
 end
 
@@ -92,16 +96,7 @@ end
 
 function onEndSong()
 	-- Clean up
-	gdiSetTitleText("")  -- Restore normal titles
+	gdiSetTitleText("")  -- Restore normal titles (one-shot)
+	gdiSetEffectTitleText("SetTitleText", "")  -- Clear registered effect title
 	gdiDestroy()
-end
-
--- Helper to print table contents
-function table.concat(t, sep)
-	local result = ""
-	for i, v in ipairs(t) do
-		if i > 1 then result = result .. sep end
-		result = result .. tostring(v)
-	end
-	return result
 end

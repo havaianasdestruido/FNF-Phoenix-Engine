@@ -59,14 +59,18 @@ class GdiEffectsExample extends FlxState
 		GDIEffects.registerEffect("ScreenGlitches");
 		GDIEffects.registerEffect("ScreenTunnel");
 		GDIEffects.registerEffect("DrawIcons");
+		GDIEffects.registerEffect("SetTitleText");
 
 		// Set wait times (ms between frames) to control speed/CPU usage
 		GDIEffects.setEffectWait("ScreenGlitches", 50);  // 20 FPS
 		GDIEffects.setEffectWait("ScreenTunnel", 30);    // ~33 FPS
 		GDIEffects.setEffectWait("DrawIcons", 16);       // ~60 FPS
 
+		// Set initial title text for the SetTitleText effect
+		GDIEffects.setEffectTitleText("SetTitleText", "FNF Phoenix Engine");
+
 		// UI for testing
-		statusText = new FlxText(0, 0, FlxG.width, "GDI Effects Example\nPress 1/2/3 to toggle effects\nPress B for blink\nPress G for glitch\nPress T for tunnel\nPress S for shake\nPress C for custom title");
+		statusText = new FlxText(0, 0, FlxG.width, "GDI Effects Example\nPress 1/2/3/4 to toggle effects\nPress B for blink\nPress G for glitch\nPress T for tunnel\nPress S for shake\nPress C for custom title (one-shot)\nPress X for toggle effect (glitches)");
 		statusText.setFormat(null, 18, FlxColor.WHITE, "center");
 		statusText.screenCenter();
 		add(statusText);
@@ -108,6 +112,14 @@ class GdiEffectsExample extends FlxState
 			updateStatus();
 		}
 
+		// Toggle effect using new toggleEffect API
+		if (FlxG.keys.justPressed("X"))
+		{
+			var newState = GDIEffects.toggleEffect("ScreenGlitches");
+			glitchEnabled = newState;
+			updateStatus();
+		}
+
 		// One-shot triggers
 		if (FlxG.keys.justPressed("B"))
 			GDIEffects.screenBlink();
@@ -130,12 +142,13 @@ class GdiEffectsExample extends FlxState
 		if (statusText != null)
 		{
 			statusText.text = "GDI Effects Example\n" +
-				"Press 1/2/3 to toggle effects\n" +
+				"Press 1/2/3/4 to toggle effects\n" +
 				"Press B for blink\n" +
 				"Press G for glitch\n" +
 				"Press T for tunnel\n" +
 				"Press S for shake\n" +
-				"Press C for custom title\n\n" +
+				"Press C for custom title (one-shot)\n" +
+				"Press X for toggle effect (glitches)\n\n" +
 				"Glitches: " + (if (glitchEnabled) "ON" else "OFF") + "\n" +
 				"Tunnel: " + (if (tunnelEnabled) "ON" else "OFF") + "\n" +
 				"Icons: " + (if (iconsEnabled) "ON" else "OFF");
@@ -145,7 +158,8 @@ class GdiEffectsExample extends FlxState
 	override public function destroy():Void
 	{
 		// Clean up
-		GDIEffects.setCustomTitleText("");  // Restore normal titles
+		GDIEffects.setCustomTitleText("");  // Restore normal titles (one-shot)
+		GDIEffects.setEffectTitleText("SetTitleText", "");  // Clear registered effect title
 		GDIEffects.destroy();
 		super.destroy();
 	}

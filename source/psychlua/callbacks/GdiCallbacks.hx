@@ -119,6 +119,16 @@ class GdiCallbacks
         #end
       });
 
+      FunkinLua.registerFunction("gdiToggleEffect", function(name:String):Bool
+      {
+        #if (cpp && windows)
+        return GDIEffects.toggleEffect(name);
+        #else
+        gdiWarning(funk, 'gdiToggleEffect');
+        return false;
+        #end
+      });
+
       FunkinLua.registerFunction("gdiSetEffectWait", function(name:String, waitMs:Float)
       {
         #if (cpp && windows)
@@ -128,10 +138,28 @@ class GdiCallbacks
         #end
       });
 
+      FunkinLua.registerFunction("gdiSetEffectTitleText", function(name:String, text:String)
+      {
+        #if (cpp && windows)
+        GDIEffects.setEffectTitleText(name, text);
+        #else
+        gdiWarning(funk, 'gdiSetEffectTitleText');
+        #end
+      });
+
       FunkinLua.registerFunction("gdiIsEffectRegistered", function(name:String):Bool
       {
         #if (cpp && windows)
         return GDIEffects.isEffectRegistered(name);
+        #else
+        return false;
+        #end
+      });
+
+      FunkinLua.registerFunction("gdiIsEffectEnabled", function(name:String):Bool
+      {
+        #if (cpp && windows)
+        return GDIEffects.isEffectEnabled(name);
         #else
         return false;
         #end
@@ -285,6 +313,15 @@ class GdiCallbacks
       #end
     });
 
+    register("gdiToggleEffect", function(name:String):Bool
+    {
+      #if (cpp && windows)
+      return GDIEffects.toggleEffect(name);
+      #else
+      return false;
+      #end
+    });
+
     register("gdiSetEffectWait", function(name:String, waitMs:Float)
     {
       #if (cpp && windows)
@@ -292,10 +329,26 @@ class GdiCallbacks
       #end
     });
 
+    register("gdiSetEffectTitleText", function(name:String, text:String)
+    {
+      #if (cpp && windows)
+      GDIEffects.setEffectTitleText(name, text);
+      #end
+    });
+
     register("gdiIsEffectRegistered", function(name:String):Bool
     {
       #if (cpp && windows)
       return GDIEffects.isEffectRegistered(name);
+      #else
+      return false;
+      #end
+    });
+
+    register("gdiIsEffectEnabled", function(name:String):Bool
+    {
+      #if (cpp && windows)
+      return GDIEffects.isEffectEnabled(name);
       #else
       return false;
       #end

@@ -39,8 +39,17 @@ class GdiNative
   {
   }
 
+  @:functionCode('return phoenixGdiGetEffectEnabled(name.c_str());')
+  public static function getEffectEnabled(name:String):Bool
+    return false;
+
   @:functionCode('phoenixGdiSetEffectWait(name.c_str(), waitMs);')
   public static function setEffectWait(name:String, waitMs:Float):Void
+  {
+  }
+
+  @:functionCode('phoenixGdiSetEffectTitleText(name.c_str(), text.c_str());')
+  public static function setEffectTitleText(name:String, text:String):Void
   {
   }
 
@@ -104,7 +113,14 @@ class GdiNative
   {
   }
 
+  public static function getEffectEnabled(name:String):Bool
+    return false;
+
   public static function setEffectWait(name:String, waitMs:Float):Void
+  {
+  }
+
+  public static function setEffectTitleText(name:String, text:String):Void
   {
   }
 
