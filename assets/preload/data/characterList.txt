@@ -26,4 +26,8 @@ pico-player
 tankman-player
 darnell
 nene
-pico-playable
+pico-playablebf-space
+kastimagina
+kalisa
+mathena
+unknown

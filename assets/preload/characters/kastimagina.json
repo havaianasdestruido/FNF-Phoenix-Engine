@@ -1,0 +1,145 @@
+{
+ "animations": [
+  {
+   "offsets": [
+    0,
+    0
+   ],
+   "loop": false,
+   "fps": 24,
+   "anim": "idle",
+   "indices": [],
+   "name": "Kastimagina Idle"
+  },
+  {
+   "offsets": [
+    41,
+    9
+   ],
+   "loop": false,
+   "fps": 24,
+   "anim": "singUP",
+   "indices": [],
+   "name": "Kastimagina Up"
+  },
+  {
+   "offsets": [
+    -53,
+    6
+   ],
+   "loop": false,
+   "fps": 24,
+   "anim": "singRIGHT",
+   "indices": [],
+   "name": "Kastimagina Right"
+  },
+  {
+   "offsets": [
+    -9,
+    -9
+   ],
+   "loop": false,
+   "fps": 24,
+   "anim": "singDOWN",
+   "indices": [],
+   "name": "Kastimagina Down"
+  },
+  {
+   "offsets": [
+    75,
+    14
+   ],
+   "loop": false,
+   "fps": 24,
+   "anim": "singLEFT",
+   "indices": [],
+   "name": "Kastimagina Left"
+  },
+  {
+   "offsets": [
+    57,
+    265
+   ],
+   "loop": false,
+   "fps": 24,
+   "anim": "singUP-alt",
+   "indices": [],
+   "name": "jumpup"
+  },
+  {
+   "offsets": [
+    74,
+    155
+   ],
+   "loop": false,
+   "fps": 24,
+   "anim": "singDOWN-alt",
+   "indices": [],
+   "name": "jumpdown"
+  },
+  {
+   "offsets": [
+    36,
+    195
+   ],
+   "loop": false,
+   "fps": 24,
+   "anim": "singLEFT-alt",
+   "indices": [],
+   "name": "jumpleft"
+  },
+  {
+   "offsets": [
+    1,
+    211
+   ],
+   "loop": false,
+   "fps": 24,
+   "anim": "singRIGHT-alt",
+   "indices": [],
+   "name": "jumpright"
+  }
+ ],
+ "vocals_file": "",
+ "losing_colors": [
+  146,
+  113,
+  253
+ ],
+ "isPlayer": false,
+ "no_antialiasing": false,
+ "image": "characters/Kastimagina",
+ "shake_duration": 0,
+ "trail_length": 4,
+ "trail_delay": 24,
+ "position": [
+  0,
+  0
+ ],
+ "trail_diff": 0,
+ "trail_alpha": 1,
+ "health_drain": false,
+ "shake_intensity": 0,
+ "healthicon": "kastimagina",
+ "shake_screen": false,
+ "drain_floor": 0,
+ "flip_x": false,
+ "healthbar_colors": [
+  146,
+  113,
+  253
+ ],
+ "drain_amount": 0,
+ "camera_position": [
+  0,
+  0
+ ],
+ "sing_duration": 4,
+ "noteskin": null,
+ "winning_colors": [
+  146,
+  113,
+  253
+ ],
+ "scale": 1
+}

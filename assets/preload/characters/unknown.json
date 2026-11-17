@@ -1,0 +1,123 @@
+{
+ "animations": [
+  {
+   "offsets": [
+    0,
+    0
+   ],
+   "loop": false,
+   "fps": 24,
+   "anim": "idle",
+   "indices": [],
+   "name": "unknown Idle0"
+  },
+  {
+   "offsets": [
+    -270,
+    228
+   ],
+   "loop": false,
+   "fps": 24,
+   "anim": "singUP",
+   "indices": [],
+   "name": "unknown Up"
+  },
+  {
+   "offsets": [
+    -223,
+    -34
+   ],
+   "loop": false,
+   "fps": 24,
+   "anim": "singRIGHT",
+   "indices": [],
+   "name": "unknown Right"
+  },
+  {
+   "offsets": [
+    -173,
+    -121
+   ],
+   "loop": false,
+   "fps": 24,
+   "anim": "singDOWN",
+   "indices": [],
+   "name": "unknown Down"
+  },
+  {
+   "offsets": [
+    181,
+    -134
+   ],
+   "loop": false,
+   "fps": 24,
+   "anim": "singLEFT",
+   "indices": [],
+   "name": "unknown Left"
+  },
+  {
+   "offsets": [
+    0,
+    0
+   ],
+   "loop": false,
+   "fps": 24,
+   "anim": "singPOSE1",
+   "indices": [],
+   "name": "unknown IdleA"
+  },
+  {
+   "offsets": [
+    0,
+    0
+   ],
+   "loop": false,
+   "fps": 24,
+   "anim": "singPOSE2",
+   "indices": [],
+   "name": "unknown IdleB"
+  }
+ ],
+ "vocals_file": "",
+ "losing_colors": [
+  146,
+  113,
+  253
+ ],
+ "isPlayer": false,
+ "no_antialiasing": false,
+ "image": "characters/unknown",
+ "shake_duration": 0,
+ "trail_length": 4,
+ "trail_delay": 24,
+ "position": [
+  0,
+  0
+ ],
+ "trail_diff": 0,
+ "trail_alpha": 1,
+ "health_drain": false,
+ "shake_intensity": 0,
+ "healthicon": "unknown",
+ "shake_screen": false,
+ "drain_floor": 0,
+ "flip_x": false,
+ "healthbar_colors": [
+  146,
+  113,
+  253
+ ],
+ "drain_amount": 0,
+ "camera_position": [
+  0,
+  0
+ ],
+ "sing_duration": 4,
+ "noteskin": null,
+ "winning_colors": [
+  146,
+  113,
+  253
+ ],
+ "scale": 1
+}

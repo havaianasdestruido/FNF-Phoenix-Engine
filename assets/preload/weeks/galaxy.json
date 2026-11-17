@@ -1,0 +1,111 @@
+{
+ "songs": [
+  [
+   "Galaxy",
+   "kastimagina",
+   [
+    146,
+    113,
+    253
+   ]
+  ],
+  [
+   "Game",
+   "kastimagina",
+   [
+    146,
+    113,
+    253
+   ]
+  ],
+  [
+   "Kastimagina",
+   "kastimagina",
+   [
+    146,
+    113,
+    253
+   ]
+  ],
+  [
+   "Familanna",
+   "mathena",
+   [
+    146,
+    113,
+    253
+   ]
+  ],
+  [
+   "Cona",
+   "kalisa",
+   [
+    146,
+    113,
+    253
+   ]
+  ],
+  [
+   "Underworld",
+   "kalisa",
+   [
+    146,
+    113,
+    253
+   ]
+  ],
+  [
+   "Cyber",
+   "kalisa",
+   [
+    146,
+    113,
+    253
+   ]
+  ],
+  [
+   "Newton",
+   "unknown",
+   [
+    146,
+    113,
+    253
+   ]
+  ],
+  [
+   "Destiny",
+   "unknown",
+   [
+    146,
+    113,
+    253
+   ]
+  ],
+  [
+   "Peace",
+   "unknown",
+   [
+    146,
+    113,
+    253
+   ]
+  ]
+ ],
+ "hideFreeplay": false,
+ "weekBackground": "stage",
+ "weekCharacters": [
+  "kastimagina",
+  "bf",
+  "unknown"
+ ],
+ "storyName": "Galaxy",
+ "weekName": "Galaxy",
+ "freeplayColor": [
+  146,
+  113,
+  253
+ ],
+ "hideStoryMode": false,
+ "weekBefore": "week7",
+ "startUnlocked": true
+}

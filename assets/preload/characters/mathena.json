@@ -1,0 +1,101 @@
+{
+ "animations": [
+  {
+   "offsets": [
+    0,
+    0
+   ],
+   "loop": false,
+   "fps": 24,
+   "anim": "idle",
+   "indices": [],
+   "name": "mathena_Idle.swf"
+  },
+  {
+   "offsets": [
+    -99,
+    103
+   ],
+   "loop": false,
+   "fps": 24,
+   "anim": "singUP",
+   "indices": [],
+   "name": "mathena_up.swf"
+  },
+  {
+   "offsets": [
+    24,
+    2
+   ],
+   "loop": false,
+   "fps": 24,
+   "anim": "singDOWN",
+   "indices": [],
+   "name": "mathena_Down.swf"
+  },
+  {
+   "offsets": [
+    86,
+    18
+   ],
+   "loop": false,
+   "fps": 24,
+   "anim": "singLEFT",
+   "indices": [],
+   "name": "mathena_Left.swf"
+  },
+  {
+   "offsets": [
+    -26,
+    16
+   ],
+   "loop": false,
+   "fps": 24,
+   "anim": "singRIGHT",
+   "indices": [],
+   "name": "mathena_Right.swf"
+  }
+ ],
+ "vocals_file": "",
+ "losing_colors": [
+  146,
+  113,
+  253
+ ],
+ "isPlayer": false,
+ "no_antialiasing": false,
+ "image": "characters/mathena",
+ "shake_duration": 0,
+ "trail_length": 4,
+ "trail_delay": 24,
+ "position": [
+  0,
+  0
+ ],
+ "trail_diff": 0,
+ "trail_alpha": 1,
+ "health_drain": false,
+ "shake_intensity": 0,
+ "healthicon": "mathena",
+ "shake_screen": false,
+ "drain_floor": 0,
+ "flip_x": false,
+ "healthbar_colors": [
+  146,
+  113,
+  253
+ ],
+ "drain_amount": 0,
+ "camera_position": [
+  0,
+  0
+ ],
+ "sing_duration": 4,
+ "noteskin": null,
+ "winning_colors": [
+  146,
+  113,
+  253
+ ],
+ "scale": 1
+}
