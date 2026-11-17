@@ -132,6 +132,8 @@ jobs:
         run: bash tests/haxe/run-hold-to-confirm-typecheck.sh
       - name: Test the input tester model and the phoenix://input page
         run: bash tests/haxe/run-input-test.sh
+      - name: Test the Freeplay filter orders, stars, random pick and accuracy fold
+        run: bash tests/haxe/run-freeplay-filter.sh
       - name: Test the sound tray / master volume curve
         run: bash tests/haxe/run-volume-curve.sh
       - name: Test the master volume row mirrors FlxG.sound.volume

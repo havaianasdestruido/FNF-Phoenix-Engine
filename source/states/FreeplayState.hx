@@ -1,6 +1,8 @@
 package states;
 
 import backend.ClientPrefs;
+import backend.FreeplayFilter;
+import backend.FreeplayFilterStore;
 import backend.ScreenLayout;
 import backend.ViewportVisuals;
 import backend.CoolUtil;
@@ -15,11 +17,14 @@ import data.Song;
 import editors.ChartingState;
 import flixel.addons.ui.FlxUIInputText;
 import flixel.ui.FlxButton; // for formatting the note count
+import flixel.util.FlxTimer;
 import music.MusicPlayer;
 import objects.Alphabet;
 import objects.HealthIcon;
 import objects.MovingCheckerboard;
 import play.PlayState;
+import states.substates.FreeplayFilterSubState;
+import states.substates.FreeplayFilterSubState.FreeplayFilterHost;
 import states.substates.GameplayChangersSubstate;
 import states.substates.ResetScoreSubState;
 
@@ -32,6 +37,19 @@ import objects.Note;
 
 class FreeplayState extends MusicBeatState
 {
+	/**
+	 * Order, mod filter, favourites-only switch and stars. Static so the page
+	 * survives a trip into a song, and persisted by `FreeplayFilterStore`.
+	 */
+	public static var filter:FreeplayFilterState = new FreeplayFilterState();
+	private static var filterLoaded:Bool = false;
+
+	/** Every unlocked song, before the filter; `songs` is the filtered view. */
+	public var allSongs:Array<SongMetadata> = [];
+
+	/** `filter.revision` when the filter page opened; a change rebuilds the list. */
+	private var filterRevision:Int = 0;
+
 	var songs:Array<SongMetadata> = [];
 
 	private static var curSelected:Int = 0;
@@ -67,6 +85,14 @@ class FreeplayState extends MusicBeatState
 	var missingText:FlxText;
 	var songSearchText:FlxUIInputText;
 	var buttonTop:FlxButton;
+	var filterButton:FlxButton;
+	/** "* FAVOURITE" next to the personal best, empty when the song is not starred. */
+	var favouriteText:FlxText;
+	/** Shown while the filter hides every song. */
+	var emptyText:FlxText;
+	/** Temporary one-liner ("No songs found matching your query"). */
+	var noticeText:FlxText;
+	var noticeTimer:FlxTimer;
 
 	var player:MusicPlayer;
 	private var layoutWidth:Int = 0;
@@ -95,6 +121,10 @@ class FreeplayState extends MusicBeatState
 		if (songSearchText != null) songSearchText.x = FlxG.width - songSearchText.width;
 		if (buttonTop != null) buttonTop.x = FlxG.width - buttonTop.width;
 		if (searchText != null && buttonTop != null) searchText.x = buttonTop.x + 195;
+		if (filterButton != null) filterButton.x = FlxG.width - filterButton.width;
+		if (favouriteText != null) favouriteText.x = FlxG.width - favouriteText.width - 6;
+		if (emptyText != null) emptyText.fieldWidth = FlxG.width;
+		if (noticeText != null) noticeText.fieldWidth = FlxG.width;
 		final shift:Float = ScreenLayout.contentLeft(FlxG.width) - ScreenLayout.contentLeft(layoutWidth);
 		if (grpSongs != null)
 			grpSongs.forEach(item -> { item.startPosition.x += shift; item.x += shift; });
@@ -113,6 +143,13 @@ class FreeplayState extends MusicBeatState
 		persistentUpdate = true;
 		PlayState.isStoryMode = false;
 		WeekData.reloadWeekFiles(false);
+
+		// Loaded once per session: the page edits the same object the list reads.
+		if (!filterLoaded)
+		{
+			filterLoaded = true;
+			filter = FreeplayFilterStore.load();
+		}
 
 		#if DISCORD_ALLOWED
 		// Updating Discord Rich Presence
@@ -134,31 +171,16 @@ class FreeplayState extends MusicBeatState
 			return;
 		}
 
-		for (i in 0...WeekData.weeksList.length) {
-			if(weekIsLocked(WeekData.weeksList[i])) continue;
-
-			var leWeek:WeekData = WeekData.weeksLoaded.get(WeekData.weeksList[i]);
-			var leSongs:Array<String> = [];
-			var leChars:Array<String> = [];
-
-			for (j in 0...leWeek.songs.length)
-			{
-				leSongs.push(leWeek.songs[j][0]);
-				leChars.push(leWeek.songs[j][1]);
-			}
-
-			WeekData.setDirectoryFromWeek(leWeek);
-			for (song in leWeek.songs)
-			{
-				var colors:Array<Int> = song[2];
-				if(colors == null || colors.length < 3)
-				{
-					colors = [146, 113, 253];
-				}
-				addSong(song[0], i, song[1], FlxColor.fromRGB(colors[0], colors[1], colors[2]));
-			}
-		}
+		FreeplayStateHelpers.collectSongs(this);
 		Mods.loadTopMod();
+
+		// A saved mod filter may name a mod that is no longer installed; showing
+		// an empty list with no way to notice would look like a broken menu.
+		final knownMods:Array<String> = FreeplayStateHelpers.availableMods(this);
+		if (filter.mod != null && !knownMods.contains(filter.mod)) filter.setMod(null);
+
+		FreeplayStateHelpers.refreshSongs(this);
+		filterRevision = filter.revision;
 
 		#if PRELOAD_ALL
 		if (!curPlaying) Conductor.changeBPM(TitleState.titleJSON.bpm);
@@ -228,6 +250,10 @@ class FreeplayState extends MusicBeatState
 		diffText.font = scoreText.font;
 		add(diffText);
 
+		favouriteText = new FlxText(scoreText.x, diffText.y + 28, 0, '', 18);
+		favouriteText.setFormat(Paths.font("vcr.ttf"), 18, FlxColor.WHITE, RIGHT);
+		add(favouriteText);
+
 		add(scoreText);
 
 		missingTextBG = new FlxSprite().makeGraphic(1, 1, FlxColor.BLACK);
@@ -243,8 +269,11 @@ class FreeplayState extends MusicBeatState
 		add(missingText);
 
 		if(curSelected >= songs.length) curSelected = 0;
-		bg.color = songs[curSelected].color;
-		intendedColor = bg.color;
+		if (songs.length > 0)
+		{
+			bg.color = songs[curSelected].color;
+			intendedColor = bg.color;
+		}
 
 		if(lastDifficultyName == '')
 		{
@@ -252,7 +281,7 @@ class FreeplayState extends MusicBeatState
 		}
 		curDifficulty = Math.round(Math.max(0, CoolUtil.defaultDifficulties.indexOf(lastDifficultyName)));
 
-		if(curPlaying)
+		if(curPlaying && instPlaying >= 0 && instPlaying < grpIcons.members.length)
 		{
 			grpIcons.members[instPlaying].canBounce = true;
 		}
@@ -265,15 +294,15 @@ class FreeplayState extends MusicBeatState
 		add(bottomBG);
 
 		#if PRELOAD_ALL
-		var leText:String = "Press SPACE to listen to the Song / Press CTRL to open the Gameplay Changers Menu / Press RESET to Reset your Score and Accuracy.";
+		var leText:String = "Press SPACE to listen / Press F to filter the list / Press CTRL for Gameplay Changers / Press RESET to Reset your Score.";
 		var size:Int = 16;
 		#else
-		var leText:String = "Press C to open the Gameplay Changers Menu / Press Y to Reset your Score and Accuracy.";
+		var leText:String = "Press F to filter the list / Press C for Gameplay Changers / Press Y to Reset your Score and Accuracy.";
 		var size:Int = 18;
 		#end
 		if (mobile.MobileControls.enabled)
 		{
-			leText = "Press X to listen to the Song / Press C to open the Gameplay Changers Menu / Press Y to Reset your Score and Accuracy.";
+			leText = "Press X to listen / Press F (or the FILTER button) to filter / Press C for Gameplay Changers / Press Y to Reset your Score.";
 			size = 16;
 		}
 		bottomString = leText;
@@ -299,11 +328,34 @@ class FreeplayState extends MusicBeatState
 		searchText.setFormat(Paths.font("vcr.ttf"), 24, FlxColor.BLACK);
 		add(searchText);
 
+		// Clickable twin of the F key, so the page is reachable without a keyboard.
+		filterButton = new FlxButton(buttonTop.x, buttonTop.y + buttonTop.height + 6, "FILTER", function() openFilterPage());
+		filterButton.setGraphicSize(Std.int(songSearchText.width), 40);
+		filterButton.updateHitbox();
+		filterButton.label.setFormat(Paths.font("vcr.ttf"), 20, FlxColor.BLACK, CENTER);
+		filterButton.x = FlxG.width - filterButton.width;
+		add(filterButton);
+
+		emptyText = new FlxText(0, 0, FlxG.width, 'No songs match this filter.\nPress F (or the FILTER button) to change it.', 24);
+		emptyText.setFormat(Paths.font("vcr.ttf"), 24, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+		emptyText.screenCenter();
+		emptyText.scrollFactor.set();
+		emptyText.visible = false;
+		add(emptyText);
+
+		noticeText = new FlxText(0, FlxG.height * 0.28, FlxG.width, '', 20);
+		noticeText.setFormat(Paths.font("vcr.ttf"), 20, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+		noticeText.scrollFactor.set();
+		noticeText.visible = false;
+		add(noticeText);
+
 		player = new MusicPlayer(this);
 		add(player);
 
 		changeSelection();
 		changeDiff();
+		updateFavouriteText();
+		updateEmptyState();
 
 		FlxG.mouse.visible = !backend.TouchlessUI.isActive();
 
@@ -428,10 +480,123 @@ class FreeplayState extends MusicBeatState
 	}
 
 	override function closeSubState() {
+		// The filter page edits `filter` in place; rebuild (and remember) only
+		// when something actually changed, so closing other substates is free.
+		if (filter.revision != filterRevision)
+		{
+			filterRevision = filter.revision;
+			applyFreeplayFilter();
+			FreeplayFilterStore.save(filter);
+			// "Reset filters" clears the query in the page; keep the search box
+			// showing what the list is actually filtered by.
+			if (songSearchText != null && songSearchText.text != filter.query) songSearchText.text = filter.query;
+		}
 		changeSelection(0, false);
 		persistentUpdate = true;
 		if (virtualPad != null) virtualPad.visible = mobile.MobileControls.enabled;
 		super.closeSubState();
+	}
+
+	/** Rebuilds the list with the current filter, then keeps the highlight. */
+	public function applyFreeplayFilter():Void
+	{
+		FreeplayStateHelpers.refreshSongs(this);
+		FreeplayStateHelpers.regenList(this);
+		updateFavouriteText();
+		updateEmptyState();
+	}
+
+	/** Opens the filter page: F, the FILTER button, or the right shoulder button. */
+	function openFilterPage():Void
+	{
+		persistentUpdate = false;
+		if (virtualPad != null) virtualPad.visible = false;
+		filterRevision = filter.revision;
+
+		final host:FreeplayFilterHost = {
+			isStarred: function() return isSelectedStarred(),
+			toggleStar: function() return toggleSelectedStar(),
+			randomSong: function() selectRandomSong(),
+			currentSong: function() {
+				final song:SongMetadata = FreeplayStateHelpers.selectedSong(this);
+				return song == null ? '' : song.songName + ' (' + FreeplayFilter.modLabel(song.folder) + ')';
+			}
+		};
+
+		openSubState(new FreeplayFilterSubState(filter, FreeplayStateHelpers.availableMods(this), host));
+		FlxG.sound.play(Paths.sound('scrollMenu'), 0.6);
+	}
+
+	/** True when the highlighted song is starred. */
+	public function isSelectedStarred():Bool
+	{
+		final song:SongMetadata = FreeplayStateHelpers.selectedSong(this);
+		return song != null && filter.isStarred(song.songName, song.folder);
+	}
+
+	/** Flips the star of the highlighted song; returns the new value. */
+	public function toggleSelectedStar():Bool
+	{
+		final song:SongMetadata = FreeplayStateHelpers.selectedSong(this);
+		if (song == null) return false;
+		final value:Bool = filter.toggleStar(song.songName, song.folder);
+		updateFavouriteText();
+		return value;
+	}
+
+	/** Highlights a random song out of whatever the filter currently keeps. */
+	public function selectRandomSong():Void
+	{
+		applyFreeplayFilter();
+		if (songs.length == 0) return;
+
+		final candidates:Array<Int> = [];
+		for (i in 0...songs.length)
+		{
+			// A "random" pick that lands on the song already highlighted is
+			// just noise; only a one-song list may repeat it.
+			if (i != curSelected || songs.length == 1) candidates.push(i);
+		}
+
+		final pick:Int = FreeplayFilter.randomPick(candidates, Math.random());
+		if (pick < 0) return;
+		curSelected = pick;
+		changeSelection(0);
+		changeDiff();
+	}
+
+	/** Shows the star of the highlighted song next to the personal best. */
+	public function updateFavouriteText():Void
+	{
+		if (favouriteText == null) return;
+		favouriteText.text = isSelectedStarred() ? '* FAVOURITE' : '';
+		favouriteText.x = FlxG.width - favouriteText.width - 6;
+		// `MusicPlayer` hides the personal-best block while a preview plays.
+		favouriteText.visible = (player == null || !player.playingMusic) && favouriteText.text.length > 0;
+	}
+
+	/** The persistent "nothing matches" line, shown only with an empty list. */
+	function updateEmptyState():Void
+	{
+		if (emptyText == null) return;
+		emptyText.visible = songs.length == 0;
+		if (emptyText.visible) emptyText.screenCenter();
+	}
+
+	/** One-line message above the list, hidden again after a few seconds. */
+	public function showNotice(message:String):Void
+	{
+		if (noticeText == null) return;
+		noticeText.text = message;
+		noticeText.visible = message.length > 0;
+		noticeText.screenCenter(X);
+		noticeText.y = FlxG.height * 0.28;
+
+		if (noticeTimer != null) noticeTimer.cancel();
+		if (message.length == 0) return;
+		noticeTimer = new FlxTimer().start(4, function(_) {
+			if (noticeText != null) noticeText.visible = false;
+		});
 	}
 
 	public function addSong(songName:String, weekNum:Int, songCharacter:String, color:Int)
@@ -494,11 +659,13 @@ class FreeplayState extends MusicBeatState
 		}
 		catch(e){}
 		positionHighscore();
+		updateEmptyState();
 
 		var upP = controls.UI_UP_P;
 		var downP = controls.UI_DOWN_P;
 		var accepted = controls.ACCEPT;
 		var space:Bool = FlxG.keys.justPressed.SPACE || virtualPad.buttonX.justPressed || FlxG.gamepads.anyJustPressed(X);
+		var filterKey:Bool = FlxG.keys.justPressed.F || FlxG.gamepads.anyJustPressed(RIGHT_SHOULDER);
 		var ctrl:Bool = FlxG.keys.justPressed.CONTROL || virtualPad.buttonC.justPressed
 			|| FlxG.keys.justPressed.MENU || backend.TouchlessUI.isMenuPressed() || FlxG.gamepads.anyJustPressed(LEFT_SHOULDER);
 
@@ -585,13 +752,17 @@ class FreeplayState extends MusicBeatState
 					}
 				}
 
-				if(ctrl && !player.playingMusic)
+				if (filterKey && !player.playingMusic)
+				{
+					openFilterPage();
+				}
+				else if(ctrl && !player.playingMusic)
 				{
 					persistentUpdate = false;
 					if (virtualPad != null) virtualPad.visible = false;
 					openSubState(new GameplayChangersSubstate());
 				}
-				else if(space)
+				else if(space && songs.length > 0)
 				{
 					requiredRamLoad = 0;
 					noteCount = 0;
@@ -623,7 +794,7 @@ class FreeplayState extends MusicBeatState
 					}
 				}
 
-				else if (accepted && !player.playingMusic)
+				else if (accepted && !player.playingMusic && songs.length > 0)
 				{
 					persistentUpdate = false;
 					var songLowercase:String = Paths.formatToSongPath(songs[curSelected].songName);
@@ -686,7 +857,7 @@ class FreeplayState extends MusicBeatState
 						#end
 					}
 				}
-				else if ((controls.RESET || virtualPad.buttonY.justPressed || FlxG.gamepads.anyJustPressed(Y)) && !player.playingMusic) {
+				else if ((controls.RESET || virtualPad.buttonY.justPressed || FlxG.gamepads.anyJustPressed(Y)) && !player.playingMusic && songs.length > 0) {
 					persistentUpdate = false;
 					if (virtualPad != null) virtualPad.visible = false;
 					openSubState(new ResetScoreSubState(songs[curSelected].songName, curDifficulty, songs[curSelected].songCharacter));
@@ -723,7 +894,7 @@ class FreeplayState extends MusicBeatState
 	override function beatHit() {
 		super.beatHit();
 
-		if (curPlaying)
+		if (curPlaying && instPlaying >= 0 && instPlaying < grpIcons.members.length)
 			if (grpIcons.members[instPlaying] != null && grpIcons.members[instPlaying].canBounce) grpIcons.members[instPlaying].bounce();
 	}
 	var _drawDistance:Int = 4;
