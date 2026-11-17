@@ -33,24 +33,32 @@ g hxcpp       https://github.com/FunkinCrew/hxcpp                  d5bda40ac13f2
 g hscript     https://github.com/CodenameCrew/hscript-improved     48ec0f4b013a4e5e18d6ce1456be7b3c3f12a1fa
 g tjson       https://github.com/moxie-coder/tjson                 7e2b6540bee6c3d94cd3b957453ffb1e3e438c59
 g flxanimate  https://github.com/Dot-Stuff/flxanimate              768740a56b26aa0c072720e0d1236b94afe68e3e
-g hxluajit    https://github.com/ShadowEngineTeam/hxluajit         a4b2a0a14a371dc404f3062854b8d0d6b404a0ed
 g funkin.vis  https://github.com/JS-Engine-things/funkVis-FrequencyFixed badf0368f0035d0d7bab6529fcbc1ca22e47d31a
-g grig.audio  https://github.com/JS-Engine-things/grig.audio        eb5cad389e6110af6767457a62b9a80af2507826
 g hxdiscord_rpc https://github.com/MAJigsaw77/hxdiscord_rpc        2ca5930e9647c5de8c220f98427b5c50ddd244dd --skip-dependencies
 g hxvlc       https://github.com/JS-Engine-things/hxvlc            2bb1cb4d1e9277f2a64b7bcebf3622f05eddfaa2 --skip-dependencies
 g hxnativefiledialog https://github.com/MAJigsaw77/hxnativefiledialog 7f2353172bd3d0e3b8324ad5de4eeb9bc9c44af9 --skip-dependencies
 g hxgamemode  https://github.com/MAJigsaw77/hxgamemode             main
+# pinned commits that are NOT branch tips: haxelib git's clone is flaky here
+# (SSL EOF); manual clone + .current works.
+clone_commit() { # clone_commit <name> <url> <commit>
+  rm -rf "$HOME/haxelib/$1"
+  git clone --quiet "$2" "$HOME/haxelib/$1/git" || return 1
+  git -C "$HOME/haxelib/$1/git" checkout -q "$3" && echo "git" > "$HOME/haxelib/$1/.current"
+}
+say "haxelib: hxluajit (pinned commit)"
+clone_commit hxluajit https://github.com/ShadowEngineTeam/hxluajit.git a4b2a0a14a371dc404f3062854b8d0d6b404a0ed || echo "FAIL hxluajit"
+say "haxelib: grig.audio (pinned commit)"
+clone_commit grig,audio https://github.com/JS-Engine-things/grig.audio.git eb5cad389e6110af6767457a62b9a80af2507826 || echo "FAIL grig.audio"
 
-say "haxelib: JS-Engine-things forks (registry versions, installed from git)"
-# flixel-addons: repo default; JS-Engine-things fork tracks upstream 3.3.0
-g flixel-addons https://github.com/JS-Engine-things/flixel-addons  master
-g flixel-ui     https://github.com/JS-Engine-things/flixel-ui      master
-g flixel-tools  https://github.com/JS-Engine-things/flixel-tools   master
-
-say "haxelib: registry-only libs (haxelib.org is blocked; git fallbacks)"
-haxelib install hxp --quiet 2>&1 | tail -1
-haxelib install hxcpp-debug-server --quiet 2>&1 | tail -1
-haxelib install hython 0.0.352-beta --quiet 2>&1 | tail -1
+say "haxelib: registry-version libs from git mirrors"
+# flixel-addons: repo owner fork (branch main, not master)
+g flixel-addons https://github.com/JS-Engine-things/flixel-addons  main
+# version-pinned mirrors (NovaFlare-Engine-haxelib) for registry-only libs
+g flixel-ui     https://github.com/NovaFlare-Engine-haxelib/flixel-ui            main
+g flixel-tools  https://github.com/NovaFlare-Engine-haxelib/flixel-tools-1.5.1   main
+g hxp           https://github.com/NovaFlare-Engine-haxelib/hxp-1.3.1            main
+g hxcpp-debug-server https://github.com/NovaFlare-Engine-haxelib/hxcpp-debug-server-1.2.4 main
+g hython        https://github.com/PaoPaoGH/Hython                                main
 # tink_core 1.26.0 for grig.audio: git tag + comma-dir rename (haxelib Data.safe)
 g tink_core   https://github.com/haxetink/tink_core                1.26.0
 if [ -d "$HOME/haxelib/tink_core/git" ]; then
