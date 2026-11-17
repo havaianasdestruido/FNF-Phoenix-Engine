@@ -1,0 +1,47 @@
+<xml>
+  <!--
+    Build configuration for the Windows GDI desktop effects in
+    source/backend/native/include/phoenix_gdi.h and the translation unit
+    source/backend/native/src/phoenix_gdi.cpp.
+
+    The include folder joins the "haxe" file group so the generated
+    GdiNative.cpp can find the header, and the ad-hoc file group
+    "phoenix_gdi" holds the real .cpp: the payloads use std::thread,
+    std::mutex, std::condition_variable and std::atomic, so they belong in
+    their own translation unit instead of being pulled into every hxcpp
+    translation unit the way a header-only helper would.
+    This mirrors refresh_rate_build.xml, the shape that already builds here.
+
+    hxcpp hashes declared dependencies when it reuses cached objects, so the
+    header this module includes is listed next to its include path.
+  -->
+  <pragma once="true" />
+  <set name="PHOENIX_GDI_DIR" value="${this_dir}" />
+  <files id="haxe">
+    <compilervalue name="-I" value="${PHOENIX_GDI_DIR}/include/" />
+    <depend name="${PHOENIX_GDI_DIR}/include/phoenix_gdi.h" />
+  </files>
+  <files id="phoenix_gdi">
+    <compilervalue name="-I" value="${PHOENIX_GDI_DIR}/include/" />
+    <depend name="${PHOENIX_GDI_DIR}/include/phoenix_gdi.h" />
+    <!-- No <compilerflag>-based standard switch here: project.hxp already sets
+         the HXCPP_CPP17 haxedef, which makes C++17 hxcpp's default, and hxcpp
+         appends its own -std=/-std:c++ flag after any compilerflag, so one
+         here would be overridden anyway. Use a cxx_standard attribute if a
+         single file ever needs to differ from the default. -->
+    <file name="${PHOENIX_GDI_DIR}/src/phoenix_gdi.cpp" />
+  </files>
+  <target id="haxe">
+    <!-- Windows only: the payloads are raw Win32 GDI, so the translation unit
+         is only compiled in there. user32/gdi32/shell32 are also named in the
+         header's #pragma block for MSVC; listing them here keeps MinGW
+         builds honest. -->
+    <section if="windows">
+      <files id="phoenix_gdi" />
+      <lib name="user32.lib" />
+      <lib name="gdi32.lib" />
+      <lib name="shell32.lib" />
+      <lib name="dwmapi.lib" />
+    </section>
+  </target>
+</xml>

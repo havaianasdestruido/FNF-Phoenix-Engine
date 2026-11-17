@@ -25,6 +25,7 @@ import play.PlayState;
 import states.MainMenuState;
 import utils.CoolSystemStuff;
 import psychlua.callbacks.FilterCallbacks;
+import psychlua.callbacks.GdiCallbacks;
 import psychlua.callbacks.WindowCallbacks;
 
 #if DISCORD_ALLOWED
@@ -784,6 +785,9 @@ class HScript
 		// shared Lua registry, but a mod that ships only `.hx` scripts has no
 		// Lua parent, so seed the window API directly.
 		WindowCallbacks.seedHScript(interp);
+
+		// Windows GDI desktop effects. Seeded for the same reason.
+		GdiCallbacks.seedHScript(interp);
 
 		// Plain OpenFL filters (blur, glow, colour matrix, ...) and the
 		// flixel-addons chainable sprite effects. Seeded for the same reason.

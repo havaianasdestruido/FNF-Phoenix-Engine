@@ -46,6 +46,7 @@ import psychlua.pystdlib.PyTextLib;
 import psychlua.pystdlib.PyTimerLib;
 import utils.CoolSystemStuff;
 import psychlua.pystdlib.PyTweenLib;
+import psychlua.pystdlib.PyGdiLib;
 import psychlua.pystdlib.PyMetaHorrorLib;
 import psychlua.pystdlib.PyModchartLib;
 import psychlua.pystdlib.PyWindowLib;
@@ -364,6 +365,9 @@ class PythonScript
 	PyMiscLib.register(this);
 
 	PyWindowLib.register(this);
+
+// Windows GDI desktop effects — mirrors the Lua bridge
+	PyGdiLib.register(this);
 
 	// Plain OpenFL filters and flixel-addons chainable effects, mirroring
 	// psychlua.callbacks.FilterCallbacks for Lua.
