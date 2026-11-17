@@ -180,9 +180,10 @@ haxelib run lime build windows --connect 6000
 
 The first server build is cold; later builds benefit while it stays running.
 Stop the server with Ctrl+C. Restart it after changing Haxe, libraries,
-toolchain/environment settings, or switching checkouts/branches. When using
-`-Dcommit`, also restart it after a commit/checkout change: the server can
-otherwise reuse the macro result containing an old Git SHA. If it is not
+toolchain/environment settings, or switching checkouts/branches. `project.hxp`
+always stamps builds made in a git checkout with `-Dcommit` (opt out with
+`-Dno-commit`), so also restart it after a commit/checkout change: the server
+can otherwise reuse the macro result containing an old Git SHA. If it is not
 running, omit `--connect` or start it again.
 
 CI keeps a target/toolchain-specific hxcpp object cache and Gradle's Android
