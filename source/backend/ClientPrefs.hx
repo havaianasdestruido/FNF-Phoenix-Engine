@@ -18,6 +18,16 @@ class ClientPrefs { //default settings if it can't find a save file containing y
 	public static var opponentStrums:Bool = true;
 	public static var ghostTapping:Bool = true;
 	public static var autoPause:Bool = true;
+	/**
+	 * Count 3-2-1 after unpausing instead of resuming instantly (Options -> Gameplay).
+	 *
+	 * The countdown runs only when the song was actually playing (`paused` &&
+	 * `!startingSong` && `canResync` && not FFmpeg rendering); anything else
+	 * resumes exactly like before. The ticks and the final resume are dispatched
+	 * to Lua/Python/HScript as `onResumeCountdownStart` / `onResumeCountdownTick`
+	 * / `onResume`, like the other pause events.
+	 */
+	public static var resumeCountdown:Bool = true;
 	public static var complexAccuracy:Bool = false;
 	public static var noMarvJudge:Bool = false;
 	public static var noReset:Bool = false;
@@ -65,6 +75,14 @@ class ClientPrefs { //default settings if it can't find a save file containing y
 	 * HUD are never dimmed. See `play.helpers.PlayStateStageDim`.
 	 */
 	public static var stageDim:Float = 0;
+	/**
+	 * Dark strip behind the player's lanes (Options -> Visuals and UI), 0..1.
+	 *
+	 * 0 = off (the default). One stretched 1x1 black sprite covering the
+	 * player's lanes top to bottom, drawn above the stage and below the notes and
+	 * the strums on the notes camera; see `play.helpers.PlayStateLaneUnderlay`.
+	 */
+	public static var laneUnderlayAlpha:Float = 0;
 	public static var hideHud:Bool = false;
 	public static var tauntOnGo:Bool = true;
 	public static var oldSusStyle:Bool = false;
@@ -240,6 +258,21 @@ class ClientPrefs { //default settings if it can't find a save file containing y
 	public static var noteSpawnTime:Float = 1;
 	public static var resolution:String = '1280x720';
 	public static var framerate:Int = 60;
+	/**
+	 * Framerate for menus, editors and every non-gameplay state (Options -> Graphics).
+	 *
+	 * Gameplay keeps `framerate`; everything else runs at this rate, so setting
+	 * the gameplay cap up to 1000 does not burn battery in the menus. Applied by
+	 * `backend.FramerateController` on every state switch. Frame-pacing roadmap:
+	 * TODO.md §18.
+	 */
+	public static var menuFramerate:Int = 60;
+	/**
+	 * Framerate while the game window is in the background (Options -> Graphics).
+	 * Used to be hard-coded to 60 in `states/InitState.hx`
+	 * (`FlxG.game.focusLostFramerate`).
+	 */
+	public static var focusLostFramerate:Int = 60;
 	public static var framePacing:Int = 0;
 	/**
 	 * Window display mode from Options -> Graphics: `Windowed` / `Borderless`
@@ -469,7 +502,7 @@ class ClientPrefs { //default settings if it can't find a save file containing y
 				// is left untouched in the shared save file.
 				if (!PlatformSupport.supportsPreference(field)) continue;
 
-				if ((RecoveryBoot.freshPrefs || (RecoveryBoot.defaultDisplay && (field == "resolution" || field == "framerate" || field == "widescreen")))) continue;
+				if ((RecoveryBoot.freshPrefs || (RecoveryBoot.defaultDisplay && (field == "resolution" || field == "framerate" || field == "menuFramerate" || field == "focusLostFramerate" || field == "widescreen")))) continue;
 				if (!importantMap.get("saveBlackList").contains(field))
 					Reflect.setField(FlxG.save.data, field, Reflect.field(ClientPrefs, field));
 			}
@@ -595,7 +628,7 @@ class ClientPrefs { //default settings if it can't find a save file containing y
 				if (!importantMap.get("loadBlackList").contains(field))
 				{
 					var defaultValue:Dynamic = Reflect.field(ClientPrefs, field);
-					var flxProp:Dynamic = (RecoveryBoot.defaultDisplay && (field == "resolution" || field == "framerate" || field == "widescreen")) ? null : Reflect.field(FlxG.save.data, field);
+					var flxProp:Dynamic = (RecoveryBoot.defaultDisplay && (field == "resolution" || field == "framerate" || field == "menuFramerate" || field == "focusLostFramerate" || field == "widescreen")) ? null : Reflect.field(FlxG.save.data, field);
 					Reflect.setField(ClientPrefs, field, (flxProp != null ? flxProp : defaultValue));
 
 					if (field == "showFPS" && Main.fpsVar != null)
@@ -604,23 +637,21 @@ class ClientPrefs { //default settings if it can't find a save file containing y
 					if (field == "showCommitWatermark" && Main.commitWatermark != null)
 						Main.commitWatermark.visible = showCommitWatermark;
 
-					if (field == "framerate")
-					{
-						if (framerate > FlxG.drawFramerate)
-						{
-							FlxG.updateFramerate = framerate;
-							FlxG.drawFramerate = framerate;
-						}
-						else
-						{
-							FlxG.drawFramerate = framerate;
-							FlxG.updateFramerate = framerate;
-						}
-						debug.FrameProfiler.setTargetFps(framerate);
-					}
 				}
 			}
 		}
+
+    // A hand-edited/old save can contain an absurd or non-numeric framerate;
+    // clamp it (and the two siblings) to the supported band before anything
+    // reads it. `uncappedFps` is already loaded at this point, so the cap is
+    // the final one.
+    framerate = FramerateMath.clamp(framerate, uncappedFps);
+    menuFramerate = FramerateMath.clamp(menuFramerate, uncappedFps);
+    focusLostFramerate = FramerateMath.clamp(focusLostFramerate, uncappedFps);
+    // Apply the saved gameplay rate now that every field (including
+    // `uncappedFps`, which the cap depends on) is final. Menu screens apply
+    // `menuFramerate` when they are created; see backend.FramerateController.
+    FramerateController.apply(framerate);
 
     // A hand-edited/old save can contain an absurd or non-numeric hold time.
     // The guard clamps at use time already; keep the Options display valid too.

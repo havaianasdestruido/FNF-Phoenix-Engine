@@ -150,6 +150,12 @@ jobs:
         run: bash tests/haxe/run-modchart-lab-typecheck.sh
       - name: Test stage dim alpha rules, overlay layering and camera coverage
         run: bash tests/haxe/run-stage-dim.sh
+      - name: Test lane underlay alpha rules, strip layering and options wiring
+        run: bash tests/haxe/run-lane-underlay.sh
+      - name: Test resume countdown gate math, unpause flow and script hooks
+        run: bash tests/haxe/run-resume-countdown.sh
+      - name: Test menu framerate caps, state-rate selection and options wiring
+        run: bash tests/haxe/run-menu-framerate.sh
       - name: Test accuracy presets, perfectWindow default and gamepad deadzone clamping
         run: bash tests/haxe/run-accuracy-presets.sh
       - name: Test accessibility palettes, luminance contrast, beat indicator and option rows

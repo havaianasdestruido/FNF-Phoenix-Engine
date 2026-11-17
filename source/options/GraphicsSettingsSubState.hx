@@ -8,6 +8,7 @@ import openfl.display.Stage;
 
 import backend.ClientPrefs;
 import backend.CoolUtil;
+import backend.FramerateController;
 import backend.PlatformSupport;
 import backend.WindowMode;
 import objects.Note;
@@ -111,7 +112,7 @@ class GraphicsSettingsSubState extends BaseOptionsMenu
 
 		//Apparently other framerates isn't correctly supported on Browser? Probably it has V-Sync enabled by default, idk
 		var option:Option = new Option('Framerate',
-			"Pretty self explanatory, isn't it?",
+			"How fast the game renders and updates during a song.",
 			'framerate',
 			'int',
 			60);
@@ -122,6 +123,36 @@ class GraphicsSettingsSubState extends BaseOptionsMenu
 		option.maxValue = ClientPrefs.uncappedFps ? 10000 : 1000;
 		option.displayFormat = '%v FPS';
 		option.onChange = onChangeFramerate;
+
+		// Menus, editors and loading screens run at their own cap instead of
+		// inheriting the gameplay one; PlayState re-applies the gameplay rate.
+		var menuFramerateOption:Option = new Option('Menu Framerate',
+			"Frame cap for the menus and other non-gameplay screens.\nLower values save battery on laptops and phones.",
+			'menuFramerate',
+			'int',
+			60);
+		addOption(menuFramerateOption);
+
+		menuFramerateOption.scrollSpeed = 120;
+		menuFramerateOption.minValue = 1;
+		menuFramerateOption.maxValue = ClientPrefs.uncappedFps ? 10000 : 1000;
+		menuFramerateOption.displayFormat = '%v FPS';
+		menuFramerateOption.onChange = onChangeMenuFramerate;
+
+		// Rate applied while the window is not focused; used to sit
+		// hard-coded to 60 in states/InitState.hx.
+		var focusLostOption:Option = new Option('Focus Lost Framerate',
+			"Frame cap while the game window is not focused.",
+			'focusLostFramerate',
+			'int',
+			60);
+		addOption(focusLostOption);
+
+		focusLostOption.scrollSpeed = 120;
+		focusLostOption.minValue = 1;
+		focusLostOption.maxValue = ClientPrefs.uncappedFps ? 10000 : 1000;
+		focusLostOption.displayFormat = '%v FPS';
+		focusLostOption.onChange = onChangeFocusLostFramerate;
 		#end
 
 		cameras = [FlxG.cameras.list[FlxG.cameras.list.length-1]];
@@ -147,16 +178,20 @@ class GraphicsSettingsSubState extends BaseOptionsMenu
 
 	function onChangeFramerate()
 	{
-		if(ClientPrefs.framerate > FlxG.drawFramerate)
-		{
-			FlxG.updateFramerate = ClientPrefs.framerate;
-			FlxG.drawFramerate = ClientPrefs.framerate;
-		}
-		else
-		{
-			FlxG.drawFramerate = ClientPrefs.framerate;
-			FlxG.updateFramerate = ClientPrefs.framerate;
-		}
+		// Menus keep the menu cap; gameplay re-applies `framerate` when
+		// PlayState is created (backend.MusicBeatState.applyForState).
+		FramerateController.applyForState(FlxG.state);
+	}
+
+	function onChangeMenuFramerate()
+	{
+		// The options menu is itself a non-gameplay state: apply the new cap live.
+		FramerateController.apply(ClientPrefs.menuFramerate);
+	}
+
+	function onChangeFocusLostFramerate()
+	{
+		FramerateController.applyFocusLost(ClientPrefs.focusLostFramerate);
 	}
 	function onChangeResolution() {
 		// Keep the resize and resolution-scaling APIs out of AIR builds.

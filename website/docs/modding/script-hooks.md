@@ -84,7 +84,9 @@ end
 | Hook | Arguments | Cancellable |
 |---|---|---|
 | `onPause()` | | ✓ (block pausing) |
-| `onResume()` | | |
+| `onResume()` | fires when the song actually resumes. With the **Resume countdown** option on (`resumeCountdown`), this fires at the GO tick, after the 3-2-1-GO, not when the pause menu closes | |
+| `onResumeCountdownStart()` | unpausing and the resume countdown is about to start (**Resume countdown** option) | ✓ (skip the countdown; resume instantly) |
+| `onResumeCountdownTick(count)` | `count` is `3`, `2`, `1` or `0` (GO); fired on each tick | |
 | `onGameOver()` | called every frame health ≤ 0 | ✓ (block the game over) |
 | `onGameOverStart()` | the game over screen opened | |
 | `onGameOverConfirm(retry)` | `retry` is `false` when the player pressed Esc | |
@@ -159,6 +161,7 @@ onStepHit           onBeatHit           onSectionHit        onEndSong
 onSpawnNote         goodNoteHit         opponentNoteHit     goodNoteSkip        opponentNoteSkip
 noteMiss            noteMissPress       onGhostTap          onKeyPress          onKeyRelease
 onEvent             eventEarlyTrigger   onPause             onResume
+onResumeCountdownStart  onResumeCountdownTick
 onGameOver          onGameOverStart     onGameOverConfirm   onNextDialogue      onSkipDialogue
 onMoveCamera        onRecalculateRating onUpdateScore       onSoundFinished
 onTweenCompleted    onTimerCompleted    onCustomSubstateCreate      onCustomSubstateCreatePost
