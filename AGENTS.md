@@ -244,6 +244,11 @@ FNF-JS-Engine-Light/
     (`git status`) antes de PR.
 11. **Nada de teste em Python** fora de pasta de mod (softmod). Teste de engine = spec Haxe em
     `tests/haxe/`. Ver §7 "Testes: Haxe por padrão, Python não".
+12. **Comentários no estilo JSDoc em todas as alterações de código.** Toda classe, função,
+    método e campo novo ou modificado deve ter um bloco de documentação `/** ... */` no estilo
+    [JSDoc](https://jsdoc.app/): descrição curta e, quando houver, tags `@param`, `@return`/`@returns`,
+    `@throws` e `@deprecated`. Vale para código Haxe e também para qualquer outra linguagem que
+    o repo use. Ao alterar uma função existente, atualize a documentação dela junto com o código.
 
 ---
 
@@ -368,6 +373,7 @@ estado ou outros labels apenas se as respectivas condições forem confirmadas.
 - [ ] Se adicionou teste: é spec Haxe em `tests/haxe/` — **nenhum** `tests/test_*.py` novo
       (Python só dentro de pasta de mod/softmod).
 - [ ] Se mexeu em assets: registrou no `project.hxp` quando necessário.
+- [ ] Comentários no estilo JSDoc (`/** ... */` com `@param`/`@return` quando couber) em todo código alterado (regra 12 da §8).
 - [ ] Sem `trace()` de debug esquecido; sem segredos/chaves commitadas.
 - [ ] Mensagem de commit curta no estilo do repo (Conventional-ish, tipo “fix: ...”, “feat: ...”).
 
