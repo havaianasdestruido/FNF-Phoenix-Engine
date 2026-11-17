@@ -1,5 +1,7 @@
 package editors;
 
+import objects.ui.EditorTooltips;
+
 import objects.ui.CustomFlxUI.CustomFlxUIInputText;
 import objects.ui.CustomFlxUI.CustomFlxUINumericStepper;
 import objects.ui.CustomFlxUI.CustomFlxUITabMenu;
@@ -394,8 +396,11 @@ class DialogueCharacterEditorState extends MusicBeatState
 		};
 
 		tab_group.add(leftCheckbox);
+		EditorTooltips.add(this, leftCheckbox, "Place the dialogue portrait on the left side of the screen.");
 		tab_group.add(centerCheckbox);
+		EditorTooltips.add(this, centerCheckbox, "Place the dialogue portrait in the center of the screen.");
 		tab_group.add(rightCheckbox);
+		EditorTooltips.add(this, rightCheckbox, "Place the dialogue portrait on the right side of the screen.");
 		UI_typebox.addGroup(tab_group);
 	}
 
@@ -506,11 +511,17 @@ class DialogueCharacterEditorState extends MusicBeatState
 		tab_group.add(new FlxText(loopInputText.x, loopInputText.y - 18, 0, 'Loop name on .XML file:'));
 		tab_group.add(new FlxText(idleInputText.x, idleInputText.y - 18, 0, 'Idle/Finished name on .XML file:'));
 		tab_group.add(animationInputText);
+		EditorTooltips.add(this, animationInputText, "Animation ID used by the engine and scripts, such as idle or singLEFT.");
 		tab_group.add(loopInputText);
+		EditorTooltips.add(this, loopInputText, "Atlas frame prefix for the speaking animation that loops while text is appearing.");
 		tab_group.add(idleInputText);
+		EditorTooltips.add(this, idleInputText, "Atlas frame prefix for the idle animation.");
 		tab_group.add(addUpdateButton);
+		EditorTooltips.add(this, addUpdateButton, "Add a new animation, or replace the animation with the same ID using these settings.");
 		tab_group.add(removeUpdateButton);
+		EditorTooltips.add(this, removeUpdateButton, "Remove the selected animation from this dialogue character.");
 		tab_group.add(animationDropDown);
+		EditorTooltips.add(this, animationDropDown, "Select an animation to preview or edit.");
 		UI_mainbox.addGroup(tab_group);
 		reloadAnimationsDropDown();
 	}
@@ -553,10 +564,15 @@ class DialogueCharacterEditorState extends MusicBeatState
 		tab_group.add(new FlxText(10, xStepper.y - 18, 0, 'Position Offset:'));
 		tab_group.add(new FlxText(10, scaleStepper.y - 18, 0, 'Scale:'));
 		tab_group.add(imageInputText);
+		EditorTooltips.add(this, imageInputText, "Image asset path, relative to images/, without the file extension. Reload the image to preview changes.");
 		tab_group.add(xStepper);
+		EditorTooltips.add(this, xStepper, "Horizontal portrait position offset in pixels.");
 		tab_group.add(yStepper);
+		EditorTooltips.add(this, yStepper, "Vertical portrait position offset in pixels.");
 		tab_group.add(scaleStepper);
+		EditorTooltips.add(this, scaleStepper, "Sprite scale multiplier. One uses the original asset size.");
 		tab_group.add(noAntialiasingCheckbox);
+		EditorTooltips.add(this, noAntialiasingCheckbox, "Disable smoothing for crisp pixel-art edges.");
 
 		var reloadImageButton:FlxButton = new FlxButton(10, scaleStepper.y + 60, "Reload Image", function() {
 			reloadCharacter();
@@ -569,8 +585,11 @@ class DialogueCharacterEditorState extends MusicBeatState
 			saveCharacter();
 		});
 		tab_group.add(reloadImageButton);
+		EditorTooltips.add(this, reloadImageButton, "Reload the image and animation atlas to preview asset changes.");
 		tab_group.add(loadButton);
+		EditorTooltips.add(this, loadButton, "Load a definition from a file. Save your current edits first.");
 		tab_group.add(saveButton);
+		EditorTooltips.add(this, saveButton, "Export the current edits to a file.");
 		UI_mainbox.addGroup(tab_group);
 	}
 

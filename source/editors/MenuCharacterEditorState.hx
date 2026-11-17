@@ -1,5 +1,7 @@
 package editors;
 
+import objects.ui.EditorTooltips;
+
 import objects.ui.CustomFlxUI.CustomFlxUIInputText;
 import objects.ui.CustomFlxUI.CustomFlxUINumericStepper;
 import objects.ui.CustomFlxUI.CustomFlxUITabMenu;
@@ -198,8 +200,11 @@ class MenuCharacterEditorState extends MusicBeatState
 		};
 
 		tab_group.add(opponentCheckbox);
+		EditorTooltips.add(this, opponentCheckbox, "Preview the opponent menu character slot.");
 		tab_group.add(boyfriendCheckbox);
+		EditorTooltips.add(this, boyfriendCheckbox, "Preview the player menu character slot.");
 		tab_group.add(girlfriendCheckbox);
+		EditorTooltips.add(this, girlfriendCheckbox, "Preview the girlfriend menu character slot.");
 		UI_typebox.addGroup(tab_group);
 	}
 
@@ -240,12 +245,18 @@ class MenuCharacterEditorState extends MusicBeatState
 		tab_group.add(new FlxText(10, idleInputText.y - 18, 0, 'Idle animation on the .XML:'));
 		tab_group.add(new FlxText(scaleStepper.x, scaleStepper.y - 18, 0, 'Scale:'));
 		tab_group.add(flipXCheckbox);
+		EditorTooltips.add(this, flipXCheckbox, "Mirror the sprite horizontally.");
 		tab_group.add(reloadImageButton);
+		EditorTooltips.add(this, reloadImageButton, "Reload the image and animation atlas to preview asset changes.");
 		tab_group.add(confirmDescText);
 		tab_group.add(imageInputText);
+		EditorTooltips.add(this, imageInputText, "Image asset path, relative to images/, without the file extension. Reload the image to preview changes.");
 		tab_group.add(idleInputText);
+		EditorTooltips.add(this, idleInputText, "Atlas frame prefix for the idle animation.");
 		tab_group.add(confirmInputText);
+		EditorTooltips.add(this, confirmInputText, "Atlas frame prefix for the confirmation animation.");
 		tab_group.add(scaleStepper);
+		EditorTooltips.add(this, scaleStepper, "Sprite scale multiplier. One uses the original asset size.");
 		UI_mainbox.addGroup(tab_group);
 	}
 

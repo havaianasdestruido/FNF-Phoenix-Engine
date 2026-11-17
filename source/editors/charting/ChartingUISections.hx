@@ -1,5 +1,7 @@
 package editors.charting;
 
+import objects.ui.EditorTooltips;
+
 import objects.ui.CustomFlxUI.CustomFlxUIInputText;
 import objects.ui.CustomFlxUI.CustomFlxUINumericStepper;
 import objects.ui.CustomFlxUI.CustomFlxUISlider;
@@ -292,26 +294,46 @@ class ChartingUISections
     var tab_group_song = new FlxUI(null, state.UI_box);
     tab_group_song.name = "Song";
     tab_group_song.add(state.UI_songTitle);
+    EditorTooltips.add(state, state.UI_songTitle, "Song folder name used to find chart and audio files.");
     tab_group_song.add(state.UI_songDiff);
+    EditorTooltips.add(state, state.UI_songDiff, "Difficulty name used when saving or loading this chart.");
     tab_group_song.add(state.UI_specAudio);
+    EditorTooltips.add(state, state.UI_specAudio, "Override the audio file name for this chart.");
     tab_group_song.add(state.UI_specEvents);
+    EditorTooltips.add(state, state.UI_specEvents, "Override the events file name for this chart.");
 
     tab_group_song.add(check_voices);
+    EditorTooltips.add(state, check_voices, "Load and play a vocals track alongside the instrumental.");
     tab_group_song.add(clear_events);
+    EditorTooltips.add(state, clear_events, "Hold to remove all events from this chart.");
     tab_group_song.add(clear_notes);
+    EditorTooltips.add(state, clear_notes, "Hold to remove all notes from this chart.");
     tab_group_song.add(saveButton);
+    EditorTooltips.add(state, saveButton, "Export the current edits to a file.");
     tab_group_song.add(saveEvents);
+    EditorTooltips.add(state, saveEvents, "Export chart events separately from the notes.");
     tab_group_song.add(saveCompressed);
+    EditorTooltips.add(state, saveCompressed, "Export this chart in compressed form.");
     tab_group_song.add(reloadSong);
+    EditorTooltips.add(state, reloadSong, "Reload song audio using the current song and audio settings.");
     tab_group_song.add(reloadSongJson);
+    EditorTooltips.add(state, reloadSongJson, "Reload the chart from disk. Unsaved changes will be lost after confirmation.");
     tab_group_song.add(loadAutosaveBtn);
+    EditorTooltips.add(state, loadAutosaveBtn, "Choose a chart backup file to restore.");
     tab_group_song.add(autosaveButton);
+    EditorTooltips.add(state, autosaveButton, "Save the current chart to Backups and restart the autosave timer.");
     tab_group_song.add(loadEventJson);
+    EditorTooltips.add(state, loadEventJson, "Load events from the song events file, replacing current events.");
     tab_group_song.add(stepperBPM);
+    EditorTooltips.add(state, stepperBPM, "Base song tempo in beats per minute.");
     tab_group_song.add(stepperSpeed);
+    EditorTooltips.add(state, stepperSpeed, "Note scroll speed multiplier used during gameplay.");
     tab_group_song.add(reloadNotesButton);
+    EditorTooltips.add(state, reloadNotesButton, "Reload note graphics after changing the noteskin.");
     tab_group_song.add(state.noteSkinInputText);
+    EditorTooltips.add(state, state.noteSkinInputText, "Note texture asset path used by this chart.");
     tab_group_song.add(state.noteSplashesInputText);
+    EditorTooltips.add(state, state.noteSplashesInputText, "Note splash texture asset path used by this chart.");
     tab_group_song.add(new FlxText(stepperBPM.x, stepperBPM.y - 15, 0, 'Song BPM:'));
     tab_group_song.add(new FlxText(stepperSpeed.x, stepperSpeed.y - 15, 0, 'Song Speed:'));
     tab_group_song.add(new FlxText(player2DropDown.x, player2DropDown.y - 15, 0, 'Opponent:'));
@@ -324,9 +346,13 @@ class ChartingUISections
     tab_group_song.add(new FlxText(state.UI_specAudio.x, state.UI_specAudio.y - 15, 0, "Special Audio Name:"));
     tab_group_song.add(new FlxText(state.UI_specEvents.x, state.UI_specEvents.y - 15, 0, "Special Events File:"));
     tab_group_song.add(player2DropDown);
+    EditorTooltips.add(state, player2DropDown, "Opponent character used in this song.");
     tab_group_song.add(gfVersionDropDown);
+    EditorTooltips.add(state, gfVersionDropDown, "Girlfriend character used in this song.");
     tab_group_song.add(player1DropDown);
+    EditorTooltips.add(state, player1DropDown, "Playable character used in this song.");
     tab_group_song.add(state.stageDropDown);
+    EditorTooltips.add(state, state.stageDropDown, "Stage loaded when playing this chart.");
 
     state.UI_box.addGroup(tab_group_song);
     // "Load Events" wipes the current event sheet without asking; guard it too.
@@ -893,16 +919,27 @@ class ChartingUISections
     tab_group_section.add(jumpSection);
     tab_group_section.add(new FlxText(state.stepperBeats.x, state.stepperBeats.y - 15, 0, 'Beats per Section:'));
     tab_group_section.add(state.stepperBeats);
+    EditorTooltips.add(state, state.stepperBeats, "Length of this section in beats.");
     tab_group_section.add(state.stepperSectionBPM);
+    EditorTooltips.add(state, state.stepperSectionBPM, "Tempo for this section when Change BPM is enabled.");
     tab_group_section.add(state.check_mustHitSection);
+    EditorTooltips.add(state, state.check_mustHitSection, "Make this a player-focused section for camera targeting.");
     tab_group_section.add(state.check_gfSection);
+    EditorTooltips.add(state, state.check_gfSection, "Focus the section on the girlfriend character.");
     tab_group_section.add(state.check_altAnim);
+    EditorTooltips.add(state, state.check_altAnim, "Use alternate singing animations in this section.");
     tab_group_section.add(state.check_crossFade);
+    EditorTooltips.add(state, state.check_crossFade, "Enable character crossfade effects for this section.");
     tab_group_section.add(state.check_changeBPM);
+    EditorTooltips.add(state, state.check_changeBPM, "Apply this section tempo from the start of the section onward.");
     tab_group_section.add(copyButton);
+    EditorTooltips.add(state, copyButton, "Copy the current section using the enabled note and event filters.");
     tab_group_section.add(pasteButton);
+    EditorTooltips.add(state, pasteButton, "Paste the copied section at the current section.");
     tab_group_section.add(clearRightSectionButton);
+    EditorTooltips.add(state, clearRightSectionButton, "Hold to delete notes on the right side of this section.");
     tab_group_section.add(clearLeftSectionButton);
+    EditorTooltips.add(state, clearLeftSectionButton, "Hold to delete notes on the left side of this section.");
     tab_group_section.add(copyNextButton);
     tab_group_section.add(CopyNextSectionCount);
     tab_group_section.add(state.CopyLastSectionCount);
@@ -911,11 +948,17 @@ class ChartingUISections
     tab_group_section.add(state.deleteSecStart);
     tab_group_section.add(state.deleteSecEnd);
     tab_group_section.add(clearSectionButton);
+    EditorTooltips.add(state, clearSectionButton, "Hold to delete the current section contents using the enabled filters.");
     tab_group_section.add(check_notesSec);
+    EditorTooltips.add(state, check_notesSec, "Include notes in section copy and clear operations.");
     tab_group_section.add(check_eventsSec);
+    EditorTooltips.add(state, check_eventsSec, "Include events in section copy and clear operations.");
     tab_group_section.add(swapSection);
+    EditorTooltips.add(state, swapSection, "Swap the player and opponent lanes in this section.");
     tab_group_section.add(stepperCopy);
+    EditorTooltips.add(state, stepperCopy, "Number of sections to look back when copying an earlier section.");
     tab_group_section.add(copyLastButton);
+    EditorTooltips.add(state, copyLastButton, "Copy notes from an earlier section using the section offset.");
     tab_group_section.add(duetButton);
     tab_group_section.add(mirrorButton);
     tab_group_section.add(state.copyMultiSectButton);
@@ -943,6 +986,7 @@ class ChartingUISections
 
     state.strumTimeInputText = new CustomFlxUIInputText(10, 65, 180, "0");
     tab_group_note.add(state.strumTimeInputText);
+    EditorTooltips.add(state, state.strumTimeInputText, "Timestamp of the selected note or event in milliseconds.");
     state.blockPressWhileTypingOn.push(state.strumTimeInputText);
 
     var key:Int = 0;
@@ -1050,8 +1094,11 @@ class ChartingUISections
     tab_group_note.add(leftSectionNotetype);
     tab_group_note.add(rightSectionNotetype);
     tab_group_note.add(state.stepperSusLength);
+    EditorTooltips.add(state, state.stepperSusLength, "Sustain duration of the selected note in milliseconds.");
     tab_group_note.add(state.strumTimeInputText);
+    EditorTooltips.add(state, state.strumTimeInputText, "Timestamp of the selected note or event in milliseconds.");
     tab_group_note.add(state.noteTypeDropDown);
+    EditorTooltips.add(state, state.noteTypeDropDown, "Gameplay note type assigned to selected notes.");
 
     state.UI_box.addGroup(tab_group_note);
   }
@@ -1327,6 +1374,7 @@ class ChartingUISections
     removeButton.label.size = 12;
     state.setAllLabelsOffset(removeButton, -30, 0);
     tab_group_event.add(removeButton);
+    EditorTooltips.add(state, removeButton, "Remove the selected animation from this character.");
 
     var addButton:FlxButton = new FlxButton(removeButton.x + removeButton.width + 10, removeButton.y, '+', function() {
       if (state.curSelectedNote != null && state.curSelectedNote[2] == null) // Is event note
