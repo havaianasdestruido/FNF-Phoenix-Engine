@@ -3,6 +3,7 @@ package states;
 import backend.ClientPrefs;
 import backend.Conductor;
 import backend.CoolUtil;
+import backend.FramerateController;
 import backend.LaunchState;
 import backend.LaunchTarget;
 import backend.Paths;
@@ -22,7 +23,9 @@ class InitState extends FlxState {
 
         // -- FLIXEL STUFF -- //
 
-        FlxG.game.focusLostFramerate = 60;
+        // The focus-lost (background) rate comes from Options -> Graphics
+        // (`ClientPrefs.focusLostFramerate`); it is applied after the save
+        // file is read, below. Nothing is hard-coded here anymore.
 		FlxG.sound.muteKeys = TitleState.muteKeys;
 		FlxG.sound.volumeDownKeys = TitleState.volumeDownKeys;
 		FlxG.sound.volumeUpKeys = TitleState.volumeUpKeys;
@@ -59,6 +62,12 @@ class InitState extends FlxState {
 			Achievements.load(); // Preserve achievements even when preferences are bypassed.
 			#end
 		}
+		// Both paths end up here: apply the saved background rate (defaults to
+		// the historical 60) and the menu rate for every screen that follows.
+		// `InitState` is not a MusicBeatState, so it would not get the latter
+		// from create().
+		FramerateController.applyFocusLost(ClientPrefs.focusLostFramerate);
+		FramerateController.apply(ClientPrefs.menuFramerate);
 		PlayerStats.load();
 		// Opt-in vlog (Options -> Misc): Main already restored it from the raw
 		// save, this re-syncs with the value loadPrefs() just read in case the

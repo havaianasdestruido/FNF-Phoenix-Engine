@@ -16,12 +16,13 @@ A sample of what lives there (see the
 
 | Group | Fields |
 |---|---|
-| Gameplay | `downScroll`, `middleScroll`, `opponentStrums`, `ghostTapping`, `gamepadDeadzone`, `noReset`, `complexAccuracy`, `noMarvJudge`, `ezSpam`, `antiCheatEnable`, `accuracyPreset`, `perfectWindow`, `sickWindow`, `goodWindow`, `badWindow`, `safeFrames` |
-| Visuals | `noteSkin`, `splashType`, `noteSplashes`, `oppNoteSplashes`, `maxSplashLimit`, `oppNoteAlpha`, `stageDim`, `hideHud`, `timeBarType`, `scoreStyle`, `healthBarStyle`, `iconBounceType`, `simplePopups` |
+| Gameplay | `downScroll`, `middleScroll`, `opponentStrums`, `ghostTapping`, `gamepadDeadzone`, `noReset`, `complexAccuracy`, `noMarvJudge`, `ezSpam`, `antiCheatEnable`, `accuracyPreset`, `perfectWindow`, `sickWindow`, `goodWindow`, `badWindow`, `safeFrames`, `resumeCountdown` |
+| Visuals | `noteSkin`, `splashType`, `noteSplashes`, `oppNoteSplashes`, `maxSplashLimit`, `oppNoteAlpha`, `stageDim`, `laneUnderlayAlpha`, `hideHud`, `timeBarType`, `scoreStyle`, `healthBarStyle`, `iconBounceType`, `simplePopups` |
 | Accessibility | `flashing`, `flashIntensity`, `showPhotosensitivityWarning`, `reducedMotion`, `cameraFxIntensity`, `highContrast`, `noteColorblindPreset`, `forceLuminanceContrast`, `laneGlyphs`, `visualBeatIndicator`, `dialogueSpeedMult`, `instantDialogueAdvance`, `dimDialogueBackground`, `hideDialogueBox` |
 | Feedback | `hitsoundVolume`, `hitsoundType`, `metronome`, `missSoundEnabled`, `showNPS`, `showComboInfo`, `botWatermark` |
 | Performance | `camZooms`, `showNotes`, `smoothHealth`, `comboStacking`, `enableColorShader`, `charsAndBG` |
 | System | `showFPS`, `showRamUsage`, `showMaxRamUsage`, `debugInfo`, `autoPause`, `checkForUpdates`, `safeMode`, `disableAprilFools`, `discordRPC`, `peOGCrash` |
+| Graphics | `framerate`, `menuFramerate`, `focusLostFramerate`, `uncappedFps` |
 | Crossfades | `crossFadeMode`, `crossFadeLimit`, `boyfriendCrossFadeLimit` |
 | Mobile | `mobileCAlpha`, `mobileCEx` |
 

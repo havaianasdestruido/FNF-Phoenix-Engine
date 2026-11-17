@@ -1,6 +1,8 @@
 package states;
 
 import backend.RecoveryBoot;
+import backend.FramerateController;
+import backend.ClientPrefs;
 import flixel.FlxState;
 import flixel.text.FlxText;
 import flixel.FlxG;
@@ -16,6 +18,9 @@ class RecoveryState extends FlxState
   override public function create():Void
   {
     super.create();
+    // The recovery menu is not a MusicBeatState, so it does not get the
+    // per-state rate switch for free; give it the menu rate.
+    FramerateController.apply(ClientPrefs.menuFramerate);
     FlxG.mouse.visible = !backend.TouchlessUI.isHardwareTouchless();
     var title = new FlxText(60, 50, 1160, 'Safe Mode: ${RecoveryBoot.failures} unclean starts detected', 28);
     add(title);
