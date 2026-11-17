@@ -51,6 +51,11 @@ Defines úteis: `-DofficialBuild`, `-Dofficial`, `-DULTRA_OPTIMIZED` (build velo
 título; são mutuamente exclusivos e `project.hxp` aborta o build se ambos vierem — ver
 `backend.LaunchState` e a seção "Launch and debug flags" do BUILDING.md).
 
+Todo build feito dentro de um checkout git recebe `-Dcommit` automaticamente (o `project.hxp`
+sonda `git rev-parse --verify HEAD`), o que estampa o SHA usado pelo watermark do canto inferior
+direito (`debug.CommitWatermark`) e pela linha de commit do FPS counter. **`-Dno-commit`** desativa
+a estampa para builds reproduzíveis; fora de um repositório git ela simplesmente não acontece.
+
 ---
 
 ## 3. Estrutura do repositório (top-level)
@@ -244,6 +249,11 @@ FNF-JS-Engine-Light/
     (`git status`) antes de PR.
 11. **Nada de teste em Python** fora de pasta de mod (softmod). Teste de engine = spec Haxe em
     `tests/haxe/`. Ver §7 "Testes: Haxe por padrão, Python não".
+12. **Comentários no estilo JSDoc em todas as alterações de código.** Toda classe, função,
+    método e campo novo ou modificado deve ter um bloco de documentação `/** ... */` no estilo
+    [JSDoc](https://jsdoc.app/): descrição curta e, quando houver, tags `@param`, `@return`/`@returns`,
+    `@throws` e `@deprecated`. Vale para código Haxe e também para qualquer outra linguagem que
+    o repo use. Ao alterar uma função existente, atualize a documentação dela junto com o código.
 
 ---
 
@@ -303,6 +313,62 @@ FNF-JS-Engine-Light/
 
 ---
 
+## 10.1. Labels em issues e pull requests
+
+**Obrigatório:** ao criar ou atualizar uma issue **ou** um pull request, consulte os
+labels disponíveis no GitHub (`gh label list --limit 200`) e aplique **todos os que
+se aplicam**, não apenas um label principal nem só o de origem da IA. Combine tipo,
+área/plataforma, prioridade, origem e estado quando houver evidência para cada um.
+Reavalie-os se o escopo ou estado mudar; não remova labels válidos de outras pessoas
+sem motivo. Use os nomes exatos, inclusive espaços e maiúsculas. Se faltar permissão,
+informe quais labels deveriam ser aplicados e o erro; não finja que foram aplicados.
+Não crie labels novos nem altere issues/PRs antigos apenas por causa destes exemplos.
+
+O catálogo abaixo foi conferido no GitHub; consulte-o novamente porque pode mudar.
+Os exemplos remetem a issues/PRs reais, mas são **orientações de classificação**,
+não uma afirmação de que todos esses labels estavam atribuídos historicamente.
+Condições hipotéticas de estado/prioridade não são fatos sobre os itens citados.
+
+| Label | Quando aplicar; exemplo baseado no histórico |
+| --- | --- |
+| `bug` | Algo não funciona: PR #105, correção do gameplay do BF Clicker. |
+| `documentation` | Documentação adicionada/corrigida: issue #92, afirmação incorreta no BUILDING.md. |
+| `duplicate` | Issue ou PR repete outro existente; por exemplo, #92 e #82 tratam dos mesmos avisos de MP3: confirmar antes qual é o duplicado. |
+| `enhancement` | Recurso ou melhoria: PR #309, ajuste de navegação para Android TV. |
+| `good first issue` | Tarefa pequena e acessível a iniciantes, após avaliar escopo; por exemplo, uma correção pontual como a issue #84, se confirmada simples. |
+| `help wanted` | Precisa de ajuda adicional ou contribuição externa; por exemplo, auditoria iOS #80 se os mantenedores pedirem ajuda. |
+| `invalid` | Relato/proposta comprovadamente inválido ou fora do escopo; por exemplo, um relato como #92 **se** investigação mostrasse que a alegação é falsa. |
+| `question` | Pedido de esclarecimento ou investigação ainda dependente de resposta: issue #89, verificar uso de `FlxG.watch`, quando houver pergunta aberta. |
+| `wontfix` | Decisão dos mantenedores de não implementar/corrigir; por exemplo, proposta #81 **se** fosse explicitamente recusada. Não presumir essa decisão. |
+| `codex` | Conteúdo gerado pelo Codex, quando a origem for conhecida: PR #18. Não aplicar a qualquer IA indistintamente. |
+| `stale` | Inatividade por 30 dias conforme política; issue #80 **se** aberta e inativa por esse período. `autolock.yml` automatiza issues, não PRs; não presumir inatividade. |
+| `status: pending triage` | Issue aguardando primeira resposta de mantenedor; por exemplo, #80 quando recém-aberta e ainda sem resposta. `autotriage.yml` remove em comentário ou fechamento de issue. |
+| `MOBILE - Android` | Android é diretamente afetado: issue #75 ou PR #309. |
+| `MOBILE - iOS` | iOS é diretamente afetado: issue #80. |
+| `P0` | Prioridade crítica e urgente, após confirmar impacto; por exemplo, issue #65 **se** confirmada como exploração crítica ativa. |
+| `P1` | Alta prioridade, problema grave sem a urgência de P0; por exemplo, issue #64 **se** bloquear builds Android importantes. |
+| `P2` | Prioridade intermediária: PR #207, suporte para copiar diagnósticos, identificado como P2 no título. |
+| `P3` | Baixa prioridade, melhoria cosmética ou não urgente; por exemplo, issue #84 se a avaliação confirmar impacto baixo. Use apenas uma prioridade, conforme impacto e triagem, não o número da issue. |
+| `Windows` | Windows é diretamente afetado: PR #240, modo de renderização no Windows. |
+| `Web/HTML` | Web/HTML5 é diretamente afetado: issue #88, pressão do garbage collector em HTML5. |
+| `dependency issue` | Problema causado por dependência ou configuração dela: issue #42, forks diferentes de hxcpp. Não confundir com uma simples atualização de dependência. |
+| `not really a bug but its something to check out` | Algo que merece investigação, mas não está comprovado como bug: issue #89, verificação do `FlxG.watch`. |
+| `SOFTmodding` | Scripts/mods sem recompilar a engine são afetados: PR #105, mod BF Clicker; issue #77, sandbox de scripts Lua/Python. |
+| `HARDmodding` | Modificação direta do código-fonte da engine ou extensão compilada para modding: PR #266, modcharts nativos. Não usar só porque um PR altera código interno. |
+| `Arena.AI` | Issue ou PR gerado pelo Arena.AI: issue #80 ou PR #277. Não aplicar a trabalho de outra ferramenta sem evidência. |
+| `big and complex PR that may give cool beneficts` | PR amplo e complexo com potencial benefício que merece avaliação: PR #277 ou #236; não rotular toda mudança grande automaticamente. |
+| `dependencies` | PR que atualiza arquivo de dependências: PR #170, atualização de React, ou #252, atualização de action. |
+| `github_actions` | PR que atualiza código/configuração de GitHub Actions: PR #252, atualização de `actions/checkout`. |
+| `javascript` | PR que atualiza código ou dependências JavaScript: PR #170, atualização de React no website. |
+
+Exemplos de **combinações**, sujeitos à verificação do escopo e origem: issue #92 →
+`bug` + `documentation` + `Arena.AI`; issue #77 → `enhancement` + `SOFTmodding` +
+`Arena.AI`; PR #309 → `enhancement` + `MOBILE - Android`; PR #252 → `dependencies` +
+`github_actions`; PR #170 → `dependencies` + `javascript`. Acrescente prioridade,
+estado ou outros labels apenas se as respectivas condições forem confirmadas.
+
+---
+
 ## 11. Checklist antes de finalizar uma tarefa
 
 - [ ] `git status` limpo (só os arquivos intencionais) e nada em `build/`.
@@ -312,6 +378,7 @@ FNF-JS-Engine-Light/
 - [ ] Se adicionou teste: é spec Haxe em `tests/haxe/` — **nenhum** `tests/test_*.py` novo
       (Python só dentro de pasta de mod/softmod).
 - [ ] Se mexeu em assets: registrou no `project.hxp` quando necessário.
+- [ ] Comentários no estilo JSDoc (`/** ... */` com `@param`/`@return` quando couber) em todo código alterado (regra 12 da §8).
 - [ ] Sem `trace()` de debug esquecido; sem segredos/chaves commitadas.
 - [ ] Mensagem de commit curta no estilo do repo (Conventional-ish, tipo “fix: ...”, “feat: ...”).
 
