@@ -66,6 +66,8 @@ import play.helpers.PlayStateRender;
 import play.helpers.PlayStateScripts;
 import play.helpers.PlayStateShaders;
 import play.helpers.PlayStateStageDim;
+import play.helpers.PlayStateLaneUnderlay;
+import play.helpers.PlayStateResume;
 import play.helpers.PlayStateAndroidMedia;
 import play.helpers.SongStagePolicy;
 import play.helpers.PlayStateAccessibility;
@@ -78,6 +80,7 @@ import psychlua.DebugLuaText;
 import android.platform.AndroidHardwareInput;
 import play.helpers.PlayStateHardwareInput;
 #end
+import play.helpers.ResumeCountdownMath;
 import play.objects.*;
 
 import headers.Play;
@@ -400,6 +403,13 @@ class PlayState extends MusicBeatState
 	 * `play.helpers.PlayStateStageDim`.
 	 */
 	public var stageDimOverlay:FlxSprite;
+	/**
+	 * Dark strip behind the player's lanes implementing `ClientPrefs.laneUnderlayAlpha`
+	 * (Options -> Visuals and UI). One stretched 1x1 black quad drawn on the
+	 * notes camera, above the stage and below the notes/strums; see
+	 * `play.helpers.PlayStateLaneUnderlay`.
+	 */
+	public var laneUnderlayOverlay:FlxSprite;
 	private var layoutWidth:Int = 0;
 	public var cameraSpeed:Float = 1;
 	var hitsoundImage:FlxSprite;
@@ -437,6 +447,20 @@ class PlayState extends MusicBeatState
 	public var msTxt:MSText;
 	public var msTimer:FlxTimer = null;
 	public var restartTimer:FlxTimer = null;
+
+	/**
+	 * `true` while the unpause 3-2-1-GO countdown (`ClientPrefs.resumeCountdown`) is running.
+	 * `false` the rest of the time. Published to scripts via `setOnScripts('resumeCountdownActive', ...)`.
+	 */
+	public var resumeCountdownActive:Bool = false;
+	public var resumeTimer:FlxTimer = null;
+	/**
+	 * Marked by `states.substates.PauseSubState` at the unpause call sites (Resume row,
+	 * unpause BACK binding) so `closeSubState()` can tell an intentional unpause apart
+	 * from other pause-substate closes (End Song, Skip Time forward, charting) and
+	 * start the countdown only for the former. Consumed (and cleared) by `closeSubState()`.
+	 */
+	public var resumeCountdownWanted:Bool = false;
 
 	// Timing popup for simplified ratings
 	public var judgeTxt:JudgeText;
@@ -1892,6 +1916,9 @@ class PlayState extends MusicBeatState
 		// sit above everything camGame draws. See PlayStateStageDim.
 		PlayStateAccessibility.setup(this);
 		PlayStateStageDim.setup(this);
+		// Lane underlay (Options -> Visuals and UI). Shares the notes/HUD camera with
+		// the strums and is inserted below them; see PlayStateLaneUnderlay.
+		PlayStateLaneUnderlay.setup(this);
 
 		startingTime = haxe.Timer.stamp();
 
@@ -2209,16 +2236,20 @@ class PlayState extends MusicBeatState
 		stagesFunc(function(stage:BaseStage) stage.closeSubState());
 		if (paused)
 		{
-			if (FlxG.sound.music != null && !startingSong && canResync && !ffmpegMode)
-			{
-				resyncVocals();
-			}
+			// The unpause call sites in PauseSubState mark the intent; every other
+			// pause-substate close (End Song, Skip Time forward, charting) resumes
+			// instantly, exactly like it did before this option existed.
+			final wantsCountdown:Bool = resumeCountdownWanted;
+			resumeCountdownWanted = false;
 
-			FlxTimer.globalManager.forEach(function(tmr:FlxTimer) if(!tmr.finished) tmr.active = true);
-			FlxTween.globalManager.forEach(function(twn:FlxTween) if(!twn.finished) twn.active = true);
-			paused = false;
-			callOnLuas('onResume');
-			resetRPC(startTimer != null && startTimer.finished);
+			if (wantsCountdown && ResumeCountdownMath.shouldRun(ClientPrefs.resumeCountdown, paused, startingSong, canResync, ffmpegMode))
+				PlayStateResume.begin(this); // defers the resume to the GO tick
+			else
+				PlayStateResume.finish(this); // instant resume
+		}
+		else
+		{
+			resumeCountdownWanted = false;
 		}
 
 		super.closeSubState();
@@ -2402,6 +2433,8 @@ class PlayState extends MusicBeatState
 		// angle and scroll are final. No-op (one comparison) while the option is off.
 		PlayStateAccessibility.sync(this, elapsed);
 		PlayStateStageDim.sync(this);
+		// Lane underlay spans the player's strums, which can move on resize/middlescroll.
+		PlayStateLaneUnderlay.sync(this);
 
 		if (tankmanAscend && curStep > 895 && curStep < 1151) camGame.zoom = 0.8;
 
@@ -3255,6 +3288,8 @@ class PlayState extends MusicBeatState
 		// Drop the stage-dim quad before the state's own members are destroyed.
 		PlayStateAccessibility.clear(this);
 		PlayStateStageDim.clear(this);
+		PlayStateLaneUnderlay.clear(this);
+		PlayStateResume.cancel(this);
 
 		stagesFunc(function(stage:BaseStage) stage.destroy());
 

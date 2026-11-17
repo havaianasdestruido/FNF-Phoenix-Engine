@@ -27,8 +27,20 @@ class ScreenLayout
 		return Std.int(Math.floor(index * viewportWidth / lanes));
 
 	/** Reserve a positive extra-control strip without creating a zero-height lane. */
-	public static inline function hitboxExtraHeight(height:Int, enabled:Bool):Int
-		return enabled && height > 1 ? Std.int(Math.max(1, Math.floor(height / 4))) : 0;
+	public static inline function hitboxExtraHeight(height:Int, enabled:Bool, scale:Float = 1):Int
+    return enabled && height > 1 ? Std.int(Math.max(1, Math.min(height - 1, Math.floor(height / 4 * controlScale(scale))))) : 0;
+
+  /** Sanitize the touch-size multiplier, including old or malformed saves. */
+  public static function controlScale(value:Float):Float
+    return !Math.isFinite(value) || value <= 0 ? 1 : Math.max(0.5, Math.min(2, value));
+
+  /** Scale size and distance from the nearest edge together; keep touch bounds on screen. */
+  public static function scaledControlPosition(position:Float, oldSize:Int, newSize:Int, extent:Float, ratio:Float):Float
+  {
+    final moved = position + extent / 2 >= oldSize / 2
+      ? newSize - (oldSize - position) * ratio : position * ratio;
+    return Math.max(0, Math.min(Math.max(0, newSize - extent * ratio), moved));
+  }
 
 	/** Preserve a button's distance from its nearest edge on a resize. */
 	public static inline function anchoredPosition(position:Float, oldSize:Int, newSize:Int, extent:Float):Float

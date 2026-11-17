@@ -14,6 +14,7 @@ import backend.Paths;
 import backend.ScreenDensity;
 import editors.MasterEditorMenu;
 import flixel.effects.FlxFlicker;
+import flixel.input.FlxInput;
 import flixel.input.keyboard.FlxKey;
 #if !flash
 import lime.app.Application;
@@ -24,6 +25,7 @@ import objects.MenuItem;
 import objects.MovingCheckerboard;
 import objects.PlatformIcon;
 #if FUNNY_ALLOWED
+import backend.ClothEasterEggLogic;
 import openfl.display.BlendMode;
 import flixel.addons.plugin.screengrab.FlxScreenGrab;
 #end
@@ -84,6 +86,20 @@ class MainMenuState extends MusicBeatState
   var canDoTips:Bool = true; // in case the tips don't exist lol
 
   var funnycatperson:FlxSprite;
+
+  #if FUNNY_ALLOWED
+  /**
+   * Progress through `ClothEasterEggLogic.SEQUENCE` (`C L O T H`), the hidden
+   * code that opens `states.substates.ClothEasterEggSubstate`.
+   */
+  var clothCodeProgress:Int = 0;
+
+  /** `FlxG.game.ticks` (milliseconds) of the last key that advanced the code. */
+  var clothCodeLastKey:Float = 0;
+
+  /** True while the cloth scene is open, so its keys do not feed the code. */
+  var clothSceneOpen:Bool = false;
+  #end
 
   override public function onResize(width:Int, height:Int):Void
   {
@@ -364,7 +380,14 @@ class MainMenuState extends MusicBeatState
     if (FreeplayState.vocals != null && FreeplayState.vocals.volume < 0.8)
       FreeplayState.vocals.volume += MenuMusic.RAMP_SPEED * elapsed;
 
-    if (!selectedSomethin)
+    // The cloth easter egg owns the input while it is open: the menu stays
+    // visible and keeps its music, tips and selection, but must not also react
+    // to the pointer, ACCEPT or BACK that belong to the scene on top of it.
+    // Only that scene is gated; the transition substate still leaves the menu
+    // responsive exactly as before.
+    final inputBlocked:Bool = #if FUNNY_ALLOWED clothSceneOpen #else false #end;
+
+    if (!selectedSomethin && !inputBlocked)
     {
       if (controls.UI_UP_P)
       {
@@ -445,10 +468,16 @@ class MainMenuState extends MusicBeatState
         FlxG.switchState(MasterEditorMenu.new);
       }
       #end
+
+      #if FUNNY_ALLOWED
+      trackClothCode();
+      #end
     }
     // Something because someone wanted it
     #if FUNNY_ALLOWED
-    if (funnycatperson != null && FlxG.mouse.overlaps(funnycatperson) && FlxG.mouse.justPressed)
+    // `inputBlocked` also covers the cloth scene, so a click that blows wind
+    // through it cannot also trigger the cat's crash gag.
+    if (!inputBlocked && funnycatperson != null && FlxG.mouse.overlaps(funnycatperson) && FlxG.mouse.justPressed)
     {
       final screencap = new FlxSprite(0, 0, FlxScreenGrab.grab().bitmapData);
       screencap.screenCenter(XY);
@@ -488,6 +517,70 @@ class MainMenuState extends MusicBeatState
     else if (pointingCursor != null)
       pointingCursor.visible = false;
   }
+
+  #if FUNNY_ALLOWED
+  /** Keys of `ClothEasterEggLogic.SEQUENCE`, in order, as Flixel key codes. */
+  static final CLOTH_CODE_KEYS:Array<FlxKey> = [FlxKey.C, FlxKey.L, FlxKey.O, FlxKey.T, FlxKey.H];
+
+  /**
+   * Feeds the keys typed on this menu into `ClothEasterEggLogic.SEQUENCE`.
+   *
+   * `C`, `L`, `O`, `T` and `H` in order (within
+   * `ClothEasterEggLogic.SEQUENCE_TIMEOUT` seconds of each other) open the
+   * `FlxClothSprite` scene. Only the five keys of the code are inspected, so
+   * menu navigation and the editor shortcuts keep working normally, and the
+   * tracker is skipped while a substate (the scene itself, a prompt, the
+   * virtual pad's own dialogs) or a menu transition owns the input.
+   */
+  function trackClothCode():Void
+  {
+    if (clothSceneOpen || selectedSomethin || subState != null) return;
+
+    for (key in CLOTH_CODE_KEYS)
+    {
+      // `checkStatus` tolerates unknown key codes, `justPressed.check()` throws.
+      if (!FlxG.keys.checkStatus(key, JUST_PRESSED)) continue;
+
+      final now:Float = FlxG.game.ticks;
+      final secondsSinceLast:Float = (clothCodeLastKey <= 0) ? 0 : (now - clothCodeLastKey) / 1000;
+
+      final next:Int = ClothEasterEggLogic.advance(clothCodeProgress, key.toString(), secondsSinceLast);
+      clothCodeProgress = next;
+      clothCodeLastKey = now;
+
+      if (!ClothEasterEggLogic.isComplete(next)) return;
+
+      // Complete: reset first so a stale code cannot fire twice, then hand the
+      // screen over to the cloth scene.
+      clothCodeProgress = 0;
+      clothCodeLastKey = 0;
+      openClothScene();
+      return;
+    }
+  }
+
+  /**
+   * Opens `states.substates.ClothEasterEggSubstate` on top of this menu.
+   *
+   * The scene is a substate, so the menu is not destroyed and returns exactly
+   * where it was: music, tips and the selected item are all untouched. Menu
+   * navigation is skipped while a substate owns the input (this menu's own
+   * `update()` guard), so the scene's pointer and close key cannot scroll the
+   * list underneath it.
+   */
+  function openClothScene():Void
+  {
+    if (clothSceneOpen) return;
+
+    clothSceneOpen = true;
+    FlxG.sound.play(Paths.sound('confirmMenu'), 0.6);
+
+    subStateClosed.addOnce(function(_) {
+      clothSceneOpen = false;
+    });
+    openSubState(new states.substates.ClothEasterEggSubstate());
+  }
+  #end
 
   function changeItem(huh:Int = 0)
   {

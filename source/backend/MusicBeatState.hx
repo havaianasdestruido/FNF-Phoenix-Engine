@@ -264,6 +264,11 @@ class MusicBeatState extends FlxUIState
 	}
 
 	override function create() {
+		// Menus/editors run at `ClientPrefs.menuFramerate`, gameplay keeps
+		// `ClientPrefs.framerate`. Applies before anything else so the first
+		// frame already renders at the right rate; see backend.FramerateController.
+		FramerateController.applyForState(this);
+
 		// A runtime editor lock applies to every editor state, including states
 		// reached through debug shortcuts or a mod menu rather than the main menu.
 		var className:Null<String> = Type.getClassName(Type.getClass(this));

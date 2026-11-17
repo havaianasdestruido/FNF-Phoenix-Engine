@@ -299,6 +299,7 @@ class PauseSubState extends MusicBeatSubstate
 			}
 			else if (menuItems == menuItemsOG && menuItemsOG.contains('Resume'))
 			{
+				PlayState.instance.resumeCountdownWanted = true;
 				close();
 			}
 			return;
@@ -328,6 +329,7 @@ class PauseSubState extends MusicBeatSubstate
 			switch (daSelected)
 			{
 				case "Resume":
+					PlayState.instance.resumeCountdownWanted = true;
 					close();
 				case 'Change Difficulty':
 					menuItems = difficultyChoices;
