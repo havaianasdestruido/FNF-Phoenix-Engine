@@ -146,9 +146,10 @@ class ModchartLabCatalog
 			mod('drugged', 'Drugged', 'Slow, heavy drift across the field.', list().add('drugged', 0, 1, 0.05, 0, true).done()),
 			mod('drunk', 'Drunk', 'Sine wobble driven by song time and distance.',
 				list().add('drunk', 0, 1, 0.05, 0, true).axes('drunk', -1, 1, 0.05).add('drunkSpeed', -2, 2, 0.1).add('drunkPeriod', -4, 4, 0.1)
-					.add('drunkOffset', -4, 4, 0.1).done()),
+					.add('drunkOffset', -4, 4, 0.1).add('drunkStair', -4, 4, 0.1).done()),
 			mod('fieldrotate', 'Field Rotate', 'Rotates each side around its own field centre.', list().axes('fieldRotate', -180, 180, 5, 0, true)
 				.done()),
+			mod('incomingangle', 'Incoming Angle', 'YAFN approach curves and smooth scroll.', list().add('incomingCurveX', -200, 200, 5, 0, true).add('incomingCurveY', -200, 200, 5).add('incomingCurveZ', -200, 200, 5).add('incomingSmooth', 0, 1, 0.05).done()),
 			mod('infinite', 'Infinite', 'Lerps arrows onto a lemniscate path.', list().add('infinite', 0, 1, 0.05, 0, true).done()),
 			mod('invert', 'Invert', 'Mirrors lanes (invert) or the whole field (flip).',
 				list().add('invert', 0, 1, 0.05, 0, true).add('flip', 0, 1, 0.05).done()),
@@ -189,8 +190,9 @@ class ModchartLabCatalog
 				list().add('x', -400, 400, 10, 0, true).add('y', -400, 400, 10).add('z', -400, 400, 10).add('xoffset', -400, 400, 10)
 					.add('yoffset', -400, 400, 10).add('zoffset', -400, 400, 10).done()),
 			mod('vibrate', 'Vibrate', 'Random per-frame jitter (not deterministic).', list().add('vibrate', 0, 2, 0.05, 0, true).done()),
+			mod('waveshit', 'Wave Shit', 'YAFN time-driven vertical and depth waves.', list().add('waveShit', 0, 2, 0.05, 0, true).add('waveShitAngle', -2, 2, 0.05).add('waveShitSpeed', 0, 3, 0.1, 1).add('waveShitOffset', -4, 4, 0.1).done()),
 			mod('wiggle', 'Wiggle', 'Gentle beat wiggle, also nudges the arrow angle.', list().add('wiggle', 0, 2, 0.05, 0, true).done()),
-			mod('zigzag', 'ZigZag', 'Triangle-wave lane drift.', list().add('zigZag', 0, 2, 0.05, 0, true).done()),
+			mod('zigzag', 'ZigZag', 'Triangle-wave lane drift.', list().add('zigZag', 0, 2, 0.05, 0, true).add('zigZagYafnX', -100, 100, 5).add('zigZagZ', -100, 100, 5).add('zigZagAngle', -90, 90, 5).done()),
 			mod('zoom', 'Zoom', 'Centre (zoom) and per-lane (localZoom) zoom; mini shrinks instead.',
 				list().add('zoom', 0, 2, 0.05, 0, true).add('mini', 0, 1, 0.05).add('localZoom', 0, 2, 0.05).add('localMini', 0, 1, 0.05)
 					.done())

@@ -67,7 +67,7 @@ class ModchartLabSpec
 		check(missing.length == 0, 'every registry modifier has a catalog entry, missing: ' + missing.join(', '));
 
 		final names:Array<String> = ModifierRegistry.names();
-		check(names.length == 34, 'registry still ships 34 modifiers, got ' + names.length);
+		check(names.length == 36, 'registry still ships 36 modifiers, got ' + names.length);
 		check(ModchartLabCatalog.all().length == names.length, 'catalog size matches the registry');
 		for (name in names)
 		{

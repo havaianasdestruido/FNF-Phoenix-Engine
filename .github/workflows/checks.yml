@@ -104,6 +104,10 @@ jobs:
         run: bash tests/haxe/run-moving-checkerboard.sh
       - name: Test the menu checker tile keys and their fallbacks
         run: bash tests/haxe/run-menu-checker-textures.sh
+      - name: Test the pointing-finger menu cursor (HaxeFlixel Cursor demo)
+        run: bash tests/haxe/run-pointing-cursor.sh
+      - name: Test the FlxClothSprite easter egg code, layout and mesh numbers
+        run: bash tests/haxe/run-cloth-easter-egg.sh
       - name: Test distant-note camera isolation and unsupported-target fallback
         run: bash tests/haxe/run-distant-note-camera.sh
       - name: Test render folder creation and FFmpeg lookup
@@ -134,6 +138,8 @@ jobs:
         run: bash tests/haxe/run-hold-to-confirm-typecheck.sh
       - name: Test the input tester model and the phoenix://input page
         run: bash tests/haxe/run-input-test.sh
+      - name: Test the Freeplay filter orders, stars, random pick and accuracy fold
+        run: bash tests/haxe/run-freeplay-filter.sh
       - name: Test the sound tray / master volume curve
         run: bash tests/haxe/run-volume-curve.sh
       - name: Test the master volume row mirrors FlxG.sound.volume
@@ -152,6 +158,12 @@ jobs:
         run: bash tests/haxe/run-modchart-lab-typecheck.sh
       - name: Test stage dim alpha rules, overlay layering and camera coverage
         run: bash tests/haxe/run-stage-dim.sh
+      - name: Test lane underlay alpha rules, strip layering and options wiring
+        run: bash tests/haxe/run-lane-underlay.sh
+      - name: Test resume countdown gate math, unpause flow and script hooks
+        run: bash tests/haxe/run-resume-countdown.sh
+      - name: Test menu framerate caps, state-rate selection and options wiring
+        run: bash tests/haxe/run-menu-framerate.sh
       - name: Test accuracy presets, perfectWindow default and gamepad deadzone clamping
         run: bash tests/haxe/run-accuracy-presets.sh
       - name: Test accessibility palettes, luminance contrast, beat indicator and option rows

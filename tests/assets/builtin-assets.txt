@@ -280,6 +280,8 @@ assets/preload/images/chart_quant.xml
 assets/preload/images/checkboxanim.png
 assets/preload/images/checkboxanim.xml
 assets/preload/images/checker.png
+assets/preload/images/clothFlag.png
+assets/preload/images/clothRope.png
 assets/preload/images/credits/Erizur.png
 assets/preload/images/credits/bb.png
 assets/preload/images/credits/cabfile.png

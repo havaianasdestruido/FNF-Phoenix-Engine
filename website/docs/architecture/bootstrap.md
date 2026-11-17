@@ -66,7 +66,7 @@ A bare `FlxState` whose only job is first-run initialisation:
 
 | Step | What it does |
 |---|---|
-| Flixel setup | `focusLostFramerate = 60`, mute/volume keys from `TitleState`, `preventDefaultKeys = [TAB]`, `fixedTimestep = false` |
+| Flixel setup | `FlxG.game.focusLostFramerate = ClientPrefs.focusLostFramerate` (60 by default), mute/volume keys from `TitleState`, `preventDefaultKeys = [TAB]`, `fixedTimestep = false`. The game runs at 1280×720 with `menuFramerate` (60 by default); `play.PlayState` keeps `framerate` |
 | Save binding | `FlxG.save.bind('funkin', CoolUtil.getSavePath())` |
 | Input | `PlayerSettings.init()` |
 | Preferences | `ClientPrefs.loadPrefs()` |

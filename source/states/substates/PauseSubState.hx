@@ -234,6 +234,12 @@ class PauseSubState extends MusicBeatSubstate
 		}
 
 		super.update(elapsed);
+		if (menuItemGroup != null)
+		{
+			final pointed:Int = syncPointingCursor(menuItemGroup.members, curSelected);
+			if (pointed != curSelected)
+				changeSelection(pointed - curSelected);
+		}
 		if (menuItems != menuItemsExit && menuItems.contains('Skip Time')) updateSkipTextStuff();
 
 		if (controls.UI_UP_P)
@@ -293,6 +299,7 @@ class PauseSubState extends MusicBeatSubstate
 			}
 			else if (menuItems == menuItemsOG && menuItemsOG.contains('Resume'))
 			{
+				PlayState.instance.resumeCountdownWanted = true;
 				close();
 			}
 			return;
@@ -322,6 +329,7 @@ class PauseSubState extends MusicBeatSubstate
 			switch (daSelected)
 			{
 				case "Resume":
+					PlayState.instance.resumeCountdownWanted = true;
 					close();
 				case 'Change Difficulty':
 					menuItems = difficultyChoices;

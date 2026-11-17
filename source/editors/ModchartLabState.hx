@@ -60,7 +60,7 @@ typedef LabButton =
 /**
  * Modchart Lab — the visual counterpart to the modchart runtime.
  *
- * Pick one of the 34 modifiers, drag its percents while a beat clock loops
+ * Pick one of the 36 modifiers, drag its percents while a beat clock loops
  * over a section, watch the preview arrows react, then copy the equivalent
  * `addModifier`/`modSet`/`modEase` calls as Lua or Python. The preview runs
  * the real `ModchartManager` with synthetic `ModchartParams` (no

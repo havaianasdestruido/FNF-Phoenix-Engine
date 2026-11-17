@@ -117,12 +117,15 @@ class MobileControls extends FlxSpriteGroup
 
 		var tempCount:Int = 0;
 		final savedWidth:Int = FlxG.save.data.buttonsWidth == null ? ScreenLayout.BASE_WIDTH : Std.int(FlxG.save.data.buttonsWidth);
+		final savedHeight:Int = FlxG.save.data.buttonsHeight == null ? ScreenLayout.BASE_HEIGHT : Std.int(FlxG.save.data.buttonsHeight);
+    final savedScale:Float = FlxG.save.data.buttonsScale == null ? 1 : ScreenLayout.controlScale(FlxG.save.data.buttonsScale);
+    final ratio = virtualPad.controlScale / savedScale;
 		for (button in virtualPad)
 		{
 			if (tempCount < FlxG.save.data.buttons.length && FlxG.save.data.buttons[tempCount] != null)
 			{
-				button.x = ScreenLayout.anchoredPosition(FlxG.save.data.buttons[tempCount].x, savedWidth, FlxG.width, button.width);
-				button.y = FlxG.save.data.buttons[tempCount].y;
+				button.x = ScreenLayout.scaledControlPosition(FlxG.save.data.buttons[tempCount].x, savedWidth, FlxG.width, button.width / ratio, ratio);
+				button.y = ScreenLayout.scaledControlPosition(FlxG.save.data.buttons[tempCount].y, savedHeight, FlxG.height, button.height / ratio, ratio);
 			}
 			tempCount++;
 		}
@@ -135,6 +138,8 @@ class MobileControls extends FlxSpriteGroup
 		FlxG.save.data.buttons = [for (button in virtualPad) FlxPoint.get(button.x, button.y)];
 		// Legacy saves without this field were authored in the 1280-wide viewport.
 		FlxG.save.data.buttonsWidth = FlxG.width;
+    FlxG.save.data.buttonsHeight = FlxG.height;
+    FlxG.save.data.buttonsScale = virtualPad.controlScale;
 		FlxG.save.flush();
 		return virtualPad;
 	}

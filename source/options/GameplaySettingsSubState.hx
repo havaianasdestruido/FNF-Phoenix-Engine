@@ -92,6 +92,13 @@ class GameplaySettingsSubState extends BaseOptionsMenu
 			true);
 		addOption(option);
 
+		var option:Option = new Option('Resume Countdown',
+			"If checked, unpausing a song counts 3-2-1-GO before it resumes.\nUseful on touch devices, where your thumb leaves the hitbox to press Resume.",
+			'resumeCountdown',
+			'bool',
+			true);
+		addOption(option);
+
 		var option:Option = new Option('Complex Accuracy',
 			"If checked, accuracy is MS-based instead of rating-based.",
 			'complexAccuracy',

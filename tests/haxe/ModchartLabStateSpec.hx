@@ -109,10 +109,10 @@ class ModchartLabStateSpec
 		final state:ModchartLabState = makeState();
 		@:privateAccess
 		{
-			check(state.catalog.length == 34, 'the picker lists all 34 modifiers');
+			check(state.catalog.length == 36, 'the picker lists all 36 modifiers');
 			check(state.field != null && state.field.keyCount == 4, 'the preview field is a 4K playfield');
 			check(state.previewArrows.length == 8 + 8 * 2, 'receptors plus two ghosts per lane and side');
-			check(state.listRows.length == 34, 'one list row per modifier');
+			check(state.listRows.length == 36, 'one list row per modifier');
 			for (player in 0...2)
 			{
 				for (lane in 0...4)

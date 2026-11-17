@@ -15,6 +15,7 @@ import lime.app.Application;
 #end
 
 import data.Section;
+import objects.PointingCursor;
 import psychlua.StateScripts;
 
 class MusicBeatState extends FlxUIState
@@ -38,6 +39,11 @@ class MusicBeatState extends FlxUIState
 
 	var mobileControls:MobileControls;
 	public var virtualPad:FlxVirtualPad;
+	/**
+	 * Pointing-finger overlay from the HaxeFlixel Cursor demo. Created lazily
+	 * the first time a menu calls `syncPointingCursor()`.
+	 */
+	public var pointingCursor:PointingCursor;
 	var mobileControlsCamera:FlxCamera;
 	var virtualPadCamera:FlxCamera;
 	var trackedInputsMobileControls:Array<FlxActionInput> = [];
@@ -148,6 +154,9 @@ class MusicBeatState extends FlxUIState
 		}
 	}
 
+	/**
+	 * Tears down scripts, mobile pads and the pointing-finger overlay.
+	 */
 	override function destroy():Void
 	{
 		callStateScript('onDestroy', []);
@@ -179,6 +188,27 @@ class MusicBeatState extends FlxUIState
 		super.destroy(); // destroys pads still owned by this state exactly once
 		virtualPad = null;
 		mobileControls = null;
+		pointingCursor = null;
+	}
+
+	/**
+	 * Parks the pointing-finger sprite on `members[selected]`. When the mouse
+	 * moves over a member, returns that index so the caller can update
+	 * selection. Hidden while a substate is open so nested menus own the finger.
+	 *
+	 * @param members menu sprites (`FlxTypedGroup.members`); null holes are skipped
+	 * @param selected current selection index
+	 * @return index the cursor is pointing at (`selected` unless the mouse jumped)
+	 */
+	public function syncPointingCursor(members:Dynamic, selected:Int):Int
+	{
+		if (subState != null)
+		{
+			if (pointingCursor != null) pointingCursor.visible = false;
+			return selected;
+		}
+		pointingCursor = PointingCursor.attachAndFollow(this, pointingCursor, members, selected);
+		return pointingCursor == null ? selected : pointingCursor.selectionIndex;
 	}
 
 	var _psychCameraInitialized:Bool = false;
@@ -234,6 +264,11 @@ class MusicBeatState extends FlxUIState
 	}
 
 	override function create() {
+		// Menus/editors run at `ClientPrefs.menuFramerate`, gameplay keeps
+		// `ClientPrefs.framerate`. Applies before anything else so the first
+		// frame already renders at the right rate; see backend.FramerateController.
+		FramerateController.applyForState(this);
+
 		// A runtime editor lock applies to every editor state, including states
 		// reached through debug shortcuts or a mod menu rather than the main menu.
 		var className:Null<String> = Type.getClassName(Type.getClass(this));

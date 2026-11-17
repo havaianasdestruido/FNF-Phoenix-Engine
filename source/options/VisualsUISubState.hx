@@ -17,8 +17,10 @@ import flixel.input.keyboard.FlxKey;
 import backend.ClientPrefs;
 import backend.LoadingDialLogic;
 import backend.MenuMusic;
+import backend.PointingCursorLogic;
 import data.Song;
 import play.helpers.StageDimMath;
+import play.helpers.LaneUnderlayMath;
 
 class VisualsUISubState extends BaseOptionsMenu
 {
@@ -154,6 +156,22 @@ class VisualsUISubState extends BaseOptionsMenu
 		option.changeValue = StageDimMath.STEP;
 		// Two decimals: the menu rounds the held value with this precision, so
 		// `0` would round every 0.05 step back to 0 and the row could never move.
+		option.decimals = 2;
+		addOption(option);
+
+		// One black quad on the notes camera, drawn below the notes, the strums
+		// and the HUD; 0% = off, which is the default. See play.helpers.PlayStateLaneUnderlay.
+		var option:Option = new Option('Lane Underlay:',
+			"How dark should the strip behind your lanes be?\n"
+			+ "Notes, strums and the HUD are never dimmed.\n"
+			+ "(0% = off)",
+			'laneUnderlayAlpha',
+			'percent',
+			0);
+		option.scrollSpeed = 1.2;
+		option.minValue = LaneUnderlayMath.MIN_ALPHA;
+		option.maxValue = LaneUnderlayMath.MAX_ALPHA;
+		option.changeValue = LaneUnderlayMath.STEP;
 		option.decimals = 2;
 		addOption(option);
 
@@ -609,6 +627,29 @@ class VisualsUISubState extends BaseOptionsMenu
 			'string',
 			LoadingDialLogic.DEFAULT_COLOR,
 			LoadingDialLogic.colorNames());
+		addOption(option);
+
+		var option:Option = new Option('Pointing Cursor',
+			"Checked: a finger sprite points at the hovered or selected menu button.\nUnchecked: no pointing overlay. Ported from the HaxeFlixel Cursor demo.",
+			'pointingCursor',
+			'bool',
+			true);
+		addOption(option);
+
+		var option:Option = new Option('Pointing Cursor Style:',
+			"Shape of the sprite that points at the selected menu button.",
+			'pointingCursorStyle',
+			'string',
+			PointingCursorLogic.DEFAULT_STYLE,
+			PointingCursorLogic.styleNames());
+		addOption(option);
+
+		var option:Option = new Option('Pointing Cursor Color:',
+			"Tint of the pointing-finger menu cursor.",
+			'pointingCursorColor',
+			'string',
+			PointingCursorLogic.DEFAULT_COLOR,
+			PointingCursorLogic.colorNames());
 		addOption(option);
 
 		var option:Option = new Option('Hold to Confirm',

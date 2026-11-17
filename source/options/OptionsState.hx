@@ -307,6 +307,13 @@ class OptionsState extends MusicBeatState
       persistentUpdate = false;
       openSubState(new mobile.MobileControlsSelectSubState());
     }
+
+		if (grpOptions != null)
+		{
+			final pointed:Int = syncPointingCursor(grpOptions.members, curSelected);
+			if (pointed != curSelected)
+				changeSelection(pointed - curSelected);
+		}
 	}
 
 	function enterSuperSecretDebugMenu():Void

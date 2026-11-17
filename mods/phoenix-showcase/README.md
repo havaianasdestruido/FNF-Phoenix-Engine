@@ -47,7 +47,7 @@ Whole-window alpha is a separate subsystem (`TransparentWindow`). It is gated by
 
 ## What is tested, and where
 
-All 34 names in `ModifierRegistry` are installed at song start and every one is
+All 36 names in `ModifierRegistry` are installed at song start and every one is
 marked off the HUD counter. The phases are 16 beats each.
 
 | Beats | Phase | What it proves |
@@ -55,12 +55,12 @@ marked off the HUD counter. The phases are 16 beats each.
 | 0-15 | Intro | loading art, HUD text, logo tween, hardware globals, save counter |
 | 16-31 | Timeline | `modSet`, `modEase`, `modAdd`, `modSetAdd`, `modCallback`, `modRepeater`, lane-specific `x0` |
 | 32-47 | Scroll | `reverse`, `xmod`, `boost`, `brake`, `receptorScroll`, `zigZag` |
-| 48-63 | Drunk family | `drunk`, `tipsy`, `schmovinDrunk`, `schmovinTipsy`, `drugged` |
+| 48-63 | Drunk family | `drunk`, `tipsy`, `schmovinDrunk`, `schmovinTipsy`, `drugged`, YAFN `waveShit` and `drunkStair` |
 | 64-79 | Geometry | `bounce`, `beat`, `bumpy`, `sawtooth`, `square`, `tornado`, `schmovinTornado` |
 | 80-95 | Rotation | `rotate`, `centerRotate`, `fieldRotate`, `localRotate`, `confusion`, `counterClockWise` |
 | 96-111 | Lanes | `invert`, `opponentSwap`, `spiral`, `infinite`, `radionic` |
 | 112-127 | Scale / stealth | `scale`, `zoom`, `stealth`, `alpha` |
-| 128-143 | 3D | `setModchartPerspective(true, fov, zScale)`, `z`, `rotateX/Y`, player-only offset |
+| 128-143 | 3D | `setModchartPerspective(true, fov, zScale)`, `z`, `rotateX/Y`, player-only offset, YAFN incoming curves, smooth approach, zigzag and note offsets |
 | 144-159 | Shaders | `showcase.frag` + `#pragma include`, uniform tweens, chromatic, glitch, scanline, VCR, distant notes, bloom |
 | 160-175 | 4th wall: window | `setWindowTitle`, `setAlwaysOnTop`, `flashTaskbar`, `hideTaskbar`/`restoreTaskbar`, persistent values, recording check |
 | 176-191 | 4th wall: player | custom `FlxCamera` fake-desktop overlay, username, clock, uptime, `isLateNight`, window alpha |
@@ -68,7 +68,7 @@ marked off the HUD counter. The phases are 16 beats each.
 | 208-223 | Cameras / sprites | `createCamera`/`addCamera`/`removeCamera`, `setObjectCamera`, sprites, blend modes, scroll factors, tweens |
 | 224-239 | Audio | tagged `playSound`, `soundFadeOut`, `getSoundVolume`, `setPlaybackSpeed` 1.03 -> 1.0 |
 | 240-255 | Playfield 2 | `addPlayfield()` + field-specific `modEase(..., field=1)` layered on field 0 |
-| 256-271 | Chaos | `wiggle`, `vibrate`, `skewX`, `skewY` - registry reaches 34/34 |
+| 256-271 | Chaos | `wiggle`, `vibrate`, `skewX`, `skewY` - registry reaches 36/36 |
 | 272-287 | 3D finale | deep perspective + rotation + player-only translation |
 | 288-303 | Combo | eight modifiers at once |
 | 304-319 | Finale build | rising drunk/tipsy/bounce/scale, bloom, chromatic |
@@ -163,7 +163,7 @@ should be smoke-tested in a real build:
 
 1. Boot with shaders on and off; confirm no Lua errors and the shader phase
    switches to its text-only fallback.
-2. Play from freeplay at Erect; watch the HUD counter reach `34/34`.
+2. Play from freeplay at Erect; watch the HUD counter reach `36/36`.
 3. Pause/retry during the 4th-wall section; confirm the title, taskbar,
    always-on-top and window alpha return to normal.
 4. Build once without `-DMETA_HORROR`; confirm the phase reports
@@ -182,3 +182,12 @@ should be smoke-tested in a real build:
 - The base audio files are copied from the repository's existing
   `assets/songs/dad-battle/` erect stems; the chart/event JSON is copied from
   `assets/preload/data/dad-battle/` and re-titled.
+
+### YAFN-inspired effects
+
+The drunk and 3D phases also demonstrate effects adapted from the
+[YAFN template](https://github.com/Spl4ash/YAFN-Modchart-Template/blob/eadb8cb7170476495b13e7bddc76126d7969288e/source/NotYAFN.lua).
+Phoenix's existing modifiers supply related movement, visibility, scaling and
+receptor tween effects. The Roblox template is not a song chart and its engine-specific
+3D note models, cloned note cameras and receptor API are not direct ports; these
+showcase effects are adaptations, not a frame-identical recreation.
