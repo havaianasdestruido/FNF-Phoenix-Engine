@@ -13,7 +13,7 @@ existing camera, shader and sprite helpers continue to work.
 
 ```
 source/modchart/            pure logic (no Flixel imports)
-source/modchart/modifiers/  the 34 built-in modifiers
+source/modchart/modifiers/  the 36 built-in modifiers
 source/modchart/lab/        Modchart Lab editor core (catalog + Lua/Python export)
 source/play/helpers/PlayStateModchart.hx   adapter that moves the live sprites
 source/psychlua/callbacks/ModchartCallbacks.hx  Lua API
@@ -68,8 +68,9 @@ Names are case-insensitive. Lane variants accept the lane digit `0`–`3`
 | `confusion` | `confusion` (Z), `confusionX`/`Y`/`Z`, `confusionOffset`/`X`/`Y`/`Z`, `roll`/`twirl`/`dizzy` (+ `...Speed`) |
 | `counterclockwise` | `counterClockWise` |
 | `drugged` | `drugged` |
-| `drunk` | `drunk` (lane variant), `drunkX`/`Y`/`Z`, `drunkSpeed`, `drunkPeriod`, `drunkOffset` |
+| `drunk` | `drunk` (lane variant), `drunkX`/`Y`/`Z`, `drunkSpeed`, `drunkPeriod`, `drunkOffset`, `drunkStair` |
 | `fieldrotate` | `fieldRotateX`/`Y`/`Z` |
+| `incomingangle` | `incomingCurveX`/`Y`/`Z` (and lane variants), `incomingSmooth` |
 | `infinite` | `infinite` |
 | `invert` | `invert` (mirror lanes), `flip` (mirror the field) |
 | `localrotate` | `localRotateX`/`Y`/`Z` |
@@ -91,10 +92,11 @@ Names are case-insensitive. Lane variants accept the lane digit `0`–`3`
 `sudden`/`hidden` with `...Start`/`...End` (distance thresholds, percent × 100 px) and `...Glow` |
 | `tipsy` | `tipsy`, `tipsyX`/`Y`/`Z`, `tipsySpeed`, `tipsyOffset` |
 | `tornado` | `tornado` |
-| `transform` | `x`/`y`/`z`, `xoffset`/`yoffset`/`zoffset`, plus lane variants (`x0`, `y3`, ...) |
+| `transform` | `x`/`y`/`z`, `xoffset`/`yoffset`/`zoffset`, plus lane variants (`x0`, `y3`, ...), note-only `noteOffsetX`/`Y`/`Z` and lane variants (velocity per 100 ms) |
 | `vibrate` | `vibrate` (visual jitter; device haptics use `ClientPrefs.hapticFeedback` / script `vibrate()`) |
+| `waveshit` | `waveShit`/`waveShitY`, `waveShitAngle` (depth), `waveShitSpeed` (default 1), `waveShitOffset` |
 | `wiggle` | `wiggle` |
-| `zigzag` | `zigZag` |
+| `zigzag` | `zigZag` (triangle wave), `zigZagYafnX`, `zigZagZ`, `zigZagAngle` (YAFN time-to-hit sine) |
 | `zoom` | `zoom`, `mini`, `localZoom`, `localMini` |
 
 `reverse` is implemented as an offset mirror around the current receptor
@@ -150,7 +152,7 @@ already passed applies its target value instead of tweening.
 
 Tuning a modchart by editing beats and re-running the song is slow, so the
 engine ships a lab for it: **Main menu -> `7` (the `debug_1` bind) -> Modchart
-Lab** (desktop only, like the other editors). Pick any of the 34 modifiers,
+Lab** (desktop only, like the other editors). Pick any of the 36 modifiers,
 drag its percents while a beat clock loops over a section, watch the preview
 arrows react, then copy the matching `modEase(...)` calls as Lua or Python.
 
@@ -300,7 +302,7 @@ recycled notes therefore need no per-note state.
 ## Tests
 
 ```bash
-bash tests/haxe/run-modchart.sh                  # core math, timeline, all 34 modifiers
+bash tests/haxe/run-modchart.sh                  # core math, timeline, all 36 modifiers
 bash tests/haxe/run-modchart-typecheck.sh        # adapter + Lua/Python registration
 bash tests/haxe/run-modchart-lab.sh              # lab catalog, automation and export
 bash tests/haxe/run-modchart-lab-typecheck.sh    # drives the lab state through Flixel stubs
