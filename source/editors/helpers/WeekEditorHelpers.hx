@@ -1,5 +1,7 @@
 package editors.helpers;
 
+import objects.ui.EditorTooltips;
+
 import objects.ui.CustomFlxUI.CustomFlxUIInputText;
 
 import backend.Paths;
@@ -75,15 +77,24 @@ class WeekEditorHelpers
 		tab_group.add(new FlxText(state.weekFileInputText.x, state.weekFileInputText.y - 18, 0, 'Week File:'));
 
 		tab_group.add(state.songsInputText);
+		EditorTooltips.add(state, state.songsInputText, "Comma-separated song names included in this week, in play order.");
 		tab_group.add(state.opponentInputText);
+		EditorTooltips.add(state, state.opponentInputText, "Opponent character ID for the Story Menu preview.");
 		tab_group.add(state.boyfriendInputText);
+		EditorTooltips.add(state, state.boyfriendInputText, "Player character ID for the Story Menu preview.");
 		tab_group.add(state.girlfriendInputText);
+		EditorTooltips.add(state, state.girlfriendInputText, "Girlfriend character ID for the Story Menu preview.");
 		tab_group.add(state.backgroundInputText);
+		EditorTooltips.add(state, state.backgroundInputText, "Story Menu background asset name.");
 
 		tab_group.add(state.displayNameInputText);
+		EditorTooltips.add(state, state.displayNameInputText, "Title displayed for this week in the Story Menu.");
 		tab_group.add(state.weekNameInputText);
+		EditorTooltips.add(state, state.weekNameInputText, "Week name displayed in the Reset Score menu.");
 		tab_group.add(state.weekFileInputText);
+		EditorTooltips.add(state, state.weekFileInputText, "File name used when saving this week definition.");
 		tab_group.add(state.hideCheckbox);
+		EditorTooltips.add(state, state.hideCheckbox, "Hide this week from the Story Menu.");
 		state.UI_box.addGroup(tab_group);
 	}
 
@@ -119,9 +130,13 @@ class WeekEditorHelpers
 		tab_group.add(new FlxText(state.difficultiesInputText.x, state.difficultiesInputText.y - 20, 0, 'Difficulties:'));
 		tab_group.add(new FlxText(state.difficultiesInputText.x, state.difficultiesInputText.y + 20, 0, 'Default difficulties are "Easy, Normal, Hard"\nwithout quotes.'));
 		tab_group.add(state.weekBeforeInputText);
+		EditorTooltips.add(state, state.weekBeforeInputText, "Week file ID that must be completed to unlock this week.");
 		tab_group.add(state.difficultiesInputText);
+		EditorTooltips.add(state, state.difficultiesInputText, "Comma-separated difficulty names. Leave empty to use Easy, Normal, Hard.");
 		tab_group.add(state.hiddenUntilUnlockCheckbox);
+		EditorTooltips.add(state, state.hiddenUntilUnlockCheckbox, "Keep the week hidden until its unlock requirement is met.");
 		tab_group.add(state.lockedCheckbox);
+		EditorTooltips.add(state, state.lockedCheckbox, "Start this week locked until the required previous week is completed.");
 		state.UI_box.addGroup(tab_group);
 	}
 
