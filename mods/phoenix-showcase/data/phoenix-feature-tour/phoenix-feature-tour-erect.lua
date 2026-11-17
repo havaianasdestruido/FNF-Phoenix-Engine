@@ -5,7 +5,7 @@
   Modchart  : Lua, this file (no Python / HScript)
 
   What this song exercises, in order:
-    * every one of the 34 ModifierRegistry entries
+    * every one of the 36 ModifierRegistry entries
     * modSet / modEase / modAdd / modSetAdd / modCallback / modRepeater
     * two modchart playfields + setModchartPerspective (3D)
     * addModifier / setPercent / getPercent / resetModchart / isModchartActive
@@ -36,7 +36,7 @@
 -- Registry data
 ----------------------------------------------------------------------
 
-local MOD_COUNT = 34
+local MOD_COUNT = 36
 local PHASE_COUNT = 26
 
 -- Every name ModifierRegistry accepts, in the order the phases use them.
@@ -48,7 +48,7 @@ local ALL_MODS = {
   'centerRotate', 'fieldRotate', 'localRotate', 'confusion', 'counterClockWise',
   'invert', 'opponentSwap', 'spiral', 'infinite', 'radionic',
   'zoom', 'stealth',
-  'wiggle', 'vibrate', 'skew'
+  'wiggle', 'vibrate', 'skew', 'incomingAngle', 'waveShit'
 }
 
 -- Neutral values for the percents this song actually drives. Everything not
@@ -59,7 +59,8 @@ local NEUTRAL = {
   scaleX = 1,
   scaleY = 1,
   xmod = 1,
-  waveMult = 1
+  waveMult = 1,
+  waveShitSpeed = 1
 }
 
 -- Percent names reset at every phase boundary. Keep this list broad: unknown
@@ -81,7 +82,10 @@ local RESET_PERCENTS = {
   'invert', 'flip', 'opponentSwap',
   'spiral', 'infinite', 'radionic',
   'reverse', 'xmod', 'boost', 'brake',
-  'receptorScroll', 'zigZag',
+  'receptorScroll', 'zigZag', 'zigZagYafnX', 'zigZagZ', 'zigZagAngle',
+  'incomingCurveX', 'incomingCurveY', 'incomingCurveZ', 'incomingSmooth',
+  'waveShit', 'waveShitY', 'waveShitAngle', 'waveShitSpeed', 'waveShitOffset',
+  'drunkStair', 'noteOffsetX', 'noteOffsetY', 'noteOffsetZ',
   'bounce', 'beat', 'bumpy',
   'sawtooth', 'square', 'tornado', 'schmovinTornado',
   'drunk', 'tipsy', 'schmovinDrunk', 'schmovinTipsy', 'drugged',
@@ -299,8 +303,8 @@ local function buildHud()
     beatY = h - 88
     footerY = h - 70
   end
-  makeText('tourBeat', 'beat 0 | active modifiers 34 | phase 0/' .. PHASE_COUNT, 14, 24, beatY, textWidth, 'ffffff', 'left')
-  makeText('tourFooter', 'Lua modchart | 34 modifiers | runtime shaders | 4th wall | custom camera', 14, 24, footerY, w - 48, 'ffffff', 'center')
+  makeText('tourBeat', 'beat 0 | active modifiers 36 | phase 0/' .. PHASE_COUNT, 14, 24, beatY, textWidth, 'ffffff', 'left')
+  makeText('tourFooter', 'Lua modchart | 36 modifiers | runtime shaders | 4th wall | custom camera', 14, 24, footerY, w - 48, 'ffffff', 'center')
   makeText('tourBanner', '', 34, 0, math.floor(h * 0.22), w, 'ffffff', 'center')
   setProperty('tourBanner.alpha', 0)
 
@@ -598,7 +602,7 @@ local function phaseIntro(b, e)
   setTextString('tourPhase', 'INTRO // TEST HARNESS')
   setTextString('tourDetail',
     'Phoenix ' .. safeString(phoenixVersion, '?') .. ' | ' .. hardwareLine() .. '\n' ..
-    '34 modifiers | 2 playfields | runtime shaders | 4th wall | custom camera | save data\n' ..
+    '36 modifiers | 2 playfields | runtime shaders | 4th wall | custom camera | save data\n' ..
     'shaders: ' .. (state.shaders and 'on' or 'off') ..
     ' | window alpha: ' .. (state.windowSupported and 'yes' or 'no') ..
     ' | META_HORROR: ' .. (state.metaProbed and (state.metaEnabled and 'ON' or 'OFF') or 'probed at 0:50') .. '\n' ..
@@ -656,7 +660,10 @@ local function phaseDrunk(b, e)
   modEase('schmovinDrunk', b + 4, 2, 1, 'quadOut')
   modEase('schmovinTipsy', b + 6, 2, 1, 'quadOut')
   modEase('drugged', b + 8, 2, 0.25, 'quadOut')
-  scheduleReset({ 'drunk', 'tipsy', 'schmovinDrunk', 'schmovinTipsy', 'drugged' }, e)
+  modEase('drunkStair', b + 8, 2, 4, 'quadOut')
+  modEase('waveShit', b + 4, 2, 0.7, 'quadOut')
+  modEase('waveShitAngle', b + 6, 2, 0.4, 'quadOut')
+  scheduleReset({ 'drunk', 'tipsy', 'schmovinDrunk', 'schmovinTipsy', 'drugged', 'drunkStair', 'waveShit', 'waveShitAngle' }, e)
 end
 
 local function phaseGeometry(b, e)
@@ -726,6 +733,16 @@ local function phasePerspective(b, e)
   modEase('rotateY', b + 8, 4, 15, 'sineInOut', -1, 0)
   modEase('rotateX', e - 4, 4, 0, 'quadInOut', -1, 0)
   modEase('rotateY', e - 4, 4, 0, 'quadInOut', -1, 0)
+
+  -- YAFN note-only approach curves, velocity offsets and sine zigzags.
+  modEase('incomingCurveX', b, 2, 75, 'quadOut')
+  modEase('incomingCurveZ', b + 2, 2, 80, 'quadOut')
+  modEase('incomingSmooth', b + 4, 2, 0.6, 'quadOut')
+  modEase('zigZagYafnX', b + 6, 2, 30, 'quadOut')
+  modEase('zigZagZ', b + 6, 2, 55, 'quadOut')
+  modEase('zigZagAngle', b + 8, 2, 25, 'quadOut')
+  modEase('noteOffsetX', b + 8, 2, 2, 'quadOut')
+  scheduleReset({ 'incomingCurveX', 'incomingCurveZ', 'incomingSmooth', 'zigZagYafnX', 'zigZagZ', 'zigZagAngle', 'noteOffsetX' }, e)
 
   -- Player only, field 0.
   modEase('x', b + 2, 4, 70, 'sineInOut', 1, 0)
@@ -901,7 +918,7 @@ local function phaseChaos(b, e)
   modEase('skewY', b + 4, 2, 10, 'quadOut')
   modEase('skewX', e - 4, 4, 0, 'quadInOut')
   modEase('skewY', e - 4, 4, 0, 'quadInOut')
-  setTextString('tourCounter', '34/34 modifiers driven')
+  setTextString('tourCounter', '36/36 modifiers driven')
 end
 
 local function phasePerspectiveFinale(b, e)
@@ -977,7 +994,7 @@ local function phaseResetCheck(b, e)
     state.modchartReset = true
   end
   setTextString('tourDetail', 'resetModchart() -> isModchartActive() = ' .. tostring(isModchartActive()))
-  setTextString('tourCounter', '34/34 modifiers tested')
+  setTextString('tourCounter', '36/36 modifiers tested')
   debugPrint('[showcase] resetModchart: active=' .. tostring(isModchartActive()))
 end
 
@@ -1014,12 +1031,12 @@ local PHASES = {
   { beat = 0,   name = 'INTRO // TEST HARNESS',            detail = '', mods = nil, run = phaseIntro },
   { beat = 16,  name = 'MODCHART 01 // TIMELINE',           detail = 'modSet, modEase, modAdd, modSetAdd, modCallback, modRepeater', mods = { 'transform', 'rotate', 'scale' }, run = phaseTimeline },
   { beat = 32,  name = 'MODCHART 02 // SCROLL',             detail = 'reverse, xmod, boost, brake, receptorScroll, zigZag', mods = { 'reverse', 'boost', 'receptorscroll', 'zigZag' }, run = phaseScroll },
-  { beat = 48,  name = 'MODCHART 03 // DRUNK FAMILY',       detail = 'drunk, tipsy, schmovinDrunk, schmovinTipsy, drugged', mods = { 'drunk', 'tipsy', 'schmovinDrunk', 'schmovinTipsy', 'drugged' }, run = phaseDrunk },
+  { beat = 48,  name = 'MODCHART 03 // DRUNK FAMILY',       detail = 'drunk, tipsy, schmovinDrunk, schmovinTipsy, drugged', mods = { 'drunk', 'tipsy', 'schmovinDrunk', 'schmovinTipsy', 'drugged', 'waveShit' }, run = phaseDrunk },
   { beat = 64,  name = 'MODCHART 04 // GEOMETRY',           detail = 'bounce, beat, bumpy, sawtooth, square, tornado, schmovinTornado', mods = { 'bounce', 'beat', 'bumpy', 'sawtooth', 'square', 'tornado', 'schmovinTornado' }, run = phaseGeometry },
   { beat = 80,  name = 'MODCHART 05 // ROTATION',           detail = 'rotate, centerRotate, fieldRotate, localRotate, confusion, counterClockWise', mods = { 'centerRotate', 'fieldRotate', 'localRotate', 'confusion', 'counterClockWise' }, run = phaseRotation },
   { beat = 96,  name = 'MODCHART 06 // LANES',              detail = 'invert, opponentSwap, spiral, infinite, radionic', mods = { 'invert', 'opponentSwap', 'spiral', 'infinite', 'radionic' }, run = phaseLanes },
   { beat = 112, name = 'MODCHART 07 // SCALE & STEALTH',    detail = 'scale, zoom, stealth (early notes hidden), alpha', mods = { 'zoom', 'stealth' }, run = phaseScaleStealth },
-  { beat = 128, name = 'MODCHART 08 // 3D PERSPECTIVE',     detail = 'setModchartPerspective + z / rotateX / rotateY, one player side', mods = nil, run = phasePerspective },
+  { beat = 128, name = 'MODCHART 08 // 3D PERSPECTIVE',     detail = 'YAFN incoming curves, smooth scroll, sine zigzags and note offsets', mods = { 'incomingAngle' }, run = phasePerspective },
   { beat = 144, name = 'SHADERS // RUNTIME & BUILT-IN',     detail = 'showcase.frag + include, uniform tweens, chromatic, glitch, scanline, VCR, distant-note preview, bloom', mods = nil, run = phaseShaders },
   { beat = 160, name = '4TH WALL // THE WINDOW',            detail = 'setWindowTitle, setAlwaysOnTop, flashTaskbar, hideTaskbar, persistent values', mods = nil, run = phaseFourthWallWindow },
   { beat = 176, name = '4TH WALL // THE PLAYER',            detail = 'custom camera desktop overlay, username, clock, uptime, isLateNight', mods = nil, run = phaseFourthWallPlayer },
@@ -1027,7 +1044,7 @@ local PHASES = {
   { beat = 208, name = 'CAMERAS & SPRITES',                 detail = 'createCamera/addCamera, setObjectCamera, sprites, blend modes, tweens', mods = nil, run = phaseCamerasSprites },
   { beat = 224, name = 'AUDIO & PLAYBACK',                  detail = 'tagged sound, fade, volume/time reads, playback rate', mods = nil, run = phaseAudio },
   { beat = 240, name = 'PLAYFIELD 2 // LAYERED',            detail = 'two playfields transform the same receptors', mods = nil, run = phasePlayfieldTwo },
-  { beat = 256, name = 'CHAOS // ALL 34 DONE',              detail = 'wiggle, vibrate, skewX, skewY - registry fully exercised', mods = { 'wiggle', 'vibrate', 'skew' }, run = phaseChaos },
+  { beat = 256, name = 'CHAOS // ALL 36 DONE',              detail = 'wiggle, vibrate, skewX, skewY - registry fully exercised', mods = { 'wiggle', 'vibrate', 'skew' }, run = phaseChaos },
   { beat = 272, name = '3D FINALE',                         detail = 'deep perspective, rotation and player-only offset', mods = nil, run = phasePerspectiveFinale },
   { beat = 288, name = 'COMBO STRESS TEST',                 detail = 'eight modifiers at once', mods = nil, run = phaseCombo },
   { beat = 304, name = 'FINALE BUILD',                      detail = 'rising drunk/tipsy/bounce/scale, bloom and chromatic', mods = nil, run = phaseFinaleBuild },
@@ -1090,7 +1107,7 @@ function onCreatePost()
   installModchart()
   buildFourthWall()
 
-  setTextString('tourBeat', 'beat 0 | modifiers 34 | phase 1/' .. tostring(PHASE_COUNT))
+  setTextString('tourBeat', 'beat 0 | modifiers 36 | phase 1/' .. tostring(PHASE_COUNT))
   debugPrint(string.format('[showcase] setup: shaders=%s windowAlpha=%s save=%s', tostring(state.shaders), tostring(state.windowSupported), state.saveName))
 end
 

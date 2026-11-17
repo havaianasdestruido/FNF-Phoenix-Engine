@@ -1,6 +1,6 @@
 package modchart.lab;
 
-/** One of the 34 built-in modifiers, described for the editor UI. */
+/** One of the 36 built-in modifiers, described for the editor UI. */
 typedef LabModifier =
 {
 	/** Registry name (`drunk`, `schmovintornado`, ...) — matches `ModifierRegistry.names()`. */

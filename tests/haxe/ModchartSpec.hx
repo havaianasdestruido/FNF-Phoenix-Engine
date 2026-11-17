@@ -56,10 +56,53 @@ class ModchartSpec
 		eventTimeline();
 		reverseAndXmod();
 		drunkAndTipsy();
+		yafnEffects();
 		visualModifiers();
 		rotationModifiers();
 		allModifiersRun();
 		Sys.println('ModchartSpec: PASS');
+	}
+
+	static function yafnEffects():Void
+	{
+		final pf = field();
+		final p = params(1, 0);
+		p.songTime = 1000;
+		p.hitTime = 1100;
+		final zig = ModifierRegistry.create('zigzag', pf);
+		pf.setPercent('zigZagYafnX', 10);
+		pf.setPercent('zigZagZ', 20);
+		pf.setPercent('zigZagAngle', 30);
+		final zp = zig.render(new ModchartVec3(), p);
+		approx(zp.x, Math.sin(-2) * 10, 'YAFN zigzag x');
+		approx(zp.z, Math.sin(-2) * 20, 'YAFN zigzag z');
+		approx(zig.visuals(new modchart.ModchartVisuals(), p).angleZ, Math.sin(-2) * 30, 'YAFN zigzag angle');
+
+		final incoming = ModifierRegistry.create('incomingangle', pf);
+		pf.setPercent('incomingCurveX', 100);
+		approx(incoming.render(new ModchartVec3(), p).x, -Math.sin(-1) * 100, 'incoming curve uses BPM');
+		pf.setPercent('incomingSmooth', 1);
+		approx(incoming.render(new ModchartVec3(), p).y, 59, 'smooth upscroll');
+		pf.downscroll = true;
+		approx(incoming.render(new ModchartVec3(), p).y, 41, 'smooth downscroll');
+		p.isReceptor = true;
+		approx(incoming.render(new ModchartVec3(), p).y, 0, 'smooth leaves receptors alone');
+		p.isReceptor = false;
+
+		final wave = ModifierRegistry.create('waveshit', pf);
+		pf.setPercent('waveShit', 1);
+		pf.setPercent('waveShitAngle', 1);
+		final wp = wave.render(new ModchartVec3(), p);
+		approx(wp.y, 32 * Math.cos(Math.PI - 1), 'wave vertical');
+		approx(wp.z, -64 * Math.sin(Math.PI - 1), 'wave depth');
+		final transform = ModifierRegistry.create('transform', pf);
+		pf.setPercent('noteOffsetX1', 3);
+		approx(transform.render(new ModchartVec3(), p).x, -3, 'note offset velocity');
+		p.isReceptor = true;
+		approx(transform.render(new ModchartVec3(), p).x, 0, 'note offset skips receptors');
+		final drunk = ModifierRegistry.create('drunk', pf);
+		pf.setPercent('drunkStair', 2);
+		approx(drunk.render(new ModchartVec3(), p).x, Math.sin(1) * 4, 'drunk stair');
 	}
 
 	static function percentStore():Void
