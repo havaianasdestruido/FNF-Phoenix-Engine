@@ -128,12 +128,12 @@ class FlxButton extends FlxTypedButton<FlxText>
 
 	public inline function centerInBounds()
 	{
-		setPosition(bounds.x + ((100 - frameWidth) / 2), bounds.y + ((55 - frameHeight) / 2));
+		setPosition(bounds.x + ((100 * scale.x - width) / 2), bounds.y + ((55 * scale.y - height) / 2));
 	}
 
 	public inline function centerBounds()
 	{
-		bounds.setPosition(x + ((frameWidth - 100) / 2), y + ((frameHeight - 55) / 2));
+		bounds.setPosition(x + ((width - 100 * scale.x) / 2), y + ((height - 55 * scale.y) / 2));
 	}
 }
 

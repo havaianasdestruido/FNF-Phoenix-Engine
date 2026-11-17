@@ -74,6 +74,8 @@ enum FlxActionMode
 class FlxVirtualPad extends FlxTypedSpriteGroup<FlxButton>
 {
 	private var layoutWidth:Int;
+  private var layoutHeight:Int;
+  public var controlScale(default, null):Float = 1;
 
 	public var buttonLeft:FlxButton = new FlxButton(0, 0);
 	public var buttonUp:FlxButton = new FlxButton(0, 0);
@@ -265,16 +267,33 @@ class FlxVirtualPad extends FlxTypedSpriteGroup<FlxButton>
 		// Right-edge buttons above use FlxG.width at construction; anchor their
 		// existing positions only on subsequent viewport changes.
 		layoutWidth = FlxG.width;
+    layoutHeight = FlxG.height;
+    applyControlScale(ClientPrefs.mobileControlScale);
 		FlxG.signals.gameResized.add(onGameResized);
 	}
 
 	private function onGameResized(_:Int, _:Int):Void
 	{
-		if (layoutWidth == FlxG.width) return;
-		for (button in this)
-			button.x = ScreenLayout.anchoredPosition(button.x, layoutWidth, FlxG.width, button.width);
-		layoutWidth = FlxG.width;
-	}
+    applyControlScale(ClientPrefs.mobileControlScale);
+  }
+
+  /** Resize graphics and hit tests together without replacing input-bound buttons. */
+  public function applyControlScale(value:Float):Void
+  {
+    final next = ScreenLayout.controlScale(value);
+    final ratio = next / controlScale;
+    for (button in this)
+    {
+      final px = ScreenLayout.scaledControlPosition(button.x, layoutWidth, FlxG.width, button.width, ratio);
+      final py = ScreenLayout.scaledControlPosition(button.y, layoutHeight, FlxG.height, button.height, ratio);
+      button.scale.set(next, next);
+      button.updateHitbox();
+      button.setPosition(px, py);
+    }
+    controlScale = next;
+    layoutWidth = FlxG.width;
+    layoutHeight = FlxG.height;
+  }
 
 	/** Remove the listener; FlxTypedSpriteGroup owns the child buttons. */
 	override public function destroy():Void

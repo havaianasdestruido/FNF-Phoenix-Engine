@@ -73,7 +73,7 @@ class FlxHitbox extends FlxSpriteGroup
 
 		if (laneCount > 0 && layoutWidth >= laneCount && layoutHeight > 0)
 		{
-			final extraHeight:Int = ScreenLayout.hitboxExtraHeight(layoutHeight, ClientPrefs.mobileCEx);
+			final extraHeight:Int = ScreenLayout.hitboxExtraHeight(layoutHeight, ClientPrefs.mobileCEx, ClientPrefs.mobileControlScale);
 			final mainHeight:Int = layoutHeight - extraHeight;
 			final mainY:Int = extraHeight > 0 && !ClientPrefs.hitboxPos ? extraHeight : 0;
 			for (i in 0...laneCount)
@@ -99,7 +99,7 @@ class FlxHitbox extends FlxSpriteGroup
 	public function updateLayout(width:Int, height:Int):Void
 	{
 		if (width <= 0 || height <= 0 || laneCount <= 0 || width < laneCount || hints.length < laneCount) return;
-		final extraHeight:Int = ScreenLayout.hitboxExtraHeight(height, ClientPrefs.mobileCEx);
+		final extraHeight:Int = ScreenLayout.hitboxExtraHeight(height, ClientPrefs.mobileCEx, ClientPrefs.mobileControlScale);
 		final mainY:Int = extraHeight > 0 && !ClientPrefs.hitboxPos ? extraHeight : 0;
 		final mainHeight:Int = height - extraHeight;
 

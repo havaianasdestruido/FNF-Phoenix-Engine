@@ -227,14 +227,14 @@ class MobileControlsSelectSubState extends FlxSubState
 							if (!bindButton.bounds.immovable)
 							{
 								if (bindButton.bounds.x > button.bounds.x)
-									bindButton.bounds.x = button.bounds.x + 100;
+									bindButton.bounds.x = button.bounds.x + 100 * virtualPad.controlScale;
 								else
-									bindButton.bounds.x = button.bounds.x - 100;
+									bindButton.bounds.x = button.bounds.x - 100 * virtualPad.controlScale;
 
 								if (bindButton.bounds.y > button.bounds.y)
-									bindButton.bounds.y = button.bounds.y + 55;
+									bindButton.bounds.y = button.bounds.y + 55 * virtualPad.controlScale;
 								else if (bindButton.bounds.y != button.bounds.y)
-									bindButton.bounds.y = button.bounds.y - 55;
+									bindButton.bounds.y = button.bounds.y - 55 * virtualPad.controlScale;
 							}
 							return true;
 						});
