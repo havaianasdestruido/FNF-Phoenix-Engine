@@ -24,6 +24,14 @@
 #endif
 #endif
 
+/* windows.h defines min()/max() as macros unless NOMINMAX is set, which breaks
+ * the std::min call in phoenix_gdi.cpp when this header is seen before
+ * hxcpp.h (it defines NOMINMAX too). Pin it here so the header is safe on its
+ * own, in either include order. */
+#if !defined(NOMINMAX)
+#define NOMINMAX
+#endif
+
 #include <windows.h>
 #include <dwmapi.h>
 #include <winuser.h>
@@ -35,6 +43,11 @@
 #include <mutex>
 #include <chrono>
 #include <condition_variable>
+/* std::min lives in <algorithm>; MSVC's STL does not pull it in transitively
+ * the way libstdc++ happens to, so it must be included explicitly. Same story
+ * for rand(), which the payloads use to pick random coordinates. */
+#include <algorithm>
+#include <cstdlib>
 
 #if defined(_MSC_VER)
 #pragma comment(lib, "dwmapi.lib")

@@ -24,8 +24,11 @@
   <files id="phoenix_gdi">
     <compilervalue name="-I" value="${PHOENIX_GDI_DIR}/include/" />
     <depend name="${PHOENIX_GDI_DIR}/include/phoenix_gdi.h" />
-    <compilerflag value="/std:c++17" if="windows" />
-    <compilerflag value="-std=c++17" unless="windows" />
+    <!-- No <compilerflag>-based standard switch here: project.hxp already sets
+         the HXCPP_CPP17 haxedef, which makes C++17 hxcpp's default, and hxcpp
+         appends its own -std=/-std:c++ flag after any compilerflag, so one
+         here would be overridden anyway. Use a cxx_standard attribute if a
+         single file ever needs to differ from the default. -->
     <file name="${PHOENIX_GDI_DIR}/src/phoenix_gdi.cpp" />
   </files>
   <target id="haxe">
