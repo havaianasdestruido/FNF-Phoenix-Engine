@@ -107,6 +107,20 @@ function onPause() {
 
 function onResume() {
 	// Game was resumed from pause (not necessarily the pause menu).
+	// With the `resumeCountdown` option on, this fires when the 3-2-1-GO
+	// countdown actually lets the song run again, not when the menu closes.
+}
+
+function onResumeCountdownStart() {
+	// Unpause selected and the 3-2-1-GO resume countdown is about to start
+	// (`resumeCountdown` option). Return Function_Stop to skip the countdown
+	// and resume immediately.
+	return Function_Continue;
+}
+
+function onResumeCountdownTick(count) {
+	// Fired on each countdown tick: 3, 2, 1 and 0 (GO). `resumeCountdownActive`
+	// is true until GO.
 }
 
 function onGameOver() {

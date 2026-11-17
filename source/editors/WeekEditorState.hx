@@ -1,5 +1,7 @@
 package editors;
 
+import objects.ui.EditorTooltips;
+
 import objects.ui.CustomFlxUI.CustomFlxUIInputText;
 import objects.ui.CustomFlxUI.CustomFlxUINumericStepper;
 import objects.ui.CustomFlxUI.CustomFlxUITabMenu;
@@ -519,12 +521,19 @@ class WeekEditorFreeplayState extends MusicBeatState
 		tab_group.add(new FlxText(10, bgColorStepperR.y - 18, 0, 'Selected background Color R/G/B:'));
 		tab_group.add(new FlxText(10, iconInputText.y - 18, 0, 'Selected icon:'));
 		tab_group.add(bgColorStepperR);
+		EditorTooltips.add(this, bgColorStepperR, "Red component of the selected song background color, from 0 to 255.");
 		tab_group.add(bgColorStepperG);
+		EditorTooltips.add(this, bgColorStepperG, "Green component of the selected song background color, from 0 to 255.");
 		tab_group.add(bgColorStepperB);
+		EditorTooltips.add(this, bgColorStepperB, "Blue component of the selected song background color, from 0 to 255.");
 		tab_group.add(copyColor);
+		EditorTooltips.add(this, copyColor, "Copy the selected song background color.");
 		tab_group.add(pasteColor);
+		EditorTooltips.add(this, pasteColor, "Apply the copied background color to the selected song.");
 		tab_group.add(iconInputText);
+		EditorTooltips.add(this, iconInputText, "Health icon asset name used for the selected Freeplay song.");
 		tab_group.add(hideFreeplayCheckbox);
+		EditorTooltips.add(this, hideFreeplayCheckbox, "Hide this week from the Freeplay song list.");
 		UI_box.addGroup(tab_group);
 	}
 

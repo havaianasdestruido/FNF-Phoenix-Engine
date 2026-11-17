@@ -1,5 +1,7 @@
 package editors;
 
+import objects.ui.EditorTooltips;
+
 import objects.ui.CustomFlxUI.CustomFlxUIInputText;
 import objects.ui.CustomFlxUI.CustomFlxUINumericStepper;
 import objects.ui.CustomFlxUI.CustomFlxUITabMenu;
@@ -160,12 +162,19 @@ class DialogueEditorState extends MusicBeatState
 		tab_group.add(new FlxText(10, soundInputText.y - 18, 0, 'Sound file name:'));
 		tab_group.add(new FlxText(10, lineInputText.y - 18, 0, 'Text:'));
 		tab_group.add(characterInputText);
+		EditorTooltips.add(this, characterInputText, "Dialogue portrait character ID to use for the current line.");
 		tab_group.add(angryCheckbox);
+		EditorTooltips.add(this, angryCheckbox, "Use the angry textbox style for this dialogue line.");
 		tab_group.add(speedStepper);
+		EditorTooltips.add(this, speedStepper, "Delay between revealing characters in the dialogue text. Smaller values type faster.");
 		tab_group.add(soundInputText);
+		EditorTooltips.add(this, soundInputText, "Typing sound asset used while revealing this dialogue line.");
 		tab_group.add(lineInputText);
+		EditorTooltips.add(this, lineInputText, "Dialogue text displayed for the current line.");
 		tab_group.add(loadButton);
+		EditorTooltips.add(this, loadButton, "Load a definition from a file. Save your current edits first.");
 		tab_group.add(saveButton);
+		EditorTooltips.add(this, saveButton, "Export the current edits to a file.");
 		UI_box.addGroup(tab_group);
 	}
 

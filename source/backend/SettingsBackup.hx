@@ -331,12 +331,8 @@ class SettingsBackup
    */
   static function applyImmediately():Void
   {
-    if (ClientPrefs.framerate > 0)
-    {
-      FlxG.drawFramerate = ClientPrefs.framerate;
-      FlxG.updateFramerate = ClientPrefs.framerate;
-      debug.FrameProfiler.setTargetFps(ClientPrefs.framerate);
-    }
+    FramerateController.applyForState(FlxG.state);
+    FramerateController.applyFocusLost(ClientPrefs.focusLostFramerate);
 
     FlxSprite.defaultAntialiasing = ClientPrefs.globalAntialiasing;
     if (Main.fpsVar != null) Main.fpsVar.visible = ClientPrefs.showFPS;

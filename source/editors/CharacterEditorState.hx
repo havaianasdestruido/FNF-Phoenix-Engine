@@ -1,5 +1,7 @@
 package editors;
 
+import objects.ui.EditorTooltips;
+
 import objects.ui.CustomFlxUI.CustomFlxUIInputText;
 import objects.ui.CustomFlxUI.CustomFlxUINumericStepper;
 import objects.ui.CustomFlxUI.CustomFlxUISlider;
@@ -575,9 +577,12 @@ class CharacterEditorState extends MusicBeatState
 		ghostAlphaSlider.value = ghostAlpha;
 
 		tab_group.add(makeGhostButton);
+		EditorTooltips.add(this, makeGhostButton, "Create a translucent reference of the current character pose for comparing animation offsets.");
 		//tab_group.add(hideGhostButton);
 		tab_group.add(highlightGhost);
+		EditorTooltips.add(this, highlightGhost, "Tint the ghost reference so it is easier to distinguish from the character.");
 		tab_group.add(ghostAlphaSlider);
+		EditorTooltips.add(this, ghostAlphaSlider, "Set the opacity of the ghost reference. Zero is invisible; one is fully opaque.");
 
 		for (i in tab_group.members)
 			i.cameras = [camMenu];
@@ -696,11 +701,17 @@ class CharacterEditorState extends MusicBeatState
 
 		tab_group.add(new FlxText(charDropDown.x, charDropDown.y - 18, 0, 'Character:'));
 		tab_group.add(check_player);
+		EditorTooltips.add(this, check_player, "Mark this as a playable character, affecting its default facing direction.");
 		tab_group.add(reloadCharacter);
+		EditorTooltips.add(this, reloadCharacter, "Reload the selected character from disk. Unsaved edits will be lost.");
 		tab_group.add(charDropDown);
+		EditorTooltips.add(this, charDropDown, "Select a character definition to edit.");
 		tab_group.add(reloadCharacter);
+		EditorTooltips.add(this, reloadCharacter, "Reload the selected character from disk. Unsaved edits will be lost.");
 		tab_group.add(templateCharacter);
+		EditorTooltips.add(this, templateCharacter, "Start a character from the default template.");
 		tab_group.add(importCharacter);
+		EditorTooltips.add(this, importCharacter, "Import a character definition from a file.");
 
 		for (i in tab_group.members)
 			i.cameras = [camMenu];
@@ -807,6 +818,7 @@ class CharacterEditorState extends MusicBeatState
 		noteskinText = new CustomFlxUIInputText(15, healthColorStepperB.y + 40, 200, '', 8);
 		noteskinText.focusGained = () -> FlxG.stage.window.textInputEnabled = true;
 		tab_group.add(noteskinText);
+		EditorTooltips.add(this, noteskinText, "Set the noteskin used by this character.");
 
 		tab_group.add(new FlxText(15, imageInputText.y - 18, 0, 'Image file name:'));
 		tab_group.add(new FlxText(15, healthIconInputText.y - 18, 0, 'Health icon name:'));
@@ -817,22 +829,39 @@ class CharacterEditorState extends MusicBeatState
 		tab_group.add(new FlxText(positionCameraXStepper.x, positionCameraXStepper.y - 18, 0, 'Camera X/Y:'));
 		tab_group.add(new FlxText(healthColorStepperR.x, healthColorStepperR.y - 18, 0, 'Health bar R/G/B:'));
 		tab_group.add(imageInputText);
+		EditorTooltips.add(this, imageInputText, "Image asset path, relative to images/, without the file extension. Reload the image to preview changes.");
 		tab_group.add(reloadImage);
+		EditorTooltips.add(this, reloadImage, "Reload the character image and animation atlas from disk.");
 		tab_group.add(decideIconColor);
+		EditorTooltips.add(this, decideIconColor, "Choose a health bar color based on the character icon.");
 		tab_group.add(healthIconInputText);
+		EditorTooltips.add(this, healthIconInputText, "Health icon asset name, relative to images/icons/, without the file extension.");
 		tab_group.add(vocalsInputText);
+		EditorTooltips.add(this, vocalsInputText, "Suffix used to select this character's vocals file.");
 		tab_group.add(singDurationStepper);
+		EditorTooltips.add(this, singDurationStepper, "How long a singing animation lasts before returning to idle, measured in steps.");
 		tab_group.add(scaleStepper);
+		EditorTooltips.add(this, scaleStepper, "Sprite scale multiplier. One uses the original asset size.");
 		tab_group.add(flipXCheckBox);
+		EditorTooltips.add(this, flipXCheckBox, "Mirror the character horizontally.");
 		tab_group.add(noAntialiasingCheckBox);
+		EditorTooltips.add(this, noAntialiasingCheckBox, "Disable smoothing for crisp pixel-art edges.");
 		tab_group.add(positionXStepper);
+		EditorTooltips.add(this, positionXStepper, "Horizontal character position offset in pixels.");
 		tab_group.add(positionYStepper);
+		EditorTooltips.add(this, positionYStepper, "Vertical character position offset in pixels.");
 		tab_group.add(positionCameraXStepper);
+		EditorTooltips.add(this, positionCameraXStepper, "Horizontal camera focus offset for this character.");
 		tab_group.add(positionCameraYStepper);
+		EditorTooltips.add(this, positionCameraYStepper, "Vertical camera focus offset for this character.");
 		tab_group.add(healthColorStepperR);
+		EditorTooltips.add(this, healthColorStepperR, "Red component of the health bar color, from 0 to 255.");
 		tab_group.add(healthColorStepperG);
+		EditorTooltips.add(this, healthColorStepperG, "Green component of the health bar color, from 0 to 255.");
 		tab_group.add(healthColorStepperB);
+		EditorTooltips.add(this, healthColorStepperB, "Blue component of the health bar color, from 0 to 255.");
 		tab_group.add(saveCharacterButton);
+		EditorTooltips.add(this, saveCharacterButton, "Export the edited character definition to a JSON file.");
 
 		for (i in tab_group.members)
 			i.cameras = [camMenu];
@@ -1058,13 +1087,21 @@ if(!char.isAnimateAtlas) char.animation.remove(anim.anim);
 		tab_group.add(new FlxText(animationIndicesInputText.x, animationIndicesInputText.y - 18, 0, 'ADVANCED - Animation Indices:'));
 
 		tab_group.add(animationInputText);
+		EditorTooltips.add(this, animationInputText, "Animation ID used by the engine and scripts, such as idle or singLEFT.");
 		tab_group.add(animationNameInputText);
+		EditorTooltips.add(this, animationNameInputText, "Frame name prefix in the atlas XML or TXT file. This must match the asset.");
 		tab_group.add(animationIndicesInputText);
+		EditorTooltips.add(this, animationIndicesInputText, "Optional comma-separated frame indices for selecting specific frames from the atlas prefix.");
 		tab_group.add(animationFramerate);
+		EditorTooltips.add(this, animationFramerate, "Playback speed of this animation in frames per second.");
 		tab_group.add(animationLoopCheckBox);
+		EditorTooltips.add(this, animationLoopCheckBox, "Repeat this animation continuously instead of stopping at the last frame.");
 		tab_group.add(addUpdateButton);
+		EditorTooltips.add(this, addUpdateButton, "Add a new animation, or replace the animation with the same ID using these settings.");
 		tab_group.add(removeButton);
+		EditorTooltips.add(this, removeButton, "Remove the selected animation from this character.");
 		tab_group.add(animationDropDown);
+		EditorTooltips.add(this, animationDropDown, "Select an animation to preview or edit.");
 
 		for (i in tab_group.members)
 			i.cameras = [camMenu];

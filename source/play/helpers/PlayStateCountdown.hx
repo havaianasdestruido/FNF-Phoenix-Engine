@@ -20,13 +20,23 @@ import objects.Note;
 @:access(backend.MusicBeatState)
 class PlayStateCountdown
 {
-	public static function cacheCountdown(state:PlayState)
+	/**
+	 * The stage-appropriate `[ready, set, go]` image list used by the intro
+	 * countdown. Shared with the resume countdown (`PlayStateResume`) so both
+	 * show the same art for the same stage type.
+	 */
+	public static function introImageSet():Array<String>
 	{
-		var introImagesArray:Array<String> = switch(PlayState.stageUI) {
+		return switch(PlayState.stageUI) {
 			case "pixel": ['${PlayState.stageUI}UI/ready-pixel', '${PlayState.stageUI}UI/set-pixel', '${PlayState.stageUI}UI/date-pixel'];
 			case "normal": ["ready", "set" ,"go"];
 			default: ['${PlayState.stageUI}UI/ready', '${PlayState.stageUI}UI/set', '${PlayState.stageUI}UI/go'];
-		}
+		};
+	}
+
+	public static function cacheCountdown(state:PlayState)
+	{
+		var introImagesArray:Array<String> = introImageSet();
 		for (asset in introImagesArray) Paths.image(asset);
 
 		state.intro3 = new FlxSound().loadEmbedded(Paths.sound('intro3' + state.introSoundsSuffix));
@@ -103,11 +113,7 @@ class PlayStateCountdown
 				if (state.songCharacterVisuals) PlayStateCamera.characterBopper(state, tmr.loopsLeft);
 
 				var introAssets:Map<String, Array<String>> = new Map<String, Array<String>>();
-				var introImagesArray:Array<String> = switch(PlayState.stageUI) {
-					case "pixel": ['${PlayState.stageUI}UI/ready-pixel', '${PlayState.stageUI}UI/set-pixel', '${PlayState.stageUI}UI/date-pixel'];
-					case "normal": ["ready", "set" ,"go"];
-					default: ['${PlayState.stageUI}UI/ready', '${PlayState.stageUI}UI/set', '${PlayState.stageUI}UI/go'];
-				}
+				var introImagesArray:Array<String> = introImageSet();
 				introAssets.set(PlayState.stageUI, introImagesArray);
 
 				var introAlts:Array<String> = introAssets.get(PlayState.stageUI);

@@ -1,6 +1,8 @@
 package states.helpers;
 
 import backend.ClientPrefs;
+import backend.FreeplayFilter;
+import backend.FreeplayFilterStore;
 import backend.ScreenLayout;
 import backend.CoolUtil;
 import backend.Conductor;
@@ -15,11 +17,9 @@ import flixel.math.FlxMath;
 import flixel.sound.FlxSound;
 import flixel.text.FlxText;
 import flixel.tweens.FlxTween;
-import flixel.util.FlxAxes;
 import flixel.util.FlxColor;
 import flixel.util.FlxDestroyUtil;
 import flixel.util.FlxStringUtil;
-import flixel.util.FlxTimer;
 import haxe.Json;
 import lime.utils.Assets;
 import objects.Alphabet;
@@ -42,24 +42,30 @@ class FreeplayStateHelpers
 {
 	// Song list generation/search
 
+	/**
+	 * Rebuilds the whole list from the unlocked weeks and applies the filter.
+	 * `start` replaces the search text, so the search box and the filter page
+	 * share one code path.
+	 */
 	public static function regenerateSongs(state:FreeplayState, ?start:String = '') {
 		for (funnyIcon in state.grpIcons.members)
 			funnyIcon.canBounce = false;
 		FreeplayState.curPlaying = false;
 
-		state.songs = [];
+		if (start != null) FreeplayState.filter.setQuery(start);
+		collectSongs(state);
+		refreshSongs(state);
+		regenList(state);
+	}
+
+	/** Fills `state.allSongs` with every unlocked week's songs, unfiltered. */
+	public static function collectSongs(state:FreeplayState):Void
+	{
+		state.allSongs = [];
 		for (i in 0...WeekData.weeksList.length) {
 			if(weekIsLocked(state, WeekData.weeksList[i])) continue;
 
 			var leWeek:WeekData = WeekData.weeksLoaded.get(WeekData.weeksList[i]);
-			var leSongs:Array<String> = [];
-			var leChars:Array<String> = [];
-
-			for (j in 0...leWeek.songs.length)
-			{
-				leSongs.push(leWeek.songs[j][0]);
-				leChars.push(leWeek.songs[j][1]);
-			}
 			WeekData.setDirectoryFromWeek(leWeek);
 			for (song in leWeek.songs)
 			{
@@ -68,56 +74,107 @@ class FreeplayStateHelpers
 				{
 					colors = [146, 113, 253];
 				}
-				if (start != null && start.length > 0) {
-					var songName = song[0].toLowerCase();
-					var s = start.toLowerCase();
-					if (songName.indexOf(s) != -1) addSong(state, song[0], i, song[1], FlxColor.fromRGB(colors[0], colors[1], colors[2]));
-				} else addSong(state, song[0], i, song[1], FlxColor.fromRGB(colors[0], colors[1], colors[2])); //??????????
+				addSong(state, song[0], i, song[1], FlxColor.fromRGB(colors[0], colors[1], colors[2]));
 			}
 		}
-		regenList(state);
+	}
+
+	/** One filter entry per collected song, with the best accuracy the save knows. */
+	public static function filterEntries(state:FreeplayState):Array<FreeplayFilterEntry>
+	{
+		final paths:Array<String> = [];
+		for (song in state.allSongs) paths.push(Paths.formatToSongPath(song.songName));
+
+		final stats:Map<String, FreeplaySongStat> = FreeplayFilter.collectStats(paths, Highscore.songScores, Highscore.songRating);
+		final entries:Array<FreeplayFilterEntry> = [];
+		for (song in state.allSongs)
+		{
+			final stat:FreeplaySongStat = stats.get(Paths.formatToSongPath(song.songName));
+			entries.push(new FreeplayFilterEntry(song.songName, song.folder,
+				stat == null ? -1 : stat.bestAccuracy, stat == null ? false : stat.played));
+		}
+		return entries;
+	}
+
+	/**
+	 * Rewrites `state.songs` from `state.allSongs` using the current filter and
+	 * sort, then moves the highlight to the same song when it survived the
+	 * filter (the first entry otherwise).
+	 */
+	public static function refreshSongs(state:FreeplayState):Void
+	{
+		final previous:SongMetadata = selectedSong(state);
+
+		final entries:Array<FreeplayFilterEntry> = filterEntries(state);
+		final order:Array<Int> = FreeplayFilter.order(entries, FreeplayState.filter);
+
+		final filtered:Array<SongMetadata> = [];
+		for (index in order) filtered.push(state.allSongs[index]);
+		state.songs = filtered;
+
+		var next:Int = 0;
+		if (previous != null)
+		{
+			for (i in 0...filtered.length)
+			{
+				if (sameSong(filtered[i], previous))
+				{
+					next = i;
+					break;
+				}
+			}
+		}
+		FreeplayState.curSelected = next;
+	}
+
+	/** The highlighted song, or `null` when the filter emptied the list. */
+	public static function selectedSong(state:FreeplayState):SongMetadata
+	{
+		if (state.songs.length == 0) return null;
+		if (FreeplayState.curSelected < 0 || FreeplayState.curSelected >= state.songs.length) return null;
+		return state.songs[FreeplayState.curSelected];
+	}
+
+	/** Mod folders of the collected songs, base game (`''`) first. */
+	public static function availableMods(state:FreeplayState):Array<String>
+	{
+		return FreeplayFilter.availableMods(filterEntries(state));
+	}
+
+	static function sameSong(one:SongMetadata, two:SongMetadata):Bool
+	{
+		return one != null && two != null && one.songName == two.songName && one.folder == two.folder;
 	}
 
 	public static function checkForSongsThatMatch(state:FreeplayState, ?start:String = '')
 	{
 		if (state.player.playingMusic) return;
 
-		var foundSongs:Int = 0;
-		final txt:FlxText = new FlxText(0, 0, 0, 'No songs found matching your query', 16);
-		txt.setFormat(Paths.font("vcr.ttf"), 16, FlxColor.WHITE, FlxTextAlign.CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
-		txt.scrollFactor.set();
-		txt.screenCenter(FlxAxes.XY);
-		for (i in 0...WeekData.weeksList.length) {
-			if(weekIsLocked(state, WeekData.weeksList[i])) continue;
+		final previous:String = FreeplayState.filter.query;
+		final query:String = start == null ? '' : start;
+		FreeplayState.filter.setQuery(query);
 
-			var leWeek:WeekData = WeekData.weeksLoaded.get(WeekData.weeksList[i]);
-			for (song in leWeek.songs)
-			{
-				if (start != null && start.length > 0) {
-					var songName = song[0].toLowerCase();
-					var s = start.toLowerCase();
-					if (songName.indexOf(s) != -1) foundSongs++;
-				}
-			}
-		}
-		if (foundSongs > 0 || start == ''){
-			if (txt != null)
-				state.remove(txt); // don't do destroy/kill on this btw
-			regenerateSongs(state, start);
-		}
-		else if (foundSongs <= 0){
-			state.add(txt);
-			new FlxTimer().start(5, function(timer) {
-				if (txt != null)
-					state.remove(txt);
-			});
+		if (state.allSongs.length == 0) collectSongs(state);
+
+		// Nothing matched: keep the list the player was browsing and say so.
+		if (query.length > 0 && FreeplayFilter.count(filterEntries(state), FreeplayState.filter) == 0)
+		{
+			FreeplayState.filter.setQuery(previous);
+			state.showNotice('No songs found matching your query');
 			return;
 		}
+
+		refreshSongs(state);
+		regenList(state);
+		FreeplayFilterStore.save(FreeplayState.filter);
+		// The search box already rebuilt the list; closing a substate later must
+		// not rebuild it a second time.
+		state.filterRevision = FreeplayState.filter.revision;
 	}
 
 	public static function addSong(state:FreeplayState, songName:String, weekNum:Int, songCharacter:String, color:Int)
 	{
-		state.songs.push(new SongMetadata(songName, weekNum, songCharacter, color));
+		state.allSongs.push(new SongMetadata(songName, weekNum, songCharacter, color));
 	}
 
 	public static function weekIsLocked(state:FreeplayState, name:String):Bool {
@@ -138,6 +195,17 @@ class FreeplayStateHelpers
 			//we clear the remaining ones
 			state.grpSongs.clear();
 			state.grpIcons.clear();
+
+		// The filter can hide everything (favourites-only with no stars, a mod
+		// that was removed). Keep the HUD honest instead of indexing nothing.
+		if (state.songs.length == 0)
+		{
+			state.intendedScore = 0;
+			state.intendedRating = 0;
+			if (state.scoreText != null) state.scoreText.text = '';
+			if (state.diffText != null) state.diffText.text = '';
+			return;
+		}
 
 		for (i in 0...state.songs.length)
 		{
@@ -170,6 +238,8 @@ class FreeplayStateHelpers
 	public static function changeSelection(state:FreeplayState, change:Int = 0, playSound:Bool = true)
 	{
 		if (state.player.playingMusic) return;
+		// Nothing to select: the filter hid every song (see `regenList`).
+		if (state.songs.length == 0) return;
 
 		if(playSound) FlxG.sound.play(Paths.sound('scrollMenu'), 0.4);
 
@@ -223,6 +293,7 @@ class FreeplayStateHelpers
 		Mods.currentModDirectory = state.songs[FreeplayState.curSelected].folder;
 		PlayState.storyWeek = state.songs[FreeplayState.curSelected].week;
 		state.updateFreeplayDisc(state.songs[FreeplayState.curSelected].songCharacter);
+		state.updateFavouriteText();
 
 		CoolUtil.difficulties = CoolUtil.defaultDifficulties.copy();
 		var diffStr:String = WeekData.getCurrentWeek().difficulties;
@@ -289,6 +360,11 @@ class FreeplayStateHelpers
 	public static function changeDiff(state:FreeplayState, change:Int = 0)
 	{
 		if (state.player.playingMusic) return;
+		if (state.songs.length == 0)
+		{
+			if (state.diffText != null) state.diffText.text = '';
+			return;
+		}
 
 		state.curDifficulty += change;
 
@@ -326,6 +402,9 @@ class FreeplayStateHelpers
 		state.lerpSelected = FlxMath.lerp(state.lerpSelected, FreeplayState.curSelected, FlxMath.bound(elapsed * 9.6, 0, 1));
 		for (i in state._lastVisibles)
 		{
+			// The filter can rebuild the list between two frames, so an index
+			// remembered last frame may already be gone.
+			if (i >= state.grpSongs.members.length || i >= state.grpIcons.members.length) continue;
 			state.grpSongs.members[i].visible = state.grpSongs.members[i].active = false;
 			state.grpIcons.members[i].visible = state.grpIcons.members[i].active = false;
 		}
@@ -349,6 +428,7 @@ class FreeplayStateHelpers
 	// Playback
 
 	public static function playSong(state:FreeplayState) {
+		if (state.songs.length == 0) return;
 		#if PRELOAD_ALL
 		destroyFreeplayVocals();
 		FlxG.sound.music.volume = 0;
@@ -438,6 +518,7 @@ class FreeplayStateHelpers
 	}
 
 	public static function songJsonPopup(state:FreeplayState) { //you pressed space, but the song's ogg/mp3 files don't exist
+		if (state.songs.length == 0) return;
 		var poop:String = Highscore.formatSong(state.songs[FreeplayState.curSelected].songName.toLowerCase(), state.curDifficulty);
 		trace(poop + '\'s .ogg/.mp3 does not exist!');
 		FlxG.sound.play(Paths.sound('invalidJSON'));

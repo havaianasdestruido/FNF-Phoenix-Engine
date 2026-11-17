@@ -18,6 +18,16 @@ class LayoutSpec
 
 	static function main():Void
 	{
+    equal(ScreenLayout.controlScale(0), 1.0, 'invalid scale defaults');
+    equal(ScreenLayout.controlScale(Math.NaN), 1.0, 'NaN scale defaults');
+    equal(ScreenLayout.controlScale(3), 2.0, 'scale upper bound');
+    equal(ScreenLayout.scaledControlPosition(105, 1280, 1280, 100, 1.5), 157.5, 'left spacing scales');
+    equal(ScreenLayout.scaledControlPosition(1148, 1280, 1280, 100, 1.5), 1082.0, 'right spacing scales');
+    equal(ScreenLayout.scaledControlPosition(589, 720, 720, 100, 1.5), 523.5, 'bottom spacing scales');
+    equal(ScreenLayout.scaledControlPosition(1082, 1280, 1280, 150, 1 / 1.5), 1148.0, 'custom scale round trip');
+    equal(ScreenLayout.hitboxExtraHeight(720, true, 1.5), 270, 'extra strip scales');
+    equal(ScreenLayout.hitboxExtraHeight(2, true, 2), 1, 'extra strip leaves a lane');
+    equal(ScreenLayout.hitboxExtraHeight(720, false, 2), 0, 'disabled strip stays absent');
 		for (size in [
 			{w: 1280, h: 720, expected: 1280},
 			{w: 1920, h: 1080, expected: 1280},
