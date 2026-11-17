@@ -86,7 +86,7 @@ command line, so **`-DVIDEOS_ALLOWED` or `-DMODS_ALLOWED` always wins**.
 | `CHECK_FOR_UPDATES` | always | the outdated-version screen |
 | `FEATURE_FILE_DROP` | everything except macOS/flash/air | drag-and-drop in the editors |
 | `FEATURE_DEBUG_FUNCTIONS` | opt-in | extra debug menus |
-| `FUNNY_ALLOWED` | desktop | easter eggs |
+| `FUNNY_ALLOWED` | desktop | easter eggs (the `FlxClothSprite` cloth scene, the 3 AM cat) |
 | `EMBED_ASSETS` | web only | embeds assets into the output |
 | `PRELOAD_ALL` | always | preloads asset libraries |
 | `NO_PRELOAD_ALL` | manual `-DNO_PRELOAD_ALL` switch | inverse of `PRELOAD_ALL`; assets are loaded on demand via `states.LoadingState` instead of preloaded (#55) |
