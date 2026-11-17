@@ -112,11 +112,16 @@ class ClothEasterEggLogic
   public static inline function isComplete(progress:Int):Bool
     return progress >= SEQUENCE.length;
 
-  /** Key name in the form {@link SEQUENCE} uses: trimmed and upper case. */
+  /**
+   * Key name in the form {@link SEQUENCE} uses: trimmed and upper case.
+   *
+   * `StringTools` has no `toUpperCase` (that is a `String` method), so the
+   * trim happens first and the instance method upper-cases the result.
+   */
   public static function normaliseKey(key:String):String
   {
     if (key == null) return '';
-    return StringTools.toUpperCase(StringTools.trim(key));
+    return StringTools.trim(key).toUpperCase();
   }
 
   /**
