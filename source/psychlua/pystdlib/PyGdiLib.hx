@@ -2,6 +2,7 @@ package psychlua.pystdlib;
 
 import backend.GDIEffects;
 import psychlua.PythonScript;
+import flixel.util.FlxColor;
 
 /**
  * Windows GDI desktop effects for Python (Hython) mods.
@@ -220,7 +221,11 @@ class PyGdiLib
   static function pyGdiWarning(py:PythonScript, fn:String):Void
   {
     #if !(cpp && windows)
-    PythonScript.pyTrace(py, '$fn: Windows GDI effects require a Windows native build of Phoenix Engine.', true, false);
+    // `pyTrace` is an instance method on PythonScript, like every other
+    // pystdlib helper calls it (PyFilterLib, PyMetaHorrorLib, ...). Calling it
+    // through the class is "static access to instance field" and fails every
+    // non-Windows target, Android included.
+    py.pyTrace('$fn: Windows GDI effects require a Windows native build of Phoenix Engine.', true, false, FlxColor.ORANGE);
     #end
   }
 }
