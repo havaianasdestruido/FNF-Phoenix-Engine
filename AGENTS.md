@@ -1,10 +1,10 @@
 # AGENTS.md — FNF-JS-Engine-Light (Phoenix Engine)
 
 Documento canônico de instruções para agentes de IA que trabalham neste repositório.
-**Esta é a única fonte de verdade.** CL  AUDE.md, AI.md e qualquer outro ponteiro
+**Esta é a única fonte de verdade.** CLAUDE.md, AI.md e qualquer outro ponteiro
 apenas redirecionam para cá — não duplique instruções em outros arquivos.
 
-> Se um futuro nurture/discrepância aparecer entre este arquivo e outro, **este arquivo vence**.
+> Se algum dia aparecer divergência entre este arquivo e outro, **este arquivo vence**.
 
 ---
 
@@ -282,6 +282,64 @@ FNF-JS-Engine-Light/
 - **`build/release/android`** mostrou completa artefatos `.so` + `.obj` mas **sem `.apk` final** —
   o pipeline Gradle/APK não chegou a rodar no último build local. Use CI (`main.yml`) para APK.
 
+### 9.1. Módulos C++ nativos (`source/backend/native/`)
+
+O padrão do repo para código nativo é **um par `.h`/`.cpp` + um `build.xml`**, nunca
+`@:cppFileCode` com C++ grande. `.cpp` só entra como *translation unit* própria quando
+precisa de headers que não devem vazar para o C++ gerado pelo hxcpp (`windows.h`,
+`Xlib.h`: eles definem `None`, `Bool`, `min`, `max`…). Referência viva:
+`refresh_rate_build.xml` (Linux/X11) e `gdi_build.xml` (Win32/GDI).
+
+`build.xml` nativo — os cinco detalhes que já quebraram build de verdade:
+- `<pragma once="true" />` é **obrigatório** sempre que o arquivo é puxado por mais de um
+  `@:buildXml`. Sem ele o hxcpp registra o grupo duas vezes e o build falha.
+- Um `<file name="...">` só é compilado se estiver dentro de um `<files id="...">` que
+  algum `<target id="haxe">` **referencie** (`<files id="nome" />`). Um grupo declarado e
+  nunca referenciado é silenciosamente ignorado — o `.cpp` nunca compila, o header resolve,
+  e o erro só aparece no **link** (`unresolved external symbol`).
+- O `<files id="haxe">` recebe o `-I` do include path e um `<depend>` para **cada** header
+  que o `.cpp` inclui. O hxcpp hasheia esses `<depend>` ao reusar objetos cacheados: header
+  não declarado = objeto velho com código antigo, e o cache do CI esconde a mudança.
+- Linkagem por SO vai dentro de `<target id="haxe"><section if="windows">` (ou
+  `if="linux" unless="android"`). Nomear `user32.lib`/`gdi32.lib` no XML é o que o MinGW
+  precisa; no MSVC o `#pragma comment(lib, ...)` do header já resolve, mas manter os dois
+  é o padrão daqui.
+- **Não** use `<compilerflag value="/std:c++17" />` para escolher o padrão de C++. O
+  `project.hxp` já define o haxedef **`HXCPP_CPP17`** (o `hxcpp` então emite `-std=c++17`),
+  e o hxcpp **acrescenta o próprio `-std=` depois** de qualquer `compilerflag`, então o
+  padrão antigo (`-std=c++11`) vence calado. Se um arquivo isolado precisar de outro padrão,
+  use o atributo `cxx_standard="17"` no `<files>`/`<file>`.
+
+C++ que compila no Linux e quebra no MSVC — checklist ao tocar `.cpp` nativo:
+- **`<algorithm>` explícito** para `std::min`/`std::max`/`std::sort`. A libstdc++ puxa
+  `std::min` transitivamente por `<string>`/`<vector>`/`<map>` e o GCC aceita; a STL do
+  MSVC **não**, e o job Windows falha. Isso é invisível para `g++ -fsyntax-only` local —
+  nunca valide código nativo só pelo GCC.
+- **`NOMINMAX` antes de `<windows.h>`**, senão `min()`/`max()` como macro quebram `std::min`.
+  Defina no header (com `#if !defined(NOMINMAX)`), não no build.xml, para valer em qualquer
+  ordem de include; `hxcpp.h` também define, mas o header pode ser visto antes.
+- **`<cstdlib>`** para `rand()`/`abs()`, `<cstring>` para `memcpy`, `<cstdio>` para `sprintf`.
+  Os headers do Windows "emprestam" esses símbolos e o GCC compila por acidente.
+
+Como validar nativo **sem** mingw/MSVC nesta máquina: escreva stubs de `windows.h`,
+`dwmapi.h`, `winuser.h` e rode
+`g++ -std=c++17 -D_WIN32 -D_M_X64 -I<stubs> -I<dir do header> -fsyntax-only <arquivo>.cpp`.
+Pega erro de sintaxe e de símbolo, **não** pega a diferença de STL descrita acima — nesse
+caso a evidência final é o job Windows da CI. Para provar que o hxcpp realmente compila um
+`.cpp`, use um compilador falso que só loga `argv` no PATH: a saída do hxcpp lista
+`Compiling group: <nome> (N files)`, e o `.cpp` deve aparecer no log de chamadas.
+Bypass do cache de objetos (`rm -rf obj`) é obrigatório ao comparar variantes de `build.xml`,
+senão o hxcpp reusa o objeto antigo e as duas variantes parecem iguais.
+
+**Localize o alvo antes de investigar.** Um módulo nativo Windows-only compilado num
+`<section if="windows">` aparece como `Compile (Windows)` vermelho e `Compile (Android)` verde.
+Isso já diz que o problema é C++/MSVC, não Haxe — o Android nem toca naquele `.cpp`. O
+inverso (Android vermelho, Windows verde) aponta para Haxe/typecheck ou para o NDK. Antes de
+mexer em código, confirme ainda **se aquele arquivo já compilava** naquele alvo: rode o
+`-fsyntax-only` com stubs e o teste do compilador falso; se o `.cpp` nem aparecia no
+`Compiling group:`, o vermelho é de *link* ou é anterior à sua mudança, e "consertar" o C++
+não muda nada.
+
 ---
 
 ## 10. CI / GitHub Actions
@@ -384,7 +442,147 @@ estado ou outros labels apenas se as respectivas condições forem confirmadas.
 
 ---
 
-## 12. Comandos mais úteis (resumo rápido)
+## 12. Trabalhar em pull requests (triage, reparo, merge)
+
+### 12.1. Ordem de prioridade
+
+Processe **um PR por vez**, nesta ordem — não pelo número, e não em paralelo:
+
+1. **Build quebrado / não compila** — bloqueia todo mundo, inclusive a própria CI dos outros PRs.
+2. **Bug crítico, segurança, crash, perda de dados**.
+3. **PR que desbloqueia outros** (dependência de outro PR aberto, mudança em `project.hxp`,
+   `.github/workflows/*`, `hmm.json`, `setup/`).
+4. **Feature / enhancement**.
+5. **Cosmético, docs, housekeeping**.
+
+Reavalie a cada merge: um PR de feature que vira conflito por causa de um merge anterior
+sobe de prioridade. **Nunca mescle um PR só para resolver conflito.**
+
+### 12.2. Antes de tocar em qualquer coisa
+
+```bash
+gh pr view <n> --json number,title,state,mergeable,mergeStateStatus,headRefName,headRefOid,baseRefName
+gh pr diff <n> --name-only          # superfície real da mudança
+gh pr checks <n>                    # Android / Windows / Regression / Lua / hxcpp smoke
+```
+
+Leia o `mergeStateStatus`: `CLEAN` = mergeável; `DIRTY` = conflito real; `BEHIND` = só falta
+sincronizar; `BLOCKED` = falta check ou review obrigatório; `UNKNOWN` = o GitHub ainda está
+calculando — espere ~20 s e consulte de novo em vez de agir.
+
+**Nunca trabalhe na branch `main`.** Cada PR é reparado na **branch de origem dele**,
+`arena/<id>-fnf-phoenix-engine`. Abra um worktree por PR
+(`git worktree add /tmp/wt/<id> <branch>`) para não misturar estado.
+
+### 12.3. Integrar a `main` na branch do PR
+
+```bash
+cd /tmp/wt/<id>
+git fetch origin
+git merge origin/main --no-edit   # resolva na mão; nunca rebase/force-push por cima do autor
+```
+
+Regras de resolução de conflito:
+- **Analise conflito por arquivo, não “aceite um lado”.** Leia os dois lados e o que cada
+  um queria fazer. O resultado tem que preservar a intenção **das duas** branches.
+- **`.github/workflows/checks.yml` é o conflito recorrente.** Quase todo PR adiciona um
+  step de teste novo ancorado no mesmo lugar (depois do último `- name:` existente). A
+  resolução correta é **manter os dois lados**, não escolher um: cada step é o runner de um
+  spec diferente e os dois precisam rodar. Depois valide que cada script referenciado existe
+  e roda (`bash tests/haxe/run-<nome>.sh`).
+- **Nunca** `git checkout --ours/--theirs` no arquivo inteiro, `git reset --hard`,
+  force-push, ou reescrever commits de outra pessoa. Se o autor deu force-push e o seu
+  commit sumiu, **refaça o commit por cima do novo tip**; não tente restaurar a história.
+- Depois de mesclar, rode o gate local antes de empurrar:
+
+```bash
+bash tests/haxe/run-<especifico-do-PR>.sh
+bash /tmp/check.sh  <worktree>    # typecheck Haxe MODDING_LEVEL=0 (windows)
+bash /tmp/check2.sh <worktree>    # typecheck Haxe MODDING_LEVEL=2 (o que o CI Android usa)
+```
+
+Um typecheck limpo **não** é prova de build: confirme pelo job `Android`/`Windows` da CI.
+
+### 12.4. Ler resultado de CI sem conseguir baixar o log
+
+`gh run view --log` e o endpoint de logs costumam falhar com `EOF` (blob do Azure). O que
+funciona:
+
+```bash
+gh pr checks <n>                                   # nome + conclusão + duração por job
+gh api repos/<owner>/<repo>/actions/jobs/<job_id> -q '.steps[] | "\(.name) -> \(.conclusion)"'
+gh api repos/<owner>/<repo>/check-runs/<id>/annotations
+```
+
+Os steps dizem **onde** quebrou (`Compile (Android)` vs `Compile (Windows)` vs
+`Verify Android APK native libs`), o que já separa problema de Haxe de problema nativo.
+Anotações normalmente só trazem `Process completed with exit code 1`.
+
+### 12.5. Falha intermitente vs falha real
+
+Antes de “consertar” um check vermelho, prove que ele é reproduzível:
+- Se o mesmo commit passou antes e falhou depois, ou o PR passou e um re-sync falhou no
+  mesmo step, trate como **flake**: re-sincronize a `main` (isso dispara run nova) e
+  confirme. Não invente correção para um fantasma.
+- Se o código relevante ao step **nunca** passou naquela branch, é falha real.
+- `gh run rerun <run> --failed` falha com `cannot be rerun; its workflow file may be broken`
+  quando a `main` já mudou o workflow — nesse caso só um commit/push novo adianta.
+
+### 12.6. Merge
+
+```bash
+gh pr merge <n> --merge      # estratégia configurada; `--squash`/`--rebase` só se pedido
+```
+
+- Mergue **só** com conflito resolvido e todos os checks obrigatórios verdes. Reconsulte
+  `mergeable` imediatamente antes: cada merge na `main` pode deixar o próximo `DIRTY`.
+- **Não** use `--auto`, não use `--admin`, não desative proteção. Se não der para mergear,
+  documente o bloqueio exato e siga para outro PR independente.
+- Depois de mergear, confirme o resultado e o tip de `main`:
+
+```bash
+gh pr view <n> --json state,mergeCommit -q '"\(.state) \(.mergeCommit.oid[0:8])"'
+git fetch origin && git log --oneline -1 origin/main
+```
+
+### 12.7. Relatório final
+
+Tabela com **uma linha por PR**: número, prioridade, mudanças, conflitos resolvidos, commits
+criados, resultado de build/CI e bloqueio restante. Nada de “tudo certo” sem o SHA e o check
+verde correspondente.
+
+---
+
+## 13. Armadilhas deste ambiente de agente (fora do repo)
+
+- O clone pode vir **shallow** (`git rev-parse --is-shallow-repository` → `true`). Nesse
+  estado `git merge origin/main` falha com `refusing to merge unrelated histories`:
+  rode `git fetch --unshallow origin` primeiro.
+- O `remote.origin.fetch` costuma ser estreito (só `main` + a branch desta sessão). Branches
+  `arena/*` de PR **não** aparecem num `git fetch` normal:
+  `git fetch origin 'refs/heads/arena/*:refs/remotes/origin/arena/*' --force`.
+- Sem Haxe no sandbox: `bash setup/install-haxe-linux.sh` e depois
+  `export PATH="$HOME/.local/bin:$PATH"` (detalhes e limites em `docs/HAXE_LINUX.md`).
+  As haxelibs do jogo normalmente **não** vêm instaladas; use `haxelib dev` apontando para
+  checkouts locais em vez de `haxelib install` quando a rede para o `lib.haxe.org` estiver
+  limitada.
+- Sem sudo não há MSVC, e normalmente não há mingw-w64: **build nativo Windows/Linux não é
+  reproduzível aqui**. Shims de `windows.h` quebram em `hx/Tls.h`. A evidência de build
+  nativo é a CI; localmente use `-fsyntax-only` com stubs (§9.1) + o gate Haxe.
+- `haxelib run lime build android` exige `lime setup android`. Responder o setup com valores
+  falsos grava `ANDROID_SDK=y`/`ANDROID_NDK_ROOT=n` na config do Lime — inútil e sujo.
+  Para typecheck use `lime build android -DMODDING_LEVEL=2 -Dno-compilation`.
+- O `EAttributeError` em `source/psychlua/PythonScript.hx` (`Unmatched patterns:
+  EAttributeError`) aparece no typecheck local com a revisão de `hython` fora do pin do
+  `hmm.json`. **Já existe na `main`** — não é regressão do PR que você está olhando;
+  confira rodando o mesmo typecheck num worktree de `main` antes de culpar a branch.
+- `tests/haxe/run-*.sh` são 89 arquivos, mas só ~61 são chamados em `checks.yml`. Rodar um
+  script que a CI não roda ainda é válido (é o gate do seu PR), mas não conte com ele como
+  “coberto pela CI”.
+
+---
+
+## 14. Comandos mais úteis (resumo rápido)
 
 ```
 haxelib run lime build windows -Dofficial
