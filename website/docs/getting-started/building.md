@@ -43,6 +43,22 @@ Subsequent builds reuse the hxcpp compile cache.
 
 :::
 
+### Run the HTML5 build in a browser
+
+```bash
+haxelib run lime build html5 -DNO_BUILTIN_CONTENT -DMODDING_LEVEL=0
+cd export/html5/bin
+python3 -m http.server 8000
+```
+
+Open `http://localhost:8000/` in a modern browser. Serve the output over HTTP rather
+than opening `index.html` as a `file://` URL: browsers restrict scripts, storage and
+asset loading from local files. Click inside the game once to focus keyboard input and
+allow browser audio playback. The hosted demo is available from **Play in browser** in
+the site navigation; GitHub Pages builds it as part of the site deployment and serves
+it at the repository's Pages subpath. The hosted build is compact (Tutorial and Week 1)
+and has no Lua, Python or video support.
+
 ## 3. Clean
 
 ```bash
@@ -60,7 +76,7 @@ rm -rf export build
 | macOS | `lime test mac` | |
 | Android | `lime build android` | runs `configureAndroidRuntime` to copy `libc++_shared.so` |
 | iOS | `lime build ios -nosign` | the form CI uses |
-| HTML5 | `lime build html5` | no Lua/Python/video |
+| HTML5 | `lime build html5` | no Lua/Python/video; the Pages demo uses Tutorial + Week 1 |
 | Neko | `lime build neko` | quick sanity target |
 | Flash | `lime build flash -D disable-version-check` | relies on the haxelib patches |
 | AIR | `lime build air -D disable-version-check -DAIR_SDK=<path>` | compiles as a SWF target |

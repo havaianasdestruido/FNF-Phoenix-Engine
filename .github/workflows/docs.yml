@@ -12,6 +12,8 @@ on:
       - "website/**"
       - "source/**"
       - "project.hxp"
+      - "hmm.json"
+      - "setup/unix.sh"
       - "README.md"
       - "BUILDING.md"
       - "CODESTYLE.md"
@@ -21,6 +23,9 @@ on:
     paths:
       - "website/**"
       - "source/**"
+      - "project.hxp"
+      - "hmm.json"
+      - "setup/unix.sh"
       - ".github/workflows/docs.yml"
   workflow_dispatch:
 
@@ -34,11 +39,48 @@ concurrency:
 
 jobs:
   build:
-    name: Build site
+    name: Build site and browser game
     runs-on: ubuntu-latest
+    env:
+      HAXE_VERSION: "4.3.7"
+      HAXELIB_PATH: ${{ github.workspace }}/.haxelib
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      # GitHub Pages serves the game under a project subpath. Build the actual
+      # HTML5 target here (with a small, playable Tutorial/Week 1 content set),
+      # then stage Lime's generated files into Docusaurus' static output.
+      - name: Setup Haxe
+        uses: krdlab/setup-haxe@master
+        with:
+          haxe-version: ${{ env.HAXE_VERSION }}
+
+      - name: Restore Haxelib dependencies
+        id: haxelib-cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.HAXELIB_PATH }}
+          key: docs-haxelib-haxe-${{ env.HAXE_VERSION }}-${{ hashFiles('hmm.json', 'setup/unix.sh') }}
+
+      - name: Install Haxelib dependencies
+        if: steps.haxelib-cache.outputs.cache-hit != 'true'
+        shell: bash
+        run: |
+          haxelib setup "$HAXELIB_PATH"
+          chmod +x ./setup/unix.sh
+          SKIP_SYSTEM_DEPENDENCIES=1 ./setup/unix.sh
+
+      - name: Configure Haxelib
+        if: steps.haxelib-cache.outputs.cache-hit == 'true'
+        run: haxelib setup "$HAXELIB_PATH"
+
+      - name: Build HTML5 game
+        run: haxelib run lime build html5 -DNO_BUILTIN_CONTENT -DMODDING_LEVEL=0
+
+      - name: Stage HTML5 game for GitHub Pages
+        working-directory: website
+        run: npm run stage:game
 
       - name: Setup Node
         uses: actions/setup-node@v7

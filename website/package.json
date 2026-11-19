@@ -8,6 +8,7 @@
     "gen:scripts": "node scripts/generate-script-api.mjs",
     "gen": "npm run gen:api && npm run gen:scripts",
     "gen:sitemap": "node scripts/generate-sitemap-txt.mjs",
+    "stage:game": "node scripts/stage-browser-game.mjs",
     "lint:docs": "node scripts/check-doc-syntax.mjs",
     "test:seo": "node --test tests/*.test.mjs",
     "prestart": "npm run gen",

@@ -1,7 +1,9 @@
 # Phoenix Engine documentation site
 
 [Docusaurus 3](https://docusaurus.io/) site documenting the FNF Phoenix Engine codebase.
-Published to GitHub Pages by `.github/workflows/docs.yml`.
+Published to GitHub Pages by `.github/workflows/docs.yml`. The workflow also builds the
+compact Lime HTML5 game and stages it under `/browser-game/`; the `/play` page embeds it
+at the repository's project-site path so relative game assets continue to load correctly.
 
 ## Run it
 
@@ -14,6 +16,7 @@ npm run serve      # serve the production build
 npm run lint:docs  # check the markdown conventions the site needs to render
 npm run test:seo   # check the engine/platform and FAQ structured-data metadata
 npm run gen:sitemap # turn the built sitemap.xml into the published sitemap.txt
+npm run stage:game # copy export/html5/bin into static/browser-game after an HTML5 build
 ```
 
 Node 20+ is required.
