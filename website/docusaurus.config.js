@@ -105,6 +105,11 @@ const config = {
             label: 'FAQ',
           },
           {
+            to: '/play',
+            position: 'left',
+            label: 'Play in browser',
+          },
+          {
             href: `https://github.com/${organizationName}/${projectName}`,
             label: 'GitHub',
             position: 'right',

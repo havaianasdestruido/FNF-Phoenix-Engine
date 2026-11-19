@@ -67,6 +67,9 @@ function HomepageHeader() {
           <Link className="button button--primary button--lg" to="/docs/intro">
             Read the docs
           </Link>
+          <Link className="button button--secondary button--lg" to="/play">
+            Play in browser
+          </Link>
           <Link className="button button--secondary button--lg" to="/docs/reference">
             Code reference
           </Link>
