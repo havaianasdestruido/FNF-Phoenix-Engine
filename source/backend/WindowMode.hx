@@ -192,7 +192,7 @@ class WindowMode
    */
   static function applyMode(target:String):Bool
   {
-    #if desktop
+    #if (desktop && !air && !flash)
     if (target == FULLSCREEN)
     {
       FlxG.fullscreen = true;
@@ -203,7 +203,9 @@ class WindowMode
     // frame does not fight the fullscreen state, then pick the frame.
     FlxG.fullscreen = false;
     final window = getWindow();
-    if (window != null) window.borderless = (target == BORDERLESS);
+    if (window == null) return false;
+    final borderless = target == BORDERLESS;
+    if (window.borderless != borderless) window.borderless = borderless;
     return true;
     #else
     return false;
@@ -211,19 +213,15 @@ class WindowMode
   }
 
   /**
-   * The Lime window, or `null` when the target has none (Flash).
-   *
-   * Typed as `Dynamic` on purpose: `lime.ui.Window` is only reachable on the
-   * targets that actually have a native window.
+   * Use Lime’s typed accessors: dynamic assignment can bypass the native
+   * property setter on hxcpp.
    */
-  static function getWindow():Dynamic
+  #if !flash
+  static function getWindow():lime.ui.Window
   {
-    #if !flash
     if (FlxG.stage != null && FlxG.stage.window != null) return FlxG.stage.window;
     final app:lime.app.Application = lime.app.Application.current;
     return (app != null) ? app.window : null;
-    #else
-    return null;
-    #end
   }
+  #end
 }
