@@ -1,0 +1,98 @@
+.page {
+  padding: 2.5rem 0 4rem;
+}
+
+.header {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.header h1 {
+  margin-bottom: 0.6rem;
+}
+
+.eyebrow {
+  margin-bottom: 0.5rem;
+  color: var(--ifm-color-primary);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+
+.lead {
+  max-width: 52rem;
+  margin-bottom: 0;
+  line-height: 1.65;
+  opacity: 0.9;
+}
+
+.gameFrame {
+  overflow: hidden;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  min-height: 20rem;
+  border: 1px solid var(--ifm-color-emphasis-300);
+  border-radius: var(--ifm-global-radius);
+  background: #09070d;
+  box-shadow: 0 1.2rem 3rem rgb(0 0 0 / 25%);
+}
+
+.gameFrame iframe {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 20rem;
+  border: 0;
+  background: #09070d;
+}
+
+.info {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.5rem;
+  margin-top: 1.75rem;
+}
+
+.info section {
+  padding: 1.2rem 1.35rem;
+  border: 1px solid var(--ifm-color-emphasis-300);
+  border-radius: var(--ifm-global-radius);
+  background: var(--ifm-card-background-color);
+}
+
+.info h2 {
+  font-size: 1.15rem;
+}
+
+.info p {
+  margin-bottom: 0;
+  line-height: 1.6;
+}
+
+.back {
+  margin-top: 1.5rem;
+  margin-bottom: 0;
+}
+
+@media screen and (max-width: 700px) {
+  .page {
+    padding: 1.5rem 0 3rem;
+  }
+
+  .header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .gameFrame,
+  .gameFrame iframe {
+    min-height: 14rem;
+  }
+
+  .info {
+    grid-template-columns: 1fr;
+  }
+}
