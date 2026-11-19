@@ -998,6 +998,11 @@ class Project extends HXProject
 		if (stripped)
 		{
 			info('NO_BUILTIN_CONTENT: including Tutorial and Week 1 only...');
+			info('Tip: To include all available weeks, remove -DNO_BUILTIN_CONTENT from your build command.');
+		}
+		else
+		{
+			info('Tip: All available weeks are included by default. For just Tutorial and Week 1, add -DNO_BUILTIN_CONTENT.');
 		}
 
 		// Default asset library
@@ -1108,6 +1113,7 @@ class Project extends HXProject
 		}
 
 		// Later level libraries are only included in full builds.
+		var missingWeekAssets = false;
 		for (weekFolder in ["week2", "week3", "week4", "week5", "week6", "week7", "weekend1"])
 		{
 			addAssetLibrary(weekFolder, shouldEmbed, shouldPreload);
@@ -1116,9 +1122,14 @@ class Project extends HXProject
 				if (sys.FileSystem.exists('assets/${weekFolder}'))
 					addAssetPath('assets/${weekFolder}', 'assets/${weekFolder}', weekFolder, ["*"], exclude, shouldEmbed);
 				else
+				{
 					info('Skipping missing level asset folder "assets/${weekFolder}".');
+					missingWeekAssets = true;
+				}
 			}
 		}
+		if (missingWeekAssets)
+			info('Tip: To build with all weeks, restore the missing folders listed above and rebuild. No extra flag is needed.');
 
 		// Art asset library (where README and CHANGELOG pull from)
 		var shouldEmbedArt = false;
