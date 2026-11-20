@@ -78,6 +78,7 @@ package backend;
 class RecoveryBoot
 {
   public static var disableMods:Bool = false;
+  public static function modsDisabled():Bool return disableMods;
   public static function disabledModsPath():String return 'mods/.disabled/';
 }
 HAXE
