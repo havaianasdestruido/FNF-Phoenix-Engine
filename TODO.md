@@ -399,7 +399,7 @@ The remaining ideas below are tracked alongside completed items. Overlaps with e
 ### 21.1. New states
 
 - **[P1] Results screen (`states/ResultsState`).** `PlayStatePlayback.endSong()` currently goes straight back to `FreeplayState` / `StoryMenuState`. After a song or week, show score, accuracy, judgement breakdown, max combo, peak NPS, FC tier and a histogram of hit offsets. The totals already exist on `PlayState`; only per-hit offsets need recording (via `play.helpers.HitTiming`). Roadmap link: the Mic'd Up S/A rank (§0) would live on this screen.
-- **[P2] Player stats (`states/StatsState`, `backend/PlayerStats`).** Lifetime totals: playtime, songs finished, notes per judgement, deaths, full combos, most-played songs and mods. A small `PlayerStats` backend is needed because playtime is only stored as progress toward the 50-hour badge and stops counting once that unlocks. Link it from Awards (`MainMenuState`'s `awards` entry); a new main-menu button would need its own sprite atlas.
+- **[P2] ~~Player stats (`states/StatsState`, `backend/PlayerStats`)~~ DONE** — Awards → Player Stats shows lifetime playtime, songs finished, notes per judgement, deaths, full combos, and the most-played songs and mods. With achievements disabled, Awards opens stats directly. `PlayerStats` seeds older saves from the playtime badge; `PlaytimeTracker` keeps counting after the badge unlocks. Specs: `bash tests/haxe/run-player-stats.sh`.
 - **[P3] ~~Modchart lab (`editors/ModchartLabState`)~~ DONE** — the renderer-free half lives in `modchart/lab/`
   (`ModchartLabCatalog` for the knobs of all 34 modifiers, `ModchartLabTrack` for per-percent
   automation on loop-local beats, `ModchartLabExport` + `ModchartLabExportOptions` for the
