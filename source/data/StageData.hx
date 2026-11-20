@@ -31,26 +31,22 @@ typedef StageFile = {
 	var camera_opponent:Array<Float>;
 	var camera_girlfriend:Array<Float>;
 	var camera_speed:Null<Float>;
+
+	/** Psych 1.0+ object graph produced by the Stage Editor. */
+	@:optional var objects:Array<Dynamic>;
+	/** Image path -> quality filter mask, warmed on the loading screen. */
+	@:optional var preload:Dynamic;
+	/** Preview characters the Stage Editor should load. */
+	@:optional var _editorMeta:Dynamic;
 }
 
 class StageData {
+	/** Prop names PlayState already owns (`gf`, `boyfriend`, …). */
+	public static var reservedNames:Array<String> = StageEditorCore.reservedNames;
+
 	public static function dummy():StageFile
 	{
-		return {
-			directory: "",
-			defaultZoom: 0.9,
-			stageUI: "normal",
-
-			boyfriend: [770, 100],
-			girlfriend: [400, 130],
-			opponent: [100, 100],
-			hide_girlfriend: false,
-
-			camera_boyfriend: [0, 0],
-			camera_opponent: [0, 0],
-			camera_girlfriend: [0, 0],
-			camera_speed: 1,
-		};
+		return cast StageEditorCore.dummyStage();
 	}
 
 	public static var forceNextDirectory:String = null;
@@ -119,7 +115,17 @@ class StageData {
 		if(rawJson == null)
 			return dummy();
 
-		return cast tjson.TJSON.parse(rawJson);
+		try
+		{
+			var parsed:StageFile = cast tjson.TJSON.parse(rawJson);
+			StageEditorCore.normalizeStage(parsed);
+			return parsed;
+		}
+		catch (e:Dynamic)
+		{
+			return dummy();
+		}
 	}
 
 }
+

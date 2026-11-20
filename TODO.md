@@ -212,7 +212,7 @@ Added from the supplied CNE-vs-vanilla/Psych comparison, filtered against the cu
 - **[P2] Custom property editing in Charter.** No UI for custom chart/meta properties.
 - **[P2] In-engine song/difficulty creation.** Difficulty is just a text field; add proper song/difficulty scaffolding and asset creation.
 - **[P2] Folder/subfolder selectors.** Character/editor dropdowns read flat folders; add recursive subfolder support.
-- **[P2] Stage Editor.** `MasterEditorMenu` has no stage editor.
+- ~~**[P2] Stage Editor.** `MasterEditorMenu` has no stage editor.~~ **DONE** — `editors.StageEditorState` plus `data.StageEditorCore` (Psych-compatible `objects` graph, undo, filters). `PlayStateStageObjects` spawns the JSON at runtime; vanilla stages stay compact. Spec: `bash tests/haxe/run-stage-editor.sh`. Docs: `docs/STAGE_EDITOR.md`.
 - **[P2] NoteSkin Editor.** Not implemented.
 - **[P2] Alphabet Editor.** Not implemented.
 - **[P2] Character Editor parity.** Add undo/redo, unsaved-change warnings, folder support, and stronger flip/offset tooling.
