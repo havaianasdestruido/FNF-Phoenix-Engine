@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Pointing-finger menu cursor (HaxeFlixel Cursor demo): pick/anchor math,
-# ClientPrefs defaults, VisualsUISubState options, and menu wiring.
+# ClientPrefs defaults, SuperSecretDebugMenu options, and menu wiring.
 set -euo pipefail
 cd "$(dirname "$0")/../.."
 
@@ -12,8 +12,8 @@ cp source/backend/PointingCursorLogic.hx "$work/backend/"
 "${HAXE:-haxe}" -cp "$work" -cp tests/haxe -main PointingCursorSpec --interp
 
 # --- Static wiring guards ----------------------------------------------------
-grep -q "public static var pointingCursor:Bool = true;" source/backend/ClientPrefs.hx \
-  || { echo "FAIL: ClientPrefs.pointingCursor must exist and default to true" >&2; exit 1; }
+grep -q "public static var debugPointingCursor:Bool = false;" source/backend/ClientPrefs.hx \
+  || { echo "FAIL: ClientPrefs.debugPointingCursor must exist and default to false" >&2; exit 1; }
 
 grep -q "public static var pointingCursorStyle:String = PointingCursorLogic.DEFAULT_STYLE;" source/backend/ClientPrefs.hx \
   || { echo "FAIL: ClientPrefs.pointingCursorStyle missing" >&2; exit 1; }
@@ -27,18 +27,22 @@ grep -q "PointingCursorLogic.normalizeStyle(pointingCursorStyle)" source/backend
 grep -q "PointingCursorLogic.normalizeColor(pointingCursorColor)" source/backend/ClientPrefs.hx \
   || { echo "FAIL: loadPrefs must normalize pointingCursorColor" >&2; exit 1; }
 
-toggle_row=$(grep -A 3 "'pointingCursor'," source/options/VisualsUISubState.hx || true)
-[ -n "$toggle_row" ] || { echo "FAIL: no 'pointingCursor' row in VisualsUISubState.hx" >&2; exit 1; }
-grep -q "'bool'" <<<"$toggle_row" || { echo "FAIL: pointingCursor option must be bool" >&2; exit 1; }
-grep -q "true" <<<"$toggle_row" || { echo "FAIL: pointingCursor option default must be true" >&2; exit 1; }
+if grep -Eq "'(debugPointingCursor|pointingCursor(Style|Color)?)'," source/options/VisualsUISubState.hx; then
+  echo "FAIL: pointing cursor controls belong in the debug menu only" >&2; exit 1
+fi
 
-style_row=$(grep -A 4 "'pointingCursorStyle'," source/options/VisualsUISubState.hx || true)
-[ -n "$style_row" ] || { echo "FAIL: no 'pointingCursorStyle' row in VisualsUISubState.hx" >&2; exit 1; }
+toggle_row=$(grep -A 3 "'debugPointingCursor'," source/options/SuperSecretDebugMenu.hx || true)
+[ -n "$toggle_row" ] || { echo "FAIL: no 'debugPointingCursor' row in SuperSecretDebugMenu.hx" >&2; exit 1; }
+grep -q "'bool'" <<<"$toggle_row" || { echo "FAIL: pointingCursor option must be bool" >&2; exit 1; }
+grep -q "false);" <<<"$toggle_row" || { echo "FAIL: pointingCursor option default must be false" >&2; exit 1; }
+
+style_row=$(grep -A 4 "'pointingCursorStyle'," source/options/SuperSecretDebugMenu.hx || true)
+[ -n "$style_row" ] || { echo "FAIL: no 'pointingCursorStyle' row in SuperSecretDebugMenu.hx" >&2; exit 1; }
 grep -q "PointingCursorLogic.styleNames()" <<<"$style_row" \
   || { echo "FAIL: pointingCursorStyle must use PointingCursorLogic.styleNames()" >&2; exit 1; }
 
-color_row=$(grep -A 4 "'pointingCursorColor'," source/options/VisualsUISubState.hx || true)
-[ -n "$color_row" ] || { echo "FAIL: no 'pointingCursorColor' row in VisualsUISubState.hx" >&2; exit 1; }
+color_row=$(grep -A 4 "'pointingCursorColor'," source/options/SuperSecretDebugMenu.hx || true)
+[ -n "$color_row" ] || { echo "FAIL: no 'pointingCursorColor' row in SuperSecretDebugMenu.hx" >&2; exit 1; }
 grep -q "PointingCursorLogic.colorNames()" <<<"$color_row" \
   || { echo "FAIL: pointingCursorColor must use PointingCursorLogic.colorNames()" >&2; exit 1; }
 
