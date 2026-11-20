@@ -3,20 +3,25 @@
 #if defined(_WIN32)
 
 /**
- * HPPD Death Month payloads (December), ported from HPPD
+ * HPPD Death Month visual renderers, ported from HPPD
  * payloads.cpp (Apache License 2.0,
  * https://github.com/havaianasdestruido/HPPD).
  *
- * Every December day runs the shared RunDeathMask renderer
- * parameterized by the day number (bands / rings / sine variants,
- * per-day hue). Exposed in Phoenix as IDs 101-131 (day 1..31) and
- * serialized with the other heavy payloads.
+ * Upstream ran one payload per December day, gated by the calendar
+ * (midnight-to-00:59, looked up by date). Phoenix removes that
+ * timebomb/date activation entirely: these 31 renderers are pure
+ * visual effects, exposed as payload IDs 101-131 and triggered only
+ * through the modding API (phoenixHppdTrigger). They never auto-run.
+ *
+ * Each ID runs the shared RunDeathMask renderer parameterized by the
+ * day number (bands / rings / sine variants, per-day hue) so every
+ * ID looks distinct.
  *
  * Adaptations vs upstream: includes point at phoenix_gdi_hppd.h;
  * the stop latch is the atomic gPhoenixHppdStop (no local gFxStop);
- * DeathMonthEntry/gDeathMonth/DeathMonthToday/DeathMonthName and
- * HSL/Colors are renamed to the PhoenixHppd* spellings. Payload
- * bodies are otherwise verbatim.
+ * HSL/Colors are renamed to the PhoenixHppd* spellings. The date
+ * table and PhoenixHppdDeathMonthToday/Name activation are removed.
+ * Payload bodies are otherwise verbatim.
  */
 
 #define _USE_MATH_DEFINES
@@ -24,23 +29,17 @@
 
 
 // ============================================================
-// DEATH MONTH (DECEMBER)
+// DEATH MONTH VISUAL RENDERERS (IDs 101-131)
 //
-// Every December day, from midnight to 00:59, the demo runs a
-// dedicated payload for that exact day, independent of the
-// gPayloads catalog. Each day has its own GDIPDeathNN function;
-// today's payload is looked up by PhoenixHppdDeathMonthToday() in main.cpp.
+// 31 visual renderers, one per ID. Each runs the shared
+// RunDeathMask renderer parameterized by its number so they look
+// distinct. They are triggered only via the modding API
+// (phoenixHppdTrigger(id)) — no date/time activation.
 //
-// HOW TO ADD / CHANGE A DAY:
+// HOW TO ADD / CHANGE AN ID:
 //   1. Edit GDIPDeathNN(LPVOID) below (or write a brand-new
 //      DWORD WINAPI Fn(LPVOID) anywhere in this file).
-//   2. Map/add the { day, L"label", ms, Fn } row in gPhoenixHppdDeathMonth[].
-// That's it. Days without a row, or any moment outside the
-// midnight-to-00:01 window, skip silently.
-//
-// Every day currently runs the shared RunDeathMask renderer,
-// parameterized by the day number so each day looks distinct.
-// Replace any day's body with custom code when you want more.
+//   2. Map it in PhoenixHppdLookup() in phoenix_gdi_hppd_common.cpp.
 // ============================================================
 
 namespace
@@ -231,78 +230,5 @@ DWORD WINAPI GDIPDeath28(LPVOID) { return RunDeathMask(28); }
 DWORD WINAPI GDIPDeath29(LPVOID) { return RunDeathMask(29); }
 DWORD WINAPI GDIPDeath30(LPVOID) { return RunDeathMask(30); }
 DWORD WINAPI GDIPDeath31(LPVOID) { return RunDeathMask(31); }
-
-// ============================================================
-// Table: December day (1..31) -> its dedicated payload.
-// Add/remove rows freely; missing days skip silently.
-// ============================================================
-
-const PhoenixHppdDeathEntry gPhoenixHppdDeathMonth[] =
-{
-    {  1, L"12/01 - Death Mask",     5000, GDIPDeath01 },
-    {  2, L"12/02 - Death Mask",     5000, GDIPDeath02 },
-    {  3, L"12/03 - Death Mask",     5000, GDIPDeath03 },
-    {  4, L"12/04 - Death Mask",     5000, GDIPDeath04 },
-    {  5, L"12/05 - Death Mask",     5000, GDIPDeath05 },
-    {  6, L"12/06 - Death Mask",     5000, GDIPDeath06 },
-    {  7, L"12/07 - Death Mask",     5000, GDIPDeath07 },
-    {  8, L"12/08 - Death Mask",     5000, GDIPDeath08 },
-    {  9, L"12/09 - Death Mask",     5000, GDIPDeath09 },
-    { 10, L"12/10 - Death Mask",     5000, GDIPDeath10 },
-    { 11, L"12/11 - Death Mask",     5000, GDIPDeath11 },
-    { 12, L"12/12 - Death Mask",     5000, GDIPDeath12 },
-    { 13, L"12/13 - Death Mask",     5000, GDIPDeath13 },
-    { 14, L"12/14 - Death Mask",     5000, GDIPDeath14 },
-    { 15, L"12/15 - Death Mask",     5000, GDIPDeath15 },
-    { 16, L"12/16 - Death Mask",     5000, GDIPDeath16 },
-    { 17, L"12/17 - Death Mask",     5000, GDIPDeath17 },
-    { 18, L"12/18 - Death Mask",     5000, GDIPDeath18 },
-    { 19, L"12/19 - Death Mask",     5000, GDIPDeath19 },
-    { 20, L"12/20 - Death Mask",     5000, GDIPDeath20 },
-    { 21, L"12/21 - Death Mask",     5000, GDIPDeath21 },
-    { 22, L"12/22 - Death Mask",     5000, GDIPDeath22 },
-    { 23, L"12/23 - Death Mask",     5000, GDIPDeath23 },
-    { 24, L"12/24 - Death Mask",     5000, GDIPDeath24 },
-    { 25, L"12/25 - Death Mask",     5000, GDIPDeath25 },
-    { 26, L"12/26 - Death Mask",     5000, GDIPDeath26 },
-    { 27, L"12/27 - Death Mask",     5000, GDIPDeath27 },
-    { 28, L"12/28 - Death Mask",     5000, GDIPDeath28 },
-    { 29, L"12/29 - Death Mask",     5000, GDIPDeath29 },
-    { 30, L"12/30 - Death Mask",     5000, GDIPDeath30 },
-    { 31, L"12/31 - Death Mask",     5000, GDIPDeath31 },
-};
-
-const int gPhoenixHppdDeathMonthCount =
-    static_cast<int>(
-        sizeof(gPhoenixHppdDeathMonth) /
-        sizeof(gPhoenixHppdDeathMonth[0])
-    );
-
-// Returns the active entry (December 00:00-00:59) or nullptr.
-const PhoenixHppdDeathEntry* PhoenixHppdDeathMonthToday()
-{
-    SYSTEMTIME st;
-    GetLocalTime(&st);
-
-    if (st.wMonth != 12)
-        return nullptr;
-
-    if (st.wHour != 0)
-        return nullptr;
-
-    const int d = st.wDay;
-
-    for (int i = 0; i < gPhoenixHppdDeathMonthCount; ++i)
-        if (gPhoenixHppdDeathMonth[i].day == d)
-            return &gPhoenixHppdDeathMonth[i];
-
-    return nullptr;
-}
-
-// Short banner shown at the demo start while Death Month is on.
-const char* PhoenixHppdDeathMonthName()
-{
-    return PhoenixHppdDeathMonthToday() ? "DEATH MONTH" : nullptr;
-}
 
 #endif /* _WIN32 */

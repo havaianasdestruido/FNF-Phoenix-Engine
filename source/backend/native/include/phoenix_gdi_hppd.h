@@ -18,8 +18,9 @@
  * - heavy: 1, 2, 5-11, 13-15, 17, 19-24, 40, 48, 50-63
  * - light: 3, 4, 12, 16, 18, 25-26, 28-49 (except 27, which does not
  *   exist upstream), 69-72
- * - Death Month: the shared RunDeathMask renderer with 31 day variants
- *   (payloads.cpp in HPPD), exposed as IDs 101-131.
+ * - Death Month: 31 visual renderers (IDs 101-131), one per December
+ *   day. These are pure visual effects; the upstream date/time activation
+ *   is removed. They are triggered only through the modding API.
  *
  * Deliberately NOT ported (not GDI-only): 64 (XM + MessageBox date egg),
  * 65 (drive eject IOCTL), 66 (printer spooler), 67 (host recon + address
@@ -1003,7 +1004,7 @@ DWORD WINAPI GDIPayload70(LPVOID);
 DWORD WINAPI GDIPayload71(LPVOID);
 DWORD WINAPI GDIPayload72(LPVOID);
 
-/* Death Month (December): one shared renderer, 31 day variants. */
+/* Death Month visual renderers (IDs 101-131): one per ID, no date activation. */
 DWORD WINAPI GDIPDeath01(LPVOID);
 DWORD WINAPI GDIPDeath02(LPVOID);
 DWORD WINAPI GDIPDeath03(LPVOID);
@@ -1037,38 +1038,10 @@ DWORD WINAPI GDIPDeath30(LPVOID);
 DWORD WINAPI GDIPDeath31(LPVOID);
 
 /**
- * Death Month table entry: December day (1..31) -> its payload.
+ * Death Month visual renderers (IDs 101-131). These are pure visual
+ * effects triggered only through the modding API (phoenixHppdTrigger);
+ * they never auto-run or activate by date. See phoenix_gdi_hppd_death.cpp.
  */
-struct PhoenixHppdDeathEntry
-{
-    int day;                    /**< December day (1..31). */
-    const wchar_t* name;        /**< Overlay label. */
-    DWORD ms;                   /**< Overlay duration. */
-    LPTHREAD_START_ROUTINE fn;  /**< Payload to run. */
-};
-
-/**
- * Death Month table (December day -> payload). Defined in
- * phoenix_gdi_hppd_death.cpp.
- */
-extern const PhoenixHppdDeathEntry gPhoenixHppdDeathMonth[];
-
-/**
- * Number of Death Month entries.
- */
-extern const int gPhoenixHppdDeathMonthCount;
-
-/**
- * Returns the active Death Month entry (December 00:00-00:59) or nullptr.
- * @return Active entry, or nullptr outside the window.
- */
-const PhoenixHppdDeathEntry* PhoenixHppdDeathMonthToday();
-
-/**
- * Short banner shown while Death Month is active.
- * @return "DEATH MONTH" when active, nullptr otherwise.
- */
-const char* PhoenixHppdDeathMonthName();
 
 /* ------------------------------------------------------------------------- */
 /*                           PHOENIX HPPD API                                */

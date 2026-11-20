@@ -10,6 +10,15 @@ HPPD is licensed under the **Apache License 2.0**. The ported payload bodies
 are otherwise verbatim from HPPD; see *Adaptations* below for the deliberate
 differences required to build inside Phoenix Engine.
 
+## Activation model — modding API only
+
+The payloads are **pure visual effects**. Phoenix Engine does **not**
+auto-run or auto-activate them: `phoenixGdiInitialize()` never triggers a
+payload, and no timebomb or date-based activation exists. Every payload is
+reachable **only** through the modding API (`phoenixHppdTrigger(id)` /
+`GDIEffects.hppdTrigger(id)`), so a mod author decides when and if a payload
+runs. This is enforced by the test song (see *Testing* below).
+
 ## What was ported
 
 All **GDI-only** payloads from HPPD's `gdi/` directory. HPPD splits its
@@ -35,7 +44,11 @@ payloads into two families plus a December "Death Month" set:
 
 Day 1..31 of December. Each runs `RunDeathMask(day)` — a full-screen animated
 pattern (bands / rings / sine variants) seeded by the day number, with a
-per-day hue.
+per-day hue. These are **pure visual renderers**: the upstream December
+date-activation table and its `PhoenixHppdDeathMonthToday()` /
+`PhoenixHppdDeathMonthName()` accessors were deliberately **removed**, so the
+renderers never activate by date. A mod triggers them explicitly through the
+modding API, like any other payload ID.
 
 ## Deliberately NOT ported
 
@@ -67,7 +80,7 @@ the engine API is numeric.
 | `source/backend/native/src/phoenix_gdi_hppd_common.cpp` | Runtime: global seed, per-payload seed table, payload lookup, heavy mutex, thread-per-payload trigger/stop/shutdown. |
 | `source/backend/native/src/phoenix_gdi_hppd_heavy.cpp` | Heavy payload bodies (35). |
 | `source/backend/native/src/phoenix_gdi_hppd_light.cpp` | Light payload bodies (31). |
-| `source/backend/native/src/phoenix_gdi_hppd_death.cpp` | Death Month table + `RunDeathMask` renderer (31 day variants). |
+| `source/backend/native/src/phoenix_gdi_hppd_death.cpp` | Death Month visual renderers (31 day variants) + `RunDeathMask`. No date/timebomb activation. |
 | `source/backend/native/gdi_build.xml` | Build config: adds the four HPPD `.cpp` files to the `phoenix_gdi` file group, links `Msimg32.lib`. |
 
 `phoenix_gdi.h` includes `phoenix_gdi_hppd.h` so the hxcpp bridge
@@ -152,6 +165,11 @@ inside Phoenix Engine:
    thread-per-payload instead of HPPD's catalog loop.
 8. **Seed table** sized to 132 entries (IDs 0..131) to cover Death Month;
    HPPD used 128 (IDs 0..127).
+9. **No date activation**: HPPD's December "Death Month" date table
+   (`gPhoenixHppdDeathMonth[]`) and its `PhoenixHppdDeathMonthToday()` /
+   `PhoenixHppdDeathMonthName()` accessors are **removed**. Only the 31
+   `GDIPDeathNN` visual renderers and `RunDeathMask` remain; they are
+   triggered solely through the modding API.
 
 ## Testing
 
@@ -166,3 +184,26 @@ the Win32 test double (`tests/native/windows/windows.h`) and verifies:
 - `trigger` / `stop` / `shutdown` thread machinery works.
 
 Run it with `tests/native/run.sh`.
+
+### Test song (modding-API gating)
+
+`tests/haxe/GdiHppdSongSpec.hx` (run by `tests/haxe/run-gdi-hppd-song.sh`)
+is a **test song** that drives the payloads through the modding API. The song
+is a modchart beat-timeline: `CALLBACK` events scheduled at specific beats
+each invoke `GDIEffects.hppdTrigger(id)` when their beat arrives. The spec
+verifies:
+
+- a song schedules triggers and they fire **only** on their beat (no
+  auto-run ahead of the timeline);
+- each trigger reaches the payload **through the API** — the API is the
+  sole entry point;
+- `hppdStopAll()` can stop payloads mid-song through the API;
+- Death Month IDs (101–131) trigger like any other payload at a chosen
+  beat, with **no date activation** to gate them.
+
+The runner also runs static wiring guards that confirm `phoenixGdiInitialize`
+contains no HPPD trigger call, that the date/timebomb activation symbols are
+gone, and that the Death Month visual renderers (101–131) are still present.
+On the interpreter (non-Windows) the GDI bridge is a safe no-op, so the spec
+verifies song wiring and timing; the native trigger itself is covered by
+`tests/native/test_gdi_hppd.cpp`.

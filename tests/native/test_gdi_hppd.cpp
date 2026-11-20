@@ -115,9 +115,8 @@ int main()
     assert(phoenixHppdIsRunning(1) || true /* may have finished on NULL DC */);
     phoenixHppdShutdown();
 
-    /* Death Month: outside the December window the today lookup is null. */
-    assert(PhoenixHppdDeathMonthToday() == nullptr
-           || PhoenixHppdDeathMonthToday() != nullptr);
+    /* Death Month renderers are pure visual payloads, triggered only via
+     * the API. There is no date/time activation to query. */
 
     std::printf("gdi hppd smoke passed\n");
     return 0;
