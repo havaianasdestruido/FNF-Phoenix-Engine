@@ -47,7 +47,7 @@ Subsequent builds reuse the hxcpp compile cache.
 
 ```bash
 haxelib run lime build html5 -DNO_BUILTIN_CONTENT -DMODDING_LEVEL=0
-cd export/html5/bin
+cd build/release/html5/bin
 python3 -m http.server 8000
 ```
 
