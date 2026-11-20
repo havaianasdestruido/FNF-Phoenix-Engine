@@ -87,7 +87,7 @@ package backend;
 /** Same names and types as the fields the overlay reads. */
 class ClientPrefs
 {
-  public static var pointingCursor:Bool = true;
+  public static var debugPointingCursor:Bool = false;
   public static var pointingCursorStyle:String = 'Finger';
   public static var pointingCursorColor:String = 'White';
 }

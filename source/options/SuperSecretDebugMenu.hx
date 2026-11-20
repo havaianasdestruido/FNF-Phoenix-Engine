@@ -7,6 +7,7 @@ import haxe.Exception;
 
 import backend.ClientPrefs;
 import backend.MenuCheckerTextures;
+import backend.PointingCursorLogic;
 import backend.UpdateChecker;
 import objects.MovingCheckerboard;
 import objects.Prompt;
@@ -57,6 +58,29 @@ class SuperSecretDebugMenu extends BaseOptionsMenu
 			'rainbowFPS',
 			'bool',
 			false);
+		addOption(option);
+
+		var option:Option = new Option('Pointing Cursor',
+			"Checked: a finger sprite points at the hovered or selected menu button.\nUnchecked: no pointing overlay. Ported from the HaxeFlixel Cursor demo.",
+			'debugPointingCursor',
+			'bool',
+			false);
+		addOption(option);
+
+		var option:Option = new Option('Pointing Cursor Style:',
+			"Shape of the sprite that points at the selected menu button.",
+			'pointingCursorStyle',
+			'string',
+			PointingCursorLogic.DEFAULT_STYLE,
+			PointingCursorLogic.styleNames());
+		addOption(option);
+
+		var option:Option = new Option('Pointing Cursor Color:',
+			"Tint of the pointing-finger menu cursor.",
+			'pointingCursorColor',
+			'string',
+			PointingCursorLogic.DEFAULT_COLOR,
+			PointingCursorLogic.colorNames());
 		addOption(option);
 
 		// Every `images/checker*.png` tile this build can load; a save from another

@@ -194,12 +194,12 @@ class ClientPrefs { //default settings if it can't find a save file containing y
 	public static var loadingPieDialColor:String = LoadingDialLogic.DEFAULT_COLOR;
 	/**
 	 * Show a pointing-finger sprite next to the hovered or selected menu button,
-	 * ported from the HaxeFlixel Cursor demo (`FlxUICursor`).
+	 * opt-in via the Super Secret Debug Menu. A new save key avoids inheriting the old default-on setting.
 	 */
-	public static var pointingCursor:Bool = true;
-	/** Shape of the pointing cursor (Options -> Visuals and UI). */
+	public static var debugPointingCursor:Bool = false;
+	/** Shape of the pointing cursor (Super Secret Debug Menu). */
 	public static var pointingCursorStyle:String = PointingCursorLogic.DEFAULT_STYLE;
-	/** Tint of the pointing cursor (Options -> Visuals and UI). */
+	/** Tint of the pointing cursor (Super Secret Debug Menu). */
 	public static var pointingCursorColor:String = PointingCursorLogic.DEFAULT_COLOR;
 
 	//Mobile Settings

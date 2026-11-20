@@ -65,7 +65,7 @@ class PointingCursor extends FlxSprite
   public static function attachAndFollow(host:FlxState, cursor:PointingCursor, members:Dynamic,
       selected:Int):PointingCursor
   {
-    if (host == null || !ClientPrefs.pointingCursor || members == null)
+    if (host == null || !ClientPrefs.debugPointingCursor || members == null)
     {
       if (cursor != null)
       {
@@ -120,7 +120,7 @@ class PointingCursor extends FlxSprite
 
     final visual:Int = hovered >= 0 ? hovered : selected;
     final vis:Int = PointingCursorLogic.visibleIndex(targets, visual);
-    final show:Bool = PointingCursorLogic.shouldShow(ClientPrefs.pointingCursor, vis >= 0);
+    final show:Bool = PointingCursorLogic.shouldShow(ClientPrefs.debugPointingCursor, vis >= 0);
     if (!show)
     {
       visible = false;
