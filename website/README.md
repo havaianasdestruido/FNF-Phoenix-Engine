@@ -16,7 +16,7 @@ npm run serve      # serve the production build
 npm run lint:docs  # check the markdown conventions the site needs to render
 npm run test:seo   # check the engine/platform and FAQ structured-data metadata
 npm run gen:sitemap # turn the built sitemap.xml into the published sitemap.txt
-npm run stage:game # copy export/html5/bin into static/browser-game after an HTML5 build
+npm run stage:game # copy build/release/html5/bin into static/browser-game after a release HTML5 build
 ```
 
 Node 20+ is required.

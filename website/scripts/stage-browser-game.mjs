@@ -10,7 +10,9 @@ import {fileURLToPath} from 'node:url';
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(scriptDir, '../..');
-const source = path.join(repoRoot, 'export', 'html5', 'bin');
+// project.hxp sets app.path to build/release/ for the non-debug CI build;
+// Lime appends html5/bin to that path.
+const source = path.join(repoRoot, 'build', 'release', 'html5', 'bin');
 const destination = path.join(scriptDir, '..', 'static', 'browser-game');
 
 async function exists(file) {
