@@ -164,6 +164,26 @@ else
   echo "skip meta_horror header ($CXX unavailable)"
 fi
 
+# --- GDI / HPPD payloads: full module compile + runtime API smoke ----------
+# phoenix_gdi.cpp (Slushi payloads) plus the four HPPD translation units
+# (common/heavy/light/death) are linked into one binary against the Win32
+# test double. This proves every ported payload body links (renames correct)
+# and that the phoenixHppd* trigger/stop/shutdown runtime works. The test
+# double makes GetDC return NULL, so payloads exit at their first surface
+# check, which still exercises the worker-thread machinery.
+if command -v "$CXX" >/dev/null; then
+  gdi_srcs="source/backend/native/src/phoenix_gdi.cpp source/backend/native/src/phoenix_gdi_hppd_common.cpp source/backend/native/src/phoenix_gdi_hppd_heavy.cpp source/backend/native/src/phoenix_gdi_hppd_light.cpp source/backend/native/src/phoenix_gdi_hppd_death.cpp"
+  # -Wno-conversion-null: the real MSVC SDK accepts NULL for the WPARAM of
+  # SendMessageTimeoutW; the test double types it as ULONG_PTR, which g++
+  # flags. This is a test-double-only strictness difference, not a code issue.
+  "$CXX" -std=c++11 -Wall -Wextra -Werror -Wno-conversion-null -D_WIN32 \
+    -I tests/native/windows -I source/backend/native/include \
+    tests/native/test_gdi_hppd.cpp $gdi_srcs -o "$work/gdi-hppd-test"
+  "$work/gdi-hppd-test"
+else
+  echo "skip gdi hppd ($CXX unavailable)"
+fi
+
 # --- Desktop notification helpers: mod strings are data, not shell syntax ----
 if command -v "$CXX" >/dev/null; then
   notif="$work/notif"
