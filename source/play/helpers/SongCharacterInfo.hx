@@ -1,6 +1,7 @@
 package play.helpers;
 
 import backend.Paths;
+import backend.XmlDefinitions;
 import haxe.Json;
 
 /** Character properties that remain useful when artwork is intentionally skipped. */
@@ -35,7 +36,16 @@ class SongCharacterInfo
   public static function decode(text:String):SongCharacterProperties
   {
     var json:Dynamic = null;
-    try if (text != null) json = Json.parse(text) catch (_:Dynamic) {}
+    try
+    {
+      if (text != null) json = Json.parse(text);
+    }
+    catch (_:Dynamic)
+    {
+      // Not JSON: it may be an XML character definition instead.
+      try if (text != null) json = cast XmlDefinitions.parseCharacter(text)
+      catch (_:Dynamic) {}
+    }
     final colors:Dynamic = field(json, 'healthbar_colors');
     var healthColors:Array<Int> = [255, 0, 0];
     if (Std.isOfType(colors, Array))

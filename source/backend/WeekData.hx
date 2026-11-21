@@ -1,4 +1,4 @@
-﻿package backend;
+package backend;
 
 import play.PlayState;
 import tjson.TJSON as Json;
@@ -153,9 +153,12 @@ class WeekData
         for (file in FileSystem.readDirectory(directory))
         {
           var path = haxe.io.Path.join([directory, file]);
-          if (!sys.FileSystem.isDirectory(path) && file.endsWith('.json'))
+          if (!sys.FileSystem.isDirectory(path) && (file.endsWith('.json') || file.endsWith('.xml')))
           {
-            addWeek(file.substr(0, file.length - 5), path, directories[i], i, originalLength);
+            var weekName:String = file;
+            if (file.endsWith('.json')) weekName = file.substr(0, file.length - 5);
+            else weekName = file.substr(0, file.length - 4);
+            addWeek(weekName, path, directories[i], i, originalLength);
           }
         }
       }
@@ -206,25 +209,46 @@ class WeekData
 
   private static function getWeekFile(path:String):WeekFile
   {
-    var rawJson:String = null;
+    var isXml:Bool = path.toLowerCase().endsWith('.xml');
+    var rawText:String = null;
+
     #if MODS_ALLOWED
     if (FileSystem.exists(path))
     {
-      rawJson = File.getContent(path);
+      rawText = File.getContent(path);
     }
     #else
     if (OpenFlAssets.exists(path))
     {
-      rawJson = Assets.getText(path);
+      rawText = Assets.getText(path);
     }
     #end
 
-    if (rawJson != null && rawJson.length > 0)
+    // JSON files also accept an optional XML sibling (<week>.xml).
+    if (rawText == null && !isXml)
     {
-      var parsed:Dynamic = Json.parse(rawJson);
+      var xmlPath:String = path.substr(0, path.length - 5) + '.xml';
+      #if MODS_ALLOWED
+      if (FileSystem.exists(xmlPath))
+      {
+        rawText = File.getContent(xmlPath);
+        isXml = true;
+      }
+      #else
+      if (OpenFlAssets.exists(xmlPath))
+      {
+        rawText = Assets.getText(xmlPath);
+        isXml = true;
+      }
+      #end
+    }
+
+    if (rawText != null && rawText.length > 0)
+    {
+      var parsed:Dynamic = isXml ? XmlDefinitions.parseWeek(rawText) : Json.parse(rawText);
       if (isValidWeekJson(parsed)) return cast parsed;
       else
-        return null; // Skip invalid week jsons
+        return null; // Skip invalid week files
     }
     return null;
   }

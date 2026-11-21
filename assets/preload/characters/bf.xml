@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="utf-8"?>
+<character>
+  <image>characters/BOYFRIEND</image>
+  <scale>1</scale>
+  <sing_duration>4</sing_duration>
+  <healthicon>bf</healthicon>
+  <position>0,350</position>
+  <camera_position>0,0</camera_position>
+  <flip_x>true</flip_x>
+  <no_antialiasing>false</no_antialiasing>
+  <healthbar_colors>49,176,209</healthbar_colors>
+  <vocals_file>bf</vocals_file>
+  <editor_is_player>true</editor_is_player>
+  <shake_duration>0</shake_duration>
+  <trail_length>4</trail_length>
+  <trail_delay>24</trail_delay>
+  <trail_diff>0</trail_diff>
+  <trail_alpha>1</trail_alpha>
+  <health_drain>false</health_drain>
+  <shake_intensity>0</shake_intensity>
+  <shake_screen>false</shake_screen>
+  <drain_floor>0</drain_floor>
+  <drain_amount>0</drain_amount>
+  <noteskin></noteskin>
+  <animations>
+    <animation>
+      <anim>idle</anim>
+      <name>BF idle dance</name>
+      <fps>24</fps>
+      <loop>false</loop>
+      <indices></indices>
+      <offsets>-5,-1</offsets>
+    </animation>
+    <animation>
+      <anim>singLEFT</anim>
+      <name>BF NOTE LEFT0</name>
+      <fps>24</fps>
+      <loop>false</loop>
+      <offsets>5,-6</offsets>
+    </animation>
+    <animation>
+      <anim>singDOWN</anim>
+      <name>BF NOTE DOWN0</name>
+      <fps>24</fps>
+      <loop>false</loop>
+      <offsets>-20,-51</offsets>
+    </animation>
+    <animation>
+      <anim>singUP</anim>
+      <name>BF NOTE UP0</name>
+      <fps>24</fps>
+      <loop>false</loop>
+      <offsets>-46,27</offsets>
+    </animation>
+    <animation>
+      <anim>singRIGHT</anim>
+      <name>BF NOTE RIGHT0</name>
+      <fps>24</fps>
+      <loop>false</loop>
+      <offsets>-48,-7</offsets>
+    </animation>
+    <animation>
+      <anim>singLEFTmiss</anim>
+      <name>BF NOTE LEFT MISS</name>
+      <fps>24</fps>
+      <loop>false</loop>
+      <offsets>7,19</offsets>
+    </animation>
+    <animation>
+      <anim>singDOWNmiss</anim>
+      <name>BF NOTE DOWN MISS</name>
+      <fps>24</fps>
+      <loop>false</loop>
+      <offsets>-15,-19</offsets>
+    </animation>
+    <animation>
+      <anim>singUPmiss</anim>
+      <name>BF NOTE UP MISS</name>
+      <fps>24</fps>
+      <loop>false</loop>
+      <offsets>-46,27</offsets>
+    </animation>
+    <animation>
+      <anim>singRIGHTmiss</anim>
+      <name>BF NOTE RIGHT MISS</name>
+      <fps>24</fps>
+      <loop>false</loop>
+      <offsets>-44,22</offsets>
+    </animation>
+    <animation>
+      <anim>hey</anim>
+      <name>BF HEY</name>
+      <fps>24</fps>
+      <loop>false</loop>
+      <offsets>-3,5</offsets>
+    </animation>
+    <animation>
+      <anim>hurt</anim>
+      <name>BF hit</name>
+      <fps>24</fps>
+      <loop>false</loop>
+      <offsets>14,18</offsets>
+    </animation>
+    <animation>
+      <anim>scared</anim>
+      <name>BF idle shaking</name>
+      <fps>24</fps>
+      <loop>true</loop>
+      <offsets>-4,0</offsets>
+    </animation>
+    <animation>
+      <anim>dodge</anim>
+      <name>boyfriend dodge</name>
+      <fps>24</fps>
+      <loop>false</loop>
+      <offsets>-10,-16</offsets>
+    </animation>
+    <animation>
+      <anim>attack</anim>
+      <name>boyfriend attack</name>
+      <fps>24</fps>
+      <loop>false</loop>
+      <offsets>294,267</offsets>
+    </animation>
+    <animation>
+      <anim>pre-attack</anim>
+      <name>bf pre attack</name>
+      <fps>24</fps>
+      <loop>false</loop>
+      <offsets>-40,-40</offsets>
+    </animation>
+  </animations>
+</character>

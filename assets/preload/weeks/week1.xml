@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<week>
+  <week_background>stage</week_background>
+  <week_before>tutorial</week_before>
+  <story_name>Daddy Dearest</story_name>
+  <week_name>Week 1</week_name>
+  <start_unlocked>true</start_unlocked>
+  <hide_story_mode>false</hide_story_mode>
+  <hide_freeplay>false</hide_freeplay>
+  <songs>
+    <song>
+      <name>Bopeebo</name>
+      <character>dad</character>
+      <color>146,113,253</color>
+    </song>
+    <song>
+      <name>Fresh</name>
+      <character>dad</character>
+      <color>146,113,253</color>
+    </song>
+    <song>
+      <name>Dad Battle</name>
+      <character>dad</character>
+      <color>146,113,253</color>
+    </song>
+  </songs>
+  <week_characters>dad,bf,gf</week_characters>
+  <freeplay_color>146,113,253</freeplay_color>
+</week>

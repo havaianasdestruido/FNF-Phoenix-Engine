@@ -1182,6 +1182,23 @@ class Paths
     #end
   }
 
+  // Same resolution as `characterFileText`, but for the optional XML definition
+  // (`assets/preload/characters/<name>.xml`) introduced alongside JSON.
+  public static function characterFileXml(name:String, fallback:String):String
+  {
+    final characterPath:String = 'characters/' + name + '.xml';
+    #if MODS_ALLOWED
+    var path:String = modFolders(characterPath);
+    if (!FileSystem.exists(path)) path = getPreloadPath(characterPath);
+    if (!FileSystem.exists(path)) path = getPreloadPath('characters/' + fallback + '.xml');
+    return FileSystem.exists(path) ? File.getContent(path) : null;
+    #else
+    var path:String = getPreloadPath(characterPath);
+    if (!Assets.exists(path)) path = getPreloadPath('characters/' + fallback + '.xml');
+    return Assets.exists(path) ? Assets.getText(path) : null;
+    #end
+  }
+
   static public function getTextFromFile(key:String, ?ignoreMods:Bool = false):String
   {
     var text:String = null;

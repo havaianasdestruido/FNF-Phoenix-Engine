@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<dialogue>
+  <line portrait="bf" expression="talk" box_state="normal" speed="0.05" sound="dialogue">Welcome to the tutorial!</line>
+  <line portrait="dad" expression="singLEFT" box_state="normal" speed="0.05">Show them what you can do.</line>
+  <line portrait="gf" expression="idle" box_state="normal" speed="0.05">You got this!</line>
+</dialogue>

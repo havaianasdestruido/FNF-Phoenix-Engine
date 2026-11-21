@@ -4,6 +4,7 @@ import data.Section.SwagSection;
 import backend.Paths;
 import backend.ClientPrefs;
 import backend.Conductor;
+import backend.XmlDefinitions;
 import data.Song;
 import play.PlayState;
 import flixel.addons.effects.FlxTrail;
@@ -185,9 +186,19 @@ class Character extends FlxSprite
 			{
 				// Full sprites and the HUD-only stand-ins use the same lookup and
 				// built-in fallback, so a missing mod character selects the same data.
-				final text:String = Paths.characterFileText(curCharacter, DEFAULT_CHARACTER);
-				if (text == null) loadPlaceholderCharacter(curCharacter);
-				else loadCharacterFile(cast Json.parse(text));
+				// JSON stays the default; an XML definition is used only when no
+				// JSON exists for the requested character (or its fallback).
+				final jsonText:String = Paths.characterFileText(curCharacter, DEFAULT_CHARACTER);
+				if (jsonText != null)
+				{
+					loadCharacterFile(cast Json.parse(jsonText));
+				}
+				else
+				{
+					final xmlText:String = Paths.characterFileXml(curCharacter, DEFAULT_CHARACTER);
+					if (xmlText != null) loadCharacterFile(cast XmlDefinitions.parseCharacter(xmlText));
+					else loadPlaceholderCharacter(curCharacter);
+				}
 			}
 			catch(e:Dynamic)
 			{

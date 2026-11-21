@@ -1,6 +1,7 @@
 package data;
 
 import backend.Paths;
+import backend.XmlDefinitions;
 
 import data.Song.SwagSong;
 
@@ -94,32 +95,61 @@ class StageData {
 	}
 
 	public static function getStageFile(stage:String):StageFile {
-		var rawJson:String = null;
 		var relativePath:String = 'stages/' + stage + '.json';
+		var xmlRelativePath:String = 'stages/' + stage + '.xml';
+
+		var rawText:String = null;
+		var isXml:Bool = false;
 
 		#if MODS_ALLOWED
+		// Try the active mod's JSON first.
 		var modPath:String = Paths.modFolders(relativePath);
 		if(FileSystem.exists(modPath)) {
-			rawJson = File.getContent(modPath);
+			rawText = File.getContent(modPath);
+		}
+		else {
+			// Then the active mod's XML sibling.
+			var xmlModPath:String = Paths.modFolders(xmlRelativePath);
+			if(FileSystem.exists(xmlModPath)) {
+				rawText = File.getContent(xmlModPath);
+				isXml = true;
+			}
 		}
 		#end
 
-		if(rawJson == null) {
+		if(rawText == null) {
 			var path:String = Paths.getPath(relativePath, TEXT, null, true);
 
 			#if MODS_ALLOWED
 			if(FileSystem.exists(path))
-				rawJson = File.getContent(path);
+				rawText = File.getContent(path);
 			#else
 			if(Assets.exists(path))
-				rawJson = Assets.getText(path);
+				rawText = Assets.getText(path);
 			#end
 		}
 
-		if(rawJson == null)
+		// JSON missing: try the XML sibling before giving up.
+		if(rawText == null && !isXml) {
+			var xmlPath:String = Paths.getPath(xmlRelativePath, TEXT, null, true);
+			#if MODS_ALLOWED
+			if(FileSystem.exists(xmlPath)) {
+				rawText = File.getContent(xmlPath);
+				isXml = true;
+			}
+			#else
+			if(Assets.exists(xmlPath)) {
+				rawText = Assets.getText(xmlPath);
+				isXml = true;
+			}
+			#end
+		}
+
+		if(rawText == null)
 			return dummy();
 
-		return cast tjson.TJSON.parse(rawJson);
+		if(isXml) return cast XmlDefinitions.parseStage(rawText);
+		return cast tjson.TJSON.parse(rawText);
 	}
 
 }

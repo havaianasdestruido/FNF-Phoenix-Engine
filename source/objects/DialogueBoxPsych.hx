@@ -4,6 +4,7 @@ import backend.Paths;
 import backend.ClientPrefs;
 import backend.ScreenLayout;
 import backend.PlayerSettings;
+import backend.XmlDefinitions;
 import flixel.addons.text.FlxTypeText;
 import flixel.input.FlxKeyManager;
 import haxe.format.JsonParser;
@@ -82,29 +83,57 @@ class DialogueCharacter extends FlxSprite
 	}
 
 	public function reloadCharacterJson(character:String) {
-		var characterPath:String = 'images/dialogue/' + character + '.json';
-		var rawJson = null;
+		var jsonPath:String = 'images/dialogue/' + character + '.xml';
+		var defaultJsonPath:String = 'images/dialogue/' + DEFAULT_CHARACTER + '.xml';
+
+		var rawText:String = null;
+		var isXml:Bool = false;
 
 		#if MODS_ALLOWED
-		var path:String = Paths.modFolders(characterPath);
-		if (!FileSystem.exists(path)) {
-			path = Paths.getPreloadPath(characterPath);
-		}
-
-		if(!FileSystem.exists(path)) {
-			path = Paths.getPreloadPath('images/dialogue/' + DEFAULT_CHARACTER + '.json');
-		}
+		// Try the active mod's portrait JSON first, then its XML sibling,
+		// then the built-in JSON, then the built-in XML sibling.
+		var path:String = Paths.modFolders('images/dialogue/' + character + '.json');
+		if (!FileSystem.exists(path)) path = Paths.getPreloadPath('images/dialogue/' + character + '.json');
+		if (!FileSystem.exists(path)) path = Paths.getPreloadPath('images/dialogue/' + DEFAULT_CHARACTER + '.json');
 		if (FileSystem.exists(path))
-			rawJson = File.getContent(path);
-
+			rawText = File.getContent(path);
+		else
+		{
+			var xmlPath:String = Paths.modFolders(jsonPath);
+			if (!FileSystem.exists(xmlPath)) xmlPath = Paths.getPreloadPath(jsonPath);
+			if (!FileSystem.exists(xmlPath)) xmlPath = Paths.getPreloadPath(defaultJsonPath);
+			if (FileSystem.exists(xmlPath))
+			{
+				rawText = File.getContent(xmlPath);
+				isXml = true;
+			}
+		}
 		#else
-		var path:String = Paths.getPreloadPath(characterPath);
+		var path:String = Paths.getPreloadPath('images/dialogue/' + character + '.json');
 		if (Assets.exists(path))
-			rawJson = Assets.getText(path);
+			rawText = Assets.getText(path);
+		else
+		{
+			var xmlPath:String = Paths.getPreloadPath(jsonPath);
+			if (Assets.exists(xmlPath))
+			{
+				rawText = Assets.getText(xmlPath);
+				isXml = true;
+			}
+			else
+			{
+				xmlPath = Paths.getPreloadPath(defaultJsonPath);
+				if (Assets.exists(xmlPath))
+				{
+					rawText = Assets.getText(xmlPath);
+					isXml = true;
+				}
+			}
+		}
 		#end
 
-		if (rawJson == null) {
-			// No portrait JSON at all (e.g. content-stripped builds ship no
+		if (rawText == null) {
+			// No portrait JSON/XML at all (e.g. content-stripped builds ship no
 			// dialogue/ art): use an empty stand-in instead of crashing.
 			jsonFile = {
 				image: '',
@@ -116,7 +145,7 @@ class DialogueCharacter extends FlxSprite
 			};
 			return;
 		}
-		jsonFile = cast Json.parse(rawJson);
+		jsonFile = cast (isXml ? XmlDefinitions.parseDialogueCharacter(rawText) : Json.parse(rawText));
 	}
 
 	public function reloadAnimations() {
@@ -572,11 +601,41 @@ class DialogueBoxPsych extends FlxSpriteGroup
 	}
 
 	inline public static function parseDialogue(path:String):DialogueFile {
+		var rawText:String = null;
+		var isXml:Bool = false;
 		#if MODS_ALLOWED
-		return cast (FileSystem.exists(path)) ? Json.parse(File.getContent(path)) : dummy();
+		if (FileSystem.exists(path))
+			rawText = File.getContent(path);
+		else
+		{
+			// Psych JSON first; the optional XML sibling is the fallback.
+			var xmlPath:String = path.substr(0, path.length - 5) + '.xml';
+			if (FileSystem.exists(xmlPath))
+			{
+				rawText = File.getContent(xmlPath);
+				isXml = true;
+			}
+		}
 		#else
-		return cast (Assets.exists(path, TEXT)) ? Json.parse(Assets.getText(path)) : dummy();
+		if (Assets.exists(path, TEXT))
+			rawText = Assets.getText(path);
+		else
+		{
+			var xmlPath:String = path.substr(0, path.length - 5) + '.xml';
+			if (Assets.exists(xmlPath, TEXT))
+			{
+				rawText = Assets.getText(xmlPath);
+				isXml = true;
+			}
+		}
 		#end
+
+		if (rawText != null && rawText.length > 0)
+		{
+			var parsed:Dynamic = isXml ? XmlDefinitions.parseDialogue(rawText) : Json.parse(rawText);
+			if (parsed != null && parsed.dialogue != null) return cast parsed;
+		}
+		return dummy();
 	}
 
 	inline public static function dummy():DialogueFile {
