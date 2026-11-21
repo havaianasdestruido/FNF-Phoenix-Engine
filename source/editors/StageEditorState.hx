@@ -612,7 +612,7 @@ class StageEditorState extends MusicBeatState
 
 		var up = new FlxButton(10, 305, 'Up', function() moveSelected(1));
 		var down = new FlxButton(90, 305, 'Down', function() moveSelected(-1));
-		var neu = new FlxButton(170, 305, 'New', function() createPopup.visible = createPopup.active = true);
+		var neu = new FlxButton(170, 305, 'New', function() { createPopup.visible = createPopup.active = true; });
 		var dup = new FlxButton(10, 335, 'Dup', duplicateSelected);
 		var del = new FlxButton(90, 335, 'Delete', deleteSelected);
 		for (btn in [up, down, neu, dup, del])
@@ -642,7 +642,7 @@ class StageEditorState extends MusicBeatState
 		var still = new FlxButton(0, bg.y + 55, 'No Animation', function() spawnProp('sprite'));
 		var anim = new FlxButton(0, bg.y + 95, 'Animated', function() spawnProp('animatedSprite'));
 		var square = new FlxButton(0, bg.y + 135, 'Solid Color', function() spawnProp('square'));
-		var cancel = new FlxButton(0, bg.y + 175, 'Cancel', function() createPopup.visible = createPopup.active = false);
+		var cancel = new FlxButton(0, bg.y + 175, 'Cancel', function() { createPopup.visible = createPopup.active = false; });
 		for (btn in [still, anim, square, cancel])
 		{
 			btn.screenCenter(X);
