@@ -195,7 +195,7 @@ class ModSecurity
 
 		// Keep the block for the Mods menu, so the player can see which rule
 		// stopped which script without reading the log (§19).
-		ModHealth.recordSecurity(displayFolder(check), check.displayPath, check.language, check.findings);
+		ModHealth.recordSecurity(displayFolder(check), check.displayPath, check.language, [for(f in check.findings) {rule: f.rule}]);
 
 		var findingSuffix:String = check.findings.length == 1 ? '' : 's';
 		emit('[ModSecurity] BLOCKED ${check.language} script "${check.displayPath}" from mod "${check.modName}" '
