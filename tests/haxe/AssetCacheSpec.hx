@@ -271,6 +271,39 @@ class AssetCacheSpec
     check(!songStream.closed && !Paths.currentTrackedSounds.exists('stream-music'),
       'released stream is untracked without invalidating retained Sound references');
 
+    // 8b. Paths.ignoreDumpExclusions (used by Arduino Nano R3) unpins menu/pause
+    //     themes when nothing retains them, while still keeping active music safe.
+    final pinnedMenu = new Sound();
+    final activeTheme = new Sound();
+    ClientPrefs.daMenuMusic = 'Default';
+    Paths.currentTrackedSounds.set('assets/music/freakyMenu.ogg', pinnedMenu);
+    Paths.currentTrackedSounds.set('assets/music/freakyMenu-Default.ogg', activeTheme);
+    Paths.clearStoredMemory();
+    Paths.clearUnusedMemory();
+    check(!pinnedMenu.closed && Paths.currentTrackedSounds.exists('assets/music/freakyMenu.ogg'),
+      'default dumpExclusions pin freakyMenu.ogg');
+    check(!activeTheme.closed && Paths.currentTrackedSounds.exists('assets/music/freakyMenu-Default.ogg'),
+      'default dumpExclusions pin active menu theme');
+
+    final playingMenu = new flixel.sound.FlxSound();
+    playingMenu._sound = pinnedMenu;
+    playingMenu.playing = true;
+    FlxG.sound.music = playingMenu;
+    Paths.ignoreDumpExclusions = true;
+    Paths.clearStoredMemory();
+    Paths.clearUnusedMemory();
+    check(!pinnedMenu.closed && Paths.currentTrackedSounds.exists('assets/music/freakyMenu.ogg'),
+      'ignoreDumpExclusions never closes actively retained FlxG.sound.music');
+    check(activeTheme.closed && !Paths.currentTrackedSounds.exists('assets/music/freakyMenu-Default.ogg'),
+      'ignoreDumpExclusions evicts unretained menu theme');
+
+    FlxG.sound.music = null;
+    Paths.clearStoredMemory();
+    Paths.clearUnusedMemory();
+    check(pinnedMenu.closed && !Paths.currentTrackedSounds.exists('assets/music/freakyMenu.ogg'),
+      'ignoreDumpExclusions evicts freakyMenu.ogg once gameplay replaces FlxG.sound.music');
+    Paths.ignoreDumpExclusions = false;
+
     // 9. Ledger returns to zero engine/mod assets once everything non-excluded is cleared.
     Paths.dumpExclusions.resize(0);
     ClientPrefs.daMenuMusic = 'None';

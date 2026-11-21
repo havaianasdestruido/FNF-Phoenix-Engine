@@ -1,9 +1,12 @@
+/** Minimal `Main` test double exposing OpenFL overlay siblings. */
 class Main
 {
-  public static var fpsVar:FakeFPSCounter = new FakeFPSCounter();
+  public static var fpsVar:FakeOverlay = new FakeOverlay();
+  public static var commitWatermark:FakeOverlay = new FakeOverlay();
 }
 
-class FakeFPSCounter
+/** Simple display-object stand-in with a `visible` flag. */
+class FakeOverlay
 {
   public var visible:Bool = true;
   public function new() {}

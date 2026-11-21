@@ -18,20 +18,30 @@ class OptimizationSubState extends BaseOptionsMenu
 
 		// A profile is a bundle of the options in this list plus a cleanup
 		// schedule, so it goes first: it explains what it forces below.
-		var option:Option = new Option('Memory Profile',
-			'Off restores choices; Low / Extreme cut effects.\n'
-			+ 'EXPERIMENTAL / UNSAFE removes stages and characters.\n'
-			+ 'Mods may break; GPU caching can glitch or use more VRAM.\n'
-			+ 'Streaming / no preloads may stutter or load slowly.',
+		final memoryProfileOption:Option = new Option('Memory Profile',
+			MemoryProfiles.describe(ClientPrefs.memoryProfile),
 			'memoryProfile',
 			'string',
 			MemoryProfiles.OFF,
 			MemoryProfiles.NAMES);
-		option.onChange = function() {
+		memoryProfileOption.onChange = function():Void
+		{
 			// Saved by OptionsState on exit like the rest of the list; the trim
 			// inside setProfile is what makes the change felt immediately.
 			LowMemory.setProfile(ClientPrefs.memoryProfile, false);
+			memoryProfileOption.description = MemoryProfiles.describe(ClientPrefs.memoryProfile);
+			reloadCheckboxes();
+			if (descText != null && descBox != null && curOption == memoryProfileOption)
+			{
+				descText.text = descriptionFor(memoryProfileOption);
+				descText.screenCenter(Y);
+				descText.y += 270;
+				descBox.setPosition(descText.x - 10, descText.y - 10);
+				descBox.setGraphicSize(Std.int(descText.width + 20), Std.int(descText.height + 25));
+				descBox.updateHitbox();
+			}
 		};
+		var option:Option = memoryProfileOption;
 		addOption(option);
 
 		option = new Option('Adaptive Performance',

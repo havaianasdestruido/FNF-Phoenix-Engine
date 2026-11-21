@@ -223,10 +223,13 @@ class FreeplayStateHelpers
 
 			Mods.currentModDirectory = state.songs[i].folder;
 
-			var icon:HealthIcon = new HealthIcon(state.songs[i].songCharacter);
-			icon.sprTracker = songText;
-			icon.ID = i;
-			state.grpIcons.add(icon);
+			if (!backend.LowMemory.policy().minimalMenus)
+			{
+				var icon:HealthIcon = new HealthIcon(state.songs[i].songCharacter);
+				icon.sprTracker = songText;
+				icon.ID = i;
+				state.grpIcons.add(icon);
+			}
 		}
 
 		changeSelection(state);
@@ -404,9 +407,10 @@ class FreeplayStateHelpers
 		{
 			// The filter can rebuild the list between two frames, so an index
 			// remembered last frame may already be gone.
-			if (i >= state.grpSongs.members.length || i >= state.grpIcons.members.length) continue;
+			if (i >= state.grpSongs.members.length) continue;
 			state.grpSongs.members[i].visible = state.grpSongs.members[i].active = false;
-			state.grpIcons.members[i].visible = state.grpIcons.members[i].active = false;
+			if (i < state.grpIcons.members.length && state.grpIcons.members[i] != null)
+				state.grpIcons.members[i].visible = state.grpIcons.members[i].active = false;
 		}
 		state._lastVisibles = [];
 
@@ -419,8 +423,11 @@ class FreeplayStateHelpers
 			item.x = ((item.targetY - state.lerpSelected) * item.distancePerItem.x) + item.startPosition.x;
 			item.y = ((item.targetY - state.lerpSelected) * 1.3 * item.distancePerItem.y) + item.startPosition.y;
 
-			var icon:HealthIcon = state.grpIcons.members[i];
-			icon.visible = icon.active = true;
+			if (i < state.grpIcons.members.length && state.grpIcons.members[i] != null)
+			{
+				var icon:HealthIcon = state.grpIcons.members[i];
+				icon.visible = icon.active = true;
+			}
 			state._lastVisibles.push(i);
 		}
 	}
@@ -499,8 +506,10 @@ class FreeplayStateHelpers
 		FreeplayState.instPlaying = FreeplayState.curSelected;
 		Conductor.changeBPM(PlayState.SONG.bpm);
 		for (funnyIcon in state.grpIcons.members)
-			funnyIcon.canBounce = false;
-		state.grpIcons.members[FreeplayState.instPlaying].canBounce = true;
+			if (funnyIcon != null) funnyIcon.canBounce = false;
+		if (FreeplayState.instPlaying >= 0 && FreeplayState.instPlaying < state.grpIcons.members.length
+			&& state.grpIcons.members[FreeplayState.instPlaying] != null)
+			state.grpIcons.members[FreeplayState.instPlaying].canBounce = true;
 		FreeplayState.curPlaying = true;
 		#end
 
