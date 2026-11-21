@@ -7,6 +7,20 @@ typedef ClothPiece =
   var y:Float;
 }
 
+/**
+ * Rectangle of the menu backdrop a cloth piece is cut from, in texture pixels.
+ *
+ * Always inside the source texture and always the same aspect ratio as the box
+ * the piece fills, so the crop is never stretched to fit.
+ */
+typedef ClothCrop =
+{
+  var x:Int;
+  var y:Int;
+  var width:Int;
+  var height:Int;
+}
+
 /** The four pieces the cloth easter egg draws (see `states.substates.ClothEasterEggSubstate`). */
 typedef ClothScene =
 {
@@ -24,7 +38,7 @@ typedef ClothScene =
  * Renderer-free rules behind the `FlxClothSprite` easter egg
  * (`states.substates.ClothEasterEggSubstate`).
  *
- * Three things live here instead of in the substate so they can be checked
+ * These things live here instead of in the substate so they can be checked
  * without Flixel/OpenFL/Lime (see `tests/haxe/ClothEasterEggSpec.hx`):
  *
  * - the hidden key code that opens the scene (`C`, `L`, `O`, `T`, `H` typed on
@@ -32,6 +46,8 @@ typedef ClothScene =
  *   how the other menu easter eggs are triggered;
  * - where the four pieces are placed inside the centered 1280x720 content area,
  *   so the scene keeps fitting widescreen, 4:3 and portrait viewports;
+ * - the texture the pieces are cut from ({@link TEXTURE}, the menu backdrop by
+ *   default) and the crop rectangle each piece takes from it;
  * - the wind/gravity numbers the cloth mesh is driven with, including the
  *   reduced-motion variant.
  *
@@ -70,6 +86,41 @@ class ClothEasterEggLogic
 
   /** Height of `assets/preload/images/clothRope.png`, in pixels. */
   public static inline var ROPE_HEIGHT:Int = 360;
+
+  /** `TEXTURE` value meaning "the menu's own `images/menuBG.png`". */
+  public static inline var BACKDROP_MENU:String = 'menuBG';
+
+  /** `TEXTURE` value meaning "the old `images/clothFlag.png` / `clothRope.png` art". */
+  public static inline var BACKDROP_CLOTH_ART:String = 'clothArt';
+
+  /**
+   * Which texture the two banners and two ropes are cut from.
+   *
+   * `BACKDROP_MENU` (the default) makes the cloth out of the menu's own
+   * backdrop, so the scene looks like a sheet of the menu art hanging over the
+   * menu, and a mod that replaces `images/menuBG.png` changes both at once.
+   * `BACKDROP_CLOTH_ART` cuts the same crops out of the older dedicated
+   * `clothFlag`/`clothRope` textures; it is the way back if the scene stops
+   * reading well against a future backdrop.
+   */
+  public static var TEXTURE:String = BACKDROP_MENU;
+
+  /** Aspect ratio of a banner's box: the old 300x200 flag art. */
+  public static inline var BANNER_ASPECT:Float = BANNER_WIDTH / BANNER_HEIGHT;
+
+  /** Aspect ratio of a rope's box: the old 20x360 chain art. */
+  public static inline var ROPE_ASPECT:Float = ROPE_WIDTH / ROPE_HEIGHT;
+
+  /**
+   * Largest side of a cloth piece, as a fraction of the texture's side.
+   *
+   * Without it a hi-res backdrop would let one piece cut a window the size of
+   * the whole menu, which no longer reads as a piece of cloth.
+   */
+  public static inline var MAX_CROP_SHARE:Float = 0.95;
+
+  /** Where a piece's crop sits in its texture, as fractions of the free space. */
+  public static inline var CENTER:Float = 0.5;
 
   /**
    * Logical size of the mod-compatible content column. Mirrors
@@ -152,6 +203,146 @@ class ClothEasterEggLogic
    */
   public static function contentLeft(viewportWidth:Int):Float
     return Math.max(0, (Math.max(BASE_WIDTH, viewportWidth) - BASE_WIDTH) / 2);
+
+  /**
+   * Whether the pieces are cut out of the menu backdrop.
+   *
+   * The scene cuts its pieces out of the menu backdrop, so a mod that replaces
+   * `images/menuBG.png` changes the menu and the cloth at the same time. A
+   * build or theme without that backdrop (`Paths.image()` answers `null` for a
+   * missing image) falls back to the dedicated cloth art, so the scene is never
+   * four invisible meshes.
+   *
+   * @param backdropKey Resolved image key of the menu backdrop, or `null`.
+   * @return `false` when {@link TEXTURE} asks for the dedicated art or when
+   *         there is no backdrop to cut from.
+   */
+  public static function usesBackdrop(backdropKey:String):Bool
+  {
+    if (TEXTURE == BACKDROP_CLOTH_ART) return false;
+    return backdropKey != null && backdropKey.length > 0;
+  }
+
+  /**
+   * Crop of the texture a banner is cut from.
+   *
+   * The two banners take different slices of the same backdrop, so the scene
+   * shows two unrelated parts of the menu art instead of the same rectangle
+   * twice: the follower banner sits low and left of it, the wide one high and
+   * right.
+   *
+   * @param textureWidth  Width of the source texture in pixels.
+   * @param textureHeight Height of the source texture in pixels.
+   * @param wide          `true` for the corner-pinned banner, `false` for the
+   *                      pointer-following one.
+   * @return A rectangle inside the texture with {@link BANNER_ASPECT}.
+   */
+  public static function bannerCrop(textureWidth:Int, textureHeight:Int, wide:Bool):ClothCrop
+  {
+    final crop:ClothCrop = pieceCrop(textureWidth, textureHeight, BANNER_WIDTH, BANNER_HEIGHT);
+    // Keep the two banners apart: the follower one hangs below and left of the
+    // wide one, which hugs the top-right corner of the backdrop.
+    crop.y = freeAxis(textureHeight - crop.height, wide ? 0.0 : 0.66);
+    crop.x = freeAxis(textureWidth - crop.width, wide ? 0.66 : 0.34);
+    return crop;
+  }
+
+  /**
+   * Crop of the texture a rope is cut from.
+   *
+   * The ropes are tall and narrow, so they read as strips of the backdrop; the
+   * pair takes two different columns of the texture so they do not look like a
+   * copy of each other.
+   *
+   * @param textureWidth  Width of the source texture in pixels.
+   * @param textureHeight Height of the source texture in pixels.
+   * @param right         `true` for the right-hand rope.
+   * @return A rectangle inside the texture with {@link ROPE_ASPECT}.
+   */
+  public static function ropeCrop(textureWidth:Int, textureHeight:Int, right:Bool):ClothCrop
+  {
+    final crop:ClothCrop = pieceCrop(textureWidth, textureHeight, ROPE_WIDTH, ROPE_HEIGHT);
+    crop.x = freeAxis(textureWidth - crop.width, right ? 0.85 : 0.15);
+    crop.y = freeAxis(textureHeight - crop.height, CENTER);
+    return crop;
+  }
+
+  /**
+   * Window of the backdrop a piece shows, centered and kept at the piece's size.
+   *
+   * A `FlxClothSprite` draws its mesh over the whole graphic, so the crop is
+   * what the piece measures on screen: cutting `pieceWidth x pieceHeight`
+   * pixels out of the backdrop puts one piece-sized window of the menu art in
+   * the cloth, instead of squashing the entire menu into a small flag.
+   *
+   * Two rules keep that window honest:
+   *
+   * - {@link MAX_CROP_SHARE} stops a hi-res backdrop from cutting a window so
+   *   big that it is the whole menu again;
+   * - a backdrop smaller than the piece is used as far as it goes: the window
+   *   shrinks to fit the texture (never outside it, which is what
+   *   `BitmapData.copyPixels` throws on) while keeping the piece's ratio, so
+   *   the art in it is never stretched.
+   *
+   * @param textureWidth  Width of the source texture in pixels.
+   * @param textureHeight Height of the source texture in pixels.
+   * @param pieceWidth    Width the piece is drawn at, in game units.
+   * @param pieceHeight   Height the piece is drawn at, in game units.
+   * @return A rectangle inside the texture with the piece's aspect ratio.
+   */
+  public static function pieceCrop(textureWidth:Int, textureHeight:Int, pieceWidth:Int, pieceHeight:Int):ClothCrop
+  {
+    final safeWidth:Int = textureWidth <= 0 ? 1 : textureWidth;
+    final safeHeight:Int = textureHeight <= 0 ? 1 : textureHeight;
+    final wantedWidth:Int = pieceWidth <= 0 ? BANNER_WIDTH : pieceWidth;
+    final wantedHeight:Int = pieceHeight <= 0 ? BANNER_HEIGHT : pieceHeight;
+    final ratio:Float = wantedWidth / wantedHeight;
+
+    // The window starts as the piece's own size, then shrinks by a single scale
+    // factor - never per axis - so the art in it is never stretched. It shrinks
+    // for MAX_CROP_SHARE (a hi-res backdrop must not turn one piece into the
+    // whole menu) and for a texture smaller than the piece (there is nothing
+    // more to cut), whichever is tighter.
+    final maxWidth:Float = Math.max(1.0, safeWidth * MAX_CROP_SHARE);
+    final maxHeight:Float = Math.max(1.0, safeHeight * MAX_CROP_SHARE);
+    final scale:Float = Math.min(1.0, Math.min(maxWidth / wantedWidth, maxHeight / wantedHeight));
+
+    var width:Float = wantedWidth * scale;
+    var height:Float = wantedHeight * scale;
+
+    // Rounding each side separately can overshoot by a pixel; clamp instead of
+    // letting the crop hang past the texture (which throws in BitmapData.copyPixels).
+    final cropWidth:Int = clampInt(Math.round(width), 1, safeWidth);
+    final cropHeight:Int = clampInt(Math.round(height), 1, safeHeight);
+
+    return {
+      x: clampInt(Math.round((safeWidth - cropWidth) * CENTER), 0, safeWidth - cropWidth),
+      y: clampInt(Math.round((safeHeight - cropHeight) * CENTER), 0, safeHeight - cropHeight),
+      width: cropWidth,
+      height: cropHeight
+    };
+  }
+
+  /**
+   * Origin of a crop inside the free space its size leaves in the texture.
+   *
+   * @param free  Pixels of texture left over on that axis (`size - crop`).
+   * @param share 0 = first pixel of the free space, 0.5 = centered, 1 = last.
+   * @return A whole-pixel origin that never leaves the texture.
+   */
+  static function freeAxis(free:Int, share:Float):Int
+  {
+    if (free <= 0) return 0;
+    final ratio:Float = Math.isNaN(share) ? CENTER : (share < 0 ? 0 : (share > 1 ? 1 : share));
+    return clampInt(Math.round(ratio * free), 0, free);
+  }
+
+  /** Whole number inside `low`..`high`; a reversed range collapses to `low`. */
+  static function clampInt(value:Int, low:Int, high:Int):Int
+  {
+    if (high < low) return low;
+    return value < low ? low : (value > high ? high : value);
+  }
 
   /**
    * Places the four cloth pieces inside the centered content area.

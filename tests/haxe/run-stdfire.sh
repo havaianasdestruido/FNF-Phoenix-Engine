@@ -8,7 +8,7 @@ root="$PWD"
 work=$(mktemp -d)
 trap 'rm -rf "$work"' EXIT
 mkdir -p "$work/backend" "$work/psychlua" "$work/android/platform" "$work/ios/platform"
-cp source/backend/StdFire.hx source/backend/ScriptSecurityScanner.hx source/backend/ModSecurity.hx "$work/backend/"
+cp source/backend/StdFire.hx source/backend/ScriptSecurityScanner.hx source/backend/ModSecurity.hx source/backend/ModHealth.hx "$work/backend/"
 cp source/psychlua/StdFireLibrary.hx "$work/psychlua/"
 cp source/android/platform/AndroidStdFire.hx "$work/android/platform/"
 cp source/ios/platform/IOSStdFire.hx "$work/ios/platform/"

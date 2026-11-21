@@ -323,6 +323,9 @@ class ChartingUIGrid
       });
     }
     state.curRenderedSustains.clear();
+    var noteCap:Int = ClientPrefs.maxNotes;
+    var totalGridNotes:Int = 0;
+    var shownGridNotes:Int = 0;
     if (!onlyEvents)
     {
       // classic fnf styled grid updating
@@ -355,6 +358,7 @@ class ChartingUIGrid
 
       if (state._song.notes[ChartingState.curSec] != null)
       {
+        totalGridNotes += state._song.notes[ChartingState.curSec].sectionNotes.length;
         var currentStepCrochet:Float = ChartingTiming.stepCrochetAtSection(cast state._song.notes, cast Conductor.bpmChangeMap,
           state._song.bpm, ChartingState.curSec);
         if (currentStepCrochet > 0) Conductor.changeBPM(15000 / currentStepCrochet);
@@ -362,8 +366,10 @@ class ChartingUIGrid
         // CURRENT SECTION
         for (i in state._song.notes[ChartingState.curSec].sectionNotes)
         {
+          if (noteCap > 0 && shownGridNotes >= noteCap) break;
           var note:Note = state.setupNoteData(i, false);
           state.curRenderedNotes.add(note);
+          shownGridNotes++;
           if (note.sustainLength > 0)
           {
             state.curRenderedSustains.add(state.setupSusNote(note, ChartingState.curSec));
@@ -421,11 +427,14 @@ class ChartingUIGrid
         // NEXT SECTION, which shouldnt even update if you're in the current section
         if (ChartingState.curSec < state._song.notes.length - 1)
         {
+          totalGridNotes += state._song.notes[ChartingState.curSec + 1].sectionNotes.length;
           for (i in state._song.notes[ChartingState.curSec + 1].sectionNotes)
           {
+            if (noteCap > 0 && shownGridNotes >= noteCap) break;
             var note:Note = state.setupNoteData(i, true);
             note.alpha = 0.6;
             state.nextRenderedNotes.add(note);
+            shownGridNotes++;
             if (note.sustainLength > 0)
             {
               state.nextRenderedSustains.add(state.setupSusNote(note, ChartingState.curSec + 1));
@@ -446,6 +455,12 @@ class ChartingUIGrid
           state.nextRenderedNotes.add(note);
         }
       }
+    }
+    if (!onlyEvents)
+    {
+      state.editorShownNotes = shownGridNotes;
+      state.editorTotalGridNotes = totalGridNotes;
+      state.editorNotesCapped = (noteCap > 0 && totalGridNotes > noteCap);
     }
     #if DISCORD_ALLOWED
     // Updating Discord Rich Presence (for updating Note Count)

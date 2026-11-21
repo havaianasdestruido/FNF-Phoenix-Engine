@@ -1,7 +1,7 @@
 ---
 title: Editors
 sidebar_position: 6
-description: The in-game authoring tools — chart, character, dialogue, week, menu character and note splash editors.
+description: The in-game authoring tools — chart, character, stage, dialogue, week, menu character and note splash editors.
 ---
 
 # Editors
@@ -13,6 +13,7 @@ Phoenix ships the Psych-style authoring tools, reachable from
 |---|---|---|
 | Chart editor | `editors.ChartingState` | `data/<song>/<song>-<diff>.json` |
 | Character editor | `editors.CharacterEditorState` | `characters/<id>.json` |
+| Stage editor | `editors.StageEditorState` | `stages/<id>.json` |
 | Dialogue editor | `editors.DialogueEditorState` | dialogue JSON |
 | Dialogue character editor | `editors.DialogueCharacterEditorState` | dialogue portraits |
 | Week editor | `editors.WeekEditorState` | `weeks/<week>.json` |
@@ -21,8 +22,11 @@ Phoenix ships the Psych-style authoring tools, reachable from
 | Music editor | `editors.EditingMusic` | menu music tooling |
 | Editor playtest | `editors.EditorPlayState` | plays a chart section without leaving the editor |
 
-Helpers live in `editors/helpers/` (`CharacterEditorHelpers`, `DialogueEditorHelpers`,
-`EditorPlayStateHelpers`, `WeekEditorHelpers`).
+Helpers live in `editors/helpers/` (`CharacterEditorHelpers`, `StageEditorHelpers`,
+`DialogueEditorHelpers`, `EditorPlayStateHelpers`, `WeekEditorHelpers`). The stage
+editor's Flixel-free rules live in `data.StageEditorCore` and
+`data.StageUndoStack`; gameplay spawns the saved `objects` graph through
+`play.helpers.PlayStateStageObjects`. Walkthrough: `docs/STAGE_EDITOR.md`.
 
 ## Chart editor
 
@@ -55,6 +59,17 @@ Loads a `CharacterFile`, lets you add animations (prefix or indices), set per-an
 offsets, position, camera offset, scale, flip, antialiasing, health icon and bar colours,
 then writes the JSON back. `Character.debugMode` disables gameplay behaviour so the
 editor can drive animations directly.
+
+## Stage editor
+
+Loads a `StageFile`, lets you place BF/GF/Dad, set camera zoom/offsets, and build
+a Psych 1.0 object graph (`sprite`, `animatedSprite`, `square`, plus character
+slot markers for z-order). Props support parallax, scale, color, quality and
+story/freeplay filters, and beat-synced `danceEvery`. **Save** exports a JSON
+file; **Save to Mod** writes `mods/<mod>/stages/<id>.json`; **Copy JSON** puts
+the same text on the clipboard. Snap-to-grid (G) and a scrolling sprite list
+help with large stages. Ctrl+Z/Y undo, unsaved-exit warning, Week 1 template.
+Named props are registered for Lua/Python/HScript.
 
 ## Week editor
 

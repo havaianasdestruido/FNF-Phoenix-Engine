@@ -1,5 +1,6 @@
 import backend.ClientPrefs;
 import backend.MemoryLedger;
+import backend.ModHealth;
 import backend.Mods;
 import backend.Paths;
 import flixel.FlxG;
@@ -278,6 +279,23 @@ class AssetCacheSpec
     final snap = MemoryLedger.snapshot(1000000, 2000000);
     check(snap.engineAssets.count == 0 && snap.modAssets.count == 0,
       'MemoryLedger returns to 0 tracked assets after full eviction (eng=' + snap.engineAssets.count + ', mod=' + snap.modAssets.count + ')');
+
+    // 10. A mod asset that does not exist is counted for that mod, so the Mods menu
+    //     can report it (§19), while engine and shared misses are not.
+    ModHealth.clear();
+    check(Paths.image('definitely-not-here') == null, 'a missing engine image still returns null');
+    check(ModHealth.missingAssets('SomeMod') == 0, 'an engine miss blames no mod');
+    final missingModKey = Paths.mods('SomeMod/images/definitely-not-here.png');
+    check(!FileSystem.exists(missingModKey), 'the fixture asset really is absent');
+    check(Paths.cacheBitmap(missingModKey) == null, 'a missing mod image returns null');
+    Paths.cacheBitmap(missingModKey);
+    check(ModHealth.missingAssets('SomeMod') == 1, 'the miss is counted once for its mod');
+    check(ModHealth.report('SomeMod').missingList[0] == 'images/definitely-not-here.png',
+      'the key is listed relative to the mod folder: ' + ModHealth.report('SomeMod').missingList.join(','));
+    check(ModHealth.summary('SomeMod') == 'PROBLEMS: 1 missing asset', 'the menu line follows: ' + ModHealth.summary('SomeMod'));
+    Paths.cacheBitmap(Paths.mods('images/shared-missing.png'));
+    check(ModHealth.missingAssets('images') == 0, 'a loose shared asset under mods/ blames no mod');
+    ModHealth.clear();
 
     Sys.println('AssetCacheSpec: all checks passed');
   }
