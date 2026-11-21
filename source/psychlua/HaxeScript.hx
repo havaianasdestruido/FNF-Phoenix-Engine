@@ -80,6 +80,7 @@ class HaxeScript
 		if (source == null || source.length < 1)
 		{
 			report('HaxeScript: empty source for $scriptName');
+			ModHealth.recordLoadError(null, scriptName, 'source file could not be read');
 			closed = true;
 			return;
 		}
@@ -96,11 +97,13 @@ class HaxeScript
 		catch (e:Exception)
 		{
 			report('$scriptName: $e');
+			ModHealth.recordLoadError(null, scriptName, Std.string(e));
 			closed = true;
 		}
 		catch (e:Dynamic)
 		{
 			report('$scriptName: $e');
+			ModHealth.recordLoadError(null, scriptName, Std.string(e));
 			closed = true;
 		}
 

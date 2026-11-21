@@ -35,6 +35,7 @@ mkdir -p \
 cp source/backend/Paths.hx "$test_source/src/backend/"
 cp source/backend/SongAudioStreaming.hx "$test_source/src/backend/"
 cp source/backend/MemoryLedger.hx "$test_source/src/backend/"
+cp source/backend/ModHealth.hx "$test_source/src/backend/"
 cp source/backend/MenuMusicLogic.hx "$test_source/src/backend/"
 cp source/utils/MemoryUtil.hx "$test_source/src/utils/"
 cp tests/haxe/AssetCacheSpec.hx "$test_source/src/"

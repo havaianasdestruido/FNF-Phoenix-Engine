@@ -224,6 +224,7 @@ class HScript
 		{
 			closed = true;
 			hxTrace('Error loading hscript: "$scriptName"\nSource file could not be read.', true, false, FlxColor.RED);
+			ModHealth.recordLoadError(modFolder, scriptName, 'source file could not be read');
 			return;
 		}
 
@@ -278,6 +279,7 @@ class HScript
 		catch (e:Dynamic)
 		{
 			hxTrace('Error loading hscript: "$scriptName"\n' + Std.string(e), true, false, FlxColor.RED);
+			ModHealth.recordLoadError(modFolder, scriptName, Std.string(e));
 			if(game != null) game.hscriptArray.remove(this);
 			closed = true;
 			return;
@@ -995,6 +997,7 @@ class HScript
 		var message:String = ModSecurity.formatRuntimeBlock(securityModName, scriptName, capability, line);
 		trace(message);
 		if(PlayState.instance != null) PlayState.instance.addTextToDebug(message, FlxColor.RED);
+		ModHealth.recordRuntimeBlock(modFolder, scriptName, capability);
 		return message;
 	}
 

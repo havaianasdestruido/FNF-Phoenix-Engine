@@ -446,6 +446,7 @@ class FunkinLua {
 					resultStr = ModSecurity.formatRuntimeBlock(securityModName, this.scriptName, resultStr);
 				trace('Error on lua script! ' + resultStr);
 				diagLoadFailed(compiled, result, resultStr, source);
+				ModHealth.recordLoadError(modFolder, scriptName, resultStr);
 				#if windows
 				lime.app.Application.current.window.alert(resultStr, 'Error on lua script!');
 				#else
@@ -465,6 +466,7 @@ class FunkinLua {
 			lua = null;
 			closed = true;
 			trace(e);
+			ModHealth.recordLoadError(modFolder, scriptName, Std.string(e));
 			LuaDiagnostics.record(ENGINE_ERROR, scriptName, Std.string(e));
 			LuaDiagnostics.error('$scriptName did not load: the engine raised an exception while running it: $e');
 			return;
@@ -495,6 +497,7 @@ class FunkinLua {
 		var message:String = ModSecurity.formatRuntimeBlock(securityModName, scriptName, capability, line);
 		trace(message);
 		if(PlayState.instance != null) PlayState.instance.addTextToDebug(message, FlxColor.RED);
+		ModHealth.recordRuntimeBlock(modFolder, scriptName, capability);
 		return message;
 	}
 

@@ -1083,6 +1083,9 @@ class Paths
         }
         else if (key.startsWith('mods/'))
         {
+          // An already-qualified mod path that is not on disk: count it for that
+          // mod before returning, so the Mods menu can report it (§19).
+          ModHealth.recordMissingAsset(key);
           return null;
         }
         else
@@ -1119,6 +1122,8 @@ class Paths
           trace('Missing asset: $file');
           #end
         }
+        // Counted per mod for the Mods menu even when the vlog is off (§19).
+        ModHealth.recordMissingAsset(file);
         return null;
       }
     }
@@ -1423,6 +1428,7 @@ class Paths
     if (warnedMissingAssets.exists(warnId)) return;
     warnedMissingAssets.set(warnId, true);
     VLog.assetCached('atlas', key, 'UNAVAILABLE (' + part + ' not found) — animations fall back to a still frame');
+    ModHealth.recordMissingAsset(key);
   }
 
   /**
@@ -1761,6 +1767,7 @@ class Paths
     #if MAIN_DEBUG
     trace('Missing asset: $file');
     #end
+    ModHealth.recordMissingAsset(file);
     return null;
   }
 
