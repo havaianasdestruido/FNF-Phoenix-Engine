@@ -67,6 +67,13 @@ class OptimizationSubState extends BaseOptionsMenu
 			true);
 		addOption(option);
 
+		var option:Option = new Option('No GC During Rendering',
+			'If checked, disables the renderer-related GC fallback used by video rendering.\nThis is set conservatively by first-run setup and remains editable.',
+			'noRenderGC',
+			'bool',
+			false);
+		addOption(option);
+
 		var option:Option = new Option('Light Opponent Strums',
 			"If this is unchecked, the Opponent strums won't light up when the Opponent hits a note.",
 			'opponentLightStrum',
