@@ -72,7 +72,9 @@ sequenceDiagram
 
 1. Statics and conductor setup, `Paths.setCurrentLevel(...)`.
 2. Stage: `StageData.loadDirectory(SONG)` then the hardcoded `stages/` class or a JSON
-   stage; stage props are added to `gfGroup`, `dadGroup`, `boyfriendGroup`.
+   stage. `PlayStateStageObjects.spawn` then inserts any Stage Editor `objects` graph,
+   interleaved with `gfGroup` / `dadGroup` / `boyfriendGroup` so z-order matches the
+   editor. Vanilla files have no `objects` array and keep the historical add order.
 3. Crossfade groups (`grpCrossFade`, `grpGFCrossFade`, `grpBFCrossFade`).
 4. Script debug overlays (`luaDebugGroup`, `pythonDebugGroup`).
 5. **Global scripts** — every `.lua` / `.py` in, in priority order:

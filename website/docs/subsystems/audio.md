@@ -82,6 +82,26 @@ Four things the override deliberately does **not** touch:
 - **The freeplay preview** keeps its own quieter levels (`music.MusicPlayer`,
   `FreeplayStateHelpers.playSong`); the override applies to songs you actually play.
 
+### Extra vocal stems
+
+A chart can declare **any number of extra vocal tracks** beyond the player and opponent
+ones — its `extraVocals` array lists `{name, file, side}` stems, each resolving its own
+`Voices-<file>.ogg` (difficulty variants win first, same as the mains) and following its
+strumline side's miss-muting (`player`/`opponent`) or no muting at all (`none`, the right
+call for GF-style third voices). Codename Engine field spellings (`vocalsSuffix`,
+`strumline`, numeric `type`) parse too, so CNE-style chart data carries over. The stems
+share every playback path with the mains — start, pause, resume, seek, resync, pitch and
+the vocal volume override — and scripts address them by name (`getExtraVocalNames()`,
+`set/getExtraVocalVolume()`, `set/getExtraVocalPitch()`).
+
+Parsing lives in `data.ExtraVocals`, loading and playback in
+`play.helpers.PlayStateExtraVocals`, and the stems play in the chart editor and editor
+playtest as well. The feature is on by default and can be disabled per player under
+**Options → Gameplay Settings → Extra Vocal Stems** (`ClientPrefs.extraVocals`), which
+skips loading the stems entirely. See
+[docs/EXTRA_VOCALS.md](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/blob/main/docs/EXTRA_VOCALS.md);
+spec: `bash tests/haxe/run-extra-vocals.sh`.
+
 :::note[Pitch on SWF targets]
 
 Flash and AIR have no pitch shifting. A [haxelib patch](../architecture/haxelib-patches.md)

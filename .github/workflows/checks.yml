@@ -6,8 +6,8 @@ name: Checks
 # build or the Android SDK. Most isolated Haxe interpreter specs in tests/haxe/
 # are not run here; the diagnostic log, crash bundle, diagnostics report,
 # phoenix:// URI parser, launch flag (-DFREEPLAY / -DMENU), distant-notes
-# shader, modchart (runtime + Modchart Lab) and input tester specs have a
-# dedicated Haxe job below.
+# shader, modchart (runtime + Modchart Lab), input tester, per-mod ModHealth
+# report, and Stage Editor spec run in dedicated Haxe steps/jobs below.
 
 on:
   push:
@@ -55,3 +55,28 @@ jobs:
 
       - name: Verify artifact comment workflow permissions
         run: bash tests/workflows/run-nightly-permissions.sh
+
+      # The per-mod "why did it break?" report (TODO §19): ModHealth's recording,
+      # severity, summary and Mod Info block, plus the Mods.getPack() half that
+      # reports an unusable pack.json. Flixel-free specs, run by the interpreter.
+      - name: Set up Haxe for the ModHealth specs
+        uses: krdlab/setup-haxe@master
+        with:
+          haxe-version: 4.3.7
+
+      - name: ModHealth report and invalid pack.json
+        run: bash tests/haxe/run-mod-health.sh
+
+  stage-editor:
+    name: Stage editor spec
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Haxe
+        uses: krdlab/setup-haxe@master
+        with:
+          haxe-version: "4.3.7"
+
+      - name: Run stage editor interpreter spec
+        run: bash tests/haxe/run-stage-editor.sh
