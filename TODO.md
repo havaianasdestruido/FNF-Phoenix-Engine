@@ -395,7 +395,7 @@ There is real infrastructure to extend: `tests/haxe/*Spec.hx` (layout, chart tim
 
 ### Port other Psych Engine fork features
 
-Read `docs/research/psych-fork-engine-changes.md`, §24 (JS-Engine `whoisitlolxd` fork triage, 2026-11-19), §25 (Psych Engine Extra Keys + review), §26 (JS-Engine binary-chart / "GPU note backend" review, 2026-11-19), §27 (Mixtape Engine feature-gap review, 2026-11-21), §31 (SeiunEngine full comparison, 2026-11-21), §32 (Super Plus Engine parity review), §33 (candidate Haxelibs & ecosystem dependencies, 2026-11-21), §34 (Cheese Engine parity), §35 (Joalor64 Engine Rewrite gap review, 2026-11-21 — mod options, `modchart.json`, minigames, credits editor, background video, toasts), §36 (Funkin.AVI reuse review) and §37 (full Kathy Engine comparison — script APIs, options, editors, HUD/game content; the fork audits overlap, so read §31/§32/§34 first).
+Read `docs/research/psych-fork-engine-changes.md`, §24 (JS-Engine `whoisitlolxd` fork triage, 2026-11-19), §25 (Psych Engine Extra Keys + review), §26 (JS-Engine binary-chart / "GPU note backend" review, 2026-11-19), §27 (Mixtape Engine feature-gap review, 2026-11-21), §31 (SeiunEngine full comparison, 2026-11-21), §32 (Super Plus Engine parity review), §33 (candidate Haxelibs & ecosystem dependencies, 2026-11-21), §34 (Cheese Engine parity), §35 (Joalor64 Engine Rewrite gap review, 2026-11-21 — mod options, `modchart.json`, minigames, credits editor, background video, toasts), §36 (Funkin.AVI reuse review), §37 (full Kathy Engine comparison — script APIs, options, editors, HUD/game content; the fork audits overlap, so read §31/§32/§34 first) and §40 (Psych Online / FPO parity review, 2026-11-21 — erect/nightmare completion, pico/BF character mixes, missing pico game-over audio; the results screen, lane underlay and mod-settings work are cross-references, not new items).
 
 ---
 
@@ -2459,3 +2459,130 @@ What AumSum is not: it has **no** engine-level feature set Phoenix lacks wholesa
 - **`splashSkinFramesMap`, `strumsBlocked` + `parseKeys`, `Note.extraData`, `ClientPrefs.shaders` + Lua `shadersEnabled`, `camOther`, `PlayStateShaders` + `.frag`/`.vert`, mouse-wheel menu navigation, `CustomFlxInputText`, dialogue typewriter, `addOffset`/`playAnim`/`addAnimationByPrefix`, `directoryFileList` + `SandboxPath` case folding, `MonitorRefreshRate`, `MemoryProfiles`/`LowMemory`, menu mouse navigation, FPS counter, UI scale** — all present in Phoenix already, most of them more developed than AumSum's copies; several are tracked in §12.4/§16/§18 and are not repeated here.
 - **`hxvlc`, `PlatformSupport` capability tags, results screen, `ImGui` console, strumline editors** — Phoenix has these; AumSum does not.
 
+
+## 40. PSYCH ONLINE (FPO) PARITY — DIFFERENCES NOT YET IMPLEMENTED (2026-11-21)
+
+Source: [Snirozu/Funkin-Psych-Online](https://github.com/Snirozu/Funkin-Psych-Online) ("Psych Online", v0.14.9, Apache 2.0 — license-compatible with ours; engine ports credit Snirozu / Psych Online, and content ports keep their in-file credits — the Erect Remix charts name their chartists in-chart). It forks Psych 1.0 (upstream base `5d0a66dea226aa4a32ec5c41f113112ebb15e692`, "Merge PR #13201"), which makes it the closest thing to "vanilla Psych 1.0" this tree has been measured against — but its identity is the **online game**, not the engine: colyseus rooms against a hardcoded server list (`server_addresses.txt`), accounts and Funkin Points, leaderboards + ranked replays, an in-game GameBanana / Google Drive mod downloader, a Skins browser bound to the online account, and `sync.hxs` remote hscript fetched at launch on every client. None of that is in scope (see 40.11). This section lists only what the same tree ships that works **offline** and has no counterpart here. Compared by reading the FPO tree against this tree (against a `443ae01` checkout, and re-checked against `main` at `fd0f95d` — the results screen, the lane underlay and the mod-settings spec all shipped on `main` in the meantime, which is why they are cross-references below rather than port items); assets were enumerated from the repository tree, not copied. Nothing was built or run.
+
+House rules apply verbatim: every port is **on by default with a toggle** (or, where noted, inherently opt-in per song/difficulty), every port gets **credits**, and only **Apache-2.0-compatible** material ships. Bold = biggest payoff. Audio splits of real songs are the risky license part — see 40.12 before importing any `.ogg`.
+
+### 40.1. **Erect / Nightmare completion** [P2]
+
+Phoenix already ships most of Psych 1.0's erect content: erect + nightmare charts for 13 songs (blammed, bopeebo, dad-battle, fresh, high, philly-nice, pico, roses, satin-panties, senpai, south, spookeez, thorns) and erect audio resolution (charts either set `specialAudioName: 'erect'` or fall back to the difficulty name itself, both paths landing on `Voices-<char>-erect.ogg` / `Inst-erect.ogg`), `Erect, Nightmare` in `CoolUtil.defaultDifficultiesFull` (`source/backend/CoolUtil.hx:22`), freeplay offering them for default songs (`source/states/helpers/FreeplayStateHelpers.hx:334-339`) and the `specialAudioName`/`specialEventsName` machinery (`source/data/Song.hx:41-42`, `source/play/helpers/PlayStateChartLoader.hx:52,88`). Still missing:
+
+- **Charts/audio for Cocoa and Eggnog (week 5), Ugh (week 7) and Darnell (weekend 1).** `assets/songs/{cocoa,eggnog,ugh,darnell}` and `assets/preload/data/{cocoa,eggnog,ugh,darnell}/` contain no `*-erect*`/`*-nightmare*` at all; FPO ships `<song>-erect.json`, `<song>-nightmare.json`, `events-erect.json`, `Inst-erect.ogg` and both split erect vocals per song. Also missing: `events-erect.json` for **roses** and **thorns** (charts already shipped here, their erect events do not).
+- **The erect stages, end to end.** FPO maps the difficulties onto dedicated classes — `StageErect` (week 1), `SpookyErect` (week 2), `PhillyErect` (week 3), `LimoErect` (week 4), `MallErect` (week 5), `SchoolErect` (week 6, Senpai/Roses), `FranksSpiritsBowling` (week 7, replaces the tank battlefield) — weekend 1 reuses `PhillyStreets` — plus simple-format stage JSONs (`assets/preload/stages/{stage,spooky,philly,limo,mall,school,tank,phillyStreets}-erect.json`), roughly **a hundred** erect stage-art files (`assets/week_assets/weekN/images/erect/…`: week 1 `backDark`/`crowd`/`lights`, week 3 `bloodPool/` + `pico_doppleganger/` atlases, week 4 `limoSunset`/`mist*`, week 5 `bgEscalator`/`snowflakes`, week 6 `evilSchoolBG` + `masks/` + `weebTrees`, week 7 `tankmanEnding/` atlas + `guy.png` + `sniper.png`, weekend 1 `mist*`/`paper`/`phillySkyline`), and the swap wiring (`isErect` on Erect/Nightmare, then `swagStage += '-erect'` for the vanilla stage names — FPO `PlayState.hx:637-638,752-759`). `source/stages/` has no `*Erect*` class and nothing anywhere does the swap, so erect charts today render on the **vanilla** stage art with none of the erect lighting, backgrounds or characters. Phoenix keeps week art in the `week2`…`week7`/`weekend1` openfl libraries (`project.hxp`) and week 1 in `shared`; the pack follows that layout and `project.hxp` already globs those folders, so files just drop in.
+- **Erect difficulty icons.** `assets/preload/images/menudifficulties/` has easy…insane/jshard/noob but no `erect.png`/`nightmare.png` (StoryMenuState loads `menudifficulties/<diff>`; there is no null guard worth relying on). Only reached if story mode ever offers erect — same status as FPO.
+- The erect classes import three shaders that don't exist here (`AdjustColor`, `DropShadow`, `DropShadowScreenspace`) — see 40.7.
+
+Effort: **L** — mostly content plus porting the vanilla stages to their erect variants; the JSONs need no conversion. Not a pref: it's per-song difficulty content, on by nature of being picked. Weekend 1 note: Phoenix already ships `darnell-bf` as a `bf` difficulty (`FreeplayStateHelpers.hx:342-345`); that's the BF mix, unrelated to darnell's erect.
+
+### 40.2. **Missing Pico game-over audio — referenced but not shipped** [P1]
+
+This is a bug today, independent of the parity work: `source/stages/PhillyBlazin.hx:100-102` and `source/stages/PhillyStreets.hx:154-156,1000-1001` set `deathSoundName`/`loopSoundName`/`endSoundName` to `fnf_loss_sfx-pico-gutpunch`, `fnf_loss_sfx-pico`, `fnf_loss_sfx-pico-explode`, `gameOver-pico` and `gameOverStart-pico-explode` — **none of these files exist anywhere in `assets/`**. A failed weekend 1 run therefore points the game-over sound at files that aren't there. Fix one of two ways: ship the FPO Pico pack (`gameOver-pico.ogg`, `gameOverEnd-pico.ogg`, `gameOver-pixel-pico.ogg`, `gameOverStart-pico-explode.ogg`, `fnf_loss_sfx-pico{,-gutpunch,-explode}.ogg`, `jeffGameover-pico/1-10.ogg`, `breakfast-pico.ogg`, all Apache 2.0) or repoint the stages at the vanilla `fnf_loss_sfx` / `gameOver-pixel` files (week 6 shows the pattern: those live in the `week6` library with a loose-file fallback).
+
+### 40.3. Character Mixes ("Pico Mixes" / "BF Mix") [P2]
+
+Psych 1.0's character mixes — the same songs re-sung by other cast, exposed as a `Character Mix` entry in the freeplay grouping dropdown. Missing here end to end:
+
+- **The mix table**: `assets/preload/characters_weeks/{pico,bf}.json` (song → difficulties). Pico: bopeebo, fresh, dad-battle (Hard only), spookeez, south, pico, philly-nice, blammed, cocoa, eggnog, senpai, roses, ugh, guns, stress. BF: darnell, lit-up.
+- **The `-pico` charts and audio** for those 15 songs (`<song>-pico{-easy,-hard,}.json`, `Inst.ogg`, `Voices-Opponent.ogg`, `Voices-Player.ogg`), plus `stress-pico/picospeaker.json`. Phoenix ships the Darnell BF mix (`assets/preload/data/darnell/darnell-bf.json`, `Inst-bf.ogg`, `Voices-{Opponent,bf}-bf.ogg`) but **not** the Lit Up BF mix (`lit-up-bf` charts/audio absent) and none of the pico mixes. `assets/shared/music/breakfast-pico.ogg` and the pico game-over pack are part of the same content delta (40.2).
+- **The freeplay glue**: FPO resolves the played song via a mix suffix (`FreeplayState.getMixSuffix`, appending `-pico`/`-bf` to track/chart/audio), scans `characters_weeks/` per character, and lists them under a `Character Mix` group (`GROUPS`, `searchGroup`). Phoenix has no `characters_weeks/` support and no mix resolution — adding it means teaching the freeplay song-resolution path to accept a suffix, not writing a new menu.
+- `characters_results/{bf,pico}.json` — only worth it together with §21.1's results screen (already on `main`; see 40.4).
+
+Scope call (keep the offline part): the resolution above is portable; FPO's Skins browser (`online/states/SkinsState.hx`, binds mixes to the online account) is **not** — do not port it. Cross-ref §25.1: mix charts are plain 4-lane, no conflict with EK+ work. Cross-ref §22: the `Character Mix` group belongs to the same `groupSongsBy` family as the freeplay-grouping option in 40.8.
+
+Effort: **M** (bulk asset import + one resolution branch). Port behind a `characterMixes` bool, default **on**.
+
+### 40.4. Results screen — already on this tree; FPO's variant is not portable [P3 optional reskin only]
+
+This was verified against `main` at `fd0f95d`, where §21.1 landed: `states/ResultsState.hx` + `ResultsData.hx` ship the post-song screen (score, accuracy, judgement breakdown, hit histogram, `naughtynessResults`), opened from `play/helpers/PlayStatePlayback.hx:530,570`. Phoenix does **not** lack a results screen; what it lacks of FPO's is:
+
+- `assets/shared/images/resultScreen/` (~90 files: `rankText/rankScroll*`, `clearPercent/`, `score-digital-numbers`, `tallieNumber`, `soundSystem`, `scorePopin`, `ratingsPopin`, `tardlingSpritesheet(FP)`, `results-bf/` + `results-pico/` spritemap atlases, `diff_erect.png`/`diff_nightmare.png`),
+- `assets/shared/music/results*` (EXCELLENT/GREAT/GOOD/NORMAL/SHIT × default/pico, several mp3+ogg pairs with intros and `-metadata.json`), and
+- `characters_results/{bf,pico}.json`.
+
+FPO's `ResultsSoloState`/`ResultsState` themselves are Funkin-Points/replay/leaderboard machines — porting them would replace a working local screen with an online-wired one (see 40.11). The only sane scope is an **optional P3 reskin** of the existing screen, and only if the maintainer wants FPO's rank presentation; skip the online parts outright. Cross-ref §22.6 (`autoScreenshot` on the results screen), §35.3.3 (`resultsScreen` skip toggle, P3 — owns the toggle; don't re-add), §37.7 (Kathy's letter-rank extras — owns the rank work).
+
+Effort: **S** for the toggle-adjacent wiring, **L** if the full art+music reskin is taken. No toggle of its own — the existing screen is the feature.
+
+### 40.5. Mod settings from `data/settings.json` (Psych 1.0) — duplicate of an existing spec; do not implement twice [cross-ref]
+
+Reviewed on `main`: this is already the subject of **§27.1.1 (Mixtape Engine review, [P1])** with a complete spec — the commented `// import options.ModSettingsSubState;` (`source/states/ModsMenuState.hx:19`), the `// not yet` settings-button block (`ModsMenuState.hx:307-325`), the missing `source/options/ModSettingsSubState.hx`, the commented `data/settings.json` loader in `ModItem` (`ModsMenuState.hx:933-952`) with the `settings` field declared (`:925`), the `FlxG.save.data.modSettings[folder]` save map, the `getModSetting()` script API, keybind-option support, TJSON parsing, and the §13 save-namespace note. Re-confirmed from two more independent references on `main`: §31.1 (SeiunEngine, [P1], `ClientPrefs.modSettings[mod]` + `getModSetting` in Lua/HScript) and §32.3 (Super Plus, [P2]) with §34.1 (Cheese) noting §27.1.1 as the canonical item. FPO is simply Psych 1.0's own version of the same feature — it adds **nothing** to those specs; `tjson` is already a dependency here (`project.hxp:960`, `hmm.json`). Read §27.1.1's spec and implement that, not a second one; FPO's `ModSettingsSubState.hx` can serve as a second Apache-2.0 reference while doing it. §21.9 (per-mod engine-preference profiles) is a different feature and must not be conflated.
+
+### 40.6. Psych 1.0 stage file format: static `objects` + `LoadFilters` [P2]
+
+Phoenix's `StageFile` (`source/data/StageData.hx:9-33`) is the Psych 0.7 shape: `directory`, `defaultZoom`, `isPixelStage`, `stageUI`, `boyfriend/girlfriend/opponent`, `hide_girlfriend`, `shaders`, `camera_*` — nothing else is parsed or rendered. Psych 1.0 stages add, and **none of it works here**: **`preload`** (images/sounds to warm), **`characterFeetPos`** (feet-anchored character positioning), **`reservedNames`**, and **`objects`** — an array of static stage sprites with types `gf | gfGroup | dad | dadGroup | boyfriend | boyfriendGroup | square | sprite | animatedSprite`, each with `x,y,name,scale,scroll,color,alpha,angle,filters,animations` (indices/offsets/firstAnimation), `antialiasing`, `flipX`, `flipY`. `filters` are `LoadFilters` bitflags (`LOW_QUALITY`, `HIGH_QUALITY`, `STORY_MODE`, `FREEPLAY`) honored by `validateVisibility()`; instantiation goes through `addObjectsToState()` via `ModchartSprite`, which Phoenix already has (`source/psychlua/ModchartSprite.hx`).
+
+Why it matters: any stage JSON written against current Psych — the common case for new mods — silently loses its `objects` here; the stage's decorative art just never appears, with no error. Fix is contained to `StageData` + wherever Phoenix builds the stage sprite group (the stage creation path in `play/PlayState.hx` / `objects` setup), not to any renderer.
+
+Effort: **M**. Cross-ref §12 — same class of "upstream format compatibility" work as CNE parity; consider moving this entry there when it gets picked up. Cross-ref §17 — data format only, no script surface.
+
+### 40.7. New tiny shaders (erect prerequisite) [P3]
+
+The erect stages (40.1) import shaders that don't exist here: **`AdjustColor`** (`StageErect`, `SpookyErect`, `LimoErect`, `MallErect`, `PhillyErect`, `SchoolErect` — saturation/hue/contrast/brightness; the erect look is mostly this), **`DropShadow`** (`SchoolErect`, `FranksSpiritsBowling`) and **`DropShadowScreenspace`** (same, rim-light). All three are small, single-purpose GLSL; port with credits (FPO, itself from Psych 1.0). If 40.1 is taken, take these; otherwise they're unused. Skip `WarpShader` and `OverlayShader` — FPO uses those only for the online lobby. Phoenix has ~76 shaders already; these are the last of the Psych 1.0 set it needs.
+
+### 40.8. Small options / accessibility deltas worth a look [P3]
+
+All proven missing by grep; each is a new `VisualsUISubState`/`NoteOffsetState`-style row, each defaulting to today's behaviour unless noted:
+
+- **Disable Character Sounds** (`disableAnimAudio`) — mutes per-animation character voice sfx.
+- **Color Rating** (`colorRating`) — rating and combo text take the judgment color; **Disable Combo Rating** (`disableComboRating`) / **Disable Combo Counter** (`disableComboCounter`) — hide either element.
+- **Camera Shakes / Camera Tilt** (`camShakes`, `camAngles`) — Phoenix applies these unconditionally; gate them. Overlaps §25.2's `camMovement` — merge into that one "camera behavior" subsection instead of adding a third row.
+- **Vertical Rating Position** (`verticalRatingPos`) — stack judgment above accuracy rather than beside it (NoteOffsetState-style toggle).
+- **Favorite Songs as menu theme** (`favsAsMenuTheme`) — picks a random starred song for `MenuMusic`/title music. Phoenix already has the machinery (`backend/FreeplayFilter.hx` star system + favourites-only filter); this is the missing last mile in the title-music path. Default off.
+- **Freeplay grouping** (`groupSongsBy`: Default / Alphabetically / Modpack / Character Mix) — the dropdown FPO has; the `Character Mix` entry only makes sense with 40.3.
+- **ODD note skin** (`NOTE_assets_ODD.png/xml` + pixel variants) — content only; keep Phoenix's lowercase `noteskins/` convention (FPO capitalizes `noteSkins/`, don't import that case).
+- **`Mods.parseList(?sortByPriority:Bool)`** — order the mod list `runsGlobally`-first then enabled for the mods menu (FPO `Mods.hx`); P3, §17-adjacent.
+- **MIDI input** (`backend/MidiControls.hx`) — FPO binds notes to MIDI keyboards and lists MIDI as a Controls input device. No MIDI path exists here. This is an **investigation**, not a drive-by port: it touches `Controls`, `ControlsSubState`, the mobile pad and the remap UI.
+
+Per-hit millisecond feedback already exists (`showMS`/`earlyLateRatings`, Options → Optimization) and the actual missing piece is the error-bar strip — that's §22.3's `hitErrorBar`; don't duplicate either here. The lane underlay already exists too (`ClientPrefs.laneUnderlayAlpha`, Options → Visuals and UI; `source/play/helpers/PlayStateLaneUnderlay.hx`) — FPO's `noteUnderlayOpacity` is covered.
+
+### 40.9. Achievements delta (small) [P3]
+
+Phoenix already has the Psych 1.0 achievement stack — `Achievements.hx` ships the `maxScore`/`variables` map, `addScore`/`getScore`/`setScore`, `reloadList()` + mod `data/achievements.json`, `markInvalidMod` on bad files, and `weekend1_nomiss`. FPO adds only two things:
+
+- **The hidden `1000combo` achievement** ("It's over 1000!" — combo > 1000 in one song). Missing here: the achievement definition, the `achievements/1000combo.png` image, the `case '1000combo':` branch in `source/play/helpers/PlayStateRating.hx`, and `'1000combo'` in the end-of-song list at `source/play/helpers/PlayStatePlayback.hx:457` (the unlock branch goes in `PlayStateRating.hx` next to the other cases; `state.combo` already holds the value — `source/play/PlayState.hx:278`).
+- **Legacy save migration** (`achievementsMap` → `achievementsUnlocked`; `henchmenDeath` → `variables['roadkill_enthusiast']`) — only pays off for users arriving from old saves.
+
+Effort: **S**. Everything else Psych 1.0 / FPO does to achievements (enum-based ops, Log vs trace, TJSON, name-cosmetics) is a wash — keep Phoenix's style.
+
+### 40.10. Checked and already covered (do not port)
+
+- Results screen — on this tree (`states/ResultsState.hx`, §21.1 DONE; ranking parity items live in §37.7); FPO's variant adds only cosmetics (see 40.4).
+- Lane underlay — `ClientPrefs.laneUnderlayAlpha`, Options → Visuals and UI.
+- Per-hit timing popup — `showMS`/`earlyLateRatings`, Options → Optimization; the missing error bar is §22.3.
+- Mod settings from `data/settings.json` — spec'd in §27.1.1/§31.1/§32.3/§34.1; FPO is a second reference, not a new spec (40.5).
+- Sustain splash — present (`source/play/objects/SustainSplash.hx`).
+- Note-offset state, `timeBarType`, `hideHud`, pause music — present.
+- Favorite/starred songs + favourites-only freeplay filter — present (`backend/FreeplayFilter.hx`); only the menu-theme bit is missing (40.8).
+- `VideoSprite`, `CustomFlxUIDropDownMenu` (≡ FPO's `FlxScrollableDropDownMenu`), `ModchartSprite` (`source/psychlua/ModchartSprite.hx`).
+- Psychlua keyboard callbacks (`keyboardJustPressed`/`keyboardPressed`/`keyboardReleased` in `source/psychlua/callbacks/InputCallbacks.hx`) — present.
+- Erect/Nightmare difficulties + `specialAudioName` + freeplay exposure — present (that's why 40.1 is *completion*, not green-field).
+- Psych 1.0 achievement machinery — present (40.9).
+- FPO's `Difficulty.hx` freeplay erect wiring — superseded by `FreeplayStateHelpers.hx` (equivalent).
+- FPO `WeekData` directory-priority inversion and mod-prefixed keys — no functional gap; skip.
+
+### 40.11. DO-NOT-PORT (found in the same tree — recorded so it isn't re-litigated)
+
+- **The entire online layer**: colyseus rooms (`online/GameClient.hx`, `online/network/*`, `online/schema`), chat, friends, accounts, Funkin Points, leaderboards, ranked replays v4 (`online/replay/`), `RoomState`/`OnlineState`/`ResultsState` (ranked path), `server_addresses.txt` (three hardcoded servers), the hardcoded Discord app id.
+- **In-game mod downloader**: GameBanana + Google Drive providers, six-concurrent downloads, `.dwl` partials, **UnRAR** shell-out (Windows-only), `disableAutoDownloads` pref, automatic mod installs on song start. Distribution belongs in the mods menu / file system, not inside gameplay.
+- **`sync.hxs`** — remote hscript downloaded and executed on every launch; textbook supply-chain risk. Never ported, never run.
+- **`redditMod`** — hardcoded room code that force-downloads `reddit.zip` and makes the song unpausable/unskippable; a hardcoded joke, not a feature.
+- **`s3d/`** — experimental `FlxGroup3D` engine with an in-game 3D stage editor (`View3D`, `ScriptedState3D`, skybox textures) and stage-3D fields in the stage JSON (`stage3D` in FPO's `StageData.hx`); nothing usable without the whole subsystem.
+- **Host Server tab** — installs NodeJS and an npm colyseus server on the user's machine from a sidebar button, with TODO-comments about force-killing it.
+- **Main.hx / Macros anti-tamper** — `Macros.getGitCommitHash()` **fails the build** outside a git checkout (breaks tarball/CI builds); `hasNoCapacity()` (base64-obfuscated check of `git remote.origin.url` against a hardcoded `https://github.com/Snirozu/…`) feeds an `UNOFFICIAL_BUILD` flag whose message says modifying it "will result in the source/build to be reported"; `FunkinFlxGame`'s exception guard (FlxGame.update → MainMenuState) is sound as an idea but mis-tuned upstream (it hides crashes we want surfaced and is redundant with the crash stack — `backend/CrashHandler`/`CrashBundle`); and `sys.ssl.Socket.DEFAULT_VERIFY_CERT = false` — **disabled TLS certificate verification** — must never ship anywhere near this codebase.
+- **`Lumod` / `Deflection` / `Wrapper`** — FPO's reflection scripting layer; unpublished (haxelib search for `lumod` returns nothing) and tied to their `allowInstances` permission model. Phoenix's sandbox story is §17 and stays as is; porting unpublished, network-distributed script runtimes is exactly what §12.8 and §17 rule out.
+- **`Wrapper.hx` compat shims** — hardcoded field maps (`camFollowPos → camGame.scroll`, `ClientPrefs → backend.ClientPrefs` + field renames) papering over FPO's restructured ClientPrefs; meaningless here, don't import.
+- Cosmetic deltas kept out by style: `AchievementOp` enum vs int codes, `Log.*` vs `trace`, TJSON vs Json elsewhere, credit renames. Keep Phoenix's.
+
+### 40.12. Cross-references & honesty notes
+
+- §25.1 (mania / EK+) — everything in 40 is 4-lane; the FPO `Note.maniaKeys` machinery is welded to the same files §25.1 must rewrite, so don't bolt any of this on ad-hoc.
+- §12 (CNE parity) & §17 — 40.6 is the same class of upstream-format compatibility as that section; move it there when picked up.
+- §22 — new options above follow §22's `Option` conventions and the on-by-default rule; none of them touches gameplay defaults.
+- §14 — the replay half of the results screen (40.4) and of the FPO stack (40.11) is reiterated here so it isn't re-opened by accident.
+- §16 — Color Rating / Results recap serve §16; Camera Shakes/Tilt rows merge with §25.2's `camMovement`; §22.3 owns the hit-error bar (40.8).
+- §27.1.1 (Mixtape) is the canonical mod-settings spec — 40.5 is only the FPO pointer; §21.1 owns the results screen; §21.9 is per-mod engine prefs, a different feature.
+- Honesty note: I verified **existence**, not **correctness** — file presence in the FPO repo is all this establishes. Before importing any content, confirm the license of the specific assets (vanilla FNF art/audio is under the original game's terms; the weekend-1 and erect content came with FPO under its license), keep in-file credits, and don't bump sizes past `SIZE.md` without a `NO_BUILTIN_CONTENT`-style gate (the erect pack is the largest addition here).
+- Related pre-existing breakage this review surfaced that needs fixing regardless of 40: the missing Pico game-over audio (40.2), which also doubles as weekend-1's game-over sound today.
