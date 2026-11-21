@@ -14,6 +14,7 @@ work=$(mktemp -d)
 trap 'rm -rf "$work"' EXIT
 mkdir -p "$work/backend" "$work/states/helpers"
 cp source/backend/ModSecurity.hx "$work/backend/ModSecurity.hx"
+cp source/backend/ModHealth.hx "$work/backend/ModHealth.hx"
 cp source/backend/ScriptSecurityScanner.hx "$work/backend/ScriptSecurityScanner.hx"
 cp source/states/helpers/ModInfoFlow.hx "$work/states/helpers/ModInfoFlow.hx"
 

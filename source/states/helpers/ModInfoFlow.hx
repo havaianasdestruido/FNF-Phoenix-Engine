@@ -1,5 +1,7 @@
 package states.helpers;
 
+using StringTools;
+
 /** What a press in Mod Info asks the panel to do. */
 enum ModInfoAction
 {
@@ -68,6 +70,53 @@ class ModInfoFlow
 			else return false;
 		}
 		return !afterSeparator;
+	}
+
+	/**
+	 * The body of the Mod Info panel's "problems" block: what went wrong with the
+	 * selected mod (`backend.ModHealth`), wrapped to `maxChars` per line so it fits
+	 * the panel's width without a horizontal scroll.
+	 *
+	 * The block never repeats raw mod text: each entry comes from `ModHealth.lines()`
+	 * already flattened to one bounded line, so a broken script cannot use its own
+	 * error message to draw outside the panel.
+	 *
+	 * @param lines lines of the report, as `backend.ModHealth.lines()` returns them
+	 * @param maxChars characters per wrapped line (a word longer than this is cut)
+	 * @param maxLines lines shown before the rest is summarised
+	 * @return the wrapped text, or `''` when there is nothing to report
+	 */
+	public static function problemsBlock(lines:Array<String>, maxChars:Int, maxLines:Int = 6):String
+	{
+		if(lines == null || lines.length == 0 || maxChars < 8 || maxLines < 1) return '';
+
+		var wrapped:Array<String> = [];
+		for(line in lines)
+			for(part in wrap(line, maxChars)) wrapped.push(part);
+		if(wrapped.length > maxLines)
+		{
+			var hidden:Int = wrapped.length - (maxLines - 1);
+			wrapped = wrapped.slice(0, maxLines - 1);
+			wrapped.push('...and ' + hidden + ' more line' + (hidden == 1 ? '' : 's') + '.');
+		}
+		return wrapped.join('\n');
+	}
+
+	/** Breaks one line into chunks of at most `maxChars`, preferring spaces. */
+	public static function wrap(line:String, maxChars:Int):Array<String>
+	{
+		var out:Array<String> = [];
+		if(line == null || maxChars < 8) return out;
+		var rest:String = line;
+		while(rest.length > maxChars)
+		{
+			var cut:Int = rest.lastIndexOf(' ', maxChars);
+			if(cut < maxChars / 2) cut = maxChars;
+			out.push(rest.substr(0, cut).trim());
+			rest = rest.substr(cut).trim();
+		}
+		if(rest.length > 0) out.push(rest);
+		return out;
 	}
 
 	/**

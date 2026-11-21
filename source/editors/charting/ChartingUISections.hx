@@ -677,7 +677,45 @@ class ChartingUISections
 
       state.updateGrid(false);
     });
-    var clearLeftSectionButton:FlxButton = new FlxButton(duetButton.x, duetButton.y + 30, "Clear Left Side", function() {
+    var oneKeyButton:FlxButton = new FlxButton(duetButton.x, duetButton.y + 30, "One Key-ify", function() {
+      // Port of whoisitlolxd's "One Key-ify" idea: move every note to the first lane
+      // of its side (player -> lane 0, opponent -> lane 4).
+      if (state._song.notes[ChartingState.curSec] == null || state._song.notes[ChartingState.curSec].sectionNotes == null) return;
+      state.saveUndo(state._song);
+      for (note in state._song.notes[ChartingState.curSec].sectionNotes)
+      {
+        var lane:Int = note[1];
+        if (lane >= 4)
+        {
+          note[1] = 4; // opponent side: first opponent lane
+        } else
+        {
+          note[1] = 0; // player side: first player lane
+        }
+      }
+      state.updateGrid(false);
+      state.updateNoteUI();
+    });
+    var randomizeButton:FlxButton = new FlxButton(oneKeyButton.x + 100, oneKeyButton.y, "Randomize Notes", function() {
+      // Port of whoisitlolxd's "Randomize Notes" idea: shuffle each note into a random
+      // lane on its own side (player 0..3, opponent 4..7).
+      if (state._song.notes[ChartingState.curSec] == null || state._song.notes[ChartingState.curSec].sectionNotes == null) return;
+      state.saveUndo(state._song);
+      for (note in state._song.notes[ChartingState.curSec].sectionNotes)
+      {
+        var lane:Int = note[1];
+        if (lane >= 4)
+        {
+          note[1] = 4 + FlxG.random.int(0, 3); // opponent side: random opponent lane
+        } else
+        {
+          note[1] = FlxG.random.int(0, 3); // player side: random player lane
+        }
+      }
+      state.updateGrid(false);
+      state.updateNoteUI();
+    });
+    var clearLeftSectionButton:FlxButton = new FlxButton(duetButton.x, duetButton.y + 60, "Clear Left Side", function() {
       if (Conductor.songPosition >= 0) state.curSection = state.sectionIndexAtTime(Conductor.songPosition);
 
       if (state._song.notes[state.curSection] == null || state._song.notes[state.curSection] != null && state._song.notes[state.curSection].sectionNotes == null) return;
@@ -961,6 +999,10 @@ class ChartingUISections
     EditorTooltips.add(state, copyLastButton, "Copy notes from an earlier section using the section offset.");
     tab_group_section.add(duetButton);
     tab_group_section.add(mirrorButton);
+    tab_group_section.add(oneKeyButton);
+    EditorTooltips.add(state, oneKeyButton, "Move all notes in this section to the first lane of their side (player -> 0, opponent -> 4).");
+    tab_group_section.add(randomizeButton);
+    EditorTooltips.add(state, randomizeButton, "Randomize the lane of each note within its side (player 0-3, opponent 4-7).");
     tab_group_section.add(state.copyMultiSectButton);
     tab_group_section.add(state.deleteSections);
 
