@@ -61,6 +61,7 @@ class CustomSubstate extends MusicBeatSubstate
 				FlxG.sound.music.pause();
 				if (PlayState.instance.vocals != null)
 					PlayState.instance.vocals.pause();
+				play.helpers.PlayStateExtraVocals.pauseAll(PlayState.instance.extraVocals);
 			}
 		}
 		if (FlxG.state != null)
