@@ -59,6 +59,7 @@ class TitleState extends MusicBeatState
   var creditText:Alphabet;
   var textGroup:FlxGroup;
   var ngSpr:FlxSprite;
+  var performanceNotice:FlxText;
 
   var titleTextColors:Array<FlxColor> = [0xFF33FFFF, 0xFF3333CC];
   var titleTextAlphas:Array<Float> = [1, .64];
@@ -78,6 +79,7 @@ class TitleState extends MusicBeatState
     final shift:Float = ScreenLayout.contentLeft(FlxG.width) - ScreenLayout.contentLeft(layoutWidth);
     for (sprite in [logoBl, gfDance, titleText]) if (sprite != null) sprite.x += shift;
     if (ngSpr != null) ngSpr.screenCenter(X);
+    if (performanceNotice != null) performanceNotice.x = 16;
     if (creditText != null) creditText.screenCenter(X);
     if (textGroup != null)
       for (item in textGroup.members)
@@ -460,6 +462,26 @@ class TitleState extends MusicBeatState
     else
       initialized = true;
     deepLinkReady = true;
+
+    final firstRunNotice:String = backend.FirstRunPerformance.takeNotice();
+    if (firstRunNotice != null)
+    {
+      performanceNotice = new FlxText(16, 12, Math.max(0, FlxG.width - 32), firstRunNotice, 16);
+      performanceNotice.setFormat(null, 16, FlxColor.WHITE, CENTER, OUTLINE, FlxColor.BLACK);
+      performanceNotice.scrollFactor.set();
+      add(performanceNotice);
+      FlxTween.tween(performanceNotice, {alpha: 0}, 0.6, {
+        startDelay: 6,
+        onComplete: function(_) {
+          if (performanceNotice != null)
+          {
+            remove(performanceNotice, true);
+            performanceNotice.destroy();
+            performanceNotice = null;
+          }
+        }
+      });
+    }
   }
 
   function getIntroText():Array<Array<String>>

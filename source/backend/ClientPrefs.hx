@@ -67,6 +67,8 @@ class ClientPrefs { //default settings if it can't find a save file containing y
 	public static var showNPS:Bool = true;
 	public static var showComboInfo:Bool = true;
 	public static var maxSplashLimit:Int = 16;
+	/** Internal marker: first-run performance setup has already been considered. */
+	public static var firstRunPerformanceVersion:Int = 0;
 	public static var oppNoteAlpha:Float = 0.65;
 	/**
 	 * Darkness of the screen-fixed overlay drawn over the stage and the
@@ -736,9 +738,13 @@ class ClientPrefs { //default settings if it can't find a save file containing y
 			reloadControls();
 		}
 
-		// Options -> Optimization -> Memory Profile. Runs last so every screen
-		// created after this point already sees the forced values.
+		// Options -> Optimization -> Memory Profile. Runs before the first screen
+		// so it already sees the forced values.
 		LowMemory.applyFromPrefs();
+
+		// Existing saves are left untouched. A truly empty install gets a
+		// hardware-aware, editable starter setup before the first screen exists.
+		FirstRunPerformance.applyOnFirstRun();
 	}
 
 	/**
