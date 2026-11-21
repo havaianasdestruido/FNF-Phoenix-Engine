@@ -152,20 +152,13 @@ inside Phoenix Engine:
    `Colors::` → `PhoenixHppdColors::`.
 3. **Stop latch**: HPPD's `volatile bool gFxStop` becomes the atomic
    `std::atomic<bool> gPhoenixHppdStop`, observed through `FXAbort()`.
-4. **`PlgBlt` calls**: HPPD passes 10 arguments, but the Windows SDK
-   `PlgBlt` requires 11 (a trailing `dwRop`). The port adds `SRCCOPY` as the
-   final argument so it compiles against the real SDK.
-5. **`BLENDFUNCTION` fields**: HPPD writes `blur.AlphaFormat` and
-   `blur.SourceConstantAlpha`, which are not members of the Windows SDK
-   `BLENDFUNCTION` (which has `SrcConstantAlpha`/`DstConstantAlpha` and no
-   `AlphaFormat`). The port uses the real SDK field names (values unchanged).
-6. **Unused seed locals**: some upstream payloads declare `sd` but never use
+4. **Unused seed locals**: some upstream payloads declare `sd` but never use
    it; the port adds `(void)sd;` to keep `-Wall -Wextra -Werror` clean.
-7. **`gHeavySlot` mutex** → `gPhoenixHppdHeavyMutex` in `common.cpp`;
+5. **`gHeavySlot` mutex** → `gPhoenixHppdHeavyMutex` in `common.cpp`;
    thread-per-payload instead of HPPD's catalog loop.
-8. **Seed table** sized to 132 entries (IDs 0..131) to cover Death Month;
+6. **Seed table** sized to 132 entries (IDs 0..131) to cover Death Month;
    HPPD used 128 (IDs 0..127).
-9. **No date activation**: HPPD's December "Death Month" date table
+7. **No date activation**: HPPD's December "Death Month" date table
    (`gPhoenixHppdDeathMonth[]`) and its `PhoenixHppdDeathMonthToday()` /
    `PhoenixHppdDeathMonthName()` accessors are **removed**. Only the 31
    `GDIPDeathNN` visual renderers and `RunDeathMask` remain; they are

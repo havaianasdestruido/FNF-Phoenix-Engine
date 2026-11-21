@@ -288,11 +288,8 @@ DWORD WINAPI GDIPayload5(LPVOID)
     BLENDFUNCTION blur{};
     blur.BlendOp = AC_SRC_OVER;
     blur.BlendFlags = 0;
-    /* HPPD wrote blur.AlphaFormat = 0 and blur.SourceConstantAlpha = 10,
-     * but the Windows SDK BLENDFUNCTION has no AlphaFormat member and
-     * spells the per-channel alpha SrcConstantAlpha/DstConstantAlpha.
-     * Adapted to the real SDK field names (values unchanged). */
-    blur.SrcConstantAlpha = 10;
+    blur.SourceConstantAlpha = 10;
+    blur.AlphaFormat = 0;
 
     for (int frame = 0; frame < 600; ++frame)
     {
@@ -1780,8 +1777,7 @@ DWORD WINAPI GDIPayload19(LPVOID)
             h,
             nullptr,
             0,
-            0,
-            SRCCOPY
+            0
         );
 
         if ((t % 30) == 0)
@@ -2425,8 +2421,7 @@ DWORD WINAPI GDIPayload24(LPVOID)
                 h,
                 nullptr,
                 0,
-                0,
-                SRCCOPY
+                0
             );
 
             break;
@@ -2485,8 +2480,7 @@ DWORD WINAPI GDIPayload40(LPVOID)
                 hdc, rotate, hdc, 0, 0,
                 rekt.right - rekt.left,
                 rekt.bottom - rekt.top,
-                0, 0, 0,
-                SRCCOPY
+                0, 0, 0
             );
 
             //Sleep(40);
@@ -2510,8 +2504,7 @@ DWORD WINAPI GDIPayload40(LPVOID)
                 hdc, rotate, hdc, 0, 0,
                 rekt.right - rekt.left,
                 rekt.bottom - rekt.top,
-                0, 0, 0,
-                SRCCOPY
+                0, 0, 0
             );
 
             //Sleep(40);
@@ -2576,8 +2569,7 @@ DWORD WINAPI GDIPayload48(LPVOID)
                 hdc, rotate, hdc, 0, 0,
                 rekt.right - rekt.left,
                 rekt.bottom - rekt.top,
-                0, 0, 0,
-                SRCCOPY
+                0, 0, 0
             );
         }
     }

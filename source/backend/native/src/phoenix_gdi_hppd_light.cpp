@@ -764,7 +764,7 @@ DWORD WINAPI GDIPayload30(LPVOID)
                     hdc,
                     xs,
                     ys + static_cast<int>(wave * cos(i)),
-                    LoadIconW(0, IDI_ERROR)
+                    LoadIcon(NULL, IDI_ERROR)
                 );
 
                 i += 0.05;
@@ -786,7 +786,7 @@ DWORD WINAPI GDIPayload30(LPVOID)
                     hdc,
                     xs,
                     ys + static_cast<int>(wave * cos(i)),
-                    LoadIconW(0, IDI_WARNING)
+                    LoadIcon(NULL, IDI_WARNING)
                 );
 
                 i += 0.05;
@@ -808,7 +808,7 @@ DWORD WINAPI GDIPayload30(LPVOID)
                     hdc,
                     xs + static_cast<int>(wave * cos(i)),
                     ys,
-                    LoadIconW(0, IDI_INFORMATION)
+                    LoadIcon(NULL, IDI_INFORMATION)
                 );
 
                 i += 0.05;
@@ -830,7 +830,7 @@ DWORD WINAPI GDIPayload30(LPVOID)
                     hdc,
                     xs + static_cast<int>(wave * cos(i)),
                     ys,
-                    LoadIconW(0, IDI_QUESTION)
+                    LoadIcon(NULL, IDI_QUESTION)
                 );
 
                 i += 0.05;

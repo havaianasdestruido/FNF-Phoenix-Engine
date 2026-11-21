@@ -334,7 +334,7 @@ struct CURSORINFO { DWORD cbSize; HICON hCursor; POINT ptScreenPos; };
 struct SYSTEMTIME {
   WORD wYear, wMonth, wDayOfWeek, wDay, wHour, wMinute, wSecond, wMilliseconds;
 };
-struct BLENDFUNCTION { BYTE BlendOp, BlendFlags, SrcConstantAlpha, DstConstantAlpha; };
+struct BLENDFUNCTION { BYTE BlendOp, BlendFlags, SourceConstantAlpha, AlphaFormat; };
 #define SRCAND 0x003300A8
 #define SRCINVERT 0x0033004A
 #define DSTINVERT 0x00550009
@@ -375,7 +375,7 @@ inline HICON LoadIcon(HINSTANCE, const char *) { return NULL; }
 inline BOOL DrawIcon(HDC, int, int, HICON) { return TRUE; }
 inline BOOL StretchBlt(HDC, int, int, int, int, HDC, int, int, int, int, DWORD) { return TRUE; }
 inline BOOL PatBlt(HDC, int, int, int, int, DWORD) { return TRUE; }
-inline BOOL PlgBlt(HDC, POINT *, HDC, int, int, int, int, HBITMAP, int, int, DWORD) { return TRUE; }
+inline BOOL PlgBlt(HDC, const POINT *, HDC, int, int, int, int, HBITMAP, int, int) { return TRUE; }
 inline BOOL AlphaBlend(HDC, int, int, int, int, HDC, int, int, int, int, BLENDFUNCTION) { return TRUE; }
 inline int SetStretchBltMode(HDC, int) { return 1; }
 inline void Sleep(DWORD) {}
