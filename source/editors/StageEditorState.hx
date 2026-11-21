@@ -445,11 +445,12 @@ class StageEditorState extends MusicBeatState
 		tab.add(new FlxText(15, 142, 0, 'Position X/Y'));
 		tab.add(new FlxText(180, 142, 0, 'Camera offset X/Y'));
 		tab.add(new FlxText(15, 278, 200, 'GF, Dad, BF from top to bottom.'));
-		for (w in [
+		var charWidgets:Array<Dynamic> = [
 			gfNameInput, dadNameInput, bfNameInput, reloadGf, reloadDad, reloadBf,
 			gfXStepper, gfYStepper, dadXStepper, dadYStepper, bfXStepper, bfYStepper,
 			gfCamXStepper, gfCamYStepper, dadCamXStepper, dadCamYStepper, bfCamXStepper, bfCamYStepper
-		])
+		];
+		for (w in charWidgets)
 			tab.add(w);
 
 		UI_box.addGroup(tab);
@@ -539,11 +540,12 @@ class StageEditorState extends MusicBeatState
 		tab.add(new FlxText(15, 144, 0, 'Scale X / Y'));
 		tab.add(new FlxText(180, 144, 0, 'Alpha / Angle'));
 		tab.add(new FlxText(15, 184, 0, 'Dance every N beats / Color'));
-		for (w in [
+		var objectWidgets:Array<Dynamic> = [
 			objNameInput, objImageInput, reloadImg, objXStepper, objYStepper, objScaleXStepper, objScaleYStepper,
 			objScrollXStepper, objScrollYStepper, objAlphaStepper, objAngleStepper, objDanceStepper, objColorInput,
 			objFlipX, objFlipY, objAntialias, objLow, objHigh, objStory, objFreeplay
-		])
+		];
+		for (w in objectWidgets)
 			tab.add(w);
 
 		EditorTooltips.add(this, objDanceStepper, 'Replay the main animation every N beats. 0 leaves looping anims alone. 1 bops on every beat.');
@@ -582,7 +584,11 @@ class StageEditorState extends MusicBeatState
 		tab.add(new FlxText(15, 12, 0, 'Animation name:'));
 		tab.add(new FlxText(15, 54, 0, 'Atlas prefix / symbol:'));
 		tab.add(new FlxText(15, 94, 0, 'Indices (optional, comma separated):'));
-		for (w in [animNameInput, animSymbolInput, animIndicesInput, animFpsStepper, animLoopCheck, addBtn, removeBtn, mainBtn, animListTxt])
+		var animWidgets:Array<Dynamic> = [
+			animNameInput, animSymbolInput, animIndicesInput, animFpsStepper, animLoopCheck,
+			addBtn, removeBtn, mainBtn, animListTxt
+		];
+		for (w in animWidgets)
 			tab.add(w);
 
 		UI_box.addGroup(tab);
@@ -1644,7 +1650,7 @@ class StageEditorState extends MusicBeatState
 	{
 		FlxG.mouse.visible = false;
 		if (music != null && music.music != null) music.destroy();
-		if (goToPlayState) FlxG.switchState(play.PlayState.new);
+		if (goToPlayState) FlxG.switchState(() -> new play.PlayState());
 		else
 		{
 			FlxG.switchState(MasterEditorMenu.new);
