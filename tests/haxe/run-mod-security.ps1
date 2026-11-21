@@ -9,6 +9,7 @@ New-Item -ItemType Directory -Path $work -Force | Out-Null
 try {
     New-Item -ItemType Directory -Path "$work/backend", "$work/states/helpers" -Force | Out-Null
     Copy-Item "source/backend/ModSecurity.hx" "$work/backend/ModSecurity.hx"
+    Copy-Item "source/backend/ModHealth.hx" "$work/backend/ModHealth.hx"
     Copy-Item "source/backend/ScriptSecurityScanner.hx" "$work/backend/ScriptSecurityScanner.hx"
     Copy-Item "source/states/helpers/ModInfoFlow.hx" "$work/states/helpers/ModInfoFlow.hx"
 

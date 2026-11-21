@@ -35,6 +35,7 @@ mkdir -p \
 cp source/backend/Paths.hx "$test_source/src/backend/"
 cp source/backend/SongAudioStreaming.hx "$test_source/src/backend/"
 cp source/backend/MemoryLedger.hx "$test_source/src/backend/"
+cp source/backend/ModHealth.hx "$test_source/src/backend/"
 cp source/backend/MenuMusicLogic.hx "$test_source/src/backend/"
 cp source/utils/MemoryUtil.hx "$test_source/src/utils/"
 cp tests/haxe/AssetCacheSpec.hx "$test_source/src/"
@@ -78,6 +79,7 @@ package backend;
 class RecoveryBoot
 {
   public static var disableMods:Bool = false;
+  public static function modsDisabled():Bool return disableMods;
   public static function disabledModsPath():String return 'mods/.disabled/';
 }
 HAXE

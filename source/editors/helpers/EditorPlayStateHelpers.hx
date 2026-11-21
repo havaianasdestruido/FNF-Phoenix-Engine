@@ -74,6 +74,11 @@ class EditorPlayStateHelpers
 
 		FlxG.sound.list.add(state.vocals);
 		FlxG.sound.list.add(state.opponentVocals);
+
+		// Chart-declared extra vocal stems (docs/EXTRA_VOCALS.md).
+		play.helpers.PlayStateExtraVocals.dispose(state.extraVocals);
+		state.extraVocals = play.helpers.PlayStateExtraVocals.load(songData.needsVoices ? songData.extraVocals : null, songData.song, diff, false);
+		play.helpers.PlayStateExtraVocals.setVolumeAll(state.extraVocals, 0);
 		state.inst = new FlxSound().loadEmbedded(Paths.inst(songData.song, diff));
 		FlxG.sound.list.add(state.inst);
 		FlxG.sound.music.volume = 0;
@@ -190,6 +195,7 @@ class EditorPlayStateHelpers
 		state.vocals.destroy();
 		state.opponentVocals.pause();
 		state.opponentVocals.destroy();
+		play.helpers.PlayStateExtraVocals.dispose(state.extraVocals);
 		LoadingState.loadAndSwitchState(editors.ChartingState.new);
 	}
 
@@ -402,6 +408,7 @@ class EditorPlayStateHelpers
 		var noteDiff:Float = Math.abs(note.strumTime - Conductor.songPosition + ClientPrefs.ratingOffset);
 
 		state.vocals.volume = 1;
+		play.helpers.PlayStateExtraVocals.unmuteSide(state.extraVocals, data.ExtraVocals.SIDE_PLAYER, 1);
 
 		var rating:FlxSprite = new FlxSprite();
 
