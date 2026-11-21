@@ -254,6 +254,17 @@ FNF-JS-Engine-Light/
     [JSDoc](https://jsdoc.app/): descrição curta e, quando houver, tags `@param`, `@return`/`@returns`,
     `@throws` e `@deprecated`. Vale para código Haxe e também para qualquer outra linguagem que
     o repo use. Ao alterar uma função existente, atualize a documentação dela junto com o código.
+13. **Anexe sempre um screenshot no PR em caso de alteração visual.** Sempre que o PR adicionar ou
+    modificar algo visível no jogo, nos menus ou na interface, anexe na descrição do PR uma captura
+    de tela demonstrando a mudança:
+    - Nova opção de menu → screenshot do menu com a nova opção visível.
+    - Nova música → screenshot da tela de Freeplay (`FreeplayState`) com a música visível.
+    - Outras alterações visuais (HUD, layout, fontes/Alphabet, sprites, personagens, stages,
+      shaders, telas, editores, site/docs, etc.) → screenshot mostrando o resultado visual
+      (antes/depois quando ajudar na revisão).
+    - **Não** commite arquivos temporários de screenshot no repositório; anexe-os apenas na
+      descrição do PR. Se não for possível capturar a tela no ambiente atual, registre o motivo
+      explicitamente no PR em vez de omitir em silêncio.
 
 ---
 
@@ -437,6 +448,7 @@ estado ou outros labels apenas se as respectivas condições forem confirmadas.
       (Python só dentro de pasta de mod/softmod).
 - [ ] Se mexeu em assets: registrou no `project.hxp` quando necessário.
 - [ ] Comentários no estilo JSDoc (`/** ... */` com `@param`/`@return` quando couber) em todo código alterado (regra 12 da §8).
+- [ ] Se houver alteração visual (nova opção de menu, nova música no Freeplay, HUD, sprites, telas, etc.): anexou screenshot na descrição do PR (regra 13 da §8), sem commitar a imagem temporária no repositório.
 - [ ] Sem `trace()` de debug esquecido; sem segredos/chaves commitadas.
 - [ ] Mensagem de commit curta no estilo do repo (Conventional-ish, tipo “fix: ...”, “feat: ...”).
 
