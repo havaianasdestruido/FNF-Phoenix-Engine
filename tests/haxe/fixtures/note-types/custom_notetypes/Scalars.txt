@@ -1,0 +1,9 @@
+offsetX = 12
+offsetY = 12.5
+alpha = -7
+canMiss = true
+boolWord = false
+nothing = null
+quoted = 'single quoted'
+dquoted = "double quoted"
+weird = NADA
