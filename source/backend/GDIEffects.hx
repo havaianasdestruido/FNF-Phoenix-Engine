@@ -453,7 +453,7 @@ class GDIEffects
   public static function hppdTriggerByName(name:String):Bool
   {
     var id = Std.parseInt(name);
-    if (id > 0)
+    if (id != null && id > 0)
       return hppdTrigger(id);
     return false;
   }

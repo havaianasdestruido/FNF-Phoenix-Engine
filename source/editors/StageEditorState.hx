@@ -939,7 +939,9 @@ class StageEditorState extends MusicBeatState
 		var insertAt = curSelected + 1;
 		StageEditorCore.insertObject(stageJson.objects, obj, insertAt);
 		rebuildWorld();
-		curSelected = insertAt < stageJson.objects.length ? insertAt : stageJson.objects.length - 1;
+		var objects:Array<Dynamic> = cast stageJson.objects;
+		var objCount:Int = objects != null ? objects.length : 0;
+		curSelected = insertAt < objCount ? insertAt : objCount - 1;
 		updateSelectedUI();
 		markDirty();
 		showOutput('Added ' + name);
