@@ -11,6 +11,8 @@ import backend.PlayerStats;
 #end
 import backend.WeekData;
 
+import data.ExtraVocals;
+
 import debug.PoolStats;
 
 import objects.Note;
@@ -177,7 +179,11 @@ class PlayStateRating
 			});
 		}
 
-		if (!miss && !state.ffmpegMode) (PlayState.opponentChart ? state.opponentVocals : state.vocals).volume = PlayStatePlayback.vocalsVolume(state);
+		if (!miss && !state.ffmpegMode)
+		{
+			(PlayState.opponentChart ? state.opponentVocals : state.vocals).volume = PlayStatePlayback.vocalsVolume(state);
+			PlayStateExtraVocals.unmuteSide(state.extraVocals, ExtraVocals.playedSide(PlayState.opponentChart), PlayStatePlayback.vocalsVolume(state));
+		}
 
 		judgeNote(state, note, miss);
 

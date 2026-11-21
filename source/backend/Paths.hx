@@ -792,7 +792,22 @@ class Paths
     var formattedDifficulty:String = formatToSongPath(difficulty);
     if (difficulty != null && difficulty.contains(' ')) difficulty = formattedDifficulty;
     #if (html5 || flash)
-    return songAudioAsset(formatToSongPath(song), 'Voices');
+    // Web plays straight out of the asset library, so probe each candidate
+    // explicitly and honor the postfix: extra vocal stems
+    // (docs/EXTRA_VOCALS.md) are separate files there too. A missing postfix
+    // stem resolves to null so callers apply their usual fallback (e.g. the
+    // shared Voices file), exactly like the native returnSound path.
+    final songPath:String = formatToSongPath(song);
+    if (postfix != null)
+    {
+      final stemFile:String = 'Voices-' + postfix;
+      if (difficulty != null && difficulty.length > 0 && songAudioAssetExists(songPath, '$stemFile-$difficulty'))
+        return songAudioAsset(songPath, '$stemFile-$difficulty');
+      return songAudioAssetExists(songPath, stemFile) ? songAudioAsset(songPath, stemFile) : null;
+    }
+    if (difficulty != null && difficulty.length > 0 && songAudioAssetExists(songPath, 'Voices-$difficulty'))
+      return songAudioAsset(songPath, 'Voices-$difficulty');
+    return songAudioAsset(songPath, 'Voices');
     #else
     if (difficulty != null && difficulty.length > 0)
     {
@@ -839,6 +854,14 @@ class Paths
       if (OpenFlAssets.exists(assetId, SOUND)) return assetId;
     }
     return 'songs:assets/songs/$songPath/$file.$SOUND_EXT';
+  }
+
+  /** Whether a song track exists in the asset library in any supported container. */
+  static function songAudioAssetExists(songPath:String, file:String):Bool
+  {
+    for (ext in SOUND_EXTENSIONS)
+      if (OpenFlAssets.exists('songs:assets/songs/$songPath/$file.$ext', SOUND)) return true;
+    return false;
   }
 
   /**

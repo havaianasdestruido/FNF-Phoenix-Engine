@@ -51,6 +51,10 @@ class ClientPrefs { //default settings if it can't find a save file containing y
 	public static var instrumentalVolumeOverride:Float = 1;
 	public static var overrideVocalsVolume:Bool = false;
 	public static var vocalsVolumeOverride:Float = 1;
+	// Chart-declared extra vocal stems ("unlimited vocals per strumline"): when on, a chart's
+	// `extraVocals` array loads its Voices-*.ogg stems; when off they are skipped entirely,
+	// saving the memory on low-end devices. See docs/EXTRA_VOCALS.md.
+	public static var extraVocals:Bool = true;
 	public static var voiidTrollMode:Bool = false;
 	public static var trollMaxSpeed:String = 'Medium';
 	public static var missSoundEnabled:Bool = false;
