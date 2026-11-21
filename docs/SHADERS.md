@@ -76,11 +76,25 @@ function onUpdate(elapsed)
 end
 ```
 
-`vignetteGlitch.frag` declares its tuning values as uniform initializers
-(`uniform float time = 0.8;`), which GLSL does not allow. A strict compiler
-rejects the file, and drivers may ignore the defaults. It has not been run in
-game. Before relying on it, remove those initializers and set `time`, `prob`,
-`vignetteIntensity`, `size`, `grid`, `blocks` and `glitchScale` from Lua.
+`vignetteGlitch` has no built-in defaults: GLSL does not allow initializers on
+uniforms, so its seven tuning values must be set from Lua after
+`initLuaShader`. Set them to the upstream defaults shown below, and drive `time`
+from `onUpdate` the same way as `iTime`, since the glitch pattern is seeded from
+it. Keep `glitchScale` above zero; zero makes the glitch group size zero.
+
+```lua
+function onCreatePost()
+    initLuaShader('vignetteGlitch')
+    setSpriteShader('boyfriend', 'vignetteGlitch')
+    setShaderFloat('boyfriend', 'time', 0.8)
+    setShaderFloat('boyfriend', 'prob', 0.7)
+    setShaderFloat('boyfriend', 'vignetteIntensity', 5)
+    setShaderFloat('boyfriend', 'size', 0.5)
+    setShaderFloat('boyfriend', 'grid', 6)
+    setShaderFloat('boyfriend', 'blocks', 0.8)
+    setShaderFloat('boyfriend', 'glitchScale', 0.4)
+end
+```
 
 ## Imports
 

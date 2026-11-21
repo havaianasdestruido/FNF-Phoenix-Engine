@@ -3,15 +3,19 @@
 #pragma header
 
 vec2 uv = openfl_TextureCoordv.xy;
-uniform float time = 0.8;
-uniform float prob = 0.7;
-uniform float vignetteIntensity = 5;
+// Tuning values are set from Lua with setShaderFloat(). GLSL does not allow
+// initializers on uniforms, so the upstream defaults are listed in
+// docs/SHADERS.md and must be set explicitly. glitchScale = 0 makes the glitch
+// group size zero, so keep it above zero.
+uniform float time;
+uniform float prob;
+uniform float vignetteIntensity;
 
-uniform float size = .5;
-uniform float grid = 6;
-uniform float blocks = 0.8;
+uniform float size;
+uniform float grid;
+uniform float blocks;
 
-uniform float glitchScale = 0.4;
+uniform float glitchScale;
 
 vec3 tex2D(sampler2D _tex,vec2 _p)
 {
