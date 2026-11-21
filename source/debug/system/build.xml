@@ -1,6 +1,27 @@
 <xml>
+  <!--
+    Build configuration for the native host/process system queries in
+    source/debug/system/include/phoenix_system.h and
+    source/debug/system/src/phoenix_system.cpp.
+
+    windows.h must not leak into hxcpp-generated C++ (wingdi.h defines ERROR
+    to 0, which breaks Flixel's LogStyle::ERROR in callers like Benchmark), so
+    the platform implementations live in their own translation unit instead of
+    a header-only helper. Mirrors source/backend/native/refresh_rate_build.xml.
+  -->
+  <pragma once="true" />
+  <set name="PHOENIX_SYSTEM_DIR" value="${this_dir}" />
   <files id="haxe">
-    <compilervalue name="-I" value="${this_dir}/include/" />
-    <depend name="${this_dir}/include/phoenix_system.h" />
+    <compilervalue name="-I" value="${PHOENIX_SYSTEM_DIR}/include/" />
+    <!-- hxcpp hashes declared dependencies when reusing cached objects. -->
+    <depend name="${PHOENIX_SYSTEM_DIR}/include/phoenix_system.h" />
   </files>
+  <files id="phoenix_system">
+    <compilervalue name="-I" value="${PHOENIX_SYSTEM_DIR}/include/" />
+    <depend name="${PHOENIX_SYSTEM_DIR}/include/phoenix_system.h" />
+    <file name="${PHOENIX_SYSTEM_DIR}/src/phoenix_system.cpp" />
+  </files>
+  <target id="haxe">
+    <files id="phoenix_system" />
+  </target>
 </xml>
