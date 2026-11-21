@@ -23,12 +23,17 @@ import states.StoryMenuState;
 import backend.Controls;
 import backend.MusicBeatState;
 
+/** In-song pause menu for resuming, adjusting the run, and opening Photo Mode. */
 class PauseSubState extends MusicBeatSubstate
 {
 	var menuItemGroup:FlxTypedGroup<Alphabet>;
 
 	var menuItems:Array<String> = [];
-	var menuItemsOG:Array<String> = ['Resume', 'Restart Song', 'Change Gameplay Settings', 'Change Difficulty', 'Toggle RAM Graph', 'Options', 'Exit'];
+	/** Main pause choices, including the camera-framing Photo Mode tool. */
+	var menuItemsOG:Array<String> = [
+		'Resume', 'Restart Song', 'Change Gameplay Settings', 'Change Difficulty',
+		'Toggle RAM Graph', 'Options', 'Photo Mode', 'Exit'
+	];
 	var menuItemsExit:Array<String> = [(PlayState.isStoryMode ? 'Exit to Story Menu' : 'Exit to Freeplay'), 'Exit to Main Menu', 'Exit Game', 'Back'];
 	var difficultyChoices = [];
 	var curSelected:Int = 0;
@@ -82,6 +87,13 @@ class PauseSubState extends MusicBeatSubstate
 			menuItemsOG.insert(3 + num, 'End Song');
 			menuItemsOG.insert(4 + num, 'Toggle Practice Mode');
 			menuItemsOG.insert(5 + num, 'Toggle Botplay');
+		}
+		if (backend.Benchmark.active)
+		{
+			// A benchmark run is one fixed chart: restarting or changing the
+			// difficulty would relaunch a different (or missing, dummy) chart.
+			menuItemsOG.remove('Restart Song');
+			menuItemsOG.remove('Change Difficulty');
 		}
 		menuItems = menuItemsOG;
 
@@ -179,6 +191,10 @@ class PauseSubState extends MusicBeatSubstate
 
 	var holdTime:Float = 0;
 	var cantUnpause:Float = 0.1;
+	/**
+	 * Updates pause navigation and opens the selected gameplay tool.
+	 * @param elapsed Seconds elapsed since the previous update.
+	 */
 	override function update(elapsed:Float)
 	{
 		if(requireRestart) {
@@ -350,6 +366,11 @@ class PauseSubState extends MusicBeatSubstate
 					PlayState.instance.practiceMode = !PlayState.instance.practiceMode;
 					PlayState.changedDifficulty = true;
 					practiceText.visible = PlayState.instance.practiceMode;
+				case 'Photo Mode':
+					// The photo substate draws alone over the paused gameplay frame.
+					persistentUpdate = false;
+					persistentDraw = false;
+					openSubState(new PhotoModeSubState());
 				case "Restart Song":
 					restartSong();
 				case "Leave Charting Mode":
@@ -413,6 +434,16 @@ class PauseSubState extends MusicBeatSubstate
 			}
 			}
 		}
+	}
+
+	/**
+	 * Restores pause-menu drawing and input after one of its nested substates closes.
+	 */
+	override function closeSubState():Void
+	{
+		persistentUpdate = true;
+		persistentDraw = true;
+		super.closeSubState();
 	}
 
 	/** Destructive exit actions only run after HoldToConfirm completes. */

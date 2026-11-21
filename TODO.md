@@ -4,6 +4,10 @@ Generated from full repo audit. Priority: `[P0]` critical/blocker, `[P1]` high, 
 
 Sections 13–20 are a second backlog pass written against the current tree. Every entry there was checked against §0–12: anything already listed is **cross-referenced, not repeated**, and each item names the file/behaviour that proves it is still missing. They target Phoenix's stated identity — low-end devices, easy Lua/Python/HScript modding, Android-first platform work and Psych/JS compatibility — rather than generic engine cloning.
 
+§27 is the same kind of filtered comparison for **Mixtape Engine** (`Z11Coding/Mixtape-Engine`, reviewed 2026-11-21): engine systems, mod APIs, options and tooling only — no weeks/songs/characters/stages — with the dead code in that fork explicitly listed so it is not mistaken for features.
+
+_§28 is the same kind of filtered comparison for **Super Plus Engine** (`atox07/FNF-Super-Plus-Engine`, reviewed 2026-11-09): mod APIs, editors, options, platform/native work, data formats and i18n, with the dead toggles in that fork explicitly listed so they are not mistaken for features._
+
 _quick reminder that everything i say here that is a "port" of [x] feature of the [y] engine, i will port WITH THE APROPRIATED CREDITS!!!_
 
 _every feature ported MUST be enabled by default (unless specified beforehand) and MUST have a toggle to enable/disable or to change its options_
@@ -195,7 +199,7 @@ Added from the supplied CNE-vs-vanilla/Psych comparison, filtered against the cu
 - **[P2] Custom chart/character properties.** Expose CNE-style `SONG.meta.customValues` and `char.extras`; current `SwagSong`/`CharacterFile` use fixed fields.
 - **[P2] True song variations.** `specialAudioName` only swaps an audio suffix; add variation metadata, chart selection, and freeplay preview behavior.
 - **[P2] Extra audio formats (flac/opus/wav).** `Paths.SOUND_EXTENSIONS` only resolves `.ogg` → `.mp3` per file; flac/opus/wav support is another entry in that list plus a decoder check per target.
-- **[P2] Unlimited vocals per strumline.** Phoenix supports separate P1/P2 vocal files, but not CNE's arbitrary per-strumline vocals.
+- ~~**[P2] Unlimited vocals per strumline.** Phoenix supports separate P1/P2 vocal files, but not CNE's arbitrary per-strumline vocals.~~ **DONE** — charts declare any number of extra vocal stems via `extraVocals` (`[{name, file, side}]`, with CNE-style `vocalsSuffix`/`strumline`/`type` aliases), parsed by `data.ExtraVocals` and loaded/played back by `play.helpers.PlayStateExtraVocals`. Each stem resolves its own `Voices-<file>[-<difficulty>].ogg` (native and web), follows its strumline side's miss-muting (`player`/`opponent`/`none`), joins every pause/seek/resync/pitch path, honors the Vocal Volume Override, and is scriptable from Lua/Python/HScript (`getExtraVocalNames`, `set/getExtraVocalVolume`, `set/getExtraVocalPitch`). The Chart Editor and editor playtest preview the stems with per-side volume/mute controls. Enabled by default; toggle in Options -> Gameplay Settings -> Extra Vocal Stems. See [Extra vocals](docs/EXTRA_VOCALS.md). Spec: `bash tests/haxe/run-extra-vocals.sh`.
 - **[P2] Declarative stage node graph.** Stage JSON only stores camera/character positions. Add XML/script nodes for sprites, solids, characters, ratings/combo, zoom/scroll factors, beat intervals, colors/skew/scale, and stage extensions.
 - **[P2] Universal asset replacement.** Mod folders currently override a limited set of categories (`Mods.ignoreModFolders` + `Paths.modFolders`). CNE can replace essentially every asset; Phoenix cannot override arbitrary engine/Flixel assets at runtime.
 - **[P3] Per-character extras.** CNE character data can define `gameOverChar` and custom extras; Phoenix currently keeps game-over character at song level and has no generic extras map.
@@ -212,7 +216,7 @@ Added from the supplied CNE-vs-vanilla/Psych comparison, filtered against the cu
 - **[P2] Custom property editing in Charter.** No UI for custom chart/meta properties.
 - **[P2] In-engine song/difficulty creation.** Difficulty is just a text field; add proper song/difficulty scaffolding and asset creation.
 - **[P2] Folder/subfolder selectors.** Character/editor dropdowns read flat folders; add recursive subfolder support.
-- **[P2] Stage Editor.** `MasterEditorMenu` has no stage editor.
+- ~~**[P2] Stage Editor.** `MasterEditorMenu` has no stage editor.~~ **DONE** — `editors.StageEditorState` plus `data.StageEditorCore` (Psych-compatible `objects` graph, undo, filters). `PlayStateStageObjects` spawns the JSON at runtime; vanilla stages stay compact. Spec: `bash tests/haxe/run-stage-editor.sh`. Docs: `docs/STAGE_EDITOR.md`.
 - **[P2] NoteSkin Editor.** Not implemented.
 - **[P2] Alphabet Editor.** Not implemented.
 - **[P2] Character Editor parity.** Add undo/redo, unsaved-change warnings, folder support, and stronger flip/offset tooling.
@@ -231,7 +235,7 @@ Added from the supplied CNE-vs-vanilla/Psych comparison, filtered against the cu
 - **[P3] Gitaroo easter-egg toggle.** Not present.
 - **[P3] Desktop audio-device hotplug.** Android audio focus/interruptions are done; desktop headphone/device-change recovery is missing.
 - **[P3] Advanced FPS counter.** Add 1% lows, selectable/copyable diagnostics, and a true uncapped mode. Current option is merely capped at 1000 FPS.
-- **[P3] ~~Localization / translations.~~ SUPERSEDED → see §27.7** (full spec: 13 language files, `backend.Language` loader, in-game picker).
+- **[P3] ~~Localization / translations.~~ SUPERSEDED → see §28.7** (full spec: 13 language files, `backend.Language` loader, in-game picker).
 - **[P3] Lagless GitHub contributors + mod credits.** Credits are static; add cached GitHub contributor fetching and per-mod credit integration.
 - **[P3] Complete mouse support in base menus.** Freeplay/Story/Mods have partial wheel/click support; main menu/credits/etc. still need full mouse navigation.
 - **[P3] Free gamemode keybind.** Not implemented.
@@ -344,13 +348,15 @@ Phoenix's identity is "runs on weak devices", yet configuration is manual: `Clie
 - **[P2] Texture/atlas memory accounting.** `backend.MemoryLedger` logs estimated asset RAM/VRAM totals per area and per mod, but nothing lists the loaded `FlxGraphic`s (size, source, owning mod/stage) or the biggest atlases, and nothing warns when a stage exceeds a budget. Complements the §0 downscale work — you cannot tell whether a stage is over budget today.
 - **[P2] Frame pacing and high-refresh support.** `ClientPrefs.framerate` is the gameplay rate; `backend.FramerateController` writes both `FlxG.updateFramerate` and `drawFramerate` (raised first when growing) and hands the value to `FrameProfiler.setTargetFps`. Add display-refresh detection, recommended values (60/90/120/144) and a separate update rate, so a 120 Hz panel doesn't run gameplay logic at 120 Hz with a different feel — and so the offsync risk in §4 #83 stays measurable. The non-gameplay side of the same problem (the menu cap this rate should not leak into) is done: `ClientPrefs.menuFramerate` and `ClientPrefs.focusLostFramerate`, Options -> Graphics, implemented next to the menu-cap half of this work in §21.3.
 - **[P2] Preload/streaming policy.** Preload only the active stage and its characters; add "preload next song" for week runs, and verify `Paths` tracking actually releases the previous stage (graphics *and* cached sounds) when switching mods/songs. Debug builds can assert on tracked-vs-loaded counts.
-- **[P3] Device benchmark mode.** A fixed, mod-free stage/chart that runs ~60 s and reports average, 1% low and worst frame plus device info — reachable without F3/F6, which do not exist on Android. Reuses `FrameProfiler.exportLog()`; this is a *test run*, not the live counter in §12.4.
+- **[P3] ~~Device benchmark mode~~ DONE** — a fixed, mod-free test run in **Options → Optimization → Device Benchmark** (above the per-frame toggles, next to Free Memory Now). The chart is generated in code (`backend.BenchmarkChart`: 120 BPM, 30 bars, seeded-LCG deterministic, 500 notes across both sides with sustains, chords and a 16th-run finale), played on the built-in `stage` stage with botplay forced on; a deterministic 60 s synth (`tools/generate_benchmark_inst.py` → `assets/songs/phoenix-benchmark/Inst.ogg`) is bundled and also kept in compact CI builds (`project.hxp` songs list + `tests/assets/builtin-assets.txt`). Mods are suppressed for the whole run via `RecoveryBoot.modsDisabled()` (checked by `Paths`, `Mods` and the script diagnostic), so nothing under `mods/` — including a mod-shipped `stages/stage.json` — can shadow the run; the flag clears in `PlayState.destroy()` on every exit path. Measurement starts when the instrumental starts (`FrameProfiler.reset()` at `Conductor.songPosition >= 0`), not at state creation; leaving early discards the run. End-of-song diverts to `Benchmark.finish()` before any highscore/stat/achievement bookkeeping, exports via `FrameProfiler.exportLog('benchmark_<ts>.log')`, and lands on `states.BenchmarkResultsState` (one page: average FPS, 1% low, 0.1% low, worst frame, p50/p95, dropped frames, spikes, plus OS/GPU/driver/CPU/RAM and engine/commit, copyable with A/Enter/C for bug reports; Esc/B back to options, R to rerun on desktop). The pause menu drops Restart Song / Change Difficulty while active. Reachable with no F3/F6 keys, Android-safe. Spec: `bash tests/haxe/run-benchmark.sh`.
 
 ## 19. DIAGNOSTICS, SUPPORT & SAFE MODE
 
 `CrashHandler` catches errors, writes text logs and shows a summarized-reason screen, but support requests have to ask for versions by hand.
 
 - **[P2] "Copy diagnostics" action.** One button producing a redacted, pasteable block: engine version (`VERSION` in `project.hxp`), commit (`HaxeCommit`), target, `SystemInfo` CPU/RAM, GPU/driver (#96), save path, mod list + order, non-default prefs, last N log lines. Offline only — the recent update flow is deliberately repo-based, so no auto-upload. `backend.DiagnosticsReport` (built for `phoenix://diagnostics`) already assembles that text, so what is left is the button, plus running the result through `backend.LogUtils.redact` so a copied block is no more identifying than a saved log — the deep-linked page only *warns* about usernames in paths.
+- **[P3] ~~Per-mod "why did it break?" report.~~ DONE** — `backend.ModHealth` records, per mod folder, the last script load error (all four runtimes), an invalid `pack.json` (`Mods.getPack()`), the rule ids of scripts the §6 sandbox blocked before they ran *and* guarded calls it refused inside a script that did load (`ModSecurity.report()`, `reportSecurityRuntime()`), and the distinct images/sounds/atlases that did not load (`Paths`). The Mods menu badges the row (`!` break, `?` assets only) and prints a count-only line under the description; Mod Info gains a **WHAT BROKE** block with the offending paths and messages, flattened to one line and wrapped by `ModInfoFlow.problemsBlock()` so a broken script cannot draw outside the panel. The report is per session and per folder (`keepOnly()` on menu build, `Mods.forgetHealth()` after a `.zip` import). Specs: `bash tests/haxe/run-mod-health.sh`. Guide: `docs/MOD_HEALTH_REPORT.md`. Original entry kept below.
+
 - **[P3] Per-mod "why did it break?" report.** In the mods menu, show last load error, invalid `pack.json`, blocked script rule (§6 sandbox) and missing-asset count per mod, instead of requiring a log read.
 
 ### OPT-OUT BY DEFAULT ANALYTICS
@@ -442,7 +448,7 @@ The remaining ideas below are tracked alongside completed items. Overlaps with e
   `bash tests/haxe/run-freeplay-filter.sh` (orders, mod filter, stars, random pick, `Highscore` →
   best-accuracy fold; runs in `checks.yml`). Known limit: `Highscore` keys carry no mod id (§13), so two mods
   with the same song name still share one accuracy record.
-- **[P3] Photo mode (`PhotoModeSubState`, from pause).** Hide the HUD, pan and zoom the game camera freely, and save a shot through the existing `backend/Screenshot` / `backend/SSPlugin` path. Fits the creator tooling the engine already ships.
+- **[P3] ~~Photo mode (`PhotoModeSubState`, from pause).~~ DONE** — `states/substates/PhotoModeSubState.hx` exists with hide-HUD, camera pan/zoom and a screenshot path.
 
 ### 21.3. New options
 
@@ -725,24 +731,353 @@ Why not just merge it: **the branch touches no Haxe at all and is 81 commits beh
 
 ---
 
-## 27. SUPER PLUS ENGINE PARITY REVIEW — `atox07/FNF-Super-Plus-Engine`
+## 27. MIXTAPE ENGINE (`Z11Coding/Mixtape-Engine`) — FULL FEATURE GAP REVIEW (2026-11-21)
+
+**Source:** <https://github.com/Z11Coding/Mixtape-Engine> at `2213dc8` (2026-07-31). **Apache 2.0**, same licence as this tree, so porting is allowed — but see §27.8, because a lot of what is in there is third-party code with its own credits (Nebula + 4mbr0s3 2's notefield system, skedgyedgy's Artemis plugin API, `tentools` for GameJolt, `haxe.ui` for the cursor helper, plus a pile of Codename Engine macros). 456 `.hx` files, `flixel` 5.6.1, `hscript-iris`, `hxvlc` 1.9.2, `ClientPrefs.data` + `StageData` + script note types — i.e. a **Psych 1.0-era fork** (`version="0.2.8"` in `Project.xml`) that has been heavily hacked on. The interesting parts are `source/psychlua/*` (≈250 Lua callbacks), `source/backend/*` (~110 files), `source/objects/playfields/*`, `source/states/editors/*` and `source/options/*`.
+
+**Method.** Cloned at that commit and diffed file-by-file against this tree. Three passes: (1) every Lua callback name in both trees extracted and compared (≈250 names there vs ≈370 names here across Lua/Python/HScript); (2) every `ClientPrefs` field and every options-menu row compared; (3) every subsystem that exists there and not here read end-to-end, and the dead/never-imported ones separated from the shipped ones (Haxe only compiles what is reachable from `Main`, which is how ~9k lines of `PlayStateCache` and `EditorLua` never break their build). Nothing was built or run.
+
+**Scope, per the request:** engine systems, data formats, mod-facing APIs, options and tools only. **No content** — no characters, no character/stage/song/week/dialogue assets, no skins art, no note-type scripts. Where something is *structural* support for content (dual character slots, extra audio stems) it is listed and explicitly marked as structure only. Duplicates of §0–§26 are cross-referenced instead of repeated.
+
+**Verdict.** There is nothing here big enough to merge wholesale, and several headline systems are either already beaten by Phoenix or unfinished (Twitch/YouTube, Archipelago, Undertale, and their HScript/macro experiments are all dead code — §27.7). What is worth taking is roughly two dozen self-contained things, plus **one genuinely original gameplay mode** (Mix-Up vs. a simulated human AI — §27.3.1) and **one missing Psych 1.0 mod feature** (per-mod `settings.json` + `getModSetting()` — §27.1.1). Ordered list at the end.
+
+---
+
+### 27.1 MODDING API — what to add to Lua / Python / HScript
+
+Each item below must land in **all three** script languages to keep Phoenix's parity rule (Lua `source/psychlua/callbacks/*.hx`, Python `source/psychlua/pystdlib/*.hx`, HScript `source/psychlua/HScript.hx`). Mixtape only ever had Lua + HScript, so every entry here is a rewrite, not a copy.
+
+#### 27.1.1 [P1] Per-mod settings contract — `data/settings.json` + `getModSetting()`
+
+Psych 1.0 ships this and Mixtape has it; **Phoenix stubbed it out**. In Phoenix the whole mod-settings feature is present as commented-out code: `source/states/ModsMenuState.hx:307-325` has the settings button inside a `// not yet` block, `source/states/ModsMenuState.hx:19` imports `options.ModSettingsSubState` commented out, `options/ModSettingsSubState.hx` does not exist, and `Mods.getPack()` (`source/backend/Mods.hx:147`) reads `pack.json` only. There is no `getModSetting` anywhere in `source/`.
+
+Mixtape's version, all of it reusable as a spec:
+
+- `source/options/ModSettingsSubState.hx` — builds a real `BaseOptionsMenu` from an array of option objects (`name`, `description`, `save`, `type`, `options`, `keyboard`/`gamepad` for keybinds), saved per mod folder into `FlxG.save.data.modSettings[folder]`.
+- `source/psychlua/LuaUtils.hx:120-180` — `getModSetting(saveTag, ?modName)` lazily loads `mods/<mod>/data/settings.json` with `tjson`, applies declared defaults (including `{keyboard, gamepad}` pairs for `keybind`/`key` types), caches into the same save slot, and falls back safely when the file is missing.
+- `source/psychlua/FunkinLua.hx:1586` + `source/psychlua/HScript.hx:160` — the callback itself.
+- `source/states/ModsMenuState.hx:238-253, 796-830` — `ModItem.settings`, enabled/disabled state of the button, and the entry point into the substate.
+
+Work here: `Mods` gets a `settings` loader, `ModsMenuState` re-enables the button, a new `options/ModSettingsSubState.hx`, `getModSetting` in the three script backends, and `ClientPrefs`-style save-slot migration in `SettingsBackup` (§13). Default ON (it is opt-in per mod by the mere existence of the file — a mod without the file behaves exactly as today). This is also the concrete missing half of the "Psych 1.0 features" bullet in §0. Effort: **M**.
+
+#### 27.1.2 [P2] Script-side object creation and method calls (`createInstance`, `addInstance`, `instanceArg`, `callMethod`, `callMethodFromClass`)
+
+Mixtape: `source/psychlua/ReflectionFunctions.hx:135-240`. `createInstance(var, className, args)` does `Type.createInstance`, registers the object under a script variable, and can be added to the state (`addInstance`), with `instanceArg` letting a scripts' own object be passed into Haxe constructors; `callMethod`/`callMethodFromClass` call arbitrary methods with reflected args.
+
+Phoenix has none of these on purpose-ish — reflection is the sandbox boundary (`backend/ModSecurity`, `backend/ScriptSecurityScanner`), and `createInstance` is exactly the kind of thing the scanner flags. So this is **not** a straight port: add it behind an allowlist of constructors (`objects.Alphabet`, `FlxSprite`, `FlxText`, `FlxTimer`, `FlxTween`, `ModchartSprite`, the modchart classes in §27.1.3) plus an explicit per-mod "advanced API" opt-in, and keep the scanner's existing rules. Skip `getGlobals` — it is commented out in Mixtape too (`source/psychlua/FunkinLua.hx:406`). Effort: **M**, risk: **security review required**.
+
+#### 27.1.3 [P2] HScript object API for gameplay classes
+
+Mixtape exposes the gameplay/modchart classes as HScript globals so scripts can *construct* them (`source/psychlua/HScript.hx:329-338`):
+
+```haxe
+set("NoteObject", objects.NoteObject);  set("PlayField", objects.playfields.PlayField);
+set("NoteField",  objects.playfields.NoteField);  set("ProxyField", objects.proxies.ProxyField);
+set("ProxySprite", objects.proxies.ProxySprite);  set("ModManager", backend.modchart.ModManager);
+set("Modifier", backend.modchart.Modifier);  set("EventTimeline", backend.modchart.EventTimeline);
+// …NoteModifier, SubModifier, ModEvent/SetEvent/EaseEvent/CallbackEvent/StepCallbackEvent, FlxPoint
+```
+
+Phoenix's HScript preset (`source/psychlua/HScript.hx:587-668`) injects a fixed list of statics (`FlxG`, `PlayState`, `Paths`, `ClientPrefs`, `MetaHorror`, `Native`, …) and `addHaxeLibrary` is the only way to reach anything else — so a script can call `addModifier`, but cannot build a `Modifier`/`NoteField`/proxy graph by hand. If §27.3.9 (playfield architecture) or §27.1.2 lands, expose the equivalents: `Modifier`, `ModchartManager`, `PlayField`, plus the new modifiers in §27.2. Effort: **S–M** (mechanical once the classes are stable).
+
+#### 27.1.4 [P2] Modchart "queue" API — `queueSet`, `queueSetP`, `queueEase`, `queueEaseP`, `addBlankMod`
+
+Mixtape `source/psychlua/FunkinLua.hx:271-317`: queue a mod value change for *the next step* instead of immediately, with a blank-modifier registration helper. Phoenix's `modchart/ModchartManager.hx` and `ModchartEventManager` cover the immediate forms (`modSet`, `modAdd`, `modEase`, `modRepeater`, `modCallback`, `addModifier`, `setPercent`) and `ModchartLabState` covers authoring, but there is no "apply at step N" queue and no way for a script to register a *blank* custom modifier that later gets values. Add both to the shared modchart layer so all three languages get them at once. Effort: **S**.
+
+#### 27.1.5 [P3] Script-VM quality-of-life callbacks (small, all one-liners)
+
+Missing in Phoenix, present there (file:line = Mixtape):
+
+| Callback | Mixtape | Behaviour | Phoenix status |
+| --- | --- | --- | --- |
+| `setVar` / `getVar` | `FunkinLua.hx:474-479`, `HScript.hx:138-143` | per-song shared variable store on `PlayState.variables` | absent; only `setOnScripts` (broadcast a global) and `PersistentValue` (survives songs) exist |
+| `get` / `set` | `FunkinLua.hx:243-249` | aliases of `getProperty`/`setProperty` | absent (trivial aliases) |
+| `getColorFromName` / `getColorFromString` | `FunkinLua.hx:878-879` | `FlxColor.fromString` (`red`, `#ff0000`, `0xff00ff`) | only `getColorFromHex` (`callbacks/GameCallbacks.hx`) |
+| `setTextHeight` / `setTextAutoSize` | `TextFunctions.hx:50-67` | height + word-wrap auto-size | `callbacks/TextCallbacks.hx:32,42` has size/width only |
+| `getSoundPitch` / `setSoundPitch` | `FunkinLua.hx:1565-1577` | read/write `FlxSound.pitch` with optional pause | `callbacks/SoundCallbacks.hx` has volume/time only |
+| `eraseSaveData(name, field?)` | `ExtraFunctions.hx:135` | delete a whole save slot | `callbacks/SaveDataCallbacks.hx:12-40` has init/flush/get/set only |
+| `crawlDirectory(dir, ext)` | `FunkinLua.hx:255` | recursive file listing (used by their cache & custom notetypes) | `backend/Paths.hx` has no crawler; `directoryFileList` is one level |
+
+Effort: **S** for the whole table; no behaviour change, so no toggles needed (they are additive APIs, per the rule at the top of this file).
+
+#### 27.1.6 [P3] Extra gameplay callback hooks
+
+Mixtape fires eight hooks Phoenix does not (all verified as actually called, not just declared):
+
+| Hook | Mixtape evidence | What it gives mods | Phoenix equivalent |
+| --- | --- | --- | --- |
+| `onChangeMania(new, old)` | `states/PlayState.hx:5485`, `backend/PlayStateCache.hx:3523` | react to mid-song lane-count change (only useful with §25.1) | none |
+| `onEventPushed(event, v1, v2, time)` | `states/PlayState.hx:5305` | inspect every chart event *before* it fires | none |
+| `onModifierRegister` / `onModifierRegisterPost` | `states/PlayState.hx:2557-2558` | register custom modifiers at the right moment | partially: `addModifier` + `onCreatePost` ordering works today |
+| `onReceptorGeneration` / `onReceptorGenerationPost` | `states/PlayState.hx:1879-1888`, `:3526` | build/alter receptors before and after the default pass | none (strums are already built in `onCreatePost`) |
+| `onSpawnNotePost(note)` | `states/PlayState.hx:5696` | act on a note right after it spawns | only `onSpawnNote` (pre) exists |
+| `onSkipIntro(time)` | `states/PlayState.hx:6464` | clean up when the player skips the intro | none |
+| `onSongRestart()` | `states/PlayState.hx:6024` | distinguish restart from fresh create | none |
+| `onRestartCountdown()` | `states/PlayState.hx:2700-2706` | cancel/alter the post-death countdown | Phoenix has `onResumeCountdownStart`/`Tick` (different path) |
+
+Effort: **S** each, **M** for the pair that needs new seams (`onReceptorGeneration*`). All default-on.
+
+#### 27.1.7 [P3] Window scripting API gaps
+
+Mixtape's `source/psychlua/WindowFunctions.hx` + `backend/window/{Window,WindowUtils,CppAPI}.hx` give scripts: `windowX/Y/Width/Height/Title` getters, `windowSetPos`, `windowSetSize`, `windowReset`, `windowPopup(msg,title)` (native alert), `setWindowTitle`, `setWindowPrefix`, `setWindowSuffix`, `setWindowOppacity`, `setWallpaper`, `hideTaskbar`/`restoreTaskbar`, `hideWindows`/`restoreWindows`, `setTransparency(color)`/`resetTransparency`, `sendNotification(title, desc)` (Windows toast).
+
+Phoenix already has a *better* Windows layer in `backend/MetaHorror.hx` + `psychlua/callbacks/MetaHorrorCallbacks.hx` (`setWindowTitle`/`restoreWindowTitle`, `setAlwaysOnTop`, `setMetaWindowAlpha`, `setMetaWindowColorKey`, `hideTaskbar`/`restoreTaskbar`, `hideAllWindows`/`restoreAllWindows`, `setWallpaper`/`restoreWallpaper`, `flashTaskbar`, `getOpenWindowTitles`, `captureDesktop`, clipboard, system volume) — so what is actually missing is narrow: **window geometry (x/y/w/h, set pos/size, reset), title prefix/suffix, a native `windowPopup` alert, and shell notifications/toasts**. Add them to `WindowCallbacks.hx` (transparency lives there already) rather than importing their C++ shim. Effort: **S**.
+
+#### 27.1.8 [P3] Cursor mode get/set
+
+Mixtape `source/backend/Cursor.hx` (596 lines, wraps `haxe.ui`'s `CursorHelper`) + `FunkinLua.hx:260-270` `getCursorMode`/`setCursorMode`: scripts pick a *named* cursor graphic instead of supplying a file. Phoenix has `changeCursor(path, visible, loadDefault, scale, xOffset, yOffset)` (`callbacks/MiscCallbacks.hx:67`), which is strictly more expressive for mods, and `objects/PointingCursor` for the menu finger. Do **not** port the class; if the named-mode convenience is wanted, ship a small table of built-in cursor presets on top of the existing `changeCursor`. Effort: **S** (or skip).
+
+---
+
+### 27.2 MODCHART — nine modifiers Phoenix does not have
+
+Phoenix's registry has 36 modifiers (`source/modchart/ModifierRegistry.hx:3-39`: drunk, tornado, reverse, beat, bounce, boost, bumpy, centerrotate, confusion, counterclockwise, drugged, fieldrotate, incomingangle, infinite, invert, localrotate, opponentswap, radionic, receptorscroll, rotate, sawtooth, scale, schmovindrunk, schmovintipsy, schmovintornado, skew, spiral, square, stealth, tipsy, transform, vibrate, waveshit, wiggle, zigzag, zoom, …). Mixtape has 20 and nine of them are **not** in that list:
+
+| Mixtape modifier | File | What it does | Port value |
+| --- | --- | --- | --- |
+| `Path` / `CustomPath` / `InfinitePath` | `backend/modchart/modifiers/{Path,CustomPath,InfinitePath}Modifier.hx` | move notes along an author-supplied curve/path in the field, optionally looping forever | **[P2] the valuable one** — a real, scriptable "note path" family that Phoenix lacks; pairs with the 3-D/perspective work in §12.5 |
+| `ColumnRotate` | `ColumnRotateModifier.hx` | rotate a single lane's receptor+notes around its own axis | [P3] (`LocalRotate`/`CenterRotate`/`FieldRotate` are different pivots) |
+| `Accel` | `AccelModifier.hx` | per-step acceleration of scroll | [P3] |
+| `Alpha` | `AlphaModifier.hx` | per-field/per-lane note alpha | [P3] (`stealth`/`invert` are all-or-nothing) |
+| `Perspective` | `PerspectiveModifier.hx` | per-modifier perspective skew (Phoenix has a global `setModchartPerspective`) | [P3] |
+| `Flaccid` | `FlaccidModifier.hx` | scales hold-note *lengths* (not positions) | [P3] |
+| `Swap` | `SwapModifier.hx` | swaps lane N with lane M | [P3] (`opponentswap` swaps sides, not lanes) |
+
+Implement against `modchart/Modifier.hx` + `PercentStore` so `setPercent`/`modSet`/`ease` work for free, register in `ModifierRegistry`, add to `ModchartLabState`'s knob list and the docs in `docs/MODCHARTS.md`. Effort: **S** each, **M** for the Path family (needs a curve parser).
+
+---
+
+### 27.3 GAMEPLAY SYSTEMS
+
+#### 27.3.1 [P1] Mix-Up Mode + the AI Player (single-player vs. a simulated human)
+
+This is the most distinctive thing in Mixtape and the only *new game mode* worth having. Two pieces:
+
+1. **`source/backend/AIPlayer.hx` (377 lines).** Builds a "play map" per chart section: for every note it decides a hit offset (or a miss) from a probability table, then returns an array aligned with the chart. Seven profiles (`case 0..6`), from "First Time Playing FNF" (`ratingChance = [0,0,0,70,95]`, ~6.5 % random misses) to "Boyfriend getting freaky on a friday night" (`[100,0,0,0,0]` = frame-perfect). The offsets feed the existing judgement code, so the AI produces real judgements, combo, score, accuracy and rank.
+2. **`mixupMode` in `states/PlayState.hx:280, 750-755, 792, 6159-6190`.** When on (and not `bothMode`), the AI plays the *opponent* side, the HUD switches to a two-column "you vs. them" score display (`playerScoreTxt` / `opponentScoreTxt`; the shared low-health warning recolours all of them red at `:6144-6155`), the AI's rating/FC is computed alongside the player's, and scores are stored under a mode-suffixed key (`saveMod`, `:769-791`, which already carries the modifier/mode string). Surfaced as an option pair in `source/options/OtherSettingsSubState.hx:147-172`: **Mix-Up Mode** (bool) and **Opp. Difficulty** (string: `Baby Mode / Easier / Normal / Harder / Hardest / Average FNF Player / Dont`, mapped one-to-one onto `AIPlayer.diff` `0..6` at `PlayState.hx:793-820`).
+
+Why it is cheap here: Phoenix already has botplay (`cpuControlled`), per-side strum groups, `opponentplay`/`bothsides` changers, `PlayStateRating`/`Conductor.judgeNote`, and a second score/`ratingFC` path in `ResultsState`. The new code is the offset generator + the second HUD column + one save key.
+
+Defaults: **Mix-Up Mode off by default** (explicitly pre-declared exception to the "new features on by default" rule — it replaces normal scoring); **Opp. Difficulty = Normal**. Must not save scores while botplay is active (Phoenix already gates that), and must skip the AI when `opponentplay`/`bothsides` is set. Credit `Z11Coding` for the profile tables. Effort: **M**.
+
+#### 27.3.2 [P2] Chart modifiers Phoenix is missing
+
+Mixtape's `Chart Modifier` gameplay changer (`source/options/GameplayChangersSubstate.hx:63`) offers `Normal, Random, RandomBasic, RandomComplex, Flip, Pain, 4K Only, ManiaConverter, Stairs, Wave, Trills, Sequential, Mirror, Skip, Amalgam` (plus `SpeedRando`/`SpeedUp` lower in the file). Phoenix has `Random Mode`, `Stair Mode`, `Wave Mode`, `Flip Mode`, `One Key`, `Jack Amount`, `Troll Mode` (`source/states/substates/GameplayChangersSubstate.hx`) — `Flip` is their name for what Phoenix already does with `flip` (`play/helpers/PlayStateChartLoader.hx:172`, `abs(lane - 3)`), so the genuinely new ones are **`Trills`, `Sequential`, `Skip`, `Pain`, `RandomComplex`, `Amalgam`**, plus the highscore separation they do (`source/backend/Highscore.hx:269-281` appends the modifier to the save key so a mirrored run cannot beat a normal one). §23.1 already covers the Mario's Madness modifier set — do these in the same pass and do not duplicate the transform code. Default `Normal`; per-modifier highscore keys on. Effort: **M**.
+
+#### 27.3.3 [P2] Three gameplay changers Phoenix lacks: GF Mode, Showcase Mode, Loop Mode
+
+- **GF Mode** (`gfMode`) — play the girlfriend character on the player side: `states/PlayState.hx:752-753, 1410, 1592, 1662-1668`. Uses her animations, her health icon and her `Char` offsets; `playAsGF` also changes which icon the health bar follows. Phoenix has no GF play path at all (`playAsGF` does not exist anywhere in `source/`).
+- **Showcase Mode** (`showcase`) — both sides autoplay but the HUD/score stays visible for recording: `states/PlayState.hx:5842` (`playfield.autoPlayed = cpuControlled || getGameplaySetting('showcase')`). Phoenix's botplay stamps a `BOTPLAY` label (`play/PlayState.hx:1685`) plus an optional watermark; a clean "record it" mode is a different thing.
+- **Loop Mode / Loop Challenge** (`loopMode`, `loopModeC`, `loopPlayMult`) — restart the song on finish, and in challenge mode multiply `playbackRate` by 1.05 every loop (`:7013-7016`), until the player dies. Phoenix has a `loopTheSong` script call but no changer or UI.
+
+All three are ~1 row each in `GameplayChangersSubstate` + a few branches in `play/PlayState.hx`. Defaults off (mode-type, pre-declared). Effort: **S** each.
+
+#### 27.3.4 [P2] Input-system compatibility layer
+
+Mixtape lets the player pick a whole *input ruleset* (`ClientPrefs.inputSystem`, `source/backend/ClientPrefs.hx:166`; option in `options/GameplaySettingsSubState.hx:23`): `Native, BEAT! Engine, Kade Engine, ZoroForce EK, Mic'ed Up Engine, Andromeda Engine (legacy), YoshiEngine, Kade Engine Community`. It is not cosmetic — `objects/playfields/PlayField.hx:283`, `objects/Note.hx:731`, `states/PlayState.hx:4035-4069, 9894` branch on it to change hold-hit ownership, sustain re-hit rules, antimash and note-selection priority.
+
+Phoenix already ships pieces of several of these as separate booleans (`More Spammable Inputs`, `No Ascend RNG`, `Ghost Tapping`, `EZ Spam`, `antiCheatEnable`, `complexAccuracy`, `noMarvJudge`, the accuracy presets in `backend/AccuracyPresets.hx`). So: build it as **named presets over the existing knobs** (a "compatibility profile" that sets several prefs at once and is labelled with the engine it emulates), not as a second input pipeline. That keeps §15's input work single-source. Default `Native` (= today). Effort: **M**.
+
+#### 27.3.5 [P2] Sustain / hold rendering controls
+
+Mixtape exposes four knobs Phoenix lacks (`source/objects/playfields/NoteField.hx:36-52, 358`; options in `options/GraphicsSettingsSubState.hx:76-94`):
+
+- **Hold Subdivisions** (`holdSubdivs`, default 2 → `holdSubdivisions = value + 1`): how many pieces a long hold is chopped into; raises quality, costs draw calls.
+- **Optimize Holds** (`optimizeHolds`, default **on**): skip off-screen/short hold segments.
+- **Draw Distance Multiplier** (`drawDistanceModifier`, default 1): scale spawn/lifetime distance — the low-end-device knob.
+- **Guitar Hero sustains** (`guitarHeroSustains`): sustain sprite style (stretchy GH-style vs. Psych tiles).
+
+Phoenix has `Old Sustain Note Style` and `noteSpawnTime`, but no subdivision count, no hold optimiser and no draw-distance multiplier. All four are self-contained in `objects/Note.hx`/`StrumNote.hx`/`play/helpers/PlayStateNotes.hx`. Defaults: optimize **on**, subdivisions **2**, multiplier **1.0**, GH style **off**. Effort: **S–M**.
+
+#### 27.3.6 [P2] HUD skin packs (`uiSkin`)
+
+Mixtape ships six switchable HUD skins for combo numbers and judgement popups (`Bedrock`, `BEAT!`, `BEAT! Gradient`, `Psych Engine`, `Mixtape Engine`, `Base Game`) resolved by `getUiSkin()` at `source/backend/PlayStateCache.hx:5987-6040`, selected in `options/VisualsUISubState.hx` and preloaded in `cachePopUpScore()`. Phoenix can restyle rating *files* (`ratingSpriteList`, `Rating Style`) and combo text (`ScoreTxt Style`, `showCombo`), but has no coherent "HUD skin" concept where numbers + judgements + combo font come as one set with per-skin fallbacks. Add a `uiSkin` pref + a `HUD/<skin>/` path scheme with the existing `base` fallback (the shipped `HUD/base/` art stays the fallback, so a mod only overrides the pieces it wants). Content stays mod-side; only the resolver and option go in. Default: current look. Effort: **M**.
+
+#### 27.3.7 [P3] Extra chart audio tracks (`SONG.extraTracks`)
+
+Mixtape's `SwagSong.extraTracks:Array<String>` (`source/backend/Song.hx:49`) loads and time-syncs additional instrumental stems and starts/stops them with the song (`states/PlayState.hx:5140-5142`, `backend/ChartCache.hx:557`, editor support in `ChartingStateOG.hx:535`). Phoenix only has Inst + Voices (+ player/opponent/gf vocal split). Related to §12.2's "Unlimited vocals per strumline" — this is the *simpler* half (extra instrumentals, one player), so do it first and let the vocal work reuse the loader. Default off per mod (data-driven). Effort: **M**.
+
+#### 27.3.8 [P3] Dual character slots (structure only — no characters listed)
+
+`SwagSong` there has `player4`/`player5` next to `player1`/`player2` (`source/backend/Song.hx:26-30`), `StageData` gains `boyfriend2`/`opponent2` + their camera offsets + `_editorMeta` (`source/backend/StageData.hx:12-33`), and `PlayState` keeps a second character map per side (`source/states/PlayState.hx:1169`, `boyfriendMap2`/`dadMap2`). This is the data/lifecycle support for two-on-two setups — it is listed *only* because it is a format change (`Song`/`StageData`/editor saves), not because of any character content. If it is taken, it goes in beside §12.2's stage-graph and custom-values work. Effort: **M**.
+
+#### 27.3.9 [P3] PlayField / NoteField / ProxyField architecture — only with §25.1
+
+Mixtape replaced the monolithic `PlayState` note handling with three classes (`source/objects/playfields/PlayField.hx:19-60` documents the split; credits: **Nebula** and **4mbr0s3 2**): `PlayField` owns notes/judgement and a per-field `ModManager`, `NoteField` renders, `ProxyField` clones a `NoteField` cheaply so the same notes can be drawn many times (the classic "infinite notefield" effect) without paying modifiers twice. Field control can also be handed between players.
+
+Phoenix's `modchart/PlayField.hx` is a *math* object (percents, receptors, perspective), not a notefield: notes/strums live in `play/helpers/*` against `PlayState` singletons. Porting the architecture is a large refactor that only pays off together with §25.1 (variable key count) and §27.3.8 — do it as part of that work or not at all, never as a standalone "performance" change (§26's lesson). Effort: **L**; explicitly **not** recommended on its own.
+
+---
+
+### 27.4 NEW OPTIONS (grouped, with defaults)
+
+Everything below is a row Phoenix does not have. Values are Mixtape's defaults; the "on by default" house rule applies to behaviour-neutral ones, while mode-changing ones are pre-declared off.
+
+**Gameplay**
+
+| Option | Pref | Default | Category | Notes |
+| --- | --- | --- | --- | --- |
+| Input System | `inputSystem` | `Native` | Gameplay | §27.3.4 — presets over existing knobs |
+| Mix-Up Mode | `mixupMode` | **off** | Misc/Gameplay | §27.3.1 |
+| Opp. Difficulty | `aiDifficulty` | `Average FNF Player` | Misc | §27.3.1, only shown when Mix-Up is on |
+| Showcase Mode | `showcase` | off | Gameplay changers | §27.3.3 |
+| GF Mode | `gfMode` | off | Gameplay changers | §27.3.3 |
+| Loop Mode / Loop Challenge / Challenge Mult. | `loopMode`/`loopModeC`/`loopPlayMult` | off / off / 1.05 | Gameplay changers | §27.3.3 |
+| Hold Subdivisions | `holdSubdivs` | 2 | Graphics | §27.3.5 |
+| Optimize Holds | `optimizeHolds` | **on** | Graphics | §27.3.5 |
+| Draw Distance Mult. | `drawDistanceModifier` | 1.0 | Graphics | §27.3.5 |
+| Guitar Hero Sustains | `guitarHeroSustains` | off (on there) | Visuals | §27.3.5 — off here is a pre-declared exception: it changes the sustain art identity, and `Old Sustain Note Style` already owns that slot |
+| In-Game Rating | `inGameRatings` | off | Visuals | judgement popups onto `camGame` instead of `camHUD` (`PlayState.hx:8730, 8742`) — useful for screen recordings |
+| HUD Skin | `uiSkin` | current | Visuals | §27.3.6 |
+| Show Keybinds on Start Song | `showKeybindsOnStart` | **on** | Visuals | overlay of the player's binds at countdown (Mixtape `objects/playfields/PlayField.hx:718`) — Phoenix has per-control hints in Controls only |
+| Start Hidden | `starHidden` | off | Visuals | start with `camHUD.alpha = 0`, fade in on first note (`PlayState.hx:620, 2040`) |
+
+**Graphics / performance / caching**
+
+| Option | Pref | Default | Notes |
+| --- | --- | --- | --- |
+| Cache Graphics / Music / Videos | `graphicsPreload2`/`musicPreload2`/`videoPreload2` | off | the only cache rows there that are actually read (`states/CacheState.hx:122`); pre-decode into the persistent cache (§27.5.1) |
+| Experimental Caching | `experimentalCaching` | off | enables saving the cache between sessions |
+| Save Cache | `saveCache` | off | row exists there but nothing reads it — implement for real (write the warm cache to disk) |
+| Cache Charts | `cacheCharts` | off | row exists there but nothing reads it — implement for real (`backend/ChartCache.hx`/`JSONCache` already keep parsed charts in RAM) |
+
+The cache options belong together with a real **Cache Settings** menu + `CacheState` progress screen (§27.5.1), not as loose rows in Misc — Phoenix already has `OptimizationSubState`, so put the toggles there and the manager screen one level deeper.
+
+**Misc / support**
+
+| Option | Pref | Default | Notes |
+| --- | --- | --- | --- |
+| Show Crash Dialogue | `showCrash` | **on** | show the in-game crash state vs. only write the `crash/` bundle and print to the log; Phoenix always does both today (`backend/CrashHandler.hx:216-264`), so this adds a headless/kiosk/CI mode |
+| Ignore Tween Errors | `ignoreTweenErrors` | **on** (off there) | wrap `FlxTween` completions so one bad mod tween cannot take the song down — direct win for §17's robustness goal |
+| Allow Force Quit | `allowForcedExit` | **on** | keeps the window-close / Back-button quit path alive instead of soft-locking (Mixtape `Main.hx:431`); Phoenix handles quitting but exposes no pref |
+| Silent Volume Keys | `silentVol` | off | volume keys change volume without the sound-tray blip (`FunkinSoundTray`) |
+| Allow Username Detection | `username` | **on** | replaces the `USERNAME` token in dialogue text with the OS user (`cutscenes/DialogueBoxPsych.hx:388` there) — a streamer/privacy toggle, and the same idea should also gate `getDesktopUsername` (`backend/MetaHorror.hx:545`) here |
+
+---
+
+### 27.5 TOOLS, SCREENS AND PLATFORM
+
+#### 27.5.1 [P2] Cache manager screen + persistent asset cache
+
+`source/states/CacheState.hx` (624 lines) with a progress bar, driven by `options/CacheSettings.hx`; the actual caching is `backend/GPUBitmap.hx` (creates textures that live only in VRAM and drops the RAM copy — the original Smokey/Rozebud `GPUBitmap`), `backend/ImageCache.hx`, `backend/JSONCache.hx`, `backend/ChartCache.hx` and `CachePreload.hx` (`Paths.crawlDirectory` macro). Phoenix has `cacheOnGPU` (`backend/ClientPrefs.hx:275`) for the VRAM half and `LowMemory`/`MemoryProfiles` for eviction, but nothing that persists a warm cache between launches, and no screen to build/clear it. This is the biggest low-end-device win in the whole review: on a 2 GB Android device, re-decoding every sprite atlas at every boot is the first thing to fix. Default off (disk cost), with size readout and a one-click clear. Effort: **M**.
+
+#### 27.5.2 [P3] Zip-archive mods and the packer
+
+`source/backend/util/ZipUtils.hx` (335 lines) — create/read/extract zip archives with progress callbacks, banned-name filtering (`.git`, `.vscode`, …), `Compress`/`Uncompress` helpers and a `.ycemod` convention; `yutautil/ZipAccess.hx` — read a single entry out of a zip without extracting; `JSEZip` — the simple unzip used by their updater. Phoenix *imports* a zip in `ModsMenuState` (extract-then-install, `source/backend/Mods.hx:242`) and has no packer. Add: (a) read-from-zip in `Paths` so a mod can ship packed, (b) a `tools/pack-mod.py`-style packer, (c) the banned-name policy applied to imports. Cross-ref §12.2 P3 (".pack bundles") — same feature, their implementation is the reference. Effort: **M**.
+
+#### 27.5.3 [P3] Command-line switches
+
+`source/backend/CommandLineHandler.hx`: `-help`, `-mod <name>`, `-modfolder <path>`, `-addonsfolder <path>`, `-nocolor`, `-nogpubitmap`, `-livereload`, `-playtest`. Phoenix parses only `-troll` (`source/Main.hx:60`) plus the diagnostic/VLog flags (`backend/DiagnosticsReport.hx:95`, `backend/VLog.hx:245`) — and `-mod <name>`/`-playtest` are exactly what a modder's launcher or CI wants (headless boot of one song/mod). Effort: **S**.
+
+#### 27.5.4 [P3] Native helpers worth cherry-picking
+
+- `sendNotification(title, desc)` — Windows shell toast (`backend/window/CppAPI.hx` → `WindowsData`), §27.1.7.
+- `backend/util/NativeAPI.hx` — file attribute get/set/append (hidden/read-only), console alloc + ANSI colours, dark title bar. Phoenix covers message boxes (`backend/WindowNative.hx:38`, `backend/Windows.hx:109`) and dark title (`backend/WindowColorMode`), so only the file-attribute + console-colour helpers are new — useful for a mod manager, not for players. Effort: **S**.
+- `backend/ALSoftConfig.hx` — sets `ALSOFT_CONF` to a shipped `alsoft.ini`/`alsoft.conf` to raise OpenAL Soft quality. Treat as an experiment: measure against Phoenix's existing audio path (`backend/SongAudioStreaming`, `VolumeCurve`) before changing anyone's output. Effort: **S**.
+
+#### 27.5.5 [P3] RTX (shader) parameter editor
+
+`source/states/editors/RTXEditor.hx` — a slider playground that live-edits a shader's uniform values, so a modder can dial in values before writing them into a script. Phoenix has the shader API and `ModchartLabState`; it has no uniform-tweaking tool. Tiny, editor-only, no player risk. Effort: **S**.
+
+#### 27.5.6 [P3] GameJolt service integration (only as a *service*, not as content)
+
+`source/backend/gamejolt/GameJolt.hx` (752 lines, on `tentools`) + a toast manager wired into `source/Main.hx:36, 137, 299`; the Options entry is commented out (`options/OptionsState.hx:10`). Provides auth, trophies (achievements), score tables, and session start/ping/close. **Caveat: it does not compile as committed** — `authDaUser` (`:107-118`) switches to a `GameJoltLogin` state that is defined nowhere in the tree (no `class GameJoltLogin`, no file), so their own build must be excluding or patching this; treat it as a reference design, not copyable code, and expect to write the login screen from scratch. Phoenix's only related work is the "GameJolt browser" idea in §0 and the `GJClient` snippet note; the Achievement *system* is already here (`backend/Achievements.hx`), so what is missing is a remote-sync backend + login screen. If taken, gate it hard: no network call without explicit opt-in (§19's analytics rule), and treat the API keys as build-time secrets, not repo files. Effort: **L**.
+
+---
+
+### 27.6 CHECKED — ALREADY HERE (do not port)
+
+- **Accuracy: wife3.** Already implemented: `source/play/helpers/PlayStateRating.hx:121` calls `EtternaFunctions.wife3` per note, feeding `ResultsState`. Their `Wife3` class (`PlayStateCache.hx:113`) is the same Etterna formula; no option needed beyond the existing `Accuracy Preset` (`ClientPrefs.hx:443`).
+- **Achievements.** `backend/Achievements.hx` is the same Psych 1.0 code (hidden, `maxScore`/`maxDecimals` progress, per-mod IDs, popup) — nothing to take.
+- **Chart editor.** Phoenix's `editors/ChartingState.hx` + `editors/charting/*` already exceed their two editors (`ChartingStateOG`/`ChartingStatePsych`): events, waveform, sections, undo, autosave, note-type pickers, playtest. Their `EditorLua` (scriptable editor) is **dead code** — never referenced (§27.7).
+- **Other editors.** `WeekEditorState`, `CharacterEditorState`, `DialogueEditorState`, `DialogueCharacterEditorState`, `MenuCharacterEditorState`, `NoteSplashDebugState` (their `NoteSplashEditorState`), `MasterEditorMenu`, `EditorPlayState` all exist here (`source/editors/`). **Stage editor** is the one that does not — it is already tracked as **[P2] in §12.3**; their `StageEditorState.hx` (2.5k lines, `PreloadListSubState`, `_editorMeta`) is the reference implementation, not a new entry.
+- **Shader / effect API.** Phoenix is a superset: `initLuaShader`, `setSpriteShader`, camera shaders, typed get/set for bool/int/float arrays, `setShaderSampler2D`, `tweenShaderFloat` (+ arrays) — `psychlua/callbacks/ShaderCallbacks.hx`. Their `ShaderFunctions.hx` has no tweening and no camera path.
+- **Filters + chainable effects.** §0 DONE entries (`backend/ScreenFilters`, `backend/ChainableEffects`) already cover `flixel.addons.effects.chainable` and the OpenFL filter set, in all three languages. Nothing to take from their `ShadersHandler`.
+- **Window / meta-horror toolkit.** Phoenix's `backend/MetaHorror` + `MetaHorrorCallbacks` is larger than their `backend/window/*`: wallpaper (set/restore/kill wallpaper apps), taskbar hide/restore, hide/restore all windows, colour-key transparency, window alpha, always-on-top, taskbar flash, clipboard, system volume/mute, desktop capture, openFile, typeText, persistent values. Only the geometry/prefix/toast gaps in §27.1.7 remain.
+- **Save data + file API.** `initSaveData`/`flushSaveData`/`getDataFromSave`/`setDataFromSave` (`callbacks/SaveDataCallbacks.hx`) plus the *larger* file set (`checkFileExists`, `saveFile`, `deleteFile`, `getTextFromFile`, `directoryFileList` — `callbacks/FileCallbacks.hx`) vs. their `ExtraFunctions.hx`. Only `eraseSaveData` + `crawlDirectory` are missing (§27.1.5).
+- **Camera, flash, fade, tween, sound, text, sprite, property APIs.** Compared name-by-name; Phoenix has ~370 unique callbacks vs ~250 there, including newer ones they lack (`addCamera`/`removeCamera`, `addPlayfield`, all the effect shorthands, `getPropertyAdvanced`, `captureDesktop`, `gdi*`, `vibrate`, `applyWindowTransparency`, `changeCursor`, `typeText`, `openFile`, `isRecording`, …). No wholesale gaps.
+- **PsychUI widget kit** (`backend/ui/PsychUI{Box,Button,CheckBox,DropDownMenu,InputText,NumericStepper,RadioGroup,Slider,Tab}`). Internal editor chrome for their Psych-chart-editor; Phoenix has its own editor UI (`objects/ui/CustomFlxUI`, `EditorTooltips`). Porting a second widget toolkit buys nothing.
+- **Freeplay UX.** Their `CategoryState` (All/Base/mods/secrets categories) + `searchBar` is *less* than Phoenix's `FreeplayFilter` (`states/FreeplayState.hx:44`: order, mod filter, favourites, stars, revision-based rebuild) + `MusicPlayer` (`source/music/MusicPlayer.hx`).
+- **Mods menu + `pack.json`.** Phoenix already parses `pack.json` (`Mods.getPack`, `Mods.hx:147`), shows metadata in `ModInfoSubState`, and has global-mod handling (`pack.runsGlobally`). §12.6 P2 covers API/version metadata.
+- **Pause music / menu tracks.** Both have a picker (`Pause Screen Song:`); their extra tracks are content.
+- **Note types.** Data-driven in both (`backend/NoteTypesConfig`); their `Hurt/No Animation/Alt/Beatbox/GF Sing/Ghost/EX` list is a subset of what Phoenix ships in `example_mods/custom_notetypes/` (§23.6).
+- **Gamepad/keyboard query API.** `keyboardJustPressed/Pressed/Released`, `anyGamepad*`, `gamepadAnalogX/Y`, `gamepadJustPressed/Pressed/Released` already exist here (`callbacks/InputCallbacks.hx`).
+- **Localization, latency calibration, multikey, auto-updater, stage editor** — already tracked in **§12.3** (translations, stage editor), **§15/§16** (interactive latency test), **§25.1** (1K–10K mania; Mixtape adds nothing new beyond 18K ceilings, `4K Only`/`ManiaConverter` modifiers and a `Change Mania` event, which §25.1 step 7 already requires) and **§12.6 P3** (in-app updater; theirs does download → `JSEZip.unzip` → relaunch in `states/UpdateState.hx:350`, which is the implementation sketch that entry was missing).
+
+---
+
+### 27.7 UNFINISHED OR DEAD THERE — do NOT treat as features
+
+This matters because a naive diff makes Mixtape look twice as large as it is. Verified by checking reachability from `Main` (Haxe only compiles referenced modules) and by reading the code:
+
+- **`source/streaming/*` (Twitch IRC, YouTube, "offline", a `SelectState`).** No entry point: `Main.streamMethod` does not exist, nothing switches to these states, and `SelectState` lists a Discord option that has no implementation. Idea only.
+- **`source/archipelago/*` (multiworld randomizer: `APEntryState`, `APConnectingSubState`, `GameState`, YAML import via `ap.Client`/`yaml`).** Only imported by two popup objects; `FreeplayState.archipelago` is never set. Never wired, and the libs (`ap`, `yaml`) are not in `Project.xml`.
+- **`source/undertale/*` (`SOUL`, `BATTLE`, `BULLETPATTERN(X)`, `DamageCalculator`, `UnderTextParser`, `MSOUL`).** Gated behind an undeclared `UNDERTALE` define; `BATTLE.hx` even has a top-level `if (isGenocide)` outside any function. Would not compile if enabled.
+- **`source/latency/LatencyState.hx`.** Imports `funkin.data.notestyle.*`, `funkin.play.notes.*`, `funkin.ui.*` — Psych 1.0 packages that do not exist in that tree. Dead paste.
+- **`source/backend/PlayStateCache.hx` (7,974 lines)** — a second, package-`states` copy of `PlayState` in a `backend/` file. Never imported, so never compiled. Reference material at best.
+- **`backend/modules/*`** (`SaveState` reflection serializer, `MathSolver`/`MathSolver2` toy parsers, `Container`, `Number`, `Variable`, `EventFunc`, `SyncUtils` (blocking `Http`/`Timer` "wait" helpers), `TimeFormat`, `ForceCrashPlugin`/`MemoryGCPlugin`/`EvacuateDebugPlugin`) — none referenced.
+- **`backend/Threader`** + `Threader copy.hx` — macro-spawned threads with a blocking queue. Used in exactly two places (`Main.hx:91` for `init`, `:209` for `CommandPrompt`); do not extend it, the blocking `wait()` helpers in `SyncUtils` are what make it stack-overflow-prone.
+- **`yutautil/*`** — `@:importFrom` macro that downloads Haxe source at build time (supply-chain hazard), `SaveSystem` (unused), `ZipAccess` (unused, but the only clean read-from-zip helper — see §27.5.2).
+- **Codegen experiments, none referenced:** `states/ScrambleVars.hx`, `states/DebugMacro.hx`, `Corruptor`, `DataStorage`, `MemoryMap`, `StateMap`, `StateCollector`, `CompileTracer`, `TraceOnChange`, `VoidFall`, `ExpressionWrapper`, `GlobalVariableWrapper`, `HoldableVariable`, `NullFloat`, `Table`, `Translate`, `SwitchStateMacro`, `ImportStuff`, `ReflectCheck`, `RawPointerTypes`, `IterSingle`.
+- **`states/editors/EditorLua.hx`** — a scriptable-editor Lua VM with 9 callbacks, never instantiated.
+- **`backend/FNFC.hx`** — a chart-archive format stub whose loader is entirely commented out.
+- **`backend/AudioThing.hx`** — a custom OpenAL playback path (effects/filters/aux) imported in `import.hx` but never used; `ALSoftConfig` (§27.5.4) is the only useful fragment.
+- **`source/flixel/MotionBlur.hx` + `MotionBlurUtil.hx`** — sprite-based motion blur, never used (a *shader* motion blur also exists in `shaders/Shaders.hx:220` and is commented out in `PlayState.hx:638`).
+- **`objects/AnimatedGif` (`backend/gif/`)** — full GIF decoder, zero references.
+- **Joke/skip files:** `states/editors/SexEditorState.hx` (14 lines of ASCII art), `source/unused/` (`PlayStateOld`, `PlayStateNewOld`, `FunkinLuaNew`, `Hitbar`, `JudgmentManager`, `Snd`, `PlayField`), `test_*.hx` files left in `backend/` (8 of them: `test_ChanceSelector`, `test_ClientPrefs`, `test_JSONCache`, `test_MusicBeatState`, `test_TransitionState`, plus three under `backend/modules/`).
+- **Preference fields with no reader.** Verified by grepping every field name outside `ClientPrefs.hx`: `noParticles`, `imagesPersist`, `beatSky`, `gotit`, `progression`, `loadCustomNoteGraphicschartEditor`, `convertEK`, `antimash`, `wife3`, `saveCache`, `cacheCharts` are all stubs — some have an options row, some are exported to scripts (`noParticles`, `antimash` in `FunkinLua.hx:203, 213`), none change behaviour. `saveCache`/`cacheCharts` are kept in §27.4 only as *features to implement properly*; the rest should simply not be copied. Lesson for this repo: "the pref exists" is not evidence a feature works — check the reader.
+- **Their own regression risks if anything *is* copied:** the `PlayState` there is an 8k-line single class with duplicated logic; `CacheState.hx` contains two `class CacheState` declarations behind `#if sys`/`#else`; `Objects.playfields` coexists with `unused/PlayField.hx`; and the `FlxSprite3D` file declares `package onjects` (typo) with `import math.Vector3` (wrong package).
+
+---
+
+### 27.8 LICENSING / CREDITS FOR WHATEVER GETS PORTED
+
+Apache 2.0 on both sides, so no licence conflict — but the *code* is not all Z11Coding's, and the Apache grant does not erase attribution:
+
+- **PlayField/NoteField/ProxyField** — "credit me (Nebula) and 4mbr0s3 2 … at least credit 4mbr0s3 2 since he did the cool stuff of this system (hold note manipulation)" (`objects/playfields/PlayField.hx:53-58`). Add both to `CreditsState`.
+- **AI Player / Mix-Up Mode** — `Z11Coding`. Profile names are jokes; keep the tables, rename the labels if shipped.
+- **Artemis integration** (`backend/ArtemisIntegration.hx`) — by **skedgyedgy**, API 1.3, <https://github.com/skedgyedgy/Artemis.Plugins.FNF>. Not proposed above (it is a stream-overlay socket plugin with a hardcoded `modpack-mixup` path and no error handling), but if a websocket/overlay API is ever wanted, that is the upstream to read — with credit and without the hardcoded mod.
+- **GPUBitmap** — "Originally written by Smokey, additional development by Rozebud".
+- **GameJolt** — `tentools` (already a haxelib Phoenix does not use).
+- **Cursor** — wraps `haxe.ui`'s `CursorHelper`; if the named-mode idea is taken, either add the haxelib or (better) keep it file-based with `changeCursor`.
+- **Codename Engine imports** (`IterSingle`, `NullFloat`, `StateMap`, `SwitchStateMacro`, `Translate`, …) — `Codename` credits required if any of that ever lands; §12 already treats CNE as a separate review.
+- **Kade/Mic'd Up/BEAT! input rules** — §27.3.4 emulates *behaviour*; check each engine's own licence/credits before copying constants, and credit the engine name in the option description.
+
+---
+
+### 27.9 SUGGESTED ORDER
+
+1. **[P1] Mix-Up Mode + AI Player** (§27.3.1) — new mode, no assets, no refactors, biggest visible payoff.
+2. **[P1] `data/settings.json` + `getModSetting()` + ModSettingsSubState** (§27.1.1) — closes a real Psych 1.0 mod-API hole (the commented-out button in `ModsMenuState`).
+3. **[P2] Persistent asset cache + Cache Settings screen** (§27.5.1) — the low-end-device win, and it makes every later graphics option cheaper to test.
+4. **[P2] Sustain rendering knobs** (§27.3.5) + **crash/tween toggles** (§27.4 misc) — small, low-risk quality/robustness wins.
+5. **[P2] Chart modifiers + highscore separation** (§27.3.2) — pair with §23.1 in one pass.
+6. **[P2] Missing modchart modifiers, Path family first** (§27.2) — pairs with the 3-D work in §12.5.
+7. **[P2] HUD skin resolver** (§27.3.6), **GF/Showcase/Loop changers** (§27.3.3), **input presets** (§27.3.4).
+8. **[P3] Script API smalls** (§27.1.4–27.1.8) and **HScript object API** (§27.1.3) once the classes above are stable.
+9. **[P3] Zip mods** (§27.5.2), **CLI switches** (§27.5.3), **RTX editor** (§27.5.5).
+10. Everything in §27.6/§27.7: **leave it**. Only revisit PlayField architecture (§27.3.9) as part of §25.1, and GameJolt (§27.5.6) if a hosted leaderboard/trophy service is actually wanted.
+
+---
+
+## 28. SUPER PLUS ENGINE PARITY REVIEW — `atox07/FNF-Super-Plus-Engine`
 
 **Source:** [atox07/FNF-Super-Plus-Engine](https://github.com/atox07/FNF-Super-Plus-Engine/tree/main) at `8679026` (2026-11-09). It is **Plus Engine** ([LeninAsto/FNF-PlusEngine](https://github.com/LeninAsto/FNF-PlusEngine), itself Psych **1.0.4** based) plus AtoX's own additions — so §5.3 of [`docs/research/psych-fork-engine-changes.md`](docs/research/psych-fork-engine-changes.md) is the upstream half of this review, and everything here is the delta **this** fork adds on top, checked against our tree at `443ae01`.
 
 **License:** Apache 2.0, same as ours → **every entry below is portable** under the rule at the top of this file. Credit `AtoX` (Super Plus), `LeninAsto`/`sirthegamercoder` (Plus Engine), `Autistic Lulu` (Psych Continued) and `Mrlordnoob/Slushi` per feature, the way SPE's own `CreditsState` does. Their README is explicit that code is meant to be learned from and reused ("Learning > hoarding"); do not port the *branding*, only the mechanisms.
 
-**Method:** cloned the repo and read it source-to-source against this tree; nothing was built or run on either side. Lua API names were diffed mechanically (`Lua_helper.add_callback` / `Convert.addCallback` vs our `registerFunction` / `addCallback` **and** the `Py*Lib`/HScript mirror sets): SPE registers **484** names, we register **420**, and **253** SPE names have no equivalent here — but a large share of those are SPE-side wrappers around things Phoenix already exposes under a different name, or are *declared and never read* in SPE itself. Both cases are called out per entry; do not port dead toggles.
+**Method:** cloned the repo and read it source-to-source against this tree; nothing was built or run on either side. **Re-verified against `main` after the merge that brought in §27 (Mixtape) and the Stage-Editor work** — three entries changed as a result and say so inline (Stage Editor is no longer missing; the stage `preload` map is parsed but never consumed; Photo mode is done). Lua API names were diffed mechanically (`Lua_helper.add_callback` / `Convert.addCallback` vs our `registerFunction` / `addCallback` **and** the `Py*Lib`/HScript mirror sets): SPE registers **484** names, we register **420**, and **253** SPE names have no equivalent here — but a large share of those are SPE-side wrappers around things Phoenix already exposes under a different name, or are *declared and never read* in SPE itself. Both cases are called out per entry; do not port dead toggles.
 
 **Honest headline:** SPE is **bigger on editors, on one long list of HUD/gameplay toggles, on i18n and on Windows-native scripting**; Phoenix is far ahead on shaders, filters, chart-format breadth, accessibility, security, low-end performance and test/spec discipline. Below is only what we actually lack.
 
 ---
 
-### 27.1. SCRIPTING & MODDING API (the 253-name delta, grouped)
+### 28.1. SCRIPTING & MODDING API (the 253-name delta, grouped)
 
 Names below were verified absent from `source/` by exact-string search. Everything registered goes through `psychlua/callbacks/*` and is inherited by Lua, Python and HScript at once (`PythonScript.hx:388`, `HScript.hx:249`), so **one registration covers all three languages** — that is why these are cheap.
 
 - **[P1] Script-local variable store — `setVar`/`getVar`/`setGlobalVar`/`getGlobalVar` (+`getValue`/`setValue`).** SPE registers all five in `psychlua/backend/FunkinLua.hx` and they back its whole "share state between scripts" story (`getGlobalFromScript` only crosses *named* scripts here, `callbacks/ScriptCallbacks.hx:107`). Ours has no per-script key/value bag at all. Add one `Map<String,Dynamic>` per `FunkinLua` instance with a `global` flag for the shared one, expose in all three languages, and clear it on script close. Fits §12.1's "managed runtime scripts" entry. Effort: S.
-- **[P1] State/substate scripting surface — `switchToState`, `exitToState`, `getStateName`, `getParentStateName`, `callStateFunction`, `callSubstateFunction`, `openScriptedSubstate`, `getScriptHostType`, `getLuaMode`, `isRawLua`, `launchMod`, `exitToEngine`, `setExitTarget`.** We have `switchCustomState`/`openModSubState`/`customStateExists` (`psychlua/CustomSubstate.hx:21-23`) and nothing else: a script cannot ask *which* state it is in, cannot call a function by name on that state, and cannot relaunch a mod or return to the engine from a mod. SPE's `MenuScripts` + `ScriptableState` pair makes menu scripting a first-class scope (see §27.2). Effort: M for the introspection half (`getStateName`/`getParentStateName`/`call*Function`), M for `launchMod`/`exitToEngine`.
+- **[P1] State/substate scripting surface — `switchToState`, `exitToState`, `getStateName`, `getParentStateName`, `callStateFunction`, `callSubstateFunction`, `openScriptedSubstate`, `getScriptHostType`, `getLuaMode`, `isRawLua`, `launchMod`, `exitToEngine`, `setExitTarget`.** We have `switchCustomState`/`openModSubState`/`customStateExists` (`psychlua/CustomSubstate.hx:21-23`) and nothing else: a script cannot ask *which* state it is in, cannot call a function by name on that state, and cannot relaunch a mod or return to the engine from a mod. SPE's `MenuScripts` + `ScriptableState` pair makes menu scripting a first-class scope (see §28.2). Effort: M for the introspection half (`getStateName`/`getParentStateName`/`call*Function`), M for `launchMod`/`exitToEngine`.
 - **[P1] `callMethod` / `callMethodFromClass` / `createInstance` / `addInstance` / `instanceArg`.** SPE's `ReflectionFunctions.hx` (368 lines) lets a script invoke any public method on any object or class, and instantiate a class with arbitrary ctor args. We deliberately ship `Reflect.callMethod`/`Type.createInstance` as **blocked patterns in the security scanner** (`backend/ScriptSecurityScanner.hx:98`) and have no replacement, so a mod that needs `Character.new(...)` or `FlxTween.num(...)` cannot run here at all. Port it *as a sandboxed allowlist* — a per-class set of `{method, arity, arg types}` in `backend.ModSecurity`, defaulting to the Flx/engine classes mods actually use, with the scanner still blocking the raw `Reflect`/`Type` forms. That keeps the §6 security posture while closing a real capability gap. Effort: M.
 - **[P2] Camera scroll API — `setCameraScroll`, `addCameraScroll`, `getCameraScrollX`, `getCameraScrollY`, `setCameraFollowPoint`, `addCameraFollowPoint`, `getCameraFollowX`, `getCameraFollowY`, `getCameraScroll*` on the modchart side.** `callbacks/CameraCallbacks.hx` only has `createCamera`/`addCamera`/`removeCamera`, and `callbacks/GameCallbacks.hx:223-243` has `cameraSetTarget`/`cameraShake`/`cameraFlash`/`cameraFade` — **camera position is not scriptable at all**. Every scroll/parallax mod chart needs this. Effort: S.
 - **[P2] Object screen-space math — `getObjectScreenX`/`Y`/`Width`/`Height`, `gameToScreenX`/`Y`, `getScreenWidth`/`Height`/`Resolution`.** We have `getScreenPositionX/Y` and `getMidpointX/Y` (`callbacks/SpriteCallbacks.hx`) but not the object's *rendered* box or the game→screen transform, which is what touch hit-testing and multi-window drawing need. Effort: S.
@@ -753,7 +1088,7 @@ Names below were verified absent from `source/` by exact-string search. Everythi
 - **[P3] Text extras — `setTextAutoSize`, `setTextHeight`.** `callbacks/TextCallbacks.hx` has `setTextWidth` but not height/auto-size. Trivial. Effort: S.
 - **[P3] FlxAnimate extras — `setFlxAnimateAutoDeactivate` / `deactivateFlxAnimateSprite`.** We ship `makeFlxAnimateSprite`, `loadAnimateAtlas`, `addAnimationBySymbol(Indices)` (`psychlua/FlxAnimateFunctions.hx:39,54`) — i.e. **more** SpriteMat symbol support than SPE — but no way to park an idle atlas off the GPU. Matters on phones with several atlases. Effort: S.
 
-#### 27.1.1. Windows-native scripting (desktop-only, `sys && windows`)
+#### 28.1.1. Windows-native scripting (desktop-only, `sys && windows`)
 
 - **[P2] Window geometry & lifecycle — `setWindowSize`/`X`/`Y`/`Pos`, `getWindowWidth`/`Height`/`X`/`Y`, `getGameWindowWidth`/`Height`/`X`/`Y`, `centerWindow`, `setWinRCenter`, `randomizeWindowPosition`, `setWindowResizable`, `setWindowVisible`, `setWindowAlwaysOnTop`, `setWindowBackground`, `setWindowBorderColor`, `setWindowIcon`, `setWindowBorderless`, `hideWindowBorder`, `setWindowView`, `windowExists`, `getWindowState`, `saveWindowState`/`loadWindowState`, `getWindowTitle`/`setWindowTitle`, `getWindowOpacity`/`setWindowOpacity`, `tweenWindowOpacity`, `winTweenSize`/`winTweenX`/`winTweenY`, `tweenWindowBorderColor`, `minimizeWindow`.** **`WindowCallbacks.hx` is 124 lines and registers exactly nine names**: the four transparency/click-through calls plus `applyWindowTransparency`, and one `setWindowFullscreen`. Everything else — size, position, opacity, border, icon, always-on-top, and the whole `winTween*` easing set (`psychlua/backend/WindowTweens.hx`, 884 lines upstream) — is missing even though `backend/Windows.hx`/`WindowNative.hx` already do the native work for transparency. This is the single largest *cheap* API gap in the review: port `WindowTweens` almost verbatim, gate each call on `PlatformSupport.DESKTOP` + `#if windows`, and default every effect off per the porting rule. Effort: M (mostly transcription).
 - **[P2] Multi-window ("outside the window" / Unresponsive-style) — `createWindow`, `closeWindow`, `closeAllWindows`, `addSpriteToWindow`, `removeSpriteFromWindow`, `setWindowView`, `setWindowAlwaysOnTop`.** SPE's `psychlua/MultiWindowFunctions.hx` (478 lines) plus `WinNative.hx` (310 lines of Win32) open extra layered topmost windows that never steal focus and redraw chosen game sprites into them each frame. We have the *transparent-window* half (`backend/FlxTransWindow.hx`, click-through) but only on the main HWND. This is what the Unresponsive-style gag mods are built on, and it is genuinely absent here. Effort: **L** (Win32 C++ + per-frame BitmapData readback; do it after the geometry API above, which it reuses).
@@ -763,37 +1098,37 @@ Names below were verified absent from `source/` by exact-string search. Everythi
 - **[P3] Android device probes — `isRooted`, `isTablet`, `isChromebook`, `isDeXMode`, `isDolbyAtmos`, `isAndroidTV`.** Ours has `AndroidSystem.isAndroidTV`/`getDeviceInfo` and `AndroidTVPolicy`; the other five are unimplemented even natively. Mostly `Build.*` reads through the existing JNI bridge; low value, listed for completeness. Effort: S.
 - **[P3] `getSoundPitch`/`setSoundPitch`, `getChartNotes`, `getBPM`/`getCurrentBeat`/`getCurrentStep`.** `getBPM`/beat/step are not script functions here (only `curStep`/`curBeat` *variables* pushed at `PlayState.hx:3372,3417`), and `getChartNotes` — read the whole chart from a script — has no equivalent. `getChartNotes` is the useful one: it turns a modchart script into a real chart-driven tool. Effort: S.
 
-#### 27.1.2. The ActorFrame sprite-tree API
+#### 28.1.2. The ActorFrame sprite-tree API
 
 - **[P3] `_actorFrame*` (11 names) — a nested "actor frame" object model.** `_actorFrameCreate/Destroy/Set/Get/SetColor/Tween/CancelTweens/SetShader/SetTarget/Capture/Exists` in `psychlua/ActorFrameFunctions.hx` + a 4-file backend including a **Lua prelude** (`ActorFrameLuaPrelude.hx`) that builds a small OOP wrapper in Lua itself, plus `ActorFrameTextureSource` for render-to-texture capture. It is a step-game-style container hierarchy (parent tags, per-frame capture, group tween). Phoenix's `ModchartSprite` + groups cover the flat case; the *hierarchy with captured textures* does not exist. Port only if a real mod asks — the whole thing is ~1.2k lines for a use case our `createCamera` + `sprite` pipeline mostly covers. Effort: L. **Priority deliberately low.**
 
 ---
 
-### 27.2. EDITORS — the biggest real gap
+### 28.2. EDITORS — the biggest real gap
 
 SPE's `MasterEditorMenu` lists **ten** editors (`states/editors/MasterEditorMenu.hx:13-24`: chart, character, stage, week, **hud**, menu character, dialogue, dialogue **portrait**, dialogue **pixel**, note splash); two more are reachable from inside the chart editor (**Event Creator**, `ChartingState.hx:4971`; **Cover Maker**, `:4960`) and a third from the master menu (**Modchart Converter**, `MasterEditorMenu.hx:169`). Ours has five (`editors/MasterEditorMenu.hx:19-25`: Menu Character, Character, Chart, Modchart Lab, Note Splash *Debug*). Below is everything they have that we do not.
 
-- **[P1] HUD / layout editor (`states/editors/HudEditorState.hx`, 4,173 lines).** Drag the native HUD widgets (healthBar, scoreTxt, timeBar/timeTxt, comboGroup, both strum lines), import PNG overlays, reorder by zIndex, group-move (Strums Opponent / Boyfriend / All), and **record chained keyframe tweens** per element (A→B→C…) with per-segment duration/easing, then **export the whole thing as a Lua layout script** — overlays into `onCreate()`, moved strums into `onCountdownStarted()`, chained tweens into `onBeatHit`/`onStepHit`, draw order as `setObjectOrder` calls. Everything lives in `camHUD` only. We have nothing: `play/PlayState.hx` hardcodes HUD layout and the only way to move a widget is a script written by hand. This is the single highest-value port in the whole review — it turns hours of trial-and-error scripting into drag-and-drop. Their header documents the traps that will bite us too: strums are created in `startCountdown()`, *after* `onCreatePost` (so static strum positions must go in `onCountdownStarted()`); icons follow the health bar every frame and cannot be moved; `healthBar`/`timeBar`/`comboGroup` are groups with no reliable scale/angle; `missesTxt`/`accuracyTxt`/`timeBarBG`/`albumArt` do not exist as separate widgets in their build. Port the *generator* pattern first (Photo mode in §21.1 and the accessibility work in §16 both want a layout layer). 4K-only is fine initially — it matches our `play/helpers/PlayStateNoteHelpers.hx:257` (`for (i in 0...4)`). Effort: **L**, and worth it.
+- **[P1] HUD / layout editor (`states/editors/HudEditorState.hx`, 4,173 lines).** Drag the native HUD widgets (healthBar, scoreTxt, timeBar/timeTxt, comboGroup, both strum lines), import PNG overlays, reorder by zIndex, group-move (Strums Opponent / Boyfriend / All), and **record chained keyframe tweens** per element (A→B→C…) with per-segment duration/easing, then **export the whole thing as a Lua layout script** — overlays into `onCreate()`, moved strums into `onCountdownStarted()`, chained tweens into `onBeatHit`/`onStepHit`, draw order as `setObjectOrder` calls. Everything lives in `camHUD` only. We have nothing: `play/PlayState.hx` hardcodes HUD layout and the only way to move a widget is a script written by hand. This is the single highest-value port in the whole review — it turns hours of trial-and-error scripting into drag-and-drop. Their header documents the traps that will bite us too: strums are created in `startCountdown()`, *after* `onCreatePost` (so static strum positions must go in `onCountdownStarted()`); icons follow the health bar every frame and cannot be moved; `healthBar`/`timeBar`/`comboGroup` are groups with no reliable scale/angle; `missesTxt`/`accuracyTxt`/`timeBarBG`/`albumArt` do not exist as separate widgets in their build. Port the *generator* pattern first — the accessibility work in §16 wants a layout layer, and Photo mode (§21.1, now DONE) shows the HUD can already be hidden wholesale. 4K-only is fine initially — it matches our `play/helpers/PlayStateNoteHelpers.hx:257` (`for (i in 0...4)`). Effort: **L**, and worth it.
 - **[P2] Cover Maker — an in-game mini-DAW (`states/editors/CoverMaker.hx` 2,308 lines + `CoverMidi`/`CoverVoice`; opened as a *substate* of the chart editor, `ChartingState.hx:4960`, which is why it is easy to miss in their menu).** Piano-roll timeline for Dad/BF/Instrumental lanes, MIDI import for the vocal parts, per-note preview and slice count, exports a `Voices`/`Voices-Player` pair so a mod can ship a mashup cover **without leaving the game**. We have no audio-authoring tool at all. Effort: **L**. Cheap half worth doing first: the MIDI **reader** (`CoverMidi`), which also feeds the chart editor's import below.
 - **[P2] Event Creator (`states/editors/EventCreatorState.hx` 2,341 lines + a 4-file `eventcreator/` backend; opened from the chart editor, `ChartingState.hx:4971`).** A **visual editor for custom Lua events**: name/description/category, typed parameters (`text,int,float,bool,slider,dropdown,character,color,sound,image,stage` — the last five enumerated from actual game folders via `EventPresets`), a block-based body with a palette, `EventCodegen` emitting the `.lua`, and a **`Regenerate`** button that rewrites the chart's event list when a parameter is renamed. This solves a real hole: today a mod author hand-writes both the script and the event JSON, and they drift. Our `editors/charting/ChartingEvents.hx` only *consumes* event names. Effort: M–L. Pairs with §17's mod tooling and §21.1's Extras hub.
 - **[P2] MIDI → chart import (`ChartingState.addMidiPicker` / `scanMidiFolder` / `parseMidi`, ~700 lines inside their 8,502-line chart editor).** Pick a `.mid` from `assets/midi/` or **Browse…**, then **Import as BF / as Dad / as Dad+BF / Auto split**, converting pitch→lane and length→sustain with a documented `MIDI_SUSTAIN_MIN_STEPS` threshold, plus a warning list for BPM changes the chart can't represent. We have **zero** MIDI code and no `moonchart` dependency (`hmm.json` has none; §12.4 already asked for `.sm`/`.ssc` import as a separate entry — this is the `.mid` sibling, and the same importer would serve SPE's OGG-pitch-detection path too). Effort: M.
 - **[P2] Character editor — "Anims from XML" (`CharacterEditorState.hx:697`, XML picker at `:1698-1710`).** Pick any `.xml`+`.png` pair from `images/characters/`, get every frame name, and **auto-generate the character's `anims` array** (and its `flip_x`/offsets guesses) in place. Our character editor requires typing each animation by hand. This is a small, self-contained, high-annoyance-saving feature. Effort: S–M.
-- **[P2] Stage editor with drag-and-drop (`StageEditorState.hx`, 4,550 lines).** §12.3 already lists "Stage Editor" as missing — this entry narrows it: theirs drags sprites directly (Ctrl+drag = select/drag even on a miss, click-again = next overlapping sprite, right-click = deselect), edits per-object scroll/scale/flip/anim/beat-sync, and round-trips `_editorMeta` (which character goes where). Their header comments document the traps worth copying into our implementation. Effort: L — **tracked in §12.3; this entry is the spec, not a second request.**
+- **[P2] ~~Stage editor with drag-and-drop.~~ NO LONGER A GAP** — `main` merged `editors/StageEditorState.hx` (1,674 lines) + `data/StageEditorCore.hx` (886) with real dragging (`StageEditorState.hx:1528-1547`), `Ctrl` for free-drag, grid snapping, and `_editorMeta` round-tripping (`:763-765`). Theirs is still bigger (4,550 lines) — the concrete deltas worth a follow-up are **multi-select boxes**, **right-click deselect / click-again-to-cycle overlapping sprites**, and per-object **beat-sync + scroll-factor editing**. Effort: S–M as a patch to what we now have.
 - **[P2] Dialogue pixel editor (`DialoguePixelEditorState.hx`, 670 lines).** Week 6 pixel dialogue, with **the real `DialogueBoxPixel` as the live preview** (WYSIWYG), portrait lookup from `images/custom_dialogs/dialogPortraits/`, add/delete/reorder lines, per-line expression, saves to `data/<song>/dialogue-pixel.json`. Our Master Editor has a plain Dialogue Editor but no pixel variant, and W6 is shipped content. Effort: M.
 - **[P3] Note Splash editor *parity*.** We ship `NoteSplashDebugState` (offset nudging, min/max FPS, double-tap ENTER save). SPE's `NoteSplashEditorState` (1,093 lines) additionally does: **`Convert TXT`** (turn a legacy `noteSplashes.txt` into the modern config), **Allow RGB / Allow Pixel** toggles, **`Add/Update` a named animation** with its own prefix, and a **`Color to Replace`** shader pass. The three that matter are `Convert TXT` (migration for old mods) and the two allowance flags. Effort: S–M.
 - **[P3] Chart editor — five missing tabs' worth of tooling.** Ours has 7 tabs (`ChartingState.hx:515-521`); theirs has 10 (`addChartingTab`, `addDataTab`, `addEventsTab`, `addNoteTab`, `addSectionTab`, `addSongTab`, **`addMetaTab`**, **`addFileTab`**, **`addEditTab`**, **`addViewTab`**). Concretely missing here:
   - **Edit tab** (the highest-value one): `Ctrl+C/X/V/A` on a note selection box, `Ctrl+Z`/`Ctrl+Y` undo **stacks** (`addUndoAction(ADD_NOTE/…)` with grouped actions), Cut/Copy/Paste of notes **and events**. We have `undos`/`redos` arrays and `ChartingSaveLoad.undo()` but **no copy/paste/cut at all** and no grouped undo. This is the most-used editing shortcut set in any charter. Effort: M.
   - **View tab**: waveform target switch (inst / player vox / opp vox), zoom in/out, **section jump list** (`Jump Section`), toggle grid/sections/events column.
-  - **Meta tab**: a song-meta form (see §27.10) with license/link rows.
+  - **Meta tab**: a song-meta form (see §28.10) with license/link rows.
   - **File tab**: **Import MIDI…**, **New Chart**, **Browse…** file pickers for chart/events JSON, drop-a-JSON-onto-the-window loading (`'Drop JSON file here to load chart or events'`).
-  - **Data tab**: `PreloadListSubState` — a per-chart **preload manifest editor** (see §27.10).
+  - **Data tab**: `PreloadListSubState` — a per-chart **preload manifest editor** (see §28.10).
   Effort: M for Edit+View (highest value), S each for the rest.
 - **[P3] Modchart Converter (`ModchartConverterState.hx`, 172 lines).** Paste an NVME/older-style Lua modchart on the clipboard, get a converted first pass with a preview pane, plus warnings about what it cannot translate ("reassign the steps, remove the NVMe radian helpers, `fieldYaw` is the Plus-side name"). Small, but it is the on-ramp for mods written against other modchart stacks. Effort: S.
 - **[P3] Scriptable menu states — "Menu Scripting".** With `HSCRIPT_ALLOWED`, `MainMenuState` loads `scripts/menus/MainMenuState/init.lua|.hx`, and `FreeplayStateSelector` picks `FreeplayState_Psych` or a script-supplied `FreeplayState` per launched mod (`backend/ScriptableState`, `scripting/ScriptedStates`). We have `psychlua/StateScripts` (overlay-only, `data/states/<State>.hx`) and `ModState`/`ModSubState` as blank hosts — **no way to replace a whole menu**, and no Lua menu scripting at all. §12.1 lists "scripted states" only as *script scopes*; this is the concrete mechanism worth copying, including their `FreeplayStateSelector` indirection pattern. Effort: M.
 
 ---
 
-### 27.3. OPTIONS & PREFERENCES
+### 28.3. OPTIONS & PREFERENCES
 
 Thirty-odd keys exist in SPE's `ClientPrefs` with **no counterpart here** (`grep` of our `ClientPrefs.hx` for each: all missing). Sorted by whether SPE actually *reads* them — several do not, and those are marked.
 
@@ -809,7 +1144,7 @@ Thirty-odd keys exist in SPE's `ClientPrefs` with **no counterpart here** (`grep
 - **[P2] `naughtynessResults`** — flips the Results screen to its "naughty" flavour (`ResultsState.hx:537`). **Already present here** (`grep naughtyness source/` finds it used in our Results screen) — listed only because a naive pref diff flags it. Skip.
 - **[P2] `showSustainSplash`/`hideSustainSplash` equivalent.** SPE has a pref that suppresses **sustain** splashes (`objects/SustainSplash.hx:64,85`) and a "Hide Sustain Splash" row in Visuals. We ship `play/objects/SustainSplash` (pooled via `ClientPrefs.maxSplashLimit`, `PlayState.hx:753`) but **no preference to turn it off** — on a hold-heavy phone chart it is pure cost. Effort: S.
 - **[P2] Modchart settings block — `camera3dEnabled`, `zScale`, `arrowPaths`, `styledPaths`, `pathBounds`, `optimizeHolds`, `holdsBehindStrum`, `holdEndScale`, `holdCache`, `holdAlphaSteps`, `colMods`, `modchartDebug`.** Their `options/ModchartSettingsSubState.hx` surfaces all twelve, and their renderer reads them (`modchart/backend/graphics/CtxRenderer.hx:183,246`, `renderers/HoldRenderer.hx:160,374`, `renderers/ArrowRenderer.hx:155`). Of these we already expose the equivalent of `camera3dEnabled`+`zScale` as our single `setModchartPerspective` (§12.5) — but **arrow-path rendering** (draw each note's trajectory as a line, with colour/alpha and a pixel bound) and the **hold rendering knobs** (behind-strum, end scale, cached alpha steps, per-lane mods) are genuinely absent: `grep` for `arrowPaths`/`holdsBehindStrum`/`holdEndScale` in `source/` returns nothing on our side. Port behind `ClientPrefs` rows defaulting to their low-risk values (`arrowPaths` off, it is the expensive one). Effort: M for paths, S for the hold knobs.
-- **[P2] Per-mod **defined** options — `ModSettingsSubState`.** A mod declares its own `Option` rows in `pack.json` (`settings: [...]`); the Mods menu shows a `SETTINGS` button that opens them and they persist per mod folder. **In Phoenix the whole thing is commented out** — `states/ModsMenuState.hx:16-19` imports it disabled and `:306-324` has the button in a `/* not yet */` block, while `:314` still references `ModSettingsSubState`. §22.5 has "pre-mod settings *profiles*" (player prefs per mod) which is a **different feature**; this entry is mod-*author*-defined settings. Uncomment, wire `backend.Mods` to read the `settings` array, and keep the existing "no settings" disabled state. Effort: S–M, very high value for modders.
+- **[P2] Per-mod **defined** options — `ModSettingsSubState`.** A mod declares its own `Option` rows in `pack.json` (`settings: [...]`); the Mods menu shows a `SETTINGS` button that opens them and they persist per mod folder. **In Phoenix the whole thing is still commented out** — `states/ModsMenuState.hx:324-336` has the button inside a `// not yet` block, `find source -iname '*ModSettings*'` returns nothing, and the only hit for the name is that dead code. **Re-verified after the `main` merge.** §22.5 has "pre-mod settings *profiles*" (player prefs per mod) which is a **different feature**; this entry is mod-*author*-defined settings. Uncomment, wire `backend.Mods` to read the `settings` array, and keep the existing "no settings" disabled state. Effort: S–M, very high value for modders.
 - **[P2] Mobile: `storageType` ('INTERNAL' | 'EXTERNAL_DATA') with `AndroidPermissionsState`, `infinityDisplay`, `showTouchPointer`, `showMobileDebugButtons`, `mobileReceptorAlign`, `controlsAlpha`, `extraButtons`, `hitboxPos`, `hitboxType`, `dynamicColors`.** Our `MobileOptionsSubState` has `mobileCAlpha`, `mobileCEx`, `mobileCExTaunt`, `mobileControlScale`, `androidTVNavigation`, `screensaver`, `hapticFeedback`, `androidNotifications`, `hitboxType`, `hitboxPos` — so we match or beat half of it. Missing: **a storage-location picker with a permission flow** (`android/platform/AndroidStorage.hx` already implements the whole SAF/content-URI layer and there is no UI in front of it — `ClientPrefs` has no `storageType`), a **touch pointer overlay**, a **receptor↔hitbox alignment** toggle, and **dynamic control colours** (pads tint themselves with the song's beat/health colour). These four are one `Option` row each plus wiring. Effort: S–M; the storage UI is the valuable one.
 - **[P3] `fullscreenMode` ('Borderless' | 'Borderless Fix' | 'Exclusive') + `instantWindowClose`.** Our §22.2 `windowMode` entry covers the first (three-way Windowed/Borderless/Fullscreen); note SPE distinguishes *two kinds of borderless*, which is the reason people ask for the row at all — fold that distinction into the §22.2 implementation rather than adding a parallel pref.
 - **[P3] `windowsGDIEffects` — a consent gate for the GDI/4th-wall payloads.** SPE refuses to run any GDI effect unless the player ticked the box (`options/GameplaySettingsSubState.hx:126`, enforced at `slushithings/windows/WindowsAPI.hx:35`). We own more GDI machinery than they do (`backend/GDIEffects.hx`, `psychlua/callbacks/GdiCallbacks.hx` — 20 functions, `WindowColorMode`) with **no consent gate at all**. Overlaps the "4th-wall effects" toggle in §2.1 — implement once there. Their `changeWindowBorderColorWithNoteHit` and `maxInstanceSlots` are **declared and never read** in SPE (the only reader of the latter is the value's own early loader, `Main.hx:67`), so ignore both. Effort: S.
@@ -818,17 +1153,17 @@ Thirty-odd keys exist in SPE's `ClientPrefs` with **no counterpart here** (`grep
 
 ---
 
-### 27.4. GAMEPLAY, HUD & CHART EVENTS
+### 28.4. GAMEPLAY, HUD & CHART EVENTS
 
 - **[P1] `Change Stage` chart event (instant, zero-drop).** SPE's `backend/StageChanger.hx` (621 lines) reconstitutes a stage **as plain `FlxSprite`s, never instantiating the stage classes** (which is what avoids the classic `Limo.update()` null crash), queues and **preloads every stage the chart will use onto a hidden slot**, then swaps on the event's beat with a blackout/char/cam kill-switch set (`noblack | nochars | nozoom | nocam | nogf`). We do **not** have this: `grep -rn "'Change Stage'" source/` finds exactly one hit, in `states/LoadingState.hx:329`, which merely *reads* the event to collect characters for preloading — **the event does nothing at runtime**. This is a concrete, documented feature with a known-hard problem already solved in the source. Port with credits. Effort: M.
 - **[P2] `Lyric Event`.** Value 1 = text, shown in a tweened `FlxText` at 72% height, empty clears it — the widget is built lazily only when the event is queued (`PlayState.hx:266` field, `:601-606` creation, `:2990` case). We have no lyrics anywhere. Effort: S. Pairs with §23.3's proposed `Add Subtitle` (same widget, so build the widget once).
 - **[P2] `Hurt Note` as a **chart event**. The note **type** already works here: `'Hurt Note'` is in our chart-editor list (`editors/ChartingState.hx:76`), the texture swap is `objects/Note.hx:673` with `noteSplashes/HURTnoteSplashes`, and the editor preview already applies `missHealth 0.3` / `hitCausesMiss` (`editors/helpers/EditorPlayStateHelpers.hx:105`). What is missing is the **event form** that SPE adds at `PlayState.hx:4285` — spawn hurt notes from an event timeline instead of authoring each note by hand. Small, and it reuses the type above. Effort: S.
 - **[P3] `Set Camera Bopping`, `Add Camera Zoom`, `Camera Follow Pos`, `Set GF Speed`, `Kill Henchmen`, `Play Animation`, `Play Sound`, `Alt Idle Animation` — all already here** (`play/helpers/PlayStateEvents.hx` accepts every one of these names). Listed so nobody re-ports them.
-- **[P3] "Character JSON Generator (Anims from XML)"** — the character-editor feature in §27.2; listed here because their README pitches it as a headline and it is *not* a content feature.
+- **[P3] "Character JSON Generator (Anims from XML)"** — the character-editor feature in §28.2; listed here because their README pitches it as a headline and it is *not* a content feature.
 
 ---
 
-### 27.5. MODCHART ENGINE
+### 28.5. MODCHART ENGINE
 
 Their `source/modchart/` is upstream Plus Engine (§5.3, ~60 modifiers, macro registry, event timeline, Lua/HScript modifiers, **standalone adapter**), and ours is a smaller native port (35 registered names in `modchart/ModifierRegistry.hx:56-90`). Concretely:
 
@@ -838,20 +1173,20 @@ Their `source/modchart/` is upstream Plus Engine (§5.3, ~60 modifiers, macro re
 
 ---
 
-### 27.6. UI KIT & THEMING
+### 28.6. UI KIT & THEMING
 
 - **[P2] Material Design 3 widget set (`backend/ui/md3/`, 12 files) + `OptionsMenuTheme` (365) + `ThemeAccentColorSubState` (586).** Buttons, boxes, chips, checkboxes, text fields, linear/wavy progress rings, loading indicator, a `NetworkCheckToast`, plus `MD3Theme`/`MD3Metrics`/`MD3ShapeTools` that derive a *full tonal palette* (primary/secondary/container/surface roles) from one accent colour, in light and dark. Our `objects/ui/CustomFlxUI.hx` is **243 lines** of FlxUI subclasses plus string-preset styling (`backend/IconStyle`, `scoreStyle`, `timeBarStyle`) — there is **no theme system and no accent-colour picker** (`grep -rn 'accentColor' source/` → nothing). Their `ThemeAccentColorSubState` even has HEX copy/paste and a live widget preview. This is the UI layer behind every screen they modernised, and it is the biggest *visual* gap in the review. Start with `MD3Theme` + `MaterialButton`/`MaterialTextField`/`MaterialWavyProgressIndicator` (that last one is what the Break Timer uses) rather than porting all twelve. Effort: L; `MD3Theme` alone (S) unlocks the accent-colour option.
 - **[P3] `objects/Cursor.hx` — a global cursor abstraction.** `Cursor.show/hide/toggle/set(CursorMode)/loadCustom`, cursor-mode **names** (`Default`, etc.) with a cache of custom BitmapData, wired into both the Plus and the V-Slice runtimes. We have per-state `FlxG.mouse.visible = true` scattered around plus `backend.PointingCursorLogic` for the menu finger — no named cursor modes and no custom-cursor loader. Their file is small and the official Funkin cursor art is what it uses. Effort: S.
 
 ---
 
-### 27.7. INTERNATIONALISATION ⭐
+### 28.7. INTERNATIONALISATION ⭐
 
 - **[P1] A real translation layer — 12 hardcoded language classes + a `.lang` fallback + an in-game language picker.** `backend/languages/` ships `EnUS, EsLA, EsES, PtBR, FrFR, DeDE, ItIT, NlNL, IdID, JpJP, ZhCN, ZhHK, RuRUS` (7,165 lines; **476 keys** in `EnUS` alone, incl. per-option `name_*`/`description_*` keys), loaded by `backend/Language.hx` with a phrase cache, a merged-mod-override path (`data/<locale>.lang`), `Language.getPhrase(key, fallback)` everywhere, a `LanguageSubState` picker, Android auto-detecting the device locale on first run, and `getFileTranslation`/`getTranslationPhrase` **also exposed to Lua** so mods can translate their own content. **Phoenix has nothing**: `grep -rn 'getPhrase' source/` → 0 hits, and the only trace of i18n is `ClientPrefs.locale = 'en'` (`ClientPrefs.hx:63`, **written and never read**) and one line in §12.4 (`TODO.md:234`, P3: *"Localization / translations. No language key system or locale files."*). This is under-prioritised at P3: Phx has a large Brazilian and Latin-American audience (the TODO itself is written with BR/LATAM idioms), and the whole system is *mechanical* to port — keys are already isolated in `Alphabet`/`Option` labels, and their language files are Apache-2.0 with named authors (`Hogich` for RU). Do it in two passes: **(a)** the `Language` loader + `getPhrase` + `LanguageSubState` + `en-US` only (S), **(b)** port the eleven other files as data (M, mostly transcription). Keep all thirteen, credit each translator in `CreditsState`. Effort: **M**, and it is the highest-value *non-editor* item in this review.
 
 ---
 
-### 27.8. PLATFORM / NATIVE
+### 28.8. PLATFORM / NATIVE
 
 - **[P1] Android **storage location** support (scoped vs public) with a permission state.** `mobile/backend/StorageUtil.hx` (898 lines of JNI) + `mobile/states/AndroidPermissionsState.hx` + a `storageType` pref, handling SDK-version differences, creating directories, **copying the user's existing `mods/` and `sm/` folders when the mode changes**, and a status string for the settings screen. We have a large native Android layer (`android/platform/AndroidStorage.hx` with the full SAF/`content://` implementation, `AndroidIntents`, `AndroidNotification`, `AndroidBridge`) — **more capable at the native level than theirs** — but nothing in Options selects a storage root and no migration copies mods. Ties into §11. Effort: M.
 - **[P2] `backend/ShaderCompatibility.hx` — runtime shader *dialect* rewriting.** At runtime it parses incoming GLSL and: strips uniform initialisers, rewrites `mainImage`/`iResolution` Shadertoy entry points into `main`, **localises OpenFL global initialisers**, warns on unsupported uniforms, normalises strict constructors, and adapts **`notitg:`- and `shadertoy:`-flagged** sources. This is what makes 0.6.3-era and Shadertoy-pasted mod shaders compile without the modder touching them. Our `shaders/RuntimeShaders.hx` is a hardcoded enum of *engine* shaders and `ErrorHandledShader` only catches errors — we do **not** rewrite third-party GLSL. Given our far larger shader catalogue and §23.2's ports, this is the missing compatibility half. Port `adaptRuntimeShaderCode` + the two dialect adapters. Effort: M (700 lines, mostly regex + string work).
@@ -862,43 +1197,43 @@ Their `source/modchart/` is upstream Plus Engine (§5.3, ~60 modifiers, macro re
 
 ---
 
-### 27.9. GAME CONTENT SHIPPED
+### 28.9. GAME CONTENT SHIPPED
 
-- **[P3] Two extra base-game songs: `ridge` and `smash`.** `assets/base_game/shared/data/{ridge,smash}/` (chart + `song_meta.json`, 28 KB each) — chart/editor test songs (both are empty-section skeletons in the tree), plus `song_meta.json` for all 29 songs. We ship 29 song folders in `assets/preload/data/` but **no `song_meta.json` anywhere** and no `ridge`/`smash`. Content itself is trivial; what matters is the **`song_meta.json` schema** — see §27.10.
-- **[P3] Note skins & HUD art:** `NOTE_assets-notitg` (a fifth note skin), `HURTNOTE_assets` + `HURTnoteSplashes` (we ship these — see §27.4), `holdCovers/` (their hold-splash art set; ours is `noteSplashes/holdSplashes/holdSplash*` per `play/objects/SustainSplash.hx:33`, so nothing is dangling here — cited only as art they ship and we do not), `comboBroken.png` + `pixelUI/comboBroken-pixel.png` (a **combo-broken** popup, absent here), `albumRoll/` + `Menu_Tracks.png` variants, `early.png`/`late.png`/`flawless.png` (we have early/late/perfect via `ratings/<style>/`), `miss.png`, `controllertype.png`, and per-locale image overrides under `assets/translations/shared/images/<locale>/`. The two worth adding to our asset set are the **note-skin #5** and **`comboBroken`**; the locale-override folder layout only matters with §27.7.
+- **[P3] Two extra base-game songs: `ridge` and `smash`.** `assets/base_game/shared/data/{ridge,smash}/` (chart + `song_meta.json`, 28 KB each) — chart/editor test songs (both are empty-section skeletons in the tree), plus `song_meta.json` for all 29 songs. We ship 29 song folders in `assets/preload/data/` but **no `song_meta.json` anywhere** and no `ridge`/`smash`. Content itself is trivial; what matters is the **`song_meta.json` schema** — see §28.10.
+- **[P3] Note skins & HUD art:** `NOTE_assets-notitg` (a fifth note skin), `HURTNOTE_assets` + `HURTnoteSplashes` (we ship these — see §28.4), `holdCovers/` (their hold-splash art set; ours is `noteSplashes/holdSplashes/holdSplash*` per `play/objects/SustainSplash.hx:33`, so nothing is dangling here — cited only as art they ship and we do not), `comboBroken.png` + `pixelUI/comboBroken-pixel.png` (a **combo-broken** popup, absent here), `albumRoll/` + `Menu_Tracks.png` variants, `early.png`/`late.png`/`flawless.png` (we have early/late/perfect via `ratings/<style>/`), `miss.png`, `controllertype.png`, and per-locale image overrides under `assets/translations/shared/images/<locale>/`. The two worth adding to our asset set are the **note-skin #5** and **`comboBroken`**; the locale-override folder layout only matters with §28.7.
 - **[P3] Week-1..7 stage polish** (BF/GF "Hey!" reactions on specific songs, Tank lightning flash, henchmen death anims, Week 6 HUD-hide during the cutscene, slower GF head-bop). Song-specific tuning rather than engine work; port only if we want FNF-vanilla parity marketing. Not a TODO item beyond a note.
 
 ---
 
-### 27.10. DATA FORMATS
+### 28.10. DATA FORMATS
 
 - **[P2] `song_meta.json` per song, with a real schema.** `{coverAlbum, albumId, card, songAuthor, artist, composer, freeplayWeekName, freeplaySongLength, freeplayPrevStart, freeplayPrevEnd, links{newgrounds,bandcamp,youtube,x}, licenses[], licenseText}` — read by `FreeplayState.hx:2703-2720` (album art, author, preview window, license badges, social links) and by the chart editor's Meta tab (`ChartingState.hx:4407`). This is the data behind their whole V-Slice-style Freeplay. Ours has **no meta file**: `assets/preload/data/<song>/` holds only chart JSONs + `notetypes.txt`, so author/preview-window/license/link data has nowhere to live. Cross-references §12.2's `meta.json` entry (CNE) — **implement both from one schema**, and keep it optional so existing mods load unchanged. Effort: M.
-- **[P2] `preload.json` / stage `preload` map.** A per-song and per-stage manifest of `{'images/spraycanAtlas/': 3, 'sounds/shots/': 3}` where the **number is a priority/keep-alive class** (2/3), consumed by their `PreloadListSubState` editor inside the chart editor's Data tab, and emitted into stage JSON as `"preload":{"images/abot/":3, …}`. It solves "this song needs 40 specific assets and I do not want them collected by scanning". Our `States.LoadingState` collects assets by *convention* (characters, stage file, Inst/Voices) — there is no manifest. Worth adding to the stage JSON (`data/StageData.hx` already has an optional `shaders:Array<String>` field, so the pattern exists) plus a small editor panel. Effort: M.
+- **[P2] Consume the stage `preload` map at load time.** `data/StageData.hx:36-40` now declares `objects`, `preload` and `_editorMeta`, the Stage Editor writes them (`data/StageEditorCore.hx:299`, `editors/helpers/StageEditorHelpers.hx:164`), and chat loading calls `buildPreloadQueue()` (`states/LoadingState.hx:164`) — but **nothing reads `stage.preload` to warm those images/sounds** (`grep -rn '\.preload' source/` finds only the writers). So the manifest round-trips and does nothing. The read side is what SPE's `PreloadListSubState` + loader pair provides: `{'images/spraycanAtlas/': 3}`, where the number is a quality/keep-alive class. Also missing: the in-editor list UI for it. Effort: M.
 - **[P3] `psych_v2` chart format + editor support (`Song.hx:395,531` auto-detect and convert `format:"psych_v2"` → v1, flat note/event/BPM arrays instead of sections) and the V-Slice import button (`states/editors/content/VSlice.hx` 490 lines, `PsychJsonPrinter` 220, plus `VSliceFreeplayState`).** Our `data/Song.hx:256-264` **already** handles `format` / psych-v1 (`psychV1Chart` flag, strips `format`, returns the object), so psych_v1 is covered — **psych_v2 and the V-Slice *import path*** are not, and V-Slice charts are what modern mods ship. Note §12.2 asks for CNE's `meta.json`+`charts/<diff>.json` layout; a V-Slice importer is the same work seen from the other side. Effort: M–L.
 
 ---
 
-### 27.11. ARCHITECTURE IDEAS WORTH TAKING
+### 28.11. ARCHITECTURE IDEAS WORTH TAKING
 
 - **[P2] Scripted classes with real native superclasses (`psychlua/backend/ScriptedClass.hx` 361 + `ScriptedNativeFactory.hx` 670).** An HScript file can declare `class MySprite extends FlxSprite { … }` and get an actual `FlxSprite`-compatible instance, with `FlxSprite`, `FlxSpriteGroup`, `FlxState`, `FlxSubState`, `MusicBeatState`, `MusicBeatSubstate` as supported parents, `IScriptCustomConstructor`/`hnew`, per-instance interpreters seeded from the parent's globals, and `IScriptSuperProxyProvider` for `super` calls. We build on `hscript-improved` (`hmm.json`), which *does* have a `ScriptedClass`-adjacent `ClassDecl` code path — but we register no supported-parent factory, no per-instance interpreter seeding and no `super` proxy, so a script class cannot extend a native sprite in practice. There is **no `addScriptedClass`-style surface anywhere in our tree** — a script cannot define a type, so `new` of a script-declared class is impossible and `addScriptedClass`-style mods cannot run. This is why SPE runs mods we cannot. Cross-reference §12.1's "HScript module system". Both trees now sit on `hscript-improved`, so this is **not a dependency swap** — it is the missing factory/seeding layer. Effort: L, and it is the deepest change in this review.
-- **[P3] Macro helpers — `ScriptClassExportMacro`, `ScriptedBridgeMacro`, `PlusFlxMacro`.** Compile-time generation of HScript-visible wrappers around Haxe classes, so "expose this class to scripts" is an annotation rather than hand-written glue. Interesting, but it depends on §27.11's first entry. Record only.
+- **[P3] Macro helpers — `ScriptClassExportMacro`, `ScriptedBridgeMacro`, `PlusFlxMacro`.** Compile-time generation of HScript-visible wrappers around Haxe classes, so "expose this class to scripts" is an annotation rather than hand-written glue. Interesting, but it depends on §28.11's first entry. Record only.
 - **[P3] Gameplay-changers as a **collection** with a public API — `addGameplayOption` / `removeGameplayOption` / `getOptionByName` / `getCurrentOption` / `selectOption(index)` / `rebuildOptionsVisuals()` + six companion callbacks (`onGameplayChangerCreatePost/Rebuild/SelectionChange/Reset/Accept/Back`).** Our `GameplayChangersHelpers` builds a fixed list. Note **their list is not better than ours** — they have 14 changers, we have 20+ including `bothsides`, `flip`, `onekey`, `jacks`, `randommode`, `stairmode`, `wavemode`, `thetrollingever`, and most of theirs (`opponentplay`, `opponentdrain`, `nodroppenalty`, `perfect`, `botplayType`) are **registered but never read in their `PlayState`** (`grep` finds only the option rows). Port the **API shape**, not the changers. Effort: S–M.
 - **[P3] `objects/GlobalLoadingOverlay` — a persistent Material spinner usable from anywhere.** A static `show/pulse/showPersistent/hide` overlay in the `openfl.display` layer, above every Flx state. Our `states.LoadingState` + `LoadingPieDial` are per-state. Useful for the mod-import, reload and chart-load paths. Effort: S.
 - **[P3] `TransitionManager` + `CustomFadeTransition` as a **scriptable** transition (`ScriptableSubstate.tryCreate('TransitionSubstate')`), with door/gradient/watermark/event-text/icon art and `cancelCurrentTransition()`.** Ours (`shaders/CustomFadeTransition.hx`) is a bare gradient + black bar and is not replaceable by a script. Replace-the-transition is a popular mod ask; tie it to §12.1's "scripted transitions". Effort: M.
 
 ---
 
-### 27.12. CHECKED AND **NOT** WORTH PORTING
+### 28.12. CHECKED AND **NOT** WORTH PORTING
 
-- **`2hot`-era song list and weeks.** Same as ours; `ridge`/`smash` are empty test charts (§27.9).
-- **Their `AccuracyPresets`-less rating table.** Their `backend/Rating.hx` is a *nice shape* (§27.3 Flawless entry) but it has no preset system at all — ours (`backend/AccuracyPresets.hx`, `Vanilla/Psych/Kade/ITG/Custom`) is strictly ahead. Do not replace ours.
+- **`2hot`-era song list and weeks.** Same as ours; `ridge`/`smash` are empty test charts (§28.9).
+- **Their `AccuracyPresets`-less rating table.** Their `backend/Rating.hx` is a *nice shape* (§28.3 Flawless entry) but it has no preset system at all — ours (`backend/AccuracyPresets.hx`, `Vanilla/Psych/Kade/ITG/Custom`) is strictly ahead. Do not replace ours.
 - **`backend/MemoryManager.hx` (458) / `backend/Cache.hx` / `AssetCache`.** Our `backend.AssetCache`, `MemoryLedger`, `MemoryProfiles`, `LowMemory`, `PoolStats`, `Paths.clearUnusedMemory` stack is broader and tested (`tests/haxe/*Memory*`). Skip.
 - **`debug/TraceDisplay.hx` (675) + `TraceButton`.** An in-game coloured trace console. Ours routes traces to `VLog` + `DebugLuaText` + the crash bundle; an on-screen console is §12.3's ImGui Console entry, which is a better target.
 - **`debug/FPSCounter` FPS "modes"** (Visible with/without Background, Basic/Extended Debug). We have `showFPS`, `legacyFPSUI`, `show1PercentLows`, `showRamUsage/Graph`, `debugInfo`, `FrameProfiler` — a superset. Skip.
 - **`objects/MusicPlayer` / `MusicPlayerPsych` preview players.** We have `music/MusicPlayer.hx` wired into `FreeplayState.hx:352` plus the auto-preview entry in §22.5. Skip.
 - **`objects/Watermark`, `objects/SustainSplash`, `objects/TypedAlphabet`, `objects/CheckboxThingie`, `objects/AttachedSprite/Text`, `objects/Alphabet`, `HealthIcon`, `MenuCharacter`.** All present here under the same names. Skip.
 - **`objects/StickerSubState`** (a sticker-board transition from a `stickerPack` JSON, `FlxTransitionableState` based). Fun, purely cosmetic, no consumer in their tree. Skip.
-- **`states/FreeplayState_Psych` / `VSliceFreeplayState` / `FreeplayStateSelector`.** Our `FreeplayState` already has a filter page, search, favourites, stars and per-mod filtering (§21.2 DONE) — richer than their legacy-Psych fallback. Only the **selector indirection** is worth taking, for §27.2's menu scripting.
+- **`states/FreeplayState_Psych` / `VSliceFreeplayState` / `FreeplayStateSelector`.** Our `FreeplayState` already has a filter page, search, favourites, stars and per-mod filtering (§21.2 DONE) — richer than their legacy-Psych fallback. Only the **selector indirection** is worth taking, for §28.2's menu scripting.
 - **`substates/OutdatedSubState` rework / `backend/Discord` (old RPC) / `backend/Achievements` placement.** Ours is newer (`backend/UpdateChecker`, `DiscordClient`, `AchievementsMenuState` + score API). Skip.
 - **Their Lua API *wrappers* that duplicate ours under another name:** `doTweenX/Y/Angle/Alpha/Zoom/Color`, `noteTween*`, `startTween`/`cancelTween`, `runTimer`/`cancelTimer`, `mouseClicked/Pressed/Released`, `keyboardJustPressed/Pressed/Released`, `anyGamepad*`, `gamepadAnalogX/Y`, `getRandomInt/Float/Bool`, `stringStartsWith/EndsWith`, `getProperty*`/`setProperty*`/`getObjectOrder`/`setObjectOrder`, `setHealthBarColors`/`setTimeBarColors`/`setObjectCamera`/`screenCenter`/`objectsOverlap`/`getPixelColor`, `makeLuaSprite`/`makeAnimatedLuaSprite`/`addAnimation*`/`playAnim`/`scaleObject`/`updateHitbox`, `makeLuaText`/`setText*`, `playMusic`/`playSound`/`fade*`/`getSoundVolume`…, `loadGraphic`/`loadFrames`, `precacheImage/Sound/Music`, `addLuaScript`/`removeLuaScript`/`addHScript`, `startDialogue`/`startVideo`, `cameraSetTarget`/`cameraShake`/`cameraFlash`/`cameraFade`, `setRatingPercent`/`setRatingName`/`setRatingFC`, `getMouseX/Y`, `characterDance`, `triggerEvent`, `startCountdown`/`endSong`/`restartSong`/`exitSong`/`getSongPosition`, `addCharacterToList`, `getScore`/`getMisses`/`getHits`/`addScore`/`addMisses`/`addHits`/`setScore`/`setMisses`/`setHits`/`setHealth`/`addHealth`/`getHealth`, the `luaSprite*`/`objectPlayAnimation` deprecated aliases, `getRunningScripts`/`callScript`/`isRunning`, `FlxColor`, `getColorFromHex`, `debugPrint`, `getMidpointX/Y`, `getScreenPositionX/Y`. **All present here** — verified one by one. Every one of these was in my initial 253-name diff and is a false positive from the `add_callback` vs `registerFunction` naming split; they are listed here so the next reviewer does not re-diff by hand.
 - **Their `addAnimationByIndicesLoop` deprecated alias.** We have `addAnimationByIndicesLoop` (`callbacks/SpriteCallbacks.hx`). Skip.
@@ -907,17 +1242,17 @@ Their `source/modchart/` is upstream Plus Engine (§5.3, ~60 modifiers, macro re
 
 ---
 
-### 27.13. SUGGESTED ORDER (highest value ÷ effort first)
+### 28.13. SUGGESTED ORDER (highest value ÷ effort first)
 
-1. **Free wins, one day each:** `Hurt Note` event (§27.4), `Lyric Event` (§27.4), the missing single-key `Option` rows — `dynamicCombo`, `nfRatingStyle`, `timeBump`, `showVersionText`, sustain-splash toggle, `badShitBreakCombo` (§27.3), `addToGroup`, `getColorFromString/Name`, `updateScoreText`, `getSoundPitch/setSoundPitch`, camera-scroll getters/setters (§27.1), and a `comboBroken` popup (§27.9).
-2. **Scripting parity pass:** script-local variables, state introspection, mobile bindings, clipboard/notification/screenshot bindings, `getChartNotes` (§27.1). Then `WindowTweens` + window geometry (§27.1.1) — transcription, big payoff for desktop mods.
-3. **i18n pass (a):** `backend.Language` + `getPhrase` + picker + `en-US` (§27.7). Then (b) the other twelve files as data.
-4. **`Change Stage` event + `StageChanger`** (§27.4) and **`ModSettingsSubState` uncomment** (§27.3) — both are already-written code sitting unused in one tree or the other.
-5. **Chart editor Edit/View tabs** (copy/cut/paste/select-all/grouped undo/section jump/waveform target) + **MIDI import** + **`song_meta.json` + Meta tab** (§27.2, §27.10).
-6. **`ShaderCompatibility`** (§27.8) — unlocks every legacy mod shader at once.
-7. **`HUD Editor`** (§27.2) — the single biggest feature in this review; do it after step 5 so it can reuse the editor's undo/selection work.
-8. **Scripted classes** (§27.11) — a dependency decision as much as a port; scope it separately.
-9. **Material 3 theme + accent colour** (§27.6) and **Android storage location** (§27.8).
-10. **Modchart modifier batch + scripted modifiers** (§27.5), **Cover Maker** and **Event Creator** (§27.2) as the long tail.
+1. **Free wins, one day each:** `Hurt Note` event (§28.4), `Lyric Event` (§28.4), the missing single-key `Option` rows — `dynamicCombo`, `nfRatingStyle`, `timeBump`, `showVersionText`, sustain-splash toggle, `badShitBreakCombo` (§28.3), `addToGroup`, `getColorFromString/Name`, `updateScoreText`, `getSoundPitch/setSoundPitch`, camera-scroll getters/setters (§28.1), and a `comboBroken` popup (§28.9).
+2. **Scripting parity pass:** script-local variables, state introspection, mobile bindings, clipboard/notification/screenshot bindings, `getChartNotes` (§28.1). Then `WindowTweens` + window geometry (§28.1.1) — transcription, big payoff for desktop mods.
+3. **i18n pass (a):** `backend.Language` + `getPhrase` + picker + `en-US` (§28.7). Then (b) the other twelve files as data.
+4. **`Change Stage` event + `StageChanger`** (§28.4) and **`ModSettingsSubState` uncomment** (§28.3) — both are already-written code sitting unused in one tree or the other.
+5. **Chart editor Edit/View tabs** (copy/cut/paste/select-all/grouped undo/section jump/waveform target) + **MIDI import** + **`song_meta.json` + Meta tab** (§28.2, §28.10).
+6. **`ShaderCompatibility`** (§28.8) — unlocks every legacy mod shader at once.
+7. **`HUD Editor`** (§28.2) — the single biggest feature in this review; do it after step 5 so it can reuse the editor's undo/selection work.
+8. **Scripted classes** (§28.11) — a dependency decision as much as a port; scope it separately.
+9. **Material 3 theme + accent colour** (§28.6) and **Android storage location** (§28.8).
+10. **Modchart modifier batch + scripted modifiers** (§28.5), **Cover Maker** and **Event Creator** (§28.2) as the long tail.
 
 Nothing in this section should land without an entry in `docs/` (+ `website/docs/` where it is a subsystem), a `tests/haxe/run-*.sh` spec for the pure-logic half, and per-feature credits as the rule at the top of this file requires.

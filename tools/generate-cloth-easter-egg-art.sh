@@ -8,6 +8,12 @@
 #   assets/preload/images/clothFlag.png
 #   assets/preload/images/clothRope.png
 #
+# The scene normally cuts its pieces out of the menu backdrop
+# (assets/preload/images/menuBG.png). These two files are the fallback for a
+# build or theme without that backdrop, and what `ClothEasterEggLogic.TEXTURE =
+# BACKDROP_CLOTH_ART` draws instead, so keep their sizes in sync with
+# ClothEasterEggLogic.BANNER_WIDTH/HEIGHT and ROPE_WIDTH/HEIGHT.
+#
 # Both images are built from Phoenix's own art (the shipped phoenix_logo.png and
 # assets/fonts/vcr.ttf) plus drawn shapes, so nothing is copied from the
 # HaxeFlixel demo. They sit at the root of `assets/preload/images/` on purpose:
