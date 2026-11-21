@@ -10,6 +10,8 @@ Sections 13–20 are a second backlog pass written against the current tree. Eve
 
 §32 is the same kind of filtered comparison for **Super Plus Engine** (`atox07/FNF-Super-Plus-Engine`, reviewed 2026-11-09): mod APIs, editors, options, platform/native work, data formats and i18n, with the dead toggles in that fork explicitly listed so they are not mistaken for features.
 
+§33 catalogues **candidate Haxe libraries** (reviewed 2026-11-21) audited against `hmm.json`, `project.hxp`, `SIZE.md`, Apache-2.0 license compatibility, and Phoenix's single-branch Desktop/Mobile/HTML5 target matrix, plus libraries explicitly ruled out to avoid dependency bloat.
+
 _quick reminder that everything i say here that is a "port" of [x] feature of the [y] engine, i will port WITH THE APROPRIATED CREDITS!!!_
 
 _every feature ported MUST be enabled by default (unless specified beforehand) and MUST have a toggle to enable/disable or to change its options_
@@ -391,7 +393,7 @@ There is real infrastructure to extend: `tests/haxe/*Spec.hx` (layout, chart tim
 
 ### Port other Psych Engine fork features
 
-Read `docs/research/psych-fork-engine-changes.md`, §24 (JS-Engine `whoisitlolxd` fork triage, 2026-11-19), §25 (Psych Engine Extra Keys + review), §26 (JS-Engine binary-chart / "GPU note backend" review, 2026-11-19), §27 (Mixtape Engine feature-gap review, 2026-11-21) and §31 (SeiunEngine full comparison, 2026-11-21).
+Read `docs/research/psych-fork-engine-changes.md`, §24 (JS-Engine `whoisitlolxd` fork triage, 2026-11-19), §25 (Psych Engine Extra Keys + review), §26 (JS-Engine binary-chart / "GPU note backend" review, 2026-11-19), §27 (Mixtape Engine feature-gap review, 2026-11-21), §31 (SeiunEngine full comparison, 2026-11-21), §32 (Super Plus Engine parity review) and §33 (candidate Haxelibs & ecosystem dependencies, 2026-11-21).
 
 ---
 
@@ -1580,3 +1582,39 @@ Their `source/modchart/` is upstream Plus Engine (§5.3, ~60 modifiers, macro re
 10. **Modchart modifier batch + scripted modifiers** (§32.5), **Cover Maker** and **Event Creator** (§32.2) as the long tail.
 
 Nothing in this section should land without an entry in `docs/` (+ `website/docs/` where it is a subsystem), a `tests/haxe/run-*.sh` spec for the pure-logic half, and per-feature credits as the rule at the top of this file requires.
+
+---
+
+## 33. CANDIDATE HAXELIBS & ECOSYSTEM DEPENDENCIES (2026-11-21)
+
+Audited against Phoenix Engine's current `hmm.json` (20 dependencies), `project.hxp`, `SIZE.md`, **Apache-2.0** license requirements (MIT / BSD / Apache-2.0 only), and single-branch multi-target builds (`cpp` Desktop + Android/iOS + `html5`). Overlaps with §0–§32 are cross-referenced rather than duplicated.
+
+### 33.1. High-Payoff Roadmap Libraries
+
+- **[P1] `moonchart` ([`MaybeMaru/moonchart`](https://github.com/MaybeMaru/moonchart) — MIT, pure Haxe, all targets).** Converts rhythm-game charts across **FNF** (Legacy, Psych, V-Slice, Codename), **osu!mania** (`.osu`/`.osz`), **StepMania** (`.sm`/`.ssc`), **Quaver** (`.qua`/`.qp`), Guitar Hero (`.chart`), and MIDI (`.mid`). Directly unlocks cross-game import/export in `ChartingState` and CNE/V-Slice chart loading (§12.2, §31.4, §32.10) with zero native NDLL overhead. Note Frozen Engine's `ChartConvertCore.hx` fixes for >7K lane wrapping and `offsetHolds` (`docs/research/psych-fork-engine-changes.md` §5.4). Effort: M.
+- **[P2] `rulescript` ([`Kriptel/RuleScript`](https://github.com/Kriptel/RuleScript) — MIT) or `hscript-iris` ([`crowplexus/hscript-iris`](https://github.com/crowplexus/hscript-iris) — MIT, pure Haxe, all targets).** Modern HScript upgrades over `CodenameCrew/hscript-improved` adding scripted `class`/`enum` declarations, `import ... as`, `using`, package/module sharing, string interpolation, and stricter `#if` preprocessor support — advancing §12.1 (*HScript module system*) and §32.11 (*Scripted classes*). Keep all reflection/imports gated through `ModSecurity` and `ScriptSecurityScanner`. Effort: M–L.
+- **[P2] `hxgamejolt-api` ([`MAJigsaw77/hxgamejolt-api`](https://github.com/MAJigsaw77/hxgamejolt-api) — MIT, pure Haxe, all targets).** Actively maintained GameJolt API bindings by MAJigsaw77 (same maintainer as Phoenix's `hxdiscord_rpc`, `hxnativefiledialog`, and `hxgamemode`), replacing the legacy Screwed Engine `GJClient.hx` snippet (§0) and unlicensed/unmaintained `tentools` (§27.8). Effort: S–M.
+- **[P2] `flxgif` ([`MAJigsaw77/flxgif`](https://github.com/MAJigsaw77/flxgif) — MIT, all targets).** Animated `.gif` playback directly on Flixel sprites. Pairs with the planned in-game GameBanana mod browser (§0, §31.3) so mod thumbnails, avatars, and banners render without converting GIFs to Sparrow atlases. Effort: S.
+- **[P2] `FunkinModchart` ([`TheoDevelops/FunkinModchart`](https://github.com/TheoDevelops/FunkinModchart) — Apache-2.0, Flixel `cpp`/`html5`).** Implements true 3D arrow meshes and subdivided sustain-strip triangle rendering (`FlxDrawTrianglesItem`) for HaxeFlixel VSRGs. Either adopt directly or use as an Apache-2.0 reference for `modchart/SustainStripGeom.hx` so bent/reversed modifiers in `source/modchart/` no longer detach rigid sustain sprites (§28). Effort: M–L.
+
+### 33.2. UI, Editors, Localization & Vector Assets
+
+- **[P2] `haxeui-core` + `haxeui-flixel` ([`haxeui/haxeui-core`](https://github.com/haxeui/haxeui-core), [`haxeui/haxeui-flixel`](https://github.com/haxeui/haxeui-flixel) — MIT, all targets).** `project.hxp` (`configureCompileDefines`) already defines `haxeui_no_mouse_reset`, `haxeui_focus_out_on_click`, and `haxeui_dont_impose_base_class` without the library installed. Provides dockable panels, tree views, rich tooltips (§0), color pickers, and scroll containers for `StageEditorState`, `ChartingState`, and `ModchartLabState`, reducing reliance on `flixel-ui 2.6.0` (which currently requires 5 overrides under `source/source-haxelib-patches/flixel/addons/ui/`). Effort: L.
+- **[P2] `firetongue` ([`larsiusprime/firetongue`](https://github.com/larsiusprime/firetongue) — MIT) or `kotoba` ([`MAJigsaw77/kotoba`](https://github.com/MAJigsaw77/kotoba) — MIT, pure Haxe, all targets).** Localization/i18n frameworks (§12.4, §31.2, §32.7). `firetongue` provides TSV/CSV/JSON translation tables, pluralization, and **per-locale font replacement rules** (pairing naturally with `AlphabetFont` and §0's custom game-wide font goal); `kotoba` offers a lightweight XML-based alternative if minimal footprint is preferred. Effort: M.
+- **[P3] `svg` ([`openfl/svg`](https://github.com/openfl/svg) — MIT, pure Haxe, all targets).** Rasterizes vector `.svg` assets into `BitmapData` at runtime at the exact target DPI (`backend/ScreenDensity.hx`, widescreen `16:10` / `9:17`), keeping UI/editor icons crisp across 4K desktop and mobile without inflating APK/ZIP asset size (`SIZE.md`). Effort: S–M.
+- **[P3] `hxluau` ([`ShadowEngineTeam/hxluau`](https://github.com/ShadowEngineTeam/hxluau) — MIT, `cpp`).** Optional Luau scripting backend alongside `hxluajit` for built-in VM sandboxing, faster cold start on JIT-restricted targets (iOS), and optional typed Lua scripts. Phoenix's `FunkinCrew/hxcpp` C++17 + `ml64` toolchain setup in `BUILDING.md` already documents Luau compatibility. Effort: L.
+
+### 33.3. Performance, Binary Formats, Networking & Testing
+
+- **[P2] `json2object` ([`elnabo/json2object`](https://github.com/elnabo/json2object) — MIT, compile-time macros, all targets).** Generates reflection-free, type-safe JSON parsers and writers at compile time with line/column schema validation errors. Ideal for `SwagSong`, `CharacterFile`, `StageData`, and `WeekData` — cutting chart parse/reflection overhead (§8) and safely catching malformed mod JSONs (§6) even with `-dce no`. Effort: M.
+- **[P2] `hxbit` ([`HeapsIO/hxbit`](https://github.com/HeapsIO/hxbit) — BSD, pure Haxe, all targets).** Fast, compact macro-driven binary serialization. Fits frame-accurate **Replays** (§14, `phoenix://replay/<id>` in §11) and binary chart caching (§26) without platform-specific C++ `mmap` glue. Effort: M.
+- **[P3] `hxWebSockets` ([`ianharrigan/hxWebSockets`](https://github.com/ianharrigan/hxWebSockets) — MIT) & `colyseus` ([`colyseus/colyseus-hx`](https://github.com/colyseus/colyseus-hx) — MIT, `cpp`/`html5`).** Cross-platform WebSockets and multiplayer room state synchronization across Desktop, Android/iOS, and `html5` if opt-in online multiplayer or live spectator rooms (§31.3) are built. Effort: L (with online feature work).
+- **[P3] `hxdr_libs` ([`MAJigsaw77/hxdr_libs`](https://github.com/MAJigsaw77/hxdr_libs) — MIT, `cpp`).** Single-header native `dr_wav` / `dr_flac` / `dr_mp3` audio decoders for Lime, handy for importing `.wav`/`.flac`/`.mp3` audio directly into desktop editors and chart converters (§31.4). Effort: S–M.
+- **[P3] `utest` ([`haxe-utest/utest`](https://github.com/haxe-utest/utest) — MIT, all targets incl. `--interp`).** Lightweight unit/async assertion and fixture runner compatible with `haxe --interp`, complementing Phoenix's Haxe-only engine spec requirement (`tests/haxe/*Spec.hx` in `AGENTS.md` §7). Effort: S.
+
+### 33.4. Libraries Explicitly Ruled Out & Integration Rules
+
+- **Skip `polymod` ([`larsiusprime/polymod`](https://github.com/larsiusprime/polymod)):** Overlaps Phoenix's `Mods` + `Paths` + `ModZipInstaller` + `PlatformSupport` pipeline; implement the narrow `_polymod_meta.json` folder importer from §29 instead of hooking OpenFL asset libraries.
+- **Skip `extension-androidtools` / `hxCodec` / `extension-webm`:** Redundant with `quack.fnf.phoenix.android.*` Java/JNI extensions (`source/android/`) and `hxvlc`.
+- **Integration checklist (`AGENTS.md` §8 rule 7):** Every added library must be (1) pinned in `hmm.json`, (2) added across all three setup script dialects (`setup/windows.{bat,ps1,sh}` and `setup/unix.{sh,ps1,bat}`) so `python3 tools/check_dependencies.py` passes, and (3) gated in `project.hxp` (`configureHaxelibs()`) behind a `FeatureFlag` (and `isCPP()` when native-only) so `html5` and compact CI builds keep compiling cleanly.
+
