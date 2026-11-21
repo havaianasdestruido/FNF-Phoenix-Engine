@@ -28,23 +28,34 @@ through every piece; `ESC` (or the gamepad/virtual pad back button) returns to
 the menu, which was never unloaded and therefore keeps its music, tips and
 selected item.
 
+The four pieces are **cut out of the menu's own backdrop**
+(`images/menuBG.png`), so the cloth is made of the art the menu is drawn with:
+a mod that replaces that image changes both at once. Each piece gets its own
+window of the texture — the banners take different thirds of it, the ropes the
+left and right columns — cut at the piece's on-screen size and never outside the
+texture. A build without a backdrop, or `backend.ClothEasterEggLogic.TEXTURE`
+set to `BACKDROP_CLOTH_ART`, falls back to the bundled `clothFlag`/`clothRope`
+art.
+
 Two details are worth knowing when touching this code:
 
 - **The menu is the parent state.** The scene is a substate, not a state switch,
   so nothing has to be rebuilt afterwards. `MainMenuState.update()` skips its own
   navigation while `clothSceneOpen` is true, so the scene's pointer and close key
   cannot also scroll the list behind it.
-- **Layout lives outside Flixel.** Positions, gravity, wind and the hidden key
-  code are in `backend.ClothEasterEggLogic`, which imports no Flixel/OpenFL/Lime
-  code and is checked by `tests/haxe/ClothEasterEggSpec.hx`. The spec verifies
-  the code (timeout, restart letter, lower-case input), the wind clamping, the
-  reduced-motion gravity and that all four pieces fit inside the centered
-  1280-pixel content column at 4:3, 16:9, ultrawide and portrait viewports.
+- **Layout lives outside Flixel.** Positions, gravity, wind, the texture choice,
+  the crop rectangles and the hidden key code are in
+  `backend.ClothEasterEggLogic`, which imports no Flixel/OpenFL/Lime code and is
+  checked by `tests/haxe/ClothEasterEggSpec.hx`. The spec verifies the code
+  (timeout, restart letter, lower-case input), the wind clamping, the
+  reduced-motion gravity, that all four pieces fit inside the centered
+  1280-pixel content column at 4:3, 16:9, ultrawide and portrait viewports, and
+  that every crop is a valid rectangle inside its texture.
 
 `ClientPrefs.reducedMotion` lowers the mesh gravity instead of disabling the
 effect, and `ClientPrefs.globalAntialiasing` is passed through to the pieces.
 
-Full details, the file list and the provenance of the two textures are in the
+Full details, the file list and the provenance of the textures are in the
 [cloth easter egg design note](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/blob/main/docs/CLOTH_EASTER_EGG.md).
 
 ## Adding another one
