@@ -39,6 +39,49 @@ tweenShaderFloatArray('tint', 'boyfriend', 'uTint', {0.2, 0.7, 1.0}, 0.8, 'linea
 `onTweenCompleted(tag)` callback and can be cancelled with the normal tween
 cancellation API.
 
+## Bundled shader files
+
+`mods/shaders/` is the shared shader folder: any mod can load these files by
+name with `initLuaShader`, and a mod's own `shaders/` folder takes precedence.
+It holds eight fragment shaders from the `example_mods/shaders/` folder of
+[FixedData/fnf-ourpleV3-public](https://github.com/FixedData/fnf-ourpleV3-public)
+(Apache-2.0), copied unchanged. Some are Shadertoy ports; their headers keep the
+original credits.
+
+| Name | Uniforms to drive | Notes |
+|---|---|---|
+| `VHS` | `iTime`, `active` | Tape wobble and noise; `active` false leaves the picture unchanged |
+| `ascii` | `active` | Bitmap-to-ASCII character render; `active` false leaves the picture unchanged |
+| `chromwarpgofish` | `iTime`, `noiseTex` | Warped CRT look with scanlines; `noiseTex` is a sampler, set with `setShaderSampler2D` |
+| `crtmatrix` | `iTime`, `active` | CRT with shadow mask, scanlines and blink; `active` false leaves the picture unchanged |
+| `fishlens` | `power`, `chromo` | Fish-eye lens with chromatic split; `power` 1.0 is neutral, `chromo` 0 is no split |
+| `mosaic` | `pixel` | Pixelate; `pixel` is the block size in texels |
+| `vectorupscale` | none | Vector-style upscale (MIT, Ethan Alexander Shulman, per its header) |
+| `vignetteGlitch` | see below | Glitch blocks with a vignette |
+
+The engine does not advance `iTime` for you. Drive it from `onUpdate`:
+
+```lua
+local clock = 0
+
+function onCreatePost()
+    initLuaShader('VHS')
+    setSpriteShader('boyfriend', 'VHS')
+    setShaderBool('boyfriend', 'active', true)
+end
+
+function onUpdate(elapsed)
+    clock = clock + elapsed
+    setShaderFloat('boyfriend', 'iTime', clock)
+end
+```
+
+`vignetteGlitch.frag` declares its tuning values as uniform initializers
+(`uniform float time = 0.8;`), which GLSL does not allow. A strict compiler
+rejects the file, and drivers may ignore the defaults. It has not been run in
+game. Before relying on it, remove those initializers and set `time`, `prob`,
+`vignetteIntensity`, `size`, `grid`, `blocks` and `glitchScale` from Lua.
+
 ## Imports
 
 A shader source can reuse GLSL files from its shader folder or its `include/`
