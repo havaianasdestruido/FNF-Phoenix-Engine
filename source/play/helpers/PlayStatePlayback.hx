@@ -91,6 +91,9 @@ class PlayStatePlayback
 			if (state.vocals != null && state.vocals.volume > 0 && state.vocals.volume != vocalVolume) state.vocals.volume = vocalVolume;
 			if (state.opponentVocals != null && state.opponentVocals.volume > 0 && state.opponentVocals.volume != vocalVolume)
 				state.opponentVocals.volume = vocalVolume;
+			// Extra vocal stems follow the same rule: audible ones get the
+			// override, a stem muted by a miss stays muted.
+			PlayStateExtraVocals.enforceVolume(state.extraVocals, vocalVolume);
 		}
 	}
 
@@ -114,17 +117,24 @@ class PlayStatePlayback
 			#if FLX_PITCH
 			state.vocals.pitch = state.playbackRate;
 			state.opponentVocals.pitch = state.playbackRate;
+			PlayStateExtraVocals.setPitchAll(state.extraVocals, state.playbackRate);
 			#end
 		}
 		state.vocals.play();
 		state.opponentVocals.play();
-		if (state.ffmpegMode) state.vocals.volume = state.opponentVocals.volume = 0;
+		PlayStateExtraVocals.playAll(state.extraVocals);
+		if (state.ffmpegMode)
+		{
+			state.vocals.volume = state.opponentVocals.volume = 0;
+			PlayStateExtraVocals.setVolumeAll(state.extraVocals, 0);
+		}
 		else if (ClientPrefs.overrideVocalsVolume)
 		{
 			// A stem muted by a miss stays muted; only the audible ones follow the override.
 			final vocalVolume:Float = vocalsVolume(state);
 			if (state.vocals.volume > 0) state.vocals.volume = vocalVolume;
 			if (state.opponentVocals.volume > 0) state.opponentVocals.volume = vocalVolume;
+			PlayStateExtraVocals.enforceVolume(state.extraVocals, vocalVolume);
 		}
 		Conductor.songPosition = time;
 		PlayStateMetronome.seek(state);
@@ -144,17 +154,25 @@ class PlayStatePlayback
 			FlxG.sound.music.onComplete = PlayStatePlayback.finishSong.bind(state);
 			state.vocals.play();
 			state.opponentVocals.play();
-			if (ClientPrefs.overrideVocalsVolume) state.vocals.volume = state.opponentVocals.volume = vocalsVolume(state);
+			PlayStateExtraVocals.playAll(state.extraVocals);
+			if (ClientPrefs.overrideVocalsVolume)
+			{
+				state.vocals.volume = state.opponentVocals.volume = vocalsVolume(state);
+				PlayStateExtraVocals.setVolumeAll(state.extraVocals, vocalsVolume(state));
+			}
 		} else {
 			FlxG.sound.playMusic(state.inst._sound, 0, false);
 			state.vocals.play(); state.vocals.volume = 0;
 			state.opponentVocals.play(); state.opponentVocals.volume = 0;
+			PlayStateExtraVocals.playAll(state.extraVocals);
+			PlayStateExtraVocals.setVolumeAll(state.extraVocals, 0);
 		}
 		if (!state.ffmpegMode && (!state.trollingMode || PlayState.SONG.song.toLowerCase() != 'anti-cheat-song'))
 			FlxG.sound.music.onComplete = PlayStatePlayback.finishSong.bind(state);
 
 		FlxG.sound.music.pitch = state.playbackRate;
 		state.vocals.pitch = state.opponentVocals.pitch = state.playbackRate;
+		PlayStateExtraVocals.setPitchAll(state.extraVocals, state.playbackRate);
 
 		setSongTime(state, Math.max(0, PlayState.startOnTime - 500) + Conductor.offset);
 		PlayState.startOnTime = 0;
@@ -282,6 +300,7 @@ class PlayStatePlayback
 		debug.FrameProfiler.beginAudio();
 		FlxG.sound.music.pitch = state.playbackRate;
 		state.vocals.pitch = state.opponentVocals.pitch = state.playbackRate;
+		PlayStateExtraVocals.setPitchAll(state.extraVocals, state.playbackRate);
 		if(!(Conductor.songPosition > 20 && FlxG.sound.music.time < 20))
 		{
 			pauseVocals(state);
@@ -297,6 +316,7 @@ class PlayStatePlayback
 			FlxG.sound.music.play();
 			for (i in [state.vocals, state.opponentVocals])
 				if (i != null && i.time <= i.length) i.play();
+			PlayStateExtraVocals.playAll(state.extraVocals);
 		}
 		else
 		{
@@ -308,6 +328,7 @@ class PlayStatePlayback
 				FlxG.sound.music.play();
 				for (i in [state.vocals, state.opponentVocals])
 					if (i != null && i.time <= i.length) i.play();
+				PlayStateExtraVocals.playAll(state.extraVocals);
 			}
 		}
 		debug.FrameProfiler.endAudio();
@@ -318,18 +339,21 @@ class PlayStatePlayback
 		for (i in [state.vocals, state.opponentVocals])
 			if (i != null && i.time <= FlxG.sound.music.length)
 				i.resume();
+		PlayStateExtraVocals.resumeAll(state.extraVocals);
 	}
 	public static function pauseVocals(state:PlayState)
 	{
 		for (i in [state.vocals, state.opponentVocals])
 			if (i != null && i.time <= FlxG.sound.music.length)
 				i.pause();
+		PlayStateExtraVocals.pauseAll(state.extraVocals);
 	}
 	public static function setVocalsTime(state:PlayState, time:Float)
 	{
 		for (i in [state.vocals, state.opponentVocals])
 			if (i != null && i.time < state.vocals.length)
 				i.time = time;
+		PlayStateExtraVocals.setTimeAll(state.extraVocals, time);
 	}
 
 	public static function finishSong(state:PlayState, ?ignoreNoteOffset:Bool = false):Void
@@ -338,6 +362,7 @@ class PlayStatePlayback
 			state.updateTime = false;
 			FlxG.sound.music.volume = 0;
 			state.vocals.volume = state.opponentVocals.volume = 0;
+			PlayStateExtraVocals.setVolumeAll(state.extraVocals, 0);
 			FlxG.mouse.unload(); // just in case you changed it beforehand
 			pauseVocals(state);
 			if(!state.ffmpegMode){
@@ -436,6 +461,12 @@ class PlayStatePlayback
 
 	public static function endSong(state:PlayState):Void
 	{
+		// The device benchmark is a fixed test run: no highscores, no stats,
+		// no achievements, no week/results bookkeeping — straight to the report.
+		if (backend.Benchmark.active) {
+			backend.Benchmark.finish(state);
+			return;
+		}
 		if (state.mobileControls != null) state.mobileControls.visible = false;
 		if (state.virtualPad != null) state.virtualPad.visible = false;
 		state.timeBarBG.visible = false;
@@ -585,6 +616,7 @@ class PlayStatePlayback
 		PlayState.instance.paused = true; // For lua
 		FlxG.sound.music.volume = 0;
 		state.vocals.volume = state.opponentVocals.volume = 0;
+		PlayStateExtraVocals.setVolumeAll(state.extraVocals, 0);
 
 		FlxTransitionableState.skipNextTransOut = noTrans;
 		FlxG.resetState();

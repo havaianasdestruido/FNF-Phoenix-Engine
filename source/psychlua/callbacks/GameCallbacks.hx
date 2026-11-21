@@ -41,6 +41,8 @@ class GameCallbacks
 				PlayState.instance.vocals.pause();
 				PlayState.instance.vocals.volume = 0;
 			}
+			play.helpers.PlayStateExtraVocals.setVolumeAll(PlayState.instance.extraVocals, 0);
+			play.helpers.PlayStateExtraVocals.pauseAll(PlayState.instance.extraVocals);
 		});
 		//score, miss, and hit helper functions
 		FunkinLua.registerFunction("addScore", function(value:Float = 0) {

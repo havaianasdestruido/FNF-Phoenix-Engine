@@ -5,6 +5,7 @@ import backend.ScreenLayout;
 import backend.ViewportVisuals;
 import backend.CoolUtil;
 import backend.DiscordClient;
+import backend.ModHealth;
 import backend.ModSecurity;
 import backend.MusicBeatState;
 import backend.Paths;
@@ -41,6 +42,12 @@ class ModsMenuState extends MusicBeatState
 	var modRestartText:FlxText;
 	/** "ModSecurity: ON/OFF" for the selected mod; Mod Info (the gear button) changes it. */
 	var modSecurityText:FlxText;
+	/**
+	 * "Why did it break?" summary of the selected mod (`backend.ModHealth`): the
+	 * counts of its script error, invalid `pack.json`, blocked script rules and
+	 * missing assets, or "No problems detected". Mod Info has the details.
+	 */
+	var modHealthText:FlxText;
 	var modsList:ModsList = null;
 
 	var bgList:FlxSprite;
@@ -85,7 +92,7 @@ class ModsMenuState extends MusicBeatState
 		if (shift != 0)
 		{
 			for (sprite in [bgList, bgTitle, bgDescription, bgButtons, icon, modName,
-				modDesc, modRestartText, modSecurityText, noModsTxt, buttonReload, buttonEnableAll, buttonDisableAll, buttonImport])
+				modDesc, modRestartText, modSecurityText, modHealthText, noModsTxt, buttonReload, buttonEnableAll, buttonDisableAll, buttonImport])
 				if (sprite != null) sprite.x += shift;
 			for (button in buttons) button.x += shift;
 			if (modsGroup != null && modsGroup.length > 0) updateItemPositions();
@@ -109,6 +116,10 @@ class ModsMenuState extends MusicBeatState
 		Mods.currentModDirectory = modsList.all[0] != null ? modsList.all[0] : '';
 		// Mod Info shows each mod's script sandbox state: read modSecurity.txt and pack.json afresh.
 		ModSecurity.reloadPlayerOverrides();
+		// The "what broke" report is per folder and from this session: drop the
+		// entries of folders that are no longer installed, so an uninstalled and
+		// later reused folder name does not inherit an old failure.
+		ModHealth.keepOnly(modsList.all);
 
 		#if DISCORD_ALLOWED
 		// Updating Discord Rich Presence
@@ -269,6 +280,12 @@ class ModsMenuState extends MusicBeatState
 		modSecurityText = new FlxText(footerTextX, modInfoY + 32, 220, "", 16);
 		modSecurityText.setFormat(Paths.font("vcr.ttf"), 16, FlxColor.WHITE, LEFT);
 		add(modSecurityText);
+
+		// Below it, what broke in this mod, in engine wording only: the mod's own
+		// text stays inside Mod Info, where it is clipped and wrapped.
+		modHealthText = new FlxText(footerTextX, modInfoY + 54, bgDescription.x + bgDescription.width - 15 - footerTextX, "", 16);
+		modHealthText.setFormat(Paths.font("vcr.ttf"), 16, FlxColor.WHITE, LEFT);
+		add(modHealthText);
 
 		bgButtons = FlxSpriteUtil.drawRoundRectComplex(new FlxSprite(bgDescription.x, bgDescription.y + bgDescription.height - myHeight).makeGraphic(840, myHeight, FlxColor.TRANSPARENT), 0, 0, 840, myHeight, 0, 0, 15, 15, FlxColor.WHITE);
 		bgButtons.color = FlxColor.BLACK;
@@ -721,9 +738,11 @@ class ModsMenuState extends MusicBeatState
 		openSubState(new ModInfoSubState(curMod, modsList.enabled.contains(curMod.folder), updateModSecurityText));
 	}
 
+	/** Rewrites the ModSecurity and health lines of the selected mod (also the Mod Info callback). */
 	function updateModSecurityText():Void
 	{
 		ModsMenuHelpers.updateModSecurityText(this);
+		ModsMenuHelpers.updateModHealthText(this);
 	}
 
 	override function closeSubState():Void
@@ -823,6 +842,8 @@ class ModsMenuState extends MusicBeatState
 			// The folder holds new files now. An earlier "ModSecurity off" was about the
 			// mod that used to be there, so the imported one starts from its own pack.json.
 			ModSecurity.revokePlayerOptOut(result.folder);
+			// Same for the recorded failures: they described the files that were replaced.
+			Mods.forgetHealth(result.folder);
 
 			if(!Mods.registerInstalledMod(result.folder))
 				trace('The imported mod "${result.folder}" could not be enabled in modsList.txt.');
@@ -924,6 +945,14 @@ class ModItem extends FlxSpriteGroup
 	public var mustRestart:Bool = false;
 	public var settings:Array<Dynamic> = null;
 
+	/**
+	 * "Why did it break?" marker (`backend.ModHealth`), drawn over the icon only
+	 * when something is recorded for this mod. A warning glyph for a break, a
+	 * question mark for missing assets: both are text, so no art has to ship and
+	 * the badge reads the same in every font pack.
+	 */
+	public var healthBadge:FlxText = null;
+
 	public function new(folder:String)
 	{
 		super();
@@ -1007,6 +1036,19 @@ class ModItem extends FlxSpriteGroup
 		}
 		selectBg.scale.set(width + 5, height + 5);
 		selectBg.updateHitbox();
+
+		// The badge sits on the icon's corner and never takes the row's focus.
+		var health:Int = ModHealth.severity(folder);
+		if(health != ModHealth.NO_PROBLEMS)
+		{
+			healthBadge = new FlxText(0, 0, 22, health == ModHealth.BROKEN ? '!' : '?', 16);
+			healthBadge.setFormat(Paths.font('vcr.ttf'), 16, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+			healthBadge.borderSize = 2;
+			healthBadge.color = health == ModHealth.BROKEN ? 0xFFFF6666 : 0xFFFFD166;
+			healthBadge.x = icon.x + icon.width - healthBadge.width;
+			healthBadge.y = icon.y;
+			add(healthBadge);
+		}
 	}
 }
 

@@ -77,6 +77,9 @@ A stage is either **JSON-only** or **JSON + a hardcoded class**.
 | `camera_boyfriend`, `camera_opponent`, `camera_girlfriend` | per-character camera offsets |
 | `camera_speed` | follow lerp speed |
 | `shaders` *(optional)* | shader names to pre-compile on the loading screen (`shaders.ShaderWarmup`) |
+| `objects` *(optional)* | Psych 1.0 prop graph (`sprite` / `animatedSprite` / `square` plus `gf`/`dad`/`boyfriend` z-order markers). Written by the [Stage Editor](./editors.md#stage-editor); spawned by `play.helpers.PlayStateStageObjects` |
+| `preload` *(optional)* | image path → quality-filter mask, warmed on the loading screen |
+| `_editorMeta` *(optional)* | preview character ids the Stage Editor should load |
 
 `StageData.getStageFile(stage)` reads `stages/<stage>.json`, checking mods first, and
 `StageData.dummy()` supplies a safe fallback. `StageData.loadDirectory(SONG)` sets the
@@ -145,6 +148,10 @@ while the state loads are queued automatically. Backends without a GL render con
 
 Independently of the class, `PlayState` loads `stages/<stage>.lua` and `stages/<stage>.py`
 from the mod folders, so a soft mod can build a complete stage with no Haxe at all.
+A JSON `objects` array is another no-Haxe path: the [Stage Editor](./editors.md#stage-editor)
+writes it and `PlayStateStageObjects` spawns the props, registering each `name` for
+Lua/Python/HScript. Vanilla stage files omit `objects`, so hardcoded weeks do not
+draw twice.
 
 ## Adding content
 

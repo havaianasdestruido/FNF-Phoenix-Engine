@@ -45,6 +45,8 @@ class EditorPlayState extends MusicBeatState
 	var generatedMusic:Bool = false;
 	var vocals:FlxSound;
 	var opponentVocals:FlxSound;
+	// Chart-declared extra vocal stems (docs/EXTRA_VOCALS.md).
+	var extraVocals:Array<play.helpers.PlayStateExtraVocals.ExtraVocalTrack> = [];
 	var inst:FlxSound;
 
 	var startOffset:Float = 0;
@@ -221,6 +223,13 @@ class EditorPlayState extends MusicBeatState
 		opponentVocals.volume = 1;
 		opponentVocals.time = startPos;
 		opponentVocals.play();
+		for (track in extraVocals)
+		{
+			if (track.sound == null) continue;
+			track.sound.volume = 1;
+			track.sound.time = startPos;
+			track.sound.play();
+		}
 	}
 
 	function sortNotesByTime(Obj1:Note, Obj2:Note):Int
@@ -304,6 +313,7 @@ class EditorPlayState extends MusicBeatState
 	{
 		for (i in [vocals, opponentVocals])
 			if (i != null) i.play();
+		play.helpers.PlayStateExtraVocals.playAll(extraVocals);
 
 		super.onFocus();
 	}
@@ -312,6 +322,7 @@ class EditorPlayState extends MusicBeatState
 	{
 		for (i in [vocals, opponentVocals])
 			if (i != null) i.pause();
+		play.helpers.PlayStateExtraVocals.pauseAll(extraVocals);
 
 		super.onFocusLost();
 	}
@@ -356,8 +367,10 @@ class EditorPlayState extends MusicBeatState
 		{
 			opponentVocals.time = Conductor.songPosition;
 		}
+		play.helpers.PlayStateExtraVocals.setTimeAll(extraVocals, Conductor.songPosition);
 		vocals.play();
 		opponentVocals.play();
+		play.helpers.PlayStateExtraVocals.playAll(extraVocals);
 	}
 	private function onKeyPress(event:KeyboardEvent):Void
 	{
@@ -415,7 +428,10 @@ class EditorPlayState extends MusicBeatState
 			if (daNote.mustPress && cpuControlled && daNote.strumTime <= Conductor.songPosition)
 			{
 				if (PlayState.SONG.needsVoices)
+				{
 					vocals.volume = 1;
+					play.helpers.PlayStateExtraVocals.unmuteSide(extraVocals, data.ExtraVocals.SIDE_PLAYER, 1);
+				}
 				goodNoteHit(daNote);
 			}
 			if (!daNote.exists) return;
@@ -436,6 +452,7 @@ class EditorPlayState extends MusicBeatState
 						if(!daNote.ignoreNote) {
 							songMisses++;
 							vocals.volume = 0;
+							play.helpers.PlayStateExtraVocals.muteSide(extraVocals, data.ExtraVocals.SIDE_PLAYER);
 						}
 					}
 				}
@@ -461,6 +478,7 @@ class EditorPlayState extends MusicBeatState
 
 					note.wasGoodHit = true;
 					vocals.volume = 0;
+					play.helpers.PlayStateExtraVocals.muteSide(extraVocals, data.ExtraVocals.SIDE_PLAYER);
 					return;
 			}
 
@@ -501,6 +519,7 @@ class EditorPlayState extends MusicBeatState
 
 			note.wasGoodHit = true;
 			vocals.volume = 1;
+			play.helpers.PlayStateExtraVocals.unmuteSide(extraVocals, data.ExtraVocals.SIDE_PLAYER, 1);
 		}
 	}
 
@@ -512,6 +531,7 @@ class EditorPlayState extends MusicBeatState
 
 		FlxG.sound.play(Paths.soundRandom('missnote', 1, 3), FlxG.random.float(0.1, 0.2));
 		vocals.volume = 0;
+		play.helpers.PlayStateExtraVocals.muteSide(extraVocals, data.ExtraVocals.SIDE_PLAYER);
 	}
 
 	public function invalidateNote(note:Note):Void {
@@ -614,6 +634,7 @@ class EditorPlayState extends MusicBeatState
 		FlxG.sound.music.stop();
 		vocals.stop();
 		vocals.destroy();
+		play.helpers.PlayStateExtraVocals.dispose(extraVocals);
 
 		if(!ClientPrefs.controllerMode)
 		{
