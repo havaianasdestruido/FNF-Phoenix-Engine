@@ -13,3 +13,4 @@ typedef PlayStatePlayback = play.helpers.PlayStatePlayback;
 typedef PlayStateRating = play.helpers.PlayStateRating;
 typedef PlayStateRender = play.helpers.PlayStateRender;
 typedef PlayStateScripts = play.helpers.PlayStateScripts;
+typedef PlayStateStageObjects = play.helpers.PlayStateStageObjects;

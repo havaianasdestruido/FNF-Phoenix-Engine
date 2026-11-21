@@ -2,6 +2,7 @@ package states.helpers;
 
 #if MODS_ALLOWED
 import backend.ClientPrefs;
+import backend.ModHealth;
 import backend.ModSecurity;
 import backend.Paths;
 import flixel.FlxG;
@@ -185,8 +186,27 @@ class ModsMenuHelpers
 				state.modDesc.clipRect = new FlxRect(0, 0, state.modDesc.width, maxDescHeight);
 		}
 		ModsMenuHelpers.updateModSecurityText(state);
+		ModsMenuHelpers.updateModHealthText(state);
 
 		for (button in state.buttons) if(button.focusChangeCallback != null) button.focusChangeCallback(button.onFocus);
+	}
+
+	/**
+	 * Shows what broke in the selected mod (`backend.ModHealth`): a red, yellow or
+	 * white line of counts under the ModSecurity state. The counts come from
+	 * recorded facts only, so nothing the mod wrote is printed here; the details
+	 * live in Mod Info.
+	 */
+	public static function updateModHealthText(state:ModsMenuState)
+	{
+		var curMod:ModItem = state.modsGroup.members[state.curSelectedMod];
+		if(curMod == null || state.modHealthText == null) return;
+
+		var health:Int = ModHealth.severity(curMod.folder);
+		state.modHealthText.text = ModHealth.summary(curMod.folder);
+		if(health == ModHealth.BROKEN) state.modHealthText.color = 0xFFFF6666;
+		else if(health == ModHealth.MISSING_ASSETS) state.modHealthText.color = 0xFFFFD166;
+		else state.modHealthText.color = FlxColor.WHITE;
 	}
 
 	/** Shows whether the script sandbox is on for the selected mod (changed in Mod Info). */

@@ -192,6 +192,11 @@ class ModSecurity
 		}
 
 		if(check.findings.length == 0) return;
+
+		// Keep the block for the Mods menu, so the player can see which rule
+		// stopped which script without reading the log (§19).
+		ModHealth.recordSecurity(displayFolder(check), check.displayPath, check.language, [for(f in check.findings) {rule: f.rule}]);
+
 		var findingSuffix:String = check.findings.length == 1 ? '' : 's';
 		emit('[ModSecurity] BLOCKED ${check.language} script "${check.displayPath}" from mod "${check.modName}" '
 			+ 'before execution (${check.findings.length} security finding$findingSuffix).', sink);
@@ -315,6 +320,13 @@ class ModSecurity
 			out.add("package = __phoenix_proxy('package')\n");
 		}
 		return out.toString();
+	}
+
+	/** Mod folder for the report, or null when the script belongs to no mod. */
+	static function displayFolder(check:ModSecurityCheck):Null<String>
+	{
+		if(check == null || check.modFolder == null) return null;
+		return check.modFolder.length > 0 ? check.modFolder : null;
 	}
 
 	/** Drop cached pack.json decisions (mainly useful after an in-process reload). */
