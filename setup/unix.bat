@@ -49,6 +49,9 @@ haxelib git grig.audio https://github.com/JS-Engine-things/grig.audio eb5cad389e
 haxelib git hxdiscord_rpc https://github.com/MAJigsaw77/hxdiscord_rpc 2ca5930e9647c5de8c220f98427b5c50ddd244dd --quiet --skip-dependencies
 haxelib git hxvlc https://github.com/JS-Engine-things/hxvlc 2bb1cb4d1e9277f2a64b7bcebf3622f05eddfaa2 --quiet --skip-dependencies
 haxelib git hxnativefiledialog https://github.com/MAJigsaw77/hxnativefiledialog 7f2353172bd3d0e3b8324ad5de4eeb9bc9c44af9 --quiet --skip-dependencies
+rem Command line launch options for backend.CommandLine (docs/CLI.md).
+rem utest is only needed by docopt-ng's own test suite, not by the game.
+haxelib install docopt-ng 0.9.1 --quiet --skip-dependencies
 haxelib install hxp
 echo Finished!
 endlocal

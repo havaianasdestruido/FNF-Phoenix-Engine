@@ -224,8 +224,9 @@ xcrun simctl openurl booted 'phoenix://menu/misc'
 
 ### Windows
 
-Registration is **explicit, per-user and player-driven**. `DeepLinks.init()` only scans
-the launch arguments; it never touches the registry. **Options → Misc → Toggle Deeplink**
+Registration is **explicit, per-user and player-driven**. `DeepLinks.init()` only takes
+the links `backend.CommandLine` collected from the launch arguments (`docs/CLI.md`); it
+never touches the registry. **Options → Misc → Toggle Deeplink**
 (the `deeplinkEnabled` preference) does the writing: checking runs
 `uri/Register-PhoenixURI.ps1` against the running executable and rolls the checkbox back
 when another copy owns the scheme, unchecking deletes `HKCU\Software\Classes\phoenix`.
@@ -235,6 +236,14 @@ protocol launches do not inherit a sane working directory, the engine resets the
 the executable's folder when a link is pending. The whole path is behind
 `#if (windows && sys)`, so browser and mobile builds compile without any of it.
 
+### Linux and macOS
+
+No handler is registered, so a link arrives only when the executable is started with one —
+`./FNF-Phoenix-Engine "phoenix://menu/misc"`, or `--song=bopeebo` / `--mod=<id>`, which
+`backend.CommandLine` turns into the matching route. The validator, the "one pending
+destination, latest wins" rule and the dispatch from an idle Title or Main Menu are the
+same as everywhere else.
+
 ## Tests
 
 * `bash tests/uri/run.sh` — runs `tests/uri/TestPhoenixURI.hx` in the Haxe
@@ -242,6 +251,9 @@ the executable's folder when a link is pending. The whole path is behind
   alias, the case and slash rules, injection-shaped input, the size limits, and the
   `phoenix://diagnostics` and `phoenix://input` contracts (both spellings accepted,
   parameters and sub-paths rejected).
+* `bash tests/haxe/run-command-line.sh` — the launch-option grammar (docopt-ng), the
+  legacy spellings, `--song` / `--mod` becoming `phoenix://` routes, `--no-deeplinks`, and
+  the rule that an unusable argument vector still delivers the link and still boots.
 * `bash tests/haxe/run-diagnostics-report.sh` — compiles and runs `backend.DiagnosticsReport`
   and `states.DiagnosticsState` against `tests/haxe/stubs/diagnostics`: the seven
   sections in order, the padded value column, `not reported here` where a target

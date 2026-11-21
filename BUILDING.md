@@ -264,6 +264,46 @@ The decision itself lives in `backend.LaunchState` and is covered by
 
 ---
 
+### Runtime launch options (command line)
+
+The flags above are compile-time: changing one means rebuilding. The **launch
+options** are read from the arguments the executable was started with, parsed
+with [docopt-ng](https://lib.haxe.org/p/docopt-ng/) by `backend.CommandLine`
+before a window exists, and apply to that one session only — the save file keeps
+the player's own preferences.
+
+```
+FNF-Phoenix-Engine.exe --help                # usage text, then exit
+FNF-Phoenix-Engine.exe --fullscreen --fps=144
+FNF-Phoenix-Engine.exe --freeplay            # what -DFREEPLAY does, at runtime
+FNF-Phoenix-Engine.exe --song=bopeebo --profile
+./FNF-Phoenix-Engine "phoenix://menu/mods"   # a link, like a protocol launch
+```
+
+| Option | Effect |
+|--------|--------|
+| `-h` / `--help`, `--version` | Print the usage text / the engine version and exit before a window opens. |
+| `-w`, `-f`, `-b` (`--windowed`, `--fullscreen`, `--borderless`) | Window mode for this session, over the saved one. |
+| `--fps=<n>` | Gameplay framerate for this session (`1`-`10000`); menus keep **Menu Framerate**. |
+| `--freeplay` / `--menu` | Runtime twins of `-DFREEPLAY` / `-DMENU`, through the same `backend.LaunchState` resolver (freeplay still wins a conflict). |
+| `--song=<name>` / `--mod=<id>` | Open that `phoenix://` route once the game is idle in a menu (`URI.MD`). |
+| `--profile` / `--vlog` | Frame profiler, exporting its log on exit / verbose log, for this session. |
+| `--safe-mode` | Boot into the recovery screen, exactly like a crash loop does. |
+| `--troll` | Super danger mode (`CoolUtil.selfDestruct()`); the legacy `-troll` spelling still works, as do `-profile` and `--frame-profiler`. |
+| `--no-deeplinks` | Ignore the `phoenix://` links on the command line. |
+
+An argument the parser cannot use never stops the boot: every option falls back
+to its default, the links in the same vector are still delivered, and what had
+to be ignored is written to the verbose log (`[CLI] ...`). Full reference,
+precedence rules and the "adding an option" checklist: `docs/CLI.md`. Spec:
+`bash tests/haxe/run-command-line.sh`.
+
+Options are parsed where a process has a command line (`CLI_OPTIONS_ALLOWED`,
+default: desktop and mobile). Web, Flash and AIR skip docopt-ng entirely;
+`-DNO_CLI_OPTIONS_ALLOWED` opts a desktop build out with the same behaviour.
+
+---
+
 ### Built-in assets and compact CI builds
 
 Normal local builds include **all built-in assets** in the repository by

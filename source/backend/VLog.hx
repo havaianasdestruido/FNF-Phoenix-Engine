@@ -242,6 +242,10 @@ class VLog
       + ' | framerate budget: ' + round(targetMs, 3) + ' ms (' + Std.int(1000.0 / targetMs) + ' fps)');
     #if sys
     log('BOOT', 'cwd: ' + Sys.getCwd());
+    // The raw vector, exactly as the OS handed it over. Parsing is centralized
+    // in backend.CommandLine (docs/CLI.md), which logs its own `[CLI]` line
+    // with what it understood and what it had to ignore; this one stays raw so
+    // a support report shows both sides.
     final args = Sys.args();
     if (args.length > 0) log('BOOT', 'args: ' + args.join(' '));
     #end

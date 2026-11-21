@@ -57,7 +57,25 @@ class Main extends Sprite
   public static var commitWatermark:CommitWatermark;
   public static var instance:Main;
 
-  public static final superDangerMode:Bool = #if sys Sys.args().contains("-troll") #else false #end;
+  /**
+   * Super danger mode: lets `CoolUtil.selfDestruct()` really delete the build
+   * folder instead of only exiting. Requested with the `--troll` launch option
+   * (the historical `-troll` spelling still works); see `backend.CommandLine`
+   * and `docs/CLI.md`.
+   *
+   * A getter rather than a `static final`: the launch options are parsed in
+   * {@link main}, and a static field initializer can run before that.
+   */
+  public static var superDangerMode(get, never):Bool;
+
+  /**
+   * @return Whether this process was launched with `--troll`. Always `false`
+   *   on targets without a command line to read (web, Flash, AIR).
+   */
+  static function get_superDangerMode():Bool
+  {
+    return backend.CommandLine.options.troll;
+  }
 
   // You can pretty much ignore everything from here on - your code should go in your states.
 
@@ -86,12 +104,44 @@ class Main extends Sprite
     #end
   }
 
+  /**
+   * Process entry point.
+   *
+   * The launch options (`backend.CommandLine`, `docs/CLI.md`) are parsed
+   * first: `--help` and `--version` have to be answerable without creating a
+   * window, and everything the boot reads afterwards — window mode, framerate,
+   * first screen, vlog, frame profiler — comes from that one record.
+   */
   public static function main():Void
   {
+    backend.CommandLine.load();
+    if (answerInformationRequest()) return;
     #if (cpp && windows)
     restoreBuildFolderIcon();
     #end
     Lib.current.addChild(new Main());
+  }
+
+  /**
+   * Answer `--help` / `--version` on stdout and stop, before a window, a save
+   * file or the crash handler exists. Both are only visible when the
+   * executable was started from a terminal; a shortcut launch never asks.
+   *
+   * @return `true` when the process should exit instead of booting the game.
+   */
+  static function answerInformationRequest():Bool
+  {
+    #if sys
+    final options:backend.LaunchOptions = backend.CommandLine.options;
+    if (!options.help && !options.version) return false;
+    if (options.help) Sys.println(backend.CommandLine.helpText());
+    else Sys.println(backend.CommandLine.versionText(backend.PhoenixVersion.current));
+    Sys.exit(0);
+    return true;
+    #else
+    // No command line to read, so there is nothing to answer.
+    return false;
+    #end
   }
 
   #if (cpp && windows)
@@ -137,17 +187,24 @@ class Main extends Sprite
     // Runtime settings are independent of compile-time feature defines and
     // must be available before the first state, shader, or window is created.
     backend.RuntimeFlags.load();
-    // The verbose vlog is opt-in (Options -> Misc -> 'Enable VLog'), so a
-    // normal session writes nothing to disk. FlxG.save is only bound later in
-    // InitState, so the saved flag is read straight from funkin.sol here —
-    // when it is on, vlog/log.txt opens before CrashHandler.init and hooks
-    // every trace() for the whole boot.
-    backend.VLog.init(game.framerate, (backend.RecoveryBoot.failures >= backend.RecoveryBoot.THRESHOLD ? false : ClientPrefs.readSavedBool('vlogEnabled')));
+    // `--fps=<n>` (docs/CLI.md) sets the rate FlxGame boots with; the saved
+    // gameplay rate is overridden the same way in ClientPrefs.loadPrefs, once
+    // the save file is bound. Neither writes anything back to the save.
+    game.framerate = backend.CommandLine.framerate(game.framerate);
+    // The verbose vlog is opt-in (Options -> Misc -> 'Enable VLog', or the
+    // `--vlog` launch option for a single session), so a normal session writes
+    // nothing to disk. FlxG.save is only bound later in InitState, so the saved
+    // flag is read straight from funkin.sol here — when it is on, vlog/log.txt
+    // opens before CrashHandler.init and hooks every trace() for the whole boot.
+    backend.VLog.init(game.framerate, (safeModeBoot() ? false : (ClientPrefs.readSavedBool('vlogEnabled') || backend.CommandLine.options.vlog)));
+    // One line saying which launch options this session asked for, and what the
+    // parser had to ignore. Written only when the vlog is on (backend.VLog).
+    backend.VLog.log('CLI', backend.CommandLine.describe());
     // Lua pipeline diagnostics ([LuaDiag] lines). Like the vlog flag, the
     // opt-in verbose level is read from the raw save so it already covers
     // the first song; a recovery boot waits for the Safe Mode screen instead
     // (InitState syncs it afterwards). A build without the Lua VM says so here.
-    backend.LuaDiagnosticsSetup.init(backend.RecoveryBoot.failures >= backend.RecoveryBoot.THRESHOLD ? false : ClientPrefs.readSavedBool('luaVerbose'));
+    backend.LuaDiagnosticsSetup.init(safeModeBoot() ? false : ClientPrefs.readSavedBool('luaVerbose'));
     // Only queues any phoenix:// link that launched the game; registering the
     // scheme itself is opt-in from Options -> Misc, never done on startup.
     backend.deeplink.DeepLinks.init();
@@ -162,11 +219,31 @@ class Main extends Sprite
 	");
     #end
     // Honor the saved window mode before the window is created so a player who
-    // chose Fullscreen does not see a windowed flash. Borderless cannot be
-    // requested through FlxGame's startFullscreen flag and is applied after the
-    // preferences load (see ClientPrefs.applyWindowModePreference).
-    game.startFullscreen = WindowMode.normalize(ClientPrefs.readSavedString('windowMode', WindowMode.WINDOWED)) == WindowMode.FULLSCREEN;
+    // chose Fullscreen does not see a windowed flash. `--windowed`,
+    // `--fullscreen` and `--borderless` (docs/CLI.md) override the saved
+    // preference for this session only. Borderless cannot be requested through
+    // FlxGame's startFullscreen flag and is applied after the preferences load
+    // (see ClientPrefs.applyWindowModePreference).
+    final requestedMode:String = backend.CommandLine.windowModeOverride();
+    final effectiveMode:String = requestedMode.length > 0 ? requestedMode : ClientPrefs.readSavedString('windowMode', WindowMode.WINDOWED);
+    game.startFullscreen = WindowMode.normalize(effectiveMode) == WindowMode.FULLSCREEN;
     setupGame();
+  }
+
+  /**
+   * Whether this boot belongs on the recovery screen: a crash loop counted by
+   * `backend.RecoveryBoot`, or a `--safe-mode` launch option asking for it
+   * deliberately (support, reproducing a broken mod, a suspect save file).
+   *
+   * Both also keep the verbose vlog and the Lua diagnostics off until the
+   * player asks for them on that screen, which is why every decision below
+   * reads this one value instead of the crash counter.
+   *
+   * @return `true` when `states.RecoveryState` is the first state.
+   */
+  static function safeModeBoot():Bool
+  {
+    return backend.RecoveryBoot.failures >= backend.RecoveryBoot.THRESHOLD || backend.CommandLine.options.safeMode;
   }
 
   public static var askedToUpdate:Bool = false;
@@ -192,7 +269,7 @@ class Main extends Sprite
     FrameProfiler.init(game.framerate);
     #if ACHIEVEMENTS_ALLOWED Achievements.load(); #end
 
-    final funkinGame:FunkinGame = new FunkinGame(game.width, game.height, backend.RecoveryBoot.failures >= backend.RecoveryBoot.THRESHOLD ? states.RecoveryState : (#if (mobile && MODS_ALLOWED) !mobile.CopyState.checkExistingFiles() ? mobile.CopyState : #end game.initialState), #if (flixel < "5.0.0") game.zoom, #end game.framerate, game.framerate,
+    final funkinGame:FunkinGame = new FunkinGame(game.width, game.height, safeModeBoot() ? states.RecoveryState : (#if (mobile && MODS_ALLOWED) !mobile.CopyState.checkExistingFiles() ? mobile.CopyState : #end game.initialState), #if (flixel < "5.0.0") game.zoom, #end game.framerate, game.framerate,
       game.skipSplash, game.startFullscreen);
     // Literally just from Vanilla FNF but I implemented it my own way. -Torch
     // torch is my friend btw :3 -moxie

@@ -51,6 +51,14 @@ Defines úteis: `-DofficialBuild`, `-Dofficial`, `-DULTRA_OPTIMIZED` (build velo
 título; são mutuamente exclusivos e `project.hxp` aborta o build se ambos vierem — ver
 `backend.LaunchState` e a seção "Launch and debug flags" do BUILDING.md).
 
+Além dos flags de *build*, o executável lê **opções de linha de comando** em runtime, parseadas com
+**docopt-ng** (pinada em `hmm.json` + `setup/*`, gated por `CLI_OPTIONS_ALLOWED` no `project.hxp`)
+em `backend.CommandLine`: `--help`, `--version`, `--windowed`/`--fullscreen`/`--borderless`,
+`--fps=<n>`, `--freeplay`/`--menu`, `--song=<name>`/`--mod=<id>` (viram rotas `phoenix://`),
+`--profile`, `--vlog`, `--safe-mode`, `--troll` (legado `-troll`) e `--no-deeplinks`. Valem só para
+a sessão — nada é gravado no save — e um argumento inválido **nunca** impede o boot (volta tudo ao
+default e o motivo vai pro vlog). Referência: `docs/CLI.md`; spec: `bash tests/haxe/run-command-line.sh`.
+
 Todo build feito dentro de um checkout git recebe `-Dcommit` automaticamente (o `project.hxp`
 sonda `git rev-parse --verify HEAD`), o que estampa o SHA usado pelo watermark do canto inferior
 direito (`debug.CommitWatermark`) e pela linha de commit do FPS counter. **`-Dno-commit`** desativa
@@ -89,8 +97,10 @@ FNF-JS-Engine-Light/
 - **Entry point:** `Main.hx` → `backend.BootState`/`InitState` → `TitleState` → `MainMenuState`/
   `StoryMenuState`/`FreeplayState`/`PlayState`. Todos os estados extendem
   `MusicBeatState`/`MusicBeatSubState` (`backend/MusicBeatState.hx`).
-- **`Main.hx`**: cria `FunkinGame`, registra `FlxFix`, carrega `ClientPrefs`, `Achievements`,
-  `Paths`, `Achievements`, `PlayerSettings`, splash, inicializa estados.
+- **`Main.hx`**: parseia as opções de linha de comando (`backend.CommandLine.load()`, `docs/CLI.md`)
+  antes de criar a janela — `--help`/`--version` são respondidos ali e saem — e então cria
+  `FunkinGame`, registra `FlxFix`, carrega `ClientPrefs`, `Achievements`, `Paths`, `Achievements`,
+  `PlayerSettings`, splash, inicializa estados.
 - **`backend/`**: núcleo não-jogável
   - `Paths.hx` — localização de assets/mod paths; `Paths.mods/`, `Paths.stage`, `Paths.char` etc.
   - `Paths.currentModDirectory`, `Paths.currMod` — decidi o dir de mod ativo.

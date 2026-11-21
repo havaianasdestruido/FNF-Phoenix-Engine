@@ -5,9 +5,10 @@ name: Checks
 # and an hxcpp native-object-cache smoke test. None of these need a full game
 # build or the Android SDK. Most isolated Haxe interpreter specs in tests/haxe/
 # are not run here; the diagnostic log, crash bundle, diagnostics report,
-# phoenix:// URI parser, launch flag (-DFREEPLAY / -DMENU), distant-notes
-# shader, modchart (runtime + Modchart Lab), input tester, per-mod ModHealth
-# report, and Stage Editor spec run in dedicated Haxe steps/jobs below.
+# phoenix:// URI parser, launch flag (-DFREEPLAY / -DMENU), command line launch
+# options (docopt-ng), distant-notes shader, modchart (runtime + Modchart Lab),
+# input tester, per-mod ModHealth report, and Stage Editor spec run in
+# dedicated Haxe steps/jobs below.
 
 on:
   push:
@@ -66,6 +67,21 @@ jobs:
 
       - name: ModHealth report and invalid pack.json
         run: bash tests/haxe/run-mod-health.sh
+
+      # Launch options (docs/CLI.md): the docopt-ng grammar, the legacy
+      # spellings, the "an unusable argument must never stop the boot" rule, and
+      # the wiring in Main / InitState / ClientPrefs / FrameProfiler / DeepLinks
+      # plus the dependency manifests. This job has no game haxelibs, so the one
+      # library the parser needs is installed here (pinned exactly like
+      # hmm.json and setup/*); the flag-off and wiring halves run without it.
+      - name: Install docopt-ng for the launch options spec
+        run: |
+          mkdir -p "$HOME/haxelib"
+          haxelib setup "$HOME/haxelib"
+          haxelib install docopt-ng 0.9.1 --quiet --skip-dependencies
+
+      - name: Command line launch options (docopt-ng)
+        run: bash tests/haxe/run-command-line.sh
 
   stage-editor:
     name: Stage editor spec
