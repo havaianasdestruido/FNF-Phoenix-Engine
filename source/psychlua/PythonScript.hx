@@ -26,6 +26,7 @@ import backend.CoolUtil;
 import backend.Mods;
 import objects.NoteHelpers;
 import backend.Paths;
+import backend.ModHealth;
 import backend.ModSecurity;
 import backend.WeekData;
 import objects.NoteSplash;
@@ -146,6 +147,7 @@ class PythonScript
 		{
 			closed = true;
 			pyTrace('Error loading python script: "$scriptName"\nSource file could not be read.', true, false, FlxColor.RED);
+			ModHealth.recordLoadError(modFolder, scriptName, 'source file could not be read');
 			return;
 		}
 
@@ -416,6 +418,7 @@ class PythonScript
 		catch (e:Error)
 		{
 			pyTrace('Error loading python script: "$scriptName"\n' + getErrorString(e), true, false, FlxColor.RED);
+			ModHealth.recordLoadError(modFolder, scriptName, getErrorString(e));
 			game.pythonArray.remove(this);
 			closed = true;
 			return;
@@ -423,6 +426,7 @@ class PythonScript
 		catch (e:Dynamic)
 		{
 			pyTrace('Error loading python script: "$scriptName"\n' + Std.string(e), true, false, FlxColor.RED);
+			ModHealth.recordLoadError(modFolder, scriptName, Std.string(e));
 			game.pythonArray.remove(this);
 			closed = true;
 			return;
@@ -507,6 +511,7 @@ class PythonScript
 		var message:String = ModSecurity.formatRuntimeBlock(securityModName, scriptName, capability, line);
 		trace(message);
 		if(PlayState.instance != null) PlayState.instance.addTextToDebug(message, FlxColor.RED);
+		ModHealth.recordRuntimeBlock(modFolder, scriptName, capability);
 		return message;
 	}
 

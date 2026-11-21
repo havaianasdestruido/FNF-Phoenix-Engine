@@ -1,9 +1,11 @@
 import backend.ClothEasterEggLogic;
+import backend.ClothEasterEggLogic.ClothCrop;
 import backend.ClothEasterEggLogic.ClothScene;
 
 /**
  * Renderer-free contract for the `FlxClothSprite` easter egg's hidden key code,
- * scene layout and mesh numbers (`source/backend/ClothEasterEggLogic.hx`).
+ * scene layout, texture crops and mesh numbers
+ * (`source/backend/ClothEasterEggLogic.hx`).
  *
  * Run with: `bash tests/haxe/run-cloth-easter-egg.sh`
  */
@@ -18,6 +20,15 @@ class ClothEasterEggSpec
   static inline var ROPE_WIDTH:Float = ClothEasterEggLogic.ROPE_WIDTH;
   static inline var ROPE_HEIGHT:Float = ClothEasterEggLogic.ROPE_HEIGHT;
 
+  /**
+   * The texture the pieces are cut from in every crop check: the shipped
+   * `menuBG.png` (1286x730), so the spec exercises the real backdrop rather
+   * than a square placeholder.
+   */
+  static inline var MENU_BG_WIDTH:Int = 1286;
+
+  static inline var MENU_BG_HEIGHT:Int = 730;
+
   static function main():Void
   {
     sequenceOpens();
@@ -27,6 +38,9 @@ class ClothEasterEggSpec
     gravityRespondsToReducedMotion();
     windClamps();
     sceneStaysInsideTheContentColumn();
+    piecesAreCutFromTheMenuBackdrop();
+    cropsStayInsideEveryTexture();
+    cropsSurviveBrokenTextures();
 
     if (failures > 0) throw '$failures cloth easter egg check(s) failed';
     Sys.println('ClothEasterEggSpec: PASS');
@@ -174,7 +188,137 @@ class ClothEasterEggSpec
     close(wide.banner.x - base.banner.x, 320, 'ultrawide shifts the scene by the content offset');
   }
 
+  /* ------------------------------------------------------------------ *
+   * The pieces come from the menu backdrop, and fall back to the old art
+   * when a build (or a mod) has no `menuBG`.
+   * ------------------------------------------------------------------ */
+  static function piecesAreCutFromTheMenuBackdrop():Void
+  {
+    final L = ClothEasterEggLogic;
+    final previous:String = L.TEXTURE;
+
+    L.TEXTURE = L.BACKDROP_MENU;
+    check(L.usesBackdrop('menuBG'), 'the pieces are cut from the menu backdrop by default');
+    check(L.usesBackdrop('mods/some-mod:menuBG'), 'a mod-resolved backdrop key is used too');
+    check(!L.usesBackdrop(null), 'a build without menuBG falls back to the cloth art');
+    check(!L.usesBackdrop(''), 'an empty backdrop key falls back to the cloth art');
+
+    // The escape hatch: the dedicated textures, whatever the build ships.
+    L.TEXTURE = L.BACKDROP_CLOTH_ART;
+    check(!L.usesBackdrop('menuBG'), 'cloth art mode ignores the menu backdrop');
+
+    L.TEXTURE = previous;
+  }
+
+  /* ------------------------------------------------------------------ *
+   * Every crop is inside the texture and keeps the piece's aspect ratio,
+   * so the mesh never draws a stretched or out-of-bounds slice.
+   * ------------------------------------------------------------------ */
+  static function cropsStayInsideEveryTexture():Void
+  {
+    final L = ClothEasterEggLogic;
+
+    // Real backdrop, a 16:9, a 4:3, a portrait and a square texture.
+    final textures:Array<Array<Int>> = [
+      [MENU_BG_WIDTH, MENU_BG_HEIGHT], [1280, 720], [1024, 768], [720, 1280], [512, 512]
+    ];
+
+    for (texture in textures)
+    {
+      final width:Int = texture[0];
+      final height:Int = texture[1];
+      final label:String = '${width}x$height';
+
+      final crops:Array<ClothCrop> = [
+        L.bannerCrop(width, height, false),
+        L.bannerCrop(width, height, true),
+        L.ropeCrop(width, height, false),
+        L.ropeCrop(width, height, true)
+      ];
+      final aspects:Array<Float> = [L.BANNER_ASPECT, L.BANNER_ASPECT, L.ROPE_ASPECT, L.ROPE_ASPECT];
+      final names:Array<String> = ['follower banner', 'wide banner', 'left rope', 'right rope'];
+
+      for (i in 0...crops.length)
+      {
+        final crop:ClothCrop = crops[i];
+        check(crop.width > 0 && crop.height > 0, '$label: the ${names[i]} crop has pixels');
+        check(crop.x >= 0 && crop.y >= 0, '$label: the ${names[i]} crop starts inside the texture');
+        check(crop.x + crop.width <= width, '$label: the ${names[i]} crop fits horizontally');
+        check(crop.y + crop.height <= height, '$label: the ${names[i]} crop fits vertically');
+        checkNear(crop.width / crop.height, aspects[i], 0.05, '$label: the ${names[i]} crop keeps its aspect');
+      }
+
+      // The two banners and the two ropes must not be the same rectangle, or the
+      // scene would show the same slice of the backdrop four times.
+      check(!sameCrop(crops[0], crops[1]), '$label: the two banners take different slices');
+      check(!sameCrop(crops[2], crops[3]), '$label: the two ropes take different slices');
+      check(crops[2].x < crops[3].x, '$label: the left rope cuts further left than the right one');
+    }
+
+    // The pieces keep the size they are drawn at, so a `FlxClothSprite` (which
+    // draws its mesh at the graphic's size) still fills the same box on screen.
+    final banner:ClothCrop = L.bannerCrop(MENU_BG_WIDTH, MENU_BG_HEIGHT, false);
+    equal(banner.width, L.BANNER_WIDTH, 'the banner crop is as wide as the banner is drawn');
+    equal(banner.height, L.BANNER_HEIGHT, 'the banner crop is as tall as the banner is drawn');
+
+    final rope:ClothCrop = L.ropeCrop(MENU_BG_WIDTH, MENU_BG_HEIGHT, false);
+    equal(rope.width, L.ROPE_WIDTH, 'the rope crop is as wide as the rope is drawn');
+    equal(rope.height, L.ROPE_HEIGHT, 'the rope crop is as tall as the rope is drawn');
+  }
+
+  /* ------------------------------------------------------------------ *
+   * A 0x0, a sliver or a huge texture cannot produce a crop the mesh or
+   * `BitmapData.copyPixels` chokes on.
+   * ------------------------------------------------------------------ */
+  static function cropsSurviveBrokenTextures():Void
+  {
+    final L = ClothEasterEggLogic;
+
+    for (size in [[0, 0], [-5, 40], [3, 0], [3, 1000], [4096, 4096]])
+    {
+      final width:Int = size[0];
+      final height:Int = size[1];
+      final crop:ClothCrop = L.bannerCrop(width, height, false);
+      check(crop.width >= 1 && crop.height >= 1, 'a ${width}x$height texture still yields a crop with pixels');
+      check(crop.x >= 0 && crop.y >= 0, 'a ${width}x$height texture keeps the crop at the origin');
+      check(crop.width <= Math.max(1, width) && crop.height <= Math.max(1, height),
+        'a ${width}x$height texture is not cropped past its edge');
+      check(crop.x + crop.width <= Math.max(1, width), 'a ${width}x$height texture keeps the crop inside it');
+    }
+
+    // A backdrop smaller than a piece is used whole; the piece shrinks with it
+    // rather than asking for pixels that are not there.
+    final sliver:ClothCrop = L.ropeCrop(3, 40, false);
+    check(sliver.width <= 3 && sliver.height <= 40, 'a sliver texture keeps the whole crop inside it');
+    check(sliver.width < sliver.height, 'a sliver texture still yields a vertical rope');
+
+    // A huge backdrop cannot cut a window bigger than MAX_CROP_SHARE of it.
+    final huge:ClothCrop = L.bannerCrop(4096, 4096, true);
+    check(huge.width <= 4096 * L.MAX_CROP_SHARE && huge.height <= 4096 * L.MAX_CROP_SHARE,
+      'a huge texture caps the crop at MAX_CROP_SHARE');
+
+    // A 0 aspect or a NaN size falls back to the banner box instead of dividing
+    // by zero, and a zero-size piece still gets a rectangle with pixels.
+    final broken:ClothCrop = L.pieceCrop(400, 400, 0, 0);
+    check(broken.width > 0 && broken.height > 0, 'a zero-size piece still gets a crop with pixels');
+    check(!Math.isNaN(broken.width / broken.height), 'a zero-size piece still yields a real crop');
+  }
+
   /* ------------------------------------------------------------------ */
+
+  /** True when two crops cover exactly the same rectangle. */
+  static function sameCrop(a:ClothCrop, b:ClothCrop):Bool
+  {
+    return a.x == b.x && a.y == b.y && a.width == b.width && a.height == b.height;
+  }
+
+  /** Fails when two floats differ by more than `tolerance`. */
+  static function checkNear(actual:Float, expected:Float, tolerance:Float, label:String):Void
+  {
+    if (!Math.isNaN(actual) && Math.abs(actual - expected) <= tolerance) return;
+    failures++;
+    Sys.println('FAILED: $label (expected $expected, got $actual)');
+  }
 
   static function check(ok:Bool, label:String):Void
   {

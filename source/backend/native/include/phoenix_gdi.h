@@ -5,6 +5,9 @@
  * Ported from Slushi Engine (SlushiWinGDI.hx / WindowsCPP.hx).
  * Each payload is a self-contained C++ function that draws on the desktop
  * using raw GDI. They run on a background thread so the game never lags.
+ *
+ * The HPPD payloads (phoenix_gdi_hppd.h) are declared at the end of this
+ * header so the hxcpp bridge (GdiNative) sees both APIs from one include.
  */
 
 #if defined(_WIN32)
@@ -166,6 +169,14 @@ void phoenixGdiScreenShake();
  * @param text UTF-8 text to display.
  */
 void phoenixGdiSetCustomTitleText(const char *text);
+
+/* ---- HPPD payloads (phoenix_gdi_hppd.h) ---- */
+/**
+ * The HPPD GDI-only payloads (light + heavy + Death Month) live in
+ * phoenix_gdi_hppd.h / phoenix_gdi_hppd_*.cpp. Including it here keeps
+ * the hxcpp bridge to a single header. See docs/GDI_HPPD.md.
+ */
+#include "phoenix_gdi_hppd.h"
 
 #endif /* _WIN32 */
 #endif /* PHOENIX_GDI_H */
