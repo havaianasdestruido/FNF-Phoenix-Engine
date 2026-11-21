@@ -5,8 +5,9 @@ Help uses flixel-ui's `FlxUITooltipManager`, with a dark background, white text,
 and automatic edge-aware placement. Clicking does not force a tooltip open.
 
 Covered areas include song/section/note settings in the Chart Editor; character
-assets, positioning, health colors and animations; dialogue lines and portraits;
-Story Menu characters; and week metadata, Freeplay colors and unlock settings.
+assets, positioning, health colors and animations; stage props, save/load and the
+Week 1 template; dialogue lines and portraits; Story Menu characters; and week
+metadata, Freeplay colors and unlock settings.
 
 ## Adding help
 
