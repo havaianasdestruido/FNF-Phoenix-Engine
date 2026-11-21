@@ -203,7 +203,7 @@ class Mods
 
 	public static var updatedOnState:Bool = false;
 	inline public static function parseList():ModsList {
-		if (RecoveryBoot.disableMods) return {enabled: [], disabled: [], all: []};
+		if (RecoveryBoot.modsDisabled()) return {enabled: [], disabled: [], all: []};
 		if(!updatedOnState) updateModList();
 		var list:ModsList = {enabled: [], disabled: [], all: []};
 
