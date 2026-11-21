@@ -12,6 +12,7 @@ typedef SwagSong = {
   var specialAudioName:String;
   var specialEventsName:String;
   var windowName:String;
+  var ?extraVocals:Dynamic;
 }
 
 class Song

@@ -452,6 +452,14 @@ class LoadingState extends MusicBeatState
 					catch (e:Dynamic) {}
 					// Generic fallback
 					try Paths.voices(songName, diff) catch (e:Dynamic) {}
+					// Chart-declared extra vocal stems (docs/EXTRA_VOCALS.md)
+					if (backend.ClientPrefs.extraVocals)
+					{
+						for (stem in data.ExtraVocals.parse(SONG.extraVocals))
+						{
+							try Paths.voices(songName, diff, stem.file.length > 0 ? stem.file : null) catch (e:Dynamic) {}
+						}
+					}
 				}
 			}
 			catch (e:Dynamic) {}
