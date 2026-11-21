@@ -14,6 +14,7 @@ import flixel.text.FlxText;
 import flixel.text.FlxText.FlxTextAlign;
 import flixel.util.FlxColor;
 import flixel.util.FlxDirectionFlags;
+import openfl.geom.Point;
 
 /**
  * Main-menu easter egg: the cloth pieces from the
