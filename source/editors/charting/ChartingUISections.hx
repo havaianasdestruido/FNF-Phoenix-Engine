@@ -1551,6 +1551,7 @@ class ChartingUISections
       if (state.check_mute_vocals.checked) vol = 0;
 
       if (state.vocals != null) state.vocals.volume = vol;
+      state.applyExtraVocalVolumes();
     };
     state.check_mute_vocals_opponent = new FlxUICheckBox(state.check_mute_vocals.x + 120, state.check_mute_vocals.y, null, null, "Mute Opp. Vocals (in editor)", 100);
     state.check_mute_vocals_opponent.checked = false;
@@ -1559,6 +1560,7 @@ class ChartingUISections
       if (state.check_mute_vocals_opponent.checked) vol = 0;
 
       if (state.opponentVocals != null) state.opponentVocals.volume = vol;
+      state.applyExtraVocalVolumes();
     };
 
     state.playSoundBf = new FlxUICheckBox(state.check_mute_inst.x, state.check_mute_vocals.y + 30, null, null, 'Play Sound (Boyfriend notes)', 100, function() {
