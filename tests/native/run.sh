@@ -17,7 +17,9 @@ export CC CXX
 work=$(mktemp -d)
 trap 'rm -rf "$work"' EXIT
 
-# --- phoenix_system.h: compile as C and C++, two translation units -----------
+# --- phoenix_system: C and C++ callers linked against phoenix_system.cpp ---
+# Also verify the header does not leak Win32 macros (ERROR, DELETE, etc.)
+# into hxcpp-generated C++ callers such as Benchmark.cpp + LogStyle.h.
 cat > "$work/system_other.c" <<'EOF'
 #include "phoenix_system.h"
 double other(void) { return phoenixMonotonicSeconds(); }
@@ -26,6 +28,9 @@ cat > "$work/system_main.c" <<'EOF'
 #include "phoenix_system.h"
 #include "phoenix_system.h"
 #include <assert.h>
+#ifdef ERROR
+#error "phoenix_system.h leaked ERROR macro"
+#endif
 extern double other(void);
 int main(void)
 {
@@ -44,14 +49,62 @@ int main(void)
   return 0;
 }
 EOF
-for lang in c cpp; do
-  if [ "$lang" = c ]; then comp="$CC"; std=gnu99; else comp="$CXX"; std=c++11; fi
-  command -v "$comp" >/dev/null || { echo "skip system smoke ($comp unavailable)"; continue; }
-  "$comp" "-std=$std" -Wall -Wextra -Werror -I source/debug/system/include \
-    "$work/system_main.c" "$work/system_other.c" -o "$work/system_$lang"
-  "$work/system_$lang"
-done
-echo "phoenix_system smoke passed"
+if command -v "$CXX" >/dev/null; then
+  "$CXX" -std=c++11 -Wall -Wextra -Werror -I source/debug/system/include \
+    -c source/debug/system/src/phoenix_system.cpp -o "$work/phoenix_system.o"
+  for lang in c cpp; do
+    if [ "$lang" = c ]; then
+      comp="$CC"; std=gnu99
+    else
+      comp="$CXX"; std=c++11
+    fi
+    command -v "$comp" >/dev/null || { echo "skip system smoke ($comp unavailable)"; continue; }
+    "$comp" "-std=$std" -Wall -Wextra -Werror -I source/debug/system/include \
+      -c "$work/system_main.c" -o "$work/system_main_$lang.o"
+    "$comp" "-std=$std" -Wall -Wextra -Werror -I source/debug/system/include \
+      -c "$work/system_other.c" -o "$work/system_other_$lang.o"
+    "$CXX" "$work/system_main_$lang.o" "$work/system_other_$lang.o" "$work/phoenix_system.o" \
+      -o "$work/system_$lang"
+    "$work/system_$lang"
+  done
+  # Also compile phoenix_system.cpp against the Win32 test double so Windows
+  # paths (QueryPerformanceCounter, GetProcessTimes, GetNativeSystemInfo,
+  # GlobalMemoryStatusEx) are verified locally too.
+  cat > "$work/win_sys_stub.h" <<'EOF'
+#pragma once
+#include <stdint.h>
+typedef int BOOL;
+typedef unsigned long DWORD;
+typedef long long LONGLONG;
+typedef unsigned long long ULONGLONG;
+typedef void* HANDLE;
+typedef union { struct { DWORD LowPart; long HighPart; }; LONGLONG QuadPart; } LARGE_INTEGER;
+typedef union { struct { DWORD LowPart; DWORD HighPart; }; ULONGLONG QuadPart; } ULARGE_INTEGER;
+typedef struct { DWORD dwLowDateTime; DWORD dwHighDateTime; } FILETIME;
+typedef struct { DWORD dwPageSize; DWORD dwNumberOfProcessors; } SYSTEM_INFO;
+typedef struct { DWORD dwLength; ULONGLONG ullTotalPhys; } MEMORYSTATUSEX;
+#define ERROR 0
+inline BOOL QueryPerformanceFrequency(LARGE_INTEGER* f) { f->QuadPart = 1000000; return 1; }
+inline BOOL QueryPerformanceCounter(LARGE_INTEGER* c) { c->QuadPart = 123456; return 1; }
+inline HANDLE GetCurrentProcess() { return (HANDLE)1; }
+inline BOOL GetProcessTimes(HANDLE, FILETIME* a, FILETIME* b, FILETIME* k, FILETIME* u) {
+  a->dwLowDateTime = a->dwHighDateTime = b->dwLowDateTime = b->dwHighDateTime = 0;
+  k->dwLowDateTime = 100; k->dwHighDateTime = 0;
+  u->dwLowDateTime = 200; u->dwHighDateTime = 0;
+  return 1;
+}
+inline void GetNativeSystemInfo(SYSTEM_INFO* s) { s->dwPageSize = 4096; s->dwNumberOfProcessors = 4; }
+inline BOOL GlobalMemoryStatusEx(MEMORYSTATUSEX* m) { m->ullTotalPhys = 1024ULL * 1024 * 1024; return 1; }
+EOF
+  mkdir -p "$work/win_sys_inc"
+  cp "$work/win_sys_stub.h" "$work/win_sys_inc/windows.h"
+  "$CXX" -std=c++11 -Wall -Wextra -Werror -D_WIN32 -I "$work/win_sys_inc" \
+    -I source/debug/system/include -c source/debug/system/src/phoenix_system.cpp \
+    -o "$work/phoenix_system_win.o"
+  echo "phoenix_system smoke passed"
+else
+  echo "skip system smoke ($CXX unavailable)"
+fi
 
 # --- memory.h (process RSS): compile as C and C++, two translation units -----
 cat > "$work/memory_other.c" <<'EOF'
