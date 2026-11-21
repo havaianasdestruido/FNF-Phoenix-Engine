@@ -66,6 +66,7 @@ import play.helpers.PlayStateRender;
 import play.helpers.PlayStateScripts;
 import play.helpers.PlayStateShaders;
 import play.helpers.PlayStateStageDim;
+import play.helpers.PlayStateStageObjects;
 import play.helpers.PlayStateLaneUnderlay;
 import play.helpers.PlayStateResume;
 import play.helpers.PlayStateAndroidMedia;
@@ -878,10 +879,17 @@ class PlayState extends MusicBeatState
 		add(grpGFCrossFade);
 		add(grpBFCrossFade);
 
-		add(gfGroup); //Needed for blammed lights
-
-		add(dadGroup);
-		add(boyfriendGroup);
+		// JSON stage objects (Stage Editor) interleave with the character
+		// groups. Vanilla stages have no `objects` array, so this is the
+		// historical add-gf-then-dad-then-bf order. Needed for blammed lights.
+		if (curStage != null && curStage.length > 0)
+			PlayStateStageObjects.spawn(this, stageData);
+		else
+		{
+			add(gfGroup);
+			add(dadGroup);
+			add(boyfriendGroup);
+		}
 
 		#if LUA_ALLOWED
 		luaDebugGroup = new FlxTypedGroup<DebugLuaText>();
