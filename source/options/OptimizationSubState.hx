@@ -52,6 +52,19 @@ class OptimizationSubState extends BaseOptionsMenu
 		option.onChange = freeMemoryNow;
 		addOption(option);
 
+		// The benchmark is a fixed test run, so it belongs next to the other
+		// one-shot troubleshooting tools, above the per-frame toggles.
+		var benchOption:Option = new Option('Device Benchmark',
+			'Runs a fixed, mod-free chart for about 60 seconds,\n'
+			+ 'then reports average FPS, 1% low and worst frame,\n'
+			+ 'plus your CPU/GPU. Botplay plays the notes itself.\n'
+			+ 'Nothing is saved; no mods are loaded; F3/F6 not needed.',
+			'deviceBenchmark',
+			'link',
+			false);
+		benchOption.onChange = deviceBenchmark;
+		addOption(benchOption);
+
 		//I'd suggest using "Chars & BG" as an example for making your own option since it is the simplest here
 		var option:Option = new Option('Chars & BG', //Name
 			'If unchecked, gameplay will only show the HUD.', //Description
@@ -199,5 +212,27 @@ class OptimizationSubState extends BaseOptionsMenu
 		}
 
 		openSubState(new Prompt(message, 0, null, null, false, 'OK', 'Close'));
+	}
+
+	/**
+	 * Confirms, then starts the device benchmark. A tap on a `link` row is not
+	 * a deliberate enough gesture for something that plays a whole song, so the
+	 * question is asked explicitly; OK is preselected because nothing here is
+	 * destructive.
+	 */
+	function deviceBenchmark():Void
+	{
+		openSubState(new Prompt('Run the device benchmark?\n'
+			+ 'A fixed ~60 s chart will play by itself.\n'
+			+ 'Mods are not loaded and nothing is saved.',
+			0, startBenchmark, null, false, 'Start', 'Cancel'));
+	}
+
+	function startBenchmark():Void
+	{
+		// A state switch skips OptionsState.closeSubState(), which is where the
+		// changes made in this list are normally written to disk.
+		ClientPrefs.saveSettings();
+		backend.Benchmark.start();
 	}
 }

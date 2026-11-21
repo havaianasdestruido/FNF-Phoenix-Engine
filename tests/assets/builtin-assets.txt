@@ -1086,6 +1086,7 @@ assets/songs/bopeebo/Voices-bf-erect.ogg
 assets/songs/bopeebo/Voices-bf.ogg
 assets/songs/bopeebo/Voices-dad-erect.ogg
 assets/songs/bopeebo/Voices-dad.ogg
+assets/songs/phoenix-benchmark/Inst.ogg
 assets/songs/bopeebo/Voices.ogg
 assets/songs/cocoa/Inst.ogg
 assets/songs/cocoa/Voices-bf-christmas.ogg

@@ -88,6 +88,13 @@ class PauseSubState extends MusicBeatSubstate
 			menuItemsOG.insert(4 + num, 'Toggle Practice Mode');
 			menuItemsOG.insert(5 + num, 'Toggle Botplay');
 		}
+		if (backend.Benchmark.active)
+		{
+			// A benchmark run is one fixed chart: restarting or changing the
+			// difficulty would relaunch a different (or missing, dummy) chart.
+			menuItemsOG.remove('Restart Song');
+			menuItemsOG.remove('Change Difficulty');
+		}
 		menuItems = menuItemsOG;
 
 		for (i in 0...CoolUtil.difficulties.length) {

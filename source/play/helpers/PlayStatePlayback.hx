@@ -436,6 +436,12 @@ class PlayStatePlayback
 
 	public static function endSong(state:PlayState):Void
 	{
+		// The device benchmark is a fixed test run: no highscores, no stats,
+		// no achievements, no week/results bookkeeping — straight to the report.
+		if (backend.Benchmark.active) {
+			backend.Benchmark.finish(state);
+			return;
+		}
 		if (state.mobileControls != null) state.mobileControls.visible = false;
 		if (state.virtualPad != null) state.virtualPad.visible = false;
 		state.timeBarBG.visible = false;

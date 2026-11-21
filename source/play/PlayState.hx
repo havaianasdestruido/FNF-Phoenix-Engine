@@ -740,6 +740,8 @@ class PlayState extends MusicBeatState
 
 		if (ffmpegMode)
 			cpuControlled = true;
+		if (backend.Benchmark.active)
+			cpuControlled = true; // the benchmark is always botplay; it is a measurement, not a challenge
 
 		camGame = new FlxCamera();
 		camHUD = new FlxCamera();
@@ -2336,6 +2338,10 @@ class PlayState extends MusicBeatState
 		#if android
 		PlayStateHardwareInput.syncVolumeKeys(this);
 		#end
+		// Device benchmark: starts the measurement once the instrumental starts
+		// and force-ends the fixed run if it never completes.
+		if (backend.Benchmark.active)
+			backend.Benchmark.tick();
 		// #88: the ghosts are pooled now, so dead ones stay in their group as pool
 		// members instead of being removed (and destroyed) every frame. That also
 		// drops the three per-frame `forEachDead` closures.
@@ -3231,6 +3237,9 @@ class PlayState extends MusicBeatState
 	}
 
 	override function destroy() {
+		// A benchmark that is exited any way other than its own results screen
+		// (pause -> exit, crash, restart) must not strand the session with mods off.
+		backend.Benchmark.exitRun();
 		PlayerStats.flushIfDirty();
 		if (adaptivePerformance != null)
 		{
