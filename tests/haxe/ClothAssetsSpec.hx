@@ -4,17 +4,21 @@ import sys.FileSystem;
 import sys.io.File;
 
 /**
- * Pins the two textures the `FlxClothSprite` easter egg draws, so the layout
- * numbers in `backend.ClothEasterEggLogic` cannot silently drift away from the
- * art they place.
+ * Pins the textures the `FlxClothSprite` easter egg draws, so the layout and
+ * crop numbers in `backend.ClothEasterEggLogic` cannot silently drift away from
+ * the art they place.
  *
  * The interpreter spec (`ClothEasterEggSpec`) proves the layout fits the
- * viewport using `ClothEasterEggLogic.BANNER_WIDTH` and friends; this one reads
- * the real PNG headers and fails when a texture was re-exported at another size.
- * It also checks that both files are on the compact-build allowlist, because a
- * texture missing from `tests/assets/builtin-assets.txt` would ship in the full
- * release and be absent from `-DNO_BUILTIN_CONTENT` CI builds - where the scene
- * would then draw nothing at all.
+ * viewport and that every crop stays inside its texture; this one reads the real
+ * PNG headers and fails when a texture was re-exported at another size. It also
+ * checks that every file is on the compact-build allowlist, because a texture
+ * missing from `tests/assets/builtin-assets.txt` would ship in the full release
+ * and be absent from `-DNO_BUILTIN_CONTENT` CI builds - where the scene would
+ * then draw nothing at all.
+ *
+ * The scene cuts its pieces out of `images/menuBG.png`, so that backdrop is
+ * checked here too: it is the texture the crops are really taken from, and a
+ * backdrop narrower than a piece would force the pieces to shrink.
  *
  * Needs the real source tree, so it runs from the repository root.
  *
@@ -24,12 +28,28 @@ class ClothAssetsSpec
 {
   static var failures:Int = 0;
 
-  /** Paths of the two textures, relative to the repository root. */
+  /** Paths of the two fallback textures, relative to the repository root. */
   static final BANNER:String = 'assets/preload/images/clothFlag.png';
 
   static final ROPE:String = 'assets/preload/images/clothRope.png';
 
-  /** Generator that recreates both textures from Phoenix's own art. */
+  /**
+   * The menu backdrop the pieces are cut out of by default. Must ship and be
+   * listed in the allowlist like the fallbacks, or the scene has to fall back to
+   * them for every build.
+   */
+  static final MENU_BG:String = 'assets/preload/images/menuBG.png';
+
+  /**
+   * Smallest backdrop every piece can be cut from at full size: the banner is
+   * the widest piece and a rope the tallest, so anything smaller would make the
+   * crops shrink to fit.
+   */
+  static final MIN_BACKDROP_WIDTH:Int = ClothEasterEggLogic.BANNER_WIDTH;
+
+  static final MIN_BACKDROP_HEIGHT:Int = ClothEasterEggLogic.ROPE_HEIGHT;
+
+  /** Generator that recreates both fallback textures from Phoenix's own art. */
   static final GENERATOR:String = 'tools/generate-cloth-easter-egg-art.sh';
 
   /** Build allowlist the content-policy spec walks. */
@@ -48,6 +68,9 @@ class ClothAssetsSpec
 
     listed(BANNER);
     listed(ROPE);
+    listed(MENU_BG);
+
+    atLeast(MENU_BG, MIN_BACKDROP_WIDTH, MIN_BACKDROP_HEIGHT, 'menu backdrop');
 
     check(FileSystem.exists(GENERATOR), 'the art generator is still shipped at $GENERATOR');
 
@@ -65,6 +88,30 @@ class ClothAssetsSpec
    */
   static function dimensions(path:String, expected:Int, height:Int, label:String):Void
   {
+    final size:Array<Int> = pngSize(path, label);
+    if (size == null) return;
+
+    equal(size[0], expected, '$label width in $path');
+    equal(size[1], height, '$label height in $path');
+  }
+
+  /**
+   * Reads the width and height out of a PNG's `IHDR` chunk.
+   *
+   * @param path  PNG to inspect.
+   * @param label Name of the texture, for failure messages.
+   * @return `[width, height]`, or `null` after recording a failure when the file
+   *         is missing or is not a PNG.
+   */
+  static function pngSize(path:String, label:String):Array<Int>
+  {
+    if (!FileSystem.exists(path))
+    {
+      failures++;
+      Sys.println('FAILED: $label is missing ($path)');
+      return null;
+    }
+
     final bytes:Bytes = File.getBytes(path);
 
     // 8-byte signature, then the IHDR chunk: 4 length, 4 "IHDR", then
@@ -74,7 +121,7 @@ class ClothAssetsSpec
     {
       failures++;
       Sys.println('FAILED: $label is too small to be a PNG');
-      return;
+      return null;
     }
 
     for (i in 0...signature.length)
@@ -82,14 +129,39 @@ class ClothAssetsSpec
       if (bytes.get(i) == signature[i]) continue;
       failures++;
       Sys.println('FAILED: $label is not a PNG');
-      return;
+      return null;
     }
 
-    final width:Int = be32(bytes, 16);
-    final actualHeight:Int = be32(bytes, 20);
+    return [be32(bytes, 16), be32(bytes, 20)];
+  }
 
-    equal(width, expected, '$label width in $path');
-    equal(actualHeight, height, '$label height in $path');
+  /**
+   * Fails unless a PNG is at least `minWidth` x `minHeight`.
+   *
+   * Used for the menu backdrop, which has no fixed size (a mod may replace it):
+   * the pieces are cut at their own size out of it, so it only has to be big
+   * enough to hold each of them.
+   *
+   * @param path      PNG to inspect.
+   * @param minWidth  Smallest acceptable width.
+   * @param minHeight Smallest acceptable height.
+   * @param label     Name of the texture, for failure messages.
+   */
+  static function atLeast(path:String, minWidth:Int, minHeight:Int, label:String):Void
+  {
+    final size:Array<Int> = pngSize(path, label);
+    if (size == null) return;
+
+    if (size[0] < minWidth)
+    {
+      failures++;
+      Sys.println('FAILED: $label width (expected at least $minWidth, got ${size[0]})');
+    }
+    if (size[1] < minHeight)
+    {
+      failures++;
+      Sys.println('FAILED: $label height (expected at least $minHeight, got ${size[1]})');
+    }
   }
 
   /** Big-endian unsigned 32-bit read at `offset`. */

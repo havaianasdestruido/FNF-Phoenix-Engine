@@ -1,6 +1,7 @@
 package states.substates;
 
 #if MODS_ALLOWED
+import backend.ModHealth;
 import backend.ModSecurity;
 import backend.ModSecurity.ModSecurityStatus;
 import backend.MusicBeatSubstate;
@@ -34,7 +35,7 @@ import states.helpers.ModInfoFlow.ModInfoAction;
 class ModInfoSubState extends MusicBeatSubstate
 {
 	static inline final PANEL_WIDTH:Int = 900;
-	static inline final PANEL_HEIGHT:Int = 600;
+	static inline final PANEL_HEIGHT:Int = 660;
 	static inline final PADDING:Int = 30;
 	static inline final BUTTON_WIDTH:Int = 300;
 	static inline final BUTTON_HEIGHT:Int = 80;
@@ -42,6 +43,12 @@ class ModInfoSubState extends MusicBeatSubstate
 
 	/** Longest list of `pack.json` exceptions spelled out before "+N more". */
 	static inline final MAX_LISTED_RULES:Int = 4;
+
+	/** Characters per wrapped line in the "what broke" block (panel width at 16 px). */
+	static inline final HEALTH_CHARS_PER_LINE:Int = 96;
+
+	/** Lines of the "what broke" block shown before the rest is summarised. */
+	static inline final HEALTH_MAX_LINES:Int = 4;
 
 	static inline final COLOR_ON:FlxColor = 0xFF7CFC8A;
 	static inline final COLOR_OFF:FlxColor = 0xFFFF6666;
@@ -76,6 +83,9 @@ class ModInfoSubState extends MusicBeatSubstate
 	var stateText:FlxText;
 	var bodyText:FlxText;
 	var noteText:FlxText;
+	/** "Why did it break?" block: only drawn while this mod has recorded problems. */
+	var healthTitle:FlxText;
+	var healthText:FlxText;
 	var lineTop:FlxSprite;
 	var lineBottom:FlxSprite;
 
@@ -147,6 +157,13 @@ class ModInfoSubState extends MusicBeatSubstate
 		stateText = makeText(26);
 		bodyText = makeText(20);
 		noteText = makeText(16);
+
+		// ModHealth, not the mod, decides what appears here; the panel only wraps it.
+		healthTitle = makeText(20);
+		healthTitle.text = 'WHAT BROKE';
+		healthTitle.alpha = 0.7;
+		healthText = makeText(16);
+		healthText.color = COLOR_ASK;
 
 		buttonTurnOff = makeButton('TURN OFF', COLOR_OFF);
 		buttonTurnOn = makeButton('TURN ON', COLOR_ON);
@@ -276,6 +293,8 @@ class ModInfoSubState extends MusicBeatSubstate
 			noteText.alpha = 0.7;
 		}
 
+		refreshHealth();
+
 		var left:MenuButton = leftButton();
 		var right:MenuButton = rightButton();
 		for(button in [buttonTurnOff, buttonTurnOn, buttonBack, buttonYes, buttonNo])
@@ -294,6 +313,25 @@ class ModInfoSubState extends MusicBeatSubstate
 			// Showing a button makes both of its labels visible again; let it pick one.
 			button.setButtonVisibility(button.onFocus);
 		}
+	}
+
+	/**
+	 * Fills the "what broke" block from `backend.ModHealth`: the last script load
+	 * error, an invalid `pack.json`, the rules that blocked a script and the count
+	 * of missing assets, with the offending paths.
+	 *
+	 * The lines come from `ModHealth.lines()`, already flattened to one bounded line
+	 * each, and `ModInfoFlow.problemsBlock()` wraps them to the panel width and caps
+	 * how many are shown. A healthy mod hides the whole block.
+	 */
+	function refreshHealth():Void
+	{
+		var lines:Array<String> = ModHealth.lines(folder);
+		healthTitle.visible = healthText.visible = lines.length > 0;
+		if(lines.length == 0) return;
+
+		healthText.text = ModInfoFlow.problemsBlock(lines, HEALTH_CHARS_PER_LINE, HEALTH_MAX_LINES);
+		healthText.color = ModHealth.severity(folder) == ModHealth.BROKEN ? COLOR_OFF : COLOR_ASK;
 	}
 
 	/** Who decided the current state, shown next to ON/OFF. */
@@ -353,6 +391,14 @@ class ModInfoSubState extends MusicBeatSubstate
 		stateText.setPosition(left, y);
 		y += stateText.height + 6;
 		bodyText.setPosition(left, y);
+		y += bodyText.height + 14;
+
+		if(healthTitle.visible)
+		{
+			healthTitle.setPosition(left, y);
+			y += healthTitle.height + 2;
+			healthText.setPosition(left, y);
+		}
 
 		// Kept between the virtual pad's D-pad (left) and A/B (right) on touch screens.
 		var buttonsY:Float = panel.y + PANEL_HEIGHT - BUTTON_HEIGHT - 20;

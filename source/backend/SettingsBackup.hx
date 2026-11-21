@@ -51,7 +51,9 @@ class SettingsBackup
     // Internal state managed by backend.LowMemory. A backup carries the
     // selected profile, but never its private snapshot or derived mirror.
     'memoryProfileBaseline',
-    'lowMemoryMode'
+    'lowMemoryMode',
+    // Internal first-run migration marker, not a user-selected preference.
+    'firstRunPerformanceVersion'
   ];
 
   /**

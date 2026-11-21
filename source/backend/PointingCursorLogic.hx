@@ -113,6 +113,44 @@ class PointingCursorLogic
   }
 
   /**
+   * On-screen hit rectangle of a menu member, in the coordinate space of the
+   * camera that draws it.
+   *
+   * A member is not drawn at its world position once its camera has scrolled
+   * or its scroll factor differs from 1: it appears at
+   * `position - cameraScroll * scrollFactor`. Hover picking has to test the
+   * pointer against that rectangle — the one the player actually sees — which
+   * is also the space `FlxG.mouse.getScreenPosition(camera)` reports the
+   * pointer in. Testing the world rectangle against the world pointer instead
+   * drifts by `cameraScroll * (1 - scrollFactor)` on scrolling menus (the
+   * Phoenix main menu pans its camera and gives items a 0.405 scroll factor),
+   * which made the finger snap to items the pointer was not on and fight
+   * keyboard scrolling.
+   *
+   * @param x member world left
+   * @param y member world top
+   * @param width member hitbox width
+   * @param height member hitbox height
+   * @param scrollX camera horizontal scroll
+   * @param scrollY camera vertical scroll
+   * @param scrollFactorX member horizontal scroll factor
+   * @param scrollFactorY member vertical scroll factor
+   * @param visible whether the member is currently drawable
+   * @return the member's on-screen rectangle, for `pickByPointer`
+   */
+  public static function screenRect(x:Float, y:Float, width:Float, height:Float, scrollX:Float, scrollY:Float,
+      scrollFactorX:Float, scrollFactorY:Float, visible:Bool):PointingTarget
+  {
+    return {
+      x: x - scrollX * scrollFactorX,
+      y: y - scrollY * scrollFactorY,
+      width: width,
+      height: height,
+      visible: visible
+    };
+  }
+
+  /**
    * Whether a target can receive the pointing sprite.
    *
    * @param target candidate rectangle
