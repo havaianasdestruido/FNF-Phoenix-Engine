@@ -134,6 +134,24 @@ class ModsStub
 }
 HAXE
 
+cat > "$test_source/backend/RecoveryBoot.hx" <<'HAXE'
+package backend;
+
+class RecoveryBoot
+{
+  public static var freshPrefs:Bool = false;
+}
+HAXE
+
+cat > "$test_source/backend/VLog.hx" <<'HAXE'
+package backend;
+
+class VLog
+{
+  public static function log(tag:String, message:String):Void {}
+}
+HAXE
+
 # ---- the slice of the engine the page reads ---------------------------------
 
 cat > "$test_source/backend/ClientPrefs.hx" <<'HAXE'

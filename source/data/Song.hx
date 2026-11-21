@@ -41,6 +41,13 @@ typedef SwagSong =
 	var specialAudioName:String;
 	var specialEventsName:String;
 
+	/**
+	 * Chart-declared extra vocal stems ("unlimited vocals per strumline"):
+	 * `[{name, file, side}, ...]`, parsed leniently by `data.ExtraVocals`.
+	 * Kept as raw JSON here so the chart editor round-trips it untouched.
+	 */
+	@:optional var extraVocals:Array<Dynamic>;
+
 	var arrowSkin:String;
 	var splashSkin:String;
 }

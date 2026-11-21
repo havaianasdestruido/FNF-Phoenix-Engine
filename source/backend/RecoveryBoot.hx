@@ -6,6 +6,17 @@ class RecoveryBoot
   public static inline var THRESHOLD:Int = 2;
   public static var failures(default, null):Int = 0;
   public static var disableMods:Bool = false;
+
+  /**
+   * Whether anything in the tree should treat mods as unavailable right now:
+   * Safe Mode (`disableMods`, permanent for the session) or the device
+   * benchmark (`backend.Benchmark.active`, until its PlayState is destroyed).
+   * Use this instead of reading `disableMods` alone at lookup sites.
+   */
+  public static function modsDisabled():Bool
+  {
+    return disableMods || backend.Benchmark.active;
+  }
   public static var freshPrefs:Bool = false;
   public static var defaultDisplay:Bool = false;
   static var crashed:Bool = false;
