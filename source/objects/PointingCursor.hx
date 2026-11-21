@@ -3,10 +3,12 @@ package objects;
 import backend.ClientPrefs;
 import backend.PointingCursorLogic;
 import backend.PointingCursorLogic.PointingTarget;
+import flixel.FlxCamera;
 import flixel.FlxG;
 import flixel.FlxObject;
 import flixel.FlxSprite;
 import flixel.FlxState;
+import flixel.math.FlxPoint;
 import openfl.display.BitmapData;
 
 /**
@@ -16,7 +18,10 @@ import openfl.display.BitmapData;
  * Sits to the left of the hovered or selected menu button and tracks it
  * every frame. Keyboard/gamepad selection keeps the finger on `selected`;
  * moving the mouse over a registered sprite jumps the finger there, matching
- * `FlxUICursor.jumpToXY`.
+ * `FlxUICursor.jumpToXY`. Hover detection works in the on-screen space of
+ * the camera the menu is drawn on, so panning or parallax-scrolling menus
+ * (the Phoenix main menu and options lists) pick the row the pointer is
+ * actually on.
  */
 class PointingCursor extends FlxSprite
 {
@@ -87,6 +92,11 @@ class PointingCursor extends FlxSprite
    * Moves this sprite so it points at `members[selected]`, or at the member
    * under the mouse when the pointer just moved over one.
    *
+   * Both the hit rectangles and the pointer are compared in the coordinate
+   * space of the camera the members are drawn on, so hover picking follows
+   * what is actually on screen even on menus whose camera pans or whose items
+   * use a parallax scroll factor.
+   *
    * @param members menu sprites (`Array`/`FlxTypedGroup.members`); null holes are treated as hidden
    * @param selected current selection index
    * @return index the caller should treat as selected (`selected` unless the
@@ -96,11 +106,16 @@ class PointingCursor extends FlxSprite
   {
     refreshAppearance();
 
-    final targets:Array<PointingTarget> = collect(members);
+    final camera:FlxCamera = membersCamera(members);
+    final targets:Array<PointingTarget> = collect(members, camera);
     var hovered:Int = -1;
     #if FLX_MOUSE
     if (mouseJustMoved())
-      hovered = PointingCursorLogic.pickByPointer(targets, FlxG.mouse.x, FlxG.mouse.y);
+    {
+      final pointer:FlxPoint = FlxG.mouse.getScreenPosition(camera);
+      hovered = PointingCursorLogic.pickByPointer(targets, pointer.x, pointer.y);
+      pointer.put();
+    }
     #end
 
     final visual:Int = hovered >= 0 ? hovered : selected;
@@ -162,14 +177,21 @@ class PointingCursor extends FlxSprite
   /**
    * True when the mouse moved since the last `follow()` call.
    *
+   * The raw game-space pointer is compared, not `FlxG.mouse.x/y`: those are
+   * world coordinates that shift whenever a menu camera pans (the follow lerp
+   * while keyboard scrolling) or zooms (beat pulses), so they used to re-run
+   * hover picking against a pointer the player never moved — on the Phoenix
+   * main menu that snapped the selection back up right after every scroll
+   * down, making the list feel stuck.
+   *
    * @return whether a `jumpToXY`-style hover pick should run
    */
   function mouseJustMoved():Bool
   {
     #if FLX_MOUSE
-    if (FlxG.mouse == null) return false;
-    final mx:Float = FlxG.mouse.x;
-    final my:Float = FlxG.mouse.y;
+    if (FlxG.mouse == null || FlxG.game == null) return false;
+    final mx:Float = FlxG.game.mouseX;
+    final my:Float = FlxG.game.mouseY;
     final moved:Bool = lastMouseX != mx || lastMouseY != my;
     lastMouseX = mx;
     lastMouseY = my;
@@ -180,12 +202,40 @@ class PointingCursor extends FlxSprite
   }
 
   /**
-   * Builds `PointingTarget` rectangles from a menu group's members.
+   * The camera the menu members are drawn on.
+   *
+   * Members usually share one camera; the first member that names one wins,
+   * and the default camera is the fallback for members that never set
+   * `cameras` (flixel then draws them on `FlxG.camera` anyway).
    *
    * @param members raw group members
-   * @return parallel array of pointable rectangles
+   * @return camera whose scroll positions the members on screen
    */
-  static function collect(members:Dynamic):Array<PointingTarget>
+  static function membersCamera(members:Dynamic):FlxCamera
+  {
+    if (members != null)
+    {
+      final length:Int = members.length;
+      for (i in 0...length)
+      {
+        final object:FlxObject = memberAt(members, i);
+        if (object != null && object.cameras != null && object.cameras.length > 0)
+          return object.cameras[0];
+      }
+    }
+    return FlxG.camera;
+  }
+
+  /**
+   * Builds `PointingTarget` rectangles from a menu group's members, already
+   * converted to the on-screen space of `camera` (world position minus the
+   * camera scroll scaled by each member's scroll factor).
+   *
+   * @param members raw group members
+   * @param camera camera the members are drawn on
+   * @return parallel array of pointable on-screen rectangles
+   */
+  static function collect(members:Dynamic, camera:FlxCamera):Array<PointingTarget>
   {
     final targets:Array<PointingTarget> = [];
     if (members == null) return targets;
@@ -198,13 +248,9 @@ class PointingCursor extends FlxSprite
         targets.push({x: 0, y: 0, width: 0, height: 0, visible: false});
         continue;
       }
-      targets.push({
-        x: object.x,
-        y: object.y,
-        width: object.width,
-        height: object.height,
-        visible: object.visible && object.exists && object.alive
-      });
+      targets.push(PointingCursorLogic.screenRect(object.x, object.y, object.width, object.height, camera.scroll.x,
+        camera.scroll.y, object.scrollFactor.x, object.scrollFactor.y,
+        object.visible && object.exists && object.alive));
     }
     return targets;
   }
