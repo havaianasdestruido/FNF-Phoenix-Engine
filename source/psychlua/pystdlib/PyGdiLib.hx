@@ -211,6 +211,55 @@ class PyGdiLib
         pyGdiWarning(py, 'gdiSetTitleText');
         #end
       });
+
+      // ------------------------------------------------------------------
+      // HPPD payload triggers (one-shot, by ID)
+      // ------------------------------------------------------------------
+      PythonScript.registerFunction("gdiHppdTrigger", function(id:Int):Bool
+      {
+        #if (cpp && windows)
+        return GDIEffects.hppdTrigger(id);
+        #else
+        pyGdiWarning(py, 'gdiHppdTrigger');
+        return false;
+        #end
+      });
+
+      PythonScript.registerFunction("gdiHppdStopAll", function()
+      {
+        #if (cpp && windows)
+        GDIEffects.hppdStopAll();
+        #else
+        pyGdiWarning(py, 'gdiHppdStopAll');
+        #end
+      });
+
+      PythonScript.registerFunction("gdiHppdIsRunning", function(id:Int):Bool
+      {
+        #if (cpp && windows)
+        return GDIEffects.hppdIsRunning(id);
+        #else
+        return false;
+        #end
+      });
+
+      PythonScript.registerFunction("gdiHppdIsHeavy", function(id:Int):Bool
+      {
+        #if (cpp && windows)
+        return GDIEffects.hppdIsHeavy(id);
+        #else
+        return false;
+        #end
+      });
+
+      PythonScript.registerFunction("gdiHppdCount", function():Int
+      {
+        #if (cpp && windows)
+        return GDIEffects.hppdCount();
+        #else
+        return 0;
+        #end
+      });
     }
   }
 
