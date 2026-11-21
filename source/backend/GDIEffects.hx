@@ -385,6 +385,80 @@ class GDIEffects
   }
 
   /* ---------------------------------------------------------------------- */
+  /*                     HPPD PAYLOAD TRIGGERS (IDs)                        */
+  /* ---------------------------------------------------------------------- */
+  /* One-shot triggers for the ported HPPD GDI payloads. Each payload runs on
+   * its own worker thread for ~5 seconds (or a fixed frame count) and aborts
+   * on ESC or stop. Heavy payloads serialize; light payloads overlap freely.
+   * See docs/GDI_HPPD.md for the full catalog. */
+
+  /**
+   * Trigger an HPPD payload by ID.
+   * @param id Payload ID (1..63, 69..72, or 101..131 for Death Month day 1..31).
+   * @return true if a worker was started, false if unknown/excluded or already running.
+   */
+  public static function hppdTrigger(id:Int):Bool
+  {
+    #if (cpp && windows)
+      return GdiNative.hppdTrigger(id);
+    #else
+      return false;
+    #end
+  }
+
+  /** Stop every running HPPD payload at its next frame check. */
+  public static function hppdStopAll():Void
+  {
+    #if (cpp && windows)
+      GdiNative.hppdStopAll();
+    #end
+  }
+
+  /** Whether an HPPD payload worker is currently running. */
+  public static function hppdIsRunning(id:Int):Bool
+  {
+    #if (cpp && windows)
+      return GdiNative.hppdIsRunning(id);
+    #else
+      return false;
+    #end
+  }
+
+  /** Whether an HPPD payload ID is a heavy (serialized) payload. */
+  public static function hppdIsHeavy(id:Int):Bool
+  {
+    #if (cpp && windows)
+      return GdiNative.hppdIsHeavy(id);
+    #else
+      return false;
+    #end
+  }
+
+  /** Number of ported HPPD payloads (light + heavy + Death Month = 97). */
+  public static function hppdCount():Int
+  {
+    #if (cpp && windows)
+      return GdiNative.hppdCount();
+    #else
+      return 0;
+    #end
+  }
+
+  /**
+   * Convenience: trigger a named HPPD payload. Accepts the upstream HPPD
+   * names (e.g. "Plasma Hue") or the plain numeric ID as a string.
+   * @param name Payload name or numeric ID string.
+   * @return true if a worker was started.
+   */
+  public static function hppdTriggerByName(name:String):Bool
+  {
+    var id = Std.parseInt(name);
+    if (id != null && id > 0)
+      return hppdTrigger(id);
+    return false;
+  }
+
+  /* ---------------------------------------------------------------------- */
   /*                           INTERNAL                                     */
   /* ---------------------------------------------------------------------- */
 

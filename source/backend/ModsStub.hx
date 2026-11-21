@@ -31,5 +31,6 @@ class ModsStub
 	inline public static function registerInstalledMod(folder:String, enabled:Bool = true):Bool
 		return false;
 	inline public static function loadTopMod():Void {}
+	inline public static function forgetHealth(folder:String):Void {}
 }
 

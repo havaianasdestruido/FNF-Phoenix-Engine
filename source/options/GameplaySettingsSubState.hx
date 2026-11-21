@@ -232,6 +232,13 @@ class GameplaySettingsSubState extends BaseOptionsMenu
 		option.changeValue = 0.1;
 		option.decimals = 1;
 
+		var option:Option = new Option('Extra Vocal Stems',
+			'If checked, charts can play extra vocal tracks (Voices-*.ogg)\nbeyond the player and opponent ones — e.g. a third singer\nor GF duet parts, each following its strumline side.\nUncheck to skip loading them and save memory.',
+			'extraVocals',
+			'bool',
+			true);
+		addOption(option);
+
 		var option:Option = new Option('Rating Offset',
 			'Changes how late/early you have to hit for a "Sick!"\nHigher values mean you have to hit later.',
 			'ratingOffset',

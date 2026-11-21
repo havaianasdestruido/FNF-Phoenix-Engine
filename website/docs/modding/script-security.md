@@ -174,6 +174,16 @@ The first time a script from a mod you switched off is loaded, the log says so:
 [ModSecurity] WARNING: ModSecurity is turned off for mod "MyMod" in the Mods menu (Mod Info). Its Lua/Python/HScript scripts run with full engine privileges.
 ```
 
+## Seeing what was blocked without the log
+
+Every block is also recorded per mod (`backend.ModHealth`), so the Mods menu shows it:
+the row gets an `!` badge and **Mod Info** lists
+`Blocked by the sandbox: lua.os in scripts/unsafe.lua`. A guard that refused a call
+*inside* a script that did load is recorded the same way, so a script that runs but
+silently loses a capability is still visible. The same panel reports the last script load
+error, an invalid `pack.json` and missing assets; see
+[mod folder structure](mod-folder-structure.md#why-did-my-mod-break).
+
 The choices are kept in `modSecurity.txt`, next to `modsList.txt`. It has one line for
 each mod whose state differs from that mod's own default:
 
