@@ -2,6 +2,7 @@ package options;
 
 import shaders.RainShader.Light;
 
+import backend.BenchmarkKind;
 import backend.ClientPrefs;
 import backend.LowMemory;
 import backend.MemoryProfiles;
@@ -52,20 +53,75 @@ class OptimizationSubState extends BaseOptionsMenu
 		option.onChange = freeMemoryNow;
 		addOption(option);
 
-		// The benchmark is a fixed test run, so it belongs next to the other
-		// one-shot troubleshooting tools, above the per-frame toggles.
+		// The benchmark suite: one hub for all kinds. Each kind reuses the
+		// same fixed-chart, mod-free, botplay contract as the original
+		// Device Benchmark — only the note pattern (and for SYNTHETIC the
+		// absence of a stage) changes. Above the per-frame toggles, next to
+		// Free Memory Now, because it is a one-shot diagnostic.
+		var benchHub:Option = new Option('Benchmarks',
+			'Open the benchmark suite: visual stress, logic stress,\n'
+			+ 'gameplay baseline, plus a ~2 s synthetic CPU test.\n'
+			+ 'All are fixed, mod-free and botplayed where applicable;\n'
+			+ 'nothing is saved and no F3/F6 keys are needed.',
+			'benchmarks',
+			'link',
+			false);
+		benchHub.onChange = openBenchmarks;
+		addOption(benchHub);
+
+		// Keep the original single-row entry for muscle-memory and for scripts
+		// that drove `deviceBenchmark` by name — it now just opens the same hub
+		// with the same confirm, so no save path is broken.
 		var benchOption:Option = new Option('Device Benchmark',
 			'Runs a fixed, mod-free chart for about 60 seconds,\n'
 			+ 'then reports average FPS, 1% low and worst frame,\n'
 			+ 'plus your CPU/GPU. Botplay plays the notes itself.\n'
-			+ 'Nothing is saved; no mods are loaded; F3/F6 not needed.',
+			+ 'Nothing is saved; no mods are loaded; F3/F6 not needed.\n'
+			+ 'Tip: Benchmarks (above) has more kinds.',
 			'deviceBenchmark',
 			'link',
 			false);
 		benchOption.onChange = deviceBenchmark;
 		addOption(benchOption);
 
-		//I'd suggest using "Chars & BG" as an example for making your own option since it is the simplest here
+		// Direct shortcuts — useful on Android where an extra menu costs taps.
+		var visualOpt:Option = new Option('Visual Benchmark',
+			'Visual stress: many chords, holds and splashes every 8th.\n'
+			+ 'Stresses the renderer/draw-call path; ~60 s, mod-free, botplay.',
+			'visualBenchmark',
+			'link',
+			false);
+		visualOpt.onChange = visualBenchmark;
+		addOption(visualOpt);
+
+		var logicOpt:Option = new Option('Logic Benchmark',
+			'Logic stress: jacks, trills and 16th bursts.\n'
+			+ 'Stresses spawning/sorting/update; ~60 s, mod-free, botplay.',
+			'logicBenchmark',
+			'link',
+			false);
+		logicOpt.onChange = logicBenchmark;
+		addOption(logicOpt);
+
+		var synthOpt:Option = new Option('Synthetic Benchmark',
+			'Synthetic CPU test: JSON parse, sort, path/BPM math, alloc/GC (~2 s).\n'
+			+ 'No stage or audio; gives a CPU score for bug reports.',
+			'syntheticBenchmark',
+			'link',
+			false);
+		synthOpt.onChange = syntheticBenchmark;
+		addOption(synthOpt);
+
+		var suiteOpt:Option = new Option('Full Benchmark Suite',
+			'Runs the synthetic CPU test now and shows how to complete\n'
+			+ 'a full profile with the visual/logic charts (combined report).',
+			'benchmarkSuite',
+			'link',
+			false);
+		suiteOpt.onChange = benchmarkSuite;
+		addOption(suiteOpt);
+
+		//I'd suggest using \"Chars & BG\" as an example for making your own option since it is the simplest here
 		var option:Option = new Option('Chars & BG', //Name
 			'If unchecked, gameplay will only show the HUD.', //Description
 			'charsAndBG', //Save data variable name
@@ -196,7 +252,7 @@ class OptimizationSubState extends BaseOptionsMenu
 	}
 
 	/**
-	 * Options -> Optimization -> "Free Memory Now".
+	 * Options -> Optimization -> \"Free Memory Now\".
 	 *
 	 * Uses the same shallow trim as a profile's idle pass, so a player who does
 	 * not want a whole profile can still reclaim RAM on demand without risking
@@ -221,16 +277,20 @@ class OptimizationSubState extends BaseOptionsMenu
 		openSubState(new Prompt(message, 0, null, null, false, 'OK', 'Close'));
 	}
 
+	/** Opens the hub that lists every benchmark kind. */
+	function openBenchmarks():Void
+	{
+		ClientPrefs.saveSettings();
+		FlxG.switchState(() -> new states.BenchmarkMenuState());
+	}
+
 	/**
-	 * Confirms, then starts the device benchmark. A tap on a `link` row is not
-	 * a deliberate enough gesture for something that plays a whole song, so the
-	 * question is asked explicitly; OK is preselected because nothing here is
-	 * destructive.
+	 * Confirms, then starts the device benchmark (legacy GAMEPLAY).
 	 */
 	function deviceBenchmark():Void
 	{
-		openSubState(new Prompt('Run the device benchmark?\n'
-			+ 'A fixed ~60 s chart will play by itself.\n'
+		openSubState(new Prompt('Run the device benchmark?\\n'
+			+ 'A fixed ~60 s chart will play by itself.\\n'
 			+ 'Mods are not loaded and nothing is saved.',
 			0, startBenchmark, null, false, 'Start', 'Cancel'));
 	}
@@ -241,5 +301,49 @@ class OptimizationSubState extends BaseOptionsMenu
 		// changes made in this list are normally written to disk.
 		ClientPrefs.saveSettings();
 		backend.Benchmark.start();
+	}
+
+	function visualBenchmark():Void
+	{
+		openSubState(new Prompt('Run the visual benchmark?\\n'
+			+ 'A render-heavy ~60 s chart will play by itself.\\n'
+			+ 'Stresses chords/holds/splashes and draw calls.',
+			0, function() {
+				ClientPrefs.saveSettings();
+				backend.Benchmark.startVisual();
+			}, null, false, 'Start', 'Cancel'));
+	}
+
+	function logicBenchmark():Void
+	{
+		openSubState(new Prompt('Run the logic benchmark?\\n'
+			+ 'A logic-heavy ~60 s chart will play by itself.\\n'
+			+ 'Stresses jacks/trills/sorting and the update loop.',
+			0, function() {
+				ClientPrefs.saveSettings();
+				backend.Benchmark.startLogic();
+			}, null, false, 'Start', 'Cancel'));
+	}
+
+	function syntheticBenchmark():Void
+	{
+		openSubState(new Prompt('Run the synthetic benchmark?\\n'
+			+ 'A ~2 s CPU test with no song or stage.\\n'
+			+ 'Measures JSON/sort/math/alloc for a quick CPU score.',
+			0, function() {
+				ClientPrefs.saveSettings();
+				backend.Benchmark.startSynthetic();
+			}, null, false, 'Start', 'Cancel'));
+	}
+
+	function benchmarkSuite():Void
+	{
+		openSubState(new Prompt('Run the full benchmark suite?\\n'
+			+ 'Synthetic CPU test now, then visual/logic charts\\n'
+			+ 'to complete the profile (~2 s + 2×60 s).',
+			0, function() {
+				ClientPrefs.saveSettings();
+				backend.Benchmark.startSuite();
+			}, null, false, 'Start', 'Cancel'));
 	}
 }
