@@ -227,6 +227,9 @@ class ChartingState extends MusicBeatState
   var specialEventsName:String = '';
 
   var bpmTxt:FlxText;
+  var editorNotesCapped:Bool = false;
+  var editorShownNotes:Int = 0;
+  var editorTotalGridNotes:Int = 0;
   var songSlider:CustomFlxUISlider;
 
   var camPos:FlxObject;
@@ -1881,6 +1884,10 @@ class ChartingState extends MusicBeatState
         + FlxStringUtil.formatMoney(Math.abs(curRenderedNotes.length + nextRenderedNotes.length), false);
 
       if (_song.notes[curSec] != null) bpmTxt.text += "\n\nSection Notes: " + FlxStringUtil.formatMoney(_song.notes[curSec].sectionNotes.length, false);
+      if (editorNotesCapped)
+      {
+        bpmTxt.text += '\n\nShowing ${editorShownNotes}/${editorTotalGridNotes} notes (cap ${ClientPrefs.maxNotes}) — raise in Options → Optimization';
+      }
     }
 
     var playedSound:Array<Bool> = [false, false, false, false]; // Prevents ouchy GF sex sounds
