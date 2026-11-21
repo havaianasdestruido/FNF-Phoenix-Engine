@@ -11,6 +11,7 @@ import openfl.display.BlendMode;
 import backend.Paths;
 import backend.ClientPrefs;
 import backend.WeekData;
+import backend.ModHealth;
 import backend.ModSecurity;
 import backend.LuaDiagnostics;
 import backend.ScriptSecurityScanner.ScriptSecurityFinding;

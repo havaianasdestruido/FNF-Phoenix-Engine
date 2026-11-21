@@ -11,6 +11,7 @@ import backend.Paths;
 import backend.Conductor;
 import backend.ClientPrefs;
 import backend.CoolUtil;
+import backend.ModHealth;
 import backend.ModSecurity;
 import backend.Native;
 import backend.ScriptSecurityScanner;

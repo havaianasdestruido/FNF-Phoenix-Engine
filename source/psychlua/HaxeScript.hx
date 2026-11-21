@@ -10,6 +10,7 @@ import haxe.Exception;
 import backend.Paths;
 import backend.Conductor;
 import backend.ClientPrefs;
+import backend.ModHealth;
 import backend.ModSecurity;
 import backend.Native;
 import objects.Character;

@@ -26,6 +26,7 @@ import backend.CoolUtil;
 import backend.Mods;
 import objects.NoteHelpers;
 import backend.Paths;
+import backend.ModHealth;
 import backend.ModSecurity;
 import backend.WeekData;
 import objects.NoteSplash;
