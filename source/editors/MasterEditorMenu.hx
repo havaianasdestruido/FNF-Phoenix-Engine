@@ -1,4 +1,4 @@
-﻿package editors;
+package editors;
 import backend.DiscordClient;
 import backend.MusicBeatState;
 import backend.Paths;
@@ -20,6 +20,7 @@ class MasterEditorMenu extends MusicBeatState
 		'Dialogue Editor',
 		'Dialogue Portrait Editor',
 		'Character Editor',
+		'Stage Editor',
 		'Chart Editor',
 		'Modchart Lab',
 		'Note Splash Debug'
@@ -113,6 +114,8 @@ class MasterEditorMenu extends MusicBeatState
 			{
 				case 'Character Editor':
 					LoadingState.loadAndSwitchState(() -> new CharacterEditorState(Character.DEFAULT_CHARACTER, false));
+				case 'Stage Editor':
+					LoadingState.loadAndSwitchState(() -> new StageEditorState());
 				case 'Week Editor':
 					FlxG.switchState(() -> new WeekEditorState());
 				case 'Menu Character Editor':

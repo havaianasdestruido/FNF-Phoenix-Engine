@@ -81,6 +81,29 @@ class SSPlugin extends flixel.FlxBasic
 	public static var onScreenshot:Void->Void = null;
 
 	/**
+	 * Hides any old flash or thumbnail before a clean window-pixel capture.
+	 *
+	 * Photo Mode reads the whole window through `backend.Screenshot`; a recent
+	 * plugin preview is a display overlay, so clear it before saving the framed
+	 * gameplay image.
+	 */
+	public static function clearPreview():Void
+	{
+		if (current == null) return;
+		if (current.flashSprite != null)
+		{
+			FlxTween.cancelTweensOf(current.flashSprite);
+			current.flashSprite.alpha = 0;
+		}
+		if (current.screenshotSprite != null)
+		{
+			FlxTween.cancelTweensOf(current.screenshotSprite);
+			current.screenshotSprite.alpha = 0;
+		}
+		current.aliveTime = 0;
+	}
+
+	/**
 	 * Initialize a new `ScreenShotPlugin` instance
 	 */
 	override public function new():Void

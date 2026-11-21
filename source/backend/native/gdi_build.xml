@@ -20,28 +20,41 @@
   <files id="haxe">
     <compilervalue name="-I" value="${PHOENIX_GDI_DIR}/include/" />
     <depend name="${PHOENIX_GDI_DIR}/include/phoenix_gdi.h" />
+    <depend name="${PHOENIX_GDI_DIR}/include/phoenix_gdi_hppd.h" />
   </files>
   <files id="phoenix_gdi">
     <compilervalue name="-I" value="${PHOENIX_GDI_DIR}/include/" />
     <depend name="${PHOENIX_GDI_DIR}/include/phoenix_gdi.h" />
+    <depend name="${PHOENIX_GDI_DIR}/include/phoenix_gdi_hppd.h" />
     <!-- No <compilerflag>-based standard switch here: project.hxp already sets
          the HXCPP_CPP17 haxedef, which makes C++17 hxcpp's default, and hxcpp
          appends its own -std=/-std:c++ flag after any compilerflag, so one
          here would be overridden anyway. Use a cxx_standard attribute if a
          single file ever needs to differ from the default. -->
+    <!-- HPPD port: shared runtime + heavy/light/Death-Month payload bodies.
+         phoenix_gdi_hppd.h declares the payloads and the phoenixHppd* API;
+         the four .cpp files below define them. All four pull in <windows.h>,
+         so they stay inside the same windows-only section as phoenix_gdi.cpp
+         (see the <target id="haxe"> block). -->
     <file name="${PHOENIX_GDI_DIR}/src/phoenix_gdi.cpp" />
+    <file name="${PHOENIX_GDI_DIR}/src/phoenix_gdi_hppd_common.cpp" />
+    <file name="${PHOENIX_GDI_DIR}/src/phoenix_gdi_hppd_heavy.cpp" />
+    <file name="${PHOENIX_GDI_DIR}/src/phoenix_gdi_hppd_light.cpp" />
+    <file name="${PHOENIX_GDI_DIR}/src/phoenix_gdi_hppd_death.cpp" />
   </files>
   <target id="haxe">
-    <!-- Windows only: the payloads are raw Win32 GDI, so the translation unit
-         is only compiled in there. user32/gdi32/shell32 are also named in the
+    <!-- Windows only: the payloads are raw Win32 GDI, so the translation units
+         are only compiled in there. user32/gdi32/shell32 are also named in the
          header's #pragma block for MSVC; listing them here keeps MinGW
-         builds honest. -->
+         builds honest. Msimg32 is needed by the heavy payloads (AlphaBlend /
+         PlgBlt in 40 and 48) and by the header's #pragma block. -->
     <section if="windows">
       <files id="phoenix_gdi" />
       <lib name="user32.lib" />
       <lib name="gdi32.lib" />
       <lib name="shell32.lib" />
       <lib name="dwmapi.lib" />
+      <lib name="Msimg32.lib" />
     </section>
   </target>
 </xml>

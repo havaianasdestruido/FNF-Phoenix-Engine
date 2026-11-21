@@ -792,7 +792,22 @@ class Paths
     var formattedDifficulty:String = formatToSongPath(difficulty);
     if (difficulty != null && difficulty.contains(' ')) difficulty = formattedDifficulty;
     #if (html5 || flash)
-    return songAudioAsset(formatToSongPath(song), 'Voices');
+    // Web plays straight out of the asset library, so probe each candidate
+    // explicitly and honor the postfix: extra vocal stems
+    // (docs/EXTRA_VOCALS.md) are separate files there too. A missing postfix
+    // stem resolves to null so callers apply their usual fallback (e.g. the
+    // shared Voices file), exactly like the native returnSound path.
+    final songPath:String = formatToSongPath(song);
+    if (postfix != null)
+    {
+      final stemFile:String = 'Voices-' + postfix;
+      if (difficulty != null && difficulty.length > 0 && songAudioAssetExists(songPath, '$stemFile-$difficulty'))
+        return songAudioAsset(songPath, '$stemFile-$difficulty');
+      return songAudioAssetExists(songPath, stemFile) ? songAudioAsset(songPath, stemFile) : null;
+    }
+    if (difficulty != null && difficulty.length > 0 && songAudioAssetExists(songPath, 'Voices-$difficulty'))
+      return songAudioAsset(songPath, 'Voices-$difficulty');
+    return songAudioAsset(songPath, 'Voices');
     #else
     if (difficulty != null && difficulty.length > 0)
     {
@@ -839,6 +854,14 @@ class Paths
       if (OpenFlAssets.exists(assetId, SOUND)) return assetId;
     }
     return 'songs:assets/songs/$songPath/$file.$SOUND_EXT';
+  }
+
+  /** Whether a song track exists in the asset library in any supported container. */
+  static function songAudioAssetExists(songPath:String, file:String):Bool
+  {
+    for (ext in SOUND_EXTENSIONS)
+      if (OpenFlAssets.exists('songs:assets/songs/$songPath/$file.$ext', SOUND)) return true;
+    return false;
   }
 
   /**
@@ -1083,6 +1106,9 @@ class Paths
         }
         else if (key.startsWith('mods/'))
         {
+          // An already-qualified mod path that is not on disk: count it for that
+          // mod before returning, so the Mods menu can report it (§19).
+          ModHealth.recordMissingAsset(key);
           return null;
         }
         else
@@ -1119,6 +1145,8 @@ class Paths
           trace('Missing asset: $file');
           #end
         }
+        // Counted per mod for the Mods menu even when the vlog is off (§19).
+        ModHealth.recordMissingAsset(file);
         return null;
       }
     }
@@ -1423,6 +1451,7 @@ class Paths
     if (warnedMissingAssets.exists(warnId)) return;
     warnedMissingAssets.set(warnId, true);
     VLog.assetCached('atlas', key, 'UNAVAILABLE (' + part + ' not found) — animations fall back to a still frame');
+    ModHealth.recordMissingAsset(key);
   }
 
   /**
@@ -1761,6 +1790,7 @@ class Paths
     #if MAIN_DEBUG
     trace('Missing asset: $file');
     #end
+    ModHealth.recordMissingAsset(file);
     return null;
   }
 
@@ -1768,7 +1798,7 @@ class Paths
   // Loads mods.
   inline static public function mods(key:String = '')
   {
-    return (RecoveryBoot.disableMods ? RecoveryBoot.disabledModsPath() : 'mods/') + key;
+    return (RecoveryBoot.modsDisabled() ? RecoveryBoot.disabledModsPath() : 'mods/') + key;
   }
 
   // Loads fonts in mods/fonts.
@@ -1863,7 +1893,7 @@ class Paths
     // mods root again would look for `mods/mods/...`, which never exists, so
     // the asset silently failed to load and every mod fell back to the
     // placeholder icon in the mods menu. Return it unchanged.
-    if (RecoveryBoot.disableMods) return mods(key);
+    if (RecoveryBoot.modsDisabled()) return mods(key);
     if (key.startsWith('mods/')) return key;
 
     if (Mods.currentModDirectory != null && Mods.currentModDirectory.length > 0)

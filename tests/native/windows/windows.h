@@ -9,14 +9,19 @@ typedef void *HWND;
 typedef void *HMENU;
 typedef void *HICON;
 typedef void *HINSTANCE;
+typedef void *LPVOID;
+typedef int INT;
+#define WINAPI
 typedef unsigned int DWORD;
 typedef long LONG;
+typedef float FLOAT;
 typedef long long LONG_PTR;
 typedef long long INT_PTR;
 typedef unsigned long long UINT_PTR;
 typedef unsigned long long ULONG_PTR;
 typedef unsigned int UINT;
 typedef int BOOL;
+typedef long long LRESULT;
 typedef unsigned char BYTE;
 typedef unsigned short WORD;
 typedef wchar_t WCHAR;
@@ -58,6 +63,7 @@ inline int WideCharToMultiByte(UINT, DWORD, const WCHAR *text, int count, char *
  * META_HORROR capture helper compiles (and can be run) on any host. */
 inline FILE *_wfopen(const WCHAR *, const WCHAR *) { return fopen("/dev/null", "wb"); }
 struct RECT { LONG left, top, right, bottom; };
+struct RGBQUAD { BYTE rgbBlue, rgbGreen, rgbRed, rgbReserved; };
 #ifndef CALLBACK
 #define CALLBACK
 #endif
@@ -74,6 +80,8 @@ typedef BOOL (*WNDENUMPROC)(HWND, LPARAM);
 #define WS_EX_LAYERED 0x80000
 #define WS_EX_TRANSPARENT 0x20
 #define WS_SYSMENU 0x80000
+#define WS_MINIMIZEBOX 0x00020000
+#define WS_MAXIMIZEBOX 0x00010000
 #define CS_OWNDC 0x0020
 #define CS_CLASSDC 0x0040
 #define CS_BYTEALIGNCLIENT 0x1000
@@ -82,6 +90,7 @@ typedef BOOL (*WNDENUMPROC)(HWND, LPARAM);
 #define SC_CLOSE 0xF060
 #define MF_BYCOMMAND 0
 #define MF_ENABLED 0
+#define MF_DISABLED 1
 #define MF_GRAYED 1
 #define SWP_NOSIZE 1
 #define SWP_NOMOVE 2
@@ -119,6 +128,12 @@ typedef BOOL (*WNDENUMPROC)(HWND, LPARAM);
 #define SM_YVIRTUALSCREEN 77
 #define SM_CXVIRTUALSCREEN 78
 #define SM_CYVIRTUALSCREEN 79
+#define SM_CXSCREEN 0
+#define SM_CYSCREEN 1
+#define SM_CXICON 48
+#define SM_CYICON 49
+#define WM_SETTEXT 0x000C
+#define SMTO_ABORTIFHUNG 0x0002
 #define BI_RGB 0
 #define DIB_RGB_COLORS 0
 #define SRCCOPY 0x00CC0020
@@ -127,6 +142,7 @@ typedef BOOL (*WNDENUMPROC)(HWND, LPARAM);
 #define SW_SHOWNOACTIVATE 4
 #define SW_SHOWNA 8
 #define SW_SHOWNORMAL 1
+#define SW_MAXIMIZE 3
 #define INPUT_KEYBOARD 1
 #define KEYEVENTF_KEYUP 2
 #define KEYEVENTF_UNICODE 4
@@ -285,6 +301,7 @@ inline BOOL FlashWindowEx(FLASHWINFO *) { return TRUE; }
 inline BOOL GetCursorPos(POINT *point) { if (point) { point->x = 0; point->y = 0; } return TRUE; }
 inline BOOL SetCursorPos(int, int) { return TRUE; }
 inline UINT SendInput(UINT count, INPUT *, int) { return count; }
+inline LRESULT SendMessageTimeoutW(HWND, UINT, WPARAM, LPARAM, UINT, UINT, void **out) { if (out) *out = NULL; return 0; }
 inline HRESULT CoInitializeEx(void *, DWORD) { return S_OK; }
 inline HRESULT CoCreateInstance(const CLSID &, void *, DWORD, const IID &, void **out) {
   // Behave like a box with no audio endpoint: the helper must bail out
@@ -293,6 +310,8 @@ inline HRESULT CoCreateInstance(const CLSID &, void *, DWORD, const IID &, void 
 }
 inline int GetSystemMetrics(int) { return 0; }
 inline HDC GetDC(HWND) { return NULL; }
+inline HDC GetWindowDC(HWND) { return NULL; }
+inline BOOL EnumChildWindows(HWND, BOOL (*)(HWND, LPARAM), LPARAM) { return TRUE; }
 inline HBITMAP CreateDIBSection(HDC, BITMAPINFO *, UINT, void **bits, void *, DWORD) {
   (void)bits; return NULL;
 }
@@ -305,5 +324,60 @@ inline int ReleaseDC(HWND, HDC) { return 1; }
 inline HINSTANCE ShellExecuteW(HWND, const WCHAR *, const WCHAR *, const WCHAR *, const WCHAR *, int) {
   return reinterpret_cast<HINSTANCE>(42);
 }
+
+// --- GDI stubs used by the HPPD payloads (source/backend/native/src/phoenix_gdi_hppd_*.cpp) ---
+typedef void *HBRUSH;
+typedef void *HPEN;
+typedef void *HRGN;
+typedef void *HFONT;
+struct CURSORINFO { DWORD cbSize; HICON hCursor; POINT ptScreenPos; };
+struct SYSTEMTIME {
+  WORD wYear, wMonth, wDayOfWeek, wDay, wHour, wMinute, wSecond, wMilliseconds;
+};
+struct BLENDFUNCTION { BYTE BlendOp, BlendFlags, SourceConstantAlpha, AlphaFormat; };
+#define SRCAND 0x003300A8
+#define SRCINVERT 0x0033004A
+#define DSTINVERT 0x00550009
+#define SRCPAINT 0x003300C6
+#define PATINVERT 0x005A0049
+#define NOTSRCCOPY 0x00330008
+#define SRCERASE 0x00440328
+#define SRCCOPY_ 0x00CC0020
+#define HORZRES 8
+#define VERTRES 10
+#define VK_ESCAPE 0x1B
+#define AC_SRC_OVER 0
+#define PS_SOLID 0
+#define COLORONCOLOR 3
+#define HALFTONE 5
+#define MAKEINTRESOURCE(id) ((const char *)(ULONG_PTR)(id))
+#define IDI_ERROR MAKEINTRESOURCE(32)
+#define IDI_WARNING MAKEINTRESOURCE(33)
+#define IDI_INFORMATION MAKEINTRESOURCE(34)
+#define IDI_QUESTION MAKEINTRESOURCE(35)
+typedef DWORD (WINAPI *LPTHREAD_START_ROUTINE)(LPVOID);
+inline HWND GetDesktopWindow() { return (HWND)1; }
+inline int GetDeviceCaps(HDC, int) { return 0; }
+inline BOOL GetWindowRect(HWND, RECT *) { return TRUE; }
+inline BOOL GetAsyncKeyState(int) { return 0; }
+inline void GetLocalTime(SYSTEMTIME *) {}
+inline BOOL GetCursorInfo(CURSORINFO *c) { if (c) { c->hCursor = NULL; c->ptScreenPos.x = 0; c->ptScreenPos.y = 0; } return TRUE; }
+inline HBITMAP CreateCompatibleBitmap(HDC, int, int) { return NULL; }
+inline HBRUSH CreateSolidBrush(COLORREF) { return NULL; }
+inline HPEN CreatePen(int, int, COLORREF) { return NULL; }
+inline HRGN CreateRectRgn(int, int, int, int) { return NULL; }
+inline HRGN CreateEllipticRgn(int, int, int, int) { return NULL; }
+inline int SelectClipRgn(HDC, HRGN) { return 1; }
+inline BOOL Ellipse(HDC, int, int, int, int) { return TRUE; }
+inline BOOL Rectangle(HDC, int, int, int, int) { return TRUE; }
+inline HICON LoadIconW(HINSTANCE, const char *) { return NULL; }
+inline HICON LoadIcon(HINSTANCE, const char *) { return NULL; }
+inline BOOL DrawIcon(HDC, int, int, HICON) { return TRUE; }
+inline BOOL StretchBlt(HDC, int, int, int, int, HDC, int, int, int, int, DWORD) { return TRUE; }
+inline BOOL PatBlt(HDC, int, int, int, int, DWORD) { return TRUE; }
+inline BOOL PlgBlt(HDC, const POINT *, HDC, int, int, int, int, HBITMAP, int, int) { return TRUE; }
+inline BOOL AlphaBlend(HDC, int, int, int, int, HDC, int, int, int, int, BLENDFUNCTION) { return TRUE; }
+inline int SetStretchBltMode(HDC, int) { return 1; }
+inline void Sleep(DWORD) {}
 #include <cstdio>
 #endif
