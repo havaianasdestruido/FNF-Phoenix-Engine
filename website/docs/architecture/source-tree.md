@@ -41,11 +41,11 @@ Documentation files at the root: `README.md` (features and the patch system),
 | *(root)* | 2 | `Main` (entry point), `import.hx` (implicit imports) |
 | `backend` | 25 | engine services — paths, prefs, conductor, controls, mods, state bases |
 | `backend.deeplink` | 2 | `phoenix://` URI parsing and routing |
-| `data` | 3 | `Song`, `Section`, `StageData` — the chart/stage data model |
+| `data` | 5 | `Song`, `Section`, `StageData`, `StageEditorCore`, `StageUndoStack` — the chart/stage data model |
 | `debug` | 2 (+1) | FPS counter, memory sampling (`debug.mem` has a C++ include) |
-| `editors` | 11 | chart, character, dialogue, week, menu-character, note-splash editors and the Modchart Lab |
+| `editors` | 12 | chart, character, stage, dialogue, week, menu-character, note-splash editors and the Modchart Lab |
 | `editors.charting` | 7 | grid, sections, waveform, selection, save/load, events |
-| `editors.helpers` | 4 | per-editor helper modules |
+| `editors.helpers` | 5 | per-editor helper modules |
 | `states` | 14 | title, main menu, story, freeplay, mods, credits, achievements, loading, error |
 | `states.helpers` | 3 | freeplay, mods menu, gameplay changers |
 | `states.substates` | 4 | pause, game over, gameplay changers, reset score |

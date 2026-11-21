@@ -7,6 +7,8 @@ work="$(mktemp -d)"
 trap 'rm -rf "$work"' EXIT
 cp -R "$root/tests/haxe/stubs/song-audio/." "$work/"
 cp "$root/source/backend/SongAudioStreaming.hx" "$work/backend/SongAudioStreaming.hx"
+# Paths records a mod's missing audio for the Mods menu (§19).
+cp "$root/source/backend/ModHealth.hx" "$work/backend/ModHealth.hx"
 
 # Keep all cache, routing and fallback tests tied to the actual Paths methods,
 # rather than maintaining a second implementation in the stubs.

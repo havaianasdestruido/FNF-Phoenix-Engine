@@ -10,7 +10,7 @@
 #
 #   LUAJIT=/path/to/luajit bash tests/haxe/run-lua-discovery.sh
 #
-# Only source/backend/ModSecurity.hx and ScriptSecurityScanner.hx are pulled in
+# Only source/backend/ModSecurity.hx, ModHealth.hx and ScriptSecurityScanner.hx are pulled in
 # (they are dependency free); the specs read the rest of the tree as data.
 set -euo pipefail
 cd "$(dirname "$0")/../.."
@@ -21,6 +21,7 @@ trap 'rm -rf "$work"' EXIT
 
 mkdir -p "$work/backend"
 cp source/backend/ModSecurity.hx "$work/backend/ModSecurity.hx"
+cp source/backend/ModHealth.hx "$work/backend/ModHealth.hx"
 cp source/backend/ScriptSecurityScanner.hx "$work/backend/ScriptSecurityScanner.hx"
 
 if [ -n "${LUAJIT:-}" ] && ! command -v "$LUAJIT" >/dev/null 2>&1; then

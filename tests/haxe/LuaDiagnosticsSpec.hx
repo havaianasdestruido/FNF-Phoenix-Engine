@@ -835,8 +835,10 @@ class LuaDiagnosticsSpec
     check(helpers.indexOf('LuaDiagnostics.lookupUnsupported(luaFile, path);') != -1, 'that branch reports the script it found');
     // A Safe Mode session without mods searches nothing under mods/: the verbose context says so.
     final context:String = helpers.substring(helpers.indexOf('function luaDiagContext()'));
-    check(context.indexOf('if(backend.RecoveryBoot.disableMods)') != -1 && context.indexOf('Safe Mode started this session with all mods disabled') != -1,
+    check(context.indexOf('if(backend.RecoveryBoot.modsDisabled())') != -1 && context.indexOf('Safe Mode started this session with all mods disabled') != -1,
       'the verbose context explains a Safe Mode session without mods');
+    check(context.indexOf('the device benchmark runs with all mods disabled by design') != -1,
+      'the verbose context explains a benchmark session without mods');
     final characters:String = sys.io.File.getContent('source/play/helpers/PlayStateCharacters.hx');
     check(characters.indexOf("PlayStateScripts.noteUnsupportedLua('characters/") != -1, 'character scripts have a branch for builds without Lua');
     // The encoding hint is keyed on the rule id ModSecurity reports for NUL bytes.

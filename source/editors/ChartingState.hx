@@ -227,6 +227,9 @@ class ChartingState extends MusicBeatState
   var specialEventsName:String = '';
 
   var bpmTxt:FlxText;
+  var editorNotesCapped:Bool = false;
+  var editorShownNotes:Int = 0;
+  var editorTotalGridNotes:Int = 0;
   var songSlider:CustomFlxUISlider;
 
   var camPos:FlxObject;
@@ -271,6 +274,8 @@ class ChartingState extends MusicBeatState
 
   var vocals:FlxSound = null;
   var opponentVocals:FlxSound = null;
+  // Chart-declared extra vocal stems (docs/EXTRA_VOCALS.md), loaded by loadSong().
+  var extraVocals:Array<play.helpers.PlayStateExtraVocals.ExtraVocalTrack> = [];
 
   var idleMusic:EditingMusic;
 
@@ -616,6 +621,7 @@ class ChartingState extends MusicBeatState
     songSlider.scrollFactor.set();
     songSlider.callback = function(value:Float) {
       vocals.time = opponentVocals.time = FlxG.sound.music.time;
+      play.helpers.PlayStateExtraVocals.setTimeAll(extraVocals, FlxG.sound.music.time);
       var sectionIndex:Int = sectionIndexAtTime(FlxG.sound.music.time);
 
       // A scrub should keep the exact slider time; changeSection(false) only
@@ -780,6 +786,7 @@ class ChartingState extends MusicBeatState
           vocals.play();
         if (opponentVocals != null)
           opponentVocals.play();
+        play.helpers.PlayStateExtraVocals.playAll(extraVocals);
       }
       if (idleMusic != null && idleMusic.music != null && idleMusicAllow)
         idleMusic.pauseMusic();
@@ -800,6 +807,7 @@ class ChartingState extends MusicBeatState
       vocals.stop();
     if (opponentVocals != null)
       opponentVocals.stop();
+    play.helpers.PlayStateExtraVocals.stopAll(extraVocals);
     CoolUtil.currentDifficulty = difficulty;
     StageData.loadDirectory(_song);
     LoadingState.loadAndSwitchState(PlayState.new);
@@ -975,6 +983,7 @@ class ChartingState extends MusicBeatState
   {
     if (vocals != null) vocals.pause();
     if (opponentVocals != null) opponentVocals.pause();
+    play.helpers.PlayStateExtraVocals.pauseAll(extraVocals);
   }
 
   function pauseAndSetVocalsTime()
@@ -983,6 +992,29 @@ class ChartingState extends MusicBeatState
     if (vocals != null) vocals.time = FlxG.sound.music.time;
 
     if (opponentVocals != null) opponentVocals.time = FlxG.sound.music.time;
+    play.helpers.PlayStateExtraVocals.setTimeAll(extraVocals, FlxG.sound.music.time);
+  }
+
+  /**
+   * Extra stems follow the vocal volume/mute controls of their strumline
+   * side; sideless stems follow the main vocal slider so charters can always
+   * preview them.
+   */
+  function applyExtraVocalVolumes():Void
+  {
+    for (track in extraVocals)
+    {
+      if (track.sound == null) continue;
+      switch (track.side)
+      {
+        case data.ExtraVocals.SIDE_PLAYER:
+          track.sound.volume = (check_mute_vocals != null && check_mute_vocals.checked) ? 0 : (voicesVolume != null ? voicesVolume.value : 1);
+        case data.ExtraVocals.SIDE_OPPONENT:
+          track.sound.volume = (check_mute_vocals_opponent != null && check_mute_vocals_opponent.checked) ? 0 : (voicesOppVolume != null ? voicesOppVolume.value : 1);
+        default:
+          track.sound.volume = voicesVolume != null ? voicesVolume.value : 1;
+      }
+    }
   }
 
   function loadSong():Void
@@ -1001,6 +1033,7 @@ class ChartingState extends MusicBeatState
       opponentVocals.stop();
       opponentVocals.destroy();
     }
+    play.helpers.PlayStateExtraVocals.dispose(extraVocals);
 
     waveformCacheSound = null;
     waveformCacheBytes = null;
@@ -1028,11 +1061,19 @@ class ChartingState extends MusicBeatState
     opponentVocals.autoDestroy = false;
     FlxG.sound.list.add(opponentVocals);
 
+    // Chart-declared extra vocal stems (docs/EXTRA_VOCALS.md): the editor
+    // previews them alongside the main stems, pitched and seeked in sync.
+    extraVocals = play.helpers.PlayStateExtraVocals.load(_song.extraVocals, currentSongName, diff, false);
+    for (track in extraVocals)
+      if (track.sound != null) track.sound.autoDestroy = false;
+    applyExtraVocalVolumes();
+
     generateSong(diff);
     FlxG.sound.music.pause();
     FlxG.sound.music.onComplete = function() {
       pauseVocals();
       vocals.time = opponentVocals.time = 0;
+      play.helpers.PlayStateExtraVocals.setTimeAll(extraVocals, 0);
       FlxG.sound.music.pause();
       FlxG.sound.music.time = 0;
       songSlider.maxValue = FlxG.sound.music.length;
@@ -1061,12 +1102,15 @@ class ChartingState extends MusicBeatState
         opponentVocals.pause();
         opponentVocals.time = 0;
       }
+      play.helpers.PlayStateExtraVocals.pauseAll(extraVocals);
+      play.helpers.PlayStateExtraVocals.setTimeAll(extraVocals, 0);
       changeSection();
       curSec = 0;
       updateGrid();
       updateSectionUI();
       if (vocals != null) vocals.play();
       if (opponentVocals != null) opponentVocals.play();
+      play.helpers.PlayStateExtraVocals.playAll(extraVocals);
     };
   }
 
@@ -1149,10 +1193,12 @@ class ChartingState extends MusicBeatState
         case 'voices_volume':
           vocals.volume = nums.value;
           if (check_mute_vocals.checked) vocals.volume = 0;
+          applyExtraVocalVolumes();
 
         case 'voices_opp_volume':
           opponentVocals.volume = nums.value;
           if (check_mute_vocals_opponent.checked) opponentVocals.volume = 0;
+          applyExtraVocalVolumes();
 
         case 'hitsound_volume':
           FlxG.save.data.chart_hitsoundVolume = nums.value;
@@ -1461,6 +1507,7 @@ class ChartingState extends MusicBeatState
         FlxG.sound.music.stop();
         if (vocals != null) vocals.stop();
         if (opponentVocals != null) opponentVocals.stop();
+        play.helpers.PlayStateExtraVocals.stopAll(extraVocals);
         if (FlxG.keys.pressed.SHIFT)
         {
           PlayState.startOnTime = sectionStartTime();
@@ -1576,6 +1623,7 @@ class ChartingState extends MusicBeatState
             FlxG.sound.music.play();
             if (vocals != null) vocals.play();
             if (opponentVocals != null) opponentVocals.play();
+            play.helpers.PlayStateExtraVocals.playAll(extraVocals);
           }
           if (idleMusic != null && idleMusic.music != null && idleMusicAllow) idleMusic.pauseMusic();
           resetBuddies();
@@ -1858,6 +1906,7 @@ class ChartingState extends MusicBeatState
     FlxG.sound.music.pitch = playbackSpeed;
     vocals.pitch = playbackSpeed;
     opponentVocals.pitch = playbackSpeed;
+    play.helpers.PlayStateExtraVocals.setPitchAll(extraVocals, playbackSpeed);
     #end
 
     if (bpmTxt != null)
@@ -1881,6 +1930,10 @@ class ChartingState extends MusicBeatState
         + FlxStringUtil.formatMoney(Math.abs(curRenderedNotes.length + nextRenderedNotes.length), false);
 
       if (_song.notes[curSec] != null) bpmTxt.text += "\n\nSection Notes: " + FlxStringUtil.formatMoney(_song.notes[curSec].sectionNotes.length, false);
+      if (editorNotesCapped)
+      {
+        bpmTxt.text += '\n\nShowing ${editorShownNotes}/${editorTotalGridNotes} notes (cap ${ClientPrefs.maxNotes}) — raise in Options → Optimization';
+      }
     }
 
     var playedSound:Array<Bool> = [false, false, false, false]; // Prevents ouchy GF sex sounds

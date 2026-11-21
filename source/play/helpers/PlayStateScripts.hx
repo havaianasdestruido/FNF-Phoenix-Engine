@@ -132,10 +132,12 @@ class PlayStateScripts
 		lines.push('working directory: ' + Sys.getCwd());
 		#end
 		#if MODS_ALLOWED
-		// Safe Mode (states.RecoveryState) can start a session without any mod;
-		// Paths.mods() then points at a place that cannot exist.
-		if(backend.RecoveryBoot.disableMods)
-			lines.push('note: Safe Mode started this session with all mods disabled: nothing under mods/ is searched. Restart the game to load mods again.');
+		// Safe Mode (states.RecoveryState) and the device benchmark can start a
+		// run without any mod; Paths.mods() then points at a place that cannot exist.
+		if(backend.RecoveryBoot.modsDisabled())
+			lines.push(backend.Benchmark.active
+				? 'note: the device benchmark runs with all mods disabled by design; nothing under mods/ is searched.'
+				: 'note: Safe Mode started this session with all mods disabled: nothing under mods/ is searched. Restart the game to load mods again.');
 		var currentMod:String = Mods.currentModDirectory;
 		var globalMods:Array<String> = Mods.getGlobalMods();
 		lines.push('current mod: ' + (currentMod == null || currentMod.length == 0 ? '<none>' : currentMod)
