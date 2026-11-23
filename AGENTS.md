@@ -51,6 +51,14 @@ Defines úteis: `-DofficialBuild`, `-Dofficial`, `-DULTRA_OPTIMIZED` (build velo
 título; são mutuamente exclusivos e `project.hxp` aborta o build se ambos vierem — ver
 `backend.LaunchState` e a seção "Launch and debug flags" do BUILDING.md).
 
+Além dos flags de *build*, o executável lê **opções de linha de comando** em runtime, parseadas com
+**docopt-ng** (pinada em `hmm.json` + `setup/*`, gated por `CLI_OPTIONS_ALLOWED` no `project.hxp`)
+em `backend.CommandLine`: `--help`, `--version`, `--windowed`/`--fullscreen`/`--borderless`,
+`--fps=<n>`, `--freeplay`/`--menu`, `--song=<name>`/`--mod=<id>` (viram rotas `phoenix://`),
+`--profile`, `--vlog`, `--safe-mode`, `--troll` (legado `-troll`) e `--no-deeplinks`. Valem só para
+a sessão — nada é gravado no save — e um argumento inválido **nunca** impede o boot (volta tudo ao
+default e o motivo vai pro vlog). Referência: `docs/CLI.md`; spec: `bash tests/haxe/run-command-line.sh`.
+
 Todo build feito dentro de um checkout git recebe `-Dcommit` automaticamente (o `project.hxp`
 sonda `git rev-parse --verify HEAD`), o que estampa o SHA usado pelo watermark do canto inferior
 direito (`debug.CommitWatermark`) e pela linha de commit do FPS counter. **`-Dno-commit`** desativa
@@ -89,8 +97,10 @@ FNF-JS-Engine-Light/
 - **Entry point:** `Main.hx` → `backend.BootState`/`InitState` → `TitleState` → `MainMenuState`/
   `StoryMenuState`/`FreeplayState`/`PlayState`. Todos os estados extendem
   `MusicBeatState`/`MusicBeatSubState` (`backend/MusicBeatState.hx`).
-- **`Main.hx`**: cria `FunkinGame`, registra `FlxFix`, carrega `ClientPrefs`, `Achievements`,
-  `Paths`, `Achievements`, `PlayerSettings`, splash, inicializa estados.
+- **`Main.hx`**: parseia as opções de linha de comando (`backend.CommandLine.load()`, `docs/CLI.md`)
+  antes de criar a janela — `--help`/`--version` são respondidos ali e saem — e então cria
+  `FunkinGame`, registra `FlxFix`, carrega `ClientPrefs`, `Achievements`, `Paths`, `Achievements`,
+  `PlayerSettings`, splash, inicializa estados.
 - **`backend/`**: núcleo não-jogável
   - `Paths.hx` — localização de assets/mod paths; `Paths.mods/`, `Paths.stage`, `Paths.char` etc.
   - `Paths.currentModDirectory`, `Paths.currMod` — decidi o dir de mod ativo.
@@ -254,6 +264,17 @@ FNF-JS-Engine-Light/
     [JSDoc](https://jsdoc.app/): descrição curta e, quando houver, tags `@param`, `@return`/`@returns`,
     `@throws` e `@deprecated`. Vale para código Haxe e também para qualquer outra linguagem que
     o repo use. Ao alterar uma função existente, atualize a documentação dela junto com o código.
+13. **Anexe sempre um screenshot no PR em caso de alteração visual.** Sempre que o PR adicionar ou
+    modificar algo visível no jogo, nos menus ou na interface, anexe na descrição do PR uma captura
+    de tela demonstrando a mudança:
+    - Nova opção de menu → screenshot do menu com a nova opção visível.
+    - Nova música → screenshot da tela de Freeplay (`FreeplayState`) com a música visível.
+    - Outras alterações visuais (HUD, layout, fontes/Alphabet, sprites, personagens, stages,
+      shaders, telas, editores, site/docs, etc.) → screenshot mostrando o resultado visual
+      (antes/depois quando ajudar na revisão).
+    - **Não** commite arquivos temporários de screenshot no repositório; anexe-os apenas na
+      descrição do PR. Se não for possível capturar a tela no ambiente atual, registre o motivo
+      explicitamente no PR em vez de omitir em silêncio.
 
 ---
 
@@ -437,6 +458,7 @@ estado ou outros labels apenas se as respectivas condições forem confirmadas.
       (Python só dentro de pasta de mod/softmod).
 - [ ] Se mexeu em assets: registrou no `project.hxp` quando necessário.
 - [ ] Comentários no estilo JSDoc (`/** ... */` com `@param`/`@return` quando couber) em todo código alterado (regra 12 da §8).
+- [ ] Se houver alteração visual (nova opção de menu, nova música no Freeplay, HUD, sprites, telas, etc.): anexou screenshot na descrição do PR (regra 13 da §8), sem commitar a imagem temporária no repositório.
 - [ ] Sem `trace()` de debug esquecido; sem segredos/chaves commitadas.
 - [ ] Mensagem de commit curta no estilo do repo (Conventional-ish, tipo “fix: ...”, “feat: ...”).
 

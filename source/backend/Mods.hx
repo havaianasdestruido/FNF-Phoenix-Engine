@@ -158,6 +158,15 @@ class Mods
 		return foldersToCheck;
 	}
 
+	/**
+	 * Reads a mod's `pack.json` (comments and trailing commas allowed).
+	 *
+	 * A manifest that cannot be parsed, or that is not an object, is reported to
+	 * `backend.ModHealth` as well, so the Mods menu can say why the mod shows up
+	 * under its folder name instead of its title (§19).
+	 *
+	 * @param folder mod folder under `mods/`; defaults to the loaded mod
+	 */
 	public static function getPack(?folder:String = null):Dynamic
 	{
 		#if MODS_ALLOWED
@@ -171,9 +180,22 @@ class Mods
 				#else
 				var rawJson:String = Assets.getText(path);
 				#end
-				if(rawJson != null && rawJson.length > 0) return tjson.TJSON.parse(rawJson);
+				if(rawJson != null && rawJson.length > 0)
+				{
+					var pack:Dynamic = tjson.TJSON.parse(rawJson);
+					if(pack == null || Std.isOfType(pack, Array))
+					{
+						ModHealth.recordInvalidPack(folder, 'it is not a JSON object of <field>: <value> pairs');
+						markInvalidMod(folder);
+						return null;
+					}
+					return pack;
+				}
+				ModHealth.recordInvalidPack(folder, 'the file is empty');
+				markInvalidMod(folder);
 			} catch(e:Dynamic) {
 				trace(e);
+				ModHealth.recordInvalidPack(folder, Std.string(e));
 				markInvalidMod(folder);
 			}
 		}
@@ -215,9 +237,24 @@ class Mods
 		platformSupportCache = [];
 	}
 
+	/**
+	 * Drops the "why did it break?" report of one mod (`backend.ModHealth`).
+	 *
+	 * Called after new files are installed into a folder: whatever broke
+	 * belonged to the mod that used to be there. This is the no-op twin of the
+	 * method in `ModsStub`, so callers do not need a `#if MODS_ALLOWED` of their
+	 * own.
+	 *
+	 * @param folder mod folder under `mods/`
+	 */
+	public static function forgetHealth(folder:String):Void
+	{
+		ModHealth.forget(folder);
+	}
+
 	public static var updatedOnState:Bool = false;
 	inline public static function parseList():ModsList {
-		if (RecoveryBoot.disableMods) return {enabled: [], disabled: [], all: []};
+		if (RecoveryBoot.modsDisabled()) return {enabled: [], disabled: [], all: []};
 		if(!updatedOnState) updateModList();
 		var list:ModsList = {enabled: [], disabled: [], all: []};
 

@@ -10,6 +10,7 @@ try {
     New-Item -ItemType Directory -Path "$testSource/backend", "$testSource/mobile/flixel" -Force | Out-Null
     Copy-Item "source/backend/ScreenLayout.hx" "$testSource/backend/ScreenLayout.hx"
     Copy-Item "source/backend/ModSecurity.hx" "$testSource/backend/ModSecurity.hx"
+    Copy-Item "source/backend/ModHealth.hx" "$testSource/backend/ModHealth.hx"
     Copy-Item "source/backend/ScriptSecurityScanner.hx" "$testSource/backend/ScriptSecurityScanner.hx"
     Copy-Item "source/mobile/flixel/HitboxTouchLogic.hx" "$testSource/mobile/flixel/HitboxTouchLogic.hx"
     & $haxe -cp $testSource -cp tests/haxe -main LayoutSpec --interp

@@ -1,0 +1,9 @@
+{
+  "label": "Screens",
+  "position": 7,
+  "link": {
+    "type": "generated-index",
+    "title": "Screens",
+    "description": "One page per screen the engine can put on the display: what it is for and what its widgets are. Every screen also has a matching page in the GitHub wiki."
+  }
+}

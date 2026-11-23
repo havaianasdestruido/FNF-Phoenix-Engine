@@ -131,7 +131,7 @@ class OptionsMenuHelpers
 			}
 			//optionText.snapToPosition(); //Don't ignore me when i ask for not making a very pull request to uncomment this line ok
 
-			if(optionsArray[i].showBoyfriend && state.boyfriend == null)
+			if(optionsArray[i].showBoyfriend && state.boyfriend == null && !backend.LowMemory.policy().minimalMenus)
 			{
 				state.reloadBoyfriend();
 			}

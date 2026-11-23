@@ -300,10 +300,15 @@ value, icon and `shell\open\command`. The command is exactly:
 "C:\Games\Phoenix\FNF-Phoenix-Engine.exe" "%1"
 ```
 
-Both arguments are quoted; no command shell is involved. The engine parses
-`Sys.args()` and, on a valid protocol launch, sets its working directory to the
-executable directory before loading relative assets. All arguments use the same
-strict validator; when several valid URIs are supplied, the last wins.
+Both arguments are quoted; no command shell is involved. The launch arguments
+are parsed once by `backend.CommandLine` (docopt-ng; `docs/CLI.md`), which
+collects every `phoenix://` argument — plus the routes it builds from `--song`
+and `--mod`, minus whatever `--no-deeplinks` withholds — and hands them to
+`DeepLinks.receive`. On a valid protocol launch the engine sets its working
+directory to the executable directory before loading relative assets. All
+arguments use the same strict validator; when several valid URIs are supplied,
+the last wins, which is why an explicit `--song` is queued after the positional
+links.
 
 **Each Windows activation starts a new process.** There is no single-instance
 IPC or forwarding to an already-running game. Avoid concurrent sessions that
@@ -316,6 +321,23 @@ script) before deleting the game; the unregister script is the one that refuses 
 remove a registration pointing at a different copy. No elevation is required;
 enterprise policy may restrict protocol handlers or PowerShell, in which case the
 checkbox stays off and the manual commands above are the fallback.
+
+### Linux and macOS
+
+No scheme is registered on these platforms, so a link arrives only when the
+executable is started with one — from a terminal, a `.desktop` action or a
+script:
+
+```sh
+./FNF-Phoenix-Engine "phoenix://menu/misc"
+./FNF-Phoenix-Engine --song=bopeebo     # builds phoenix://song/bopeebo (docs/CLI.md)
+```
+
+`backend.CommandLine` collects the link and `DeepLinks` queues it with the same
+validator, the same "one pending destination, latest wins" rule and the same
+dispatch from an idle Title or Main Menu as everywhere else. Arguments that are
+neither an option nor a `phoenix://` link are reported in the verbose log and
+ignored; they never stop the boot.
 
 ## Validation and release checklist
 

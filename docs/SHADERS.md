@@ -39,6 +39,63 @@ tweenShaderFloatArray('tint', 'boyfriend', 'uTint', {0.2, 0.7, 1.0}, 0.8, 'linea
 `onTweenCompleted(tag)` callback and can be cancelled with the normal tween
 cancellation API.
 
+## Bundled shader files
+
+`mods/shaders/` is the shared shader folder: any mod can load these files by
+name with `initLuaShader`, and a mod's own `shaders/` folder takes precedence.
+It holds eight fragment shaders from the `example_mods/shaders/` folder of
+[FixedData/fnf-ourpleV3-public](https://github.com/FixedData/fnf-ourpleV3-public)
+(Apache-2.0), copied unchanged. Some are Shadertoy ports; their headers keep the
+original credits.
+
+| Name | Uniforms to drive | Notes |
+|---|---|---|
+| `VHS` | `iTime`, `active` | Tape wobble and noise; `active` false leaves the picture unchanged |
+| `ascii` | `active` | Bitmap-to-ASCII character render; `active` false leaves the picture unchanged |
+| `chromwarpgofish` | `iTime`, `noiseTex` | Warped CRT look with scanlines; `noiseTex` is a sampler, set with `setShaderSampler2D` |
+| `crtmatrix` | `iTime`, `active` | CRT with shadow mask, scanlines and blink; `active` false leaves the picture unchanged |
+| `fishlens` | `power`, `chromo` | Fish-eye lens with chromatic split; `power` 1.0 is neutral, `chromo` 0 is no split |
+| `mosaic` | `pixel` | Pixelate; `pixel` is the block size in texels |
+| `vectorupscale` | none | Vector-style upscale (MIT, Ethan Alexander Shulman, per its header) |
+| `vignetteGlitch` | see below | Glitch blocks with a vignette |
+
+The engine does not advance `iTime` for you. Drive it from `onUpdate`:
+
+```lua
+local clock = 0
+
+function onCreatePost()
+    initLuaShader('VHS')
+    setSpriteShader('boyfriend', 'VHS')
+    setShaderBool('boyfriend', 'active', true)
+end
+
+function onUpdate(elapsed)
+    clock = clock + elapsed
+    setShaderFloat('boyfriend', 'iTime', clock)
+end
+```
+
+`vignetteGlitch` has no built-in defaults: GLSL does not allow initializers on
+uniforms, so its seven tuning values must be set from Lua after
+`initLuaShader`. Set them to the upstream defaults shown below, and drive `time`
+from `onUpdate` the same way as `iTime`, since the glitch pattern is seeded from
+it. Keep `glitchScale` above zero; zero makes the glitch group size zero.
+
+```lua
+function onCreatePost()
+    initLuaShader('vignetteGlitch')
+    setSpriteShader('boyfriend', 'vignetteGlitch')
+    setShaderFloat('boyfriend', 'time', 0.8)
+    setShaderFloat('boyfriend', 'prob', 0.7)
+    setShaderFloat('boyfriend', 'vignetteIntensity', 5)
+    setShaderFloat('boyfriend', 'size', 0.5)
+    setShaderFloat('boyfriend', 'grid', 6)
+    setShaderFloat('boyfriend', 'blocks', 0.8)
+    setShaderFloat('boyfriend', 'glitchScale', 0.4)
+end
+```
+
 ## Imports
 
 A shader source can reuse GLSL files from its shader folder or its `include/`

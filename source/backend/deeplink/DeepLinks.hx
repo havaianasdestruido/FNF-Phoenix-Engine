@@ -34,10 +34,17 @@ class DeepLinks
     // Lime's SDL UIKit delegate delivers both launch and later URLs as drop events.
     lime.app.Application.current.window.onDropFile.add(receive);
     #elseif (windows && sys)
-    // A registered copy can still be launched by a link; read those arguments.
-    for (argument in Sys.args()) receive(argument);
+    // A registered copy can still be launched by a link: Windows hands the URI
+    // to the executable as an argument. backend.CommandLine collects those,
+    // plus the routes built from --song/--mod and minus --no-deeplinks, and
+    // PhoenixURI validates each one in receive().
+    for (uri in backend.CommandLine.deeplinks()) receive(uri);
     // Protocol launches need not inherit the executable's working directory.
     if (pending != null || pendingEx != null) Sys.setCwd(haxe.io.Path.directory(Sys.programPath()));
+    #elseif sys
+    // Linux and macOS have no registered handler to launch them, but a build
+    // started from a terminal can be handed a link (or --song/--mod) directly.
+    for (uri in backend.CommandLine.deeplinks()) receive(uri);
     #end
   }
 

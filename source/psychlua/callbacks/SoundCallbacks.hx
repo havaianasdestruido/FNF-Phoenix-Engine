@@ -105,6 +105,41 @@ class SoundCallbacks
 				}
 			}
 		});
+		// Chart-declared extra vocal stems (docs/EXTRA_VOCALS.md), addressed by
+		// the `name` the chart gave each stem. All of these are safe no-ops when
+		// the song has no extra stems or the Extra Vocal Stems option is off.
+		FunkinLua.registerFunction("getExtraVocalNames", function() {
+			if(PlayState.instance == null) return [];
+			return play.helpers.PlayStateExtraVocals.names(PlayState.instance.extraVocals);
+		});
+		FunkinLua.registerFunction("setExtraVocalVolume", function(name:String, value:Float) {
+			final track = PlayState.instance == null ? null : play.helpers.PlayStateExtraVocals.find(PlayState.instance.extraVocals, name);
+			if(track == null || track.sound == null) return false;
+			track.sound.volume = value;
+			return true;
+		});
+		FunkinLua.registerFunction("getExtraVocalVolume", function(name:String) {
+			final track = PlayState.instance == null ? null : play.helpers.PlayStateExtraVocals.find(PlayState.instance.extraVocals, name);
+			return (track == null || track.sound == null) ? 0 : track.sound.volume;
+		});
+		FunkinLua.registerFunction("setExtraVocalPitch", function(name:String, value:Float) {
+			#if FLX_PITCH
+			final track = PlayState.instance == null ? null : play.helpers.PlayStateExtraVocals.find(PlayState.instance.extraVocals, name);
+			if(track == null || track.sound == null) return false;
+			track.sound.pitch = value;
+			return true;
+			#else
+			return false;
+			#end
+		});
+		FunkinLua.registerFunction("getExtraVocalPitch", function(name:String) {
+			#if FLX_PITCH
+			final track = PlayState.instance == null ? null : play.helpers.PlayStateExtraVocals.find(PlayState.instance.extraVocals, name);
+			return (track == null || track.sound == null) ? 1 : track.sound.pitch;
+			#else
+			return 1;
+			#end
+		});
 		}
 	}
 }

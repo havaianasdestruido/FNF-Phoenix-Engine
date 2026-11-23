@@ -46,6 +46,42 @@ Only hooks documented as cancellable react to `Function_Stop`.
 | `onBeatHit()` | 4× per section | |
 | `onSectionHit()` | once per section | |
 
+### A worked example
+
+```lua
+-- mods/MyMod/scripts/countdown.lua
+function onCreate()
+    debugPrint('script attached to ' .. songName)
+end
+
+function onStartCountdown()
+    startDialogue('intro')       -- data/<song>/intro.json
+    return Function_Stop         -- the dialogue calls startCountdown() when it ends
+end
+
+function onCountdownTick(counter)
+    if counter == 3 then
+        playSound('countdown', 1, 'goSfx')
+    end
+end
+
+function onSongStart()
+    debugPrint('song started at ' .. getSongPosition() .. ' ms')
+end
+
+function onEndSong()
+    if getProperty('songMisses') == 0 then
+        setTextString('resultTxt', 'PERFECT RUN')
+        runTimer('leave', 2, 1)
+        return Function_Stop      -- block the default results hand-off
+    end
+end
+
+function onTimerCompleted(tag)
+    if tag == 'leave' then endSong() end
+end
+```
+
 ## Notes and input
 
 | Hook | Arguments | Notes |
@@ -63,6 +99,59 @@ Only hooks documented as cancellable react to `Function_Stop`.
 `id` is the note's member index — read more with
 `getPropertyFromGroup('notes', id, 'strumTime')`. Direction: `0` left, `1` down,
 `2` up, `3` right.
+
+```lua
+local comboMilestone = 50
+
+function goodNoteHit(id, direction, noteType, isSustainNote)
+    -- Only count real notes, not the hold segments.
+    if isSustainNote then return end
+
+    if combo > 0 and combo % comboMilestone == 0 then
+        cameraFlash('camHUD', 'ffff00', 0.15, false)
+        playSound('milestone', 0.7)
+    end
+end
+
+function noteMiss(id, direction, noteType, isSustainNote)
+    setProperty('health', getProperty('health') - 0.02)
+end
+
+function noteMissPress(direction)
+    debugPrint('ghost tap on lane ' .. direction)
+end
+
+function onGhostTap(key)
+    -- `key` is the lane index (0–3), the same number noteMissPress gets.
+    debugPrint('ghost tapped lane ' .. tostring(key))
+end
+
+function onKeyPress(key)
+    -- Also a lane index — not a key name. For other buttons use
+    -- keyJustPressed('pause') / keyboardJustPressed('ESCAPE') in onUpdate.
+    if key == 0 then
+        debugPrint('left lane pressed')
+    end
+end
+```
+
+`goodNoteHit`, `opponentNoteHit` and the `*Skip` hooks all receive the same four
+arguments, so one helper can serve them:
+
+```lua
+local function logHit(owner, id, direction, noteType, isSustainNote)
+    debugPrint(owner .. ' hit note ' .. id .. ' lane ' .. direction ..
+        ' type ' .. tostring(noteType))
+end
+
+function goodNoteHit(id, direction, noteType, isSustainNote)
+    logHit('player', id, direction, noteType, isSustainNote)
+end
+
+function opponentNoteHit(id, direction, noteType, isSustainNote)
+    logHit('opponent', id, direction, noteType, isSustainNote)
+end
+```
 
 ## Events
 
@@ -99,7 +188,56 @@ end
 |---|---|---|
 | `onMoveCamera(focus)` | `'boyfriend'`, `'dad'` (or `'gf'`) | |
 | `onRecalculateRating()` | fired **before** the calculation; stop it and use `setRatingPercent()` / `setRatingName()` / `setRatingFC()` for your own | ✓ |
-| `onUpdateScore(miss)` | the score text is about to update | |
+| `onUpdateScore(miss)` | just after the score text is rewritten | |
+
+### Custom score text
+
+`onUpdateScore(miss)` fires at the end of every score refresh, *after* the engine has
+written `scoreTxt.text`, so whatever you set there is what the player sees:
+
+```lua
+function onCreatePost()
+    scoreTxt.color = 0xffee88          -- field access through the state
+end
+
+function onUpdateScore(miss)
+    setProperty('scoreTxt.text',
+        'SCORE ' .. getScore() ..
+        ' | MISS ' .. getMisses() ..
+        ' | ACC ' .. math.floor(getProperty('ratingPercent') * 100) .. '%')
+
+    if miss then
+        cameraFlash('camHUD', 'ff0000', 0.12, false)
+    end
+end
+```
+
+Two caveats:
+
+* The hook only runs while `scoreTxt` is visible — the engine returns early when the
+  player turned the score text off, so do not put gameplay logic here.
+* It fires on score *events*, not every frame, and the `score` / `misses` /
+  `rating` globals are refreshed by the rating calculation that follows it — read
+  `getScore()`, `getMisses()` and `getProperty('ratingPercent')` inside the hook to
+  get current values. For a readout that must change every frame (combo, health, NPS)
+  rewrite the text from `onUpdatePost` instead.
+
+`onRecalculateRating` is the other half: it runs **before** the rating is calculated, so
+returning `Function_Stop` keeps whatever you set with `setRatingPercent` /
+`setRatingName` / `setRatingFC`, which is how mods show a custom rank on the results
+screen.
+
+```lua
+function onRecalculateRating()
+    setRatingPercent(1.0)   -- a 0..1 fraction, shown as 100%
+    setRatingName('SSS')
+    setRatingFC('Marvelous!!')
+    return Function_Stop
+end
+```
+
+`Function_Stop` here stops the hook for the remaining scripts and suppresses the engine's
+own calculation; omit it and the engine overwrites your values a moment later.
 
 ## Tweens, timers, sound
 

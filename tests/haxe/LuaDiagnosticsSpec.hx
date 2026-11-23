@@ -835,8 +835,10 @@ class LuaDiagnosticsSpec
     check(helpers.indexOf('LuaDiagnostics.lookupUnsupported(luaFile, path);') != -1, 'that branch reports the script it found');
     // A Safe Mode session without mods searches nothing under mods/: the verbose context says so.
     final context:String = helpers.substring(helpers.indexOf('function luaDiagContext()'));
-    check(context.indexOf('if(backend.RecoveryBoot.disableMods)') != -1 && context.indexOf('Safe Mode started this session with all mods disabled') != -1,
+    check(context.indexOf('if(backend.RecoveryBoot.modsDisabled())') != -1 && context.indexOf('Safe Mode started this session with all mods disabled') != -1,
       'the verbose context explains a Safe Mode session without mods');
+    check(context.indexOf('the device benchmark runs with all mods disabled by design') != -1,
+      'the verbose context explains a benchmark session without mods');
     final characters:String = sys.io.File.getContent('source/play/helpers/PlayStateCharacters.hx');
     check(characters.indexOf("PlayStateScripts.noteUnsupportedLua('characters/") != -1, 'character scripts have a branch for builds without Lua');
     // The encoding hint is keyed on the rule id ModSecurity reports for NUL bytes.
@@ -871,9 +873,12 @@ class LuaDiagnosticsSpec
     check(initAt != -1, 'Main installs the diagnostics at boot');
     final initCall:String = initAt == -1 ? '' : main.substring(initAt, main.indexOf('\n', initAt));
     check(initCall.indexOf("ClientPrefs.readSavedBool('luaVerbose')") != -1, 'the saved verbose preference already covers the first song');
-    // Safe Mode (backend.RecoveryBoot) shows its screen before any saved
-    // preference is read, so that boot must not open the save here either.
-    check(initCall.indexOf('RecoveryBoot.THRESHOLD ? false : ClientPrefs.readSavedBool(') != -1, 'a Safe Mode boot does not read the save this early');
+    // Safe Mode shows its screen before any saved preference is read, so that
+    // boot must not open the save here either: neither a crash loop counted by
+    // backend.RecoveryBoot nor a deliberate `--safe-mode` launch option
+    // (backend.CommandLine) may reach the verbose flag, and Main.safeModeBoot()
+    // is the one guard both go through.
+    check(initCall.indexOf('safeModeBoot() ? false : ClientPrefs.readSavedBool(') != -1, 'a Safe Mode boot does not read the save this early');
     final flagsAt:Int = main.indexOf('backend.RuntimeFlags.load();');
     final vlogAt:Int = main.indexOf('backend.VLog.init(');
     check(flagsAt != -1 && vlogAt != -1 && initAt > flagsAt && initAt > vlogAt, 'the diagnostics start after flags.ini is loaded and the vlog is open');

@@ -51,6 +51,10 @@ jobs:
           mkdir -p "$wiki_dir/Website-Docs"
           rsync -a --delete website/docs/ "$wiki_dir/Website-Docs/"
 
+          # The docs no longer ship screen captures. Drop any copies an older mirror
+          # left in the wiki, since it keeps files the rsync subtree does not cover.
+          rm -rf "$wiki_dir/Website-Docs/screens"
+
           cd "$wiki_dir"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"

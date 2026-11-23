@@ -102,13 +102,16 @@ class InitState extends FlxState {
 		Paths.clearUnusedMemory();
 
         // Default is the splash videos and then the title screen. The
-        // `-DFREEPLAY` / `-DMENU` build flags (backend.LaunchState) skip both.
-        // Every target goes through the loading screen: it is what sets
+        // `-DFREEPLAY` / `-DMENU` build flags (backend.LaunchState) skip both,
+        // and so do this run's `--freeplay` / `--menu` launch options
+        // (backend.CommandLine, docs/CLI.md): same resolver, same "freeplay
+        // wins a conflict" rule, but without rebuilding.
+        // Every target still goes through the loading screen: it is what sets
         // `Paths.currentLevel` (the per-week asset folder) before the state
-        // builds its artwork. The `-DFREEPLAY` / `-DMENU` shortcuts used to
-        // switch directly, which left the level unset and made every image
-        // lookup miss (a black menu/song) on a fresh boot.
-        switch (LaunchState.resolve(ClientPrefs.disableSplash))
+        // builds its artwork. The shortcuts used to switch directly, which
+        // left the level unset and made every image lookup miss (a black
+        // menu/song) on a fresh boot.
+        switch (LaunchState.resolve(ClientPrefs.disableSplash, backend.CommandLine.freeplayOverride(), backend.CommandLine.menuOverride()))
         {
             case LaunchTarget.FREEPLAY:
                 LoadingState.loadAndSwitchState(FreeplayState.new);

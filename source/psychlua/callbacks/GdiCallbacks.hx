@@ -29,6 +29,13 @@ import flixel.util.FlxColor;
  * - gdiScreenShake()
  * - gdiSetTitleText(text)
  *
+ * HPPD payload triggers (one-shot, by numeric ID):
+ * - gdiHppdTrigger(id)       - 1..63, 69..72, or 101..131 (Death Month)
+ * - gdiHppdStopAll()
+ * - gdiHppdIsRunning(id)
+ * - gdiHppdIsHeavy(id)
+ * - gdiHppdCount()
+ *
  * All functions compile on all targets but only take effect on Windows native builds.
  * On other targets they are safe no-ops that log a warning.
  */
@@ -230,6 +237,55 @@ class GdiCallbacks
         gdiWarning(funk, 'gdiSetTitleText');
         #end
       });
+
+      // ------------------------------------------------------------------
+      // HPPD payload triggers (one-shot, by ID)
+      // ------------------------------------------------------------------
+      FunkinLua.registerFunction("gdiHppdTrigger", function(id:Int):Bool
+      {
+        #if (cpp && windows)
+        return GDIEffects.hppdTrigger(id);
+        #else
+        gdiWarning(funk, 'gdiHppdTrigger');
+        return false;
+        #end
+      });
+
+      FunkinLua.registerFunction("gdiHppdStopAll", function()
+      {
+        #if (cpp && windows)
+        GDIEffects.hppdStopAll();
+        #else
+        gdiWarning(funk, 'gdiHppdStopAll');
+        #end
+      });
+
+      FunkinLua.registerFunction("gdiHppdIsRunning", function(id:Int):Bool
+      {
+        #if (cpp && windows)
+        return GDIEffects.hppdIsRunning(id);
+        #else
+        return false;
+        #end
+      });
+
+      FunkinLua.registerFunction("gdiHppdIsHeavy", function(id:Int):Bool
+      {
+        #if (cpp && windows)
+        return GDIEffects.hppdIsHeavy(id);
+        #else
+        return false;
+        #end
+      });
+
+      FunkinLua.registerFunction("gdiHppdCount", function():Int
+      {
+        #if (cpp && windows)
+        return GDIEffects.hppdCount();
+        #else
+        return 0;
+        #end
+      });
     }
   }
 
@@ -402,6 +458,49 @@ class GdiCallbacks
     {
       #if (cpp && windows)
       GDIEffects.setCustomTitleText(text);
+      #end
+    });
+
+    register("gdiHppdTrigger", function(id:Int):Bool
+    {
+      #if (cpp && windows)
+      return GDIEffects.hppdTrigger(id);
+      #else
+      return false;
+      #end
+    });
+
+    register("gdiHppdStopAll", function()
+    {
+      #if (cpp && windows)
+      GDIEffects.hppdStopAll();
+      #end
+    });
+
+    register("gdiHppdIsRunning", function(id:Int):Bool
+    {
+      #if (cpp && windows)
+      return GDIEffects.hppdIsRunning(id);
+      #else
+      return false;
+      #end
+    });
+
+    register("gdiHppdIsHeavy", function(id:Int):Bool
+    {
+      #if (cpp && windows)
+      return GDIEffects.hppdIsHeavy(id);
+      #else
+      return false;
+      #end
+    });
+
+    register("gdiHppdCount", function():Int
+    {
+      #if (cpp && windows)
+      return GDIEffects.hppdCount();
+      #else
+      return 0;
       #end
     });
   }

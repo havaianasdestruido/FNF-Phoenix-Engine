@@ -13,9 +13,21 @@ description: Everything that happens between main() and the title screen.
 
 ```haxe
 public static function main():Void {
+  backend.CommandLine.load();
+  if (answerInformationRequest()) return; // --help / --version print and exit 0
   Lib.current.addChild(new Main());
 }
 ```
+
+`backend.CommandLine` parses the launch arguments with
+[docopt-ng](https://lib.haxe.org/p/docopt-ng/) before a window exists, and the
+resulting record is read all through the boot: window mode and framerate in
+`new Main()`, the first screen in `InitState`, plus the frame profiler, the
+verbose log and the `phoenix://` links. A launch option applies to that session
+only — nothing is written to the save file — and an argument the parser cannot
+use never stops the boot. See
+[Launch options](../getting-started/running-and-debugging.md#launch-options) and
+`docs/CLI.md`.
 
 ### `__init__()` — before anything exists
 
@@ -26,9 +38,11 @@ Under `GAMEMODE_ALLOWED` (Linux desktop), requests Feral GameMode. Failure is no
 
 In order:
 
-1. `backend.deeplink.DeepLinks.init()` — arms the native callbacks so a `phoenix://` link
-   that launched the app is queued before any state exists. It registers nothing: on
-   Windows the scheme is claimed by the player from Options → Misc ("Toggle Deeplink").
+1. `backend.deeplink.DeepLinks.init()` — arms the native callbacks and queues the
+   `phoenix://` links `backend.CommandLine` collected from the arguments (or built from
+   `--song` / `--mod`, unless `--no-deeplinks` withholds them), so a link that launched
+   the app is queued before any state exists. It registers nothing: on Windows the scheme
+   is claimed by the player from Options → Misc ("Toggle Deeplink").
 2. **Mobile only**: `mobile.StorageUtil.requestPermissions()`, then on Android
    `android.platform.AndroidPlatform.init()` (lifecycle, media session, audio focus,
    gamepads, memory handling), then `Sys.setCwd(StorageUtil.getStorageDirectory())` so all
@@ -38,7 +52,11 @@ In order:
    `SetConsoleOutputCP(CP_UTF8)` (correct console encoding) and
    `DisableProcessWindowsGhosting()` (the window stays movable when busy). The build pulls
    in `wininet.lib` and `dwmapi.lib` through `@:buildXml`.
-5. `setupGame()`.
+5. The launch options that shape the window: `--fps=<n>` sets the rate `FlxGame` boots
+   with, and `--windowed` / `--fullscreen` / `--borderless` override the saved window mode
+   for this session (`ClientPrefs.applyWindowModePreference` applies borderless once the
+   window exists).
+6. `setupGame()`.
 
 ### `setupGame()`
 
@@ -53,10 +71,11 @@ In order:
 `Main.instance` is the global handle; `Main.isPlayState()` is the cheap check the FPS
 counter and others use instead of repeated `Std.isOfType` calls.
 
-:::note[-troll]
+:::note[--troll]
 
-`Main.superDangerMode` is `true` when the executable is launched with the `-troll`
-argument. It is read from `Sys.args()` and only exists on `sys` targets.
+`Main.superDangerMode` is `true` when the executable is launched with `--troll`; the
+historical `-troll` spelling is normalized to it by `backend.CommandLine`. Targets
+without a command line — web, Flash, AIR — can never set it.
 
 :::
 
@@ -72,7 +91,7 @@ A bare `FlxState` whose only job is first-run initialisation:
 | Preferences | `ClientPrefs.loadPrefs()` |
 | Mods | `Mods.pushGlobalMods()` (under `MODS_ALLOWED`), then `Mods.loadTopMod()` so a mod can replace menu music/backgrounds from the very first frame |
 | Memory | `Paths.clearStoredMemory()` + `Paths.clearUnusedMemory()` |
-| Hand-off | `ClientPrefs.disableSplash ? LoadingState(TitleState) : StartupState` (the boot loading screen sits between the splash and the title screen) |
+| Hand-off | `backend.LaunchState.resolve(ClientPrefs.disableSplash, --freeplay, --menu)` → `FreeplayState`, `MainMenuState`, `LoadingState(TitleState)` or `StartupState` (the boot loading screen sits between the splash and the title screen). The two options are the runtime twins of the `-DFREEPLAY` / `-DMENU` build flags and go through the same resolver |
 
 ## `states.StartupState` → `states.TitleState`
 

@@ -17,9 +17,10 @@ Phoenix Engine is built around two ways of modding, and tries to make both pleas
 | Can change engine behaviour | through the scripting API | anything |
 | Distribution | zip the folder | ship a build |
 
-Most mods only need softmodding. The scripting API exposes **324 Lua functions** and
-**228 Python functions**, and standalone HScript gets the engine classes directly, plus reflective `getProperty`/`setProperty` access to almost any
-field in the engine.
+Most mods only need softmodding. The scripting API exposes several hundred Lua functions
+and a large Python subset (Python also inherits everything Lua registers), standalone
+HScript gets the engine classes directly, and all three have reflective
+`getProperty`/`setProperty` access to almost any field in the engine.
 
 ## Compatibility
 
@@ -108,9 +109,9 @@ in the song and lists the manual test checklist.
 |---|---|
 | [Mod folder structure](./mod-folder-structure.md) | every folder the engine looks for, `pack.json`, load order |
 | [Lua scripting](./lua-scripting.md) | how scripts are loaded, globals, patterns |
-| [Lua API reference](./lua-api-reference.md) | all 324 functions, generated from the engine |
+| [Lua API reference](./lua-api-reference.md) | every Lua function, generated from the engine |
 | [Python scripting](./python-scripting.md) | the Hython runtime and its differences |
-| [Python API reference](./python-api-reference.md) | all 228 functions |
+| [Python API reference](./python-api-reference.md) | every Python function, generated from the engine |
 | [HScript](./hscript.md) | standalone `.hx`/`.hscript` mods, plus running Haxe from a Lua script |
 | [stdfire utilities](./stdfire.md) | window titles, native message boxes and small non-modal warnings |
 | [Script hooks](./script-hooks.md) | every callback the engine fires |

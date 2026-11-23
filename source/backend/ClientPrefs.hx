@@ -51,6 +51,10 @@ class ClientPrefs { //default settings if it can't find a save file containing y
 	public static var instrumentalVolumeOverride:Float = 1;
 	public static var overrideVocalsVolume:Bool = false;
 	public static var vocalsVolumeOverride:Float = 1;
+	// Chart-declared extra vocal stems ("unlimited vocals per strumline"): when on, a chart's
+	// `extraVocals` array loads its Voices-*.ogg stems; when off they are skipped entirely,
+	// saving the memory on low-end devices. See docs/EXTRA_VOCALS.md.
+	public static var extraVocals:Bool = true;
 	public static var voiidTrollMode:Bool = false;
 	public static var trollMaxSpeed:String = 'Medium';
 	public static var missSoundEnabled:Bool = false;
@@ -67,6 +71,8 @@ class ClientPrefs { //default settings if it can't find a save file containing y
 	public static var showNPS:Bool = true;
 	public static var showComboInfo:Bool = true;
 	public static var maxSplashLimit:Int = 16;
+	/** Internal marker: first-run performance setup has already been considered. */
+	public static var firstRunPerformanceVersion:Int = 0;
 	public static var oppNoteAlpha:Float = 0.65;
 	/**
 	 * Darkness of the screen-fixed overlay drawn over the stage and the
@@ -173,7 +179,7 @@ class ClientPrefs { //default settings if it can't find a save file containing y
 	 */
 	public static var menuMusicFade:Bool = true;
 	public static var checkForUpdates:Bool = true;
-	public static var comboStacking = true;
+	public static var comboStacking:Bool = true;
 	public static var showRamUsage:Bool = true;
 	public static var showRamGraph:Bool = false;
 	public static var showMaxRamUsage:Bool = true;
@@ -247,7 +253,7 @@ class ClientPrefs { //default settings if it can't find a save file containing y
 	public static var lowQuality:Bool = false;
 	/**
 	 * Memory profile from Options -> Optimization (`Off` / `Low` / `Extreme` /
-	 * `Experimental Extreme`).
+	 * `Experimental Extreme` / `Arduino Nano R3`).
 	 *
 	 * A profile is a temporary bundle of appearance/performance preferences plus
 	 * a cleanup policy; see `backend.MemoryProfiles` for the definitions and
@@ -523,7 +529,7 @@ class ClientPrefs { //default settings if it can't find a save file containing y
 
 				if ((RecoveryBoot.freshPrefs || (RecoveryBoot.defaultDisplay && (field == "resolution" || field == "framerate" || field == "menuFramerate" || field == "focusLostFramerate" || field == "widescreen")))) continue;
 				if (!importantMap.get("saveBlackList").contains(field))
-					Reflect.setField(FlxG.save.data, field, Reflect.field(ClientPrefs, field));
+					Reflect.setField(FlxG.save.data, field, savedValueOf(field));
 			}
 		}
 		LowMemory.endSave();
@@ -550,6 +556,26 @@ class ClientPrefs { //default settings if it can't find a save file containing y
 			save.flush();
 		}
 		FlxG.log.add("Settings saved!");
+	}
+
+	/**
+	 * What a preference is written to the save file as: its live value, except
+	 * while a `--fps=<n>` launch option is still the rate in force
+	 * (`backend.CommandLine.savedFramerate`). A session override must not be
+	 * baked in as a choice the player never made — and the moment they pick a
+	 * rate in Options -> Graphics the live value differs from the override, so
+	 * their choice is what gets saved.
+	 *
+	 * @param field A `ClientPrefs` static field name, from the save loop above.
+	 * @return The value to persist for that field.
+	 */
+	private static function savedValueOf(field:String):Dynamic
+	{
+		final live:Dynamic = Reflect.field(ClientPrefs, field);
+		final requestedFps:Null<Int> = CommandLine.framerateOverride();
+		if (field == "framerate" && requestedFps != null && CommandLine.savedFramerate != null && live == requestedFps)
+			return CommandLine.savedFramerate;
+		return live;
 	}
 
 	/**
@@ -671,6 +697,17 @@ class ClientPrefs { //default settings if it can't find a save file containing y
     framerate = FramerateMath.clamp(framerate, uncappedFps);
     menuFramerate = FramerateMath.clamp(menuFramerate, uncappedFps);
     focusLostFramerate = FramerateMath.clamp(focusLostFramerate, uncappedFps);
+    // `--fps=<n>` (backend.CommandLine, docs/CLI.md) overrides the gameplay rate
+    // for this session. The player's own number is remembered so saveSettings()
+    // writes that back instead: a launch option is not a preference change, the
+    // same rule backend.LowMemory.beginSave() applies to a forced memory
+    // profile. Menus keep `menuFramerate`.
+    final requestedFps:Null<Int> = CommandLine.framerateOverride();
+    if (requestedFps != null)
+    {
+      CommandLine.savedFramerate = framerate;
+      framerate = FramerateMath.clamp(requestedFps, uncappedFps);
+    }
     // Apply the saved gameplay rate now that every field (including
     // `uncappedFps`, which the cap depends on) is final. Menu screens apply
     // `menuFramerate` when they are created; see backend.FramerateController.
@@ -742,9 +779,13 @@ class ClientPrefs { //default settings if it can't find a save file containing y
 			reloadControls();
 		}
 
-		// Options -> Optimization -> Memory Profile. Runs last so every screen
-		// created after this point already sees the forced values.
+		// Options -> Optimization -> Memory Profile. Runs before the first screen
+		// so it already sees the forced values.
 		LowMemory.applyFromPrefs();
+
+		// Existing saves are left untouched. A truly empty install gets a
+		// hardware-aware, editable starter setup before the first screen exists.
+		FirstRunPerformance.applyOnFirstRun();
 	}
 
 	/**
@@ -808,7 +849,12 @@ class ClientPrefs { //default settings if it can't find a save file containing y
     // A hand-edited save can hold an unknown spelling; normalize it so the
     // option row, the save file and the window all agree.
     windowMode = WindowMode.normalize(windowMode);
-    WindowMode.apply();
+    // `--windowed` / `--fullscreen` / `--borderless` (backend.CommandLine,
+    // docs/CLI.md) drive the window for this session only: `windowMode` above
+    // stays what is saved, so Options keeps showing the player's own choice and
+    // nothing is written back. `WindowMode.apply` never saves.
+    final requestedMode:String = CommandLine.windowModeOverride();
+    WindowMode.apply(requestedMode.length > 0 ? requestedMode : windowMode);
   }
 
 	inline public static function getGameplaySetting(name:String, defaultValue:Dynamic):Dynamic {
