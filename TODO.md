@@ -4,6 +4,7 @@ Generated from full repo audit. Priority: `[P0]` critical/blocker, `[P1]` high, 
 
 Sections 13–20 are a second backlog pass written against the current tree. Every entry there was checked against §0–12: anything already listed is **cross-referenced, not repeated**, and each item names the file/behaviour that proves it is still missing. They target Phoenix's stated identity — low-end devices, easy Lua/Python/HScript modding, Android-first platform work and Psych/JS compatibility — rather than generic engine cloning.
 
+§21–26 are later passes: player-facing screens/options (§21–22), a Mario's Madness reuse review (§23) and three fork triages (§24 JS-Engine `whoisitlolxd`, §25 Psych EK+, §26 JS-Engine binary charts). **§27 is the Rhythmo (`JoaTH-Team/Rhythmo`) reuse review** — a from-scratch Apache-2.0 FNF engine, read in full against this tree.
 Sections 21–37 are later single-subject passes: §21–22 player-facing ideas and new options, §23 Mario's Madness, §24 a JS Engine fork, §25 Psych EK+ (variable key count), §26 a binary-chart/GPU-notes fork, §27 Mixtape Engine, §28 FunkinAVI V2, §29 Yarn, §30 FNF: Doors, §31 SeiunEngine, §32 Super Plus Engine, §33 candidate haxelibs/ecosystem dependencies, §34 Cheese Engine, §35 Joalor64 Engine, §36 Funkin.AVI, and **§37 a full Kathy Engine comparison** — script APIs, options, editors and game content Kathy has that Phoenix does not (Spectra sits separately as §S). Because those sections kept landing while §37 was open, §37 **cross-references them instead of re-specifying the same gap**: it says which entries are already spec'd elsewhere (i18n, replays, reflection, mobile bindings, window tweens, V-Slice, hold covers) and keeps its own detail only for what is unique to Kathy (the Hold Cover feature itself, HitGraph, the HUD widget pack, splash overflow, sound trays, results-screen extras). §27, §32, §34 and §37 each also carry a "checked and deliberately not ported" list, so a feature that looks missing but is already covered elsewhere (or is dead code in the source fork) is named there instead of being proposed twice.
 
 §31 is the same kind of filtered comparison for **SeiunEngine** (`mohong2/FNF-SeiunEngine`, reviewed 2026-11-21): Apache 2.0 Psych 0.6.3 fork covering missing modding/scripting APIs, options, generic gameplay/online systems, editors/converters, lossless texture pipeline, extreme-scale chart streaming, and native crash tooling — excluding all mod/engine-specific content.
@@ -391,9 +392,12 @@ There is real infrastructure to extend: `tests/haxe/*Spec.hx` (layout, chart tim
 - **[P3] First-run smoke test.** Boot with an empty save path, assert Title is reached, the save is created, no mod loads, and `flashing == null` triggers `FlashingState`. Run it on the Android emulator job from §10 as well as desktop CI.
 - **[P3] Performance baseline gate.** Keep a `FrameProfiler` export for a fixed chart/build and fail when average or 1% low regress past a threshold, making the low-end promise testable instead of anecdotal.
 
+---
+
 ## OTHER
 
 ### Port other Psych Engine fork features
+
 
 Read `docs/research/psych-fork-engine-changes.md`, §24 (JS-Engine `whoisitlolxd` fork triage, 2026-11-19), §25 (Psych Engine Extra Keys + review), §26 (JS-Engine binary-chart / "GPU note backend" review, 2026-11-19), §27 (Mixtape Engine feature-gap review, 2026-11-21), §31 (SeiunEngine full comparison, 2026-11-21), §32 (Super Plus Engine parity review), §33 (candidate Haxelibs & ecosystem dependencies, 2026-11-21), §34 (Cheese Engine parity), §35 (Joalor64 Engine Rewrite gap review, 2026-11-21 — mod options, `modchart.json`, minigames, credits editor, background video, toasts), §36 (Funkin.AVI reuse review), §37 (full Kathy Engine comparison — script APIs, options, editors, HUD/game content; the fork audits overlap, so read §31/§32/§34 first) and §40 (Psych Online / FPO parity review, 2026-11-21 — erect/nightmare completion, pico/BF character mixes, missing pico game-over audio; the results screen, lane underlay and mod-settings work are cross-references, not new items).
 
@@ -810,6 +814,83 @@ Why not just merge it: **the branch touches no Haxe at all and is 81 commits beh
 
 ---
 
+## 27. RHYTHMO (`JoaTH-Team/Rhythmo`) REUSE REVIEW (2026-11-21)
+
+Source: <https://github.com/JoaTH-Team/Rhythmo>, cloned at `dd902c8` (2026-11-12) and read in full against this tree; nothing was built or run. **License: Apache-2.0** — compatible with Phoenix, so a port needs credit but no licence work. Rhythmo is **not** a Psych fork: it is a from-scratch singleplayer rhythm game (~9.9k lines of Haxe, 67 files) that keeps the FNF gameplay shell and rebuilds the rest — modding (scriptless-polymod), scripting (RuleScript HScript + LuaJIT), menus, options, achievements, localization, credits and chart editor. Its value to Phoenix is therefore *not* Psych parity; it is a set of small, self-contained player-facing features plus one or two modder-facing formats Phoenix never had. The old `JoaTH-Team/Rhythmo-SC` repo is deprecated and was not reviewed.
+
+Nothing here is a reason to touch the Psych/JS chart, stage or character formats (§12.8). Every entry below was checked against §0–26: anything already listed is **cross-referenced, not repeated**, and each item names the file/behaviour that proves it is still missing.
+
+### 27.1 Already covered / superseded — no action
+
+- **Achievements + popup + menu, Discord RPC, noteskins / note splashes / RGB note colour, sustain notes, botplay, downscroll, lane underlay, display-MS, hitsound type + volume, framerate, master volume, fullscreen, FPS+memory counter, F2 screenshot, Linux GameMode, Windows dark mode, crash handler, scripted states/substates, global mods, animated mod icons, Konami code, "Freaky Friday" achievement.** All present, mostly stronger than Rhythmo's (`backend/Achievements.hx`, `backend/DiscordClient.hx`, `objects/NoteColors.hx`, `backend/WindowColorMode.hx`, `states/ModState.hx`, `backend/Mods.hx:60`, `states/ModsMenuState.hx:920`).
+- **Lua + HScript API.** Rhythmo exposes ~40 Lua functions; Phoenix's Psych-derived API is much larger and already has `addScript` (`psychlua/HScript.hx:509`), `runHaxeCode` / `runHaxeFunction` (`:1078`, `:1104`), `addHaxeLibrary` (`:770`), dotted `getProperty`/`setProperty` (`psychlua/callbacks/PropertyCallbacks.hx`), and tagged object creation. Only Rhythmo's `importScript` / `importHaxeLibrary` naming differs (§27.2).
+- **Results screen.** `states/ResultsState.hx` + `states/ResultsData.hx` already show score, accuracy, max combo, peak NPS, per-judgement counts, FC tier and a hit-offset histogram. Only the letter rank is missing (§27.2).
+- **Note-colour editor.** `options/NotesSubState.hx` edits normal / pixel / quant palettes with a live note preview; Rhythmo's `options/NoteColorState.hx` is a simpler 4-lane RGB stepper.
+- **Main-menu tips.** `ClientPrefs.tipTexts` + `MainMenuState` already rotate tips on the main menu; Rhythmo's are in the *pause* menu (§27.2).
+- **`ClientPrefs.locale`** (`backend/ClientPrefs.hx:63`) exists but is read nowhere — a placeholder, not a localization system (§12.4, §27.2).
+- **Chart editor.** Phoenix's flixel-ui charter is far ahead of Rhythmo's haxeUI one (waveforms, undo, events, metadata, playtest, section tools). No port.
+- **Achievement art, menu backgrounds, cursor art, rank images, noteskin/splash art.** Content, not engine.
+
+### 27.2 Worth taking
+
+- **[P2] Localization / translations.** Rhythmo ships a complete i18n system: `assets/languages/<tag>.json` + `languagesList.txt` (`Name (Country):tag[:font]`), a `Localization` class (`locale/Localization.hx`) with `switchLanguage` / `get` / `getFont`, a language-select menu (`options/LanguageState.hx`), **per-language custom fonts**, and **Arabic RTL reshaping** via `hx_arabic_shaper` (`UBA.display` + `ArabicReshaper`). Scripts can call `switchLanguage` / `getLangKey`. Phoenix has none of it (`ClientPrefs.locale` is dead). Cross-ref §12.4 [P3]; raised to **P2** because it is self-contained, moddable (mods already drop folders into `mods/`), and the single biggest player-facing gap after time signatures. Effort **M** (new JSON loader, menu, font fallback, RTL path, script hooks, plus translating the existing strings — ship English only at first, let mods add the rest).
+
+- **[P2] Time-signature / time-scale changes in charts.** Rhythmo's `SongData` has `timeSignature`, and each section carries `bpm`/`changeBPM`, `timeScale`/`changeTimeScale`, `stepsPerSection`; `Conductor.mapBPMChanges` (`backend/Conductor.hx:51`) builds a `timeScaleChangeMap`, and `ExtendableState.updateCurStep` applies it (`beat = curStep / timeScale[1]`, `stepHit` when `curStep % timeScale[0] == 0`). Phoenix hardcodes 4/4: `backend/Conductor.hx:31` `BEATS_PER_MEASURE = 4; // TODO: time sigs`, and `data/Song.hx` `SwagSong`/`SwagSection` have no such fields. This is a real gameplay feature (mid-song meter changes), not a format clone: add `@:optional` fields to `SwagSong`/`SwagSection`, extend the conductor change maps, the chart loader, the charter grid/snap and the modchart beat math. Effort **L**. Cross-ref §12.4 (custom chart properties) and §25.1 (both want `SwagSong` to grow fields).
+
+- **[P3] Campaign mode (player-defined song list).** `states/menus/CampaignState.hx` lets the player type a comma-separated list of songs, plays them back-to-back, accumulates a cumulative score (`PlayState.campaignScore`), persists/resets it (`HighScore.saveCampaignScore`), and ends on the results screen. Phoenix's `campaignScore` is story-week scoring only; there is no playlist mode. If ported, build it on `backend.FreeplayFilter` / favourites + a proper list UI rather than Rhythmo's single text box. Effort **M**.
+
+- **[P3] Achievement metadata: hint, unlock stats, per-achievement reset.** Rhythmo's `AchievementData` is `{name, desc, hint}` loaded from `assets/achievements/*.json` + `achList.txt`, and `Achievements.unlock` stores `{date, song}`; the menu shows hint/date/song and supports R (forget one) / ALT+R (forget all) (`states/menus/AchievementsState.hx`). Phoenix's `Achievement` typedef (`backend/Achievements.hx:15`) has `hidden` / `maxScore` / `maxDecimals` but **no hint, no stats, and no reset** — an unlocked achievement is forever, and mod-added achievements cannot be data-driven. Effort **S** (fields + menu rows + reset action + compat read of the old save).
+
+- **[P3] In-game toast notification stack.** `backend/ToastCore.hx` is a stacked, animated, auto-expiring toast (title + description + colour) with `Main.toast.create(...)`; Rhythmo uses it for "Mods Installed", "No Mods Installed" and "connect a controller". Phoenix has `backend/StdFire.nativeWarn`, which is an **OS-level** notification, and `objects/AchievementPopup`, but no in-game widget — messages are dropped on mobile where no OS toast exists. Effort **S–M** (one object + a queue; reuse `FlxTween`/`FlxTimer`).
+
+- **[P3] Pause-menu rotating tips.** `substates/PauseSubState.hx` picks a random line from `data/menu/tipText.txt` every 3 s and crossfades it. Phoenix has main-menu tips only (`ClientPrefs.tipTexts`), so the pause screen is silent. Effort **S**.
+
+- **[P3] Anti-mash option.** Rhythmo's `SaveData.settings.antiMash` gives a miss for pressing a lane with no note (`PlayState` input path). Phoenix has `ghostTapping` / `ezSpam` but no anti-mash; it is a charting/comfort option players ask for. Effort **S–M** (gate the hit path in `play/helpers/PlayStateInput.hx`).
+
+- **[P3] Focus-lost volume ducking.** `Main.onWindowFocusOut/In` tweens `FlxG.sound.volume` to 0.3/0.1/0 and back, and drops `drawFramerate` to 30 outside `PlayState`. Phoenix's `backend/FramerateController.applyFocusLost` drops the rate but leaves the volume alone. Effort **S** (guard it so it never ducks during a song, matching Rhythmo).
+
+- **[P3] Data-driven main menu.** Rhythmo's `data/menu/menuList.txt` lists menu entries; `MenuState` builds buttons from it and routes unknown names to `ScriptedState`, so a mod can add a menu item without touching Haxe. Phoenix's `MainMenuState` builds a fixed `menuOptions` list. Effort **M** (data list + scripted-item routing; keep the existing art/animation path).
+
+- **[P3] Softcoded credits (JSON).** Rhythmo's `data/credits/credits.json` carries `menuBG`, `menuBGColor`, `tweenColor` and a `users` array with `sectionName`, `iconData`, `textData`, `urlData`, `colors`; the menu background colour tweens per selection and links open via `Util.openUrlPlease`. Phoenix's `states/CreditsState.hx:71` hardcodes `creditsEntries` (mod credits are appended). Cross-ref §12.4 [P3] "Credits are static". Effort **M** (JSON schema + loader; keep the hardcoded list as the built-in default).
+
+- **[P3] In-game song-list editor.** Rhythmo's `states/editors/EditorState.hx` has a "Song Selection Editor" that edits `data/songs/songs.json` (name + difficulty + cover). Phoenix has no UI to edit the freeplay/week song list — it is data-only. Effort **M**.
+
+- **[P3] Results letter rank (P/S/A/B/C/D/F).** `PlayState.generateRank()` + `gameplay/rankings/*` + `substates/ResultsSubState.hx`. Phoenix's `ResultsState` has FC tiers but no letter rank. Cross-ref §0 (Mic'd Up S/A ranking). Effort **S** (rank math + art + a slot on the existing screen).
+
+- **[P3] Hue-cycle shader (`shaders/HueDisplacer.hx`).** A hue-rotation shader with an optional outline pass, driven by `uTime`; the title logo uses it and LEFT/RIGHT scrub the hue. Phoenix has no hue shader in `source/shaders/` (closest are `RGBPalette`, `Greyscale`, `InvertColors`). Effort **S** (port the `.frag` math into a `FlxRuntimeShader`/`FunkinShader` effect; credit Joalor64).
+
+- **[P3] Custom cursor sprite.** Rhythmo loads `cursor/cursor` and assigns it with `FlxG.mouse.load(...)` in menus, credits and the charter. Phoenix has no custom cursor (only the debug pointing cursor, `ClientPrefs.debugPointingCursor`). Effort **S** (a pref + `FlxG.mouse.load`, with a fallback).
+
+- **[P3] `_append` mod merge + `coreAssetRedirect`.** Rhythmo ships `scriptless-polymod` with `_append/` merge folders (`include/mods/template/_append/data/...`), JSON merge parse rules (`ModHandler.getParseRules`) and `coreAssetRedirect: 'assets'` so a mod can override engine assets. Phoenix mods override whole files; `Mods.mergeAllTextsNamed` only merges `.txt` lists, so a mod adding one JSON entry must replace the file. Cross-ref §12.2 [P2] "Universal asset replacement". Effort **M–L** (merge semantics in `backend/Mods`/`backend/Paths`; keep the drop-a-folder workflow, §12.8).
+
+- **[P3] `importScript` (HScript).** Rhythmo's `HScript` exposes `importScript(source)` to pull another script's locals into the current one (`modding/HScript.hx`). Phoenix has `addScript`, `callScript` and `getGlobalFromScript` but no direct import. Effort **S** (return the target script's `getAll()`-style table).
+
+- **[P3] RuleScript HScript dialect — research only.** Rhythmo runs HScript through `rulescript` (`source/rulescript/RuleScriptInterp.hx`), which adds script **properties** (get/set), `super`, `import`/`using`, `??` / `??=`, a per-script error handler, `scriptName` in error positions, and compile-time macro defines (`Macros.getDefines`). Phoenix runs `hscript-improved` (`psychlua/HScript.hx`) and already covers modules/`addHaxeLibrary`/`runHaxeCode` (§12.1). This is a **library swap, not a feature port** — evaluate only if a concrete mod needs properties or `super`; do not destabilise the sandbox (`backend/ModSecurity`, `backend/ScriptSecurityScanner`). Effort **L**.
+
+- **[P3] Auto-updater that downloads and applies.** `api/AutoUpdater.hx` downloads the release zip, extracts it, writes `finish_update.bat` to swap `Rhythmo.exe`/`lime.ndll` and restarts. Phoenix's `backend/UpdateChecker` + `states/OutdatedState.hx` only check and link out. Cross-ref §12.6 [P3] "reintroduce only if secure and cross-platform" — **do not copy Rhythmo's batch-script exe swap** (Windows-only, no checksum/signature, no rollback). Effort **L** if revisited.
+
+- **[P3] Ship an OpenAL Soft config next to the executable.** Rhythmo ships `include/alsoft.txt` renamed per platform and points `ALSOFT_CONF` at it in `Main.__init__`. Phoenix has no shipped config. Effort **S** (asset + env var; low value, do it only if audio-device issues warrant it).
+
+- **[P3] Scripted-state emergency exit.** Rhythmo's `ScriptedState.update` binds F4 to "back to menu" as an escape hatch for broken mod states. Phoenix has scripted states (`states/ModState.hx`) but no documented panic exit. Effort **S**.
+
+### 27.3 Do not port
+
+- **Rhythmo's chart format and conductor.** `chart.json` (`song`/`notes`/`bpm`/`timeSignature`) and its own `Conductor` are not Psych-compatible; the *idea* of time signatures is in §27.2, the format is not (§12.8).
+- **Rhythmo's haxeUI chart editor.** A second UI toolkit beside flixel-ui, and weaker than the existing charter.
+- **`objects/RoundedSprite.hx`.** Pixel-hacked rounded corners; Phoenix already draws round rects (`objects/AchievementPopup.hx`).
+- **`objects/Bar.hx`.** Two `BitmapData`s + per-frame `copyPixels`; Phoenix has `FlxBar`.
+- **`debug/FPS.hx`.** A `TextField` with eight border `TextField`s; Phoenix has `debug/FPSCounter` + `debug/FrameProfiler`.
+- **`api/native/WindowsAPI.hx` dark mode.** Toggles `borderless` to force a redraw; `backend/WindowColorMode.hx` already does this properly.
+- **`input/Input.hx`.** A simpler named-bind map; Phoenix `backend/Controls` is the real system and §15 already tracks gamepad rebinding.
+- **`AutoUpdater`'s batch-script self-replace** — see §27.2.
+- **`ToastCore`/`FPS`/`Bar`/`RoundedSprite` as literal code** — port the behaviour into Phoenix idioms, not the classes.
+
+### 27.4 Explicit non-goals
+
+- **Do not replace Psych/JS chart, stage, week or character formats.** Rhythmo's data model is its own; §27.2 takes the *feature* (time signatures), not the format.
+- **Do not adopt RuleScript or haxeUI wholesale.** Phoenix's identity is Lua + Python + HScript on a Psych-derived core (§12.8).
+- **Do not remove Lua/Python or the Psych API to look more like Rhythmo.** Rhythmo is the smaller engine here.
+- **Do not port Rhythmo's content.** Its songs, art, noteskins, ranks, cursor and credits data are its own; only the techniques are relevant.
 ## 27. PSIKE ENGINE GAP REVIEW
 
 **Source:** [Raltyro/FNF-PsikeEngine](https://github.com/Raltyro/FNF-PsikeEngine/tree/bb17c5c193d31c74f92478e40bb46e48e282d54d), commit `bb17c5c193d31c74f92478e40bb46e48e282d54d` (2023-03-12; `psikeVersion.txt` 0.2.4), compared with Phoenix `443ae01` and its current source. Static source audit, not a build or gameplay benchmark. Checked Psike's preferences and option menus, gameplay/changers, Lua registrations and hooks, game-over screen, chart-editor controls, asset paths, and platform/performance claims against Phoenix; exact callback-name matching is a starting point, not proof that identical names have identical behaviour. Only general-purpose engine features are candidates; no weeks, songs, characters, stages or other engine/mod-specific content are requested here. The repositories' root licenses are Apache 2.0, but check individual code, dependencies, assets and attribution before any reuse; do not assume third-party assets or library forks share that license.
