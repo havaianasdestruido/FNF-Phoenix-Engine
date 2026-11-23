@@ -179,7 +179,7 @@ class ClientPrefs { //default settings if it can't find a save file containing y
 	 */
 	public static var menuMusicFade:Bool = true;
 	public static var checkForUpdates:Bool = true;
-	public static var comboStacking = true;
+	public static var comboStacking:Bool = true;
 	public static var showRamUsage:Bool = true;
 	public static var showRamGraph:Bool = false;
 	public static var showMaxRamUsage:Bool = true;
@@ -253,7 +253,7 @@ class ClientPrefs { //default settings if it can't find a save file containing y
 	public static var lowQuality:Bool = false;
 	/**
 	 * Memory profile from Options -> Optimization (`Off` / `Low` / `Extreme` /
-	 * `Experimental Extreme`).
+	 * `Experimental Extreme` / `Arduino Nano R3`).
 	 *
 	 * A profile is a temporary bundle of appearance/performance preferences plus
 	 * a cleanup policy; see `backend.MemoryProfiles` for the definitions and

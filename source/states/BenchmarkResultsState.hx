@@ -1,5 +1,7 @@
 package states;
 
+import backend.BenchmarkKind;
+import backend.BenchmarkKindTools;
 import backend.ClientPrefs;
 import backend.Paths;
 import backend.ScreenLayout;
@@ -11,13 +13,16 @@ import mobile.flixel.FlxVirtualPad;
 import options.OptionsState;
 
 /**
- * The page the Device Benchmark ends on (Options -> Optimization -> Device Benchmark).
+ * The page any benchmark lands on — gameplay (Gameplay / Visual / Logic),
+ * synthetic or suite.
  *
- * One screen, no scrolling required on a normal display: the frame results at
- * the top (average FPS, 1% low, worst frame — the three numbers that matter),
- * the device it ran on below, and the path of the full `FrameProfiler` export.
- * `A`/`Enter` copies the same text to the clipboard for a bug report, `R`
- * runs the benchmark again, and `Esc`/`B` returns to the options.
+ * One screen, no scrolling required on a normal display: the frame results
+ * at the top (average FPS, 1% low, worst frame — the three numbers that
+ * matter, plus update/render split for Visual/Logic), the device it ran on
+ * below, and the path of the full `FrameProfiler` export (or the synthetic
+ * score block). `A`/`Enter` copies the same text to the clipboard for a bug
+ * report, `R` runs the same kind again (or reopens the Benchmark menu for a
+ * suite), and `Esc`/`B` returns to the options/benchmark menu.
  *
  * The report itself is assembled in `backend.Benchmark.reportText()` from the
  * summary captured at the end of the run; nothing here re-measures anything,
@@ -65,7 +70,11 @@ class BenchmarkResultsState extends backend.MusicBeatState
 
   override function create()
   {
-    backend.MusicBeatState.windowNameSuffix = " - Device Benchmark";
+    final k:Null<BenchmarkKind> = backend.Benchmark.kind;
+    final tag:String = k == null ? 'Device Benchmark' : BenchmarkKindTools.displayName(k).toUpperCase();
+    final subtitle:String = subtitleFor(k);
+    final suffix:String = k == null ? ' - Device Benchmark' : ' - ' + BenchmarkKindTools.windowTitle(k);
+    backend.MusicBeatState.windowNameSuffix = suffix;
     persistentUpdate = true;
 
     super.create();
@@ -76,12 +85,12 @@ class BenchmarkResultsState extends backend.MusicBeatState
     ViewportVisuals.cover(bg);
     add(bg);
 
-    titleText = new flixel.text.FlxText(0, 12, FlxG.width, 'DEVICE BENCHMARK', 26);
+    titleText = new flixel.text.FlxText(0, 12, FlxG.width, tag, 26);
     titleText.setFormat("VCR OSD Mono", 26, FlxColor.YELLOW, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
     titleText.screenCenter(X);
     add(titleText);
 
-    subtitleText = new flixel.text.FlxText(0, 44, FlxG.width, 'fixed chart · botplay · mods disabled · ~60 s', 14);
+    subtitleText = new flixel.text.FlxText(0, 44, FlxG.width, subtitle, 14);
     subtitleText.setFormat("VCR OSD Mono", 14, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
     subtitleText.alpha = 0.85;
     subtitleText.screenCenter(X);
@@ -101,9 +110,11 @@ class BenchmarkResultsState extends backend.MusicBeatState
     reportText.cameras = [reportCamera];
     add(reportText);
 
+    // Synthetic/suite are instant; the normal page lets the player rerun the same kind.
+    final rerunLabel:String = (k == SYNTHETIC || k == SUITE) ? 'R: suite menu' : 'R: run again';
     baseHint = mobile.MobileControls.enabled
-      ? 'A: copy the report   |   B: back to options'
-      : 'Enter/A: copy   |   R: run again   |   Esc/B: back to options';
+      ? 'A: copy the report   |   B: back'
+      : 'Enter/A: copy   |   ' + rerunLabel + '   |   Esc/B: back   |   M: benchmarks';
     hintText = new flixel.text.FlxText(10, 10, FlxG.width - 20, baseHint, 18);
     hintText.setFormat("VCR OSD Mono", 18, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
     add(hintText);
@@ -113,6 +124,19 @@ class BenchmarkResultsState extends backend.MusicBeatState
 
     addVirtualPad(UP_DOWN, A_B);
     addVirtualPadCamera();
+  }
+
+  static function subtitleFor(k:Null<BenchmarkKind>):String
+  {
+    if (k == null) return 'fixed chart · botplay · mods disabled · ~60 s';
+    return switch (k)
+    {
+      case GAMEPLAY: 'fixed chart · botplay · mods disabled · ~60 s';
+      case VISUAL: 'visual stress · chords + holds + splashes · ~60 s';
+      case LOGIC: 'logic stress · jacks + trills + 16ths · ~60 s';
+      case SYNTHETIC: 'synthetic · JSON/sort/path/math/alloc · ~2 s · no audio';
+      case SUITE: 'suite · synthetic now + visual/logic to complete · combined report';
+    };
   }
 
   override function update(elapsed:Float)
@@ -142,7 +166,12 @@ class BenchmarkResultsState extends backend.MusicBeatState
       #if desktop
       else if (FlxG.keys.justPressed.R)
         rerun();
+      else if (FlxG.keys.justPressed.M)
+        openBenchmarkMenu();
       #end
+      // Touch: also accept M via gamepad if present.
+      if (FlxG.keys.justPressed.M)
+        openBenchmarkMenu();
     }
 
     super.update(elapsed);
@@ -195,7 +224,22 @@ class BenchmarkResultsState extends backend.MusicBeatState
   {
     if (leaving) return;
     leaving = true;
-    backend.Benchmark.start();
+    final k:Null<BenchmarkKind> = backend.Benchmark.kind;
+    // Synthetic/suite reruns land on the menu so the player can pick the next chart;
+    // gameplay kinds replay the same kind.
+    if (k == SYNTHETIC || k == SUITE)
+    {
+      FlxG.switchState(() -> new BenchmarkMenuState());
+      return;
+    }
+    backend.Benchmark.startKind(k == null ? GAMEPLAY : k);
+  }
+
+  function openBenchmarkMenu():Void
+  {
+    if (leaving) return;
+    leaving = true;
+    FlxG.switchState(() -> new BenchmarkMenuState());
   }
 
   function setHint(text:String):Void
@@ -217,6 +261,7 @@ class BenchmarkResultsState extends backend.MusicBeatState
   {
     if (leaving) return;
     leaving = true;
+    backend.Benchmark.exitRun();
     backend.Paths.playMenuMusic(true);
     FlxG.switchState(() -> new OptionsState());
   }

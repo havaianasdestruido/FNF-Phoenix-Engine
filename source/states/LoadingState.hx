@@ -543,6 +543,7 @@ class LoadingState extends MusicBeatState
 	 */
 	function preloadTitleStuff():Void
 	{
+		if (backend.LowMemory.policy().minimalMenus) return;
 		// Title art: logo, "press enter", Newgrounds logo.
 		preloadQueue.push(function()
 		{

@@ -325,6 +325,13 @@ class PlayState extends MusicBeatState
 	public var goods:Int = 0;
 	public var bads:Int = 0;
 	public var poorRatings:Int = 0;
+	/** Compatibility alias for the legacy Psych/JS Engine `shits` judgement counter. */
+	public var shits(get, set):Int;
+	inline function get_shits():Int return poorRatings;
+	inline function set_shits(value:Int):Int {
+		poorRatings = value;
+		return value;
+	}
 	public var nps:Float = 0;
 	public var maxNPS:Float = 0;
 	public var oppNPS:Float = 0;
@@ -1894,16 +1901,25 @@ class PlayState extends MusicBeatState
 		#end
 
 		//PRECACHING THINGS THAT GET USED FREQUENTLY TO AVOID LAGSPIKES
-		if (hitSoundString != "none")
+		final minimalPrecache:Bool = LowMemory.policy().minimalGameplayPrecache;
+		if (hitSoundString != "none" && (!minimalPrecache || ClientPrefs.hitsoundVolume > 0))
 			hitsound = FlxG.sound.load(Paths.sound("hitsounds/" + Std.string(hitSoundString).toLowerCase()));
 		if(ClientPrefs.hitsoundVolume > 0) Paths.sound('hitsound');
-		hitsound.volume = ClientPrefs.hitsoundVolume;
-		hitsound.pitch = playbackRate;
-		for (i in 1...4) Paths.sound('missnote$i');
+		if (hitsound != null)
+		{
+			hitsound.volume = ClientPrefs.hitsoundVolume;
+			hitsound.pitch = playbackRate;
+		}
+		if (!minimalPrecache || ClientPrefs.missSoundEnabled)
+			for (i in 1...4) Paths.sound('missnote$i');
 		//The alphabet is either a spritesheet or glyphs rasterized from a font; cache the one
-		//the player actually uses (see objects.AlphabetFont).
-		if (AlphabetFont.currentUsesImages()) Paths.image('alphabet');
-		else AlphabetFontRenderer.warmUp();
+		//the player actually uses (see objects.AlphabetFont), unless minimalGameplayPrecache
+		//defers pause-menu font/atlas decoding until the player actually pauses.
+		if (!minimalPrecache)
+		{
+			if (AlphabetFont.currentUsesImages()) Paths.image('alphabet');
+			else AlphabetFontRenderer.warmUp();
+		}
 
 		if (PauseSubState.songName != null)
 			Paths.music(PauseSubState.songName);
