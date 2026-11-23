@@ -8,8 +8,6 @@ description: LoadingState, PlayState and the pause, game over and results overla
 
 ## Loading screen
 
-![Loading screen reconstruction](../../static/img/screens/loading.png)
-
 `source/states/LoadingState.hx`, with the layout documented in
 [Loading Screen](https://github.com/havaianasdestruido/FNF-Phoenix-Engine/blob/main/docs/LOADING_SCREEN.md). A full-screen
 `0xFFCAFF4D` background, the `funkay` sprite centered at `0.8` scale, and the
@@ -23,8 +21,6 @@ without threads. A song can override the art with `images/loading/<song>.png`, f
 back to `funkay`, then `logoBumpin`.
 
 ## `PlayState` — the song
-
-![Gameplay reconstruction](../../static/img/screens/playstate.png)
 
 `source/play/PlayState.hx`. Two cameras matter: the gameplay camera that scrolls with
 the stage and characters, and `camHUD` where the strums, bars and text live.
@@ -51,8 +47,7 @@ time bar artwork, and `botplayTxt` replaces the score line when Botplay is on.
 `(-650, 600)` scaled to `1.1`, two `stage_light` sprites (one `flipX`) and
 `stagecurtains` at `(-500, -300)` scroll `1.3` scaled to `0.9`. Character offsets come
 from `assets/preload/stages/stage.json`: opponent `(100, 100)`, girlfriend `(400, 130)`,
-boyfriend `(770, 100)` at `defaultZoom: 0.9`, which is exactly the composition in the
-image above.
+boyfriend `(770, 100)` at `defaultZoom: 0.9`.
 
 The gameplay screen also owns the systems that are invisible in a still: `Conductor`
 timing with `stepHit`/`beatHit`/`sectionHit`, `PlayStatePlayback`, note splashes and
@@ -60,8 +55,6 @@ sustain splashes, the lane underlay (`PlayStateLaneUnderlay`), the FPS counter a
 `debug.CommitWatermark` bottom-right, and `backend.SSPlugin`'s `F2` capture.
 
 ## `PauseSubState` — pause menu
-
-![Pause menu reconstruction](../../static/img/screens/pause.png)
 
 `source/states/substates/PauseSubState.hx` freezes the playfield and lists eight
 choices: Resume, Restart Song, Change Gameplay Settings, Change Difficulty, Toggle RAM
@@ -76,8 +69,6 @@ saving through `backend.Screenshot`.
 
 ## `GameOverSubstate` — death
 
-![Game over reconstruction](../../static/img/screens/gameover.png)
-
 `source/states/substates/GameOverSubstate.hx` plays the song's death animation, then the
 `gameOver` loop, and shows the retry prompt. `ENTER` respawns at the current section,
 `BACK`/`ESC` leaves to Freeplay; the count of deaths feeds `PlayState.deathCounter`, which
@@ -88,8 +79,6 @@ Per-song overrides come from the chart: `gameOverSound`, `gameOverLoop`,
 `fnf_loss_sfx` / `gameOver` / `gameOverEnd`.
 
 ## `ResultsState` — results
-
-![Results reconstruction](../../static/img/screens/results.png)
 
 `source/states/ResultsState.hx` draws `menuDesat` tinted `0xFF171927` at `alpha 0.82`,
 then a `SONG RESULTS` / `WEEK RESULTS` header in VCR with the song and difficulty under

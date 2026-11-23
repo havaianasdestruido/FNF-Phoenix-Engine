@@ -14,8 +14,6 @@ colour.
 
 ## Main menu
 
-![Main menu reconstruction](../../static/img/screens/mainmenu.png)
-
 `source/states/MainMenuState.hx`. Seven `menu_*` Sparrow atlases, each with `basic` and
 `white` animations, stacked from the top in `menuOptions` order and centered on X.
 
@@ -39,8 +37,6 @@ band, and the achievement popup camera (`camAchievement`) reserved above the men
 
 ## Story mode
 
-![Story mode reconstruction](../../static/img/screens/story.png)
-
 `source/states/StoryMenuState.hx` reads `assets/preload/data/weeksList.txt` through
 `backend.WeekData`. One row per unlocked week, each showing `storyName`, the week's song
 titles from `weekFile.songs`, and `weekCharacters` rendered as the three characters.
@@ -53,8 +49,6 @@ sets `PlayState.storyPlaylist`, `PlayState.isStoryMode = true` and the difficult
 then goes through `LoadingState`.
 
 ## Freeplay
-
-![Freeplay reconstruction](../../static/img/screens/freeplay.png)
 
 `source/states/FreeplayState.hx`. The list is one `Alphabet` row per song at
 `contentLeft + 90`, starting at `y = 320` and 120px apart, with a `HealthIcon` per row
@@ -75,8 +69,6 @@ Starting a song sets `PlayState.isStoryMode = false`, `wasOriginallyFreeplay = t
 
 ## Mods
 
-![Mods manager reconstruction](../../static/img/screens/mods.png)
-
 `source/states/ModsMenuState.hx`. Left column is the load-order list with an enabled
 marker; right panel is the selected mod's `pack.json`: name, description, social links,
 version, and the security state from `backend.ModSecurity` (whether the mod's scripts run
@@ -89,10 +81,6 @@ parse.
 
 ## Awards and Statistics
 
-![Achievement gallery reconstruction](../../static/img/screens/awards.png)
-
-![Statistics tab reconstruction](../../static/img/screens/stats.png)
-
 Both tabs are owned by `source/states/AchievementsMenuState.hx` (`ACHIEVEMENTS_ALLOWED`)
 and `source/states/StatsState.hx`, sharing the same shell: a grid of achievement tiles
 with the unlocked ones lit, a details box under the grid with name, description and
@@ -102,16 +90,12 @@ formatted playtime (`PlayerStats.formatPlaytime`) and achievements unlocked.
 
 ## Credits
 
-![Credits reconstruction](../../static/img/screens/credits.png)
-
 `source/states/CreditsState.hx`. One `Alphabet` row per credit with a role label and an
 optional icon; selectable rows open their link on `ACCEPT`, and the description panel at
 the bottom follows the highlighted row. Rows come from `assets/preload/data/credits.txt`
 so a source mod can replace the whole list without touching the state.
 
 ## Options
-
-![Options categories reconstruction](../../static/img/screens/options.png)
 
 `source/options/OptionsState.hx`. Ten categories, 56px apart, in this order: Note Colors,
 Controls, Adjust Delay and Combo, Graphics, Optimization, Visuals and UI, Accessibility,
@@ -126,8 +110,6 @@ is what `phoenix://menu/misc` and `phoenix://menu/audio` use to open straight in
 category.
 
 ## Options category substate
-
-![Graphics category substate reconstruction](../../static/img/screens/options-substate.png)
 
 A category substate dims the Options list behind it and draws its own scrollable rows
 through `BaseOptionsMenu`. Each row is an `Option` (checkbox, number, choice, string or
