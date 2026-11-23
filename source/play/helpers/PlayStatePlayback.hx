@@ -151,7 +151,7 @@ class PlayStatePlayback
 		@:privateAccess
 		if (!state.ffmpegMode) {
 			FlxG.sound.playMusic(state.inst._sound, instrumentalVolume(state), false);
-			FlxG.sound.music.onComplete = PlayStatePlayback.finishSong.bind(state);
+			FlxG.sound.music.onComplete = function() PlayStatePlayback.finishSong(state);
 			state.vocals.play();
 			state.opponentVocals.play();
 			PlayStateExtraVocals.playAll(state.extraVocals);
@@ -168,7 +168,7 @@ class PlayStatePlayback
 			PlayStateExtraVocals.setVolumeAll(state.extraVocals, 0);
 		}
 		if (!state.ffmpegMode && (!state.trollingMode || PlayState.SONG.song.toLowerCase() != 'anti-cheat-song'))
-			FlxG.sound.music.onComplete = PlayStatePlayback.finishSong.bind(state);
+			FlxG.sound.music.onComplete = function() PlayStatePlayback.finishSong(state);
 
 		FlxG.sound.music.pitch = state.playbackRate;
 		state.vocals.pitch = state.opponentVocals.pitch = state.playbackRate;

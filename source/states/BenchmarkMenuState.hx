@@ -40,7 +40,7 @@ class BenchmarkMenuState extends backend.MusicBeatState
     GAMEPLAY, VISUAL, LOGIC, SYNTHETIC, SUITE
   ];
   var curSelected:Int = 0;
-  var grpEntries:flixel.group.FlxTypedGroup<objects.Alphabet>;
+  var grpEntries:FlxTypedGroup<objects.Alphabet>;
   var leaving:Bool = false;
 
   override public function onResize(width:Int, height:Int):Void
@@ -84,7 +84,7 @@ class BenchmarkMenuState extends backend.MusicBeatState
     subtitleText.screenCenter(X);
     add(subtitleText);
 
-    grpEntries = new flixel.group.FlxTypedGroup<objects.Alphabet>();
+    grpEntries = new FlxTypedGroup<objects.Alphabet>();
     add(grpEntries);
 
     for (i in 0...entries.length)
