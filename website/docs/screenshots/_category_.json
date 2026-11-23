@@ -4,6 +4,6 @@
   "link": {
     "type": "generated-index",
     "title": "Screens",
-    "description": "One page per screen the engine can put on the display: what it is for, what its widgets are, and a reconstruction of its layout built from the engine's own art. Every screen also has a matching page in the GitHub wiki."
+    "description": "One page per screen the engine can put on the display: what it is for and what its widgets are. Every screen also has a matching page in the GitHub wiki."
   }
 }

@@ -6,8 +6,6 @@ description: StartupState, TitleState, FlashingState, OutdatedState and ErrorSta
 
 # Boot and title screens
 
-![Startup splash reconstruction](../../static/img/screens/startup.png)
-
 ## `StartupState` — engine splash
 
 `source/states/StartupState.hx`. The first `MusicBeatState` after `InitState` decides
@@ -24,8 +22,6 @@ builds ship no splash videos, so the logo is the whole screen there.
 
 `source/states/TitleState.hx`; layout numbers live in
 `assets/preload/images/gfDanceTitle.json`.
-
-![Title screen reconstruction](../../static/img/screens/title.png)
 
 | JSON field | Meaning |
 |---|---|
@@ -45,15 +41,11 @@ The title is also where a lot of one-off work happens: an update check through
 
 ## `FlashingState` — photosensitivity warning
 
-![Photosensitivity warning reconstruction](../../static/img/screens/flashing.png)
-
 `source/states/FlashingState.hx` is one centered `FlxText` in `VCR OSD Mono` 32px, white
 on black, with `ENTER` to continue. It only appears on a first run or after the warning
 was reset in Options; the title screen links to it, not the boot chain.
 
 ## `OutdatedState` — update notice
-
-![Update notice reconstruction](../../static/img/screens/outdated.png)
 
 `source/states/OutdatedState.hx` is only reached from `TitleState` when
 `CHECK_FOR_UPDATES` is compiled in and the release feed reports a newer tag. It shows the
@@ -61,8 +53,6 @@ warning, the changelog body from the release notes, and the Yes/No choice that o
 release page. Builds with `-Dno-version-check`-style local setups never see it.
 
 ## `ErrorState` — recoverable error screen
-
-![Error screen reconstruction](../../static/img/screens/error.png)
 
 `source/states/ErrorState.hx` is the friendly error screen the menus use instead of
 crashing: a message plus two callbacks, e.g. Freeplay with no weeks offers "open the Week
