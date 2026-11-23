@@ -1084,7 +1084,7 @@ class Project extends HXProject
 		if (!stripped)
 			addAssetPath("assets/songs", "assets/songs", "songs", ["*"], exclude, shouldEmbed);
 		else
-			for (song in ["tutorial", "bopeebo", "fresh", "dad-battle"])
+			for (song in ["tutorial", "bopeebo", "fresh", "dad-battle", "phoenix-benchmark"])
 				addAssetPath('assets/songs/${song}', 'assets/songs/${song}', "songs", ["*"], exclude, shouldEmbed);
 		addAssetLibrary("shared", shouldEmbed, shouldPreload);
 		if (!stripped)

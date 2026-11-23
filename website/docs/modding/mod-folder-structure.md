@@ -126,6 +126,34 @@ MyMod|0
 Mods menu (`states.ModsMenuState`) writes the same file, and ordering in the list is the
 priority order.
 
+## Why did my mod break?
+
+The Mods menu answers that without a log. Each row carries a badge when something is
+recorded for that mod - `!` for a break, `?` for missing assets - and the line under the
+description summarises it (`No problems detected`, or
+`PROBLEMS: script error, 2 blocked scripts, 1 missing asset`).
+
+Select the mod and press the gear button (**Mod Info**) for the details: the last script
+load error with its message, a `pack.json` that could not be read and why, the rule IDs
+that blocked a script (see [script security](script-security.md)) and which assets are
+missing, with up to two of their paths.
+
+`backend.ModHealth` records this while the game runs, per mod folder:
+
+| Problem | Recorded by | Meaning |
+|---|---|---|
+| Last load error | the Lua/Python/HScript runtimes | the file threw while loading, so none of its hooks ran |
+| Invalid `pack.json` | `Mods.getPack()` | the manifest does not parse or is not a JSON object |
+| Blocked script | `ModSecurity.report()` | the §6 sandbox refused the file before it ran |
+| Blocked runtime call | the script runtimes | the script loaded, but a guarded engine callback was refused |
+| Missing assets | `backend.Paths` | images, sounds or atlases of this mod that did not load |
+
+Only facts are counted, and only for this session: the report does not survive a restart,
+and re-importing a `.zip` into a folder drops what was recorded about the files it
+replaced. The badge and the summary never repeat text written by the mod - the mod's own
+paths and messages only appear inside Mod Info, flattened to one line and wrapped to the
+panel - so a broken script cannot draw outside the panel.
+
 ## Resolution order
 
 For any asset key, `Paths.modFolders(key)` checks:

@@ -55,6 +55,7 @@ import play.helpers.PlayStateCountdown;
 import play.helpers.PlayStateCutscenes;
 import play.helpers.PlayStateDistantNotes;
 import play.helpers.PlayStateEvents;
+import play.helpers.PlayStateExtraVocals;
 import play.helpers.PlayStateHaptics;
 import play.helpers.PlayStateInput;
 import play.helpers.PlayStateMetronome;
@@ -66,6 +67,7 @@ import play.helpers.PlayStateRender;
 import play.helpers.PlayStateScripts;
 import play.helpers.PlayStateShaders;
 import play.helpers.PlayStateStageDim;
+import play.helpers.PlayStateStageObjects;
 import play.helpers.PlayStateLaneUnderlay;
 import play.helpers.PlayStateResume;
 import play.helpers.PlayStateAndroidMedia;
@@ -205,6 +207,13 @@ class PlayState extends MusicBeatState
 	public var inst:FlxSound;
 	public var vocals:FlxSound;
 	public var opponentVocals:FlxSound;
+	/**
+	 * Chart-declared extra vocal stems ("unlimited vocals per strumline"),
+	 * loaded by `PlayStateChartLoader.generateSong` from the chart's
+	 * `extraVocals` array. Empty for charts without extra stems or when the
+	 * Extra Vocal Stems option is off. See docs/EXTRA_VOCALS.md.
+	 */
+	public var extraVocals:Array<ExtraVocalTrack> = [];
 	// Flixel music is persistent across states; remember which Sound belongs
 	// to this song so the experimental tier can release it without stopping
 	// replacement menu music that was started before the transition.
@@ -316,6 +325,13 @@ class PlayState extends MusicBeatState
 	public var goods:Int = 0;
 	public var bads:Int = 0;
 	public var poorRatings:Int = 0;
+	/** Compatibility alias for the legacy Psych/JS Engine `shits` judgement counter. */
+	public var shits(get, set):Int;
+	inline function get_shits():Int return poorRatings;
+	inline function set_shits(value:Int):Int {
+		poorRatings = value;
+		return value;
+	}
 	public var nps:Float = 0;
 	public var maxNPS:Float = 0;
 	public var oppNPS:Float = 0;
@@ -740,6 +756,8 @@ class PlayState extends MusicBeatState
 
 		if (ffmpegMode)
 			cpuControlled = true;
+		if (backend.Benchmark.active)
+			cpuControlled = true; // the benchmark is always botplay; it is a measurement, not a challenge
 
 		camGame = new FlxCamera();
 		camHUD = new FlxCamera();
@@ -878,10 +896,17 @@ class PlayState extends MusicBeatState
 		add(grpGFCrossFade);
 		add(grpBFCrossFade);
 
-		add(gfGroup); //Needed for blammed lights
-
-		add(dadGroup);
-		add(boyfriendGroup);
+		// JSON stage objects (Stage Editor) interleave with the character
+		// groups. Vanilla stages have no `objects` array, so this is the
+		// historical add-gf-then-dad-then-bf order. Needed for blammed lights.
+		if (curStage != null && curStage.length > 0)
+			PlayStateStageObjects.spawn(this, stageData);
+		else
+		{
+			add(gfGroup);
+			add(dadGroup);
+			add(boyfriendGroup);
+		}
 
 		#if LUA_ALLOWED
 		luaDebugGroup = new FlxTypedGroup<DebugLuaText>();
@@ -1876,16 +1901,25 @@ class PlayState extends MusicBeatState
 		#end
 
 		//PRECACHING THINGS THAT GET USED FREQUENTLY TO AVOID LAGSPIKES
-		if (hitSoundString != "none")
+		final minimalPrecache:Bool = LowMemory.policy().minimalGameplayPrecache;
+		if (hitSoundString != "none" && (!minimalPrecache || ClientPrefs.hitsoundVolume > 0))
 			hitsound = FlxG.sound.load(Paths.sound("hitsounds/" + Std.string(hitSoundString).toLowerCase()));
 		if(ClientPrefs.hitsoundVolume > 0) Paths.sound('hitsound');
-		hitsound.volume = ClientPrefs.hitsoundVolume;
-		hitsound.pitch = playbackRate;
-		for (i in 1...4) Paths.sound('missnote$i');
+		if (hitsound != null)
+		{
+			hitsound.volume = ClientPrefs.hitsoundVolume;
+			hitsound.pitch = playbackRate;
+		}
+		if (!minimalPrecache || ClientPrefs.missSoundEnabled)
+			for (i in 1...4) Paths.sound('missnote$i');
 		//The alphabet is either a spritesheet or glyphs rasterized from a font; cache the one
-		//the player actually uses (see objects.AlphabetFont).
-		if (AlphabetFont.currentUsesImages()) Paths.image('alphabet');
-		else AlphabetFontRenderer.warmUp();
+		//the player actually uses (see objects.AlphabetFont), unless minimalGameplayPrecache
+		//defers pause-menu font/atlas decoding until the player actually pauses.
+		if (!minimalPrecache)
+		{
+			if (AlphabetFont.currentUsesImages()) Paths.image('alphabet');
+			else AlphabetFontRenderer.warmUp();
+		}
 
 		if (PauseSubState.songName != null)
 			Paths.music(PauseSubState.songName);
@@ -1958,6 +1992,7 @@ class PlayState extends MusicBeatState
 		if(generatedMusic)
 		{
 			vocals.pitch = opponentVocals.pitch = value;
+			PlayStateExtraVocals.setPitchAll(extraVocals, value);
 			FlxG.sound.music.pitch = value;
 		}
 		playbackRate = value;
@@ -2336,6 +2371,10 @@ class PlayState extends MusicBeatState
 		#if android
 		PlayStateHardwareInput.syncVolumeKeys(this);
 		#end
+		// Device benchmark: starts the measurement once the instrumental starts
+		// and force-ends the fixed run if it never completes.
+		if (backend.Benchmark.active)
+			backend.Benchmark.tick();
 		// #88: the ghosts are pooled now, so dead ones stay in their group as pool
 		// members instead of being removed (and destroyed) every frame. That also
 		// drops the three per-frame `forEachDead` closures.
@@ -2537,6 +2576,8 @@ class PlayState extends MusicBeatState
 					vocals.volume = opponentVocals.volume = 0;
 					vocals.stop();
 					opponentVocals.stop();
+					PlayStateExtraVocals.setVolumeAll(extraVocals, 0);
+					PlayStateExtraVocals.stopAll(extraVocals);
 					FlxG.sound.music.stop();
 					KillNotes();
 					heyStopTrying = true;
@@ -2613,6 +2654,7 @@ class PlayState extends MusicBeatState
 			if(FlxG.sound.music != null) FlxG.sound.music.stop();
 			if (vocals != null) vocals.stop();
 			if (opponentVocals != null) opponentVocals.stop();
+			PlayStateExtraVocals.stopAll(extraVocals);
 			#if DISCORD_ALLOWED DiscordClient.resetClientID(); #end
 			FlxG.switchState(new CharacterEditorState(SONG.player2));
 		}
@@ -2906,6 +2948,7 @@ class PlayState extends MusicBeatState
 
 				vocals.stop();
 				opponentVocals.stop();
+				PlayStateExtraVocals.stopAll(extraVocals);
 				FlxG.sound.music.stop();
 
 				persistentUpdate = false;
@@ -2924,6 +2967,7 @@ class PlayState extends MusicBeatState
 					{
 						vocals.stop();
 						opponentVocals.stop();
+						PlayStateExtraVocals.stopAll(extraVocals);
 						FlxG.sound.music.stop();
 						openSubState(new GameOverSubstate(boyfriend, PlayState.instance));
 						gameOverTimer = null;
@@ -2933,6 +2977,7 @@ class PlayState extends MusicBeatState
 				{
 					vocals.stop();
 					opponentVocals.stop();
+					PlayStateExtraVocals.stopAll(extraVocals);
 					FlxG.sound.music.stop();
 					openSubState(new GameOverSubstate(boyfriend, PlayState.instance));
 				}
@@ -2955,6 +3000,7 @@ class PlayState extends MusicBeatState
 
 			vocals.stop();
 			opponentVocals.stop();
+			PlayStateExtraVocals.stopAll(extraVocals);
 			FlxG.sound.music.stop();
 
 			persistentUpdate = false;
@@ -2969,6 +3015,7 @@ class PlayState extends MusicBeatState
 				{
 					vocals.stop();
 					opponentVocals.stop();
+					PlayStateExtraVocals.stopAll(extraVocals);
 					FlxG.sound.music.stop();
 					openSubState(new GameOverSubstate(boyfriend, PlayState.instance));
 					gameOverTimer = null;
@@ -2978,6 +3025,7 @@ class PlayState extends MusicBeatState
 			{
 				vocals.stop();
 				opponentVocals.stop();
+				PlayStateExtraVocals.stopAll(extraVocals);
 				FlxG.sound.music.stop();
 				openSubState(new GameOverSubstate(boyfriend, PlayState.instance));
 			}
@@ -3231,6 +3279,9 @@ class PlayState extends MusicBeatState
 	}
 
 	override function destroy() {
+		// A benchmark that is exited any way other than its own results screen
+		// (pause -> exit, crash, restart) must not strand the session with mods off.
+		backend.Benchmark.exitRun();
 		PlayerStats.flushIfDirty();
 		if (adaptivePerformance != null)
 		{
@@ -3290,6 +3341,11 @@ class PlayState extends MusicBeatState
 		PlayStateStageDim.clear(this);
 		PlayStateLaneUnderlay.clear(this);
 		PlayStateResume.cancel(this);
+
+		// Extra vocal stems are owned by this state (unlike the mains, which
+		// Flixel retires); unregister and free them so they cannot leak into
+		// the next song's FlxG.sound.list.
+		PlayStateExtraVocals.dispose(extraVocals);
 
 		stagesFunc(function(stage:BaseStage) stage.destroy());
 

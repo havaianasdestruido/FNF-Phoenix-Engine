@@ -148,6 +148,15 @@ class Note extends FlxSprite
 	public var multAlpha:Float = 1;
 	public var multSpeed:Float = 1;
 
+	/** Compatibility alias used by older Psych/JS Engine mods. */
+	public var scrollSpeedMult(get, set):Dynamic;
+	inline function get_scrollSpeedMult():Dynamic return multSpeed;
+	inline function set_scrollSpeedMult(value:Dynamic):Dynamic {
+		final speed:Float = Std.parseFloat(Std.string(value));
+		if (Math.isFinite(speed)) multSpeed = speed;
+		return multSpeed;
+	}
+
 	public var copyX:Bool = true;
 	public var copyY:Bool = true;
 	public var copyAngle:Bool = true;
