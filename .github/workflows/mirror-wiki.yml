@@ -51,6 +51,10 @@ jobs:
           mkdir -p "$wiki_dir/Website-Docs"
           rsync -a --delete website/docs/ "$wiki_dir/Website-Docs/"
 
+          # A wiki has no `static/` asset pipeline, so the screenshots are copied in
+          # and the `../../static/img/screens/` references repointed at them.
+          node website/scripts/mirror-wiki-images.mjs "$wiki_dir"
+
           cd "$wiki_dir"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"

@@ -58,25 +58,45 @@ class LowMemory
   /** Cached policy, so `update()` does no string work per frame. */
   static var cachedPolicy:MemoryPolicy = null;
 
+  /** Last `ClientPrefs.alphabetStyle` synced to live `Alphabet` instances. */
+  static var lastAlphabetStyle:String = null;
+
+  /** Last `ClientPrefs.alphabetAntialiasing` synced to live `Alphabet` instances. */
+  static var lastAlphabetAntialiasing:Null<Bool> = null;
+
   // -- State -----------------------------------------------------------------
 
-  /** Canonical id of the active profile (`MemoryProfiles.OFF` when inactive). */
+  /**
+   * Canonical id of the active profile (`MemoryProfiles.OFF` when inactive).
+   *
+   * @return Canonical profile name.
+   */
   public static function current():String
     return MemoryProfiles.normalize(ClientPrefs.memoryProfile);
 
-  /** True while any profile other than `Off` is applied. */
+  /**
+   * True while any profile other than `Off` is applied.
+   *
+   * @return `true` when a memory profile is active.
+   */
   public static function active():Bool
     return current() != MemoryProfiles.OFF;
 
-  /** Experimental gameplay keeps only character metadata, not their art. */
+  /**
+   * Experimental Extreme and Arduino Nano R3 keep only character metadata, not their art.
+   *
+   * @return `true` when gameplay should instantiate 1x1 metadata-only character stand-ins.
+   */
   public static function experimentalHudOnly():Bool
-    return !ClientPrefs.charsAndBG && current() == MemoryProfiles.EXPERIMENTAL;
+    return !ClientPrefs.charsAndBG && policy().skipSongPreload;
 
   /**
    * Cleanup policy of the active profile.
    *
    * Read once per frame from `update()`, so the result is cached against the
    * raw preference value instead of re-normalizing a string mid-gameplay.
+   *
+   * @return Active `MemoryPolicy` record.
    */
   public static function policy():MemoryPolicy
   {
@@ -85,6 +105,7 @@ class LowMemory
     {
       cachedRawProfile = raw;
       cachedPolicy = MemoryProfiles.policy(raw);
+      Paths.ignoreDumpExclusions = cachedPolicy.evictPinnedAudio;
     }
     return cachedPolicy;
   }
@@ -368,6 +389,15 @@ class LowMemory
     final before:Float = VLog.heapUsedBytes();
     try
     {
+      final activePolicy:MemoryPolicy = policy();
+      if (activePolicy.majorGcOnTrim)
+      {
+        try
+        {
+          objects.AlphabetFontRenderer.clearCache();
+        }
+        catch (e:Dynamic) {}
+      }
       if (deep)
       {
         Paths.clearStoredMemory();
@@ -377,10 +407,11 @@ class LowMemory
       {
         Paths.clearUnusedMemory();
       }
-      // Normal cache cleanup only compacts if it actually evicted assets. The
-      // experimental tier also returns unreachable heap on otherwise empty
-      // passes. This can pause the game; it never disposes live graphics.
-      if (policy().compactOnTrim) Paths.compress();
+      // Normal cache cleanup only compacts if it actually evicted assets.
+      // Arduino Nano R3 forces a full mark-and-sweep GC first; Experimental
+      // Extreme and Arduino Nano R3 also compact unreachable heap on empty passes.
+      if (activePolicy.majorGcOnTrim) Paths.gc(true);
+      if (activePolicy.compactOnTrim) Paths.compress();
       lastTrimAt = haxe.Timer.stamp();
       if (deep) VLog.memoryEvent('profile trim (deep) | ' + statusLine() + ' | heap '
         + VLog.formatBytes(before) + ' -> ' + VLog.formatBytes(VLog.heapUsedBytes()));
@@ -421,7 +452,7 @@ class LowMemory
       if (!managed.exists(field)) continue;
       final live:Dynamic = Reflect.field(ClientPrefs, field);
       if (live == null) continue; // preference was removed since the snapshot
-      Reflect.setField(ClientPrefs, field, MemoryProfiles.coerce(live, value));
+      Reflect.setField(ClientPrefs, field, MemoryProfiles.coerceField(field, live, value));
     }
   }
 
@@ -432,7 +463,7 @@ class LowMemory
     {
       final live:Dynamic = Reflect.field(ClientPrefs, field);
       if (live == null) continue;
-      Reflect.setField(ClientPrefs, field, MemoryProfiles.coerce(live, forced));
+      Reflect.setField(ClientPrefs, field, MemoryProfiles.coerceField(field, live, forced));
     }
   }
 
@@ -448,14 +479,15 @@ class LowMemory
     ClientPrefs.lowMemoryMode = active();
   }
 
-  /** Forces the policy cache to be rebuilt on the next `policy()` call. */
+  /** Forces the policy cache to be rebuilt and syncs `Paths.ignoreDumpExclusions`. */
   static function invalidatePolicy():Void
   {
     cachedRawProfile = null;
     cachedPolicy = null;
+    Paths.ignoreDumpExclusions = policy().evictPinnedAudio;
   }
 
-  /** Re-paints the visuals whose default was just forced. */
+  /** Re-paints the visuals and live runtime caps whose default was just forced. */
   static function refreshVisuals():Void
   {
     try
@@ -469,19 +501,41 @@ class LowMemory
     }
     try
     {
-      // The FPS counter is an OpenFL sibling, not a Flixel sprite, and must
-      // follow the forced value immediately (and again when it is restored).
+      // The FPS counter and commit watermark are OpenFL siblings, not Flixel
+      // sprites, and must follow the forced value immediately (and on restore).
       if (Main.fpsVar != null) Main.fpsVar.visible = ClientPrefs.showFPS;
+      if (Main.commitWatermark != null) Main.commitWatermark.visible = ClientPrefs.showCommitWatermark;
     }
-    catch (_:Dynamic) {}
+    catch (e:Dynamic) {}
+    try
+    {
+      // Arduino Nano R3 forces 15 FPS menus and 1 FPS unfocused; re-apply so
+      // entering or leaving the profile takes effect without changing states.
+      if (FlxG.state != null) FramerateController.applyForState(FlxG.state);
+      FramerateController.applyFocusLost(ClientPrefs.focusLostFramerate);
+    }
+    catch (e:Dynamic) {}
+    try
+    {
+      final styleChanged:Bool = lastAlphabetStyle != null && lastAlphabetStyle != ClientPrefs.alphabetStyle;
+      final aaChanged:Bool = lastAlphabetAntialiasing != null && lastAlphabetAntialiasing != ClientPrefs.alphabetAntialiasing;
+      lastAlphabetStyle = ClientPrefs.alphabetStyle;
+      lastAlphabetAntialiasing = ClientPrefs.alphabetAntialiasing;
+      if (styleChanged || aaChanged)
+      {
+        objects.Alphabet.reloadAll();
+        if (ClientPrefs.alphabetStyle != 'Font') objects.AlphabetFontRenderer.clearCache();
+      }
+    }
+    catch (e:Dynamic) {}
     #if DISCORD_ALLOWED
     try
     {
-      // The experimental tier disables RPC; restore the previous choice when
-      // it is left. Avoid re-initializing an already-running client.
+      // Higher tiers disable RPC; restore the previous choice when left.
+      // Avoid re-initializing an already-running client.
       if (DiscordClient.isInitialized != ClientPrefs.discordRPC) DiscordClient.check();
     }
-    catch (_:Dynamic) {}
+    catch (e:Dynamic) {}
     #end
   }
 }

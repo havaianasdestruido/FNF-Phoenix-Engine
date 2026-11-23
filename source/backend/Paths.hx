@@ -308,9 +308,21 @@ class Paths
     return localTrackedAssetSet.exists(key);
   }
 
+  /**
+   * When enabled by `backend.LowMemory` (`evictPinnedAudio`), allows unused menu
+   * and pause themes in `dumpExclusions` to be evicted when nothing retains them.
+   */
+  public static var ignoreDumpExclusions:Bool = false;
+
+  /**
+   * Checks whether `key` is pinned against cache eviction.
+   *
+   * @param key Canonical asset path.
+   * @return `true` when `key` is pinned and `ignoreDumpExclusions` is `false`.
+   */
   private static function isDumpExcluded(key:String):Bool
   {
-    if (key == null) return false;
+    if (key == null || ignoreDumpExclusions) return false;
     if (dumpExclusions.length != dumpExclusionsSyncedLen) syncDumpExclusionSet();
     if (dumpExclusionSet.exists(key)) return true;
     final activeMenuTheme:String = 'assets/music/freakyMenu-' + ClientPrefs.daMenuMusic + '.$SOUND_EXT';
