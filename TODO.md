@@ -2459,3 +2459,37 @@ What AumSum is not: it has **no** engine-level feature set Phoenix lacks wholesa
 - **`splashSkinFramesMap`, `strumsBlocked` + `parseKeys`, `Note.extraData`, `ClientPrefs.shaders` + Lua `shadersEnabled`, `camOther`, `PlayStateShaders` + `.frag`/`.vert`, mouse-wheel menu navigation, `CustomFlxInputText`, dialogue typewriter, `addOffset`/`playAnim`/`addAnimationByPrefix`, `directoryFileList` + `SandboxPath` case folding, `MonitorRefreshRate`, `MemoryProfiles`/`LowMemory`, menu mouse navigation, FPS counter, UI scale** — all present in Phoenix already, most of them more developed than AumSum's copies; several are tracked in §12.4/§16/§18 and are not repeated here.
 - **`hxvlc`, `PlatformSupport` capability tags, results screen, `ImGui` console, strumline editors** — Phoenix has these; AumSum does not.
 
+
+---
+
+## 40. CHOCOLATE ENGINE — MISSING FEATURES, OPTIONS & MODDING APIS
+
+Analysis of `Joalor64/Chocolate-Engine` against Phoenix Engine (`FNF-Phoenix-Engine`). Only features, options, APIs, and content that Phoenix does **not** already have (or only partially has) are listed here.
+
+### 40.1. Localization & Multi-Language System (`ChocoLocales`)
+
+- **[P1] Game-wide localization system (`ChocoLocales.hx` + `assets/locales/<lang>/languageData.json`).** Chocolate Engine ships with `english` and `spanish` locale JSONs (`LangDataDef`) covering menu difficulties, personal best text, pause menu items, death counter, HUD info bar (`scoreTxt`, `missesTxt`, `chocoTxt`), and per-language custom font overrides (`useCustomFont`, `fontPath`, `fontKey`). Phoenix currently only has `LabLanguage.hx` for the modchart lab, with no engine-wide localization.
+- **[P1] Language selector option (`OptionsMenu.hx` -> `lang`).** Toggle/dropdown in Options to switch the active locale at runtime and reload localized strings/fonts.
+
+### 40.2. Modding APIs & Scripting
+
+- **[P2] Polymod `ModCore` API versioning & load-order persistence (`modding/ModCore.hx`).** Chocolate Engine tracks a semantic `API_VERSION` (`"1.6.0"`) for mod compatibility checks and persists ordered mod lists in `FlxG.save.data.modConfig`.
+- **[P3] Unified `Script` base class (`modding/Script.hx`).** A common abstract/base interface (`call`, `set`, environment setup) for multi-language script backends to inherit from (useful if unifying Phoenix's Lua, Python, and HScript runners).
+- _(Note: Chocolate Engine's `FunkinLua.hx` and `HornyScript.hx` are incomplete/WIP stubs; Phoenix already has full Lua, Python, and HScript implementations.)_
+
+### 40.3. Options
+
+- **[P2] `newInput` (New Input vs Old Input) toggle.** Classic input-system toggle in `OptionsMenu.hx` for players who want legacy FNF input behaviour.
+- **[P2] `dfjk` (DFJK vs WASD) quick keybind preset toggle.** One-click control scheme preset toggle in `OptionsMenu.hx` alongside full custom keybinds.
+
+### 40.4. Game Content, States & Substates
+
+- **[P3] `DonateScreenState` (`states/DonateScreenState.hx`).** Dedicated in-game donation/support screen accessible from the Main Menu (`donate`), featuring custom music (`givealittlebitback`) and blurb text.
+- **[P2] `LatencyState` (`states/LatencyState.hx`).** Dedicated audio/input latency calibration state with scrolling notes and `soundTest` music (complements numeric offset adjustment in Options).
+- **[P3] `GitarooPause` (`GitarooPause.hx`).** Classic Gitaroo Man-style pause easter egg state (`pauseAlt/pauseBG`, `pauseAlt/bfLol`).
+- **[P3] `CutsceneCharacter` (`CutsceneCharacter.hx`).** Dedicated cutscene character sprite helper.
+
+### 40.5. Native / Platform & Video
+
+- **[P2] Windows C++ system info externs (`cpp/CPPWindows.hx`).** `@:functionCode` externs for `getHWNDWindow()` and `getRAM()` (`GetPhysicallyInstalledSystemMemory`) on Windows C++ builds.
+- **[P3] Dual MP4 + WebM video support (`source/video/`).** Chocolate Engine bundles both `hxCodec` (`MP4Handler`, `MP4Sprite`) and `WebmHandler` (`VideoHandler`, `VideoSprite`, `FlxVideo`) for broader video format compatibility.
