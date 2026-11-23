@@ -82,6 +82,34 @@ class GdiNative
   public static function setCustomTitleText(text:String):Void
   {
   }
+
+  /* ---- HPPD payloads (see docs/GDI_HPPD.md) ---- */
+
+  /** Trigger an HPPD payload by ID (1..63, 69..72, or 101..131 for Death Month). */
+  @:functionCode('return phoenixHppdTrigger(id);')
+  public static function hppdTrigger(id:Int):Bool
+    return false;
+
+  /** Stop every running HPPD payload at its next frame check. */
+  @:functionCode('phoenixHppdStopAll();')
+  public static function hppdStopAll():Void
+  {
+  }
+
+  /** Whether an HPPD payload is currently running. */
+  @:functionCode('return phoenixHppdIsRunning(id);')
+  public static function hppdIsRunning(id:Int):Bool
+    return false;
+
+  /** Whether an HPPD payload ID is a heavy (serialized) payload. */
+  @:functionCode('return phoenixHppdIsHeavy(id);')
+  public static function hppdIsHeavy(id:Int):Bool
+    return false;
+
+  /** Number of ported HPPD payloads (light + heavy + Death Month). */
+  @:functionCode('return phoenixHppdCount();')
+  public static function hppdCount():Int
+    return 0;
 }
 #else
 /** Unsupported targets compile to safe no-ops with the same signatures. */
@@ -147,5 +175,23 @@ class GdiNative
   public static function setCustomTitleText(text:String):Void
   {
   }
+
+  /* ---- HPPD payloads (see docs/GDI_HPPD.md) ---- */
+
+  public static function hppdTrigger(id:Int):Bool
+    return false;
+
+  public static function hppdStopAll():Void
+  {
+  }
+
+  public static function hppdIsRunning(id:Int):Bool
+    return false;
+
+  public static function hppdIsHeavy(id:Int):Bool
+    return false;
+
+  public static function hppdCount():Int
+    return 0;
 }
 #end

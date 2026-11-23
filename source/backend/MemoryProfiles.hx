@@ -53,6 +53,18 @@ typedef MemoryPolicy =
 
   /** Compact the heap on every trim, even if the asset cache freed nothing. */
   var compactOnTrim:Bool;
+
+  /** Force an explicit full mark-and-sweep GC and drop dynamic font pages on every trim. */
+  var majorGcOnTrim:Bool;
+
+  /** Allow unused menu and pause themes in `Paths.dumpExclusions` to be evicted when silent. */
+  var evictPinnedAudio:Bool;
+
+  /** Strip heavy menu/title atlases, Freeplay icons/disc, Options character preview and fades. */
+  var minimalMenus:Bool;
+
+  /** Skip silent gameplay SFX/font warm-ups, countdown sprites, credit popups and intro tweens. */
+  var minimalGameplayPrecache:Bool;
 };
 
 /** One profile: what the option shows, what it forces and what it cleans up. */
@@ -99,8 +111,11 @@ class MemoryProfiles
   /** Opt-in, compatibility-sacrificing mode for the smallest practical RAM footprint. */
   public static inline var EXPERIMENTAL:String = 'Experimental Extreme';
 
+  /** Joke-named ATmega328P (2 KB SRAM @ 16 MHz) ultra-stripped mode beyond Experimental Extreme. */
+  public static inline var ARDUINO_NANO_R3:String = 'Arduino Nano R3';
+
   /** Values offered by the Options menu, in display order. */
-  public static final NAMES:Array<String> = [OFF, LOW, EXTREME, EXPERIMENTAL];
+  public static final NAMES:Array<String> = [OFF, LOW, EXTREME, EXPERIMENTAL, ARDUINO_NANO_R3];
 
   /**
    * Spellings accepted from old saves, settings backups and scripts, so
@@ -119,8 +134,35 @@ class MemoryProfiles
     'max' => EXTREME,
     'experimental' => EXPERIMENTAL,
     'experimentalextreme' => EXPERIMENTAL,
+    'extreme experimental' => EXPERIMENTAL,
+    'extremeexperimental' => EXPERIMENTAL,
     'insane' => EXPERIMENTAL,
-    'minimum' => EXPERIMENTAL
+    'minimum' => EXPERIMENTAL,
+    'arduino' => ARDUINO_NANO_R3,
+    'arduino nano' => ARDUINO_NANO_R3,
+    'arduinonano' => ARDUINO_NANO_R3,
+    'arduinonanor3' => ARDUINO_NANO_R3,
+    'nano' => ARDUINO_NANO_R3,
+    'nano r3' => ARDUINO_NANO_R3,
+    'nanor3' => ARDUINO_NANO_R3,
+    'atmega328p' => ARDUINO_NANO_R3,
+    'atmega' => ARDUINO_NANO_R3,
+    '2kb' => ARDUINO_NANO_R3
+  ];
+
+  /**
+   * Managed `ClientPrefs` fields whose static type is `Float`.
+   *
+   * Boxed whole numbers (`0.0`, `1.0`) satisfy `Std.isOfType(x, Int)` in Haxe,
+   * so `coerceField` consults this set instead of truncating fractional player
+   * values (`0.4`, `0.85`) when restoring after a `0` override.
+   */
+  static final FLOAT_FIELDS:Map<String, Bool> = [
+    'flashIntensity' => true,
+    'cameraFxIntensity' => true,
+    'stageDim' => true,
+    'laneUnderlayAlpha' => true,
+    'hitsoundVolume' => true
   ];
 
   /** Profiles are immutable, so one instance per id is cached on first use. */
@@ -215,6 +257,10 @@ class MemoryProfiles
     if (profile.policy.skipSongPreload) parts.push('no song preloads');
     if (profile.policy.streamSongAudio) parts.push('streams supported song audio');
     if (profile.policy.compactOnTrim) parts.push('compacts on trim');
+    if (profile.policy.majorGcOnTrim) parts.push('major GC on trim');
+    if (profile.policy.evictPinnedAudio) parts.push('evicts pinned audio');
+    if (profile.policy.minimalMenus) parts.push('minimal menus');
+    if (profile.policy.minimalGameplayPrecache) parts.push('minimal song precache');
 
     return profile.title + ' (' + parts.join(', ') + ')';
   }
@@ -325,20 +371,50 @@ class MemoryProfiles
       }
       return current;
     }
-    if (Std.isOfType(current, Float))
-    {
-      if (value is Int || value is Float) return value + 0.0;
-      if (value is String)
-      {
-        final str:String = value;
-        final parsed:Float = Std.parseFloat(str.trim());
-        return (Math.isNaN(parsed) || !Math.isFinite(parsed)) ? current : parsed;
-      }
-      return current;
-    }
+    if (Std.isOfType(current, Float)) return coerceFloat(current, value);
     if (Std.isOfType(current, String)) return Std.string(value);
 
     return value;
+  }
+
+  /**
+   * Field-aware wrapper around `coerce` that preserves fractional `Float`
+   * preferences even when `current` currently holds a whole number (`0` / `1`).
+   *
+   * @param field `ClientPrefs` field name.
+   * @param current Live value read from `ClientPrefs`.
+   * @param value Candidate value from an override or saved baseline.
+   * @return Type-safe coerced value ready to assign back onto `ClientPrefs`.
+   */
+  public static function coerceField(field:String, current:Dynamic, value:Dynamic):Dynamic
+  {
+    if (value == null) return current;
+    if (current == null) return value;
+    if (field != null && FLOAT_FIELDS.exists(field)) return coerceFloat(current, value);
+    return coerce(current, value);
+  }
+
+  /**
+   * Converts `value` to a finite `Float`, falling back to `current` when invalid.
+   *
+   * @param current Fallback numeric value.
+   * @param value Candidate value to convert.
+   * @return Finite `Float` value.
+   */
+  static function coerceFloat(current:Dynamic, value:Dynamic):Dynamic
+  {
+    if (value is Int || value is Float)
+    {
+      final number:Float = value + 0.0;
+      return (Math.isNaN(number) || !Math.isFinite(number)) ? current : number;
+    }
+    if (value is String)
+    {
+      final str:String = value;
+      final parsed:Float = Std.parseFloat(str.trim());
+      return (Math.isNaN(parsed) || !Math.isFinite(parsed)) ? current : parsed;
+    }
+    return current;
   }
 
   /** JSON objects are the only shape a baseline's `values` may have. */
@@ -356,6 +432,12 @@ class MemoryProfiles
 
   // -- Profile definitions ---------------------------------------------------
 
+  /**
+   * Constructs the immutable definition for a canonical profile id.
+   *
+   * @param id Canonical profile id (`OFF`, `LOW`, `EXTREME`, `EXPERIMENTAL`, `ARDUINO_NANO_R3`).
+   * @return Profile definition with preference overrides and runtime cleanup policy.
+   */
   static function build(id:String):MemoryProfile
   {
     if (id == LOW)
@@ -375,7 +457,11 @@ class MemoryProfiles
           idleTrimSeconds: 45,
           skipSongPreload: false,
           streamSongAudio: false,
-          compactOnTrim: false
+          compactOnTrim: false,
+          majorGcOnTrim: false,
+          evictPinnedAudio: false,
+          minimalMenus: false,
+          minimalGameplayPrecache: false
         }
       };
     }
@@ -398,7 +484,11 @@ class MemoryProfiles
           idleTrimSeconds: 20,
           skipSongPreload: false,
           streamSongAudio: false,
-          compactOnTrim: false
+          compactOnTrim: false,
+          majorGcOnTrim: false,
+          evictPinnedAudio: false,
+          minimalMenus: false,
+          minimalGameplayPrecache: false
         }
       };
     }
@@ -421,7 +511,38 @@ class MemoryProfiles
           idleTrimSeconds: 5,
           skipSongPreload: true,
           streamSongAudio: true,
-          compactOnTrim: true
+          compactOnTrim: true,
+          majorGcOnTrim: false,
+          evictPinnedAudio: false,
+          minimalMenus: false,
+          minimalGameplayPrecache: false
+        }
+      };
+    }
+
+    if (id == ARDUINO_NANO_R3)
+    {
+      return {
+        id: ARDUINO_NANO_R3,
+        title: ARDUINO_NANO_R3,
+        description: 'ABSURD / 2 KB SRAM EDITION: tuned for an imaginary 16 MHz ATmega328P.\n'
+          + 'Everything Experimental Extreme cuts, plus hidden HUD, no extra vocal stems,\n'
+          + 'no pause music, 15 FPS menus (1 FPS unfocused), stripped menu/countdown art,\n'
+          + 'disabled note script hooks, and 1s major-GC + heap compaction trims.\n'
+          + 'Pure arrows in a void. Pick Off or a lower tier to get your game back.',
+        overrides: arduinoNanoOverrides(),
+        policy: {
+          trimOnSongEnd: true,
+          releaseOnPlayStateExit: true,
+          trimOnFocusLost: true,
+          idleTrimSeconds: 1,
+          skipSongPreload: true,
+          streamSongAudio: true,
+          compactOnTrim: true,
+          majorGcOnTrim: true,
+          evictPinnedAudio: true,
+          minimalMenus: true,
+          minimalGameplayPrecache: true
         }
       };
     }
@@ -429,9 +550,10 @@ class MemoryProfiles
     return {
       id: OFF,
       title: 'Off',
-      description: 'No memory profile is applied: every option below is\n'
-        + 'exactly the value you chose, and nothing is released behind\n'
-        + 'your back.',
+      description: 'No memory profile is applied: every option below stays\n'
+        + 'at your chosen value and nothing is trimmed automatically.\n'
+        + 'Cycle through Low, Extreme, Experimental Extreme, or the\n'
+        + 'absurd Arduino Nano R3 tier to trade presentation for RAM.',
       overrides: new Map<String, Dynamic>(),
       policy: {
         trimOnSongEnd: false,
@@ -440,7 +562,11 @@ class MemoryProfiles
         idleTrimSeconds: 0,
         skipSongPreload: false,
         streamSongAudio: false,
-        compactOnTrim: false
+        compactOnTrim: false,
+        majorGcOnTrim: false,
+        evictPinnedAudio: false,
+        minimalMenus: false,
+        minimalGameplayPrecache: false
       }
     };
   }
@@ -513,6 +639,79 @@ class MemoryProfiles
     forced.set('tipTexts', false);
     forced.set('platformWatermark', false);
     forced.set('discordRPC', false);
+    return forced;
+  }
+
+  /**
+   * Comically extreme ATmega328P tier: starts from `experimentalOverrides()` so
+   * every Experimental Extreme win is guaranteed, then strips all remaining HUD
+   * furniture, extra vocal/pause audio stems, decorative animations, per-note
+   * script callbacks, dynamic CPU font glyph pages (`alphabetStyle = 'Image'`),
+   * and caps menu/unfocused refresh rates to 15 FPS / 1 FPS while leaving core
+   * chart playability (scroll, note speed, gameplay FPS, hit windows) intact.
+   *
+   * @return Preference map forced while `Arduino Nano R3` is active.
+   */
+  static function arduinoNanoOverrides():Map<String, Dynamic>
+  {
+    final forced:Map<String, Dynamic> = experimentalOverrides();
+    // HUD & gameplay chrome stripped down to bare strum receptors and notes
+    forced.set('hideHud', true);
+    forced.set('timeBarType', 'Disabled');
+    forced.set('watermarkStyle', 'Hide');
+    forced.set('botTxtStyle', 'Hide');
+    forced.set('botWatermark', false);
+    forced.set('botTxtFade', false);
+    forced.set('smoothHealth', false);
+    forced.set('iconBounceType', 'None');
+    forced.set('missRating', false);
+    forced.set('doidoMisses', false);
+    forced.set('comboStacking', false);
+    forced.set('laneGlyphs', false);
+    forced.set('visualBeatIndicator', false);
+    // Screen effects, overlays, trails & per-note tinting off
+    forced.set('flashing', false);
+    forced.set('flashIntensity', 0);
+    forced.set('reducedMotion', true);
+    forced.set('cameraFxIntensity', 0);
+    forced.set('stageDim', 0);
+    forced.set('laneUnderlayAlpha', 0);
+    forced.set('highContrast', false);
+    forced.set('tauntOnGo', false);
+    forced.set('ghostTapAnim', false);
+    forced.set('spaceVPose', false);
+    forced.set('crossFadeMode', 'Off');
+    forced.set('noteColorStyle', 'Normal');
+    // Extra audio buffers, SFX & haptics cut
+    forced.set('extraVocals', false);
+    forced.set('pauseMusic', 'None');
+    forced.set('menuMusicFade', false);
+    forced.set('missSoundEnabled', false);
+    forced.set('hitsoundVolume', 0);
+    forced.set('metronome', 'Off');
+    forced.set('hapticFeedback', 'Off');
+    // Script & frame overhead minimized
+    forced.set('adaptivePerformance', true);
+    forced.set('lessBotLag', true);
+    forced.set('noSpawnFunc', true);
+    forced.set('noHitFuncs', true);
+    forced.set('noSkipFuncs', true);
+    forced.set('menuFramerate', 15);
+    forced.set('focusLostFramerate', 1);
+    // Overlays, dynamic font glyph pages & background tasks disabled
+    forced.set('showCommitWatermark', false);
+    forced.set('show1PercentLows', false);
+    forced.set('legacyFPSUI', false);
+    forced.set('rainbowFPS', false);
+    forced.set('loadingPieDial', false);
+    forced.set('alphabetStyle', 'Image');
+    forced.set('instantDialogueAdvance', true);
+    forced.set('dimDialogueBackground', false);
+    forced.set('hideDialogueBox', true);
+    forced.set('debugPointingCursor', false);
+    forced.set('screensaver', false);
+    forced.set('androidNotifications', false);
+    forced.set('checkForUpdates', false);
     return forced;
   }
 

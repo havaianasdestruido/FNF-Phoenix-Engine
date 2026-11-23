@@ -8,6 +8,7 @@ if not defined HAXE set "HAXE=haxe"
 set "WORK=%TEMP%\phoenix-mod-security-%RANDOM%-%RANDOM%"
 mkdir "%WORK%\backend" "%WORK%\states\helpers" || exit /b 1
 copy /y "source\backend\ModSecurity.hx" "%WORK%\backend\" >nul || goto fail
+copy /y "source\backend\ModHealth.hx" "%WORK%\backend\" >nul || goto fail
 copy /y "source\backend\ScriptSecurityScanner.hx" "%WORK%\backend\" >nul || goto fail
 copy /y "source\states\helpers\ModInfoFlow.hx" "%WORK%\states\helpers\" >nul || goto fail
 

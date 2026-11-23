@@ -11,6 +11,7 @@ levels instead of one switch. `Off` is the default.
 | `Low` | Caps note splashes at 4 and turns off the moving menu checkerboard. | Trims unused assets after songs, on focus loss, and every 45 s outside gameplay. |
 | `Extreme` | Everything `Low` does, plus Low Quality stages, no note splashes, shaders, anti-aliasing or camera bop zooms. | Also releases caches when PlayState is destroyed; trims every 20 s outside gameplay. |
 | `Experimental Extreme` | Everything `Extreme` does, plus a HUD-only song view, GPU texture caching, enabled GC, no note color shader, popups, NPS history, diagnostic overlays, menu tips or Discord RPC. Skips speculative song preloads and tries to stream song audio. | Releases old caches before a song loads, retains the `Extreme` hooks, trims every 5 s outside gameplay and requests heap compaction on every trim. |
+| `Arduino Nano R3` | Joke-named ATmega328P ("2 KB SRAM @ 16 MHz") tier that goes strictly beyond `Experimental Extreme`: hides all HUD/time-bar/watermark furniture, disables extra vocal stems, pause music, hitsounds/miss SFX/metronome/haptics, camera flashes/motion/CrossFade trails, per-note Lua/Python/HScript callbacks (`noSpawnFunc` / `noHitFuncs` / `noSkipFuncs`), switches `Alphabet` to GPU-cached spritesheets instead of 8 MB CPU font glyph pages, strips menu/title/Freeplay/Story/countdown ornament art and fade transitions, and caps menus to 15 FPS (1 FPS unfocused) while keeping gameplay FPS, scroll, note speed and hit windows untouched. | Everything `Experimental Extreme` does, plus unpins `Paths.dumpExclusions` so menu/pause audio is evicted during songs, drops dynamic font glyph pages, and runs an explicit full mark-and-sweep GC + heap compaction every **1 s** outside gameplay. |
 
 ## Experimental Extreme: compatibility warning
 
@@ -95,11 +96,11 @@ Cleanup uses the existing `Paths` cache routines:
 | Hook | Where | Policy |
 |------|-------|--------|
 | Song end | `PlayState.endSong()` → `LowMemory.onSongEnd()` | Shallow trim for all active profiles |
-| PlayState teardown | `PlayState.destroy()` → `LowMemory.onPlayStateExit()` | Deep cleanup for `Extreme` and `Experimental Extreme` |
-| Entering a song | `PlayState.create()` | Experimental tier clears old unused assets before loading new ones |
+| PlayState teardown | `PlayState.destroy()` → `LowMemory.onPlayStateExit()` | Deep cleanup for `Extreme`, `Experimental Extreme` and `Arduino Nano R3` |
+| Entering a song | `PlayState.create()` | `Experimental Extreme` and `Arduino Nano R3` clear old unused assets before loading new ones; `Arduino Nano R3` also skips silent SFX/alphabet warm-ups, countdown sprites, credit popups and receptor intro tweens |
 | Window/app backgrounded | `FlxG.signals.focusLost` (registered in `InitState`) | Shallow trim for all active profiles, throttled to one per second and skipped during LoadingState |
-| Outside gameplay | `MusicBeatState.update()` → `LowMemory.update(elapsed)` | Periodic shallow trim (45 s / 20 s / 5 s); skipped in PlayState and LoadingState |
-| Android memory pressure | `AndroidPlatform.releaseCaches()` → `LowMemory.onSystemPressure()` | Logged for every profile. Pressure during LoadingState is coalesced and drained with a shallow trim after loading; elsewhere Experimental uses a shallow trim and other profiles retain the existing deep cleanup. |
+| Outside gameplay | `MusicBeatState.update()` → `LowMemory.update(elapsed)` | Periodic shallow trim (45 s / 20 s / 5 s / 1 s); `Arduino Nano R3` also runs a full major GC + font-atlas clear before heap compaction; skipped in PlayState and LoadingState |
+| Android memory pressure | `AndroidPlatform.releaseCaches()` → `LowMemory.onSystemPressure()` | Logged for every profile. Pressure during LoadingState is coalesced and drained with a shallow trim after loading; elsewhere `Experimental Extreme` and `Arduino Nano R3` use a shallow trim and other profiles retain the existing deep cleanup. |
 
 The experimental song-loading screen does not preload speculative characters,
 HUD variants, audio or dialogue, and gameplay does not warm popup art or a
@@ -118,14 +119,15 @@ function onCreate()
 end
 ```
 
-`lowMemoryMode` is derived: it is `true` for all three active tiers, and is
+`lowMemoryMode` is derived: it is `true` for all four active tiers (`Low`,
+`Extreme`, `Experimental Extreme` and `Arduino Nano R3`), and is
 kept so older mods that check the old field keep working. Do not set it directly
 — pick a profile instead:
 
 ```lua
 -- Runtime override, e.g. from a "reduce RAM" button in a pause script.
 runHaxeCode([[
-    backend.LowMemory.setProfile('Experimental Extreme', true);
+    backend.LowMemory.setProfile('Arduino Nano R3', true);
 ]])
 ```
 

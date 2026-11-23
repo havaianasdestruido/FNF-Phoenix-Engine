@@ -1,0 +1,10 @@
+# a line with no separator is skipped
+offsetX = 3.5
+offsetY: -2
+alpha = 0.75
+canMiss = true
+extraData.combo = 42
+extraData.label = 'hit'
+extraData.deep = 'kept'
+noteType.anything = 'ignored'
+notASeparatorLine

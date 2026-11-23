@@ -58,7 +58,7 @@ jobs:
 
       - name: Restore Haxelib dependencies
         id: haxelib-cache
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ${{ env.HAXELIB_PATH }}
           key: docs-haxelib-haxe-${{ env.HAXE_VERSION }}-${{ hashFiles('hmm.json', 'setup/unix.sh') }}

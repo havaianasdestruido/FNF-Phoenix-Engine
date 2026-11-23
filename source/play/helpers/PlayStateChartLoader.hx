@@ -75,6 +75,14 @@ class PlayStateChartLoader
 		state.vocals.pitch = state.opponentVocals.pitch = state.playbackRate;
 		FlxG.sound.list.add(state.vocals);
 		FlxG.sound.list.add(state.opponentVocals);
+
+		// Chart-declared extra vocal stems ("unlimited vocals per strumline",
+		// docs/EXTRA_VOCALS.md): any number of named Voices-*.ogg tracks, each
+		// following its strumline side's muting. Empty unless the chart opts in
+		// and the Extra Vocal Stems option is on.
+		PlayStateExtraVocals.dispose(state.extraVocals);
+		state.extraVocals = PlayStateExtraVocals.load(PlayState.SONG.needsVoices ? PlayState.SONG.extraVocals : null, state.curSong, diff, streamSongAudio);
+		PlayStateExtraVocals.setPitchAll(state.extraVocals, state.playbackRate);
 		state.inst = new FlxSound();
 		try
 		{

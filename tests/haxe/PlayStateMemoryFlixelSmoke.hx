@@ -170,7 +170,8 @@ class PlayStateMemoryFlixelSmoke
     checkSkinCache();
     checkStrumSkins();
 
-    LowMemory.setProfile(MemoryProfiles.EXPERIMENTAL, false);
+    final arduinoNano = Sys.args().indexOf('arduino') >= 0;
+    LowMemory.setProfile(arduinoNano ? MemoryProfiles.ARDUINO_NANO_R3 : MemoryProfiles.EXPERIMENTAL, false);
     final pixelSong = Sys.args().indexOf('pixel') >= 0;
     final completePixelSkin = Sys.args().indexOf('complete-pixel-skin') >= 0;
     if (completePixelSkin) ClientPrefs.noteSkin = 'Future';
@@ -247,6 +248,12 @@ class PlayStateMemoryFlixelSmoke
     check(!state.dadGroup.visible && !state.boyfriendGroup.visible && !state.gfGroup.visible, 'character groups are invisible');
     check(PlayState.curStage == '' && PlayState.isPixelStage == pixelSong, 'stage visuals suppressed but pixel metadata retained');
     check(state.grpNoteSplashes.length == 0 && state.grpHoldSplashes.length == 0, 'disabled splashes are not warmed');
+    if (arduinoNano)
+    {
+      check(@:privateAccess state.hitsound == null, 'Arduino Nano R3 skips hitsound preloading while muted');
+      check(state.timeBar == null && ClientPrefs.hideHud, 'Arduino Nano R3 strips HUD and time bar');
+      check(Paths.ignoreDumpExclusions, 'Arduino Nano R3 unpins menu/pause music exclusions');
+    }
     #if MODS_ALLOWED
     if (!pixelSong)
     {
@@ -451,7 +458,8 @@ class PlayStateMemoryFlixelSmoke
     if (replaceMusic) check(FlxG.sound.music != null && FlxG.sound.music.playing, 'replacement menu music survives');
     else check(FlxG.sound.music == null, 'persistent song music released on exit');
     for (sound in Paths.currentTrackedSounds) check(sound != originalSongSound, 'song sound evicted from cache');
-    trace('PlayStateMemoryFlixelSmoke passed (' + song + (replaceMusic ? ', replacement music' : '')
+    trace('PlayStateMemoryFlixelSmoke passed (' + song + (arduinoNano ? ', arduino nano r3' : '')
+      + (replaceMusic ? ', replacement music' : '')
       + (profileOff ? ', profile off' : '') + (restart ? ', restart' : '')
       + (completePixelSkin ? ', complete pixel skin' : '') + (menuFade ? ', menu fade' : '') + ')');
   }

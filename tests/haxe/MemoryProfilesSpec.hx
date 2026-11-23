@@ -23,8 +23,10 @@ class MemoryProfilesSpec
     testLow();
     testExtreme();
     testExperimental();
+    testArduinoNanoR3();
     testExtremeIsASupersetOfLow();
     testExperimentalIsASupersetOfExtreme();
+    testArduinoNanoIsASupersetOfExperimental();
     testManagedKeys();
     testOverridesAreCopies();
     testBaselineRoundTrip();
@@ -55,10 +57,21 @@ class MemoryProfilesSpec
     equal(MemoryProfiles.normalize(' Experimental EXTREME '), MemoryProfiles.EXPERIMENTAL, 'the new name resolves');
     equal(MemoryProfiles.normalize('experimental'), MemoryProfiles.EXPERIMENTAL, 'experimental is an alias');
     equal(MemoryProfiles.normalize('experimentalextreme'), MemoryProfiles.EXPERIMENTAL, 'compact spelling resolves');
+    equal(MemoryProfiles.normalize('extreme experimental'), MemoryProfiles.EXPERIMENTAL, 'reversed wording resolves');
     equal(MemoryProfiles.normalize('insane'), MemoryProfiles.EXPERIMENTAL, 'insane is an alias');
     equal(MemoryProfiles.normalize('minimum'), MemoryProfiles.EXPERIMENTAL, 'minimum is an alias');
+    equal(MemoryProfiles.normalize('Arduino Nano R3'), MemoryProfiles.ARDUINO_NANO_R3, 'exact Arduino Nano R3 resolves');
+    equal(MemoryProfiles.normalize(' arduino nano r3 '), MemoryProfiles.ARDUINO_NANO_R3, 'case-insensitive Arduino Nano R3 resolves');
+    equal(MemoryProfiles.normalize('arduino'), MemoryProfiles.ARDUINO_NANO_R3, 'arduino alias resolves');
+    equal(MemoryProfiles.normalize('arduino nano'), MemoryProfiles.ARDUINO_NANO_R3, 'arduino nano alias resolves');
+    equal(MemoryProfiles.normalize('arduinonanor3'), MemoryProfiles.ARDUINO_NANO_R3, 'compact arduinonanor3 alias resolves');
+    equal(MemoryProfiles.normalize('nano'), MemoryProfiles.ARDUINO_NANO_R3, 'nano alias resolves');
+    equal(MemoryProfiles.normalize('nano r3'), MemoryProfiles.ARDUINO_NANO_R3, 'nano r3 alias resolves');
+    equal(MemoryProfiles.normalize('atmega328p'), MemoryProfiles.ARDUINO_NANO_R3, 'atmega328p joke alias resolves');
+    equal(MemoryProfiles.normalize('2kb'), MemoryProfiles.ARDUINO_NANO_R3, '2kb joke alias resolves');
     equal(MemoryProfiles.normalize('banana'), MemoryProfiles.OFF, 'unknown text falls back to Off');
-    equal(MemoryProfiles.NAMES.join('|'), 'Off|Low|Extreme|Experimental Extreme', 'the menu offers all tiers in order');
+    equal(MemoryProfiles.NAMES.join('|'), 'Off|Low|Extreme|Experimental Extreme|Arduino Nano R3',
+      'the menu offers all tiers in escalating order');
 
     check(MemoryProfiles.isOff('nonsense'), 'an unknown profile counts as Off');
     check(!MemoryProfiles.isOff(MemoryProfiles.LOW), 'Low is not Off');
@@ -159,6 +172,62 @@ class MemoryProfilesSpec
       check(!profile.overrides.exists(field), 'experimental leaves gameplay preference "$field" alone');
   }
 
+  /** Verifies the ATmega328P joke tier is genuinely the most aggressive profile in the engine. */
+  static function testArduinoNanoR3():Void
+  {
+    final profile:MemoryProfile = MemoryProfiles.get(MemoryProfiles.ARDUINO_NANO_R3);
+    equal(profile.id, MemoryProfiles.ARDUINO_NANO_R3, 'Arduino Nano R3 keeps its id');
+    equal(profile.title, 'Arduino Nano R3', 'Arduino Nano R3 menu title');
+    check(profile.description.indexOf('2 KB SRAM') != -1 || profile.description.indexOf('ATmega328P') != -1,
+      'description leans into the ATmega328P / 2 KB SRAM joke');
+
+    // Strips HUD, extra audio stems, per-note script hooks, CPU glyph pages & menu FPS
+    equal(forced(profile, 'hideHud'), true, 'Arduino Nano R3 hides HUD furniture');
+    equal(forced(profile, 'timeBarType'), 'Disabled', 'Arduino Nano R3 disables the time bar');
+    equal(forced(profile, 'watermarkStyle'), 'Hide', 'Arduino Nano R3 hides the engine watermark');
+    equal(forced(profile, 'botTxtStyle'), 'Hide', 'Arduino Nano R3 hides the botplay text');
+    equal(forced(profile, 'smoothHealth'), false, 'Arduino Nano R3 disables smooth health bar divisions');
+    equal(forced(profile, 'iconBounceType'), 'None', 'Arduino Nano R3 disables icon bounce math');
+    equal(forced(profile, 'extraVocals'), false, 'Arduino Nano R3 skips extra vocal stems');
+    equal(forced(profile, 'pauseMusic'), 'None', 'Arduino Nano R3 skips pause music buffers');
+    equal(forced(profile, 'missSoundEnabled'), false, 'Arduino Nano R3 disables miss SFX');
+    equal(forced(profile, 'hitsoundVolume'), 0, 'Arduino Nano R3 mutes hitsounds');
+    equal(forced(profile, 'metronome'), 'Off', 'Arduino Nano R3 disables metronome audio');
+    equal(forced(profile, 'hapticFeedback'), 'Off', 'Arduino Nano R3 disables haptics');
+    equal(forced(profile, 'crossFadeMode'), 'Off', 'Arduino Nano R3 disables CrossFade trails');
+    equal(forced(profile, 'noteColorStyle'), 'Normal', 'Arduino Nano R3 disables per-note color styles');
+    equal(forced(profile, 'flashing'), false, 'Arduino Nano R3 disables camera flashes');
+    equal(forced(profile, 'reducedMotion'), true, 'Arduino Nano R3 enables reduced motion');
+    equal(forced(profile, 'adaptivePerformance'), true, 'Arduino Nano R3 enables adaptive shedding');
+    equal(forced(profile, 'lessBotLag'), true, 'Arduino Nano R3 enables lessBotLag');
+    equal(forced(profile, 'noSpawnFunc'), true, 'Arduino Nano R3 disables per-note spawn callbacks');
+    equal(forced(profile, 'noHitFuncs'), true, 'Arduino Nano R3 disables per-note hit callbacks');
+    equal(forced(profile, 'noSkipFuncs'), true, 'Arduino Nano R3 disables per-skipped-note callbacks');
+    equal(forced(profile, 'alphabetStyle'), 'Image', 'Arduino Nano R3 avoids 8 MB CPU font glyph pages');
+    equal(forced(profile, 'menuFramerate'), 15, 'Arduino Nano R3 caps menus to 15 FPS');
+    equal(forced(profile, 'focusLostFramerate'), 1, 'Arduino Nano R3 caps unfocused windows to 1 FPS');
+    equal(forced(profile, 'showCommitWatermark'), false, 'Arduino Nano R3 hides commit SHA overlay');
+    equal(forced(profile, 'loadingPieDial'), false, 'Arduino Nano R3 skips loading pie dial');
+
+    check(profile.policy.trimOnSongEnd, 'Arduino Nano R3 trims after songs');
+    check(profile.policy.releaseOnPlayStateExit, 'Arduino Nano R3 performs deep release on exit');
+    check(profile.policy.trimOnFocusLost, 'Arduino Nano R3 trims on focus loss');
+    close(profile.policy.idleTrimSeconds, 1, 'Arduino Nano R3 trims every single second outside songs');
+    check(profile.policy.skipSongPreload, 'Arduino Nano R3 skips speculative song preloads');
+    check(profile.policy.streamSongAudio, 'Arduino Nano R3 streams supported song audio');
+    check(profile.policy.compactOnTrim, 'Arduino Nano R3 compacts heap on every trim');
+    check(profile.policy.majorGcOnTrim, 'Arduino Nano R3 runs major GC on every trim');
+    check(profile.policy.evictPinnedAudio, 'Arduino Nano R3 evicts unplayed menu/pause music');
+    check(profile.policy.minimalMenus, 'Arduino Nano R3 strips menu atlases and transitions');
+    check(profile.policy.minimalGameplayPrecache, 'Arduino Nano R3 skips extra song precaches and countdown art');
+
+    // Charts must still play accurately: scroll, note speed, gameplay FPS, hit windows & maxNotes stay untouched!
+    for (field in ['downScroll', 'middleScroll', 'noteSpeed', 'framerate', 'noteSpawnTime', 'dynamicSpawnTime',
+      'safeFrames', 'sickWindow', 'goodWindow', 'badWindow', 'noteOffset', 'ratingOffset',
+      'showNotes', 'opponentStrums', 'ghostTapping', 'maxNotes'])
+      check(!profile.overrides.exists(field), 'Arduino Nano R3 keeps core chart playability "$field" untouched');
+  }
+
   static function testExtremeIsASupersetOfLow():Void
   {
     final low:Map<String, Dynamic> = MemoryProfiles.overrides(MemoryProfiles.LOW);
@@ -195,6 +264,34 @@ class MemoryProfilesSpec
       final policy = MemoryProfiles.policy(name);
       check(!policy.skipSongPreload && !policy.streamSongAudio && !policy.compactOnTrim,
         '$name keeps the existing preload, audio and cleanup behavior');
+    }
+  }
+
+  /** Verifies Arduino Nano R3 is strictly more aggressive than Experimental Extreme and every lower tier. */
+  static function testArduinoNanoIsASupersetOfExperimental():Void
+  {
+    final experimental:Map<String, Dynamic> = MemoryProfiles.overrides(MemoryProfiles.EXPERIMENTAL);
+    final arduino:Map<String, Dynamic> = MemoryProfiles.overrides(MemoryProfiles.ARDUINO_NANO_R3);
+    check(count(arduino) > count(experimental), 'Arduino Nano R3 forces strictly more preferences than Experimental Extreme');
+    for (field => value in experimental)
+    {
+      check(arduino.exists(field), 'Arduino Nano R3 keeps Experimental Extreme\'s "$field"');
+      if (value is Bool) check(arduino.get(field) == value, 'Arduino Nano R3 agrees on boolean "$field"');
+      if (value is Int) check(arduino.get(field) <= value, 'Arduino Nano R3 is at least as strict on "$field"');
+    }
+
+    final expPolicy = MemoryProfiles.policy(MemoryProfiles.EXPERIMENTAL);
+    final nanoPolicy = MemoryProfiles.policy(MemoryProfiles.ARDUINO_NANO_R3);
+    check(nanoPolicy.idleTrimSeconds > 0 && nanoPolicy.idleTrimSeconds < expPolicy.idleTrimSeconds,
+      'Arduino Nano R3 trims strictly faster than Experimental Extreme');
+    check(nanoPolicy.majorGcOnTrim && nanoPolicy.evictPinnedAudio && nanoPolicy.minimalMenus && nanoPolicy.minimalGameplayPrecache,
+      'Arduino Nano R3 enables all four ultra-aggressive runtime policies');
+
+    for (name in [MemoryProfiles.OFF, MemoryProfiles.LOW, MemoryProfiles.EXTREME, MemoryProfiles.EXPERIMENTAL])
+    {
+      final lower = MemoryProfiles.policy(name);
+      check(!lower.majorGcOnTrim && !lower.evictPinnedAudio && !lower.minimalMenus && !lower.minimalGameplayPrecache,
+        '$name keeps Arduino-exclusive policies disabled');
     }
   }
 
@@ -269,6 +366,10 @@ class MemoryProfilesSpec
     equal(MemoryProfiles.coerce(1, '7'), 7, 'numeric strings restore numeric preferences');
     equal(MemoryProfiles.coerce(1, 'eight'), 1, 'unparseable text keeps the current value');
     equal(MemoryProfiles.coerce(1.5, 2), 2.0, 'Int -> Float widens');
+    close(MemoryProfiles.coerceField('stageDim', 0, 0.4), 0.4,
+      'coerceField preserves fractional Float values even when live value is whole 0');
+    close(MemoryProfiles.coerceField('hitsoundVolume', 0, '0.65'), 0.65,
+      'coerceField parses fractional Float strings even when live value is whole 0');
     equal(MemoryProfiles.coerce(true, 'false'), false, 'the string "false" is not truthy');
     equal(MemoryProfiles.coerce(true, 'true'), true, 'the string "true" is truthy');
     equal(MemoryProfiles.coerce(true, 0), false, '0 is false for a boolean preference');
@@ -292,6 +393,13 @@ class MemoryProfilesSpec
     check(experimental.indexOf('no song preloads') != -1, 'experimental reports skipped preloads');
     check(experimental.indexOf('streams supported song audio') != -1, 'experimental reports streaming');
     check(experimental.indexOf('compacts on trim') != -1, 'experimental reports heap compaction');
+    final nano:String = MemoryProfiles.summary('arduino nano r3');
+    check(nano.indexOf('Arduino Nano R3 (') == 0, 'Arduino Nano R3 summary starts with its name');
+    check(nano.indexOf('idle trim 1s') != -1, 'Arduino Nano R3 reports 1s idle trim');
+    check(nano.indexOf('major GC on trim') != -1, 'Arduino Nano R3 reports major GC');
+    check(nano.indexOf('evicts pinned audio') != -1, 'Arduino Nano R3 reports audio unpinning');
+    check(nano.indexOf('minimal menus') != -1, 'Arduino Nano R3 reports minimal menus');
+    check(nano.indexOf('minimal song precache') != -1, 'Arduino Nano R3 reports minimal song precache');
     check(MemoryProfiles.describe('nonsense') == MemoryProfiles.describe(MemoryProfiles.OFF),
       'an unknown profile describes Off');
   }

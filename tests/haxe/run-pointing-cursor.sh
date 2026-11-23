@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # Pointing-finger menu cursor (HaxeFlixel Cursor demo): pick/anchor math,
-# ClientPrefs defaults, SuperSecretDebugMenu options, and menu wiring.
+# camera-space hover rectangles for scrolling menus (the main menu used to
+# snap the selection back up while scrolling down), ClientPrefs defaults,
+# SuperSecretDebugMenu options, and menu wiring.
 set -euo pipefail
 cd "$(dirname "$0")/../.."
 
@@ -48,6 +50,22 @@ grep -q "PointingCursorLogic.colorNames()" <<<"$color_row" \
 
 grep -q "class PointingCursor" source/objects/PointingCursor.hx \
   || { echo "FAIL: objects.PointingCursor must exist" >&2; exit 1; }
+
+# Hover picking must happen in the camera space of the menu members: world
+# rectangles against the world pointer drift by
+# scroll * (1 - scrollFactor) on scrolling menus (main menu, options), which
+# made the finger snap to items the pointer was not on.
+grep -q "PointingCursorLogic.screenRect" source/objects/PointingCursor.hx \
+  || { echo "FAIL: hover picking must build camera-space rects (PointingCursorLogic.screenRect)" >&2; exit 1; }
+
+grep -q "FlxG.mouse.getScreenPosition" source/objects/PointingCursor.hx \
+  || { echo "FAIL: the pointer must be read in the members' camera space (FlxG.mouse.getScreenPosition)" >&2; exit 1; }
+
+# The movement gate must compare the raw pointer position: FlxG.mouse.x/y are
+# world coordinates that move while a menu camera pans or zooms, which
+# re-triggered hover picking without the player touching the mouse.
+grep -q "FlxG.game.mouseX" source/objects/PointingCursor.hx \
+  || { echo "FAIL: the movement gate must compare the raw pointer (FlxG.game.mouseX)" >&2; exit 1; }
 
 grep -q "function syncPointingCursor" source/backend/MusicBeatState.hx \
   || { echo "FAIL: MusicBeatState must expose syncPointingCursor" >&2; exit 1; }

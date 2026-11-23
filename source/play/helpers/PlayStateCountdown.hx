@@ -36,8 +36,11 @@ class PlayStateCountdown
 
 	public static function cacheCountdown(state:PlayState)
 	{
-		var introImagesArray:Array<String> = introImageSet();
-		for (asset in introImagesArray) Paths.image(asset);
+		if (!backend.LowMemory.policy().minimalGameplayPrecache)
+		{
+			var introImagesArray:Array<String> = introImageSet();
+			for (asset in introImagesArray) Paths.image(asset);
+		}
 
 		state.intro3 = new FlxSound().loadEmbedded(Paths.sound('intro3' + state.introSoundsSuffix));
 		state.intro2 = new FlxSound().loadEmbedded(Paths.sound('intro2' + state.introSoundsSuffix));
@@ -72,7 +75,8 @@ class PlayStateCountdown
 		#else
 		if(true) {
 		#end
-			if (state.skipCountdown || PlayState.startOnTime > 0) state.skipArrowStartTween = true;
+			if (state.skipCountdown || PlayState.startOnTime > 0 || backend.LowMemory.policy().minimalGameplayPrecache)
+				state.skipArrowStartTween = true;
 
 			PlayStateNoteHelpers.generateStaticArrows(state, 0);
 			PlayStateNoteHelpers.generateStaticArrows(state, 1);
@@ -168,7 +172,8 @@ class PlayStateCountdown
 						}
 					case 4:
 					tick = START;
-					if (PlayState.SONG.songCredit != null && PlayState.SONG.songCredit.length > 0)
+					if (!backend.LowMemory.policy().minimalGameplayPrecache
+						&& PlayState.SONG.songCredit != null && PlayState.SONG.songCredit.length > 0)
 					{
 						var creditsPopup:CreditsPopUp = new CreditsPopUp(FlxG.width, 200, PlayState.SONG.song, PlayState.SONG.songCredit);
 						creditsPopup.cameras = [state.camHUD];
@@ -212,6 +217,7 @@ class PlayStateCountdown
 
 	inline public static function createCountdownSprite(state:PlayState, image:String, antialias:Bool):FlxSprite
 	{
+		if (backend.LowMemory.policy().minimalGameplayPrecache) return null;
 		var spr:FlxSprite = new FlxSprite().loadGraphic(Paths.image(image));
 		spr.cameras = [state.camHUD];
 		spr.scrollFactor.set();

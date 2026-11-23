@@ -3,8 +3,9 @@ import backend.PointingCursorLogic.PointingTarget;
 
 /**
  * Contract for the pointing-finger menu cursor ported from the HaxeFlixel
- * Cursor demo: style/color presets, jumpToXY picking, visible-slot walking
- * and the left-center anchor used by `FlxUICursor`.
+ * Cursor demo: style/color presets, jumpToXY picking, visible-slot walking,
+ * the left-center anchor used by `FlxUICursor`, and the camera-space
+ * rectangles hover picking tests the pointer against on scrolling menus.
  */
 class PointingCursorSpec
 {
@@ -31,7 +32,9 @@ class PointingCursorSpec
   {
     testPresets();
     testPointable();
+    testScreenRect();
     testPickByPointer();
+    testScrolledMenuHover();
     testVisibleIndex();
     testAnchor();
     testShouldShow();
@@ -79,6 +82,35 @@ class PointingCursorSpec
     check(PointingCursorLogic.isPointable(box(0, 0, 10, 10)), 'visible positive rect is pointable');
   }
 
+  static function testScreenRect():Void
+  {
+    // Scroll factor 1 (freeplay, story and pause rows): the on-screen rect
+    // follows the camera by the whole scroll.
+    final full:PointingTarget = PointingCursorLogic.screenRect(100, 200, 50, 60, 40, 80, 1, 1, true);
+    near(full.x, 60, 'factor 1 subtracts the full horizontal scroll');
+    near(full.y, 120, 'factor 1 subtracts the full vertical scroll');
+    near(full.width, 50, 'width passes through');
+    near(full.height, 60, 'height passes through');
+    check(full.visible, 'visibility passes through');
+
+    // Scroll factor 0 (HUD-pinned rows): the rect ignores the camera.
+    final pinned:PointingTarget = PointingCursorLogic.screenRect(100, 200, 50, 60, 40, 80, 0, 0, true);
+    near(pinned.x, 100, 'factor 0 keeps the world x');
+    near(pinned.y, 200, 'factor 0 keeps the world y');
+
+    // Parallax rows (the main menu items scroll at 0.405 with seven options):
+    // the rect shifts by only the scroll-factor share of the camera movement.
+    final parallax:PointingTarget = PointingCursorLogic.screenRect(100, 200, 50, 60, 0, 100, 0, 0.405, true);
+    near(parallax.x, 100, 'horizontal factor 0 keeps the world x');
+    near(parallax.y, 200 - 40.5, 'partial factor shifts by scroll * factor');
+
+    // No camera scroll: the on-screen rect equals the world rect whatever the
+    // factors, so static menus pick exactly what they always did.
+    final still:PointingTarget = PointingCursorLogic.screenRect(332.5, -132, 615, 122, 0, 0, 0.405, 0.405, true);
+    near(still.x, 332.5, 'no scroll keeps x');
+    near(still.y, -132, 'no scroll keeps y');
+  }
+
   static function testPickByPointer():Void
   {
     final targets:Array<PointingTarget> = [
@@ -101,6 +133,55 @@ class PointingCursorSpec
     ];
     check(PointingCursorLogic.pickByPointer(overlap, 70, 20) == 1, 'overlap prefers the closer center');
     check(PointingCursorLogic.pickByPointer(overlap, 20, 20) == 0, 'left side of the overlap stays on the large button');
+  }
+
+  /**
+   * The reported main-menu bug: with seven options the items scroll at 0.405
+   * while the camera centers on the selection, so testing the world rectangle
+   * against the world pointer (what `FlxG.mouse.x/y` report) drifts by
+   * `scroll * (1 - 0.405)`. Layout constants are the real ones: 615x122 items
+   * spaced 140px apart from world y = -132, camera `scroll.y = 140 * selection
+   * - 487` on a 1280x720 game. The pointer rests at (640, 110) and never
+   * moves; only the camera pans as the player scrolls.
+   */
+  static function testScrolledMenuHover():Void
+  {
+    final worldRects:Array<PointingTarget> = [for (i in 0...7) box(332.5, -132 + 140 * i, 615, 122)];
+
+    function screenRectsAt(selection:Int):Array<PointingTarget>
+    {
+      final scroll:Float = 140 * selection - 487;
+      return [
+        for (i in 0...7)
+          PointingCursorLogic.screenRect(332.5, -132 + 140 * i, 615, 122, 0, scroll, 0, 0.405, true)
+      ];
+    }
+
+    // Selection 6 (options): mods is the row actually drawn at the pointer.
+    check(PointingCursorLogic.pickByPointer(screenRectsAt(6), 640, 110) == 2,
+      'scrolled camera picks the row drawn under the pointer');
+
+    // The world-space test the cursor used to run lands on credits instead:
+    // pressing DOWN onto options snapped the selection back UP two slots.
+    final worldPointerY:Float = 110 + (140 * 6 - 487);
+    check(PointingCursorLogic.pickByPointer(worldRects, 640, worldPointerY) == 4,
+      'world-space pick (the old bug) points two slots above the selection');
+
+    // Selection 2 (mods): the second press down snapped straight back to the
+    // top item, so the list never let the player past it ("making me stuck").
+    final earlyWorldPointerY:Float = 110 + (140 * 2 - 487);
+    check(PointingCursorLogic.pickByPointer(worldRects, 640, earlyWorldPointerY) == 0,
+      'world-space pick at the second item already answers the top item');
+    check(PointingCursorLogic.pickByPointer(screenRectsAt(2), 640, 110) == 1,
+      'camera-space pick at the second item answers the row drawn under the pointer');
+
+    // Selection 4 (credits): the pointer sits in the on-screen gap between
+    // rows, so nothing is hovered — while the world-space test claims the row
+    // two slots below the gap.
+    check(PointingCursorLogic.pickByPointer(screenRectsAt(4), 640, 110) == -1,
+      'pointer in the on-screen gap between rows hovers nothing');
+    check(PointingCursorLogic.pickByPointer(worldRects, 640, 110 + (140 * 4 - 487)) == 2,
+      'world-space pick hovers a row the pointer is not on');
   }
 
   static function testVisibleIndex():Void
