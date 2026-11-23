@@ -6,9 +6,28 @@ import play.PlayState;
 import psychlua.FunkinLua;
 import headers.PsychLua;
 import psychlua.FunkinLua.LuaTweenOptions;
+import psychlua.TweenValueValidation;
 
 class TweenCallbacks
 {
+	static final rejectedTweenWarnings:Map<String, Bool> = new Map();
+
+	static function sanitizeTweenValues(funk:FunkinLua, callback:String, tag:String, target:Dynamic, values:Dynamic):Dynamic
+	{
+		final sanitized:Dynamic = TweenValueValidation.sanitize(target, values);
+		if (sanitized == null)
+		{
+			final key:String = funk.scriptName + '|' + callback;
+			if (!rejectedTweenWarnings.exists(key))
+			{
+				rejectedTweenWarnings.set(key, true);
+				final tagInfo:String = tag == null ? '' : ' (tag "$tag")';
+				LuaUtils.luaTrace(funk.lua, '$callback: skipped a tween with a non-numeric or non-finite property$tagInfo', false, false, FlxColor.RED);
+			}
+		}
+		return sanitized;
+	}
+
 	public static function register(funk:FunkinLua):Void {
 		@:privateAccess {
 		// Tween callbacks
@@ -18,12 +37,14 @@ class TweenCallbacks
 			{
 				if(values != null)
 				{
+					final tweenValues:Dynamic = sanitizeTweenValues(funk, 'startTween', tag, penisExam, values);
+					if (tweenValues == null) return null;
 					var myOptions:LuaTweenOptions = LuaUtils.getLuaTween(options);
 					if(tag != null)
 					{
 						var variables = MusicBeatState.getVariables();
 						var originalTag:String = 'tween_' + tag.trim().replace(' ', '_').replace('.', '');
-						variables.set(tag, FlxTween.tween(penisExam, values, duration, myOptions != null ? {
+						variables.set(tag, FlxTween.tween(penisExam, tweenValues, duration, myOptions != null ? {
 							type: myOptions.type,
 							ease: myOptions.ease,
 							startDelay: myOptions.startDelay,
@@ -42,7 +63,7 @@ class TweenCallbacks
 						} : null));
 						return tag;
 					}
-					else FlxTween.tween(penisExam, values, duration, myOptions != null ? {
+					else FlxTween.tween(penisExam, tweenValues, duration, myOptions != null ? {
 						type: myOptions.type,
 						ease: myOptions.ease,
 						startDelay: myOptions.startDelay,
@@ -68,7 +89,8 @@ class TweenCallbacks
 		FunkinLua.registerFunction("doTweenX", function(tag:String, vars:String, value:Dynamic, duration:Float, ease:String) {
 			var penisExam:Dynamic = funk.tweenPrepare(tag, vars);
 			if(penisExam != null) {
-				PlayState.instance.modchartTweens.set(tag, FlxTween.tween(penisExam, {x: value}, duration / PlayState.instance.playbackRate, {ease: LuaUtils.getFlxEaseByString(ease),
+				final tweenValues:Dynamic = sanitizeTweenValues(funk, 'doTweenX', tag, penisExam, {x: value});
+				if (tweenValues != null) PlayState.instance.modchartTweens.set(tag, FlxTween.tween(penisExam, tweenValues, duration / PlayState.instance.playbackRate, {ease: LuaUtils.getFlxEaseByString(ease),
 					onComplete: function(twn:FlxTween) {
 						PlayState.instance.callOnLuas('onTweenCompleted', [tag]);
 						PlayState.instance.modchartTweens.remove(tag);
@@ -81,7 +103,8 @@ class TweenCallbacks
 		FunkinLua.registerFunction("doTweenScale", function(tag:String, vars:String, value:Dynamic, duration:Float, ease:String) {
 			var penisExam:Dynamic = funk.tweenPrepare(tag, vars);
 			if(penisExam != null) {
-				PlayState.instance.modchartTweens.set(tag, FlxTween.tween(penisExam, {"scale.x": value,"scale.y": value}, duration / PlayState.instance.playbackRate, {ease: LuaUtils.getFlxEaseByString(ease),
+				final tweenValues:Dynamic = sanitizeTweenValues(funk, 'doTweenScale', tag, penisExam, {"scale.x": value,"scale.y": value});
+				if (tweenValues != null) PlayState.instance.modchartTweens.set(tag, FlxTween.tween(penisExam, tweenValues, duration / PlayState.instance.playbackRate, {ease: LuaUtils.getFlxEaseByString(ease),
 					onComplete: function(twn:FlxTween) {
 						PlayState.instance.callOnLuas('onTweenCompleted', [tag]);
 						PlayState.instance.modchartTweens.remove(tag);
@@ -94,7 +117,8 @@ class TweenCallbacks
 		FunkinLua.registerFunction("doTweenY", function(tag:String, vars:String, value:Dynamic, duration:Float, ease:String) {
 			var penisExam:Dynamic = funk.tweenPrepare(tag, vars);
 			if(penisExam != null) {
-				PlayState.instance.modchartTweens.set(tag, FlxTween.tween(penisExam, {y: value}, duration / PlayState.instance.playbackRate, {ease: LuaUtils.getFlxEaseByString(ease),
+				final tweenValues:Dynamic = sanitizeTweenValues(funk, 'doTweenY', tag, penisExam, {y: value});
+				if (tweenValues != null) PlayState.instance.modchartTweens.set(tag, FlxTween.tween(penisExam, tweenValues, duration / PlayState.instance.playbackRate, {ease: LuaUtils.getFlxEaseByString(ease),
 					onComplete: function(twn:FlxTween) {
 						PlayState.instance.callOnLuas('onTweenCompleted', [tag]);
 						PlayState.instance.modchartTweens.remove(tag);
@@ -107,7 +131,8 @@ class TweenCallbacks
 		FunkinLua.registerFunction("doTweenAngle", function(tag:String, vars:String, value:Dynamic, duration:Float, ease:String) {
 			var penisExam:Dynamic = funk.tweenPrepare(tag, vars);
 			if(penisExam != null) {
-				PlayState.instance.modchartTweens.set(tag, FlxTween.tween(penisExam, {angle: value}, duration / PlayState.instance.playbackRate, {ease: LuaUtils.getFlxEaseByString(ease),
+				final tweenValues:Dynamic = sanitizeTweenValues(funk, 'doTweenAngle', tag, penisExam, {angle: value});
+				if (tweenValues != null) PlayState.instance.modchartTweens.set(tag, FlxTween.tween(penisExam, tweenValues, duration / PlayState.instance.playbackRate, {ease: LuaUtils.getFlxEaseByString(ease),
 					onComplete: function(twn:FlxTween) {
 						PlayState.instance.callOnLuas('onTweenCompleted', [tag]);
 						PlayState.instance.modchartTweens.remove(tag);
@@ -120,7 +145,8 @@ class TweenCallbacks
 		FunkinLua.registerFunction("doTweenAlpha", function(tag:String, vars:String, value:Dynamic, duration:Float, ease:String) {
 			var penisExam:Dynamic = funk.tweenPrepare(tag, vars);
 			if(penisExam != null) {
-				PlayState.instance.modchartTweens.set(tag, FlxTween.tween(penisExam, {alpha: value}, duration / PlayState.instance.playbackRate, {ease: LuaUtils.getFlxEaseByString(ease),
+				final tweenValues:Dynamic = sanitizeTweenValues(funk, 'doTweenAlpha', tag, penisExam, {alpha: value});
+				if (tweenValues != null) PlayState.instance.modchartTweens.set(tag, FlxTween.tween(penisExam, tweenValues, duration / PlayState.instance.playbackRate, {ease: LuaUtils.getFlxEaseByString(ease),
 					onComplete: function(twn:FlxTween) {
 						PlayState.instance.callOnLuas('onTweenCompleted', [tag]);
 						PlayState.instance.modchartTweens.remove(tag);
@@ -134,7 +160,8 @@ class TweenCallbacks
 			var penisExam:Dynamic = funk.tweenPrepare(tag, vars);
 			if(penisExam != null) {
 				if(vars == 'camHud' || vars == 'camGame' || vars == 'Hud' || vars == 'Game') {
-					PlayState.instance.modchartTweens.set(tag, FlxTween.tween(penisExam, {zoom: value}, duration / PlayState.instance.playbackRate, {ease: LuaUtils.getFlxEaseByString(ease),
+					final tweenValues:Dynamic = sanitizeTweenValues(funk, 'doTweenZoom', tag, penisExam, {zoom: value});
+					if (tweenValues != null) PlayState.instance.modchartTweens.set(tag, FlxTween.tween(penisExam, tweenValues, duration / PlayState.instance.playbackRate, {ease: LuaUtils.getFlxEaseByString(ease),
 						onComplete: function(twn:FlxTween) {
 							PlayState.instance.callOnLuas('onTweenCompleted', [tag]);
 							PlayState.instance.modchartTweens.remove(tag);
@@ -152,8 +179,16 @@ class TweenCallbacks
 		FunkinLua.registerFunction("doTweenColor", function(tag:String, vars:String, targetColor:String, duration:Float, ease:String) {
 			var penisExam:Dynamic = funk.tweenPrepare(tag, vars);
 			if(penisExam != null) {
-				var color:Int = Std.parseInt(targetColor);
+				if (targetColor == null) {
+					LuaUtils.luaTrace(funk.lua, 'doTweenColor: skipped a tween with an invalid color', false, false, FlxColor.RED);
+					return;
+				}
+				var color:Null<Int> = Std.parseInt(targetColor);
 				if(!targetColor.startsWith('0x')) color = Std.parseInt('0xff' + targetColor);
+				if (color == null) {
+					LuaUtils.luaTrace(funk.lua, 'doTweenColor: skipped a tween with an invalid color', false, false, FlxColor.RED);
+					return;
+				}
 
 				var curColor:FlxColor = penisExam.color;
 				curColor.alphaFloat = penisExam.alpha;
@@ -175,7 +210,8 @@ class TweenCallbacks
 			var testicle:StrumNote = PlayState.instance.strumLineNotes.members[note % PlayState.instance.strumLineNotes.length];
 
 			if(testicle != null) {
-				PlayState.instance.modchartTweens.set(tag, FlxTween.tween(testicle, {x: value}, duration / PlayState.instance.playbackRate, {ease: LuaUtils.getFlxEaseByString(ease),
+				final tweenValues:Dynamic = sanitizeTweenValues(funk, 'noteTweenX', tag, testicle, {x: value});
+				if (tweenValues != null) PlayState.instance.modchartTweens.set(tag, FlxTween.tween(testicle, tweenValues, duration / PlayState.instance.playbackRate, {ease: LuaUtils.getFlxEaseByString(ease),
 					onComplete: function(twn:FlxTween) {
 						PlayState.instance.callOnLuas('onTweenCompleted', [tag]);
 						PlayState.instance.modchartTweens.remove(tag);
@@ -189,7 +225,8 @@ class TweenCallbacks
 			var testicle:StrumNote = PlayState.instance.strumLineNotes.members[note % PlayState.instance.strumLineNotes.length];
 
 			if(testicle != null) {
-				PlayState.instance.modchartTweens.set(tag, FlxTween.tween(testicle, {y: value}, duration / PlayState.instance.playbackRate, {ease: LuaUtils.getFlxEaseByString(ease),
+				final tweenValues:Dynamic = sanitizeTweenValues(funk, 'noteTweenY', tag, testicle, {y: value});
+				if (tweenValues != null) PlayState.instance.modchartTweens.set(tag, FlxTween.tween(testicle, tweenValues, duration / PlayState.instance.playbackRate, {ease: LuaUtils.getFlxEaseByString(ease),
 					onComplete: function(twn:FlxTween) {
 						PlayState.instance.callOnLuas('onTweenCompleted', [tag]);
 						PlayState.instance.modchartTweens.remove(tag);
@@ -203,7 +240,8 @@ class TweenCallbacks
 			var testicle:StrumNote = PlayState.instance.strumLineNotes.members[note % PlayState.instance.strumLineNotes.length];
 
 			if(testicle != null) {
-				PlayState.instance.modchartTweens.set(tag, FlxTween.tween(testicle, {angle: value}, duration / PlayState.instance.playbackRate, {ease: LuaUtils.getFlxEaseByString(ease),
+				final tweenValues:Dynamic = sanitizeTweenValues(funk, 'noteTweenAngle', tag, testicle, {angle: value});
+				if (tweenValues != null) PlayState.instance.modchartTweens.set(tag, FlxTween.tween(testicle, tweenValues, duration / PlayState.instance.playbackRate, {ease: LuaUtils.getFlxEaseByString(ease),
 					onComplete: function(twn:FlxTween) {
 						PlayState.instance.callOnLuas('onTweenCompleted', [tag]);
 						PlayState.instance.modchartTweens.remove(tag);
@@ -217,7 +255,8 @@ class TweenCallbacks
 			var testicle:StrumNote = PlayState.instance.strumLineNotes.members[note % PlayState.instance.strumLineNotes.length];
 
 			if(testicle != null) {
-				PlayState.instance.modchartTweens.set(tag, FlxTween.tween(testicle, {direction: value}, duration / PlayState.instance.playbackRate, {ease: LuaUtils.getFlxEaseByString(ease),
+				final tweenValues:Dynamic = sanitizeTweenValues(funk, 'noteTweenDirection', tag, testicle, {direction: value});
+				if (tweenValues != null) PlayState.instance.modchartTweens.set(tag, FlxTween.tween(testicle, tweenValues, duration / PlayState.instance.playbackRate, {ease: LuaUtils.getFlxEaseByString(ease),
 					onComplete: function(twn:FlxTween) {
 						PlayState.instance.callOnLuas('onTweenCompleted', [tag]);
 						PlayState.instance.modchartTweens.remove(tag);
@@ -263,7 +302,8 @@ class TweenCallbacks
 			var testicle:StrumNote = PlayState.instance.strumLineNotes.members[note % PlayState.instance.strumLineNotes.length];
 
 			if(testicle != null) {
-				PlayState.instance.modchartTweens.set(tag, FlxTween.tween(testicle, {angle: value}, duration / PlayState.instance.playbackRate, {ease: LuaUtils.getFlxEaseByString(ease),
+				final tweenValues:Dynamic = sanitizeTweenValues(funk, 'noteTweenAngle', tag, testicle, {angle: value});
+				if (tweenValues != null) PlayState.instance.modchartTweens.set(tag, FlxTween.tween(testicle, tweenValues, duration / PlayState.instance.playbackRate, {ease: LuaUtils.getFlxEaseByString(ease),
 					onComplete: function(twn:FlxTween) {
 						PlayState.instance.callOnLuas('onTweenCompleted', [tag]);
 						PlayState.instance.modchartTweens.remove(tag);
@@ -277,7 +317,8 @@ class TweenCallbacks
 			var testicle:StrumNote = PlayState.instance.strumLineNotes.members[note % PlayState.instance.strumLineNotes.length];
 
 			if(testicle != null) {
-				PlayState.instance.modchartTweens.set(tag, FlxTween.tween(testicle, {alpha: value}, duration / PlayState.instance.playbackRate, {ease: LuaUtils.getFlxEaseByString(ease),
+				final tweenValues:Dynamic = sanitizeTweenValues(funk, 'noteTweenAlpha', tag, testicle, {alpha: value});
+				if (tweenValues != null) PlayState.instance.modchartTweens.set(tag, FlxTween.tween(testicle, tweenValues, duration / PlayState.instance.playbackRate, {ease: LuaUtils.getFlxEaseByString(ease),
 					onComplete: function(twn:FlxTween) {
 						PlayState.instance.callOnLuas('onTweenCompleted', [tag]);
 						PlayState.instance.modchartTweens.remove(tag);
@@ -291,7 +332,9 @@ class TweenCallbacks
 			var testicle:StrumNote = PlayState.instance.strumLineNotes.members[note % PlayState.instance.strumLineNotes.length];
 
 			if(testicle != null) {
-				PlayState.instance.modchartTweens.set(tag, FlxTween.tween(testicle, {"scale.x": value * 0.7}, duration, {ease: LuaUtils.getFlxEaseByString(ease),
+				final scaleValue:Null<Float> = TweenValueValidation.finiteNumber(value);
+				final tweenValues:Dynamic = sanitizeTweenValues(funk, 'noteTweenScaleX', tag, testicle, {"scale.x": scaleValue == null ? value : scaleValue * 0.7});
+				if (tweenValues != null) PlayState.instance.modchartTweens.set(tag, FlxTween.tween(testicle, tweenValues, duration, {ease: LuaUtils.getFlxEaseByString(ease),
 					onComplete: function(twn:FlxTween) {
 						PlayState.instance.callOnLuas('onTweenCompleted', [tag]);
 						PlayState.instance.modchartTweens.remove(tag);
@@ -305,7 +348,9 @@ class TweenCallbacks
 			var testicle:StrumNote = PlayState.instance.strumLineNotes.members[note % PlayState.instance.strumLineNotes.length];
 
 			if(testicle != null) {
-				PlayState.instance.modchartTweens.set(tag, FlxTween.tween(testicle, {"scale.y": value * 0.7}, duration, {ease: LuaUtils.getFlxEaseByString(ease),
+				final scaleValue:Null<Float> = TweenValueValidation.finiteNumber(value);
+				final tweenValues:Dynamic = sanitizeTweenValues(funk, 'noteTweenScaleY', tag, testicle, {"scale.y": scaleValue == null ? value : scaleValue * 0.7});
+				if (tweenValues != null) PlayState.instance.modchartTweens.set(tag, FlxTween.tween(testicle, tweenValues, duration, {ease: LuaUtils.getFlxEaseByString(ease),
 					onComplete: function(twn:FlxTween) {
 						PlayState.instance.callOnLuas('onTweenCompleted', [tag]);
 						PlayState.instance.modchartTweens.remove(tag);

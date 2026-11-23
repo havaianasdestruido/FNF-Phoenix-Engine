@@ -4,6 +4,8 @@ import backend.ClientPrefs;
 import backend.Conductor;
 import backend.PlayerStats;
 
+import data.ExtraVocals;
+
 import debug.PoolStats;
 
 import objects.Character;
@@ -40,6 +42,7 @@ class PlayStateNotes
 			if(state.instakillOnMiss || state.sickOnly)
 			{
 				state.vocals.volume = state.opponentVocals.volume = 0;
+				PlayStateExtraVocals.setVolumeAll(state.extraVocals, 0);
 				state.doDeathCheck(true);
 			}
 
@@ -47,8 +50,12 @@ class PlayStateNotes
 			if (PlayerStats.canTrackGameplay(state.cpuControlled, state.practiceMode, state.ffmpegMode, PlayState.chartingMode, state.trollingMode))
 				PlayerStats.recordMiss();
 			if (PlayState.SONG.needsVoices && !state.ffmpegMode)
+			{
 				if (PlayState.opponentChart && state.opponentVocals != null && state.opponentVocals.volume != 0) state.opponentVocals.volume = 0;
 				else if (!PlayState.opponentChart && state.vocals.volume != 0) state.vocals.volume = 0;
+				// Extra vocal stems bound to the played strumline mute with it.
+				PlayStateExtraVocals.muteSide(state.extraVocals, ExtraVocals.playedSide(PlayState.opponentChart));
+			}
 			if (!state.practiceMode)
 				state.songScore -= 10 * Std.int((PlayState.opponentChart ? state.polyphonyOppo : state.polyphonyBF));
 
@@ -269,8 +276,14 @@ class PlayStateNotes
 
 			if (ClientPrefs.hitsoundVolume > 0 && !note.hitsoundDisabled && !note.isSustainNote)
 			{
-				state.hitsound.play(true);
-				state.hitsound.pitch = state.playbackRate;
+				if (state.hitsound == null && state.hitSoundString != "none")
+					state.hitsound = FlxG.sound.load(Paths.sound("hitsounds/" + Std.string(state.hitSoundString).toLowerCase()));
+				if (state.hitsound != null)
+				{
+					state.hitsound.volume = ClientPrefs.hitsoundVolume;
+					state.hitsound.play(true);
+					state.hitsound.pitch = state.playbackRate;
+				}
 				#if sys
 				var hitsoundImageExists = FileSystem.exists('assets/shared/images/' + state.hitsoundImageToLoad + '.png') || (#if MODS_ALLOWED FileSystem.exists(Paths.modFolders('images/' + state.hitsoundImageToLoad + '.png')) #else false #end);
 				#else
@@ -438,6 +451,7 @@ class PlayStateNotes
 					state.opponentVocals.volume = vocalVolume;
 				else if (!PlayState.opponentChart && state.vocals.volume != vocalVolume)
 					state.vocals.volume = vocalVolume;
+				PlayStateExtraVocals.unmuteSide(state.extraVocals, ExtraVocals.playedSide(PlayState.opponentChart), vocalVolume);
 			}
 
 			if (!state.notesBeingHit && state.usingBotEnergy)
@@ -507,7 +521,11 @@ class PlayStateNotes
 			if (!ClientPrefs.noSkipFuncs && state.hasActiveScripts())
 				state.callOnLuas((state.oppTrigger ? 'opponentNoteSkip' : 'goodNoteSkip'), [null, Math.abs(noteAlt.noteData), noteAlt.noteType, noteAlt.isSustainNote]);
 			state.health += noteAlt.hitHealth * state.healthGain * (PlayState.opponentChart ? state.polyphonyOppo : state.polyphonyBF);
-			if (!state.ffmpegMode) (PlayState.opponentChart ? state.opponentVocals : state.vocals).volume = PlayStatePlayback.vocalsVolume(state);
+			if (!state.ffmpegMode)
+			{
+				(PlayState.opponentChart ? state.opponentVocals : state.vocals).volume = PlayStatePlayback.vocalsVolume(state);
+				PlayStateExtraVocals.unmuteSide(state.extraVocals, ExtraVocals.playedSide(PlayState.opponentChart), PlayStatePlayback.vocalsVolume(state));
+			}
 		}
 		return;
 	}
@@ -599,6 +617,7 @@ class PlayStateNotes
 					state.opponentVocals.volume = vocalVolume;
 				else if (PlayState.opponentChart && state.vocals.volume != vocalVolume)
 					state.vocals.volume = vocalVolume;
+				PlayStateExtraVocals.unmuteSide(state.extraVocals, ExtraVocals.playedSide(!PlayState.opponentChart), vocalVolume);
 			}
 
 			if (state.polyphonyOppo > 1 && !daNote.isSustainNote) state.opponentNoteTotal += state.polyphonyOppo - 1;
@@ -697,6 +716,7 @@ class PlayStateNotes
 					state.opponentVocals.volume = vocalVolume;
 				else if (PlayState.opponentChart && state.vocals.volume != vocalVolume)
 					state.vocals.volume = vocalVolume;
+				PlayStateExtraVocals.unmuteSide(state.extraVocals, ExtraVocals.playedSide(!PlayState.opponentChart), vocalVolume);
 			}
 		}
 		return;

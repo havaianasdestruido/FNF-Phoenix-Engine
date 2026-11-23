@@ -1,0 +1,2 @@
+offsetX = 1.25
+another.prop.path = 'unresolvable'

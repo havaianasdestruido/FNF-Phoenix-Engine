@@ -232,10 +232,13 @@ class FreeplayState extends MusicBeatState
 			songText.snapToPosition();
 
 			Mods.currentModDirectory = songs[i].folder;
-			var icon:HealthIcon = new HealthIcon(songs[i].songCharacter);
-			icon.sprTracker = songText;
-			icon.ID = i;
-			grpIcons.add(icon);
+			if (!backend.LowMemory.policy().minimalMenus)
+			{
+				var icon:HealthIcon = new HealthIcon(songs[i].songCharacter);
+				icon.sprTracker = songText;
+				icon.ID = i;
+				grpIcons.add(icon);
+			}
 		}
 		WeekData.setDirectoryFromWeek();
 
@@ -367,6 +370,11 @@ class FreeplayState extends MusicBeatState
 
 	private function setupDisc():Void
 	{
+		if (backend.LowMemory.policy().minimalMenus)
+		{
+			discAvailable = false;
+			return;
+		}
 		disc = new FlxSprite();
 		disc.scrollFactor.set();
 		disc.antialiasing = ClientPrefs.globalAntialiasing;

@@ -5,6 +5,7 @@ import flixel.sound.FlxSound;
 import objects.Character;
 import objects.Note.EventNote;
 import objects.Note.PreloadedChartNote;
+import play.helpers.PlayStateExtraVocals.ExtraVocalTrack;
 import play.objects.MissCounter;
 
 class PlayState
@@ -21,6 +22,7 @@ class PlayState
   public var curSong:String = '';
   public var vocals:FlxSound;
   public var opponentVocals:FlxSound;
+  public var extraVocals:Array<ExtraVocalTrack> = [];
   public var inst:FlxSound;
   public var playbackRate:Float = 1;
   public var boyfriend:Boyfriend = new Boyfriend();

@@ -51,6 +51,10 @@ class ClientPrefs { //default settings if it can't find a save file containing y
 	public static var instrumentalVolumeOverride:Float = 1;
 	public static var overrideVocalsVolume:Bool = false;
 	public static var vocalsVolumeOverride:Float = 1;
+	// Chart-declared extra vocal stems ("unlimited vocals per strumline"): when on, a chart's
+	// `extraVocals` array loads its Voices-*.ogg stems; when off they are skipped entirely,
+	// saving the memory on low-end devices. See docs/EXTRA_VOCALS.md.
+	public static var extraVocals:Bool = true;
 	public static var voiidTrollMode:Bool = false;
 	public static var trollMaxSpeed:String = 'Medium';
 	public static var missSoundEnabled:Bool = false;
@@ -67,6 +71,8 @@ class ClientPrefs { //default settings if it can't find a save file containing y
 	public static var showNPS:Bool = true;
 	public static var showComboInfo:Bool = true;
 	public static var maxSplashLimit:Int = 16;
+	/** Internal marker: first-run performance setup has already been considered. */
+	public static var firstRunPerformanceVersion:Int = 0;
 	public static var oppNoteAlpha:Float = 0.65;
 	/**
 	 * Darkness of the screen-fixed overlay drawn over the stage and the
@@ -173,7 +179,7 @@ class ClientPrefs { //default settings if it can't find a save file containing y
 	 */
 	public static var menuMusicFade:Bool = true;
 	public static var checkForUpdates:Bool = true;
-	public static var comboStacking = true;
+	public static var comboStacking:Bool = true;
 	public static var showRamUsage:Bool = true;
 	public static var showRamGraph:Bool = false;
 	public static var showMaxRamUsage:Bool = true;
@@ -247,7 +253,7 @@ class ClientPrefs { //default settings if it can't find a save file containing y
 	public static var lowQuality:Bool = false;
 	/**
 	 * Memory profile from Options -> Optimization (`Off` / `Low` / `Extreme` /
-	 * `Experimental Extreme`).
+	 * `Experimental Extreme` / `Arduino Nano R3`).
 	 *
 	 * A profile is a temporary bundle of appearance/performance preferences plus
 	 * a cleanup policy; see `backend.MemoryProfiles` for the definitions and
@@ -736,9 +742,13 @@ class ClientPrefs { //default settings if it can't find a save file containing y
 			reloadControls();
 		}
 
-		// Options -> Optimization -> Memory Profile. Runs last so every screen
-		// created after this point already sees the forced values.
+		// Options -> Optimization -> Memory Profile. Runs before the first screen
+		// so it already sees the forced values.
 		LowMemory.applyFromPrefs();
+
+		// Existing saves are left untouched. A truly empty install gets a
+		// hardware-aware, editable starter setup before the first screen exists.
+		FirstRunPerformance.applyOnFirstRun();
 	}
 
 	/**

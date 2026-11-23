@@ -25,6 +25,7 @@ class ChartLoadingSpec
     testParsePsychV1Chart();
     testParseBom();
     testMissingOptionalFields();
+    testExtraVocalsFieldPreserved();
     testEventChartPreservesStageDirectory();
     testLegacyEventExtraction();
     testLegacyEventExtractionLarge();
@@ -62,6 +63,25 @@ class ChartLoadingSpec
     for (field in ['specialEventsName', 'windowName', 'arrowSkin', 'splashSkin', 'songCredit',
       'songCreditBarPath', 'songCreditIcon', 'event7', 'event7Value'])
       equal(Reflect.field(legacy, field), '', 'missing legacy field ' + field + ' defaults to empty');
+  }
+
+  static function testExtraVocalsFieldPreserved():Void
+  {
+    // The chart editor re-saves the parsed object, so the normalizer must
+    // leave the optional extraVocals stems untouched (docs/EXTRA_VOCALS.md).
+    Song.psychV1Chart = false;
+    final parsed:Dynamic = Song.parseJSON('{"song":{"song":"stems","notes":[],"events":[],'
+      + '"extraVocals":[{"name":"gf","file":"GF","side":"none"},"Choir"]}}');
+    Song.onLoadJson(parsed);
+    final stems:Array<Dynamic> = parsed.extraVocals;
+    equal(stems.length, 2, 'extraVocals entries survive parsing and normalization');
+    equal(stems[0].file, 'GF', 'extraVocals object entry is preserved verbatim');
+    equal(stems[1], 'Choir', 'extraVocals string entry is preserved verbatim');
+
+    Song.psychV1Chart = false;
+    final legacy:Dynamic = {notes: [], events: []};
+    Song.onLoadJson(legacy);
+    equal(Reflect.field(legacy, 'extraVocals'), null, 'charts without extraVocals are not given one');
   }
 
   static function testEventChartPreservesStageDirectory():Void
