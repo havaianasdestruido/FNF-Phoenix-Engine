@@ -73,8 +73,10 @@ class AchievementPopup extends openfl.display.Sprite {
 		drawTextAt(text, desc, textX, textY + 30);
 		graphics.endFill();
 
-		text.graphic.bitmap.dispose();
-		text.graphic.bitmap.disposeImage();
+		// Do NOT dispose `text.graphic.bitmap` directly: flixel graphics are cached
+		// and shared, and a disposed cached bitmap bricks every sprite that reuses it.
+		// `text.destroy()` releases the sprite's reference; flixel's cache handles the
+		// graphic's lifecycle.
 		text.destroy();
 
 		// other stuff

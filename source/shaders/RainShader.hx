@@ -14,6 +14,8 @@ typedef Light =
 
 class RainShader extends FlxFixedShader
 {
+	#if flash	public var uScale:Dynamic = {};	public var uIntensity:Dynamic = {};	public var uTime:Dynamic = {};	public var uPuddleY:Dynamic = {};	public var uPuddleScaleY:Dynamic = {};	public var uBlurredScreen:Dynamic = {};	public var uMask:Dynamic = {};	public var uLightMap:Dynamic = {};	public var numLights:Dynamic = {};	public var uScreenResolution:Dynamic = {};	public var uCameraBounds:Dynamic = {};	#end
+
 	@:glVertexHeader('
 		  // normalized screen coord
 		  //   (0, 0) is the top left of the window

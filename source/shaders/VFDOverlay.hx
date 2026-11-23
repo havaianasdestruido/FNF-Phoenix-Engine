@@ -5,6 +5,8 @@ import openfl.display.GraphicsShader;
 
 class VFDOverlay extends GraphicsShader
 {
+	#if flash	public var u_time:Dynamic = {};	#end
+
   public var elapsedTime(default, set):Float = 0;
 
   function set_elapsedTime(value:Float):Float

@@ -864,7 +864,15 @@ class FlxGame extends Sprite
 
 	dynamic function getTimer():Float
 	{
+		// Flash has no lime_cffi, so lime's performance counter and frequency
+		// are both 0 and the expression above is 0/0 = NaN, which poisons
+		// every frame delta. Use flash.Lib.getTimer() (ms since app start)
+		// like the JS target does.
+		#if flash
+		return flash.Lib.getTimer();
+		#else
 		return ((System.getPerformanceCounter() - _startCounter) / System.getPerformanceFrequency()) * 1000;
+		#end
 	}
 }
 

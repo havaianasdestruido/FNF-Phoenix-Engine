@@ -150,6 +150,16 @@ class Project extends HXProject
 	 */
 	static final EXCLUDE_ASSETS_NATIVE:Array<String> = ["*.mp3"];
 
+	/**
+	 * Asset path globs to exclude on Flash.
+	 *
+	 * Flash cannot decode Ogg Vorbis, so the engine asks for the `.mp3`
+	 * sibling of every sound (`Paths.SOUND_EXT` is `mp3` on flash). The `.ogg`
+	 * files would only be embedded as inert BINARY tags and bloat the SWF past
+	 * neko's `max_string_size` while adding nothing at run time.
+	 */
+	static final EXCLUDE_ASSETS_FLASH:Array<String> = ["*.ogg"];
+
 	//
 	// FEATURES
 	//
@@ -951,8 +961,9 @@ class Project extends HXProject
 		addHaxelib('flixel-ui'); // UI framework
 		addHaxelib('grig.audio');
 		addHaxelib('funkin.vis');
-		if (!isFlash() && !isAir())
-			addHaxelib('flxanimate'); // Texture atlas rendering
+		// Enabled on Flash too (see FLASH notes): Animate-atlas characters are
+		// otherwise invisible on that target.
+		addHaxelib('flxanimate'); // Texture atlas rendering
 		// Native file dialogs are desktop-only; its NDLL ships no mobile
 		// binaries, so keep it off mobile classpaths entirely.
 		if (isDesktop() && !isFlash() && !isWeb() && isCPP())
@@ -980,7 +991,7 @@ class Project extends HXProject
 
 	function configureAssets()
 	{
-		var exclude = EXCLUDE_ASSETS.concat(isWeb() ? EXCLUDE_ASSETS_WEB : EXCLUDE_ASSETS_NATIVE);
+		var exclude = EXCLUDE_ASSETS.concat(isFlash() ? EXCLUDE_ASSETS_FLASH : (isWeb() ? EXCLUDE_ASSETS_WEB : EXCLUDE_ASSETS_NATIVE));
 		var shouldPreload = PRELOAD_ALL.isEnabled(this);
 		var shouldEmbed = EMBED_ASSETS.isEnabled(this);
 		// Compact CI builds keep Tutorial and Week 1. See NO_BUILTIN_CONTENT.
@@ -1057,7 +1068,15 @@ class Project extends HXProject
 
 		// splash stuff
 		// var shouldEmbedSplash = true;
-		addAssetPath("assets/splash", null, "default", ["*"], exclude, false);
+		// The flash build embeds everything else, but these stay external.
+		// lime has no flash backend for synchronous image decoding
+		// (Image.fromBytes), so every external image 404s through the
+		// preloader and the flash preloader would stall forever at ~93%
+		// ("Error loading asset assets/splash/..."). Nothing in the engine
+		// references them at run time (PhoenixPreloader embeds its own
+		// phoenix_logo), so flash simply skips the folder.
+		if (!isFlash())
+			addAssetPath("assets/splash", null, "default", ["*"], exclude, false);
 
 		addAssetPath("assets/embed", "assets", "default", ["*"], exclude, true);
 

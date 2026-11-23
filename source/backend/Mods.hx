@@ -119,6 +119,20 @@ class Mods
 		#end
 			foldersToCheck.push(path + fileToFind);
 
+		#if !sys
+		// Flash / HTML5 have no filesystem, so the probe above is the only entry
+		// point: it must accept the file when it lives in the embedded asset
+		// library. Without this every `mergeAllTextsNamed()` caller (rating
+		// quotes, hit strings, ...) silently got an empty list because nothing
+		// could ever be found. `OpenFlAssets.exists()` is the same registry the
+		// rest of `Paths` resolves through.
+		if (!foldersToCheck.contains(path + fileToFind)
+			&& !OpenFlAssets.exists(path + fileToFind, AssetType.TEXT))
+		{
+			foldersToCheck.remove(path + fileToFind);
+		}
+		#end
+
 		#if MODS_ALLOWED
 		if(mods)
 		{

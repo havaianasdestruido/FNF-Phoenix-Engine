@@ -33,6 +33,8 @@ import backend.FlxFixedShader;
  */
 class OldTVShader extends FlxFixedShader
 {
+	#if flash	public var uTime:Dynamic = {};	public var uBar:Dynamic = {};	public var uBarOffset:Dynamic = {};	public var uBlur:Dynamic = {};	public var uStatic:Dynamic = {};	public var uDamage:Dynamic = {};	#end
+
 	@:glFragmentSource('
 	#pragma header
 

@@ -1879,8 +1879,15 @@ class PlayState extends MusicBeatState
 		if (hitSoundString != "none")
 			hitsound = FlxG.sound.load(Paths.sound("hitsounds/" + Std.string(hitSoundString).toLowerCase()));
 		if(ClientPrefs.hitsoundVolume > 0) Paths.sound('hitsound');
-		hitsound.volume = ClientPrefs.hitsoundVolume;
-		hitsound.pitch = playbackRate;
+		// `hitSoundString` is "none" whenever the player picked the silent hit
+		// sound (or a stripped build has no hitsound folder): `hitsound` then
+		// stays null, and these two lines used to throw #1009 during create()
+		// and abort the whole song boot.
+		if (hitsound != null)
+		{
+			hitsound.volume = ClientPrefs.hitsoundVolume;
+			hitsound.pitch = playbackRate;
+		}
 		for (i in 1...4) Paths.sound('missnote$i');
 		//The alphabet is either a spritesheet or glyphs rasterized from a font; cache the one
 		//the player actually uses (see objects.AlphabetFont).
@@ -2497,6 +2504,7 @@ class PlayState extends MusicBeatState
 			|| FlxG.keys.justPressed.MENU
 			|| FlxG.gamepads.anyJustPressed(flixel.input.gamepad.FlxGamepadInputID.BACK)
 			#end;
+
 
 		if (pauseTriggered && startedCountdown && canPause && !heyStopTrying)
 		{

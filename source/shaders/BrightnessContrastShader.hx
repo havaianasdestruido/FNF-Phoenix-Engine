@@ -25,6 +25,8 @@ import backend.FlxFixedShader;
  */
 class BrightnessContrastShader extends FlxFixedShader
 {
+	#if flash	public var uBrightness:Dynamic = {};	public var uContrast:Dynamic = {};	#end
+
 	@:glFragmentSource('
 	#pragma header
 

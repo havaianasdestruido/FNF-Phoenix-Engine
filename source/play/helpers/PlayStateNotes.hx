@@ -267,7 +267,9 @@ class PlayStateNotes
 			}
 			if(!state.ffmpegMode && (note.wasGoodHit || state.cpuControlled && note.ignoreNote)) return;
 
-			if (ClientPrefs.hitsoundVolume > 0 && !note.hitsoundDisabled && !note.isSustainNote)
+			// `hitsound` is null when the hit sound is set to "none", so the volume
+			// preference alone is not enough to know there is something to play.
+			if (ClientPrefs.hitsoundVolume > 0 && state.hitsound != null && !note.hitsoundDisabled && !note.isSustainNote)
 			{
 				state.hitsound.play(true);
 				state.hitsound.pitch = state.playbackRate;

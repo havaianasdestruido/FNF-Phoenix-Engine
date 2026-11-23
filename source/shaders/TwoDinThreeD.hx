@@ -11,6 +11,8 @@ import backend.FlxFixedShader;
  */
 class TwoDinThreeD extends FlxFixedShader
 {
+	#if flash	public var blur:Dynamic = {};	public var gradMax:Dynamic = {};	public var tiltDeg:Dynamic = {};	public var xOff:Dynamic = {};	public var yOff:Dynamic = {};	#end
+
   @:glFragmentSource('
     #pragma header
     uniform float blur;

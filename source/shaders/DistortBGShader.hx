@@ -5,6 +5,8 @@ import flixel.system.FlxAssets.FlxShader;
 
 class DistortBGShader extends FlxShader
 {
+	#if flash	public var uTime:Dynamic = {};	public var uSpeed:Dynamic = {};	public var uFrequency:Dynamic = {};	public var uWaveAmplitude:Dynamic = {};	#end
+
   @:glFragmentSource('
     #pragma header
     //uniform float tx, ty; // x,y waves phase

@@ -6,6 +6,8 @@ import flixel.system.FlxAssets.FlxShader;
 
 class TriangleShader extends FlxShader
 {
+	#if flash	public var rotX:Dynamic = {};	public var rotY:Dynamic = {};	#end
+
   // FIX: removed const arrays (arrays unsupported on some platforms)
   // FIX: removed default values from uniforms
   // FIX: replaced arrays with getVertex/getTexCoord lookup functions using if-else

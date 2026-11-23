@@ -67,7 +67,17 @@ class TitleState extends MusicBeatState
 
   var mustUpdate:Bool = false;
 
-  public static var titleJSON:TitleData;
+  /**
+   * Stock title layout, also used as the initial value so code that runs before
+   * `create()` (a `-DFREEPLAY` / `-DMENU` boot, or a build whose title art was
+   * stripped) reads real numbers instead of a null.
+   */
+  public static final DEFAULT_TITLE_DATA:TitleData = {
+    titlex: -150, titley: 1500, startx: 100, starty: 576,
+    gfx: 512, gfy: 40, backgroundSprite: '', bpm: 102, endY: -100
+  };
+
+  public static var titleJSON:TitleData = DEFAULT_TITLE_DATA;
 
   override public function onResize(width:Int, height:Int):Void
   {
@@ -132,7 +142,7 @@ class TitleState extends MusicBeatState
     else
       // No title config shipped (e.g. content-stripped builds drop the GF
       // dancer + its JSON): fall back to the stock layout values.
-      titleJSON = {titlex: -150, titley: 1500, startx: 100, starty: 576, gfx: 512, gfy: 40, backgroundSprite: '', bpm: 102, endY: -100};
+      titleJSON = DEFAULT_TITLE_DATA;
 
     if (!initialized)
     {

@@ -103,12 +103,17 @@ class InitState extends FlxState {
 
         // Default is the splash videos and then the title screen. The
         // `-DFREEPLAY` / `-DMENU` build flags (backend.LaunchState) skip both.
+        // Every target goes through the loading screen: it is what sets
+        // `Paths.currentLevel` (the per-week asset folder) before the state
+        // builds its artwork. The `-DFREEPLAY` / `-DMENU` shortcuts used to
+        // switch directly, which left the level unset and made every image
+        // lookup miss (a black menu/song) on a fresh boot.
         switch (LaunchState.resolve(ClientPrefs.disableSplash))
         {
             case LaunchTarget.FREEPLAY:
-                FlxG.switchState(FreeplayState.new);
+                LoadingState.loadAndSwitchState(FreeplayState.new);
             case LaunchTarget.MAIN_MENU:
-                FlxG.switchState(MainMenuState.new);
+                LoadingState.loadAndSwitchState(MainMenuState.new);
             case LaunchTarget.TITLE:
                 // Boot loading screen: executable open -> title screen.
                 LoadingState.loadAndSwitchState(TitleState.new);

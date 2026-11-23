@@ -5,6 +5,8 @@ import flixel.system.FlxAssets.FlxShader;
 
 class Tiltshift extends FlxShader
 {
+	#if flash	public var bluramount:Dynamic = {};	public var center:Dynamic = {};	#end
+
   @:glFragmentSource('
 		#pragma header
 

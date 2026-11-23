@@ -4,6 +4,8 @@ import flixel.system.FlxAssets.FlxShader;
 
 class ChromaticAberrationShader extends FlxShader
 {
+	#if flash	public var rOffset:Dynamic = {};	public var gOffset:Dynamic = {};	public var bOffset:Dynamic = {};	#end
+
   @:glFragmentSource('
 		#pragma header
 

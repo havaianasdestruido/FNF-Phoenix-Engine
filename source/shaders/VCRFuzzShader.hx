@@ -36,6 +36,8 @@ import backend.FlxFixedShader;
  */
 class VCRFuzzShader extends FlxFixedShader
 {
+	#if flash	public var uTime:Dynamic = {};	public var uFuzz:Dynamic = {};	public var uSplit:Dynamic = {};	public var uScanline:Dynamic = {};	public var uScanlineFrequency:Dynamic = {};	#end
+
 	@:glFragmentSource('
 	#pragma header
 
