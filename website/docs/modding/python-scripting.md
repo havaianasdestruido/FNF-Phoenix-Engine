@@ -333,8 +333,9 @@ same three values the table would have set:
 
 ```python
 def onCreatePost():
+    # createCamera() with no config builds a 0x0, zoom-0 camera, so size it below.
     createCamera('camOverlay')            # a FlxCamera, stored under this name
-    addCamera('camOverlay', None, False)  # append it to the camera stack
+    addCamera('camOverlay', None, False)  # append after camHUD, so it draws last
     setProperty('camOverlay.width', screenWidth)
     setProperty('camOverlay.height', screenHeight)
     setProperty('camOverlay.zoom', 1)
@@ -502,7 +503,7 @@ def goodNoteHit(id, direction, noteType, isSustainNote):
 
 def onBeatHit():
     if curBeat == 32:
-        changeMaxHealth(20)
+        changeMaxHealth(4)     # SETS max health (default 2)
         setHealthBarColors('ff5599', '33ccff')
         setTimeBarColors('ff5599', '33ccff')
 ```

@@ -326,6 +326,8 @@ function onSoundFinished(tag)
     debugPrint('sound finished:', tag)
 end
 
+-- A custom event of your own (mods/MyMod/custom_events/Duck The Song.lua) can
+-- duck the instrumental mid-song.
 function onEvent(name, value1, value2)
     if name == 'Duck The Song' then
         -- Empty tag = the song's instrumental: fade to 30% volume over 0.5 s.
@@ -372,7 +374,7 @@ function onCreatePost()
         zoom = 1,
         defaultDrawTarget = false
     })
-    addCamera('camOverlay', nil, false)   -- nil position = top of the camera stack
+    addCamera('camOverlay', nil, false)   -- nil = append after camHUD, so it draws last
     setProperty('camOverlay.bgColor', 0x00000000) -- do not paint over the game
 
     makeLuaSprite('overlayDim', '', 0, 0)
@@ -634,7 +636,7 @@ end
 
 function onBeatHit()
     if curBeat == 32 then
-        changeMaxHealth(20)      -- grows the bar on the right (opponent) side
+        changeMaxHealth(4)       -- SETS max health (default 2); health is not rescaled
         setHealthBarColors('ff5599', '33ccff')
         setTimeBarColors('ff5599', '33ccff')
     end
