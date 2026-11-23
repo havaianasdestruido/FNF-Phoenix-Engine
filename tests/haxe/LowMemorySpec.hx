@@ -1,10 +1,13 @@
 import backend.ClientPrefs;
 import backend.DiscordClient;
+import backend.FramerateController;
 import backend.LowMemory;
 import backend.MemoryProfiles;
 import backend.Paths;
 import flixel.FlxG;
 import flixel.FlxSprite;
+import objects.Alphabet;
+import objects.AlphabetFontRenderer;
 import options.Option;
 
 /** Exercises the production override/cleanup layer against small Flixel stubs. */
@@ -13,6 +16,7 @@ class LowMemorySpec
   static function main():Void
   {
     testProfileTransitionsAndSave();
+    testArduinoNanoR3TransitionsAndHooks();
     testCleanupPolicy();
     testSystemPressure();
     testImportedBaselineAndUntrustedFields();
@@ -87,6 +91,72 @@ class LowMemorySpec
     equal(ClientPrefs.memoryProfileBaseline, '', 'Off discards the snapshot');
     check(!ClientPrefs.lowMemoryMode, 'Off clears the legacy flag');
     check(FlxSprite.defaultAntialiasing && Main.fpsVar.visible, 'Off restores visuals');
+  }
+
+  /** Verifies Arduino Nano R3 applies all 88 overrides, live hooks, 1s major-GC trims, and restores cleanly. */
+  static function testArduinoNanoR3TransitionsAndHooks():Void
+  {
+    final original:Map<String, Dynamic> = playerValues();
+    final savedFps:Int = ClientPrefs.framerate;
+    FramerateController.reset();
+    Alphabet.reloads = 0;
+    AlphabetFontRenderer.clears = 0;
+    FlxG.state = {};
+    LowMemory.setProfile(MemoryProfiles.OFF, false);
+    Alphabet.reloads = 0;
+    AlphabetFontRenderer.clears = 0;
+
+    LowMemory.setProfile('arduino nano r3', true);
+    equal(ClientPrefs.memoryProfile, MemoryProfiles.ARDUINO_NANO_R3, 'alias normalizes to Arduino Nano R3');
+    check(ClientPrefs.lowMemoryMode, 'Arduino Nano R3 activates legacy lowMemoryMode');
+    check(LowMemory.experimentalHudOnly(), 'Arduino Nano R3 enables metadata-only character stand-ins');
+    assertForced(MemoryProfiles.ARDUINO_NANO_R3);
+    equal(ClientPrefs.framerate, savedFps, 'gameplay framerate cap is untouched');
+    check(!Main.fpsVar.visible, 'FPS overlay hidden');
+    check(!Main.commitWatermark.visible, 'commit watermark hidden immediately');
+    equal(FramerateController.lastMenuFramerate, 15, 'live menu framerate drops to 15 FPS immediately');
+    equal(FramerateController.lastFocusLostFramerate, 1, 'live focus-lost framerate drops to 1 FPS immediately');
+    check(Paths.ignoreDumpExclusions, 'Arduino Nano R3 unpins Paths.dumpExclusions');
+    check(Alphabet.reloads >= 1, 'changing alphabetStyle reloads live Alphabet instances');
+    check(AlphabetFontRenderer.clears >= 1, 'switching to Image alphabet clears dynamic font glyph pages');
+
+    // Disk save must preserve all 88 original player values while keeping Arduino Nano R3 active in RAM.
+    equal(ClientPrefs.savedProfile, MemoryProfiles.ARDUINO_NANO_R3, 'saved profile is Arduino Nano R3');
+    for (field => value in original)
+      equal(ClientPrefs.savedValues.get(field), value, 'Arduino Nano R3 save preserves player choice for $field');
+    assertForced(MemoryProfiles.ARDUINO_NANO_R3);
+
+    // 1-second menu idle trim with major GC + heap compaction + glyph cache clear
+    Paths.reset();
+    AlphabetFontRenderer.clears = 0;
+    LowMemory.update(0.9);
+    equal(Paths.unused, 0, 'no trim before 1.0s');
+    LowMemory.update(0.15);
+    equal(Paths.unused, 1, '1.0s idle in menus triggers trim');
+    equal(Paths.majorGcs, 1, 'Arduino Nano R3 forces major GC on trim');
+    equal(Paths.compacted, 1, 'Arduino Nano R3 compacts heap on trim');
+    equal(AlphabetFontRenderer.clears, 1, 'Arduino Nano R3 clears dynamic font glyph cache on trim');
+
+    // Downgrading to Experimental Extreme restores Arduino-only overrides while keeping Experimental ones!
+    LowMemory.setProfile(MemoryProfiles.EXPERIMENTAL, false);
+    check(LowMemory.experimentalHudOnly(), 'Experimental Extreme keeps metadata-only character stand-ins');
+    check(!Paths.ignoreDumpExclusions, 'Experimental Extreme restores Paths.dumpExclusions pinning');
+    equal(ClientPrefs.hideHud, original.get('hideHud'), 'downgrading restores hideHud');
+    equal(ClientPrefs.menuFramerate, original.get('menuFramerate'), 'downgrading restores menuFramerate');
+    equal(ClientPrefs.focusLostFramerate, original.get('focusLostFramerate'), 'downgrading restores focusLostFramerate');
+    equal(ClientPrefs.alphabetStyle, original.get('alphabetStyle'), 'downgrading restores alphabetStyle');
+    equal(ClientPrefs.pauseMusic, original.get('pauseMusic'), 'downgrading restores pauseMusic');
+    equal(ClientPrefs.extraVocals, original.get('extraVocals'), 'downgrading restores extraVocals');
+    check(Main.commitWatermark.visible, 'downgrading restores commit watermark');
+    equal(FramerateController.lastMenuFramerate, original.get('menuFramerate'), 'live menu framerate restored');
+    equal(FramerateController.lastFocusLostFramerate, original.get('focusLostFramerate'), 'live unfocused framerate restored');
+    assertForced(MemoryProfiles.EXPERIMENTAL);
+
+    // Returning to Off restores every single player preference across all tiers.
+    LowMemory.setProfile(MemoryProfiles.OFF, false);
+    check(!LowMemory.experimentalHudOnly(), 'Off disables metadata-only character stand-ins');
+    for (field => value in original)
+      equal(Reflect.field(ClientPrefs, field), value, 'Off after Arduino Nano R3 restores $field');
   }
 
   static function testCleanupPolicy():Void

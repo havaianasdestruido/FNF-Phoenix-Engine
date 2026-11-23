@@ -389,10 +389,13 @@ class TitleState extends MusicBeatState
 
     swagShader = new ColorSwap();
     // The title dancer is optional: content-stripped builds ship no
-    // gfDanceTitle art. (beatHit() already null-checks gfDance.)
+    // gfDanceTitle art, and minimal-menu profiles skip it to save its atlas.
+    // (beatHit() already null-checks gfDance.)
     // Both the image and the Sparrow atlas must exist: getSparrowAtlas
     // would treat a missing .xml path as literal XML and fail to parse it.
-    if (Paths.image('gfDanceTitle') != null && Paths.fileExists('images/gfDanceTitle.xml', TEXT))
+    if (!backend.LowMemory.policy().minimalMenus
+      && Paths.image('gfDanceTitle') != null
+      && Paths.fileExists('images/gfDanceTitle.xml', TEXT))
     {
       gfDance = new FlxSprite(ScreenLayout.contentLeft(FlxG.width) + titleJSON.gfx, titleJSON.gfy);
 

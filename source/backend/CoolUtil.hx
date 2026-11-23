@@ -240,6 +240,13 @@ class CoolUtil
 	private static final DEC_SUFFIXES:Array<Array<Dynamic>> = [['', false], ['un', false], ['duo', false], ['tre', true], ['quattuor', false], ['quin', false], ['se', true], ['septe', true], ['octo', false], ['nove', true]];
 	private static final CENTI_SUFFIXES:Array<Array<String>> = [['', '', ''], ['centi', 'n', 'x'], ['ducenti', 'n', ''], ['trecenti', 'n', 's'], ['quadringenti', 'n', 's'], ['quingenti', 'n', 's'], ['sescenti', 'n', ''], ['septingenti', 'n', ''], ['octingenti', 'm', 'x'], ['nongenti', '', '']];
 	
+	/**
+	 * Formats a number in compact notation (e.g. `1.5 thousand`, `2 million`).
+	 * Numbers below 1000 have no illion suffix and are returned as a plain
+	 * value with at most two decimals (`999` -> `999`); values at or below
+	 * 0.001 (including `0`) return `"0"`. Sub-1000 inputs used to index the
+	 * suffix tables at `-1` and crash with a null access.
+	 */
 	public static function formatCompactNumber(number:Float):String
 	{
 		var magnitude:Int = -1;
@@ -249,6 +256,15 @@ class CoolUtil
 		{
 			num /= 1000.0;
 			magnitude++;
+		}
+
+		// Sub-1000 (and negative) values have magnitude -1: there is no suffix
+		// to build, so return the plain floored value instead of indexing the
+		// suffix tables out of bounds.
+		if (magnitude == -1)
+		{
+			var subUnit:Float = Math.floor(num * 100) / 100;
+			return Math.abs(subUnit) <= 0.001 ? "0" : "" + subUnit;
 		}
 
 		// Determine which suffixes to use

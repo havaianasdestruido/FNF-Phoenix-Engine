@@ -280,7 +280,7 @@ class MusicBeatState extends FlxUIState
 
 		loadStateScripts();
 		camBeat = FlxG.camera;
-		var transitionsEnabled:Bool = RuntimeFlags.getBool("transitions.enabled", true);
+		var transitionsEnabled:Bool = RuntimeFlags.getBool("transitions.enabled", true) && !LowMemory.policy().minimalMenus;
 		if (!transitionsEnabled)
 		{
 			FlxTransitionableState.skipNextTransIn = true;
@@ -416,7 +416,7 @@ class MusicBeatState extends FlxUIState
 
 	override function startOutro(onOutroComplete:()->Void):Void
 	{
-		if (!FlxTransitionableState.skipNextTransIn && RuntimeFlags.getBool("transitions.enabled", true))
+		if (!FlxTransitionableState.skipNextTransIn && RuntimeFlags.getBool("transitions.enabled", true) && !LowMemory.policy().minimalMenus)
 		{
 			openSubState(new CustomFadeTransition(0.6, false));
 			CustomFadeTransition.finishCallback = onOutroComplete;
