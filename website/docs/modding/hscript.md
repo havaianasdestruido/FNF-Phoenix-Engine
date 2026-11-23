@@ -177,6 +177,189 @@ function onBeatHit()
 end
 ```
 
+## Cookbook
+
+Standalone scripts get the engine classes directly, so the examples below use real Flixel
+types instead of the string-keyed API. Put them in `mods/MyMod/scripts/` (global) or
+`mods/MyMod/data/<song>/` (one song).
+
+### Sprites on a camera
+
+```haxe
+// mods/MyMod/scripts/logo.hx
+var logo:FlxSprite;
+
+function onCreatePost() {
+    logo = new FlxSprite();
+    logo.frames = Paths.getSparrowAtlas('phoenix_logo');   // images/phoenix_logo.png + .xml
+    logo.animation.addByPrefix('idle', 'logo idle', 24, true);
+    logo.animation.play('idle');
+    logo.setGraphicSize(240, 240);
+    logo.updateHitbox();
+    logo.screenCenter();
+    logo.scrollFactor.set(0, 0);
+    logo.cameras = [game.camHUD];      // drawn by the HUD camera only
+    logo.antialiasing = ClientPrefs.globalAntialiasing;
+    game.add(logo);
+}
+
+function onDestroy() {
+    if (logo != null) logo.destroy();
+}
+```
+
+`Paths.getPackerAtlas(key)` and `Paths.getAsepriteAtlas(key)` load the other atlas
+formats; for a single image use `new FlxSprite(x, y).loadGraphic(Paths.image(key))` or
+`makeGraphic(w, h, 0xFFff5599)`.
+
+### Tweens and timers
+
+```haxe
+function onCreatePost() {
+    FlxTween.tween(logo, {y: 120, alpha: 0.4}, 1.2, {
+        ease: FlxEase.backOut,
+        onComplete: function(_) trace('logo moved')
+    });
+
+    // Conductor.crochet is milliseconds per beat, FlxTween wants seconds.
+    FlxTween.tween(logo.scale, {x: 1.2, y: 1.2}, Conductor.crochet / 2000, {
+        onComplete: function(_) FlxTween.tween(logo.scale, {x: 1, y: 1}, 0.2)
+    });
+
+    new FlxTimer().start(2, function(_) {
+        FlxTween.cancelTweensOf(logo);
+    }, 1);
+}
+```
+
+Durations are in seconds. Two things the Lua wrappers do for you that you must do
+yourself here: divide by `game.playbackRate` so tweens follow rate changes, and go through
+`FlxTweenType` (`LOOPING`, `PINGPONG`, `PERSIST`, `BACKWARD`) for looping — the enum is not in the seeded scope,
+so pull it in with `addHaxeLibrary('FlxTweenType', 'flixel.tweens')` or simply chain a new
+tween from `onComplete`, as above.
+
+### Characters
+
+```haxe
+function onCreatePost() {
+    // Play an animation the chart does not trigger.
+    game.dad.playAnim('singLEFT', true, false, 0);
+
+    // Move a character without touching the chart data.
+    game.boyfriend.x += 40;
+
+    // Swap a character through the same path the 'Change Character' event
+    // uses: precache it, then trigger the event.
+    addCharacterToList('pico-nightmare', 'dad');
+    triggerEvent('Change Character', 'dad', 'pico-nightmare', Conductor.songPosition);
+}
+
+function onBeatHit() {
+    if (curBeat % 4 == 0) game.gf.dance();
+    return Function_Continue;
+}
+```
+
+`Character` has `dance()`, `playAnim(name, forced, reverse, startFrame)`,
+`addOffset(anim, x, y)` and `x` / `y` / `alpha` / `scale` like any sprite. Null-check
+`game.gf` before using it — stages without a girlfriend leave it `null`.
+
+### Stage and HUD tweaks
+
+```haxe
+function onCreatePost() {
+    // Health bar and time bar colours (FlxColor ints, not strings).
+    game.healthBar.createFilledBar(0xFFFF5599, 0xFF33CCFF);
+    game.healthBar.updateBar();
+    game.timeBar.createFilledBar(0xFF33CCFF, 0xFFFF5599);
+    game.timeBar.updateBar();
+
+    // Restyle the score text in place (plain fields, no enum casts needed).
+    game.scoreTxt.color = 0xFFFFEE88;
+    game.scoreTxt.size = 20;
+    game.scoreTxt.borderSize = 2;
+}
+
+function onUpdateScore(miss:Bool) {
+    game.scoreTxt.text = 'SCORE ${game.songScore} | MISSES ${game.songMisses}';
+}
+```
+
+`onUpdateScore` fires after the engine rebuilt the text, so overwriting it there wins. To
+keep a permanent HUD element instead, create your own `FlxText`, point
+`text.cameras = [game.camHUD]` at the HUD camera and `game.add(text)` — see
+[Sprites on a camera](#sprites-on-a-camera).
+
+### Shaders
+
+```haxe
+// mods/MyMod/shaders/colorShift.frag must exist.
+var shader:Dynamic;
+
+function onCreatePost() {
+    shader = FunkinShader.fromFile('colorShift');   // same lookup as initLuaShader
+    if (shader == null) return;                     // shaders off, or file missing
+
+    shader.setFloat('uAmount', 0.5);
+    game.boyfriend.shader = shader;
+
+    var filter = new ShaderFilter(shader);
+    game.camHUD.filters = [filter];
+}
+```
+
+`FunkinShader.fromFile` returns `null` when the player has shaders disabled or the
+platform has no runtime GLSL, so a single null check covers both cases.
+
+### Custom substates and state switches
+
+```haxe
+function onEvent(name:String, value1:String, value2:String, strumTime:Float) {
+    if (name == 'Open My Menu') {
+        // data/states/MyPause.hx for the contents.
+        openCustomSubstate('MyPause', true);   // true = pause the song while open
+    }
+}
+
+function onKeyPress(key:String) {
+    if (key == 'pause') { openCustomSubstate('MyPause', true); return Function_Stop; }
+}
+```
+
+Inside `data/states/MyPause.hx` you have the same `openCustomSubstate` /
+`closeCustomSubstate` helpers plus `insertToCustomSubstate(tag, pos)`, which moves a
+sprite created on the PlayState into the open substate:
+
+```haxe
+// data/states/MyPause.hx
+function onCreate() {
+    var frame = new FlxSprite(0, 0).makeGraphic(400, 200, 0xFF111111);
+    frame.screenCenter();
+    state.add(frame);
+}
+```
+
+`switchCustomState('MyMenu', {from: 'freeplay'})` replaces the whole screen with
+`data/states/MyMenu.hx`; `customStateExists('MyMenu')` checks the file is there first.
+
+### Calling Lua-side helpers from a `.hx` script
+
+Because standalone HScript inherits the shared Lua registry, the string-keyed functions
+also exist:
+
+```haxe
+function onCreatePost() {
+    makeLuaSprite('luaLogo', 'phoenix_logo', 0, 0);   // same calls as Lua
+    setObjectCamera('luaLogo', 'camHUD');
+    addLuaSprite('luaLogo', true);
+    doTweenX('logoSwing', 'luaLogo', 200, 1.0, 'quadOut');
+}
+```
+
+That is the pragmatic split: use real classes when you need something the API lacks, and
+the registry functions when they already do exactly what you want. See the
+[Lua cookbook](./lua-scripting.md#cookbook) for the argument lists.
+
 ## File-based state scripts
 
 State scripts are a different host again: `.hx` files under `data/states/` run on

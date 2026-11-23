@@ -50,6 +50,85 @@ Events triggered from a script with `triggerEvent()` do **not** call `onEvent`.
 
 :::
 
+### More event examples
+
+**Read both values as numbers.** Values always arrive as strings, so convert defensively:
+
+```lua
+-- mods/MyMod/custom_events/Strobe Burst.lua
+local function num(value, fallback)
+    local parsed = tonumber(value)
+    if parsed == nil then return fallback end
+    return parsed
+end
+
+function onEvent(name, value1, value2)
+    if name ~= 'Strobe Burst' then return end
+
+    local times = math.floor(num(value1, 4))     -- how many flashes
+    local duration = num(value2, 0.08)           -- seconds per flash
+
+    for i = 1, times do
+        runTimer('strobe' .. i, duration * (i * 2 - 1), 1)
+    end
+end
+
+function onTimerCompleted(tag, loops, loopsLeft)
+    if tag:sub(1, 6) == 'strobe' then
+        cameraFlash('camGame', 'ffffff', 0.05, true)
+    end
+end
+```
+
+**Toggle something that already exists** — create the sprite once, flip it per event:
+
+```lua
+-- mods/MyMod/custom_events/Spotlight Toggle.lua
+function onCreatePost()
+    makeLuaSprite('eventSpot', 'stages/spotlight', 0, -100)
+    setBlendMode('eventSpot', 'add')
+    setProperty('eventSpot.alpha', 0)
+    setObjectCamera('eventSpot', 'camGame')
+    addLuaSprite('eventSpot', false)
+end
+
+function onEvent(name, value1, value2)
+    if name == 'Spotlight Toggle' then
+        doTweenAlpha('spotFade', 'eventSpot', tonumber(value1) or 1, 0.4, 'quadOut')
+    elseif name == 'Spotlight Colour' then
+        setProperty('eventSpot.color', getColorFromHex(value1))
+    end
+end
+```
+
+**Fire an engine event from a script.** `triggerEvent` runs the engine's own handler for
+the named event — it does **not** broadcast `onEvent`:
+
+```lua
+function onBeatHit()
+    if curBeat == 64 then
+        triggerEvent('Hey!', 'bf', '0.6', getSongPosition())
+        triggerEvent('Change Character', 'dad', 'pico-nightmare', getSongPosition())
+    end
+end
+```
+
+### The event JSON, if you are authoring it by hand
+
+Charts and `events.json` share one shape: a list of `[strumTime, [ [name, value1, value2] ]]`
+entries, where several events may share a timestamp.
+
+```json
+{
+  "song": {
+    "events": [
+      [ 20210.5, [ ["Spotlight Toggle", "1", ""] ] ],
+      [ 25184.2, [ ["Spotlight Colour", "ff5599", ""], ["Hey!", "bf", "0.6"] ] ]
+    ]
+  }
+}
+```
+
 ## Custom notetypes
 
 ### 1. Set the notetype in the chart
@@ -84,6 +163,101 @@ function goodNoteHit(id, direction, noteType, isSustainNote)
     end
 end
 ```
+
+### Notetype recipes
+
+**A note that only plays a sound.** No property changes at all, so the note looks and
+scores like a normal one:
+
+```lua
+-- mods/MyMod/custom_notetypes/Clap Note.lua
+local NOTE_TYPE = 'Clap Note'   -- must match this file's name
+
+function goodNoteHit(id, direction, noteType, isSustainNote)
+    if noteType ~= NOTE_TYPE or isSustainNote then return end
+    playSound('clap', 0.8)
+end
+```
+
+**A hold note that drains health while you keep it.** Sustain notes fire `goodNoteHit` on
+every hold tick, so gate on `isSustainNote`:
+
+```lua
+local NOTE_TYPE = 'Drain Note'
+local DRAIN_PER_TICK = 0.004
+
+function onSpawnNote(id, noteData, noteType, isSustainNote, strumTime)
+    if noteType ~= NOTE_TYPE then return end
+    local group = isSustainNote and 'sustainNotes' or 'notes'
+    setPropertyFromGroup(group, id, 'texture', 'DRAINNOTE_assets')
+end
+
+function goodNoteHit(id, direction, noteType, isSustainNote)
+    if noteType ~= NOTE_TYPE or not isSustainNote then return end
+    setProperty('health', getProperty('health') - DRAIN_PER_TICK)
+end
+```
+
+**A free hit that does not touch the score.** `ignoreNote` keeps it out of accuracy and
+`noAnimation` stops the character from singing:
+
+```lua
+local NOTE_TYPE = 'Air Note'
+
+function onSpawnNote(id, noteData, noteType, isSustainNote, strumTime)
+    if noteType ~= NOTE_TYPE then return end
+    local group = isSustainNote and 'sustainNotes' or 'notes'
+    setPropertyFromGroup(group, id, 'ignoreNote', true)
+    setPropertyFromGroup(group, id, 'noAnimation', true)
+    setPropertyFromGroup(group, id, 'multAlpha', 0.6)
+end
+```
+
+**A note that changes which character sings.** `gfNote` routes the lane to the girlfriend,
+and `animSuffix` appends to the sing animation name:
+
+```lua
+local NOTE_TYPE = 'GF Ballad'
+
+function onSpawnNote(id, noteData, noteType, isSustainNote, strumTime)
+    if noteType ~= NOTE_TYPE then return end
+    local group = isSustainNote and 'sustainNotes' or 'notes'
+    setPropertyFromGroup(group, id, 'gfNote', true)
+    setPropertyFromGroup(group, id, 'animSuffix', '-alt')
+end
+```
+
+**Reacting to a miss instead of a hit.** `noteMiss` receives the same arguments, so the
+same four-line handler works:
+
+```lua
+local NOTE_TYPE = 'Bomb Note'
+
+function noteMiss(id, direction, noteType, isSustainNote)
+    if noteType ~= NOTE_TYPE then return end
+    cameraShake('camGame', 0.03, 0.4)
+    setProperty('health', 0.2)     -- survive the punishment
+end
+```
+
+### Chart JSON for a notetype
+
+Hand-authoring a chart means writing the type as the **fourth** element of a note:
+
+```json
+{
+  "sectionNotes": [
+    [ 1200.0, 0, 0, "Clap Note" ],
+    [ 1500.0, 2, 350, "Drain Note" ]
+  ],
+  "sectionBeats": 4,
+  "mustHitSection": true
+}
+```
+
+`[strumTime, lane, sustainLength, type]`: `lane` is `0–3` for the player's side or `4–7` for
+the opponent's, and a numeric type index from older charts is resolved through
+`ChartingState.noteTypeList` when the chart loads.
 
 ### Note fields worth knowing
 

@@ -48,6 +48,92 @@ mods/
 Those folder names are exactly the list in `Mods.ignoreModFolders` — they are *content*
 folders, so the mods manager never treats them as nested mods.
 
+## The smallest working mod
+
+Four files are enough for a song with a script. Everything else in the tree above is
+optional:
+
+```text
+mods/HelloMod/
+├── pack.json
+├── data/hello/hello.json          # the chart
+├── songs/hello/Inst.ogg           # the instrumental
+└── scripts/hello.lua              # runs on every song
+```
+
+`mods/HelloMod/pack.json`:
+
+```json
+{
+  "name": "Hello Mod",
+  "description": "One song with one script.",
+  "color": [255, 128, 0],
+  "runsGlobally": false
+}
+```
+
+`mods/HelloMod/weeks/hello-week.json` — only needed to list the song in Story Mode:
+
+```json
+{
+  "songs": [["hello", "bf", [146, 113, 253]]],
+  "weekCharacters": ["", "bf", ""],
+  "weekBackground": "stage",
+  "storyName": "Hello",
+  "weekName": "Hello",
+  "hideStoryMode": false,
+  "hideFreeplay": false,
+  "startUnlocked": true
+}
+```
+
+The chart itself is a single `song` object; the parts a softmod actually edits are the
+metadata block and `notes`:
+
+```json
+{
+  "song": {
+    "song": "Hello",
+    "bpm": 150,
+    "speed": 2.0,
+    "player1": "bf",
+    "player2": "dad",
+    "gfVersion": "gf",
+    "stage": "stage",
+    "needsVoices": false,
+    "validScore": true,
+    "notes": [
+      {
+        "sectionNotes": [
+          [1200.0, 0, 0],
+          [1350.0, 1, 0],
+          [1500.0, 2, 200]
+        ],
+        "lengthInSteps": 16,
+        "mustHitSection": true,
+        "typeOfSection": 0
+      }
+    ],
+    "events": []
+  }
+}
+```
+
+`sectionNotes` entries are `[strumTime, lane, sustainLength]`; an optional fourth element
+is the note type (see [Custom events & notetypes](./custom-events-and-notetypes.md)).
+
+Two details bite hand-written charts:
+
+* `lengthInSteps` is the *Psych 1.0* field. Current charts size a section with
+  `sectionBeats` (4 = one bar in 4/4); the loader deletes `lengthInSteps` when it
+  converts an old chart.
+* A chart file either has a top-level `"song"` wrapper — the shape above — or, when it
+  carries a `"format"` field, is the bare song object itself. The loader treats the
+  presence of `format` as "already unwrapped".
+
+Difficulty variants are separate files — `hello-easy.json`, `hello-hard.json` — and fall
+back to `hello.json` when a difficulty is missing.
+
 ## `pack.json`
 
 Read by `Mods.getPack(folder)`, parsed with the tolerant `tjson`:
