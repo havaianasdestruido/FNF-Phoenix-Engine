@@ -525,7 +525,10 @@ class Note extends FlxSprite
 
 	@:noCompletion
 	override function set_clipRect(rect:FlxRect):FlxRect {
-		@:bypassAccessor clipRect = rect;
+		// Plain assignment: bare property references inside an accessor read/write the
+		// backing field (same pattern as flixel's own FlxSprite.set_clipRect). The
+		// @:bypassAccessor metadata is not needed here and is rejected in accessors.
+		clipRect = rect;
 
 		@:privateAccess if (frame != null) {
 			if (rect != null && _frame != null)

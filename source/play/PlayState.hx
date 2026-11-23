@@ -1901,7 +1901,7 @@ class PlayState extends MusicBeatState
 		#end
 
 		//PRECACHING THINGS THAT GET USED FREQUENTLY TO AVOID LAGSPIKES
-		final minimalPrecache:Bool = LowMemory.policy().minimalGameplayPrecache;
+		final minimalPrecache:Bool = backend.LowMemory.policy().minimalGameplayPrecache;
 		if (hitSoundString != "none" && (!minimalPrecache || ClientPrefs.hitsoundVolume > 0))
 			hitsound = FlxG.sound.load(Paths.sound("hitsounds/" + Std.string(hitSoundString).toLowerCase()));
 		if(ClientPrefs.hitsoundVolume > 0) Paths.sound('hitsound');

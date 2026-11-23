@@ -42,7 +42,7 @@ class BenchmarkSynthetic
     // Warm the interpreter/JIT with a throwaway tick of the cheapest sample.
     try
     {
-      sampleMath(200);
+      sampleBpmMath(200);
     }
     catch (_:Dynamic) {}
 
