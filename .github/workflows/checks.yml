@@ -67,6 +67,9 @@ jobs:
       - name: ModHealth report and invalid pack.json
         run: bash tests/haxe/run-mod-health.sh
 
+      - name: Reject invalid Lua tween values before they reach Flixel
+        run: bash tests/haxe/run-tween-value-validation.sh
+
   stage-editor:
     name: Stage editor spec
     runs-on: ubuntu-latest

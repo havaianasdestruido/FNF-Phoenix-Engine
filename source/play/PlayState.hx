@@ -325,6 +325,13 @@ class PlayState extends MusicBeatState
 	public var goods:Int = 0;
 	public var bads:Int = 0;
 	public var poorRatings:Int = 0;
+	/** Compatibility alias for the legacy Psych/JS Engine `shits` judgement counter. */
+	public var shits(get, set):Int;
+	inline function get_shits():Int return poorRatings;
+	inline function set_shits(value:Int):Int {
+		poorRatings = value;
+		return value;
+	}
 	public var nps:Float = 0;
 	public var maxNPS:Float = 0;
 	public var oppNPS:Float = 0;
