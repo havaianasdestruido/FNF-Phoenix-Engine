@@ -163,12 +163,15 @@ class StoryMenuState extends MusicBeatState
 		}
 
 		WeekData.setDirectoryFromWeek(loadedWeeks[0]);
-		var charArray:Array<String> = loadedWeeks[0].weekCharacters;
-		for (char in 0...3)
+		if (!backend.LowMemory.policy().minimalMenus)
 		{
-			var weekCharacterThing:MenuCharacter = new MenuCharacter(ScreenLayout.contentLeft(FlxG.width) + ScreenLayout.BASE_WIDTH * 0.25 * (1 + char) - 150, charArray[char]);
-			weekCharacterThing.y += 70;
-			grpWeekCharacters.add(weekCharacterThing);
+			var charArray:Array<String> = loadedWeeks[0].weekCharacters;
+			for (char in 0...3)
+			{
+				var weekCharacterThing:MenuCharacter = new MenuCharacter(ScreenLayout.contentLeft(FlxG.width) + ScreenLayout.BASE_WIDTH * 0.25 * (1 + char) - 150, charArray[char]);
+				weekCharacterThing.y += 70;
+				grpWeekCharacters.add(weekCharacterThing);
+			}
 		}
 
 		difficultySelectors = new FlxGroup();
@@ -466,7 +469,7 @@ class StoryMenuState extends MusicBeatState
 
 		bgSprite.visible = true;
 		var assetName:String = leWeek.weekBackground;
-		if(assetName == null || assetName.length < 1) {
+		if(assetName == null || assetName.length < 1 || backend.LowMemory.policy().minimalMenus) {
 			bgSprite.visible = false;
 		} else {
 			var menuBgGraphic = Paths.image('menubackgrounds/menu_' + assetName);
