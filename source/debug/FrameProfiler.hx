@@ -276,20 +276,15 @@ class FrameProfiler
       NativeFrameProfiler.ensureInit(targetFps);
     }
 
-    #if sys
-    try
+    // `--profile` (backend.CommandLine, docs/CLI.md) turns the overlay on and
+    // exports a log on exit. The historical `-profile` and `--frame-profiler`
+    // spellings are normalized there, so only one flag is read here — and a
+    // target without a command line simply never sets it.
+    if (backend.CommandLine.options.profile)
     {
-      for (arg in Sys.args())
-      {
-        if (arg == "--profile" || arg == "-profile" || arg == "--frame-profiler")
-        {
-          autoExportOnExit = true;
-          ClientPrefs.frameProfiler = true;
-        }
-      }
+      autoExportOnExit = true;
+      ClientPrefs.frameProfiler = true;
     }
-    catch (_:Dynamic) {}
-    #end
 
     #if PROFILE_FRAMES
     autoExportOnExit = true;

@@ -873,9 +873,12 @@ class LuaDiagnosticsSpec
     check(initAt != -1, 'Main installs the diagnostics at boot');
     final initCall:String = initAt == -1 ? '' : main.substring(initAt, main.indexOf('\n', initAt));
     check(initCall.indexOf("ClientPrefs.readSavedBool('luaVerbose')") != -1, 'the saved verbose preference already covers the first song');
-    // Safe Mode (backend.RecoveryBoot) shows its screen before any saved
-    // preference is read, so that boot must not open the save here either.
-    check(initCall.indexOf('RecoveryBoot.THRESHOLD ? false : ClientPrefs.readSavedBool(') != -1, 'a Safe Mode boot does not read the save this early');
+    // Safe Mode shows its screen before any saved preference is read, so that
+    // boot must not open the save here either: neither a crash loop counted by
+    // backend.RecoveryBoot nor a deliberate `--safe-mode` launch option
+    // (backend.CommandLine) may reach the verbose flag, and Main.safeModeBoot()
+    // is the one guard both go through.
+    check(initCall.indexOf('safeModeBoot() ? false : ClientPrefs.readSavedBool(') != -1, 'a Safe Mode boot does not read the save this early');
     final flagsAt:Int = main.indexOf('backend.RuntimeFlags.load();');
     final vlogAt:Int = main.indexOf('backend.VLog.init(');
     check(flagsAt != -1 && vlogAt != -1 && initAt > flagsAt && initAt > vlogAt, 'the diagnostics start after flags.ini is loaded and the vlog is open');

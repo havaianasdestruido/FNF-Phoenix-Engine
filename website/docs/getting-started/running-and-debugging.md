@@ -16,6 +16,39 @@ lime test windows -debug     # debug build (asserts, stack traces, slower)
 A debug build defines `debug`, which the codebase uses to gate `trace()` calls and extra
 tooling (`#if debug`).
 
+## Launch options
+
+A built executable also reads the arguments it was started with. They are parsed with
+[docopt-ng](https://lib.haxe.org/p/docopt-ng/) by `backend.CommandLine`, they apply to
+that one session, and they never touch the save file:
+
+```bash
+cd build/release/windows/bin
+FNF-Phoenix-Engine.exe --help                 # usage text, then exit
+FNF-Phoenix-Engine.exe --fullscreen --fps=144
+FNF-Phoenix-Engine.exe --freeplay             # straight to FreeplayState
+./FNF-Phoenix-Engine --song=bopeebo --profile
+./FNF-Phoenix-Engine "phoenix://menu/mods"    # a deep link, like a protocol launch
+```
+
+| Option | Effect |
+|---|---|
+| `-h` / `--help`, `--version` | Print the usage text / the engine version and exit before a window opens |
+| `-w`, `-f`, `-b` | Windowed, exclusive fullscreen or borderless for this session |
+| `--fps=<n>` | Gameplay framerate (`1`-`10000`); menus keep *Menu Framerate* |
+| `--freeplay` / `--menu` | Runtime twins of the `-DFREEPLAY` / `-DMENU` build flags, through the same `backend.LaunchState` resolver |
+| `--song=<name>` / `--mod=<id>` | Open that [deep link](../subsystems/deep-links.md) once a menu is idle |
+| `--profile` / `--vlog` | Frame profiler (its log is exported on exit) / verbose log |
+| `--safe-mode` | Boot into the recovery screen, exactly like a crash loop does |
+| `--troll` | Super danger mode (`CoolUtil.selfDestruct()`); the legacy `-troll` spelling works too |
+| `--no-deeplinks` | Ignore the `phoenix://` links on the command line |
+
+An argument the parser cannot use is reported in the verbose log (`[CLI] ignored: ...`)
+and dropped: the game boots with the saved preferences either way. These are arguments
+for the built executable, not for `lime`, which consumes the flags it knows. Full
+reference, precedence rules and the checklist for adding an option: `docs/CLI.md`.
+Spec: `bash tests/haxe/run-command-line.sh`.
+
 ## VS Code
 
 The repository ships a ready-to-use configuration:

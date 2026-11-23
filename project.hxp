@@ -175,6 +175,18 @@ class Project extends HXProject
 	static final META_HORROR:FeatureFlag = "META_HORROR";
 
 	/**
+	 * `-DCLI_OPTIONS_ALLOWED`: parse the launch arguments with docopt-ng
+	 * (`backend.CommandLine`, `docs/CLI.md`) so the game can be started with
+	 * `--fullscreen`, `--fps=144`, `--freeplay`, `--song=bopeebo`, `--help`, ...
+	 * On by default wherever a process has a command line to read (desktop and
+	 * mobile); web, Flash and AIR never see one, so they neither need the
+	 * library on the classpath nor pay for it in bytes. Disable explicitly with
+	 * `-DNO_CLI_OPTIONS_ALLOWED`: `backend.CommandLine` then reports "nothing
+	 * requested" and still hands `phoenix://` arguments to `DeepLinks`.
+	 */
+	static final CLI_OPTIONS_ALLOWED:FeatureFlag = "CLI_OPTIONS_ALLOWED";
+
+	/**
 	 * `-DNO_BUILTIN_CONTENT`: compact CI build containing Tutorial and Week 1,
 	 * their characters, stages and UI, plus the engine shell and bundled mods.
 	 * Local builds default to full content; CI opts in explicitly.
@@ -492,6 +504,10 @@ class Project extends HXProject
 		// Feral GameMode integration (Linux only). Degrades gracefully when
 		// gamemode isn't installed, so it is safe to enable on all Linux builds.
 		GAMEMODE_ALLOWED.apply(this, isDesktop() && isLinux());
+		// Command line launch options (docs/CLI.md). docopt-ng is pure Haxe, so
+		// no isCPP() gate is needed; what matters is whether the target has
+		// arguments to parse at all.
+		CLI_OPTIONS_ALLOWED.apply(this, (isDesktop() || isMobile()) && !isWeb() && !isFlash() && !isAir());
 		CRASH_HANDLER.apply(this, true);
 		ACHIEVEMENTS_ALLOWED.apply(this, true);
 		CHECK_FOR_UPDATES.apply(this, true);
@@ -958,6 +974,9 @@ class Project extends HXProject
 		if (isDesktop() && !isFlash() && !isWeb() && isCPP())
 			addHaxelib('hxnativefiledialog');
 		addHaxelib('tjson');
+
+		if (CLI_OPTIONS_ALLOWED.isEnabled(this))
+			addHaxelib('docopt-ng'); // Command line launch options (backend.CommandLine)
 
 		if (isDesktop() && DISCORD_ALLOWED.isEnabled(this))
 			addHaxelib('hxdiscord_rpc'); // Discord API

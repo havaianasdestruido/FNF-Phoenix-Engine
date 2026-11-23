@@ -92,6 +92,8 @@ class DiagnosticsReport
     rows.push(row('Architecture', archText()));
     rows.push(row('Features', featureFlags()));
     #if sys
+    // Raw, as launched — an argument `backend.CommandLine` could not use still
+    // shows up here (see its `ignored:` note in the vlog and docs/CLI.md).
     final args:Array<String> = Sys.args();
     rows.push(row('Launch args', args.length == 0 ? 'none (icon launch)' : args.join(' ')));
     #end

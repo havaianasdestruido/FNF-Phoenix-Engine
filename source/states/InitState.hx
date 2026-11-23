@@ -102,8 +102,11 @@ class InitState extends FlxState {
 		Paths.clearUnusedMemory();
 
         // Default is the splash videos and then the title screen. The
-        // `-DFREEPLAY` / `-DMENU` build flags (backend.LaunchState) skip both.
-        switch (LaunchState.resolve(ClientPrefs.disableSplash))
+        // `-DFREEPLAY` / `-DMENU` build flags (backend.LaunchState) skip both,
+        // and so do this run's `--freeplay` / `--menu` launch options
+        // (backend.CommandLine, docs/CLI.md): same resolver, same "freeplay
+        // wins a conflict" rule, but without rebuilding.
+        switch (LaunchState.resolve(ClientPrefs.disableSplash, backend.CommandLine.freeplayOverride(), backend.CommandLine.menuOverride()))
         {
             case LaunchTarget.FREEPLAY:
                 FlxG.switchState(FreeplayState.new);

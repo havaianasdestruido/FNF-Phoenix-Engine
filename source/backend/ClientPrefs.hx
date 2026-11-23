@@ -529,7 +529,7 @@ class ClientPrefs { //default settings if it can't find a save file containing y
 
 				if ((RecoveryBoot.freshPrefs || (RecoveryBoot.defaultDisplay && (field == "resolution" || field == "framerate" || field == "menuFramerate" || field == "focusLostFramerate" || field == "widescreen")))) continue;
 				if (!importantMap.get("saveBlackList").contains(field))
-					Reflect.setField(FlxG.save.data, field, Reflect.field(ClientPrefs, field));
+					Reflect.setField(FlxG.save.data, field, savedValueOf(field));
 			}
 		}
 		LowMemory.endSave();
@@ -552,6 +552,26 @@ class ClientPrefs { //default settings if it can't find a save file containing y
 		save.data.customControls = keyBinds;
 		save.flush();
 		FlxG.log.add("Settings saved!");
+	}
+
+	/**
+	 * What a preference is written to the save file as: its live value, except
+	 * while a `--fps=<n>` launch option is still the rate in force
+	 * (`backend.CommandLine.savedFramerate`). A session override must not be
+	 * baked in as a choice the player never made — and the moment they pick a
+	 * rate in Options -> Graphics the live value differs from the override, so
+	 * their choice is what gets saved.
+	 *
+	 * @param field A `ClientPrefs` static field name, from the save loop above.
+	 * @return The value to persist for that field.
+	 */
+	private static function savedValueOf(field:String):Dynamic
+	{
+		final live:Dynamic = Reflect.field(ClientPrefs, field);
+		final requestedFps:Null<Int> = CommandLine.framerateOverride();
+		if (field == "framerate" && requestedFps != null && CommandLine.savedFramerate != null && live == requestedFps)
+			return CommandLine.savedFramerate;
+		return live;
 	}
 
 	/**
@@ -673,6 +693,17 @@ class ClientPrefs { //default settings if it can't find a save file containing y
     framerate = FramerateMath.clamp(framerate, uncappedFps);
     menuFramerate = FramerateMath.clamp(menuFramerate, uncappedFps);
     focusLostFramerate = FramerateMath.clamp(focusLostFramerate, uncappedFps);
+    // `--fps=<n>` (backend.CommandLine, docs/CLI.md) overrides the gameplay rate
+    // for this session. The player's own number is remembered so saveSettings()
+    // writes that back instead: a launch option is not a preference change, the
+    // same rule backend.LowMemory.beginSave() applies to a forced memory
+    // profile. Menus keep `menuFramerate`.
+    final requestedFps:Null<Int> = CommandLine.framerateOverride();
+    if (requestedFps != null)
+    {
+      CommandLine.savedFramerate = framerate;
+      framerate = FramerateMath.clamp(requestedFps, uncappedFps);
+    }
     // Apply the saved gameplay rate now that every field (including
     // `uncappedFps`, which the cap depends on) is final. Menu screens apply
     // `menuFramerate` when they are created; see backend.FramerateController.
@@ -812,7 +843,12 @@ class ClientPrefs { //default settings if it can't find a save file containing y
     // A hand-edited save can hold an unknown spelling; normalize it so the
     // option row, the save file and the window all agree.
     windowMode = WindowMode.normalize(windowMode);
-    WindowMode.apply();
+    // `--windowed` / `--fullscreen` / `--borderless` (backend.CommandLine,
+    // docs/CLI.md) drive the window for this session only: `windowMode` above
+    // stays what is saved, so Options keeps showing the player's own choice and
+    // nothing is written back. `WindowMode.apply` never saves.
+    final requestedMode:String = CommandLine.windowModeOverride();
+    WindowMode.apply(requestedMode.length > 0 ? requestedMode : windowMode);
   }
 
 	inline public static function getGameplaySetting(name:String, defaultValue:Dynamic):Dynamic {
