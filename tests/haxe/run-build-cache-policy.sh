@@ -210,7 +210,7 @@ haxelib_save=$(step "Save haxelib and hxcpp tools")
 haxelib_key=$(field key "$haxelib_restore")
 [ "$haxelib_key" = "$(field key "$haxelib_save")" ] || fail "haxelib save must reuse the restore key"
 case "$haxelib_key" in
-  *'env.CACHE_SCHEMA'*haxelib*'matrix.setup'*'env.HAXE_VERSION'*hashFiles*'hmm.json'*) ;;
+  *'env.HAXELIB_CACHE_SCHEMA'*haxelib*'matrix.setup'*'env.HAXE_VERSION'*hashFiles*'hmm.json'*) ;;
   *) fail "haxelib key must be content-derived per target: $haxelib_key" ;;
 esac
 for name in "Install haxelib dependencies (Android)" "Install haxelib dependencies (Windows)"; do

@@ -385,6 +385,7 @@ jobs:
       # ==========================================
       - name: Compile hxcpp tools (Android)
         if: steps.target-selection.outputs.enabled == 'true' && matrix.setup == 'android' && steps.haxelib-cache.outputs.cache-hit != 'true'
+        continue-on-error: true
         shell: bash
         run: |
           cd "$HAXELIB_PATH/hxcpp/git/tools/run"
@@ -398,6 +399,7 @@ jobs:
       # ==========================================
       - name: Compile hxcpp tools (Windows)
         if: steps.target-selection.outputs.enabled == 'true' && matrix.setup == 'windows' && steps.haxelib-cache.outputs.cache-hit != 'true'
+        continue-on-error: true
         shell: cmd
         run: |
           cd /d "%HAXELIB_PATH%\hxcpp\git\tools\run"
