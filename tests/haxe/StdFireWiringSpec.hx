@@ -46,6 +46,24 @@ class StdFireWiringSpec
     if (androidTitle.indexOf('LimeNativeText.cacheTitle(app.window, title)') < 0
         || androidTitle.indexOf('LimeNativeText.setTitle(') >= 0)
       throw 'Android must cache the Lime title without SDL overwriting the Unicode Activity title';
+    // The Super Secret Debug Menu owns the player-facing entry point. The page
+    // stays a substate so Back hands the camera back to the menu, and a mod's
+    // data/states script must not be able to replace a debug page.
+    var debugMenu = File.getContent('source/options/SuperSecretDebugMenu.hx');
+    if (debugMenu.indexOf('new states.StdFireTestState()') < 0)
+      throw 'the Super Secret Debug Menu must open the stdfire self-test page';
+    var page = File.getContent('source/states/StdFireTestState.hx');
+    if (page.indexOf('extends MusicBeatSubstate') < 0)
+      throw 'the stdfire self-test page must be a substate so Back returns to the debug menu';
+    if (page.indexOf('scriptsAllowed = false') < 0)
+      throw 'a debug page must not be replaceable by a mod data/states script';
+    if (page.indexOf('new StdFireSelfTest()') < 0 || page.indexOf('runAutomatic()') < 0)
+      throw 'the page must run the shared self-test checks';
+    var selfTest = File.getContent('source/backend/StdFireSelfTest.hx');
+    for (name in ['nativeTitleRename', 'nativeMSGBox', 'nativeWarn'])
+      if (selfTest.indexOf('StdFire.' + name + '(') < 0)
+        throw 'the self-test must call every stdfire function: ' + name;
+
     Sys.println('StdFire host wiring passed');
   }
 }

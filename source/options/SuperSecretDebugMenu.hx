@@ -53,6 +53,15 @@ class SuperSecretDebugMenu extends BaseOptionsMenu
 		option.onChange = doDaUpdate;
 		addOption(option);
 
+		var option:Option = new Option('stdfire Self-Test',
+			"Opens a page that runs every stdfire function (title rename, native message box and native warning) on this device.",
+			'stdfireSelfTest',
+			'link',
+			false);
+
+		option.onChange = openStdFireSelfTest;
+		addOption(option);
+
 		var option:Option = new Option('Rainbow FPS',
 			"If checked, allows the FPS color to be rainbow.",
 			'rainbowFPS',
@@ -167,6 +176,14 @@ class SuperSecretDebugMenu extends BaseOptionsMenu
 
     nextMessage();
 	}
+	/**
+	 * Opens the stdfire self-test over this menu. It is a substate, so closing
+	 * the page returns here instead of rebuilding the options list.
+	 */
+	function openStdFireSelfTest():Void {
+		openSubState(new states.StdFireTestState());
+	}
+
 	function doDaUpdate():Void {
 		UpdateChecker.check(function(result) {
 			switch (result) {

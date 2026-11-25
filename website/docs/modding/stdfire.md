@@ -101,3 +101,24 @@ every frame or during time-critical play. Use `NativeWarn` sparingly for small
 messages, not for a stream of alerts. Multiple browser, Android and iOS warnings
 replace the preceding toast/banner. On Linux and macOS, a busy helper retains only the
 latest pending warning rather than building an unbounded queue.
+
+## Self-test on this device
+
+**Options → Secret Debug Menu → stdfire Self-Test** opens a page that calls every function
+above on the running build. Each row reports `PASS`, `FAIL`, `SKIP` or `READY`, with the
+exact result underneath the selected row.
+
+- Opening the page runs every check that shows nothing: the interpreter namespace, the
+  title rename (which always restores the title it found), and the null/blank/NUL
+  rejections.
+- The two rows that display something real stay `READY` until you select them and press
+  `ACCEPT`, or press `R` to run everything. The message box is modal, so it blocks the
+  game until dismissed.
+- `SKIP` means this build has no backend for that function — a non-C++ desktop build has
+  no `NativeWarn`, and Flash/AIR has neither — so the documented `false` is reported as a
+  skip instead of a failure.
+- `PASS` on an interactive row means the request was accepted, not that the OS drew it;
+  check the dialog or toast on screen.
+
+The same checks run headless in `tests/haxe/run-stdfire.sh` (`StdFireSelfTestSpec`), and
+the page never writes to the save file.
