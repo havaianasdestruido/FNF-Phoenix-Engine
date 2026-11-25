@@ -1,0 +1,10 @@
+{
+  "name": "WIN32 Modchart",
+  "description": "WIN32MODCHART: Erect Dad Battle with a new readable modchart move on every turn, and the engine's bundled Windows GDI / HPPD desktop payloads taking over the last chorus. Windows only.",
+  "restart": false,
+  "color": [200, 255, 122],
+  "runsGlobally": false,
+  "platforms": ["windows"],
+  "scriptSandbox": true,
+  "scriptSandboxAllowlist": []
+}

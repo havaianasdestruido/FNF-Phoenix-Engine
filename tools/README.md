@@ -177,3 +177,30 @@ python3 tools/platform_icon_preview.py --out /tmp/badges.png --background 1a1a1a
 Rendering needs [Pillow](https://pypi.org/project/Pillow/) (`pip install Pillow`);
 the parser underneath is plain stdlib. The generated sheet is scratch output -
 don't commit it. See `docs/PLATFORM_ICONS.md` for the feature itself.
+
+## Modchart mod validator (`validate_win32modchart.py`)
+
+Checks the bundled `mods/win32modchart/` example without a Haxe toolchain. It
+runs the real song script against a Python port of `ModchartEvent`,
+`ModchartEventManager` and `PercentStore`, and of the modifier maths
+(`Transform`, `Rotate`, `Invert`, `Scale`, `Zoom`, `Drunk`, `SawTooth`,
+`Bounce`), then reports:
+
+- the chart metadata and that the script's turn table matches the chart's real
+  hand-overs,
+- `ScriptSecurityScanner` findings (the sandbox source gate),
+- the displacement budget the player can ever see, leftover displacement on
+  block boundaries, and overlapping eases on one percent,
+- the GDI teardown (every effect enabled is later disabled and unregistered),
+- and the final HUD state.
+
+Requires [`lupa`](https://pypi.org/project/lupa/):
+
+```sh
+python3 -m venv /tmp/v && /tmp/v/bin/pip install lupa
+/tmp/v/bin/python tools/validate_win32modchart.py
+```
+
+Inside the engine, the equivalent checks run from a Windows build; this tool is
+the offline stand-in, so it also guards the mod against regressions in CI-less
+environments.

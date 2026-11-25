@@ -103,6 +103,25 @@ shaders, a custom camera, HUD/rating hooks, per-mod save data and an optional
 `META_HORROR` fourth-wall section. Its `README.md` maps every feature to a beat
 in the song and lists the manual test checklist.
 
+## The bundled Windows GDI modchart test
+
+`mods/win32modchart/` is a third shipped example and the smallest one to read.
+It rebuilds the same Erect Dad Battle as **WIN32MODCHART**, gives every turn of
+the chart a different readable playfield move (twelve moves in a cycle, one per
+four beats) and then hands the desktop to the bundled GDI effects for the final
+chorus through `gdiInit` / `gdiEnableEffect` / `gdiHppdTrigger`.
+
+It is the reference for two things the other mods do not cover:
+
+- `ModchartEvent` captures an ease's start value on its first update, so eases
+  on the same percent have to be scheduled one after another (this mod does it
+  from `modCallback`), and
+- the GDI / HPPD surface (`docs/GDI_HPPD.md`) with a full teardown on pause,
+  game over, song end and destroy.
+
+`pack.json` restricts it to `"platforms": ["windows"]`; on any other target the
+GDI calls are safe no-ops and the HUD says `WIN32 GDI: simulated`.
+
 ## Where to go next
 
 | Page | Contents |
