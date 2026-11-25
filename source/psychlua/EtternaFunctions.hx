@@ -2,48 +2,55 @@ package psychlua;
 
 class EtternaFunctions
 {
-    // erf constants
-    public static var a1 =  0.254829592;
-    public static var a2 = -0.284496736;
-    public static var a3 =  1.421413741;
-    public static var a4 = -1.453152027;
-    public static var a5 =  1.061405429;
-    public static var p  =  0.3275911;
+    // Coefficients for the Abramowitz and Stegun approximation of the error function.
+    static inline var ERF_COEFFICIENT_A1 = 0.254829592;
+    static inline var ERF_COEFFICIENT_A2 = -0.284496736;
+    static inline var ERF_COEFFICIENT_A3 = 1.421413741;
+    static inline var ERF_COEFFICIENT_A4 = -1.453152027;
+    static inline var ERF_COEFFICIENT_A5 = 1.061405429;
+    static inline var ERF_COEFFICIENT_P = 0.3275911;
 
-    public static function erf(x:Float):Float
+    public static function erf(value:Float):Float
     {
-        // Save the sign of x
-        var sign = 1;
-        if (x < 0)
-            sign = -1;
-        x = Math.abs(x);
-    
-        // A&S formula 7.1.26
-        var t = 1.0/(1.0 + p*x);
-        var y = 1.0 - (((((a5*t + a4)*t) + a3)*t + a2)*t + a1)*t*Math.exp(-x*x);
-    
-        return sign*y;
+        // Preserve the input sign, then evaluate the approximation for its absolute value.
+        var signMultiplier = 1;
+        if (value < 0)
+            signMultiplier = -1;
+        value = Math.abs(value);
+
+        var approximationScale = 1.0 / (1.0 + ERF_COEFFICIENT_P * value);
+        var approximation = 1.0 - (((((ERF_COEFFICIENT_A5 * approximationScale + ERF_COEFFICIENT_A4) * approximationScale)
+            + ERF_COEFFICIENT_A3) * approximationScale + ERF_COEFFICIENT_A2) * approximationScale + ERF_COEFFICIENT_A1)
+            * approximationScale * Math.exp(-value * value);
+
+        return signMultiplier * approximation;
     }
 
-    public static function wife3(maxms:Float, ts:Float)
+    /**
+     * Calculates the WIFE3 score for an absolute note timing error.
+     * @param timingErrorMs Absolute timing error in milliseconds.
+     * @param timingScale Timing scale used to derive judgement windows.
+     */
+    public static function wife3(timingErrorMs:Float, timingScale:Float):Float
     {
-        var max_points = 1.0;
-        var miss_weight = -1.0; //mwahahahaha now missing won't put your accuracy to 0%!!!!!
-        var ridic= 5 * ts;
-        var max_boo_weight = 180 * ts;
-        var ts_pow = 0.75;
-        var zero = 65 * (Math.pow(ts,ts_pow));
-        var power = 2.5;
-        var dev = 22.7 * (Math.pow(ts,ts_pow));
-    
-        if (maxms <= ridic) // anything below this (judge scaled) threshold is counted as full pts
-            return max_points;
-        else if (maxms <= zero) // ma/pa region, exponential
-                return max_points * erf((zero - maxms) / dev);
-        else if (maxms <= max_boo_weight)// cb region, linear
-            return (maxms - zero) * miss_weight / (max_boo_weight - zero);
+        var maximumPoints = 1.0;
+        var missWeight = -1.0;
+        var perfectWindowMs = 5 * timingScale;
+        var maximumMissWindowMs = 180 * timingScale;
+        var timingScaleExponent = 0.75;
+        var zeroScoreWindowMs = 65 * Math.pow(timingScale, timingScaleExponent);
+        var exponentialDeviationMs = 22.7 * Math.pow(timingScale, timingScaleExponent);
+
+        // Timing errors inside the perfect window receive full points.
+        if (timingErrorMs <= perfectWindowMs)
+            return maximumPoints;
+        // The near-perfect region decays smoothly toward zero points.
+        else if (timingErrorMs <= zeroScoreWindowMs)
+            return maximumPoints * erf((zeroScoreWindowMs - timingErrorMs) / exponentialDeviationMs);
+        // The outer timing-error region decreases linearly from zero points to the miss weight.
+        else if (timingErrorMs <= maximumMissWindowMs)
+            return (timingErrorMs - zeroScoreWindowMs) * missWeight / (maximumMissWindowMs - zeroScoreWindowMs);
         else
-            return miss_weight;
+            return missWeight;
     }
-
 }
