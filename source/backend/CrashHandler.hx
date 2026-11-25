@@ -116,7 +116,7 @@ class CrashHandler
 
 			errorMessage = "";
 
-			var m:String = e.error;
+			var m:String = Std.string(e.error);
 			if (Std.isOfType(e.error, Error))
 			{
 				var err = cast(e.error, Error);
@@ -234,6 +234,9 @@ class CrashHandler
 			Sys.println("Crash dump saved in " + Path.normalize(path));
 			if (CrashBundle.lastBundlePath.length > 0)
 				Sys.println("Crash bundle saved in " + Path.normalize(CrashBundle.lastBundlePath));
+			#elseif (js && html5)
+			if (js.Browser.supported && js.Browser.console != null)
+				js.Browser.console.error(errorMessage, e.error);
 			#end
 		}
 		catch (e:Dynamic)

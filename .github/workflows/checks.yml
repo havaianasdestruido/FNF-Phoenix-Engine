@@ -68,6 +68,9 @@ jobs:
       - name: ModHealth report and invalid pack.json
         run: bash tests/haxe/run-mod-health.sh
 
+      - name: HTML5 web runtime regression checks
+        run: bash tests/haxe/run-html5-web-runtime.sh
+
       # Launch options (docs/CLI.md): the docopt-ng grammar, the legacy
       # spellings, the "an unusable argument must never stop the boot" rule, and
       # the wiring in Main / InitState / ClientPrefs / FrameProfiler / DeepLinks

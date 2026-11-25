@@ -298,7 +298,7 @@ class FlxGame extends Sprite
 		FlxG.updateFramerate = updateFramerate;
 		FlxG.drawFramerate = drawFramerate;
 		_accumulator = _stepMS;
-		_startCounter = System.getPerformanceCounter();
+		_startCounter = getRawTime();
 		_skipSplash = skipSplash;
 
 		// Script-level ("global") filters start empty, like a camera's.
@@ -862,9 +862,34 @@ class FlxGame extends Sprite
 		return getTimer() - _startTime;
 	}
 
+	static inline function getRawTime():Float
+	{
+		#if (js && html5)
+		if (js.Browser.supported && js.Browser.window != null && js.Browser.window.performance != null)
+			return js.Browser.window.performance.now();
+		return Lib.getTimer();
+		#elseif (lime_cffi && !macro)
+		final frequency:Float = System.getPerformanceFrequency();
+		if (frequency > 0)
+			return System.getPerformanceCounter();
+		return Lib.getTimer();
+		#else
+		return Lib.getTimer();
+		#end
+	}
+
 	dynamic function getTimer():Float
 	{
-		return ((System.getPerformanceCounter() - _startCounter) / System.getPerformanceFrequency()) * 1000;
+		#if (js && html5)
+		return getRawTime() - _startCounter;
+		#elseif (lime_cffi && !macro)
+		final frequency:Float = System.getPerformanceFrequency();
+		if (frequency > 0)
+			return ((System.getPerformanceCounter() - _startCounter) / frequency) * 1000;
+		return Lib.getTimer() - _startCounter;
+		#else
+		return Lib.getTimer() - _startCounter;
+		#end
 	}
 }
 

@@ -446,8 +446,20 @@ class CoolUtil
 		if (FileSystem.exists(path))
 			daList = File.getContent(path);
 		#else
-		if (Assets.exists(path))
-			daList = Assets.getText(path);
+		var assetPath:String = path;
+		if (assetPath != null && !Assets.exists(assetPath) && assetPath.indexOf(':') == -1 && assetPath.startsWith('assets/'))
+		{
+			var rest:String = assetPath.substr('assets/'.length);
+			var slashIdx:Int = rest.indexOf('/');
+			if (slashIdx > 0)
+			{
+				var libCandidate:String = rest.substr(0, slashIdx) + ':' + assetPath;
+				if (Assets.exists(libCandidate))
+					assetPath = libCandidate;
+			}
+		}
+		if (assetPath != null && Assets.exists(assetPath))
+			daList = Assets.getText(assetPath);
 		#end
 		return daList != null ? listFromString(daList) : [];
 	}
