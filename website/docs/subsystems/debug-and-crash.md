@@ -68,6 +68,13 @@ The same values are available to scripts through `getSystemInfo()`, `getGPUName(
 HScript), see the [Lua](../modding/lua-api-reference.md) and
 [Python](../modding/python-api-reference.md) API references.
 
+The read-only host/process metrics from `debug.system.SystemInfo`
+(`source/debug/system/src/phoenix_system.cpp`) are likewise exposed across Lua,
+Python, HScript and scripted states as `getMonotonicSeconds()`,
+`getProcessCPUSeconds()`, `getLogicalCPUCount()`, `getPageSize()`, and
+`getTotalPhysicalMemory()` (plus the `SystemInfo` namespace object in HScript
+and `data/states/*.hx`).
+
 ### Log privacy and retention
 
 Crash reports (`crash/`), frame-profiler exports (`debug/log/`), and shader/copy

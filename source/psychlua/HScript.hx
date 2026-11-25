@@ -27,6 +27,7 @@ import states.MainMenuState;
 import utils.CoolSystemStuff;
 import psychlua.callbacks.FilterCallbacks;
 import psychlua.callbacks.GdiCallbacks;
+import psychlua.callbacks.SystemCallbacks;
 import psychlua.callbacks.WindowCallbacks;
 
 #if DISCORD_ALLOWED
@@ -789,6 +790,10 @@ class HScript
 		// Lua parent, so seed the window API directly.
 		WindowCallbacks.seedHScript(interp);
 
+		// Read-only system metrics (monotonic/CPU seconds, logical CPUs,
+		// page size, total physical RAM) and the `SystemInfo` namespace object.
+		SystemCallbacks.seedHScript(interp);
+
 		// Windows GDI desktop effects. Seeded for the same reason.
 		GdiCallbacks.seedHScript(interp);
 
@@ -816,6 +821,12 @@ class HScript
 
 		var resolved:Class<Dynamic> = Type.resolveClass(str + libName);
 		if (resolved == null) resolved = LuaUtils.resolveClassCompat(libName);
+		if (resolved == null && libName == 'SystemInfo' && (libPackage == null || libPackage == '' || libPackage == 'debug.system'))
+		{
+			interp.variables.set(libName, SystemCallbacks.createSystemInfoObject());
+			_missingCalls.remove(libName);
+			return true;
+		}
 		// The compatibility fallback may resolve a different package than the
 		// one requested; guard the actual class before handing it to the mod.
 		if(resolved != null && !allowClassAccess(Type.getClassName(resolved))) return false;

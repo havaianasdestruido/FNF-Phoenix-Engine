@@ -196,8 +196,11 @@ Top-level code in the file runs when the script is loaded (start of `create`).
 
 ## What is in scope
 
-Same seed as Lua-hosted HScript, plus `state`, `ModState`, `ModSubState`,
-`StateScripts`, `switchCustomState`, `openModSubState`, `Function_Stop` /
-`Function_Continue`. Pull extra types with `addHaxeLibrary('FreeplayState', 'states')`.
+Same seed as Lua-hosted HScript (including `SystemInfo` and
+`getMonotonicSeconds()` / `getProcessCPUSeconds()` / `getLogicalCPUCount()` /
+`getPageSize()` / `getTotalPhysicalMemory()`), plus `state`, `ModState`,
+`ModSubState`, `StateScripts`, `switchCustomState`, `openModSubState`,
+`Function_Stop` / `Function_Continue`. Pull extra types with
+`addHaxeLibrary('FreeplayState', 'states')`.
 
 See [HScript](./hscript.md) and `docs/TemplateState.hx`.

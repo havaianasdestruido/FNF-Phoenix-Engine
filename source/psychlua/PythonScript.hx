@@ -43,6 +43,7 @@ import psychlua.pystdlib.PyPropertyLib;
 import psychlua.pystdlib.PyScoreLib;
 import psychlua.pystdlib.PySoundLib;
 import psychlua.pystdlib.PySpriteLib;
+import psychlua.pystdlib.PySystemLib;
 import psychlua.pystdlib.PyTextLib;
 import psychlua.pystdlib.PyTimerLib;
 import utils.CoolSystemStuff;
@@ -382,6 +383,8 @@ class PythonScript
 		psychlua.pystdlib.PyScriptLib.register(this);
 
 	PyHardwareLib.register(this);
+
+	PySystemLib.register(this);
 
 	PyModchartLib.register(this);
 
