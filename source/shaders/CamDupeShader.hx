@@ -11,6 +11,8 @@ import backend.FlxFixedShader;
  */
 class CamDupeShader extends FlxFixedShader
 {
+	#if flash	public var multi:Dynamic = {};	public var mirrorS:Dynamic = {};	#end
+
   public var mult(get, set):Float;
   public var mirror(get, set):Bool;
 

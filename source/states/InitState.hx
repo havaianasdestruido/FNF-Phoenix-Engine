@@ -106,12 +106,17 @@ class InitState extends FlxState {
         // and so do this run's `--freeplay` / `--menu` launch options
         // (backend.CommandLine, docs/CLI.md): same resolver, same "freeplay
         // wins a conflict" rule, but without rebuilding.
+        // Every target still goes through the loading screen: it is what sets
+        // `Paths.currentLevel` (the per-week asset folder) before the state
+        // builds its artwork. The shortcuts used to switch directly, which
+        // left the level unset and made every image lookup miss (a black
+        // menu/song) on a fresh boot.
         switch (LaunchState.resolve(ClientPrefs.disableSplash, backend.CommandLine.freeplayOverride(), backend.CommandLine.menuOverride()))
         {
             case LaunchTarget.FREEPLAY:
-                FlxG.switchState(FreeplayState.new);
+                LoadingState.loadAndSwitchState(FreeplayState.new);
             case LaunchTarget.MAIN_MENU:
-                FlxG.switchState(MainMenuState.new);
+                LoadingState.loadAndSwitchState(MainMenuState.new);
             case LaunchTarget.TITLE:
                 // Boot loading screen: executable open -> title screen.
                 LoadingState.loadAndSwitchState(TitleState.new);

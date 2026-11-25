@@ -1147,6 +1147,21 @@ class Paths
           bitmap = OpenFlAssets.getBitmapData(file, false);
         }
       }
+      #if flash
+      // Embedded flash assets may share their BitmapData with lime's
+      // asset library. flixel disposes graphics on state switches, so hand
+      // flixel a private copy — otherwise a disposed bitmap is handed out
+      // again on the next load and every sprite ends up frame-less (black
+      // screens after `clearStoredMemory`/`clearUnusedMemory`).
+      if (bitmap != null)
+      {
+        try
+        {
+          bitmap = bitmap.clone();
+        }
+        catch (e:Dynamic) {}
+      }
+      #end
 
       if (bitmap == null)
       {
@@ -1664,6 +1679,17 @@ class Paths
   private static var streamSoundSerial:Int = 0;
   private static var streamSoundKeys:Map<String, Bool> = [];
 
+
+  // On native targets OpenFL streams embedded/loaded audio lazily through an
+  // internal buffer object; flash.media.Sound has no such field, so the
+  // buffer check degrades to a plain null check there.
+  @:inline static function soundHasBuffer(sound:Sound):Bool {
+    #if flash
+    return sound != null;
+    #else
+    return @:privateAccess sound.__buffer != null;
+    #end
+  }
   // Returns sounds which is useful for all the sfx
   public static function returnSound(path:String, key:String, ?library:String, stream:Bool = false)
   {
@@ -1675,7 +1701,7 @@ class Paths
     if (cachedFile != null && !stream)
     {
       final fastHit:Sound = currentTrackedSounds.get(cachedFile);
-      if (fastHit != null && @:privateAccess fastHit.__buffer != null)
+      if (fastHit != null && soundHasBuffer(fastHit))
       {
         trackLocalAsset(cachedFile);
         return fastHit;
@@ -1695,7 +1721,7 @@ class Paths
     if (file != null)
     {
       final existingModSound:Sound = currentTrackedSounds.get(file);
-      if (!stream && existingModSound != null && @:privateAccess existingModSound.__buffer != null)
+      if (!stream && existingModSound != null && soundHasBuffer(existingModSound))
       {
         resolvedSoundCache.set(lookupKey, file);
         trackLocalAsset(file);
@@ -1709,7 +1735,7 @@ class Paths
           streamed = sound != null;
         }
         // Unsupported formats and unavailable decoders retain the normal path.
-        if (sound == null && existingModSound != null && @:privateAccess existingModSound.__buffer != null)
+        if (sound == null && existingModSound != null && soundHasBuffer(existingModSound))
         {
           resolvedSoundCache.set(lookupKey, file);
           trackLocalAsset(file);
@@ -1747,7 +1773,7 @@ class Paths
         file = gottenPath.substring(gottenPath.indexOf(':') + 1, gottenPath.length);
         assetId = gottenPath;
         final existingLibSound:Sound = currentTrackedSounds.get(file);
-        if (!stream && existingLibSound != null && @:privateAccess existingLibSound.__buffer != null)
+        if (!stream && existingLibSound != null && soundHasBuffer(existingLibSound))
         {
           resolvedSoundCache.set(lookupKey, file);
           trackLocalAsset(file);
@@ -1766,7 +1792,7 @@ class Paths
           catch (_:Dynamic) {} // Embedded assets may have no on-disk path.
         }
         #end
-        if (sound == null && existingLibSound != null && @:privateAccess existingLibSound.__buffer != null)
+        if (sound == null && existingLibSound != null && soundHasBuffer(existingLibSound))
         {
           resolvedSoundCache.set(lookupKey, file);
           trackLocalAsset(file);

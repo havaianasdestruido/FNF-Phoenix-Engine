@@ -27,6 +27,8 @@ import backend.FlxFixedShader;
  */
 class TVStaticShader extends FlxFixedShader
 {
+	#if flash	public var uTime:Dynamic = {};	public var uStrength:Dynamic = {};	public var uMinStrength:Dynamic = {};	public var uMaxStrength:Dynamic = {};	public var uSpeed:Dynamic = {};	#end
+
 	@:glFragmentSource('
 	#pragma header
 

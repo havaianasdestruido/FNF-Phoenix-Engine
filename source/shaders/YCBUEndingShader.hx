@@ -11,6 +11,8 @@ import backend.FlxFixedShader;
  */
 class YCBUEndingShader extends FlxFixedShader
 {
+	#if flash	public var seed:Dynamic = {};	public var intensity:Dynamic = {};	#end
+
   @:glFragmentSource('
     #pragma header
     uniform float seed;

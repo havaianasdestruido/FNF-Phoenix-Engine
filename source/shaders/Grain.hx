@@ -4,6 +4,8 @@ import flixel.system.FlxAssets.FlxShader;
 
 class Grain extends FlxShader
 {
+	#if flash	public var uTime:Dynamic = {};	public var coloramount:Dynamic = {};	public var grainsize:Dynamic = {};	public var lumamount:Dynamic = {};	public var lockAlpha:Dynamic = {};	#end
+
   @:glFragmentSource('
 		#pragma header
 

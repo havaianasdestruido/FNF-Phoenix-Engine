@@ -19,6 +19,8 @@ import backend.FlxFixedShader;
  */
 class DistantNoteShader extends FlxFixedShader
 {
+	#if flash	public var uPivot:Dynamic = {};	public var uSpread:Dynamic = {};	public var uDownscroll:Dynamic = {};	#end
+
   @:glFragmentSource('
 	#pragma header
 

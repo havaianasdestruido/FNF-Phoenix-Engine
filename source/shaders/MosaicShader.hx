@@ -25,6 +25,8 @@ import backend.FlxFixedShader;
  */
 class MosaicShader extends FlxFixedShader
 {
+	#if flash	public var uBlocksize:Dynamic = {};	#end
+
 	@:glFragmentSource('
 	#pragma header
 

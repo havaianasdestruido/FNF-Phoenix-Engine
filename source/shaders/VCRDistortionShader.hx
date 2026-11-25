@@ -5,6 +5,8 @@ import flixel.system.FlxAssets.FlxShader;
 
 class VCRDistortionShader extends FlxShader // https://www.shadertoy.com/view/ldjGzV and https://www.shadertoy.com/view/Ms23DR and https://www.shadertoy.com/view/MsXGD4 and https://www.shadertoy.com/view/Xtccz4
 {
+	#if flash	public var iTime:Dynamic = {};	public var vignetteOn:Dynamic = {};	public var perspectiveOn:Dynamic = {};	public var distortionOn:Dynamic = {};	public var scanlinesOn:Dynamic = {};	public var vignetteMoving:Dynamic = {};	public var glitchModifier:Dynamic = {};	public var iResolution:Dynamic = {};	#end
+
   @:glFragmentSource('
     #pragma header
 

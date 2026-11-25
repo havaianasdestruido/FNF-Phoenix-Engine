@@ -16,7 +16,7 @@ class GrainEffect extends Effect
     PlayState.instance.shaderUpdates.push(update);
   }
 
-  public function update(elapsed)
+  public function update(elapsed:Float):Void
   {
     shader.uTime.value[0] += elapsed;
   }

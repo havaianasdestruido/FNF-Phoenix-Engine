@@ -62,7 +62,7 @@ class CustomFlxInputText extends FlxInputText
 		super(X, Y, Width, Text, size, TextColor, BackgroundColor, EmbeddedFont);
 		setupInputText(this);
 		FlxG.stage.removeEventListener(KeyboardEvent.KEY_DOWN, onKeyDown);
-		FlxG.stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDown, 100); // higher priority than flixel
+		FlxG.stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDown, false, 100); // higher priority than flixel
 	}
 
 	override function onKeyDown(e)
@@ -88,7 +88,7 @@ class CustomFlxUIInputText extends FlxUIInputText
 		super(X, Y, Width, Text, size, TextColor, BackgroundColor, EmbeddedFont);
 		setupInputText(this);
 		FlxG.stage.removeEventListener(KeyboardEvent.KEY_DOWN, onKeyDown);
-		FlxG.stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDown, 100); // higher priority than flixel
+		FlxG.stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDown, false, 100); // higher priority than flixel
 	}
 
 	override function onKeyDown(e)

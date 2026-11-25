@@ -4,6 +4,8 @@ import flixel.system.FlxAssets.FlxShader;
 
 class BlockedGlitchShader extends FlxShader
 {
+	#if flash	public var time:Dynamic = {};	public var end:Dynamic = {};	public var imageData:Dynamic = {};	public var screenSize:Dynamic = {};	#end
+
   // https://www.shadertoy.com/view/MlVSD3
   @:glFragmentSource('
     #pragma header

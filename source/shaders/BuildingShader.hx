@@ -5,6 +5,8 @@ import flixel.system.FlxAssets.FlxShader;
 
 class BuildingShader extends FlxShader
 {
+	#if flash	public var alphaValue:Dynamic = {};	#end
+
   @:glFragmentSource('
     #pragma header
     uniform float alphaValue;

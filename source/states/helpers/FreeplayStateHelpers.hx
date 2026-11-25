@@ -238,66 +238,18 @@ class FreeplayStateHelpers
 
 	// Selection/difficulty
 
-	public static function changeSelection(state:FreeplayState, change:Int = 0, playSound:Bool = true)
+	/**
+	 * Establishes `CoolUtil.difficulties` for the selected song.
+	 *
+	 * This has to run *before* anything reads a difficulty (the score/rating
+	 * lookups in `changeSelection`, `Highscore.formatSong`, ...). It used to
+	 * sit at the end of `changeSelection`, which only worked because
+	 * `TitleState.create()` (or StoryMenu) had already filled the array - a
+	 * `-DFREEPLAY` boot reads it first and used to throw
+	 * "#1009 ... null object" indexing an empty list.
+	 */
+	static function prepareDifficulties(state:FreeplayState)
 	{
-		if (state.player.playingMusic) return;
-		// Nothing to select: the filter hid every song (see `regenList`).
-		if (state.songs.length == 0) return;
-
-		if(playSound) FlxG.sound.play(Paths.sound('scrollMenu'), 0.4);
-
-		FreeplayState.curSelected += change;
-
-		if (FreeplayState.curSelected < 0)
-			FreeplayState.curSelected = state.songs.length - 1;
-		if (FreeplayState.curSelected >= state.songs.length)
-			FreeplayState.curSelected = 0;
-
-		var newColor:Int = state.songs[FreeplayState.curSelected].color;
-		if(newColor != state.intendedColor) {
-			if(state.colorTween != null) {
-				state.colorTween.cancel();
-			}
-			state.intendedColor = newColor;
-			state.colorTween = FlxTween.color(state.bg, 1, state.bg.color, state.intendedColor, {
-				onComplete: function(twn:FlxTween) {
-					state.colorTween = null;
-				}
-			});
-		}
-
-		state.intendedScore = Highscore.getScore(state.songs[FreeplayState.curSelected].songName, state.curDifficulty);
-		state.intendedRating = Highscore.getRating(state.songs[FreeplayState.curSelected].songName, state.curDifficulty);
-
-		var selectionIndex:Int = 0;
-
-		for (i in state.grpIcons.members) i.alpha = (i.ID == FreeplayState.curSelected ? 1 : 0.6);
-
-		for (item in state.grpSongs.members)
-		{
-			item.targetY = item.ID - FreeplayState.curSelected;
-			item.alpha = 0.6;
-			if (item.targetY == 0) item.alpha = 1;
-		}
-
-		for (item in state.grpSongs.members)
-		{
-			item.targetY = selectionIndex - FreeplayState.curSelected;
-			selectionIndex++;
-
-			item.alpha = 0.6;
-
-			if (item.targetY == 0)
-			{
-				item.alpha = 1;
-			}
-		}
-
-		Mods.currentModDirectory = state.songs[FreeplayState.curSelected].folder;
-		PlayState.storyWeek = state.songs[FreeplayState.curSelected].week;
-		state.updateFreeplayDisc(state.songs[FreeplayState.curSelected].songCharacter);
-		state.updateFavouriteText();
-
 		CoolUtil.difficulties = CoolUtil.defaultDifficulties.copy();
 		var diffStr:String = WeekData.getCurrentWeek().difficulties;
 		if(diffStr != null) diffStr = diffStr.trim(); //Bother you HTML5
@@ -358,6 +310,70 @@ class FreeplayStateHelpers
 		{
 			state.curDifficulty = newPos;
 		}
+	}
+
+	public static function changeSelection(state:FreeplayState, change:Int = 0, playSound:Bool = true)
+	{
+		if (state.player.playingMusic) return;
+		// Nothing to select: the filter hid every song (see `regenList`).
+		if (state.songs.length == 0) return;
+
+		prepareDifficulties(state);
+
+		if(playSound) FlxG.sound.play(Paths.sound('scrollMenu'), 0.4);
+
+		FreeplayState.curSelected += change;
+
+		if (FreeplayState.curSelected < 0)
+			FreeplayState.curSelected = state.songs.length - 1;
+		if (FreeplayState.curSelected >= state.songs.length)
+			FreeplayState.curSelected = 0;
+
+		var newColor:Int = state.songs[FreeplayState.curSelected].color;
+		if(newColor != state.intendedColor) {
+			if(state.colorTween != null) {
+				state.colorTween.cancel();
+			}
+			state.intendedColor = newColor;
+			state.colorTween = FlxTween.color(state.bg, 1, state.bg.color, state.intendedColor, {
+				onComplete: function(twn:FlxTween) {
+					state.colorTween = null;
+				}
+			});
+		}
+
+		state.intendedScore = Highscore.getScore(state.songs[FreeplayState.curSelected].songName, state.curDifficulty);
+		state.intendedRating = Highscore.getRating(state.songs[FreeplayState.curSelected].songName, state.curDifficulty);
+
+		var selectionIndex:Int = 0;
+
+		for (i in state.grpIcons.members) i.alpha = (i.ID == FreeplayState.curSelected ? 1 : 0.6);
+
+		for (item in state.grpSongs.members)
+		{
+			item.targetY = item.ID - FreeplayState.curSelected;
+			item.alpha = 0.6;
+			if (item.targetY == 0) item.alpha = 1;
+		}
+
+		for (item in state.grpSongs.members)
+		{
+			item.targetY = selectionIndex - FreeplayState.curSelected;
+			selectionIndex++;
+
+			item.alpha = 0.6;
+
+			if (item.targetY == 0)
+			{
+				item.alpha = 1;
+			}
+		}
+
+		Mods.currentModDirectory = state.songs[FreeplayState.curSelected].folder;
+		PlayState.storyWeek = state.songs[FreeplayState.curSelected].week;
+		state.updateFreeplayDisc(state.songs[FreeplayState.curSelected].songCharacter);
+		state.updateFavouriteText();
+
 	}
 
 	public static function changeDiff(state:FreeplayState, change:Int = 0)

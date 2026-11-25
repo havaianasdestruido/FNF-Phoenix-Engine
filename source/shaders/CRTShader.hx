@@ -31,6 +31,8 @@ import backend.FlxFixedShader;
  */
 class CRTShader extends FlxFixedShader
 {
+	#if flash	public var uResolutionScale:Dynamic = {};	public var uHardScan:Dynamic = {};	public var uHardPix:Dynamic = {};	public var uWarp:Dynamic = {};	public var uMaskDark:Dynamic = {};	public var uMaskLight:Dynamic = {};	public var uMask:Dynamic = {};	public var uVignette:Dynamic = {};	#end
+
 	@:glFragmentSource('
 	#pragma header
 

@@ -33,6 +33,8 @@ import backend.FlxFixedShader;
  */
 class VCRBorderShader extends FlxFixedShader
 {
+	#if flash	public var uCurve:Dynamic = {};	public var uVignette:Dynamic = {};	public var uBorder:Dynamic = {};	#end
+
 	@:glFragmentSource('
 	#pragma header
 

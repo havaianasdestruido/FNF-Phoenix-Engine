@@ -34,6 +34,8 @@ class ColorSwap {
 }
 
 class ColorSwapShader extends FlxFixedShader {
+	#if flash	public var bitmap:Dynamic = {};	public var blurEnabled:Dynamic = {};	public var x:Dynamic = {};	public var isNote:Dynamic = {};	#end
+
 	#if flash
 	public var uTime:Dynamic = {};
 	public var awesomeOutline:Dynamic = {};
