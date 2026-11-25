@@ -130,6 +130,13 @@ class FlxSave implements IFlxDestroyable
 	 */
 	var _sharedObject:SharedObject;
 
+	/**
+	 * Phoenix patch: true when `bind` had to fall back to a throwaway
+	 * in-memory `data` bag because the host gave us no usable SharedObject.
+	 * Reads/writes then behave like a first launch, but nothing persists.
+	 */
+	var _inMemoryOnly:Bool = false;
+
 	public function new() {}
 
 	/**
@@ -138,6 +145,7 @@ class FlxSave implements IFlxDestroyable
 	public function destroy():Void
 	{
 		_sharedObject = null;
+		_inMemoryOnly = false;
 		status = EMPTY;
 		data = null;
 	}
@@ -170,9 +178,27 @@ class FlxSave implements IFlxDestroyable
 		{
 			FlxG.log.error('Error:${e.message} name:"$name", path:"$path".');
 			destroy();
+			// Phoenix patch: a host without usable storage (Flash is fine, but
+			// Ruffle answers `SharedObject.getLocal` with something unusable)
+			// used to leave `data` null - and ~130 places read
+			// `FlxG.save.data.someField` unconditionally, which threw
+			// "Error #1009 ... accessing field: weekScores" every frame and
+			// aborted the boot. Keep an in-memory bag instead, so saves behave
+			// like a first launch: readable, writable, just not persisted.
+			status = EMPTY;
+			data = {};
+			_inMemoryOnly = true;
 			return false;
 		}
 		data = _sharedObject.data;
+		if (data == null)
+		{
+			// Same "no persistence" fallback as above; see the comment there.
+			status = EMPTY;
+			data = {};
+			_inMemoryOnly = true;
+			return false;
+		}
 		return true;
 	}
 
@@ -304,6 +330,11 @@ class FlxSave implements IFlxDestroyable
 	 */
 	function checkStatus():Bool
 	{
+		// Nothing to persist and nothing to complain about: the save is
+		// intentionally read/write-only in memory on this host.
+		if (_inMemoryOnly)
+			return false;
+
 		switch (status)
 		{
 			case EMPTY:

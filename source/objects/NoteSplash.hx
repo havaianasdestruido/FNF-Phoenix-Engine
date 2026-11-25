@@ -95,6 +95,8 @@ class NoteSplash extends FlxSprite
 
 		animation.play('note' + splashToPlay + '-' + (animNum), true);
 
+		// Use the resolved (possibly defaulted) values: `config` is null whenever the
+		// skin has no splash config, and reading through it threw #1009 on boot.
 		if(animation.curAnim != null)animation.curAnim.frameRate = FlxG.random.int(minFps, maxFps);
 	}
 

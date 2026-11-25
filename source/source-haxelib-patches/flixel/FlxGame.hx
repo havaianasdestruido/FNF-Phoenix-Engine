@@ -868,6 +868,8 @@ class FlxGame extends Sprite
 		if (js.Browser.supported && js.Browser.window != null && js.Browser.window.performance != null)
 			return js.Browser.window.performance.now();
 		return Lib.getTimer();
+		#elseif flash
+		return flash.Lib.getTimer();
 		#elseif (lime_cffi && !macro)
 		final frequency:Float = System.getPerformanceFrequency();
 		if (frequency > 0)
@@ -880,8 +882,13 @@ class FlxGame extends Sprite
 
 	dynamic function getTimer():Float
 	{
+		// Non-lime_cffi targets (HTML5, Flash, AIR) return 0 from Lime's
+		// performance counter and frequency, which would evaluate 0 / 0 = NaN
+		// and freeze every frame delta.
 		#if (js && html5)
 		return getRawTime() - _startCounter;
+		#elseif flash
+		return flash.Lib.getTimer();
 		#elseif (lime_cffi && !macro)
 		final frequency:Float = System.getPerformanceFrequency();
 		if (frequency > 0)

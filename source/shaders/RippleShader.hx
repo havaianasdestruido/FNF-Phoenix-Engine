@@ -31,6 +31,8 @@ import backend.FlxFixedShader;
  */
 class RippleShader extends FlxFixedShader
 {
+	#if flash	public var uTime:Dynamic = {};	public var uStrength:Dynamic = {};	public var uSpeed:Dynamic = {};	public var uScale:Dynamic = {};	#end
+
 	@:glFragmentSource('
 	#pragma header
 

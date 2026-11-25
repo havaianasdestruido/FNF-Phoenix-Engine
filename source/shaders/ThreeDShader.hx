@@ -7,6 +7,8 @@ import flixel.system.FlxAssets.FlxShader;
 
 class ThreeDShader extends FlxShader
 {
+	#if flash	public var xrot:Dynamic = {};	public var yrot:Dynamic = {};	public var zrot:Dynamic = {};	public var dept:Dynamic = {};	#end
+
   @:glFragmentSource('
 	#pragma header
 	uniform float xrot;

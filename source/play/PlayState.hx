@@ -1905,6 +1905,10 @@ class PlayState extends MusicBeatState
 		if (hitSoundString != "none" && (!minimalPrecache || ClientPrefs.hitsoundVolume > 0))
 			hitsound = FlxG.sound.load(Paths.sound("hitsounds/" + Std.string(hitSoundString).toLowerCase()));
 		if(ClientPrefs.hitsoundVolume > 0) Paths.sound('hitsound');
+		// `hitSoundString` is "none" whenever the player picked the silent hit
+		// sound (a stripped build has no hitsound folder, or the low-memory
+		// profile skipped the precache): `hitsound` then stays null, and these
+		// two lines used to throw #1009 during create() and abort the song boot.
 		if (hitsound != null)
 		{
 			hitsound.volume = ClientPrefs.hitsoundVolume;
@@ -2536,6 +2540,7 @@ class PlayState extends MusicBeatState
 			|| FlxG.keys.justPressed.MENU
 			|| FlxG.gamepads.anyJustPressed(flixel.input.gamepad.FlxGamepadInputID.BACK)
 			#end;
+
 
 		if (pauseTriggered && startedCountdown && canPause && !heyStopTrying)
 		{

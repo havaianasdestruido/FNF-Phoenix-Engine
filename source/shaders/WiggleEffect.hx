@@ -90,6 +90,8 @@ class WiggleEffect
 
 class WiggleShader extends FlxFixedShader
 {
+	#if flash	public var uTime:Dynamic = {};	public var effectType:Dynamic = {};	public var uSpeed:Dynamic = {};	public var uFrequency:Dynamic = {};	public var uWaveAmplitude:Dynamic = {};	public var verticalStrength:Dynamic = {};	public var horizontalStrength:Dynamic = {};	#end
+
 	@:glFragmentSource('
 		#pragma header
 		//uniform float tx, ty; // x,y waves phase

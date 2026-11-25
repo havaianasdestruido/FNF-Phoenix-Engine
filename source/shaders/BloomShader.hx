@@ -4,6 +4,8 @@ import flixel.system.FlxAssets.FlxShader;
 
 class BloomShader extends FlxShader
 {
+	#if flash	public var intensity:Dynamic = {};	public var blurSize:Dynamic = {};	#end
+
   @:glFragmentSource('
 
 	#pragma header

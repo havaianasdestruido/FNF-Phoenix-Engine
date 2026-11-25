@@ -11,8 +11,6 @@ ships for authoring.
 
 ## Safe mode (`RecoveryState`)
 
-![Safe mode reconstruction](../../static/img/screens/recovery.png)
-
 `source/states/RecoveryState.hx` is entered by `backend.RecoveryBoot` when the session log
 shows repeated unclean starts. It reads `Safe Mode: <n> unclean starts detected`, prints
 two lines of help, then four rows and a Start row — the same `60 / 105 / 200 + i * 70`
@@ -24,8 +22,6 @@ Starting hands control back to `InitState`, so the normal boot chain runs with t
 recovery flags armed.
 
 ## Diagnostics (`DiagnosticsState`)
-
-![Diagnostics reconstruction](../../static/img/screens/diagnostics.png)
 
 `source/states/DiagnosticsState.hx` renders one snapshot built by
 `backend.DiagnosticsReport`, designed to be photographed rather than read in a terminal
@@ -46,8 +42,6 @@ not touch prefs, so the report cannot rewrite the numbers it is showing.
 
 ## Input tester (`InputTestState`)
 
-![Input tester reconstruction](../../static/img/screens/input-test.png)
-
 `source/states/InputTestState.hx`, opened from `phoenix://input` or Options →
 Accessibility. The counting lives in `backend.InputTestLogic`, and the state is only a
 view over it: one panel per device (keyboard, each connected controller, touch), the live
@@ -55,8 +49,6 @@ key/button list, and a timing readout so a player can tell a dropped input from 
 key.
 
 ## Benchmark hub (`BenchmarkMenuState`)
-
-![Benchmark hub reconstruction](../../static/img/screens/benchmark.png)
 
 `source/states/BenchmarkMenuState.hx` is reached from Options → Optimization and lists
 one row per `BenchmarkKind`: `GAMEPLAY`, `VISUAL`, `LOGIC`, `SYNTHETIC` and `SUITE`, each
@@ -68,8 +60,6 @@ a `FrameProfiler` session and land on `BenchmarkResultsState`. Every run disable
 for its duration through `backend.Benchmark.startKind()`.
 
 ## Chart editor (`ChartingState`)
-
-![Chart editor reconstruction](../../static/img/screens/editor.png)
 
 `source/editors/ChartingState.hx`, opened from `MasterEditorMenu` (debug key on desktop)
 or from PlayState's edit key. Left column holds the section/BPM readout, notetype and

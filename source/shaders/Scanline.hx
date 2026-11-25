@@ -4,6 +4,8 @@ import flixel.system.FlxAssets.FlxShader;
 
 class Scanline extends FlxShader
 {
+	#if flash	public var lockAlpha:Dynamic = {};	#end
+
   @:glFragmentSource('
 		#pragma header
 		const float scale = 1.0;

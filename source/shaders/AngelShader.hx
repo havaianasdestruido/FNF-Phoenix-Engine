@@ -11,6 +11,8 @@ import backend.FlxFixedShader;
  */
 class AngelShader extends FlxFixedShader
 {
+	#if flash	public var stronk:Dynamic = {};	public var iTime:Dynamic = {};	public var pixel:Dynamic = {};	#end
+
   public var strength(get, set):Float;
   public var pixelSize(get, set):Float;
 

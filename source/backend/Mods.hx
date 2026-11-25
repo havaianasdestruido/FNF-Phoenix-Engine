@@ -2,6 +2,7 @@ package backend;
 
 import backend.CoolUtil;
 import haxe.Json;
+import openfl.utils.AssetType;
 
 class Mods
 {
@@ -116,8 +117,17 @@ class Mods
 		var foldersToCheck:Array<String> = [];
 		#if sys
 		if(FileSystem.exists(path + fileToFind))
-		#end
 			foldersToCheck.push(path + fileToFind);
+		#else
+		// Flash / HTML5 have no filesystem, so the probe above cannot apply: the
+		// entry point has to be the embedded asset library instead. Without this
+		// every `mergeAllTextsNamed()` caller (rating quotes, hit strings, ...)
+		// silently got an empty list because nothing could ever be found.
+		// `OpenFlAssets.exists()` is the same registry the rest of `Paths`
+		// resolves through.
+		if(OpenFlAssets.exists(path + fileToFind, AssetType.TEXT))
+			foldersToCheck.push(path + fileToFind);
+		#end
 
 		#if MODS_ALLOWED
 		if(mods)

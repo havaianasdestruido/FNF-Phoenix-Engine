@@ -26,6 +26,8 @@ import backend.FlxFixedShader;
  */
 class SilhouetteShader extends FlxFixedShader
 {
+	#if flash	public var uColor:Dynamic = {};	public var uAmount:Dynamic = {};	#end
+
 	@:glFragmentSource('
 	#pragma header
 
