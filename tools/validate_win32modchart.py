@@ -6,6 +6,11 @@ and of the modifier maths the script uses. It reports ease overlap on the same
 (percent, side), the displacement budget the player can ever see, leftover
 displacement between blocks, and the GDI call order.
 
+It then hands the folder's companion scripts (w32_bus, w32-desk, w32-chars,
+w32-play, w32-window) to tools/simulate_win32_scripts.py, which runs them the way
+the engine does -- one Lua state each -- and checks that every object, tween,
+filter, scroll-speed write and window-alpha write is undone again.
+
 Usage:  python3 tools/validate_win32modchart.py
 Requires lupa (``pip install lupa``); see docs/HAXE_LINUX.md for the venv recipe.
 """
@@ -15,7 +20,9 @@ import os
 import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # repo root
-LUA = os.path.join(ROOT, 'mods/win32modchart/data/win32modchart/win32modchart-erect.lua')
+DATA = os.path.join(ROOT, 'mods/win32modchart/data/win32modchart')
+LUA = os.path.join(DATA, 'win32modchart-erect.lua')
+COMPANIONS = ['w32_bus.lua', 'w32-desk.lua', 'w32-chars.lua', 'w32-play.lua', 'w32-window.lua']
 CHART = os.path.join(ROOT, 'mods/win32modchart/data/win32modchart/win32modchart-erect.json')
 
 # --- ModchartEase ------------------------------------------------------------
@@ -289,14 +296,20 @@ def main():
             if want != have:
                 print('        chart %s | script %s' % (want, have))
 
-    # 2b. The source gate. A finding closes the script before it ever runs.
-    findings = scan_source(LUA)
-    ok = not findings
-    print(('PASS  ' if ok else 'FAIL  ') + 'script passes ScriptSecurityScanner (%d findings)' % len(findings))
-    if not ok:
-        failures.append('security scanner')
-        for number, rule, snippet in findings:
-            print('        line %d [%s] %s' % (number, rule, snippet))
+    # 2b. The source gate. A finding closes the script before it ever runs, and
+    # it refuses the whole file, so every script in the folder has to pass.
+    total_findings = 0
+    for name in ['win32modchart-erect.lua'] + COMPANIONS:
+        path = os.path.join(DATA, name)
+        findings = scan_source(path)
+        total_findings += len(findings)
+        if findings:
+            failures.append('security scanner: %s' % name)
+            for number, rule, snippet in findings:
+                print('        %s line %d [%s] %s' % (name, number, rule, snippet))
+    ok = total_findings == 0
+    print(('PASS  ' if ok else 'FAIL  ') + 'all %d scripts pass ScriptSecurityScanner (%d findings)'
+          % (1 + len(COMPANIONS), total_findings))
     for extra in ('pack.json', 'weeks/win32modchart-week.json'):
         path = os.path.join(ROOT, 'mods', 'win32modchart', extra)
         with open(path, encoding='utf-8') as handle:
@@ -342,6 +355,59 @@ def main():
         failures.append('HUD climax banner')
     print('        HUD: %s' % texts)
     print('        HUD objects: %s' % {k: (v['x'], v['y'], v['width']) for k, v in objects.items()})
+
+    # 5b. The turn counter's table has to match the chart too.
+    bus_findings = lua_turns_in(os.path.join(DATA, 'w32_bus.lua'), 'TURN_BEATS')
+    chart_beats = [a * 4 for side, a, b in runs]
+    ok = bus_findings == chart_beats
+    print(('PASS  ' if ok else 'FAIL  ')
+          + 'Turn counter, from the chart\'s own hand-overs (%d turns)' % len(chart_beats))
+    if not ok:
+        failures.append('turn counter table')
+        print('        chart: %s' % chart_beats)
+        print('        bus:   %s' % bus_findings)
+
+    # 6. Companion scripts: run them, then require a clean teardown.
+    try:
+        from simulate_win32_scripts import run_all
+    except ImportError:
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        from simulate_win32_scripts import run_all
+
+    companion_failures = 0
+    scenarios = [
+        ('defaults', {}, True, True, False),
+        ('reduced motion', {'reducedMotion': True}, True, True, False),
+        ('flashing off', {'flashing': False}, True, True, False),
+        ('modchart variable off', {}, False, True, False),
+        ('no window support', {}, True, False, False),
+        ('aborted run, destroy only', {}, True, True, True),
+    ]
+    for label, prefs, modchart, window_supported, hard in scenarios:
+        report = run_all(prefs=prefs, modchart=modchart,
+                         window_supported=window_supported, hard_destroy=hard)
+        problems = []
+        if report['errors']:
+            problems.append('%d runtime errors' % len(report['errors']))
+        if report['leftovers']:
+            problems.append('leftovers: %s' % ', '.join(report['leftovers'][:4]))
+        if abs(report['speed_after_destroy'] - report['base_speed']) > 1e-6:
+            problems.append('songSpeed %.2f != %.2f' % (report['speed_after_destroy'],
+                                                        report['base_speed']))
+        if abs(report['alpha_after_destroy'] - 1.0) > 1e-6:
+            problems.append('window alpha %.2f' % report['alpha_after_destroy'])
+        ok = not problems
+        print(('PASS  ' if ok else 'FAIL  ') + 'companion scripts, %s (%s)'
+              % (label, 'clean' if ok else '; '.join(problems)))
+        if not ok:
+            companion_failures += 1
+            failures.append('companions: %s' % label)
+            for error in report['errors'][:3]:
+                print('        %s' % error)
+
+    ok = companion_failures == 0
+    print(('PASS  ' if ok else 'FAIL  ') + '%d companion scripts build, run and tear down'
+          % len(COMPANIONS))
 
     print()
     if failures:
@@ -395,6 +461,21 @@ def scan_source(path, language='lua'):
             if re.search(pattern, line, re.IGNORECASE):
                 findings.append((number, rule, line.strip()[:120]))
     return findings
+
+def lua_turns_in(path, name):
+    """Evaluate a `local <name> = { ... }` list of numbers out of a script."""
+    from lupa import LuaRuntime
+    with open(path, encoding='utf-8') as handle:
+        source = handle.read()
+    marker = 'local %s = {' % name
+    start = source.index(marker)
+    end = source.index('\n}', start) + 2
+    literal = source[start + len('local '):end]
+    lua = LuaRuntime(unpack_returned_tuples=True)
+    lua.execute(literal)
+    table = lua.globals()[name]
+    return [int(table[i]) for i in range(1, len(table) + 1)]
+
 
 def lua_turns():
     """Evaluate the script's own TURNS literal (it is a Lua local)."""
