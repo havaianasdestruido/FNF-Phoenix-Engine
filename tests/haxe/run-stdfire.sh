@@ -8,7 +8,7 @@ root="$PWD"
 work=$(mktemp -d)
 trap 'rm -rf "$work"' EXIT
 mkdir -p "$work/backend" "$work/psychlua" "$work/android/platform" "$work/ios/platform"
-cp source/backend/StdFire.hx source/backend/ScriptSecurityScanner.hx source/backend/ModSecurity.hx source/backend/ModHealth.hx "$work/backend/"
+cp source/backend/StdFire.hx source/backend/StdFireSelfTest.hx source/backend/ScriptSecurityScanner.hx source/backend/ModSecurity.hx source/backend/ModHealth.hx "$work/backend/"
 cp source/psychlua/StdFireLibrary.hx "$work/psychlua/"
 cp source/android/platform/AndroidStdFire.hx "$work/android/platform/"
 cp source/ios/platform/IOSStdFire.hx "$work/ios/platform/"
@@ -16,13 +16,19 @@ stubs="$root/tests/haxe/stubs/stdfire"
 
 "${HAXE:-haxe}" -cp "$work" -cp "$stubs" -cp tests/haxe -main StdFireSpec --interp
 "${HAXE:-haxe}" -cp "$work" -cp "$stubs" -cp tests/haxe -D android -main StdFireSpec --interp
+# The Super Secret Debug Menu page: automatic checks, no dialogs/toasts shown.
+"${HAXE:-haxe}" -cp "$work" -cp "$stubs" -cp tests/haxe -main StdFireSelfTestSpec --interp
+"${HAXE:-haxe}" -cp "$work" -cp "$stubs" -cp tests/haxe -D android -main StdFireSelfTestSpec --interp
 "${HAXE:-haxe}" -cp tests/haxe -main StdFireWiringSpec --interp
 "${HAXE:-haxe}" -cp "$work" -cp "$stubs" -cp tests/haxe -D html5 -main StdFireBrowserSpec -js "$work/browser.js"
 node "$work/browser.js"
+# Typecheck the page's html5 title path; its DOM assertions live in the browser spec.
+"${HAXE:-haxe}" -cp "$work" -cp "$stubs" -cp tests/haxe -D html5 -main StdFireSelfTestSpec -js "$work/selftest-browser.js"
 
 # Typecheck all native-specific branches, including the Win32 and UIKit bridges.
 for platform in windows linux mac android ios; do
   "${HAXE:-haxe}" -cp "$work" -cp "$stubs" -cp tests/haxe -D "$platform" -main StdFireSpec -cpp "$work/cpp-$platform" --no-output
+  "${HAXE:-haxe}" -cp "$work" -cp "$stubs" -cp tests/haxe -D "$platform" -main StdFireSelfTestSpec -cpp "$work/cpp-$platform-self-test" --no-output
 done
 
 if [[ -n "${HSCRIPT_PATH:-}" && -n "${HYTHON_PATH:-}" ]]; then
