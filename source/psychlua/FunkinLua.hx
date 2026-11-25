@@ -36,6 +36,7 @@ import psychlua.callbacks.ScriptCallbacks;
 import psychlua.callbacks.ShaderCallbacks;
 import psychlua.callbacks.SoundCallbacks;
 import psychlua.callbacks.SpriteCallbacks;
+import psychlua.callbacks.SystemCallbacks;
 import psychlua.callbacks.TextCallbacks;
 import psychlua.callbacks.TweenCallbacks;
 import psychlua.callbacks.WindowCallbacks;
@@ -380,6 +381,7 @@ class FunkinLua {
 	MiscCallbacks.register(this);
 
 	HardwareCallbacks.register(this);
+	SystemCallbacks.register(this);
 	WindowCallbacks.register(this);
 // 4th-wall-breaking ("META_HORROR") system effects (issue #94)
 	MetaHorrorCallbacks.register(this);

@@ -103,6 +103,8 @@ to that file. The scope is seeded with:
   have no runtime class).
 - Engine classes: `PlayState`, `Paths`, `Conductor`, `ClientPrefs`, `Character`,
   `Alphabet`, `CustomSubstate`, `Native` (+ the `getGPUName()`-style helpers),
+  `SystemInfo` (+ `getMonotonicSeconds()`, `getProcessCPUSeconds()`,
+  `getLogicalCPUCount()`, `getPageSize()`, `getTotalPhysicalMemory()`),
   `Achievements` and `DiscordClient` when those features are compiled in.
 - `Math`, `Std`, `StringTools`, `Type`, `Reflect` (the last two withheld from
   sandboxed mods), `debugPrint(...)`, and the shared-state trio

@@ -17,6 +17,7 @@ import objects.Character;
 import objects.Alphabet;
 import objects.AlphabetFont;
 import play.PlayState;
+import psychlua.callbacks.SystemCallbacks;
 
 /**
  * Standalone HScript file runner. Unlike `psychlua.HScript`, this does not
@@ -175,6 +176,7 @@ class HaxeScript
 		interp.variables.set('Type', Type);
 		interp.variables.set('Reflect', Reflect);
 		interp.variables.set('Native', Native);
+		SystemCallbacks.seedHScript(interp);
 		interp.variables.set('Function_Stop', StateScripts.Function_Stop);
 		interp.variables.set('Function_Continue', StateScripts.Function_Continue);
 
@@ -225,6 +227,11 @@ class HaxeScript
 
 				var resolved:Class<Dynamic> = Type.resolveClass(str + libName);
 				if (resolved == null) resolved = LuaUtils.resolveClassCompat(libName);
+				if (resolved == null && libName == 'SystemInfo' && (libPackage == null || libPackage == '' || libPackage == 'debug.system'))
+				{
+					interp.variables.set(libName, SystemCallbacks.createSystemInfoObject());
+					return;
+				}
 				// The compatibility fallback can resolve a different package from
 				// the one requested, so check the actual class before exposing it.
 				if (resolved != null && !allowClassAccess(Type.getClassName(resolved))) return;

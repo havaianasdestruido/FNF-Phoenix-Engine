@@ -37,6 +37,22 @@ native-only metrics (one for CPU count). No extra libraries are required.
 These utilities are opt-in; they do not change the FPS display or sample in the
 background.
 
+Softmodding scripts (Lua, Python, HScript and `data/states/*.hx` state scripts)
+receive the same five read-only queries through `psychlua.callbacks.SystemCallbacks`
+and `psychlua.pystdlib.PySystemLib`:
+
+| Softmod function | `SystemInfo` method | Notes |
+| --- | --- | --- |
+| `getMonotonicSeconds()` | `SystemInfo.monotonicSeconds()` | Elapsed clock seconds (use differences) |
+| `getProcessCPUSeconds()` | `SystemInfo.processCPUSeconds()` | Process user + kernel CPU seconds |
+| `getLogicalCPUCount()` | `SystemInfo.logicalCPUCount()` | Online logical processors (`>= 1`) |
+| `getPageSize()` | `SystemInfo.pageSize()` | OS memory page size in bytes as a float (`0` if unavailable) |
+| `getTotalPhysicalMemory()` | `SystemInfo.totalPhysicalMemory()` | Host physical RAM in bytes as a float (`0` if unavailable) |
+
+In HScript and scripted states, both the flat `get*()` helpers and the `SystemInfo`
+namespace object are pre-seeded in scope (so no `import` is needed even when
+sandboxed or on C++ where `debug.system.SystemInfo` is an `extern class`).
+
 Standalone Linux C/C++ smoke tests (no engine dependencies):
 
 ```sh
