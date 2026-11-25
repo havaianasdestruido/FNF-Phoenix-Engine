@@ -2,7 +2,9 @@ package backend;
 
 import backend.CoolUtil;
 import haxe.Json;
+#if !sys
 import openfl.utils.AssetType;
+#end
 
 class Mods
 {
