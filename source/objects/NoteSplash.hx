@@ -80,10 +80,13 @@ class NoteSplash extends FlxSprite
 		var maxFps:Int = 26;
 		if(config != null)
 		{
-			var animID:Int = direction + ((animNum - 1) * Note.colArray.length);
-			var offs:Array<Float> = config.offsets[FlxMath.wrap(animID, 0, config.offsets.length-1)];
-			offset.x += offs[0];
-			offset.y += offs[1];
+			if (config.offsets != null && config.offsets.length > 0)
+			{
+				var animID:Int = direction + ((animNum - 1) * Note.colArray.length);
+				var offs:Array<Float> = config.offsets[FlxMath.wrap(animID, 0, config.offsets.length-1)];
+				offset.x += offs[0];
+				offset.y += offs[1];
+			}
 			minFps = config.minFps;
 			maxFps = config.maxFps;
 		}

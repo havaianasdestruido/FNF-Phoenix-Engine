@@ -298,7 +298,7 @@ class FlxGame extends Sprite
 		FlxG.updateFramerate = updateFramerate;
 		FlxG.drawFramerate = drawFramerate;
 		_accumulator = _stepMS;
-		_startCounter = System.getPerformanceCounter();
+		_startCounter = getRawTime();
 		_skipSplash = skipSplash;
 
 		// Script-level ("global") filters start empty, like a camera's.
@@ -862,16 +862,40 @@ class FlxGame extends Sprite
 		return getTimer() - _startTime;
 	}
 
+	static inline function getRawTime():Float
+	{
+		#if (js && html5)
+		if (js.Browser.supported && js.Browser.window != null && js.Browser.window.performance != null)
+			return js.Browser.window.performance.now();
+		return Lib.getTimer();
+		#elseif flash
+		return flash.Lib.getTimer();
+		#elseif (lime_cffi && !macro)
+		final frequency:Float = System.getPerformanceFrequency();
+		if (frequency > 0)
+			return System.getPerformanceCounter();
+		return Lib.getTimer();
+		#else
+		return Lib.getTimer();
+		#end
+	}
+
 	dynamic function getTimer():Float
 	{
-		// Flash has no lime_cffi, so lime's performance counter and frequency
-		// are both 0 and the expression above is 0/0 = NaN, which poisons
-		// every frame delta. Use flash.Lib.getTimer() (ms since app start)
-		// like the JS target does.
-		#if flash
+		// Non-lime_cffi targets (HTML5, Flash, AIR) return 0 from Lime's
+		// performance counter and frequency, which would evaluate 0 / 0 = NaN
+		// and freeze every frame delta.
+		#if (js && html5)
+		return getRawTime() - _startCounter;
+		#elseif flash
 		return flash.Lib.getTimer();
+		#elseif (lime_cffi && !macro)
+		final frequency:Float = System.getPerformanceFrequency();
+		if (frequency > 0)
+			return ((System.getPerformanceCounter() - _startCounter) / frequency) * 1000;
+		return Lib.getTimer() - _startCounter;
 		#else
-		return ((System.getPerformanceCounter() - _startCounter) / System.getPerformanceFrequency()) * 1000;
+		return Lib.getTimer() - _startCounter;
 		#end
 	}
 }

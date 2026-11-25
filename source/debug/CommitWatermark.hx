@@ -229,7 +229,9 @@ class CommitWatermark extends Sprite
       final url:String = RuntimeFlags.url('urls.compareApi', PhoenixVersion.COMPARE_API_URL) + sha;
       final http:Http = new Http(url);
       http.setHeader('Accept', 'application/vnd.github+json');
+      #if !(js && html5)
       http.setHeader('User-Agent', 'Phoenix-Engine-Commit-Watermark');
+      #end
       http.setHeader('X-GitHub-Api-Version', '2022-11-28');
       #if sys
       http.cnxTimeout = 10;

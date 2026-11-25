@@ -397,6 +397,14 @@ class CoolUtilSpec
 		equalArray(CoolUtil.coolTextFile('mods/list.txt'),
 			['alpha', 'beta', '', 'gamma'], 'lines are trimmed, empties preserved, trailing newline ignored');
 
+		Assets.reset();
+		Assets.scriptedMap = [
+			'shared:assets/shared/images/noteSplashes/noteSplashes.txt' => 'note splash\n22 26\n0 0'
+		];
+		equalArray(CoolUtil.coolTextFile('assets/shared/images/noteSplashes/noteSplashes.txt'),
+			['note splash', '22 26', '0 0'],
+			'unprefixed assets/<lib>/ paths resolve through the OpenFL <lib>: library prefix on web/non-mod builds');
+
 		resetAssets();
 	}
 
