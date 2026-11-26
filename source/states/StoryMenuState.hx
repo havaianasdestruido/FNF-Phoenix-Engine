@@ -12,6 +12,7 @@ import backend.WeekData;
 import data.Song;
 import flixel.graphics.FlxGraphic;
 import flixel.group.FlxGroup;
+import flixel.text.FlxText.FlxTextBorderStyle;
 import lime.net.curl.CURLCode;
 import objects.MenuCharacter;
 import objects.MenuItem;
@@ -49,6 +50,7 @@ class StoryMenuState extends MusicBeatState
 
 	var difficultySelectors:FlxGroup;
 	var sprDifficulty:FlxSprite;
+	var txtDifficulty:FlxText;
 	var leftArrow:FlxSprite;
 	var rightArrow:FlxSprite;
 
@@ -195,6 +197,13 @@ class StoryMenuState extends MusicBeatState
 		sprDifficulty = new FlxSprite(0, leftArrow.y);
 		sprDifficulty.antialiasing = ClientPrefs.globalAntialiasing;
 		difficultySelectors.add(sprDifficulty);
+
+		txtDifficulty = new FlxText(leftArrow.x + 60, leftArrow.y + 15, 308, '', 32);
+		txtDifficulty.setFormat(Paths.font("vcr.ttf"), 32, FlxColor.WHITE, CENTER, FlxTextBorderStyle.OUTLINE, FlxColor.BLACK);
+		txtDifficulty.borderSize = 2;
+		txtDifficulty.antialiasing = ClientPrefs.globalAntialiasing;
+		txtDifficulty.visible = false;
+		difficultySelectors.add(txtDifficulty);
 
 		rightArrow = new FlxSprite(leftArrow.x + 376, leftArrow.y);
 		rightArrow.frames = ui_tex;
@@ -414,16 +423,41 @@ class StoryMenuState extends MusicBeatState
 		var newImage:FlxGraphic = Paths.image('menudifficulties/' + Paths.formatToSongPath(diff));
 		//trace(Paths.currentModDirectory + ', menudifficulties/' + Paths.formatToSongPath(diff));
 
-		if(sprDifficulty.graphic != newImage)
+		var displayObject:FlxSprite = sprDifficulty;
+		var shouldUpdate:Bool = false;
+		if (newImage != null)
 		{
-			sprDifficulty.loadGraphic(newImage);
-			sprDifficulty.x = leftArrow.x + 60;
-			sprDifficulty.x += (308 - sprDifficulty.width) / 3;
-			sprDifficulty.alpha = 0;
-			sprDifficulty.y = leftArrow.y - 15;
+			txtDifficulty.visible = false;
+			sprDifficulty.visible = true;
+			shouldUpdate = sprDifficulty.graphic != newImage;
+			if (shouldUpdate)
+			{
+				sprDifficulty.loadGraphic(newImage);
+				sprDifficulty.x = leftArrow.x + 60;
+				sprDifficulty.x += (308 - sprDifficulty.width) / 3;
+			}
+			displayObject = sprDifficulty;
+		}
+		else
+		{
+			sprDifficulty.visible = false;
+			txtDifficulty.visible = true;
+			shouldUpdate = txtDifficulty.text != diff.toUpperCase();
+			if (shouldUpdate)
+			{
+				txtDifficulty.text = diff.toUpperCase();
+				txtDifficulty.x = leftArrow.x + 60;
+			}
+			displayObject = txtDifficulty;
+		}
+
+		if (shouldUpdate)
+		{
+			displayObject.alpha = 0;
+			displayObject.y = leftArrow.y - 15;
 
 			if(tweenDifficulty != null) tweenDifficulty.cancel();
-			tweenDifficulty = FlxTween.tween(sprDifficulty, {y: leftArrow.y + 15, alpha: 1}, 0.07, {onComplete: function(twn:FlxTween)
+			tweenDifficulty = FlxTween.tween(displayObject, {y: leftArrow.y + 15, alpha: 1}, 0.07, {onComplete: function(twn:FlxTween)
 			{
 				tweenDifficulty = null;
 			}});
@@ -511,7 +545,7 @@ class StoryMenuState extends MusicBeatState
 
 		if(CoolUtil.difficulties.contains(CoolUtil.defaultDifficulty))
 		{
-			curDifficulty = Math.round(Math.max(0, CoolUtil.defaultDifficulties.indexOf(CoolUtil.defaultDifficulty)));
+			curDifficulty = Math.round(Math.max(0, CoolUtil.difficulties.indexOf(CoolUtil.defaultDifficulty)));
 		}
 		else
 		{
@@ -528,6 +562,16 @@ class StoryMenuState extends MusicBeatState
 			CoolUtil.difficulties.push('jshard');
 
 		// A story difficulty must have a chart for every song in the week.
+		for (difficulty in ['Erect', 'Nightmare'])
+		{
+			var hasAllCharts:Bool = WeekData.getCurrentWeek().songs.length > 0;
+			for (song in WeekData.getCurrentWeek().songs)
+				if (!Song.hasDifficulty(song[0], difficulty))
+				{ hasAllCharts = false; break; }
+			if (hasAllCharts && !CoolUtil.difficulties.contains(difficulty) && !CoolUtil.difficulties.contains(difficulty.toLowerCase()))
+				CoolUtil.difficulties.push(difficulty);
+		}
+
 		for (difficulty in ['Noob', 'Expert', 'Insane'])
 		{
 			var hasAllCharts:Bool = WeekData.getCurrentWeek().songs.length > 0;

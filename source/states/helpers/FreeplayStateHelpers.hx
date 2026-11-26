@@ -276,7 +276,7 @@ class FreeplayStateHelpers
 
 		if(CoolUtil.difficulties.contains(CoolUtil.defaultDifficulty))
 		{
-			state.curDifficulty = Math.round(Math.max(0, CoolUtil.defaultDifficulties.indexOf(CoolUtil.defaultDifficulty)));
+			state.curDifficulty = Math.round(Math.max(0, CoolUtil.difficulties.indexOf(CoolUtil.defaultDifficulty)));
 		}
 		else
 		{
@@ -286,10 +286,13 @@ class FreeplayStateHelpers
 		if (Song.hasDifficulty(state.songs[FreeplayState.curSelected].songName.toLowerCase(), 'jshard') && ClientPrefs.JSEngineRecharts)
 			CoolUtil.difficulties.push('jshard');
 
-		if (CoolUtil.defaultSongs.contains(state.songs[FreeplayState.curSelected].songName.toLowerCase()) && Song.hasDifficulty(state.songs[FreeplayState.curSelected].songName.toLowerCase(), 'erect'))
+		if (Song.hasDifficulty(state.songs[FreeplayState.curSelected].songName.toLowerCase(), 'erect'))
 		{
-			CoolUtil.difficulties.push('erect');
-			CoolUtil.difficulties.push('nightmare');
+			if (!CoolUtil.difficulties.contains('Erect') && !CoolUtil.difficulties.contains('erect'))
+				CoolUtil.difficulties.push('Erect');
+			if (Song.hasDifficulty(state.songs[FreeplayState.curSelected].songName.toLowerCase(), 'nightmare')
+				&& !CoolUtil.difficulties.contains('Nightmare') && !CoolUtil.difficulties.contains('nightmare'))
+				CoolUtil.difficulties.push('Nightmare');
 		}
 
 		if (state.songs[FreeplayState.curSelected].songName.toLowerCase() == 'darnell')
@@ -318,8 +321,6 @@ class FreeplayStateHelpers
 		// Nothing to select: the filter hid every song (see `regenList`).
 		if (state.songs.length == 0) return;
 
-		prepareDifficulties(state);
-
 		if(playSound) FlxG.sound.play(Paths.sound('scrollMenu'), 0.4);
 
 		FreeplayState.curSelected += change;
@@ -328,6 +329,11 @@ class FreeplayStateHelpers
 			FreeplayState.curSelected = state.songs.length - 1;
 		if (FreeplayState.curSelected >= state.songs.length)
 			FreeplayState.curSelected = 0;
+
+		Mods.currentModDirectory = state.songs[FreeplayState.curSelected].folder;
+		PlayState.storyWeek = state.songs[FreeplayState.curSelected].week;
+
+		prepareDifficulties(state);
 
 		var newColor:Int = state.songs[FreeplayState.curSelected].color;
 		if(newColor != state.intendedColor) {
@@ -369,8 +375,6 @@ class FreeplayStateHelpers
 			}
 		}
 
-		Mods.currentModDirectory = state.songs[FreeplayState.curSelected].folder;
-		PlayState.storyWeek = state.songs[FreeplayState.curSelected].week;
 		state.updateFreeplayDisc(state.songs[FreeplayState.curSelected].songCharacter);
 		state.updateFavouriteText();
 
