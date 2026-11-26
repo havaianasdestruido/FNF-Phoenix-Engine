@@ -177,3 +177,57 @@ python3 tools/platform_icon_preview.py --out /tmp/badges.png --background 1a1a1a
 Rendering needs [Pillow](https://pypi.org/project/Pillow/) (`pip install Pillow`);
 the parser underneath is plain stdlib. The generated sheet is scratch output -
 don't commit it. See `docs/PLATFORM_ICONS.md` for the feature itself.
+
+## Modchart mod validator (`validate_win32modchart.py`)
+
+Checks the bundled `mods/win32modchart/` example without a Haxe toolchain. It
+runs the real song script against a Python port of `ModchartEvent`,
+`ModchartEventManager` and `PercentStore`, and of the modifier maths
+(`Transform`, `Rotate`, `Invert`, `Scale`, `Zoom`, `Drunk`, `SawTooth`,
+`Bounce`), then reports:
+
+- the chart metadata and that the script's turn table matches the chart's real
+  hand-overs,
+- `ScriptSecurityScanner` findings (the sandbox source gate),
+- the displacement budget the player can ever see, leftover displacement on
+  block boundaries, and overlapping eases on one percent,
+- the GDI teardown (every effect enabled is later disabled and unregistered),
+- the final HUD state,
+- and the five companion scripts (`w32_bus`, `w32-desk`, `w32-chars`,
+  `w32-play`, `w32-window`) through `simulate_win32_scripts.py`, described below.
+
+Requires [`lupa`](https://pypi.org/project/lupa/):
+
+```sh
+python3 -m venv /tmp/v && /tmp/v/bin/pip install lupa
+/tmp/v/bin/python tools/validate_win32modchart.py
+```
+
+## Companion script simulator (`simulate_win32_scripts.py`)
+
+Runs the song folder's helper scripts the way the engine does: **one Lua state
+per file**, with the engine's callbacks stubbed at their real signatures. It
+drives a whole song (104 sections, 416 beats, a combo run, misses, a sustain, a
+pause, a resume, an end) and audits what is left over:
+
+- no runtime errors across six scenarios (defaults, reduced motion, flashing
+  off, `modchart` off, no window support, `onDestroy`-only),
+- every sprite, text, tween and camera filter removed,
+- `songSpeed` and the window alpha restored — after the song *and* after a hard
+  destroy that skips `onEndSong`,
+- the window dim stays visible but under the flash budget, and is not written at
+  all when flashing is off,
+- HUD rectangles do not overlap the engine's time/health/score text or the
+  modchart's own five lines, in both scroll directions,
+- mutation checks: removing the sprite teardown, the speed restore or the window
+  restore each fails the audit, so a green run cannot be vacuous.
+
+```sh
+/tmp/v/bin/python tools/simulate_win32_scripts.py
+```
+
+It is imported by `validate_win32modchart.py`, so the main entry point runs both.
+
+Inside the engine, the equivalent checks run from a Windows build; this tool is
+the offline stand-in, so it also guards the mod against regressions in CI-less
+environments.

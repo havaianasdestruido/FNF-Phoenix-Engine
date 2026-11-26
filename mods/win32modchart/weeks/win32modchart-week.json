@@ -1,0 +1,19 @@
+{
+  "songs": [
+    ["WIN32MODCHART", "dad", [200, 255, 122]]
+  ],
+  "weekCharacters": [
+    "dad",
+    "bf",
+    "gf"
+  ],
+  "weekBackground": "stage",
+  "weekBefore": "tutorial",
+  "storyName": "WIN32 Modchart",
+  "weekName": "WIN32 Modchart",
+  "freeplayColor": [200, 255, 122],
+  "startUnlocked": true,
+  "hideStoryMode": true,
+  "hideFreeplay": false,
+  "difficulties": "Normal,Erect"
+}
